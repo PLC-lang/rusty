@@ -532,3 +532,248 @@ fn action_with_var_temp() {
     !31 = !DILocation(line: 18, column: 12, scope: !26)
     "#);
 }
+
+#[test]
+fn nested_array_struct_sizes() {
+    let result = codegen(
+        "
+TYPE struct_ : STRUCT
+        inner: inner;
+        inner_arr: ARRAY[0..2] OF inner;
+        s : STRING := 'Hello';
+        b : BOOL := TRUE;
+        r : REAL := 3.1415;
+        arr: ARRAY[0..2] OF STRING := ['aa', 'bb', 'cc'];
+        i : INT := 42;
+    END_STRUCT
+END_TYPE
+
+TYPE inner : STRUCT
+        s : STRING := 'Hello';
+        b : BOOL := TRUE;
+        r : REAL := 3.1415;
+        arr: ARRAY[0..2] OF STRING := ['aaaa', 'bbbb', 'cccc'];
+        i : INT := 42;
+    END_STRUCT
+END_TYPE
+
+FUNCTION main
+VAR
+    st: struct_;
+    s : STRING;
+    b : BOOL;
+    arr: ARRAY[0..2] OF STRING;
+    i : INT;
+END_VAR
+
+
+    s := st.s;
+    s := st.inner.s;
+    b := st.b;
+    b := st.inner.b;
+    arr := st.arr;
+    arr := st.inner.arr;
+    i := st.i;
+    i := st.inner.i;
+    // arr := ['', '', ''];
+    arr[0] := st.arr[0];
+    arr[1] := st.inner.arr[1];
+    arr[2] := st.inner.arr[2];
+
+END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %struct_ = type { %inner, [3 x %inner], [81 x i8], i8, float, [3 x [81 x i8]], i16 }
+    %inner = type { [81 x i8], i8, float, [3 x [81 x i8]], i16 }
+
+    @__struct___init = constant %struct_ { %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, [3 x %inner] zeroinitializer, [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !0
+    @__inner__init = constant %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !30
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @main() !dbg !36 {
+    entry:
+      %st = alloca %struct_, align 8
+      %s = alloca [81 x i8], align 1
+      %b = alloca i8, align 1
+      %arr = alloca [3 x [81 x i8]], align 1
+      %i = alloca i16, align 2
+      call void @llvm.dbg.declare(metadata %struct_* %st, metadata !40, metadata !DIExpression()), !dbg !41
+      %0 = bitcast %struct_* %st to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%struct_, %struct_* @__struct___init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%struct_* getelementptr (%struct_, %struct_* null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !42, metadata !DIExpression()), !dbg !43
+      %1 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata i8* %b, metadata !44, metadata !DIExpression()), !dbg !45
+      store i8 0, i8* %b, align 1
+      call void @llvm.dbg.declare(metadata [3 x [81 x i8]]* %arr, metadata !46, metadata !DIExpression()), !dbg !47
+      %2 = bitcast [3 x [81 x i8]]* %arr to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata i16* %i, metadata !48, metadata !DIExpression()), !dbg !49
+      store i16 0, i16* %i, align 2
+      call void @__init_struct_(%struct_* %st), !dbg !50
+      %s1 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 2, !dbg !51
+      %3 = bitcast [81 x i8]* %s to i8*, !dbg !51
+      %4 = bitcast [81 x i8]* %s1 to i8*, !dbg !51
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false), !dbg !51
+      %inner = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !52
+      %s2 = getelementptr inbounds %inner, %inner* %inner, i32 0, i32 0, !dbg !52
+      %5 = bitcast [81 x i8]* %s to i8*, !dbg !52
+      %6 = bitcast [81 x i8]* %s2 to i8*, !dbg !52
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 80, i1 false), !dbg !52
+      %b3 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 3, !dbg !53
+      %load_b = load i8, i8* %b3, align 1, !dbg !53
+      store i8 %load_b, i8* %b, align 1, !dbg !53
+      %inner4 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !54
+      %b5 = getelementptr inbounds %inner, %inner* %inner4, i32 0, i32 1, !dbg !54
+      %load_b6 = load i8, i8* %b5, align 1, !dbg !54
+      store i8 %load_b6, i8* %b, align 1, !dbg !54
+      %arr7 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !55
+      %7 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !55
+      %8 = bitcast [3 x [81 x i8]]* %arr7 to i8*, !dbg !55
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !55
+      %inner8 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !56
+      %arr9 = getelementptr inbounds %inner, %inner* %inner8, i32 0, i32 3, !dbg !56
+      %9 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !56
+      %10 = bitcast [3 x [81 x i8]]* %arr9 to i8*, !dbg !56
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !56
+      %i10 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 6, !dbg !57
+      %load_i = load i16, i16* %i10, align 2, !dbg !57
+      store i16 %load_i, i16* %i, align 2, !dbg !57
+      %inner11 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !58
+      %i12 = getelementptr inbounds %inner, %inner* %inner11, i32 0, i32 4, !dbg !58
+      %load_i13 = load i16, i16* %i12, align 2, !dbg !58
+      store i16 %load_i13, i16* %i, align 2, !dbg !58
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 0, !dbg !59
+      %arr14 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !59
+      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr14, i32 0, i32 0, !dbg !59
+      %11 = bitcast [81 x i8]* %tmpVar to i8*, !dbg !59
+      %12 = bitcast [81 x i8]* %tmpVar15 to i8*, !dbg !59
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false), !dbg !59
+      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 1, !dbg !60
+      %inner17 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !60
+      %arr18 = getelementptr inbounds %inner, %inner* %inner17, i32 0, i32 3, !dbg !60
+      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr18, i32 0, i32 1, !dbg !60
+      %13 = bitcast [81 x i8]* %tmpVar16 to i8*, !dbg !60
+      %14 = bitcast [81 x i8]* %tmpVar19 to i8*, !dbg !60
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 80, i1 false), !dbg !60
+      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 2, !dbg !61
+      %inner21 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !61
+      %arr22 = getelementptr inbounds %inner, %inner* %inner21, i32 0, i32 3, !dbg !61
+      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr22, i32 0, i32 2, !dbg !61
+      %15 = bitcast [81 x i8]* %tmpVar20 to i8*, !dbg !61
+      %16 = bitcast [81 x i8]* %tmpVar23 to i8*, !dbg !61
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %15, i8* align 1 %16, i32 80, i1 false), !dbg !61
+      ret void, !dbg !62
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+
+    define void @__init_struct_(%struct_* %0) {
+    entry:
+      %self = alloca %struct_*, align 8
+      store %struct_* %0, %struct_** %self, align 8
+      %deref = load %struct_*, %struct_** %self, align 8
+      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
+      call void @__init_inner(%inner* %inner)
+      ret void
+    }
+
+    define void @__init_inner(%inner* %0) {
+    entry:
+      %self = alloca %inner*, align 8
+      store %inner* %0, %inner** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #1 = { argmemonly nofree nounwind willreturn }
+    attributes #2 = { argmemonly nofree nounwind willreturn writeonly }
+
+    !llvm.module.flags = !{!32, !33}
+    !llvm.dbg.cu = !{!34}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "__struct___init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "struct_", scope: !2, file: !2, line: 2, size: 13440, flags: DIFlagPublic, elements: !4, identifier: "struct_")
+    !4 = !{!5, !23, !25, !26, !27, !28, !29}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "inner", scope: !2, file: !2, line: 3, baseType: !6, size: 2688, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "inner", scope: !2, file: !2, line: 13, size: 2688, flags: DIFlagPublic, elements: !7, identifier: "inner")
+    !7 = !{!8, !13, !15, !17, !21}
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 14, baseType: !9, size: 648, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, elements: !11)
+    !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !11 = !{!12}
+    !12 = !DISubrange(count: 81, lowerBound: 0)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 15, baseType: !14, size: 8, offset: 648, flags: DIFlagPublic)
+    !14 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 16, baseType: !16, size: 32, offset: 672, flags: DIFlagPublic)
+    !16 = !DIBasicType(name: "REAL", size: 32, encoding: DW_ATE_float, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 17, baseType: !18, size: 1944, offset: 704, flags: DIFlagPublic)
+    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 1944, elements: !19)
+    !19 = !{!20}
+    !20 = !DISubrange(count: 3, lowerBound: 0)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 18, baseType: !22, size: 16, offset: 2656, flags: DIFlagPublic)
+    !22 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !23 = !DIDerivedType(tag: DW_TAG_member, name: "inner_arr", scope: !2, file: !2, line: 4, baseType: !24, size: 8064, offset: 2688, flags: DIFlagPublic)
+    !24 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 8064, elements: !19)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 5, baseType: !9, size: 648, offset: 10752, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 6, baseType: !14, size: 8, offset: 11400, flags: DIFlagPublic)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 7, baseType: !16, size: 32, offset: 11424, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 8, baseType: !18, size: 1944, offset: 11456, flags: DIFlagPublic)
+    !29 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 9, baseType: !22, size: 16, offset: 13408, flags: DIFlagPublic)
+    !30 = !DIGlobalVariableExpression(var: !31, expr: !DIExpression())
+    !31 = distinct !DIGlobalVariable(name: "__inner__init", scope: !2, file: !2, line: 13, type: !6, isLocal: false, isDefinition: true)
+    !32 = !{i32 2, !"Dwarf Version", i32 5}
+    !33 = !{i32 2, !"Debug Info Version", i32 3}
+    !34 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !35, splitDebugInlining: false)
+    !35 = !{!0, !30}
+    !36 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !37, scopeLine: 22, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !34, retainedNodes: !39)
+    !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
+    !38 = !{null}
+    !39 = !{}
+    !40 = !DILocalVariable(name: "st", scope: !36, file: !2, line: 24, type: !3)
+    !41 = !DILocation(line: 24, column: 4, scope: !36)
+    !42 = !DILocalVariable(name: "s", scope: !36, file: !2, line: 25, type: !9)
+    !43 = !DILocation(line: 25, column: 4, scope: !36)
+    !44 = !DILocalVariable(name: "b", scope: !36, file: !2, line: 26, type: !14)
+    !45 = !DILocation(line: 26, column: 4, scope: !36)
+    !46 = !DILocalVariable(name: "arr", scope: !36, file: !2, line: 27, type: !18)
+    !47 = !DILocation(line: 27, column: 4, scope: !36)
+    !48 = !DILocalVariable(name: "i", scope: !36, file: !2, line: 28, type: !22)
+    !49 = !DILocation(line: 28, column: 4, scope: !36)
+    !50 = !DILocation(line: 0, scope: !36)
+    !51 = !DILocation(line: 32, column: 4, scope: !36)
+    !52 = !DILocation(line: 33, column: 4, scope: !36)
+    !53 = !DILocation(line: 34, column: 4, scope: !36)
+    !54 = !DILocation(line: 35, column: 4, scope: !36)
+    !55 = !DILocation(line: 36, column: 4, scope: !36)
+    !56 = !DILocation(line: 37, column: 4, scope: !36)
+    !57 = !DILocation(line: 38, column: 4, scope: !36)
+    !58 = !DILocation(line: 39, column: 4, scope: !36)
+    !59 = !DILocation(line: 41, column: 4, scope: !36)
+    !60 = !DILocation(line: 42, column: 4, scope: !36)
+    !61 = !DILocation(line: 43, column: 4, scope: !36)
+    !62 = !DILocation(line: 45, scope: !36)
+    "###);
+}
