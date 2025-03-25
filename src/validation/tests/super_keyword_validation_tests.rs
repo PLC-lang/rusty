@@ -261,3 +261,35 @@ fn super_keyword_used_in_non_extendable_pous_is_an_error() {
        │             ^^^^^ `SUPER` can only be used in POUs that extend another POU
     ");
 }
+
+#[test]
+fn super_keyword_is_not_assignable() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        FUNCTION_BLOCK parent
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            super_inst: parent;
+            super_ptr: REF_TO parent;
+        END_VAR
+            SUPER^ := super_inst;
+            SUPER := super_ptr;
+        END_FUNCTION_BLOCK
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E050]: Expression SUPER is not assignable.
+      ┌─ <internal>:9:13
+      │
+    9 │             SUPER^ := super_inst;
+      │             ^^^^^ Expression SUPER is not assignable.
+
+    error[E050]: Expression SUPER is not assignable.
+       ┌─ <internal>:10:13
+       │
+    10 │             SUPER := super_ptr;
+       │             ^^^^^ Expression SUPER is not assignable.
+    ");
+}

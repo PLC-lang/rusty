@@ -377,7 +377,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             )
         } else {
             // If the super statement is not dereferenced, we need to bitcast the base-class instance
-            create_call_statement("REF", &base_type_name, None, self.provider().clone(), &node.location)
+            create_call_statement("REF", &base_type_name, None, self.provider().clone(), &location)
                 .with_metadata(old_node.into())
         };
 
