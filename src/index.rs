@@ -1389,7 +1389,7 @@ impl Index {
         &self,
         container_name: &str,
         variable_name: &str,
-        seen: &mut FxHashSet<String>
+        seen: &mut FxHashSet<String>,
     ) -> Option<&VariableIndexEntry> {
         self.type_index
             .find_type(container_name)
