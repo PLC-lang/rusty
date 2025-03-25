@@ -60,7 +60,7 @@ impl TimerParams {
 
     fn is_in_preset_range(&self) -> bool {
         let duration = Duration::from_nanos(self.preset_time as u64);
-        self.get_run_time().map_or(false, |it| it <= duration)
+        self.get_run_time().is_some_and(|it| it <= duration)
     }
 
     fn get_run_time(&self) -> Option<Duration> {

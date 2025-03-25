@@ -44,7 +44,6 @@ DataType {
         source: Pou(
             Method {
                 parent: "fb",
-                property: None,
                 declaration_kind: Concrete,
             },
         ),

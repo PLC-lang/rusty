@@ -1,6 +1,7 @@
 ---
 source: src/parser/tests/expressions_parser_tests.rs
 expression: result
+snapshot_kind: text
 ---
 CompilationUnit {
     global_vars: [],
@@ -182,5 +183,4 @@ CompilationUnit {
     file: File(
         "test.st",
     ),
-    properties: [],
 }

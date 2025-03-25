@@ -1,6 +1,7 @@
 ---
 source: compiler/plc_xml/src/xml_parser/control.rs
 expression: ast
+snapshot_kind: text
 ---
 CompilationUnit {
     global_vars: [],
@@ -104,5 +105,4 @@ CompilationUnit {
     file: File(
         "<internal>",
     ),
-    properties: [],
 }
