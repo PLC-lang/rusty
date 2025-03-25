@@ -20,7 +20,7 @@
 <span class="kw">impl </span>PipelineParticipant <span class="kw">for </span>ParticipantValidator {
     <span class="kw">fn </span>pre_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, project: <span class="kw-2">&amp;</span>ParsedProject) {
         <span class="kw">for </span>unit <span class="kw">in </span><span class="kw-2">&amp;</span>project.units {
-            <span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
+            <span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.pous {
                 <span class="self">self</span>.validate_properties(pou);
             }
         }

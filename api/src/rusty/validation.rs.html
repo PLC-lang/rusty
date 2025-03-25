@@ -453,7 +453,7 @@
     <span class="kw">pub fn </span>visit_unit&lt;T: AnnotationMap&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>T, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
         <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
         <span class="comment">// Validate POU and declared Variables
-        </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.units {
+        </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.pous {
             <span class="kw">let </span>context = context.with_qualifier(pou.name.as_str());
 
             visit_pou(<span class="self">self</span>, pou, <span class="kw-2">&amp;</span>context);

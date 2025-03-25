@@ -1674,7 +1674,7 @@
         };
         lowerer.visit_compilation_unit(<span class="kw-2">&amp;mut </span>unit);
         lowerer.index.replace(index_unit_with_id(<span class="kw-2">&amp;</span>unit, id_provider.clone()));
-        <span class="macro">assert_debug_snapshot!</span>(unit.units[<span class="number">0</span>]);
+        <span class="macro">assert_debug_snapshot!</span>(unit.pous[<span class="number">0</span>]);
         <span class="macro">assert_debug_snapshot!</span>(lowerer.index.unwrap().find_pou_type(<span class="string">"complexType"</span>).unwrap());
     }
 
@@ -1701,7 +1701,7 @@
 
         lowerer.visit_compilation_unit(<span class="kw-2">&amp;mut </span>unit);
         lowerer.index.replace(index_unit_with_id(<span class="kw-2">&amp;</span>unit, id_provider.clone()));
-        <span class="macro">assert_debug_snapshot!</span>(unit.units[<span class="number">1</span>]);
+        <span class="macro">assert_debug_snapshot!</span>(unit.pous[<span class="number">1</span>]);
         <span class="macro">assert_debug_snapshot!</span>(lowerer.index.unwrap().find_pou_type(<span class="string">"fb.complexMethod"</span>).unwrap());
     }
 

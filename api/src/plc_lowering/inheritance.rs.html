@@ -2824,7 +2824,7 @@
         </span>.into();
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
-        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">1</span>];
+        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().pous[<span class="number">1</span>];
         <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "bar",
@@ -4555,7 +4555,7 @@
         </span>.into();
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
-        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">2</span>];
+        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().pous[<span class="number">2</span>];
         <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "child",
@@ -4643,7 +4643,7 @@
         </span>.into();
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
-        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().units[<span class="number">3</span>];
+        <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().pous[<span class="number">3</span>];
         <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
         POU {
             name: "child.foo",

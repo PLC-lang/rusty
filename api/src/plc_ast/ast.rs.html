@@ -2317,7 +2317,7 @@
     <span class="kw">pub </span>global_vars: Vec&lt;VariableBlock&gt;,
     <span class="kw">pub </span>var_config: Vec&lt;ConfigVariable&gt;,
     <span class="doccomment">/// List of POU definitions (signature and some additional metadata)
-    </span><span class="kw">pub </span>units: Vec&lt;Pou&gt;,
+    </span><span class="kw">pub </span>pous: Vec&lt;Pou&gt;,
     <span class="doccomment">/// List of statements within a POU body
     </span><span class="kw">pub </span>implementations: Vec&lt;Implementation&gt;,
     <span class="kw">pub </span>interfaces: Vec&lt;Interface&gt;,
@@ -2330,7 +2330,7 @@
         CompilationUnit {
             global_vars: Vec::new(),
             var_config: Vec::new(),
-            units: Vec::new(),
+            pous: Vec::new(),
             implementations: Vec::new(),
             interfaces: Vec::new(),
             user_types: Vec::new(),
@@ -2351,7 +2351,7 @@
     /// `other` the other CompilationUnit to import the elements from.
     </span><span class="kw">pub fn </span>import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: CompilationUnit) {
         <span class="self">self</span>.global_vars.extend(other.global_vars);
-        <span class="self">self</span>.units.extend(other.units);
+        <span class="self">self</span>.pous.extend(other.pous);
         <span class="self">self</span>.implementations.extend(other.implementations);
         <span class="self">self</span>.user_types.extend(other.user_types);
     }

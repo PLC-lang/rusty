@@ -405,7 +405,7 @@
 
 <span class="kw">pub fn </span>pre_process(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, <span class="kw-2">mut </span>id_provider: IdProvider) {
     <span class="comment">//process all local variables from POUs
-    </span><span class="kw">for </span>pou <span class="kw">in </span>unit.units.iter_mut() {
+    </span><span class="kw">for </span>pou <span class="kw">in </span>unit.pous.iter_mut() {
         <span class="comment">//Find all generic types in that pou
         </span><span class="kw">let </span>generic_types = preprocess_generic_structs(pou);
         unit.user_types.extend(generic_types);

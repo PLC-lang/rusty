@@ -1649,7 +1649,7 @@
             }
             KeywordActions =&gt; {
                 <span class="kw">let </span>last_pou = unit
-                    .units
+                    .pous
                     .iter()
                     .filter(|it| {
                         <span class="comment">// Only consider the last POU that is a program, function, function block
@@ -1937,7 +1937,7 @@
     }
 
     <span class="kw">let </span>(<span class="kw-2">mut </span>pous, <span class="kw-2">mut </span>implementations) = result;
-    unit.units.append(<span class="kw-2">&amp;mut </span>pous);
+    unit.pous.append(<span class="kw-2">&amp;mut </span>pous);
     unit.implementations.append(<span class="kw-2">&amp;mut </span>implementations);
 }
 
