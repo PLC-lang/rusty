@@ -1047,7 +1047,7 @@ impl<'i> TypeAnnotator<'i> {
             visitor.visit_variable(ctx, global_variable);
         }
 
-        for pou in &unit.units {
+        for pou in &unit.pous {
             visitor.visit_pou(ctx, pou);
         }
 
