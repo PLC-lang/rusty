@@ -36,9 +36,9 @@ entry:
 !5 = !{!6, !8, !10}
 !6 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !7, size: 32, flags: DIFlagPublic)
 !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!8 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !9, size: 64, offset: 32, flags: DIFlagPublic)
+!8 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !9, size: 64, offset: 64, flags: DIFlagPublic)
 !9 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
-!10 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !11, size: 352, offset: 96, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 5, baseType: !11, size: 352, offset: 128, flags: DIFlagPublic)
 !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !7, size: 352, elements: !12)
 !12 = !{!13}
 !13 = !DISubrange(count: 11, lowerBound: 0)

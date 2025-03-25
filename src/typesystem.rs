@@ -6,7 +6,6 @@ use std::{
 };
 
 use anyhow::{anyhow, Result};
-use inkwell::types::StructType;
 use plc_ast::{
     ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},

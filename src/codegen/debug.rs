@@ -303,7 +303,6 @@ impl<'ink> DebugBuilder<'ink> {
             .unwrap_or_else(|| self.compile_unit.get_file());
 
         let mut types = vec![];
-        let mut offset = 0; //self.target_data.offset_of_element(&struct_type, element_index as u32).unwrap_or(0);
         for (element_index, (member_name, dt, location)) in index_types.into_iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
 
@@ -312,6 +311,9 @@ impl<'ink> DebugBuilder<'ink> {
                 .find_associated_type(dt.get_name())
                 .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
                 .unwrap_or(0);
+            //Offset in bits
+            let offset =
+                self.target_data.offset_of_element(&struct_type, element_index as u32).unwrap_or(0) * 8;
 
             types.push(
                 self.debug_info
@@ -328,7 +330,6 @@ impl<'ink> DebugBuilder<'ink> {
                     )
                     .as_type(),
             );
-            offset += size;
         }
 
         let size = self.target_data.get_bit_size(&struct_type);
