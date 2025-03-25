@@ -333,8 +333,10 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             ReferenceAccess::Member(t) | ReferenceAccess::Index(t) | ReferenceAccess::Cast(t) => {
                 let is_super = t.is_super();
                 self.visit(t);
-                if is_super {
-                    // `super` has been lowered to a new `ReferenceExpr` without base, so we need to add the original base
+
+                // if we encountered a `super` reference and were able to lower it, we need to add the original base
+                // to the new `ReferenceExpr` that was created
+                if is_super && !t.is_super(){
                     let ReferenceExpr { base: super_base, .. } =
                         try_from_mut!(t, ReferenceExpr).expect("ReferenceExpr");
                     std::mem::swap(super_base, base);
