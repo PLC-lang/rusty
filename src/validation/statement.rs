@@ -133,6 +133,16 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
+        AstStatement::Super(_) => {
+            // this is an unlowered reference to super => the keyword has been used in a non-extended function block
+            validator.push_diagnostic(
+                Diagnostic::new(
+                    "`SUPER` can only be used in function blocks that extend another function block",
+                )
+                .with_location(statement.get_location())
+                .with_error_code("E119"),
+            );
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -515,7 +525,8 @@ fn validate_reference<T: AnnotationMap>(
                 context.index.find_effective_type_by_name(alternative_target.get_type_name())
             })
         {
-            if base.is_some() && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
+            if base.is_some_and(|it| !it.is_super())
+                && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
