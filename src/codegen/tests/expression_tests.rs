@@ -747,3 +747,87 @@ fn builtin_div_mixed() {
 
     insta::assert_snapshot!(res);
 }
+
+#[test]
+fn global_namespace_operator() {
+    let src = r#"
+    VAR_GLOBAL
+        foo : DINT;
+    END_VAR
+
+    PROGRAM main
+    VAR
+        foo : DINT;
+    END_VAR
+        foo := .foo;
+        foo := .foo + 1;
+        foo := .foo + .foo;
+
+        .foo := foo;
+        .foo := .foo + 1;
+    END_PROGRAM
+    "#;
+
+    let res = codegen(src);
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %main = type { i32 }
+
+    @foo = global i32 0
+    @main_instance = global %main zeroinitializer
+
+    define void @main(%main* %0) {
+    entry:
+      %foo = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %load_ = load i32, i32* @foo, align 4
+      store i32 %load_, i32* %foo, align 4
+      %load_1 = load i32, i32* @foo, align 4
+      %tmpVar = add i32 %load_1, 1
+      store i32 %tmpVar, i32* %foo, align 4
+      %load_2 = load i32, i32* @foo, align 4
+      %load_3 = load i32, i32* @foo, align 4
+      %tmpVar4 = add i32 %load_2, %load_3
+      store i32 %tmpVar4, i32* %foo, align 4
+      %load_foo = load i32, i32* %foo, align 4
+      store i32 %load_foo, i32* @foo, align 4
+      %load_5 = load i32, i32* @foo, align 4
+      %tmpVar6 = add i32 %load_5, 1
+      store i32 %tmpVar6, i32* @foo, align 4
+      ret void
+    }
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %main = type { i32 }
+
+    @main_instance = external global %main
+
+    define void @__init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      ret void
+    }
+
+    declare void @main(%main*)
+    ; ModuleID = '__init___testproject'
+    source_filename = "__init___testproject"
+
+    %main = type { i32 }
+
+    @main_instance = external global %main
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
+
+    define void @__init___testproject() {
+    entry:
+      call void @__init_main(%main* @main_instance)
+      ret void
+    }
+
+    declare void @__init_main(%main*)
+
+    declare void @main(%main*)
+    "#);
+}

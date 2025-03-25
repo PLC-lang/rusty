@@ -1756,3 +1756,23 @@ fn function_call_array_index() {
     let parse_result = parse(src).0;
     assert_debug_snapshot!(parse_result.implementations[0].statements);
 }
+
+#[test]
+fn global_namespace_operator() {
+    let src = r#"
+    FUNCTION main
+        .foo;
+        .foo := 1;
+        .foo := .foo + 1;
+
+        foo := 1 + .foo + foo();
+        foo := 1 + .foo + 2 + .foo;
+
+        someFunc(.foo);
+        printf("%d$N", .foo);
+    END_FUNCTION
+    "#;
+
+    let parse_result = parse(src).0;
+    assert_debug_snapshot!(parse_result.implementations[0].statements);
+}

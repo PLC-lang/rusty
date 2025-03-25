@@ -1883,6 +1883,15 @@ impl<'i> TypeAnnotator<'i> {
                     }
                 }
             }
+
+            (ReferenceAccess::Global(node), _) => {
+                let new_ctx = ctx.with_resolving_strategy(vec![ResolvingStrategy::Global]);
+                if let Some(annotation) = self.resolve_reference_expression(node, None, &new_ctx) {
+                    self.annotate(stmt, annotation.clone());
+                    self.annotate(node, annotation); // TODO: Is this necessary?
+                }
+            }
+
             (ReferenceAccess::Cast(target), Some(qualifier)) => {
                 // STRING#"abc"
                 //  base
@@ -1943,7 +1952,8 @@ impl<'i> TypeAnnotator<'i> {
                     self.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
-            _ => {}
+
+            _ => (),
         }
     }
 
@@ -2417,6 +2427,9 @@ pub enum ResolvingStrategy {
     /// try to resolve a variable
     Variable,
 
+    /// try to resolve a global variable
+    Global,
+
     /// try to resolve a POU
     POU,
 
@@ -2494,6 +2507,9 @@ impl ResolvingStrategy {
                         .or_else(|| index.find_global_variable(name))
                         .map(|g| to_variable_annotation(g, index, g.is_constant()))
                 }
+            }
+            ResolvingStrategy::Global => {
+                index.find_global_variable(name).map(|g| to_variable_annotation(g, index, g.is_constant()))
             }
             // try to resolve the name as POU/Action/Method
             ResolvingStrategy::POU => {

@@ -1370,7 +1370,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let Some(qualifier) = qualifier {
             //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
-            match self.annotations.get(context) {
+            match dbg!(self.annotations.get(context)) {
                 Some(StatementAnnotation::Function { qualified_name, .. })
                 | Some(StatementAnnotation::Program { qualified_name, .. }) => {
                     if self.index.find_pou_implementation(qualified_name).is_some() {
@@ -2538,6 +2538,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         original_expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
+            (ReferenceAccess::Global(node), _) => {
+                let name = node.get_flat_reference_name().unwrap_or("unknown");
+
+                self.create_llvm_pointer_value_for_reference(
+                    None,
+                    self.get_load_name(node).as_deref().unwrap_or(name),
+                    node,
+                ).map(ExpressionValue::LValue)
+            }
             // expressions like `base.member`, or just `member`
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
@@ -2549,12 +2558,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_direct_access_expression(base, &base_value, member, &data.access, &data.index)
                 } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
+
                     self.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
-                    )
-                        .map(ExpressionValue::LValue)
+                    ).map(ExpressionValue::LValue)
                 }
             }
 
@@ -2609,7 +2618,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             => Err(Diagnostic::codegen_error(
                 "Expected a base-expressions, but found none.",
                 original_expression,
-            )),
+            ))
         }
     }
 

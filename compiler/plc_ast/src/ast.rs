@@ -782,25 +782,22 @@ fn replace_reference(
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
-    /**
-     * a, a.b
-     */
+    /// a, a.b
     Member(Box<AstNode>),
-    /**
-     * a[3]
-     */
+
+    /// `.foo`
+    Global(Box<AstNode>),
+
+    /// a[3]
     Index(Box<AstNode>),
-    /**
-     * Color#Red
-     */
+
+    /// Color#Red
     Cast(Box<AstNode>),
-    /**
-     * a^
-     */
+
+    /// a^
     Deref,
-    /**
-     * &a
-     */
+
+    /// &a
     Address,
 }
 
@@ -1574,6 +1571,19 @@ impl AstFactory {
             stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Member(Box::new(member)),
                 base: base.map(Box::new),
+            }),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_global_reference(member: AstNode, id: AstId) -> AstNode {
+        let location = member.get_location();
+
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Global(Box::new(member)),
+                base: None,
             }),
             id,
             location,
