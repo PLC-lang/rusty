@@ -2199,3 +2199,189 @@ fn function_block_implementing_erroneous_interface() {
       │                --- see also
     ");
 }
+
+#[test]
+fn property_not_implemented() {
+    let source = r"
+    INTERFACE intf
+        PROPERTY prop : DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+
+    FUNCTION_BLOCK fb IMPLEMENTS intf
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    error[E112]: Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
+      ┌─ <internal>:9:20
+      │
+    3 │         PROPERTY prop : DINT
+      │                  ---- see also
+      ·
+    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+      │                    ^^ Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
+
+    error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
+      ┌─ <internal>:9:20
+      │
+    3 │         PROPERTY prop : DINT
+      │                  ---- see also
+      ·
+    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+      │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
+    "###);
+}
+
+#[test]
+fn property_partially_implemented() {
+    let source = r"
+    INTERFACE intf
+        PROPERTY prop : DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+
+    FUNCTION_BLOCK fb IMPLEMENTS intf
+        PROPERTY prop : DINT
+            GET END_GET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
+      ┌─ <internal>:9:20
+      │
+    3 │         PROPERTY prop : DINT
+      │                  ---- see also
+      ·
+    9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
+      │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
+    "###);
+}
+
+#[test]
+fn property_with_conflicting_signatures() {
+    let source = r"
+    INTERFACE intf1
+        PROPERTY prop : DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intf2
+        PROPERTY prop : STRING
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intf3 EXTENDS intf1, intf2
+    END_INTERFACE
+    ";
+
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
+    error[E112]: Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+       ┌─ <internal>:14:15
+       │
+     3 │         PROPERTY prop : DINT
+       │                         ---- see also
+       ·
+     9 │         PROPERTY prop : STRING
+       │                         ------ see also
+       ·
+    14 │     INTERFACE intf3 EXTENDS intf1, intf2
+       │               ^^^^^ Property `prop` defined in interface `intf1` and `intf2` have different datatypes
+    ");
+}
+
+#[test]
+fn interface_with_property_set_extending_other_interface_with_property_get() {
+    let source = r"
+    INTERFACE intfA
+        PROPERTY prop: DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intfB
+        PROPERTY prop: DINT
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intfC EXTENDS intfA, intfB
+    END_INTERFACE
+
+    FUNCTION_BLOCK fb1 IMPLEMENTS intfC
+        PROPERTY prop: DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
+        PROPERTY prop: DINT
+            GET END_GET
+            SET END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"");
+}
+
+#[test]
+fn missing_property_accessor_implementation() {
+    let source = r"
+    INTERFACE intfA
+        PROPERTY prop: DINT
+            GET END_GET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intfB
+        PROPERTY prop: DINT
+            SET END_SET
+        END_PROPERTY
+    END_INTERFACE
+
+    INTERFACE intfC EXTENDS intfA, intfB
+    END_INTERFACE
+
+    FUNCTION_BLOCK fb1 IMPLEMENTS intfC
+        PROPERTY prop: DINT
+            GET END_GET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
+        PROPERTY prop: DINT
+            SET END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+  ";
+
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    error[E112]: Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
+       ┌─ <internal>:17:20
+       │
+     9 │         PROPERTY prop: DINT
+       │                  ---- see also
+       ·
+    17 │     FUNCTION_BLOCK fb1 IMPLEMENTS intfC
+       │                    ^^^ Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
+
+    error[E112]: Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
+       ┌─ <internal>:23:20
+       │
+     3 │         PROPERTY prop: DINT
+       │                  ---- see also
+       ·
+    23 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
+       │                    ^^^ Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
+    "###);
+}

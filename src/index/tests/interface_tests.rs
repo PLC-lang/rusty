@@ -1,3 +1,5 @@
+use itertools::Itertools;
+
 use crate::test_utils::tests::index;
 
 #[test]
@@ -43,10 +45,11 @@ fn interface_with_single_method() {
     }
     "###);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
     Method {
         name: "myInterface.foo",
         parent_name: "myInterface",
+        property: None,
         declaration_kind: Abstract,
         return_type: "INT",
         instance_struct_name: "myInterface.foo",
@@ -68,7 +71,7 @@ fn interface_with_single_method() {
             ),
         },
     }
-    "#);
+    "###);
 
     insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
     [
@@ -195,11 +198,12 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
     [
         Method {
             name: "myInterface.foo",
             parent_name: "myInterface",
+            property: None,
             declaration_kind: Abstract,
             return_type: "SINT",
             instance_struct_name: "myInterface.foo",
@@ -224,6 +228,7 @@ fn get_interface_methods() {
         Method {
             name: "myInterface.bar",
             parent_name: "myInterface",
+            property: None,
             declaration_kind: Abstract,
             return_type: "INT",
             instance_struct_name: "myInterface.bar",
@@ -248,6 +253,7 @@ fn get_interface_methods() {
         Method {
             name: "myInterface.baz",
             parent_name: "myInterface",
+            property: None,
             declaration_kind: Abstract,
             return_type: "DINT",
             instance_struct_name: "myInterface.baz",
@@ -270,7 +276,7 @@ fn get_interface_methods() {
             },
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -553,11 +559,12 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
     let (_, index) = index(source);
 
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
     [
         Method {
             name: "bar.foo",
             parent_name: "bar",
+            property: None,
             declaration_kind: Abstract,
             return_type: "VOID",
             instance_struct_name: "bar.foo",
@@ -582,6 +589,7 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
         Method {
             name: "foo.bar",
             parent_name: "foo",
+            property: None,
             declaration_kind: Abstract,
             return_type: "VOID",
             instance_struct_name: "foo.bar",
@@ -604,5 +612,61 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
             },
         },
     ]
-    "#);
+    "###);
+}
+
+#[test]
+fn find_all_derived_interfaces_directly_or_indirectly() {
+    /*
+    The relationships are as follows:
+
+    H -> E, F, G -> D -> B -> A -> C
+                    ▲              |
+                    |              |
+                    +--------------+
+
+    Lonely, we, are, so, lonelyy
+     */
+    let source = r"
+    INTERFACE a EXTENDS c
+    END_INTERFACE
+
+    INTERfACE b EXTENDS a
+    END_INTERFACE
+    
+    INTERFACE c EXTENDS d
+    END_INTERFACE
+
+    INTERFACE d EXTENDS b
+    END_INTERFACE
+
+    INTERFACE e EXTENDS d
+    END_INTERFACE
+
+    INTERFACE f EXTENDS d
+    END_INTERFACE
+
+    INTERFACE g EXTENDS d
+    END_INTERFACE
+
+    INTERFACE h EXTENDS e, f, g
+    END_INTERFACE
+
+    // These should not be included in the result :(
+    INTERFACE lonely     END_INTERFACE
+    INTERFACE we         END_INTERFACE
+    INTERFACE are        END_INTERFACE
+    INTERFACE so         END_INTERFACE
+    INTERFACE lonelyy    END_INTERFACE
+    ";
+
+    let (_, index) = index(source);
+    let entry = index.find_interface("h").unwrap();
+
+    // We expect no failure, even though the relationship is cyclic
+    let mut derived =
+        entry.get_derived_interfaces_recursive(&index).iter().map(|it| &it.ident.name).collect_vec();
+
+    derived.sort();
+    assert_eq!(derived, vec!["a", "b", "c", "d", "e", "f", "g", "h"]);
 }

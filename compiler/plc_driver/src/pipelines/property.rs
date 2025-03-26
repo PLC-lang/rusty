@@ -11,7 +11,7 @@ impl PipelineParticipantMut for PropertyLowerer {
         let ParsedProject { mut units } = parsed_project;
 
         for unit in &mut units {
-            self.lower_properties_to_pous(unit);
+            self.properties_to_pous(unit);
         }
 
         ParsedProject { units }
@@ -22,7 +22,7 @@ impl PipelineParticipantMut for PropertyLowerer {
         self.annotations = Some(annotations);
 
         for AnnotatedUnit { unit, .. } in &mut units.iter_mut() {
-            self.lower_references_to_calls(unit);
+            self.properties_to_fncalls(unit);
         }
 
         let project = IndexedProject {

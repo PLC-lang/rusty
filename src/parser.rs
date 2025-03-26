@@ -205,6 +205,7 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     let mut extensions = Vec::new();
     let mut methods = Vec::new();
     let mut implementations = Vec::new();
+    let mut properties = Vec::new();
 
     if lexer.try_consume(KeywordExtends) {
         while let Identifier = lexer.token {
@@ -222,9 +223,9 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                     // This is temporary? At some point we'll support them but for now it's a diagnostic
                     if !imp.statements.is_empty() {
                         lexer.accept_diagnostic(
-                            Diagnostic::new("Interfaces can not have a default implementations")
+                            Diagnostic::new("Interfaces can not have a default implementation")
                                 .with_error_code("E113")
-                                .with_location(&imp.location),
+                                .with_location(&imp.statements.first().unwrap().location),
                         );
                     }
 
@@ -233,7 +234,19 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
                 }
             }
 
-            KeywordProperty => unimplemented!("not yet supported"),
+            KeywordProperty => {
+                if let Some(property) = parse_property(lexer) {
+                    for property in property.implementations.iter().filter(|imp| !imp.body.is_empty()) {
+                        lexer.accept_diagnostic(
+                            Diagnostic::new("Interfaces can not have a default implementation")
+                                .with_error_code("E113")
+                                .with_location(&property.body.first().unwrap().location),
+                        );
+                    }
+
+                    properties.push(property);
+                }
+            }
 
             _ => break,
         }
@@ -245,10 +258,11 @@ fn parse_interface(lexer: &mut ParseSession) -> (Interface, Vec<Implementation>)
     (
         Interface {
             id: lexer.next_id(),
-            identifier: Identifier { name, location: location_name },
+            ident: Identifier { name, location: location_name },
             methods,
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
+            properties,
         },
         implementations,
     )
@@ -334,9 +348,10 @@ fn parse_pou(
             while matches!(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 if !matches!(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     let location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                    let pre = if matches!(lexer.token, KeywordProperty) { "Properties" } else { "Methods" };
 
                     lexer.accept_diagnostic(
-                        Diagnostic::new(format!("Methods cannot be declared in a POU of type '{kind}'."))
+                        Diagnostic::new(format!("{pre} cannot be declared in a {kind}"))
                             .with_location(location),
                     );
                 }
@@ -602,7 +617,7 @@ fn parse_method(
         lexer.advance(); // eat METHOD keyword
 
         let access = Some(parse_access_modifier(lexer));
-        let pou_kind = PouType::Method { parent: parent.into(), declaration_kind };
+        let pou_kind = PouType::Method { parent: parent.into(), property: None, declaration_kind };
         let poly_mode = parse_polymorphism_mode(lexer, &pou_kind);
         let overriding = lexer.try_consume(KeywordOverride);
         let (name, name_location) = parse_identifier(lexer)?;
@@ -725,11 +740,7 @@ fn parse_property(lexer: &mut ParseSession) -> Option<PropertyBlock> {
 
     let (name, name_location) = identifier.expect("covered above");
     let datatype = datatype.expect("covered above");
-    Some(PropertyBlock {
-        name: Identifier { name, location: name_location },
-        return_type: datatype,
-        implementations,
-    })
+    Some(PropertyBlock { ident: Identifier { name, location: name_location }, datatype, implementations })
 }
 
 fn parse_access_modifier(lexer: &mut ParseSession) -> AccessModifier {
@@ -1331,7 +1342,7 @@ fn parse_variable_block(lexer: &mut ParseSession, linkage: LinkageType) -> Varia
         });
     }
 
-    VariableBlock { access, constant, retain, variables, variable_block_type, linkage, location }
+    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
 }
 
 fn parse_variable_list(lexer: &mut ParseSession) -> Vec<Variable> {

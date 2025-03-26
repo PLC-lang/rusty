@@ -44,7 +44,7 @@ pub struct SymbolIndexer {
 impl AstVisitor for SymbolIndexer {
     /// Visits a VAR_GLOBAL VariableBlock and registers all variables as globals in the index
     fn visit_variable_block(&mut self, block: &plc_ast::ast::VariableBlock) {
-        if block.variable_block_type == VariableBlockType::Global {
+        if block.kind == VariableBlockType::Global {
             // let the global var indexer handle the global variables
             let mut indexer = VarGlobalIndexer::new(block.constant, block.linkage, &mut self.index);
             for var in &block.variables {
@@ -82,12 +82,10 @@ impl AstVisitor for SymbolIndexer {
             self.visit_pou(method);
         }
 
-        self.index
-            .interfaces
-            .insert(interface.identifier.name.to_owned(), InterfaceIndexEntry::from(interface));
+        self.index.interfaces.insert(interface.ident.name.to_owned(), InterfaceIndexEntry::from(interface));
     }
 
     fn visit_property(&mut self, property: &PropertyBlock) {
-        self.index.properties.insert(self.ctx.pou.clone(), property.name.clone());
+        self.index.properties.insert(self.ctx.pou.clone(), property.ident.clone());
     }
 }

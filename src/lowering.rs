@@ -17,10 +17,6 @@ pub mod calls;
 mod initializers;
 pub mod property;
 
-// TODO: The validator should not live here, it should be its own crate or moved to where the current
-//       validator is located at. I'm in favor of the former...
-pub mod validator;
-
 pub struct InitVisitor {
     index: Index,
     unresolved_initializers: Initializers,
