@@ -2,6 +2,7 @@
 
 use std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -54,10 +55,11 @@ pub struct Pou {
 #[derive(Debug, PartialEq)]
 pub struct Interface {
     pub id: AstId,
-    pub identifier: Identifier,
-    pub methods: Vec<Pou>,
+    pub ident: Identifier,
     pub location: SourceLocation,
+    pub methods: Vec<Pou>,
     pub extensions: Vec<Identifier>,
+    pub properties: Vec<PropertyBlock>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -69,12 +71,21 @@ pub struct Identifier {
 /// The property container as a whole, which contains [`PropertyImplementation`]s
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyBlock {
-    pub name: Identifier,
-    pub return_type: DataTypeDeclaration,
+    pub ident: Identifier,
+    pub datatype: DataTypeDeclaration,
     pub implementations: Vec<PropertyImplementation>,
 }
 
-/// The declaration and implementation of a properties accessor (GET or SET)
+impl Eq for PropertyBlock {}
+
+impl Hash for PropertyBlock {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.ident.hash(state);
+        self.datatype.get_name().hash(state);
+        self.datatype.get_location().hash(state);
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
@@ -84,22 +95,10 @@ pub struct PropertyImplementation {
     pub end_location: SourceLocation,
 }
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 pub enum PropertyKind {
     Get,
     Set,
-}
-
-impl From<&PropertyBlock> for Variable {
-    fn from(value: &PropertyBlock) -> Self {
-        Variable {
-            name: value.name.name.clone(),
-            data_type_declaration: value.return_type.clone(),
-            initializer: None,
-            address: None,
-            location: value.name.location.clone(),
-        }
-    }
 }
 
 impl std::fmt::Display for PropertyKind {
@@ -353,6 +352,9 @@ pub enum PouType {
         /// The parent of this method, i.e. a function block, class or an interface
         parent: String,
 
+        /// The property name (pre-mangled) and its type, if the method originated from a property
+        property: Option<(String, PropertyKind)>,
+
         declaration_kind: DeclarationKind,
     },
     Init,
@@ -494,14 +496,14 @@ pub struct VariableBlock {
     pub constant: bool,
     pub retain: bool,
     pub variables: Vec<Variable>,
-    pub variable_block_type: VariableBlockType,
+    pub kind: VariableBlockType,
     pub linkage: LinkageType,
     pub location: SourceLocation,
 }
 
 impl VariableBlock {
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
-        self.variable_block_type = block_type;
+        self.kind = block_type;
         self
     }
 
@@ -518,7 +520,7 @@ impl Default for VariableBlock {
             constant: false,
             retain: false,
             variables: vec![],
-            variable_block_type: VariableBlockType::Local,
+            kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
         }
@@ -529,7 +531,7 @@ impl Debug for VariableBlock {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("VariableBlock")
             .field("variables", &self.variables)
-            .field("variable_block_type", &self.variable_block_type)
+            .field("variable_block_type", &self.kind)
             .finish()
     }
 }
@@ -1376,8 +1378,12 @@ mod tests {
         assert_eq!(PouType::Action.to_string(), "Action");
         assert_eq!(PouType::Class.to_string(), "Class");
         assert_eq!(
-            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
-                .to_string(),
+            PouType::Method {
+                parent: String::new(),
+                property: None,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
             "Method"
         );
     }

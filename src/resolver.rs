@@ -499,6 +499,7 @@ pub enum StatementAnnotation {
 }
 
 type QualifiedName = String;
+
 #[derive(Debug, Hash, Clone, PartialEq)]
 pub enum MethodDeclarationType {
     Abstract(QualifiedName),
@@ -1171,7 +1172,7 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn annotate_interface(&mut self, interface: &Interface) {
-        let Some(itf) = self.index.find_interface(&interface.identifier.name) else { return };
+        let Some(itf) = self.index.find_interface(&interface.ident.name) else { return };
 
         // annotate overrides of each method declared in the interface
         interface.methods.iter().for_each(|method| {

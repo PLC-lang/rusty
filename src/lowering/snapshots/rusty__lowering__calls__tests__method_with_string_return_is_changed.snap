@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "unit.units[1]"
-snapshot_kind: text
 ---
 POU {
     name: "fb.complexMethod",
@@ -20,6 +19,7 @@ POU {
     ],
     pou_type: Method {
         parent: "fb",
+        property: None,
         declaration_kind: Concrete,
     },
     return_type: Some(

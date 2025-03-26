@@ -1,6 +1,6 @@
 use plc_ast::ast::{
-    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Identifier, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType,
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 
@@ -134,7 +134,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
 }
 
 fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
-    if matches!(block.variable_block_type, VariableBlockType::External) {
+    if matches!(block.kind, VariableBlockType::External) {
         validator.push_diagnostic(
             Diagnostic::new("VAR_EXTERNAL blocks have no effect")
                 .with_error_code("E106")
@@ -144,7 +144,7 @@ fn validate_variable_block(validator: &mut Validator, block: &VariableBlock) {
 
     if block.constant
         && !matches!(
-            block.variable_block_type,
+            block.kind,
             VariableBlockType::Global | VariableBlockType::Local | VariableBlockType::External
         )
     {
@@ -171,7 +171,7 @@ pub fn visit_variable<T: AnnotationMap>(
 /// - InOut within Function-Block
 fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBlock, variable: &Variable) {
     let Some(pou) = pou else {
-        if matches!(block.variable_block_type, VariableBlockType::Global) {
+        if matches!(block.kind, VariableBlockType::Global) {
             validator.push_diagnostic(
                 Diagnostic::new("VLAs can not be defined as global variables")
                     .with_error_code("E044")
@@ -182,7 +182,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         return;
     };
 
-    match (&pou.kind, block.variable_block_type) {
+    match (&pou.kind, block.kind) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) => validator.push_diagnostic(
             Diagnostic::new(
                 "Variable Length Arrays are always by-ref, even when declared in a by-value block",
@@ -208,7 +208,7 @@ fn validate_vla(validator: &mut Validator, pou: Option<&Pou>, block: &VariableBl
         _ => validator.push_diagnostic(
             Diagnostic::new(format!(
                 "Variable Length Arrays are not allowed to be defined as {} variables inside a {}",
-                block.variable_block_type, pou.kind
+                block.kind, pou.kind
             ))
             .with_error_code("E044")
             .with_location(&variable.location),
@@ -254,41 +254,7 @@ fn validate_variable<T: AnnotationMap>(
     variable: &Variable,
     context: &ValidationContext<T>,
 ) {
-    //Validate redeclaration of variable
-    //See if we are in a POU that is extended
-    if let Some(mut super_class) =
-        context.qualifier.and_then(|it| context.index.find_pou(it)).map(PouIndexEntry::get_super_class)
-    {
-        while let Some(parent_pou) = super_class {
-            let Some(parent_pou) = context.index.find_pou(parent_pou) else {
-                break;
-            };
-
-            if let Some(shadowed_variable) = context
-                .index
-                .find_member(parent_pou.get_name(), variable.name.as_str())
-                .filter(|v| !v.is_temp())
-                .map(Identifier::from)
-                .or(parent_pou.get_property(&variable.name).cloned())
-            {
-                (!variable.location.is_internal()).then(|| {
-                    validator.push_diagnostic(
-                        Diagnostic::new(format!(
-                            "Variable `{}` is already declared in parent POU `{}`",
-                            variable.get_name(),
-                            shadowed_variable.name
-                        ))
-                        .with_error_code("E021")
-                        .with_location(&variable.location)
-                        .with_secondary_location(&shadowed_variable.location),
-                    )
-                });
-                break;
-            }
-
-            super_class = parent_pou.get_super_class();
-        }
-    }
+    validate_variable_redeclaration(validator, variable, context);
 
     validate_array_ranges(validator, variable, context);
 
@@ -387,6 +353,44 @@ fn validate_variable<T: AnnotationMap>(
                 .with_location(&variable.location),
             );
         }
+    }
+}
+
+/// Validates if a variable present in a parent POU has been redeclared in a child POU
+fn validate_variable_redeclaration<T: AnnotationMap>(
+    validator: &mut Validator,
+    variable: &Variable,
+    context: &ValidationContext<T>,
+) {
+    let Some(child_pou) = context.index.find_pou(context.qualifier.unwrap_or_default()) else {
+        return;
+    };
+
+    let mut super_class = child_pou.get_super_class();
+    while let Some(parent_str) = super_class {
+        let Some(parent_pou) = context.index.find_pou(parent_str) else {
+            return;
+        };
+
+        if let Some(shadowed_variable) =
+            context.index.find_member(parent_pou.get_name(), variable.name.as_str()).filter(|v| !v.is_temp())
+        {
+            (!variable.location.is_internal()).then(|| {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Variable `{}` is already declared in parent POU `{}`",
+                        variable.get_name(),
+                        shadowed_variable.get_qualifier().unwrap_or_default()
+                    ))
+                    .with_error_code("E021")
+                    .with_location(&variable.location)
+                    .with_secondary_location(&shadowed_variable.source_location),
+                )
+            });
+            break;
+        }
+
+        super_class = parent_pou.get_super_class();
     }
 }
 
