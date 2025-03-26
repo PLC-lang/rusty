@@ -9,7 +9,7 @@ fn simple_foo_function_can_be_parsed() {
     let src = "FUNCTION foo : INT END_FUNCTION";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     assert_eq!(prg.kind, PouType::Function);
     assert_eq!(prg.name, "foo");
     assert_debug_snapshot!(prg.return_type.as_ref().unwrap())
@@ -20,7 +20,7 @@ fn simple_foo_function_block_can_be_parsed() {
     let src = "FUNCTION_BLOCK foo END_FUNCTION_BLOCK";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     assert_eq!(prg.kind, PouType::FunctionBlock);
     assert_eq!(prg.name, "foo");
     assert!(prg.return_type.is_none());
@@ -31,7 +31,7 @@ fn a_function_with_varargs_can_be_parsed() {
     let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : ...; END_VAR END_FUNCTION";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,  @r###"
@@ -65,7 +65,7 @@ fn a_function_with_typed_varargs_can_be_parsed() {
     let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : INT...; END_VAR END_FUNCTION";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,@r###"
@@ -103,7 +103,7 @@ fn a_function_with_sized_varargs_can_be_parsed() {
     let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : {sized} ...; END_VAR END_FUNCTION";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,  @r###"
@@ -137,7 +137,7 @@ fn a_function_with_sized_typed_varargs_can_be_parsed() {
     let src = "FUNCTION foo : INT VAR_INPUT x : INT; y : {sized} INT...; END_VAR END_FUNCTION";
     let result = parse(src).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     insta::assert_snapshot!(ast_string,@r###"
@@ -183,7 +183,7 @@ fn varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.units[0], @r#"
+    assert_debug_snapshot!(parse_result.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [
@@ -241,7 +241,7 @@ fn sized_varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.units[0], @r#"
+    assert_debug_snapshot!(parse_result.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [
@@ -428,7 +428,7 @@ fn simple_fb_with_var_temp_can_be_parsed() {
     let function = "FUNCTION_BLOCK buz VAR_TEMP x : INT; END_VAR END_FUNCTION_BLOCK";
     let result = parse(function).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
@@ -450,7 +450,7 @@ fn simple_function_with_var_temp_can_be_parsed() {
     let function = "FUNCTION buz VAR_TEMP x : INT; END_VAR END_FUNCTION";
     let result = parse(function).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
@@ -472,7 +472,7 @@ fn var_input_by_ref_parsed() {
     let function = "FUNCTION buz VAR_INPUT {ref} x : INT; END_VAR END_FUNCTION";
     let result = parse(function).0;
 
-    let prg = &result.units[0];
+    let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
 

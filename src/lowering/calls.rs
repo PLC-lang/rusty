@@ -474,7 +474,7 @@ mod tests {
         };
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
-        assert_debug_snapshot!(unit.units[0]);
+        assert_debug_snapshot!(unit.pous[0]);
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("complexType").unwrap());
     }
 
@@ -501,7 +501,7 @@ mod tests {
 
         lowerer.visit_compilation_unit(&mut unit);
         lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
-        assert_debug_snapshot!(unit.units[1]);
+        assert_debug_snapshot!(unit.pous[1]);
         assert_debug_snapshot!(lowerer.index.unwrap().find_pou_type("fb.complexMethod").unwrap());
     }
 

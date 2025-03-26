@@ -103,7 +103,7 @@ impl PropertyLowerer {
         let mut local_impls = Vec::new();
 
         // Lower properties defined in a POU (e.g. a FUNCTION_BLOCK)
-        for pou in &mut unit.units {
+        for pou in &mut unit.pous {
             for property in &mut pou.properties {
                 let (pous, impls) = lower_to_pou(self.id_provider.clone(), &pou.name, property);
 
@@ -121,7 +121,7 @@ impl PropertyLowerer {
             }
         }
 
-        unit.units.extend(local_pous);
+        unit.pous.extend(local_pous);
         unit.implementations.extend(local_impls);
     }
 
@@ -425,7 +425,7 @@ mod tests {
             ";
 
             let (unit, _) = lower_properties_to_pous(source);
-            insta::assert_debug_snapshot!(unit.units[1], @r###"
+            insta::assert_debug_snapshot!(unit.pous[1], @r###"
             POU {
                 name: "fb.__get_foo",
                 variable_blocks: [
@@ -495,7 +495,7 @@ mod tests {
             ";
 
             let (unit, _) = lower_properties_to_pous(source);
-            insta::assert_debug_snapshot!(unit.units[1], @r###"
+            insta::assert_debug_snapshot!(unit.pous[1], @r###"
             POU {
                 name: "fb.__set_foo",
                 variable_blocks: [
@@ -581,8 +581,8 @@ mod tests {
             ";
 
             let unit = lower(source);
-            assert_eq!(unit.units[1].name, "fb.__get_foo");
-            insta::assert_debug_snapshot!(unit.units[1].variable_blocks, @r###"
+            assert_eq!(unit.pous[1].name, "fb.__get_foo");
+            insta::assert_debug_snapshot!(unit.pous[1].variable_blocks, @r###"
             [
                 VariableBlock {
                     variables: [
@@ -621,8 +621,8 @@ mod tests {
             ]
             "###);
 
-            assert_eq!(unit.units[2].name, "fb.__set_foo");
-            insta::assert_debug_snapshot!(unit.units[2].variable_blocks, @r###"
+            assert_eq!(unit.pous[2].name, "fb.__set_foo");
+            insta::assert_debug_snapshot!(unit.pous[2].variable_blocks, @r###"
             [
                 VariableBlock {
                     variables: [
@@ -697,16 +697,16 @@ mod tests {
             let unit = lower(source);
 
             // No need to snapshot test here, we did plenty before this one
-            assert_eq!(unit.units.len(), 9);
-            assert_eq!(unit.units[0].name, "fb");
-            assert_eq!(unit.units[1].name, "fb.__get_foo");
-            assert_eq!(unit.units[2].name, "fb.__set_foo");
-            assert_eq!(unit.units[3].name, "fb.__get_bar");
-            assert_eq!(unit.units[4].name, "fb.__set_bar");
-            assert_eq!(unit.units[5].name, "fb.__get_baz");
-            assert_eq!(unit.units[6].name, "fb.__set_baz");
-            assert_eq!(unit.units[7].name, "fb.__get_qux");
-            assert_eq!(unit.units[8].name, "fb.__set_qux");
+            assert_eq!(unit.pous.len(), 9);
+            assert_eq!(unit.pous[0].name, "fb");
+            assert_eq!(unit.pous[1].name, "fb.__get_foo");
+            assert_eq!(unit.pous[2].name, "fb.__set_foo");
+            assert_eq!(unit.pous[3].name, "fb.__get_bar");
+            assert_eq!(unit.pous[4].name, "fb.__set_bar");
+            assert_eq!(unit.pous[5].name, "fb.__get_baz");
+            assert_eq!(unit.pous[6].name, "fb.__set_baz");
+            assert_eq!(unit.pous[7].name, "fb.__get_qux");
+            assert_eq!(unit.pous[8].name, "fb.__set_qux");
         }
 
         #[test]

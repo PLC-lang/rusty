@@ -419,7 +419,7 @@ pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub var_config: Vec<ConfigVariable>,
     /// List of POU definitions (signature and some additional metadata)
-    pub units: Vec<Pou>,
+    pub pous: Vec<Pou>,
     /// List of statements within a POU body
     pub implementations: Vec<Implementation>,
     pub interfaces: Vec<Interface>,
@@ -432,7 +432,7 @@ impl CompilationUnit {
         CompilationUnit {
             global_vars: Vec::new(),
             var_config: Vec::new(),
-            units: Vec::new(),
+            pous: Vec::new(),
             implementations: Vec::new(),
             interfaces: Vec::new(),
             user_types: Vec::new(),
@@ -453,7 +453,7 @@ impl CompilationUnit {
     /// `other` the other CompilationUnit to import the elements from.
     pub fn import(&mut self, other: CompilationUnit) {
         self.global_vars.extend(other.global_vars);
-        self.units.extend(other.units);
+        self.pous.extend(other.pous);
         self.implementations.extend(other.implementations);
         self.user_types.extend(other.user_types);
     }

@@ -611,7 +611,7 @@ fn pre_processing_generates_inline_enums() {
     //ENUM
     //
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 
     // THEN an implicit datatype should have been generated for the enum
@@ -638,7 +638,7 @@ fn pre_processing_generates_inline_structs() {
     assert_debug_snapshot!(new_struct_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -660,7 +660,7 @@ fn pre_processing_generates_inline_pointers() {
     assert_debug_snapshot!(new_pointer_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -707,7 +707,7 @@ fn pre_processing_generates_inline_pointer_to_pointer() {
     assert_debug_snapshot!(new_pointer_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -729,7 +729,7 @@ fn pre_processing_generates_inline_arrays() {
     assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -757,7 +757,7 @@ fn pre_processing_generates_inline_array_of_array() {
     assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -834,7 +834,7 @@ fn pre_processing_generates_inline_array_of_array_of_array() {
     assert_debug_snapshot!(new_array_type);
 
     // AND the original variable should now point to the new DataType
-    let var_data_type = &ast.units[0].variable_blocks[0].variables[0].data_type_declaration;
+    let var_data_type = &ast.pous[0].variable_blocks[0].variables[0].data_type_declaration;
     assert_debug_snapshot!(var_data_type);
 }
 
@@ -867,7 +867,7 @@ fn pre_processing_generates_generic_types() {
     assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
 
     //The variables with type G now have type __myFunc__G
-    let pou = &ast.units[0];
+    let pou = &ast.pous[0];
     assert_eq!(pou.variable_blocks[0].variables[0].data_type_declaration.get_name().unwrap(), "__myFunc__G");
     assert_eq!(pou.variable_blocks[0].variables[1].data_type_declaration.get_name().unwrap(), "INT");
     assert_eq!(pou.return_type.as_ref().unwrap().get_name().unwrap(), "__myFunc__G");
@@ -1007,7 +1007,7 @@ fn local_initializers_are_stored_in_the_const_expression_arena() {
 
     // THEN I expect the index to contain cosntant expressions (x+1), (y+1) and (z+1) as const expressions
     // associated with the initial values of the members
-    let variables = &ast.units[0].variable_blocks[0].variables;
+    let variables = &ast.pous[0].variable_blocks[0].variables;
     let initializer = index
         .find_member("prg", "a")
         .and_then(|g| index.get_const_expressions().maybe_get_constant_statement(&g.initial_value));

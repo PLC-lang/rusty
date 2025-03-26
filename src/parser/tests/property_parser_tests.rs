@@ -27,10 +27,10 @@ fn properties_can_be_parsed() {
 
     assert_eq!(diagnostics, vec![]);
 
-    assert_eq!(unit.units.len(), 1);
-    assert_eq!(unit.units[0].name, "foo");
+    assert_eq!(unit.pous.len(), 1);
+    assert_eq!(unit.pous[0].name, "foo");
 
-    let properties = &unit.units[0].properties;
+    let properties = &unit.pous[0].properties;
     assert_eq!(properties.len(), 1);
     assert_eq!(properties[0].ident.name, "bar");
     assert_eq!(properties[0].implementations.len(), 2);

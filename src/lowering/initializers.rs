@@ -373,7 +373,7 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
     CompilationUnit {
         global_vars: vec![],
         var_config: Default::default(),
-        units: vec![pou],
+        pous: vec![pou],
         implementations: vec![implementation],
         interfaces: vec![],
         user_types: vec![],

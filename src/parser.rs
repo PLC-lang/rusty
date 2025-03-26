@@ -112,7 +112,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
             }
             KeywordActions => {
                 let last_pou = unit
-                    .units
+                    .pous
                     .iter()
                     .filter(|it| {
                         // Only consider the last POU that is a program, function, function block
@@ -415,7 +415,7 @@ fn parse_pou(
     }
 
     let (mut pous, mut implementations) = result;
-    unit.units.append(&mut pous);
+    unit.pous.append(&mut pous);
     unit.implementations.append(&mut implementations);
 }
 

@@ -176,7 +176,7 @@ impl<'a> Validator<'a> {
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
         let context = ValidationContext { annotations, index, qualifier: None, is_call: false };
         // Validate POU and declared Variables
-        for pou in &unit.units {
+        for pou in &unit.pous {
             let context = context.with_qualifier(pou.name.as_str());
 
             visit_pou(self, pou, &context);
