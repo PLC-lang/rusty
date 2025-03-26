@@ -1898,10 +1898,17 @@
 <a href="#1897" id="1897">1897</a>
 <a href="#1898" id="1898">1898</a>
 <a href="#1899" id="1899">1899</a>
-<a href="#1900" id="1900">1900</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1900" id="1900">1900</a>
+<a href="#1901" id="1901">1901</a>
+<a href="#1902" id="1902">1902</a>
+<a href="#1903" id="1903">1903</a>
+<a href="#1904" id="1904">1904</a>
+<a href="#1905" id="1905">1905</a>
+<a href="#1906" id="1906">1906</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
+    hash::Hash,
     ops::Range,
 };
 
@@ -1954,10 +1961,11 @@
 <span class="attr">#[derive(Debug, PartialEq)]
 </span><span class="kw">pub struct </span>Interface {
     <span class="kw">pub </span>id: AstId,
-    <span class="kw">pub </span>identifier: Identifier,
-    <span class="kw">pub </span>methods: Vec&lt;Pou&gt;,
+    <span class="kw">pub </span>ident: Identifier,
     <span class="kw">pub </span>location: SourceLocation,
+    <span class="kw">pub </span>methods: Vec&lt;Pou&gt;,
     <span class="kw">pub </span>extensions: Vec&lt;Identifier&gt;,
+    <span class="kw">pub </span>properties: Vec&lt;PropertyBlock&gt;,
 }
 
 <span class="attr">#[derive(Debug, PartialEq, Eq, Clone, Hash)]
@@ -1969,13 +1977,22 @@
 <span class="doccomment">/// The property container as a whole, which contains [`PropertyImplementation`]s
 </span><span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub struct </span>PropertyBlock {
-    <span class="kw">pub </span>name: Identifier,
-    <span class="kw">pub </span>return_type: DataTypeDeclaration,
+    <span class="kw">pub </span>ident: Identifier,
+    <span class="kw">pub </span>datatype: DataTypeDeclaration,
     <span class="kw">pub </span>implementations: Vec&lt;PropertyImplementation&gt;,
 }
 
-<span class="doccomment">/// The declaration and implementation of a properties accessor (GET or SET)
-</span><span class="attr">#[derive(Debug, PartialEq, Clone)]
+<span class="kw">impl </span>Eq <span class="kw">for </span>PropertyBlock {}
+
+<span class="kw">impl </span>Hash <span class="kw">for </span>PropertyBlock {
+    <span class="kw">fn </span>hash&lt;H: std::hash::Hasher&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, state: <span class="kw-2">&amp;mut </span>H) {
+        <span class="self">self</span>.ident.hash(state);
+        <span class="self">self</span>.datatype.get_name().hash(state);
+        <span class="self">self</span>.datatype.get_location().hash(state);
+    }
+}
+
+<span class="attr">#[derive(Debug, PartialEq, Clone)]
 </span><span class="kw">pub struct </span>PropertyImplementation {
     <span class="kw">pub </span>kind: PropertyKind,
     <span class="kw">pub </span>location: SourceLocation,
@@ -1984,22 +2001,10 @@
     <span class="kw">pub </span>end_location: SourceLocation,
 }
 
-<span class="attr">#[derive(Debug, PartialEq, Clone, Copy)]
+<span class="attr">#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>PropertyKind {
     Get,
     Set,
-}
-
-<span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PropertyBlock&gt; <span class="kw">for </span>Variable {
-    <span class="kw">fn </span>from(value: <span class="kw-2">&amp;</span>PropertyBlock) -&gt; <span class="self">Self </span>{
-        Variable {
-            name: value.name.name.clone(),
-            data_type_declaration: value.return_type.clone(),
-            initializer: <span class="prelude-val">None</span>,
-            address: <span class="prelude-val">None</span>,
-            location: value.name.location.clone(),
-        }
-    }
 }
 
 <span class="kw">impl </span>std::fmt::Display <span class="kw">for </span>PropertyKind {
@@ -2253,6 +2258,9 @@
         <span class="doccomment">/// The parent of this method, i.e. a function block, class or an interface
         </span>parent: String,
 
+        <span class="doccomment">/// The property name (pre-mangled) and its type, if the method originated from a property
+        </span>property: <span class="prelude-ty">Option</span>&lt;(String, PropertyKind)&gt;,
+
         declaration_kind: DeclarationKind,
     },
     Init,
@@ -2394,14 +2402,14 @@
     <span class="kw">pub </span>constant: bool,
     <span class="kw">pub </span>retain: bool,
     <span class="kw">pub </span>variables: Vec&lt;Variable&gt;,
-    <span class="kw">pub </span>variable_block_type: VariableBlockType,
+    <span class="kw">pub </span>kind: VariableBlockType,
     <span class="kw">pub </span>linkage: LinkageType,
     <span class="kw">pub </span>location: SourceLocation,
 }
 
 <span class="kw">impl </span>VariableBlock {
     <span class="kw">pub fn </span>with_block_type(<span class="kw-2">mut </span><span class="self">self</span>, block_type: VariableBlockType) -&gt; <span class="self">Self </span>{
-        <span class="self">self</span>.variable_block_type = block_type;
+        <span class="self">self</span>.kind = block_type;
         <span class="self">self
     </span>}
 
@@ -2418,7 +2426,7 @@
             constant: <span class="bool-val">false</span>,
             retain: <span class="bool-val">false</span>,
             variables: <span class="macro">vec!</span>[],
-            variable_block_type: VariableBlockType::Local,
+            kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
         }
@@ -2429,7 +2437,7 @@
     <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
         f.debug_struct(<span class="string">"VariableBlock"</span>)
             .field(<span class="string">"variables"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variables)
-            .field(<span class="string">"variable_block_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_block_type)
+            .field(<span class="string">"variable_block_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind)
             .finish()
     }
 }
@@ -3279,8 +3287,12 @@
         <span class="macro">assert_eq!</span>(PouType::Action.to_string(), <span class="string">"Action"</span>);
         <span class="macro">assert_eq!</span>(PouType::Class.to_string(), <span class="string">"Class"</span>);
         <span class="macro">assert_eq!</span>(
-            PouType::Method { parent: String::new(), declaration_kind: DeclarationKind::Concrete }
-                .to_string(),
+            PouType::Method {
+                parent: String::new(),
+                property: <span class="prelude-val">None</span>,
+                declaration_kind: DeclarationKind::Concrete
+            }
+            .to_string(),
             <span class="string">"Method"
         </span>);
     }

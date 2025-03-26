@@ -1174,7 +1174,129 @@
 <a href="#1173" id="1173">1173</a>
 <a href="#1174" id="1174">1174</a>
 <a href="#1175" id="1175">1175</a>
-<a href="#1176" id="1176">1176</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
+<a href="#1176" id="1176">1176</a>
+<a href="#1177" id="1177">1177</a>
+<a href="#1178" id="1178">1178</a>
+<a href="#1179" id="1179">1179</a>
+<a href="#1180" id="1180">1180</a>
+<a href="#1181" id="1181">1181</a>
+<a href="#1182" id="1182">1182</a>
+<a href="#1183" id="1183">1183</a>
+<a href="#1184" id="1184">1184</a>
+<a href="#1185" id="1185">1185</a>
+<a href="#1186" id="1186">1186</a>
+<a href="#1187" id="1187">1187</a>
+<a href="#1188" id="1188">1188</a>
+<a href="#1189" id="1189">1189</a>
+<a href="#1190" id="1190">1190</a>
+<a href="#1191" id="1191">1191</a>
+<a href="#1192" id="1192">1192</a>
+<a href="#1193" id="1193">1193</a>
+<a href="#1194" id="1194">1194</a>
+<a href="#1195" id="1195">1195</a>
+<a href="#1196" id="1196">1196</a>
+<a href="#1197" id="1197">1197</a>
+<a href="#1198" id="1198">1198</a>
+<a href="#1199" id="1199">1199</a>
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a>
+<a href="#1202" id="1202">1202</a>
+<a href="#1203" id="1203">1203</a>
+<a href="#1204" id="1204">1204</a>
+<a href="#1205" id="1205">1205</a>
+<a href="#1206" id="1206">1206</a>
+<a href="#1207" id="1207">1207</a>
+<a href="#1208" id="1208">1208</a>
+<a href="#1209" id="1209">1209</a>
+<a href="#1210" id="1210">1210</a>
+<a href="#1211" id="1211">1211</a>
+<a href="#1212" id="1212">1212</a>
+<a href="#1213" id="1213">1213</a>
+<a href="#1214" id="1214">1214</a>
+<a href="#1215" id="1215">1215</a>
+<a href="#1216" id="1216">1216</a>
+<a href="#1217" id="1217">1217</a>
+<a href="#1218" id="1218">1218</a>
+<a href="#1219" id="1219">1219</a>
+<a href="#1220" id="1220">1220</a>
+<a href="#1221" id="1221">1221</a>
+<a href="#1222" id="1222">1222</a>
+<a href="#1223" id="1223">1223</a>
+<a href="#1224" id="1224">1224</a>
+<a href="#1225" id="1225">1225</a>
+<a href="#1226" id="1226">1226</a>
+<a href="#1227" id="1227">1227</a>
+<a href="#1228" id="1228">1228</a>
+<a href="#1229" id="1229">1229</a>
+<a href="#1230" id="1230">1230</a>
+<a href="#1231" id="1231">1231</a>
+<a href="#1232" id="1232">1232</a>
+<a href="#1233" id="1233">1233</a>
+<a href="#1234" id="1234">1234</a>
+<a href="#1235" id="1235">1235</a>
+<a href="#1236" id="1236">1236</a>
+<a href="#1237" id="1237">1237</a>
+<a href="#1238" id="1238">1238</a>
+<a href="#1239" id="1239">1239</a>
+<a href="#1240" id="1240">1240</a>
+<a href="#1241" id="1241">1241</a>
+<a href="#1242" id="1242">1242</a>
+<a href="#1243" id="1243">1243</a>
+<a href="#1244" id="1244">1244</a>
+<a href="#1245" id="1245">1245</a>
+<a href="#1246" id="1246">1246</a>
+<a href="#1247" id="1247">1247</a>
+<a href="#1248" id="1248">1248</a>
+<a href="#1249" id="1249">1249</a>
+<a href="#1250" id="1250">1250</a>
+<a href="#1251" id="1251">1251</a>
+<a href="#1252" id="1252">1252</a>
+<a href="#1253" id="1253">1253</a>
+<a href="#1254" id="1254">1254</a>
+<a href="#1255" id="1255">1255</a>
+<a href="#1256" id="1256">1256</a>
+<a href="#1257" id="1257">1257</a>
+<a href="#1258" id="1258">1258</a>
+<a href="#1259" id="1259">1259</a>
+<a href="#1260" id="1260">1260</a>
+<a href="#1261" id="1261">1261</a>
+<a href="#1262" id="1262">1262</a>
+<a href="#1263" id="1263">1263</a>
+<a href="#1264" id="1264">1264</a>
+<a href="#1265" id="1265">1265</a>
+<a href="#1266" id="1266">1266</a>
+<a href="#1267" id="1267">1267</a>
+<a href="#1268" id="1268">1268</a>
+<a href="#1269" id="1269">1269</a>
+<a href="#1270" id="1270">1270</a>
+<a href="#1271" id="1271">1271</a>
+<a href="#1272" id="1272">1272</a>
+<a href="#1273" id="1273">1273</a>
+<a href="#1274" id="1274">1274</a>
+<a href="#1275" id="1275">1275</a>
+<a href="#1276" id="1276">1276</a>
+<a href="#1277" id="1277">1277</a>
+<a href="#1278" id="1278">1278</a>
+<a href="#1279" id="1279">1279</a>
+<a href="#1280" id="1280">1280</a>
+<a href="#1281" id="1281">1281</a>
+<a href="#1282" id="1282">1282</a>
+<a href="#1283" id="1283">1283</a>
+<a href="#1284" id="1284">1284</a>
+<a href="#1285" id="1285">1285</a>
+<a href="#1286" id="1286">1286</a>
+<a href="#1287" id="1287">1287</a>
+<a href="#1288" id="1288">1288</a>
+<a href="#1289" id="1289">1289</a>
+<a href="#1290" id="1290">1290</a>
+<a href="#1291" id="1291">1291</a>
+<a href="#1292" id="1292">1292</a>
+<a href="#1293" id="1293">1293</a>
+<a href="#1294" id="1294">1294</a>
+<a href="#1295" id="1295">1295</a>
+<a href="#1296" id="1296">1296</a>
+<a href="#1297" id="1297">1297</a>
+<a href="#1298" id="1298">1298</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
 //! 1. [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
 //! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to call the GET or SET methods
 //!
@@ -1246,11 +1368,13 @@
 //! 2. A reference, that is not the left hand side of an assignment, in which case the reference itself needs
 //!    to be replaced with a function call as `__get_&lt;property name&gt;()`
 
-</span><span class="kw">use </span>helper::{create_internal_assignment, patch_prefix_to_name};
+</span><span class="kw">use </span><span class="kw">crate</span>::lowering::property::helper::create_internal_assignment;
+<span class="kw">use </span><span class="kw">crate</span>::resolver::{AnnotationMap, AstAnnotations};
+<span class="kw">use </span>helper::patch_prefix_to_name;
 <span class="kw">use </span>plc_ast::{
     ast::{
         AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, CompilationUnit,
-        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyKind,
+        DeclarationKind, Identifier, Implementation, LinkageType, Pou, PouType, PropertyBlock, PropertyKind,
         ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
@@ -1258,8 +1382,6 @@
     try_from_mut,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
-
-<span class="kw">use </span><span class="kw">crate</span>::resolver::{AnnotationMap, AstAnnotations};
 
 <span class="kw">pub struct </span>PropertyLowerer {
     <span class="kw">pub </span>id_provider: IdProvider,
@@ -1273,116 +1395,37 @@
 }
 
 <span class="kw">impl </span>PropertyLowerer {
-    <span class="doccomment">/// Lowers any property references into method calls
-    </span><span class="kw">pub fn </span>lower_references_to_calls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
-        <span class="self">self</span>.visit_compilation_unit(unit);
+    <span class="doccomment">/// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
+    </span><span class="kw">pub fn </span>properties_to_pous(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
+        <span class="kw">let </span><span class="kw-2">mut </span>local_pous = Vec::new();
+        <span class="kw">let </span><span class="kw-2">mut </span>local_impls = Vec::new();
+
+        <span class="comment">// Lower properties defined in a POU (e.g. a FUNCTION_BLOCK)
+        </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;mut </span>unit.pous {
+            <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;mut </span>pou.properties {
+                <span class="kw">let </span>(pous, impls) = lower_to_pou(<span class="self">self</span>.id_provider.clone(), <span class="kw-2">&amp;</span>pou.name, property);
+
+                local_pous.extend(pous);
+                local_impls.extend(impls);
+            }
+        }
+
+        <span class="comment">// Lower properties defined in an interface
+        </span><span class="kw">for </span>interface <span class="kw">in </span><span class="kw-2">&amp;mut </span>unit.interfaces {
+            <span class="kw">for </span>property <span class="kw">in </span><span class="kw-2">&amp;mut </span>interface.properties {
+                <span class="kw">let </span>(pous, <span class="kw">_</span>) = lower_to_pou(<span class="self">self</span>.id_provider.clone(), <span class="kw-2">&amp;</span>interface.ident.name, property);
+
+                interface.methods.extend(pous);
+            }
+        }
+
+        unit.pous.extend(local_pous);
+        unit.implementations.extend(local_impls);
     }
 
-    <span class="doccomment">/// Lowers [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
-    </span><span class="kw">pub fn </span>lower_properties_to_pous(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
-        <span class="kw">let </span><span class="kw-2">mut </span>units = <span class="macro">vec!</span>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>implementations = <span class="macro">vec!</span>[];
-        unit.pous.iter_mut().for_each(|pou| {
-            pou.properties.iter_mut().for_each(|property| {
-                <span class="kw">let </span>datatype = <span class="kw-2">&amp;</span>property.return_type;
-                <span class="kw">let </span>Identifier { name: prop_name, location } = <span class="kw-2">&amp;</span>property.name;
-                <span class="kw">let </span>parent = <span class="kw-2">&amp;</span>pou.name;
-
-                property.implementations.drain(..).for_each(|property_impl| {
-                    <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"{parent}.__{kind}_{prop_name}"</span>, kind = property_impl.kind,);
-
-                    <span class="kw">let </span><span class="kw-2">mut </span>pou = Pou {
-                        name,
-                        kind: PouType::Method {
-                            parent: parent.to_string(),
-                            declaration_kind: DeclarationKind::Concrete,
-                        },
-                        variable_blocks: property_impl.variable_blocks,
-                        return_type: <span class="prelude-val">None</span>,
-                        location: location.clone(),
-                        name_location: location.clone(),
-                        poly_mode: <span class="prelude-val">None</span>,
-                        generics: Vec::new(),
-                        linkage: LinkageType::Internal,
-                        super_class: <span class="prelude-val">None</span>,
-                        interfaces: Vec::new(),
-                        is_const: <span class="bool-val">false</span>,
-                        id: <span class="self">self</span>.id_provider.next_id(),
-                        properties: Vec::new(),
-                    };
-
-                    <span class="kw">let </span><span class="kw-2">mut </span>implementation = Implementation {
-                        name: pou.name.clone(),
-                        type_name: pou.name.clone(),
-                        linkage: pou.linkage,
-                        pou_type: pou.kind.clone(),
-                        statements: property_impl.body,
-                        location: location.clone(),
-                        name_location: location.clone(),
-                        end_location: property_impl.end_location.clone(),
-                        overriding: <span class="bool-val">false</span>,
-                        generic: <span class="bool-val">false</span>,
-                        access: <span class="prelude-val">Some</span>(AccessModifier::Public),
-                    };
-
-                    <span class="kw">match </span>property_impl.kind {
-                        <span class="comment">// We have to append a `&lt;method_name&gt; := &lt;property_name&gt;` assignment at the end of the
-                        // list of statements when dealing with getters
-                        </span>PropertyKind::Get =&gt; {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: <span class="bool-val">false</span>,
-                                retain: <span class="bool-val">false</span>,
-                                variables: <span class="macro">vec!</span>[Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: <span class="prelude-val">None</span>,
-                                    address: <span class="prelude-val">None</span>,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Local,
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                            pou.return_type = <span class="prelude-val">Some</span>(datatype.clone());
-
-                            <span class="kw">let </span>name_lhs = <span class="macro">format!</span>(<span class="string">"__{}_{}"</span>, property_impl.kind, prop_name);
-
-                            implementation.statements.push(create_internal_assignment(
-                                <span class="kw-2">&amp;mut </span><span class="self">self</span>.id_provider,
-                                name_lhs,
-                                prop_name,
-                            ));
-                        }
-
-                        <span class="comment">// We have to do two things when dealing with setters:
-                        // 1. Patch a variable block of type `VAR_INPUT` with a single variable with the
-                        // same name as the declared property and its type
-                        </span>PropertyKind::Set =&gt; {
-                            pou.variable_blocks.push(VariableBlock {
-                                access: AccessModifier::Public,
-                                constant: <span class="bool-val">false</span>,
-                                retain: <span class="bool-val">false</span>,
-                                variables: <span class="macro">vec!</span>[Variable {
-                                    name: prop_name.to_string(),
-                                    data_type_declaration: datatype.clone(),
-                                    initializer: <span class="prelude-val">None</span>,
-                                    address: <span class="prelude-val">None</span>,
-                                    location: SourceLocation::internal(),
-                                }],
-                                variable_block_type: VariableBlockType::Input(ArgumentProperty::ByVal),
-                                linkage: LinkageType::Internal,
-                                location: SourceLocation::internal(),
-                            });
-                        }
-                    };
-                    units.push(pou);
-                    implementations.push(implementation);
-                });
-            });
-        });
-        unit.pous.extend(units);
-        unit.implementations.extend(implementations);
+    <span class="doccomment">/// Lowers any property references into method calls
+    </span><span class="kw">pub fn </span>properties_to_fncalls(<span class="kw-2">&amp;mut </span><span class="self">self</span>, unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
+        <span class="self">self</span>.visit_compilation_unit(unit);
     }
 }
 
@@ -1454,6 +1497,109 @@
             </span><span class="kw">let _ </span>= std::mem::replace(node, call);
         }
     }
+}
+
+<span class="doccomment">/// The actual logic for lowering properties into methods and their implementations counterpart
+</span><span class="kw">pub fn </span>lower_to_pou(
+    <span class="kw-2">mut </span>provider: IdProvider,
+    parent: <span class="kw-2">&amp;</span>str,
+    property: <span class="kw-2">&amp;mut </span>PropertyBlock,
+) -&gt; (Vec&lt;Pou&gt;, Vec&lt;Implementation&gt;) {
+    <span class="kw">let </span><span class="kw-2">mut </span>pous = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>impls = Vec::new();
+
+    <span class="kw">for </span>property_impl <span class="kw">in </span>property.implementations.clone() {
+        <span class="kw">let </span>Identifier { name, location } = <span class="kw-2">&amp;</span>property.ident;
+
+        <span class="kw">let </span>mangled_name = <span class="macro">format!</span>(<span class="string">"{parent}.__{kind}_{name}"</span>, kind = property_impl.kind);
+
+        <span class="comment">// First transform the property into a method (__get... or __set...)
+        </span><span class="kw">let </span><span class="kw-2">mut </span>pou = Pou {
+            name: mangled_name,
+            kind: PouType::Method {
+                parent: parent.to_string(),
+                property: <span class="prelude-val">Some</span>((name.to_string(), property_impl.kind)),
+                declaration_kind: DeclarationKind::Concrete,
+            },
+            variable_blocks: property_impl.variable_blocks,
+            return_type: <span class="prelude-val">None</span>,
+            location: location.clone(),
+            name_location: location.clone(),
+            poly_mode: <span class="prelude-val">None</span>,
+            generics: Vec::new(),
+            linkage: LinkageType::Internal,
+            super_class: <span class="prelude-val">None</span>,
+            interfaces: Vec::new(),
+            is_const: <span class="bool-val">false</span>,
+            id: provider.next_id(),
+            properties: Vec::new(),
+        };
+
+        <span class="comment">// ...then transform any statement inside the property into an implementation
+        </span><span class="kw">let </span><span class="kw-2">mut </span>implementation = Implementation {
+            name: pou.name.clone(),
+            type_name: pou.name.clone(),
+            linkage: pou.linkage,
+            pou_type: pou.kind.clone(),
+            statements: property_impl.body,
+            location: location.clone(),
+            name_location: location.clone(),
+            end_location: property_impl.end_location.clone(),
+            overriding: <span class="bool-val">false</span>,
+            generic: <span class="bool-val">false</span>,
+            access: <span class="prelude-val">Some</span>(AccessModifier::Public),
+        };
+
+        <span class="comment">// ...then patch in local variables (and additionally some extra statements) for the implementation
+        </span><span class="kw">match </span>property_impl.kind {
+            PropertyKind::Get =&gt; {
+                pou.variable_blocks.push(VariableBlock {
+                    access: AccessModifier::Public,
+                    constant: <span class="bool-val">false</span>,
+                    retain: <span class="bool-val">false</span>,
+                    variables: <span class="macro">vec!</span>[Variable {
+                        name: name.to_string(),
+                        data_type_declaration: property.datatype.clone(),
+                        initializer: <span class="prelude-val">None</span>,
+                        address: <span class="prelude-val">None</span>,
+                        location: SourceLocation::internal(),
+                    }],
+                    kind: VariableBlockType::Local,
+                    linkage: LinkageType::Internal,
+                    location: SourceLocation::internal(),
+                });
+                pou.return_type = <span class="prelude-val">Some</span>(property.datatype.clone());
+
+                <span class="kw">let </span>name_lhs = <span class="macro">format!</span>(<span class="string">"__{}_{}"</span>, property_impl.kind, name);
+
+                implementation.statements.push(create_internal_assignment(<span class="kw-2">&amp;mut </span>provider, name_lhs, name));
+            }
+
+            PropertyKind::Set =&gt; {
+                pou.variable_blocks.push(VariableBlock {
+                    access: AccessModifier::Public,
+                    constant: <span class="bool-val">false</span>,
+                    retain: <span class="bool-val">false</span>,
+                    variables: <span class="macro">vec!</span>[Variable {
+                        name: name.to_string(),
+                        data_type_declaration: property.datatype.clone(),
+                        initializer: <span class="prelude-val">None</span>,
+                        address: <span class="prelude-val">None</span>,
+                        location: SourceLocation::internal(),
+                    }],
+                    kind: VariableBlockType::Input(ArgumentProperty::ByVal),
+                    linkage: LinkageType::Internal,
+                    location: SourceLocation::internal(),
+                });
+            }
+        };
+
+        <span class="comment">// ...aaaaand done
+        </span>pous.push(pou);
+        impls.push(implementation);
+    }
+
+    (pous, impls)
 }
 
 <span class="kw">mod </span>helper {
@@ -1538,7 +1684,7 @@
         <span class="macro">assert_eq!</span>(diagnostics, Vec::new());
 
         <span class="comment">// Lower
-        </span>lowerer.lower_properties_to_pous(<span class="kw-2">&amp;mut </span>unit);
+        </span>lowerer.properties_to_pous(<span class="kw-2">&amp;mut </span>unit);
 
         <span class="comment">// Index
         </span><span class="kw">let </span><span class="kw-2">mut </span>index = index_unit_with_id(<span class="kw-2">&amp;</span>unit, id_provider.clone());
@@ -1557,7 +1703,7 @@
         <span class="comment">// Lower
         </span><span class="kw">let </span>annotations = AstAnnotations::new(annotations, id_provider.next_id());
         lowerer.annotations = <span class="prelude-val">Some</span>(annotations);
-        lowerer.lower_references_to_calls(<span class="kw-2">&amp;mut </span>unit);
+        lowerer.properties_to_fncalls(<span class="kw-2">&amp;mut </span>unit);
 
         unit
     }
@@ -1595,6 +1741,12 @@
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    property: Some(
+                        (
+                            "foo",
+                            Get,
+                        ),
+                    ),
                     declaration_kind: Concrete,
                 },
                 return_type: Some(
@@ -1661,6 +1813,12 @@
                 ],
                 pou_type: Method {
                     parent: "fb",
+                    property: Some(
+                        (
+                            "foo",
+                            Set,
+                        ),
+                    ),
                     declaration_kind: Concrete,
                 },
                 return_type: None,
@@ -1887,6 +2045,92 @@
                             parameters: None,
                         },
                     ),
+                },
+            ]
+            "###</span>);
+        }
+
+        <span class="attr">#[test]
+        </span><span class="kw">fn </span>properties_in_interfaces_are_lowered() {
+            <span class="kw">let </span>source = <span class="string">r"
+            INTERFACE foo
+                PROPERTY bar : DINT
+                    GET END_GET
+                    SET END_SET
+                END_PROPERTY
+            END_INTERFACE
+            "</span>;
+
+            <span class="kw">let </span>(unit, <span class="kw">_</span>) = <span class="kw">super</span>::lower_properties_to_pous(source);
+
+            <span class="comment">// We retain the properties
+            </span><span class="macro">assert_eq!</span>(unit.interfaces[<span class="number">0</span>].properties.len(), <span class="number">1</span>);
+
+            <span class="comment">// ...but at the same time lower them into methods hosted by the interface
+            </span><span class="macro">assert_eq!</span>(unit.interfaces[<span class="number">0</span>].methods.len(), <span class="number">2</span>);
+            <span class="macro">insta::assert_debug_snapshot!</span>(unit.interfaces[<span class="number">0</span>].methods, @<span class="string">r###"
+            [
+                POU {
+                    name: "foo.__get_bar",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "bar",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Local,
+                        },
+                    ],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: Some(
+                            (
+                                "bar",
+                                Get,
+                            ),
+                        ),
+                        declaration_kind: Concrete,
+                    },
+                    return_type: Some(
+                        DataTypeReference {
+                            referenced_type: "DINT",
+                        },
+                    ),
+                    interfaces: [],
+                },
+                POU {
+                    name: "foo.__set_bar",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "bar",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "DINT",
+                                    },
+                                },
+                            ],
+                            variable_block_type: Input(
+                                ByVal,
+                            ),
+                        },
+                    ],
+                    pou_type: Method {
+                        parent: "foo",
+                        property: Some(
+                            (
+                                "bar",
+                                Set,
+                            ),
+                        ),
+                        declaration_kind: Concrete,
+                    },
+                    return_type: None,
+                    interfaces: [],
                 },
             ]
             "###</span>);

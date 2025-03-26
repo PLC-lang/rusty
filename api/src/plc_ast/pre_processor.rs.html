@@ -611,9 +611,11 @@
 }
 
 <span class="kw">fn </span>update_generated_globals(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, mangled_globals: Vec&lt;Variable&gt;) {
-    <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = unit.global_vars.iter().position(|block| {
-        block.variable_block_type == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal()
-    }) {
+    <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = unit
+        .global_vars
+        .iter()
+        .position(|block| block.kind == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal())
+    {
         unit.global_vars.remove(index)
     } <span class="kw">else </span>{
         VariableBlock::default().with_block_type(VariableBlockType::Global)
@@ -630,9 +632,7 @@
 <span class="kw">fn </span>get_internal_global_block(unit: <span class="kw-2">&amp;</span>CompilationUnit) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableBlock&gt; {
     unit.global_vars
         .iter()
-        .position(|block| {
-            block.variable_block_type == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal()
-        })
+        .position(|block| block.kind == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal())
         .and_then(|index| unit.global_vars.get(index))
 }
 

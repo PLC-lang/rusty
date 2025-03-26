@@ -126,7 +126,7 @@
     <span class="kw">if let </span><span class="prelude-val">Some</span>(debug) = <span class="kw-2">&amp;</span>debug_level {
         args.push(debug);
     };
-    <span class="kw">let </span>params = cli::CompileParameters::parse(<span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>args)).map_err(|e| e.to_string())<span class="question-mark">?</span>;
+    <span class="kw">let </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>args).map_err(|e| e.to_string())<span class="question-mark">?</span>;
     <span class="kw">let </span>pipeline = BuildPipeline {
         context,
         project,

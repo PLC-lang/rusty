@@ -1535,7 +1535,18 @@
 <a href="#1534" id="1534">1534</a>
 <a href="#1535" id="1535">1535</a>
 <a href="#1536" id="1536">1536</a>
-<a href="#1537" id="1537">1537</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1537" id="1537">1537</a>
+<a href="#1538" id="1538">1538</a>
+<a href="#1539" id="1539">1539</a>
+<a href="#1540" id="1540">1540</a>
+<a href="#1541" id="1541">1541</a>
+<a href="#1542" id="1542">1542</a>
+<a href="#1543" id="1543">1543</a>
+<a href="#1544" id="1544">1544</a>
+<a href="#1545" id="1545">1545</a>
+<a href="#1546" id="1546">1546</a>
+<a href="#1547" id="1547">1547</a>
+<a href="#1548" id="1548">1548</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -1742,6 +1753,7 @@
     <span class="kw">let </span><span class="kw-2">mut </span>extensions = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>methods = Vec::new();
     <span class="kw">let </span><span class="kw-2">mut </span>implementations = Vec::new();
+    <span class="kw">let </span><span class="kw-2">mut </span>properties = Vec::new();
 
     <span class="kw">if </span>lexer.try_consume(KeywordExtends) {
         <span class="kw">while let </span>Identifier = lexer.token {
@@ -1759,9 +1771,9 @@
                     <span class="comment">// This is temporary? At some point we'll support them but for now it's a diagnostic
                     </span><span class="kw">if </span>!imp.statements.is_empty() {
                         lexer.accept_diagnostic(
-                            Diagnostic::new(<span class="string">"Interfaces can not have a default implementations"</span>)
+                            Diagnostic::new(<span class="string">"Interfaces can not have a default implementation"</span>)
                                 .with_error_code(<span class="string">"E113"</span>)
-                                .with_location(<span class="kw-2">&amp;</span>imp.location),
+                                .with_location(<span class="kw-2">&amp;</span>imp.statements.first().unwrap().location),
                         );
                     }
 
@@ -1770,7 +1782,19 @@
                 }
             }
 
-            KeywordProperty =&gt; <span class="macro">unimplemented!</span>(<span class="string">"not yet supported"</span>),
+            KeywordProperty =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(property) = parse_property(lexer) {
+                    <span class="kw">for </span>property <span class="kw">in </span>property.implementations.iter().filter(|imp| !imp.body.is_empty()) {
+                        lexer.accept_diagnostic(
+                            Diagnostic::new(<span class="string">"Interfaces can not have a default implementation"</span>)
+                                .with_error_code(<span class="string">"E113"</span>)
+                                .with_location(<span class="kw-2">&amp;</span>property.body.first().unwrap().location),
+                        );
+                    }
+
+                    properties.push(property);
+                }
+            }
 
             <span class="kw">_ </span>=&gt; <span class="kw">break</span>,
         }
@@ -1782,10 +1806,11 @@
     (
         Interface {
             id: lexer.next_id(),
-            identifier: Identifier { name, location: location_name },
+            ident: Identifier { name, location: location_name },
             methods,
             extensions,
             location: lexer.source_range_factory.create_range(location_start..location_end),
+            properties,
         },
         implementations,
     )
@@ -1871,9 +1896,10 @@
             </span><span class="kw">while </span><span class="macro">matches!</span>(lexer.token, KeywordMethod | KeywordProperty | PropertyConstant) {
                 <span class="kw">if </span>!<span class="macro">matches!</span>(kind, PouType::FunctionBlock | PouType::Class | PouType::Program) {
                     <span class="kw">let </span>location = lexer.source_range_factory.create_range(lexer.last_range.clone());
+                    <span class="kw">let </span>pre = <span class="kw">if </span><span class="macro">matches!</span>(lexer.token, KeywordProperty) { <span class="string">"Properties" </span>} <span class="kw">else </span>{ <span class="string">"Methods" </span>};
 
                     lexer.accept_diagnostic(
-                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Methods cannot be declared in a POU of type '{kind}'."</span>))
+                        Diagnostic::new(<span class="macro">format!</span>(<span class="string">"{pre} cannot be declared in a {kind}"</span>))
                             .with_location(location),
                     );
                 }
@@ -2139,7 +2165,7 @@
         lexer.advance(); <span class="comment">// eat METHOD keyword
 
         </span><span class="kw">let </span>access = <span class="prelude-val">Some</span>(parse_access_modifier(lexer));
-        <span class="kw">let </span>pou_kind = PouType::Method { parent: parent.into(), declaration_kind };
+        <span class="kw">let </span>pou_kind = PouType::Method { parent: parent.into(), property: <span class="prelude-val">None</span>, declaration_kind };
         <span class="kw">let </span>poly_mode = parse_polymorphism_mode(lexer, <span class="kw-2">&amp;</span>pou_kind);
         <span class="kw">let </span>overriding = lexer.try_consume(KeywordOverride);
         <span class="kw">let </span>(name, name_location) = parse_identifier(lexer)<span class="question-mark">?</span>;
@@ -2262,11 +2288,7 @@
 
     <span class="kw">let </span>(name, name_location) = identifier.expect(<span class="string">"covered above"</span>);
     <span class="kw">let </span>datatype = datatype.expect(<span class="string">"covered above"</span>);
-    <span class="prelude-val">Some</span>(PropertyBlock {
-        name: Identifier { name, location: name_location },
-        return_type: datatype,
-        implementations,
-    })
+    <span class="prelude-val">Some</span>(PropertyBlock { ident: Identifier { name, location: name_location }, datatype, implementations })
 }
 
 <span class="kw">fn </span>parse_access_modifier(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; AccessModifier {
@@ -2868,7 +2890,7 @@
         });
     }
 
-    VariableBlock { access, constant, retain, variables, variable_block_type, linkage, location }
+    VariableBlock { access, constant, retain, variables, kind: variable_block_type, linkage, location }
 }
 
 <span class="kw">fn </span>parse_variable_list(lexer: <span class="kw-2">&amp;mut </span>ParseSession) -&gt; Vec&lt;Variable&gt; {

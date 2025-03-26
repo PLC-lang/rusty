@@ -2547,7 +2547,9 @@
 <a href="#2546" id="2546">2546</a>
 <a href="#2547" id="2547">2547</a>
 <a href="#2548" id="2548">2548</a>
-<a href="#2549" id="2549">2549</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
+<a href="#2549" id="2549">2549</a>
+<a href="#2550" id="2550">2550</a>
+<a href="#2551" id="2551">2551</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
 //! Derived POUs can access members of their base class using the `__SUPER` qualifier,
 //! which is an implicit reference to an instance of the base class which
 //! is added as a member variable of the derived class in the 'pre_index' pass.
@@ -2741,7 +2743,7 @@
 
         <span class="kw">let </span>block = VariableBlock {
             variables: <span class="macro">vec!</span>[base_var],
-            variable_block_type: VariableBlockType::Local,
+            kind: VariableBlockType::Local,
             linkage: LinkageType::Internal,
             location: SourceLocation::internal(),
             ..Default::default()
@@ -4690,6 +4692,7 @@
             ],
             pou_type: Method {
                 parent: "child",
+                property: None,
                 declaration_kind: Concrete,
             },
             return_type: None,
@@ -4717,13 +4720,14 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         Implementation {
             name: "bar.set0",
             type_name: "bar.set0",
             linkage: Internal,
             pou_type: Method {
                 parent: "bar",
+                property: None,
                 declaration_kind: Concrete,
             },
             statements: [
@@ -4804,7 +4808,7 @@
                 Protected,
             ),
         }
-        "#</span>);
+        "###</span>);
     }
 }
 
@@ -4936,7 +4940,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, AnnotatedProject { units, .. }) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>implementation = <span class="kw-2">&amp;</span>units[<span class="number">0</span>].get_unit().implementations[<span class="number">1</span>];
-        <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span><span class="macro">dbg!</span>(implementation).statements[<span class="number">0</span>];
+        <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span>implementation.statements[<span class="number">0</span>];
         <span class="macro">assert_debug_snapshot!</span>(stmt, @<span class="string">r###"
         CallStatement {
             operator: ReferenceExpr {
@@ -4982,7 +4986,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, AnnotatedProject { units, .. }) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>implementation = <span class="kw-2">&amp;</span>units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
-        <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span><span class="macro">dbg!</span>(implementation).statements[<span class="number">0</span>];
+        <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span>implementation.statements[<span class="number">0</span>];
         <span class="macro">assert_debug_snapshot!</span>(stmt, @<span class="string">r###"
         CallStatement {
             operator: ReferenceExpr {
@@ -5040,7 +5044,7 @@
         </span>.into();
 
         <span class="kw">let </span>(<span class="kw">_</span>, AnnotatedProject { units, .. }) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
-        <span class="kw">let </span>implementation = <span class="macro">dbg!</span>(<span class="kw-2">&amp;</span>units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>]);
+        <span class="kw">let </span>implementation = <span class="kw-2">&amp;</span>units[<span class="number">0</span>].get_unit().implementations[<span class="number">2</span>];
         <span class="kw">let </span>stmt = <span class="kw-2">&amp;</span>implementation.statements[<span class="number">0</span>];
         <span class="macro">assert_debug_snapshot!</span>(stmt, @<span class="string">r###"
         CallStatement {

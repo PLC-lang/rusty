@@ -449,11 +449,7 @@
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a>
-<a href="#452" id="452">452</a>
-<a href="#453" id="453">453</a>
-<a href="#454" id="454">454</a>
-<a href="#455" id="455">455</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
+<a href="#451" id="451">451</a></pre></div><pre class="rust"><code><span class="kw">use crate</span>::{
     index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::const_evaluator::UnresolvableConstant,
 };
@@ -471,10 +467,6 @@
 <span class="kw">pub mod </span>calls;
 <span class="kw">mod </span>initializers;
 <span class="kw">pub mod </span>property;
-
-<span class="comment">// TODO: The validator should not live here, it should be its own crate or moved to where the current
-//       validator is located at. I'm in favor of the former...
-</span><span class="kw">pub mod </span>validator;
 
 <span class="kw">pub struct </span>InitVisitor {
     index: Index,

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["read_got_layout"],"mod":["participant","property","validator"],"struct":["AnnotatedProject","AnnotatedUnit","BuildPipeline","GeneratedProject","IndexedProject","ParsedProject"],"trait":["Pipeline"]};
+window.SIDEBAR_ITEMS = {"fn":["read_got_layout"],"mod":["participant","property"],"struct":["AnnotatedProject","AnnotatedUnit","BuildPipeline","GeneratedProject","IndexedProject","ParsedProject"],"trait":["Pipeline"]};

@@ -304,9 +304,15 @@
 <a href="#303" id="303">303</a>
 <a href="#304" id="304">304</a>
 <a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
-    <span class="self">self</span>, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, TypeNature, VariableBlock,
-    VariableBlockType,
+<a href="#306" id="306">306</a>
+<a href="#307" id="307">307</a>
+<a href="#308" id="308">308</a>
+<a href="#309" id="309">309</a>
+<a href="#310" id="310">310</a>
+<a href="#311" id="311">311</a>
+<a href="#312" id="312">312</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+    <span class="self">self</span>, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, PropertyKind, TypeNature,
+    VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::internal_type_name;
@@ -381,8 +387,15 @@
             PouType::Function | PouType::Init | PouType::ProjectInit =&gt; {
                 <span class="self">self</span>.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent, declaration_kind, .. } =&gt; {
-                <span class="self">self</span>.index_method(pou, return_type_name, parent, <span class="kw-2">*</span>declaration_kind, pou_struct_type);
+            PouType::Method { parent, property, declaration_kind, .. } =&gt; {
+                <span class="self">self</span>.index_method(
+                    pou,
+                    return_type_name,
+                    property,
+                    parent,
+                    <span class="kw-2">*</span>declaration_kind,
+                    pou_struct_type,
+                );
             }
             <span class="kw">_ </span>=&gt; {}
         };
@@ -395,7 +408,7 @@
             <span class="kw-2">&amp;</span>pou.name,
             pou.name_location.clone(),
             pou.linkage,
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         );
     }
 
@@ -404,6 +417,7 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         pou: <span class="kw-2">&amp;</span>Pou,
         return_type_name: <span class="kw-2">&amp;</span>str,
+        property: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;(String, PropertyKind)&gt;,
         owner_class: <span class="kw-2">&amp;</span>str,
         declaration_kind: DeclarationKind,
         pou_struct_type: typesystem::DataType,
@@ -411,6 +425,7 @@
         <span class="self">self</span>.index.register_pou(PouIndexEntry::create_method_entry(
             <span class="kw-2">&amp;</span>pou.name,
             return_type_name,
+            property.clone(),
             owner_class,
             declaration_kind,
             pou.linkage,
@@ -457,7 +472,7 @@
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }
@@ -480,7 +495,7 @@
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         ));
         <span class="self">self</span>.index.register_pou_type(pou_struct_type);
     }
@@ -539,7 +554,7 @@
                         variable_linkage: block_type,
                         variable_type_name: <span class="kw-2">&amp;</span>type_name,
                         is_constant: block.constant,
-                        is_var_external: <span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::External),
+                        is_var_external: <span class="macro">matches!</span>(block.kind, VariableBlockType::External),
                         binding,
                         varargs,
                     },
@@ -557,12 +572,9 @@
 
 <span class="doccomment">/// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)
 </span><span class="kw">fn </span>get_declaration_type_for(block: <span class="kw-2">&amp;</span>VariableBlock, pou_type: <span class="kw-2">&amp;</span>PouType) -&gt; ArgumentType {
-    <span class="kw">if </span><span class="macro">matches!</span>(
-        block.variable_block_type,
-        VariableBlockType::InOut | VariableBlockType::Input(ArgumentProperty::ByRef)
-    ) {
+    <span class="kw">if </span><span class="macro">matches!</span>(block.kind, VariableBlockType::InOut | VariableBlockType::Input(ArgumentProperty::ByRef)) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
-    } <span class="kw">else if </span>block.variable_block_type == VariableBlockType::Output {
+    } <span class="kw">else if </span>block.kind == VariableBlockType::Output {
         <span class="comment">// outputs differ depending on pou type
         </span><span class="kw">match </span>pou_type {
             PouType::Function | PouType::Method { .. } =&gt; {
@@ -576,7 +588,7 @@
 }
 
 <span class="kw">fn </span>get_variable_type_from_block(block: <span class="kw-2">&amp;</span>VariableBlock) -&gt; VariableType {
-    <span class="kw">match </span>block.variable_block_type {
+    <span class="kw">match </span>block.kind {
         VariableBlockType::Local =&gt; VariableType::Local,
         VariableBlockType::Temp =&gt; VariableType::Temp,
         VariableBlockType::Input(<span class="kw">_</span>) =&gt; VariableType::Input,

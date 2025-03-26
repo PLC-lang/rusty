@@ -677,7 +677,16 @@
 <a href="#676" id="676">676</a>
 <a href="#677" id="677">677</a>
 <a href="#678" id="678">678</a>
-<a href="#679" id="679">679</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<a href="#679" id="679">679</a>
+<a href="#680" id="680">680</a>
+<a href="#681" id="681">681</a>
+<a href="#682" id="682">682</a>
+<a href="#683" id="683">683</a>
+<a href="#684" id="684">684</a>
+<a href="#685" id="685">685</a>
+<a href="#686" id="686">686</a>
+<a href="#687" id="687">687</a>
+<a href="#688" id="688">688</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{
     AstId, Identifier, Implementation, Interface, LinkageType, Pou, PouType, VariableBlockType,
 };
@@ -686,7 +695,8 @@
 <span class="kw">use </span>signature_validation::validate_method_signature;
 
 <span class="kw">use super</span>::{
-    statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator, Validators,
+    property, statement::visit_statement, variable::visit_variable_block, ValidationContext, Validator,
+    Validators,
 };
 <span class="kw">use </span><span class="kw">crate</span>::resolver::{AnnotationMap, StatementAnnotation};
 
@@ -718,21 +728,23 @@
     <span class="kw">else </span>{
         <span class="kw">return</span>;
     };
-    declarations.iter().for_each(|(method_name, decl)| {
+    declarations.iter().for_each(|(<span class="kw">_</span>, decl)| {
         <span class="comment">// validate that abstract signatures all match
         // Concrete to abstract methods are checked at a different stage
         </span><span class="kw">let </span>methods = decl
             .iter()
             .filter(|it| it.is_abstract())
-            .flat_map(|it| context.index.find_pou(it.get_qualified_name()));
-        <span class="comment">//XXX(ghha) should this not be combinations instead of tuple_windows?
+            .flat_map(|it| context.index.find_pou(it.get_qualified_name()))
+            <span class="comment">// We already have a specialized validation for properties and would like to avoid duplicates here
+            </span>.filter(|it| !it.is_property());
+        <span class="comment">// XXX(ghha) should this not be combinations instead of tuple_windows?
         </span><span class="kw">for </span>(method1, method2) <span class="kw">in </span>methods.tuple_windows() {
             <span class="kw">let </span>diagnostics = validate_method_signature(context.index, method1, method2, primary_location);
             <span class="kw">if </span>!diagnostics.is_empty() {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
-                        <span class="string">"Method `{}` in `{}` is declared with conflicting signatures in `{}` and `{}`"</span>,
-                        method_name,
+                        <span class="string">"{} in `{}` is declared with conflicting signatures in `{}` and `{}`"</span>,
+                        method1.get_method_name(),
                         container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
@@ -756,6 +768,7 @@
                 .iter()
                 .filter(|it| it.is_abstract())
                 .map(|it| (it.get_qualifier(), context.index.find_pou(it.get_qualified_name()).unwrap()));
+
             <span class="comment">// Expecting only one concrete implementation
             </span><span class="kw">let </span>concrete = decl
                 .iter()
@@ -775,8 +788,10 @@
                 abstracts.for_each(|(name, intf)| {
                     validator.push_diagnostic(
                         Diagnostic::new(<span class="macro">format!</span>(
-                            <span class="string">"Method `{}` defined in interface `{}` is missing in POU `{}`"</span>,
-                            method_name, name, container_name
+                            <span class="string">"{} defined in interface `{}` is missing in POU `{}`"</span>,
+                            intf.get_method_name(),
+                            name,
+                            container_name
                         ))
                         .with_error_code(<span class="string">"E112"</span>)
                         .with_location(primary_location)
@@ -794,11 +809,11 @@
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
 ) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(StatementAnnotation::Override { definitions }) = context.annotations.get_with_id(pou.id) <span class="kw">else </span>{
-        <span class="comment">//No override
+        <span class="comment">// No override
         </span><span class="kw">return</span>;
     };
     <span class="kw">let </span><span class="prelude-val">Some</span>(method_impl) = context.index.find_pou(<span class="kw-2">&amp;</span>pou.name) <span class="kw">else </span>{
-        <span class="comment">//Method does not exist
+        <span class="comment">// Method does not exist
         </span><span class="kw">return</span>;
     };
 
@@ -893,7 +908,7 @@
     }
     <span class="kw">if </span>implementation.linkage != LinkageType::External {
         validate_action_container(validator, implementation);
-        <span class="comment">//Validate the label uniqueness
+        <span class="comment">// Validate the label uniqueness
 
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(labels) = context.index.get_labels(<span class="kw-2">&amp;</span>implementation.name) {
             <span class="kw">for </span>(<span class="kw">_</span>, labels) <span class="kw">in </span>labels.entries() {
@@ -924,7 +939,8 @@
     <span class="kw">if </span>pou.kind == PouType::Class {
         validate_class(validator, pou);
     };
-    <span class="comment">//If the POU is not a function or method, it cannot have a return type
+
+    <span class="comment">// If the POU is not a function or method, it cannot have a return type
     </span><span class="kw">if </span>!<span class="macro">matches!</span>(pou.kind, PouType::Function | PouType::Method { .. }) {
         <span class="kw">if let </span><span class="prelude-val">Some</span>(start_return_type) = <span class="kw-2">&amp;</span>pou.return_type {
             validator.push_diagnostic(
@@ -940,10 +956,7 @@
     <span class="comment">// var in/out/inout blocks are not allowed inside of class declaration
     // TODO: This should be on each block
     </span><span class="kw">if </span>pou.variable_blocks.iter().any(|it| {
-        <span class="macro">matches!</span>(
-            it.variable_block_type,
-            VariableBlockType::InOut | VariableBlockType::Input(<span class="kw">_</span>) | VariableBlockType::Output
-        )
+        <span class="macro">matches!</span>(it.kind, VariableBlockType::InOut | VariableBlockType::Input(<span class="kw">_</span>) | VariableBlockType::Output)
     }) {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"A class cannot contain `VAR_INPUT`, `VAR_IN_OUT`, or `VAR_OUTPUT` blocks"</span>)
@@ -968,8 +981,8 @@
     interface: <span class="kw-2">&amp;</span>Interface,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;<span class="lifetime">'_</span>, T&gt;,
 ) {
-    <span class="kw">let </span>Identifier { name, location } = <span class="kw-2">&amp;</span>interface.identifier;
-    <span class="kw">let </span><span class="prelude-val">Some</span>(entry) = context.index.find_interface(name) <span class="kw">else </span>{ <span class="macro">unreachable!</span>(<span class="string">"Must exist"</span>) };
+    <span class="kw">let </span>Identifier { name, location } = <span class="kw-2">&amp;</span>interface.ident;
+    <span class="kw">let </span>entry = context.index.find_interface(name).expect(<span class="string">"must exist"</span>);
     entry.get_extensions().iter().for_each(|declaration| {
         <span class="kw">if </span>context.index.find_interface(<span class="kw-2">&amp;</span>declaration.name).is_none() {
             validator.push_diagnostic(
@@ -980,6 +993,7 @@
         }
     });
     validate_methods_overrides(validator, context, interface.id, name, location);
+    property::validate_properties_in_interfaces(validator, context, interface);
 }
 
 <span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">mod </span>signature_validation {
@@ -1073,6 +1087,7 @@
             <span class="kw">let </span>parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
             <span class="kw">let </span>parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
             <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = <span class="macro">vec!</span>[];
+
             <span class="comment">// Conditionally skip the first parameter if the return type is aggregate.
             // Return types have already been validated and we don't want to show errors
             // for internally modified code.
@@ -1135,6 +1150,7 @@
                             );
                         }
                     }
+
                     itertools::EitherOrBoth::Left(parameter_ref) =&gt; {
                         diagnostics.push(
                             Diagnostic::new(<span class="macro">format!</span>(
@@ -1148,6 +1164,7 @@
                             .with_secondary_location(<span class="kw-2">&amp;</span>parameter_ref.source_location),
                         );
                     }
+
                     <span class="comment">// Exceeding parameters in the POU, which we did not catch in the for loop above because we were only
                     // iterating over the interface parameters; anyhow any exceeding parameter is considered an error because
                     // the function signature no longer holds
@@ -1165,6 +1182,7 @@
                     }
                 }
             });
+
             <span class="kw">if </span>!diagnostics.is_empty() {
                 <span class="self">self</span>.diagnostics.push(
                     Diagnostic::new(<span class="string">"Derived methods with conflicting signatures, parameters do not match:"</span>)

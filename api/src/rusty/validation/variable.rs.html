@@ -523,9 +523,13 @@
 <a href="#522" id="522">522</a>
 <a href="#523" id="523">523</a>
 <a href="#524" id="524">524</a>
-<a href="#525" id="525">525</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
-    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Identifier, Pou, PouType,
-    Variable, VariableBlock, VariableBlockType,
+<a href="#525" id="525">525</a>
+<a href="#526" id="526">526</a>
+<a href="#527" id="527">527</a>
+<a href="#528" id="528">528</a>
+<a href="#529" id="529">529</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+    ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
+    VariableBlock, VariableBlockType,
 };
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 
@@ -659,7 +663,7 @@
 }
 
 <span class="kw">fn </span>validate_variable_block(validator: <span class="kw-2">&amp;mut </span>Validator, block: <span class="kw-2">&amp;</span>VariableBlock) {
-    <span class="kw">if </span><span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::External) {
+    <span class="kw">if </span><span class="macro">matches!</span>(block.kind, VariableBlockType::External) {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"VAR_EXTERNAL blocks have no effect"</span>)
                 .with_error_code(<span class="string">"E106"</span>)
@@ -669,7 +673,7 @@
 
     <span class="kw">if </span>block.constant
         &amp;&amp; !<span class="macro">matches!</span>(
-            block.variable_block_type,
+            block.kind,
             VariableBlockType::Global | VariableBlockType::Local | VariableBlockType::External
         )
     {
@@ -696,7 +700,7 @@
 /// - InOut within Function-Block
 </span><span class="kw">fn </span>validate_vla(validator: <span class="kw-2">&amp;mut </span>Validator, pou: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Pou&gt;, block: <span class="kw-2">&amp;</span>VariableBlock, variable: <span class="kw-2">&amp;</span>Variable) {
     <span class="kw">let </span><span class="prelude-val">Some</span>(pou) = pou <span class="kw">else </span>{
-        <span class="kw">if </span><span class="macro">matches!</span>(block.variable_block_type, VariableBlockType::Global) {
+        <span class="kw">if </span><span class="macro">matches!</span>(block.kind, VariableBlockType::Global) {
             validator.push_diagnostic(
                 Diagnostic::new(<span class="string">"VLAs can not be defined as global variables"</span>)
                     .with_error_code(<span class="string">"E044"</span>)
@@ -707,7 +711,7 @@
         <span class="kw">return</span>;
     };
 
-    <span class="kw">match </span>(<span class="kw-2">&amp;</span>pou.kind, block.variable_block_type) {
+    <span class="kw">match </span>(<span class="kw-2">&amp;</span>pou.kind, block.kind) {
         (PouType::Function, VariableBlockType::Input(ArgumentProperty::ByVal)) =&gt; validator.push_diagnostic(
             Diagnostic::new(
                 <span class="string">"Variable Length Arrays are always by-ref, even when declared in a by-value block"</span>,
@@ -733,7 +737,7 @@
         <span class="kw">_ </span>=&gt; validator.push_diagnostic(
             Diagnostic::new(<span class="macro">format!</span>(
                 <span class="string">"Variable Length Arrays are not allowed to be defined as {} variables inside a {}"</span>,
-                block.variable_block_type, pou.kind
+                block.kind, pou.kind
             ))
             .with_error_code(<span class="string">"E044"</span>)
             .with_location(<span class="kw-2">&amp;</span>variable.location),
@@ -779,41 +783,7 @@
     variable: <span class="kw-2">&amp;</span>Variable,
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
 ) {
-    <span class="comment">//Validate redeclaration of variable
-    //See if we are in a POU that is extended
-    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">mut </span>super_class) =
-        context.qualifier.and_then(|it| context.index.find_pou(it)).map(PouIndexEntry::get_super_class)
-    {
-        <span class="kw">while let </span><span class="prelude-val">Some</span>(parent_pou) = super_class {
-            <span class="kw">let </span><span class="prelude-val">Some</span>(parent_pou) = context.index.find_pou(parent_pou) <span class="kw">else </span>{
-                <span class="kw">break</span>;
-            };
-
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(shadowed_variable) = context
-                .index
-                .find_member(parent_pou.get_name(), variable.name.as_str())
-                .filter(|v| !v.is_temp())
-                .map(Identifier::from)
-                .or(parent_pou.get_property(<span class="kw-2">&amp;</span>variable.name).cloned())
-            {
-                (!variable.location.is_internal()).then(|| {
-                    validator.push_diagnostic(
-                        Diagnostic::new(<span class="macro">format!</span>(
-                            <span class="string">"Variable `{}` is already declared in parent POU `{}`"</span>,
-                            variable.get_name(),
-                            shadowed_variable.name
-                        ))
-                        .with_error_code(<span class="string">"E021"</span>)
-                        .with_location(<span class="kw-2">&amp;</span>variable.location)
-                        .with_secondary_location(<span class="kw-2">&amp;</span>shadowed_variable.location),
-                    )
-                });
-                <span class="kw">break</span>;
-            }
-
-            super_class = parent_pou.get_super_class();
-        }
-    }
+    validate_variable_redeclaration(validator, variable, context);
 
     validate_array_ranges(validator, variable, context);
 
@@ -912,6 +882,44 @@
                 .with_location(<span class="kw-2">&amp;</span>variable.location),
             );
         }
+    }
+}
+
+<span class="doccomment">/// Validates if a variable present in a parent POU has been redeclared in a child POU
+</span><span class="kw">fn </span>validate_variable_redeclaration&lt;T: AnnotationMap&gt;(
+    validator: <span class="kw-2">&amp;mut </span>Validator,
+    variable: <span class="kw-2">&amp;</span>Variable,
+    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+) {
+    <span class="kw">let </span><span class="prelude-val">Some</span>(child_pou) = context.index.find_pou(context.qualifier.unwrap_or_default()) <span class="kw">else </span>{
+        <span class="kw">return</span>;
+    };
+
+    <span class="kw">let </span><span class="kw-2">mut </span>super_class = child_pou.get_super_class();
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(parent_str) = super_class {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(parent_pou) = context.index.find_pou(parent_str) <span class="kw">else </span>{
+            <span class="kw">return</span>;
+        };
+
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(shadowed_variable) =
+            context.index.find_member(parent_pou.get_name(), variable.name.as_str()).filter(|v| !v.is_temp())
+        {
+            (!variable.location.is_internal()).then(|| {
+                validator.push_diagnostic(
+                    Diagnostic::new(<span class="macro">format!</span>(
+                        <span class="string">"Variable `{}` is already declared in parent POU `{}`"</span>,
+                        variable.get_name(),
+                        shadowed_variable.get_qualifier().unwrap_or_default()
+                    ))
+                    .with_error_code(<span class="string">"E021"</span>)
+                    .with_location(<span class="kw-2">&amp;</span>variable.location)
+                    .with_secondary_location(<span class="kw-2">&amp;</span>shadowed_variable.source_location),
+                )
+            });
+            <span class="kw">break</span>;
+        }
+
+        super_class = parent_pou.get_super_class();
     }
 }
 

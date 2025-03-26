@@ -89,9 +89,7 @@
 <a href="#88" id="88">88</a>
 <a href="#89" id="89">89</a>
 <a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a></pre></div><pre class="rust"><code><span class="kw">use </span>global_var_indexer::VarGlobalIndexer;
+<a href="#91" id="91">91</a></pre></div><pre class="rust"><code><span class="kw">use </span>global_var_indexer::VarGlobalIndexer;
 <span class="kw">use </span>implementation_indexer::ImplementationIndexer;
 <span class="kw">use </span>plc_ast::{
     ast::{CompilationUnit, Implementation, Interface, PropertyBlock, VariableBlockType},
@@ -137,7 +135,7 @@
 </span><span class="kw">impl </span>AstVisitor <span class="kw">for </span>SymbolIndexer {
     <span class="doccomment">/// Visits a VAR_GLOBAL VariableBlock and registers all variables as globals in the index
     </span><span class="kw">fn </span>visit_variable_block(<span class="kw-2">&amp;mut </span><span class="self">self</span>, block: <span class="kw-2">&amp;</span>plc_ast::ast::VariableBlock) {
-        <span class="kw">if </span>block.variable_block_type == VariableBlockType::Global {
+        <span class="kw">if </span>block.kind == VariableBlockType::Global {
             <span class="comment">// let the global var indexer handle the global variables
             </span><span class="kw">let </span><span class="kw-2">mut </span>indexer = VarGlobalIndexer::new(block.constant, block.linkage, <span class="kw-2">&amp;mut </span><span class="self">self</span>.index);
             <span class="kw">for </span>var <span class="kw">in </span><span class="kw-2">&amp;</span>block.variables {
@@ -175,13 +173,11 @@
             <span class="self">self</span>.visit_pou(method);
         }
 
-        <span class="self">self</span>.index
-            .interfaces
-            .insert(interface.identifier.name.to_owned(), InterfaceIndexEntry::from(interface));
+        <span class="self">self</span>.index.interfaces.insert(interface.ident.name.to_owned(), InterfaceIndexEntry::from(interface));
     }
 
     <span class="kw">fn </span>visit_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, property: <span class="kw-2">&amp;</span>PropertyBlock) {
-        <span class="self">self</span>.index.properties.insert(<span class="self">self</span>.ctx.pou.clone(), property.name.clone());
+        <span class="self">self</span>.index.properties.insert(<span class="self">self</span>.ctx.pou.clone(), property.ident.clone());
     }
 }
 </code></pre></div></section></main></body></html>

@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["PropertyLowerer"]};
+window.SIDEBAR_ITEMS = {"fn":["lower_to_pou"],"struct":["PropertyLowerer"]};
