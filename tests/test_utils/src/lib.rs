@@ -53,7 +53,7 @@ pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Resul
     if let Some(debug) = &debug_level {
         args.push(debug);
     };
-    let params = cli::CompileParameters::parse(dbg!(&args)).map_err(|e| e.to_string())?;
+    let params = cli::CompileParameters::parse(&args).map_err(|e| e.to_string())?;
     let pipeline = BuildPipeline {
         context,
         project,

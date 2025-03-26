@@ -1,6 +1,6 @@
 use plc_ast::ast::{
-    self, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, TypeNature, VariableBlock,
-    VariableBlockType,
+    self, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, PropertyKind, TypeNature,
+    VariableBlock, VariableBlockType,
 };
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::internal_type_name;
@@ -75,8 +75,15 @@ impl<'i> PouIndexer<'i> {
             PouType::Function | PouType::Init | PouType::ProjectInit => {
                 self.index_function(pou, return_type_name, member_varargs, pou_struct_type);
             }
-            PouType::Method { parent, declaration_kind, .. } => {
-                self.index_method(pou, return_type_name, parent, *declaration_kind, pou_struct_type);
+            PouType::Method { parent, property, declaration_kind, .. } => {
+                self.index_method(
+                    pou,
+                    return_type_name,
+                    property,
+                    parent,
+                    *declaration_kind,
+                    pou_struct_type,
+                );
             }
             _ => {}
         };
@@ -89,7 +96,7 @@ impl<'i> PouIndexer<'i> {
             &pou.name,
             pou.name_location.clone(),
             pou.linkage,
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         );
     }
 
@@ -98,6 +105,7 @@ impl<'i> PouIndexer<'i> {
         &mut self,
         pou: &Pou,
         return_type_name: &str,
+        property: &Option<(String, PropertyKind)>,
         owner_class: &str,
         declaration_kind: DeclarationKind,
         pou_struct_type: typesystem::DataType,
@@ -105,6 +113,7 @@ impl<'i> PouIndexer<'i> {
         self.index.register_pou(PouIndexEntry::create_method_entry(
             &pou.name,
             return_type_name,
+            property.clone(),
             owner_class,
             declaration_kind,
             pou.linkage,
@@ -151,7 +160,7 @@ impl<'i> PouIndexer<'i> {
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }
@@ -174,7 +183,7 @@ impl<'i> PouIndexer<'i> {
             pou.name_location.clone(),
             pou.super_class.clone(),
             pou.interfaces.clone(),
-            pou.properties.iter().map(|property| property.name.clone()).collect(),
+            pou.properties.clone(),
         ));
         self.index.register_pou_type(pou_struct_type);
     }
@@ -233,7 +242,7 @@ impl<'i> PouIndexer<'i> {
                         variable_linkage: block_type,
                         variable_type_name: &type_name,
                         is_constant: block.constant,
-                        is_var_external: matches!(block.variable_block_type, VariableBlockType::External),
+                        is_var_external: matches!(block.kind, VariableBlockType::External),
                         binding,
                         varargs,
                     },
@@ -251,12 +260,9 @@ impl<'i> PouIndexer<'i> {
 
 /// returns the declaration type (ByRef or ByVal) for the given VariableBlock (VAR_INPUT, VAR_OUTPUT, VAR_INOUT, etc.)
 fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> ArgumentType {
-    if matches!(
-        block.variable_block_type,
-        VariableBlockType::InOut | VariableBlockType::Input(ArgumentProperty::ByRef)
-    ) {
+    if matches!(block.kind, VariableBlockType::InOut | VariableBlockType::Input(ArgumentProperty::ByRef)) {
         ArgumentType::ByRef(get_variable_type_from_block(block))
-    } else if block.variable_block_type == VariableBlockType::Output {
+    } else if block.kind == VariableBlockType::Output {
         // outputs differ depending on pou type
         match pou_type {
             PouType::Function | PouType::Method { .. } => {
@@ -270,7 +276,7 @@ fn get_declaration_type_for(block: &VariableBlock, pou_type: &PouType) -> Argume
 }
 
 fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
-    match block.variable_block_type {
+    match block.kind {
         VariableBlockType::Local => VariableType::Local,
         VariableBlockType::Temp => VariableType::Temp,
         VariableBlockType::Input(_) => VariableType::Input,

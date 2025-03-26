@@ -1,13 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::hash::BuildHasherDefault;
+use std::{collections::VecDeque, hash::BuildHasherDefault};
 
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use plc_ast::ast::{
     AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
-    HardwareAccessType, Identifier, Interface, LinkageType, PouType, TypeNature,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyBlock, PropertyKind, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -500,10 +500,10 @@ impl ImplementationType {
     }
 }
 
-#[derive(PartialEq, Eq, Hash)]
+#[derive(Eq, PartialEq, Hash)]
 pub struct InterfaceIndexEntry {
     /// The interface identifier, consisting of its name and name-location
-    pub identifier: Identifier,
+    pub ident: Identifier,
 
     /// The location of the interface as a whole
     pub location: SourceLocation,
@@ -514,15 +514,18 @@ pub struct InterfaceIndexEntry {
 
     /// A list of other interfaces this interface extends
     pub extensions: Vec<Identifier>,
+
+    /// A list of the properties declared in this interface
+    pub properties: Vec<PropertyBlock>,
 }
 
 impl InterfaceIndexEntry {
     pub fn get_name(&self) -> &str {
-        self.identifier.name.as_str()
+        self.ident.name.as_str()
     }
 
     pub fn get_name_location(&self) -> &SourceLocation {
-        &self.identifier.location
+        &self.ident.location
     }
 
     pub fn get_location(&self) -> &SourceLocation {
@@ -552,7 +555,7 @@ impl InterfaceIndexEntry {
         self.extensions.iter().collect()
     }
 
-    /// Returns a list of interfaces this interface inherited
+    /// Returns a list of interfaces this interface inherited directly
     pub fn get_derived_interfaces<'idx>(
         &self,
         index: &'idx Index,
@@ -561,6 +564,21 @@ impl InterfaceIndexEntry {
             .iter()
             .flat_map(|id| index.find_interface(&id.name).map(Result::Ok).or(Some(Err(id.to_owned()))))
             .collect()
+    }
+
+    /// Returns a list of ALL existing interfaces this interface inherited directly or indirectly
+    pub fn get_derived_interfaces_recursive<'i>(&self, index: &'i Index) -> Vec<&'i InterfaceIndexEntry> {
+        let mut seen: FxHashSet<&Identifier> = FxHashSet::default();
+        let mut queue: VecDeque<&InterfaceIndexEntry> = VecDeque::new();
+
+        queue.push_back(self);
+        while let Some(interface) = queue.pop_front() {
+            if seen.insert(&interface.ident) {
+                queue.extend(interface.get_derived_interfaces(index).into_iter().flatten());
+            }
+        }
+
+        seen.into_iter().filter_map(|ident| index.find_interface(&ident.name)).collect()
     }
 
     fn get_methods_recursive<'idx>(
@@ -607,15 +625,16 @@ impl std::fmt::Debug for InterfaceIndexEntry {
 impl From<&Interface> for InterfaceIndexEntry {
     fn from(interface: &Interface) -> Self {
         InterfaceIndexEntry {
-            identifier: interface.identifier.clone(),
+            ident: interface.ident.clone(),
             location: interface.location.clone(),
             methods: interface.methods.iter().map(|method| method.name.clone()).collect(),
             extensions: interface.extensions.clone(),
+            properties: interface.properties.clone(),
         }
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -623,7 +642,7 @@ pub enum PouIndexEntry {
         instance_variable: Box<VariableIndexEntry>,
         linkage: LinkageType,
         location: SourceLocation,
-        properties: FxHashMap<String, Identifier>,
+        properties: FxHashMap<String, PropertyBlock>,
     },
     FunctionBlock {
         name: String,
@@ -632,7 +651,7 @@ pub enum PouIndexEntry {
         location: SourceLocation,
         super_class: Option<String>,
         interfaces: Vec<String>,
-        properties: FxHashMap<String, Identifier>,
+        properties: FxHashMap<String, PropertyBlock>,
     },
     Function {
         name: String,
@@ -651,11 +670,12 @@ pub enum PouIndexEntry {
         location: SourceLocation,
         super_class: Option<String>,
         interfaces: Vec<String>,
-        properties: FxHashMap<String, Identifier>,
+        properties: FxHashMap<String, PropertyBlock>,
     },
     Method {
         name: String,
         parent_name: String,
+        property: Option<(String, PropertyKind)>,
         declaration_kind: DeclarationKind,
         return_type: String,
         instance_struct_name: String,
@@ -671,6 +691,29 @@ pub enum PouIndexEntry {
     },
 }
 
+impl PouIndexEntry {
+    pub fn get_method_name(&self) -> String {
+        match self {
+            PouIndexEntry::Method { property: Some((name, kind)), .. } => {
+                let kind = kind.to_string().to_uppercase();
+                format!("Property `{name}` ({kind})")
+            }
+
+            PouIndexEntry::Method { name, .. } => {
+                let name = name.rsplit_once('.').map(|(_, rhs)| rhs).unwrap_or_default();
+                format!("Method `{name}`")
+            }
+
+            _ => unreachable!(
+                "
+                *>yfw reading the name of this method*
+                https://i.pinimg.com/originals/47/8c/fe/478cfec0807b19eb0d96073c0301c82d.gif
+                "
+            ),
+        }
+    }
+}
+
 impl From<&PouIndexEntry> for SourceLocation {
     fn from(value: &PouIndexEntry) -> Self {
         value.get_location().clone()
@@ -682,9 +725,35 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { properties, .. }
             | PouIndexEntry::FunctionBlock { properties, .. }
-            | PouIndexEntry::Class { properties, .. } => properties.get(name),
+            | PouIndexEntry::Class { properties, .. } => properties.get(name).map(|property| &property.ident),
 
             _ => None,
+        }
+    }
+
+    pub fn get_properties(&self) -> Option<&FxHashMap<String, PropertyBlock>> {
+        match self {
+            PouIndexEntry::Program { properties, .. }
+            | PouIndexEntry::FunctionBlock { properties, .. }
+            | PouIndexEntry::Class { properties, .. } => {
+                if !properties.is_empty() {
+                    return Some(properties);
+                }
+            }
+
+            _ => (),
+        }
+
+        None
+    }
+
+    pub fn get_properties_vec(&self) -> Vec<&PropertyBlock> {
+        match self {
+            PouIndexEntry::Program { properties, .. }
+            | PouIndexEntry::FunctionBlock { properties, .. }
+            | PouIndexEntry::Class { properties, .. } => properties.values().collect(),
+
+            _ => Vec::new(),
         }
     }
 
@@ -697,7 +766,7 @@ impl PouIndexEntry {
         instance_variable: VariableIndexEntry,
         linkage: LinkageType,
         location: SourceLocation,
-        properties: Vec<Identifier>,
+        properties: Vec<PropertyBlock>,
     ) -> PouIndexEntry {
         PouIndexEntry::Program {
             name: pou_name.into(),
@@ -705,7 +774,10 @@ impl PouIndexEntry {
             instance_variable: Box::new(instance_variable),
             linkage,
             location,
-            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
+            properties: properties
+                .into_iter()
+                .map(|property| (property.ident.name.clone(), property))
+                .collect(),
         }
     }
 
@@ -719,7 +791,7 @@ impl PouIndexEntry {
         location: SourceLocation,
         super_class: Option<Identifier>,
         interfaces: Vec<Identifier>,
-        properties: Vec<Identifier>,
+        properties: Vec<PropertyBlock>,
     ) -> PouIndexEntry {
         PouIndexEntry::FunctionBlock {
             name: pou_name.into(),
@@ -728,7 +800,10 @@ impl PouIndexEntry {
             location,
             super_class: super_class.map(|it| it.name),
             interfaces: interfaces.into_iter().map(|ident| ident.name).collect(),
-            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
+            properties: properties
+                .into_iter()
+                .map(|property| (property.ident.name.clone(), property))
+                .collect(),
         }
     }
 
@@ -805,7 +880,7 @@ impl PouIndexEntry {
         location: SourceLocation,
         super_class: Option<Identifier>,
         interfaces: Vec<Identifier>,
-        properties: Vec<Identifier>,
+        properties: Vec<PropertyBlock>,
     ) -> PouIndexEntry {
         PouIndexEntry::Class {
             name: pou_name.into(),
@@ -814,7 +889,10 @@ impl PouIndexEntry {
             location,
             super_class: super_class.map(|it| it.name),
             interfaces: interfaces.into_iter().map(|it| it.name).collect(),
-            properties: properties.into_iter().map(|ident| (ident.name.clone(), ident)).collect(),
+            properties: properties
+                .into_iter()
+                .map(|property| (property.ident.name.clone(), property))
+                .collect(),
         }
     }
 
@@ -826,6 +904,7 @@ impl PouIndexEntry {
     pub fn create_method_entry(
         name: &str,
         return_type: &str,
+        property: Option<(String, PropertyKind)>,
         owner_class: &str,
         declaration_kind: DeclarationKind,
         linkage: LinkageType,
@@ -834,6 +913,7 @@ impl PouIndexEntry {
         PouIndexEntry::Method {
             name: name.into(),
             parent_name: owner_class.into(),
+            property,
             declaration_kind,
             instance_struct_name: name.into(),
             return_type: return_type.into(),
@@ -956,6 +1036,10 @@ impl PouIndexEntry {
         } else {
             false
         }
+    }
+
+    pub fn is_property(&self) -> bool {
+        matches!(self, PouIndexEntry::Method { property: Some(_), .. })
     }
 
     pub fn get_return_type(&self) -> Option<&str> {
@@ -1789,7 +1873,7 @@ impl Index {
         name: &str,
         location: SourceLocation,
         linkage: LinkageType,
-        properties: Vec<Identifier>,
+        properties: Vec<PropertyBlock>,
     ) {
         let instance_variable =
             VariableIndexEntry::create_global(&format!("{}_instance", &name), name, name, location.clone()) // TODO: Naming convention (see plc_util/src/convention.rs)

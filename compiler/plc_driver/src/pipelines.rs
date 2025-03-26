@@ -26,7 +26,6 @@ use plc::{
     linker::LinkerType,
     lowering::{
         property::PropertyLowerer,
-        validator::ParticipantValidator,
         {calls::AggregateTypeLowerer, InitVisitor},
     },
     output::FormatOption,
@@ -57,7 +56,6 @@ use toml;
 
 pub mod participant;
 pub mod property;
-pub mod validator;
 
 pub struct BuildPipeline<T: SourceContainer> {
     pub context: GlobalContext,
@@ -258,12 +256,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
     /// Register all default participants (excluding codegen/linking)
     pub fn register_default_participants(&mut self) {
         use participant::InitParticipant;
-        // XXX: should we use a static array of participants?
-        let participants: Vec<Box<dyn PipelineParticipant>> = vec![Box::new(ParticipantValidator::new(
-            &self.context,
-            self.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default(),
-        ))];
 
+        // XXX: should we use a static array of participants?
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
@@ -271,9 +265,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(InheritanceLowerer::new(self.context.provider())),
         ];
 
-        for participant in participants {
-            self.register_participant(participant)
-        }
         for participant in mut_participants {
             self.register_mut_participant(participant)
         }
