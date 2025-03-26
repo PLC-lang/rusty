@@ -2262,7 +2262,7 @@ fn inheritance_chain_correctly_finds_parents() {
 }
 
 #[test]
-fn pou_with_two_types_not_consireded_recursive() {
+fn pou_with_two_types_not_considered_recursive() {
     let (_, index) = index(
         "
         FUNCTION_BLOCK fb
@@ -2273,11 +2273,19 @@ fn pou_with_two_types_not_consireded_recursive() {
             x : fb;
             y : fb;
         END_VAR
-        END_PROGRAM",
+            METHOD x : fb
+            END_METHOD
+        END_PROGRAM
+        
+        ACTION p.y
+        END_ACTION",
     );
 
     let pou_type = index.find_pou_type("p").unwrap();
     assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 128);
+
+    assert!(index.find_local_member("p", "x").is_some());
+    assert!(index.find_local_member("p", "y").is_some());
 }
 
 #[test]
