@@ -5929,3 +5929,28 @@ fn global_namespace_operator_is_resolved() {
     }
     "#);
 }
+
+#[test]
+fn global_namespace_operator_is_not_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION main
+            .foo
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode {
+        stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(node), .. }),
+        ..
+    } = stmt
+    else {
+        unreachable!()
+    };
+
+    assert_eq!(annotations.get(node), None);
+}

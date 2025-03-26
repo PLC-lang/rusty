@@ -1885,10 +1885,11 @@ impl<'i> TypeAnnotator<'i> {
             }
 
             (ReferenceAccess::Global(node), _) => {
-                let new_ctx = ctx.with_resolving_strategy(vec![ResolvingStrategy::Global]);
-                if let Some(annotation) = self.resolve_reference_expression(node, None, &new_ctx) {
+                let ctx = ctx.with_resolving_strategy(vec![ResolvingStrategy::Global]);
+                if let Some(annotation) = self.resolve_reference_expression(node, None, &ctx) {
+                    // Annotate both the identifier and the statement, i.e. `.foo` and `foo`
                     self.annotate(stmt, annotation.clone());
-                    self.annotate(node, annotation); // TODO: Is this necessary?
+                    self.annotate(node, annotation);
                 }
             }
 

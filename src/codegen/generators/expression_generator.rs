@@ -1370,7 +1370,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         if let Some(qualifier) = qualifier {
             //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
-            match dbg!(self.annotations.get(context)) {
+            match self.annotations.get(context) {
                 Some(StatementAnnotation::Function { qualified_name, .. })
                 | Some(StatementAnnotation::Program { qualified_name, .. }) => {
                     if self.index.find_pou_implementation(qualified_name).is_some() {
@@ -2538,6 +2538,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         original_expression: &AstNode,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         match (access, base) {
+            // `.foo`
             (ReferenceAccess::Global(node), _) => {
                 let name = node.get_flat_reference_name().unwrap_or("unknown");
 
@@ -2547,7 +2548,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     node,
                 ).map(ExpressionValue::LValue)
             }
-            // expressions like `base.member`, or just `member`
+
+            // `base.member` or just `member`
             (ReferenceAccess::Member(member), base) => {
                 let base_value = base.map(|it| self.generate_expression_value(it)).transpose()?;
 
@@ -2567,7 +2569,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
 
-            // expressions like: base[idx]
+            // `base[idx]`
             (ReferenceAccess::Index(array_idx), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
                     // vla array needs special handling
@@ -2584,7 +2586,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
 
-            // INT#target (INT = base)
+            // `INT#target` (INT = base)
             (ReferenceAccess::Cast(target), Some(_base)) => {
                 if target.as_ref().is_identifier() {
                     let mr =
@@ -2595,7 +2597,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
             }
 
-            // base^
+            // `base^`
             (ReferenceAccess::Deref, Some(base)) => {
                 let ptr = self.generate_expression_value(base)?;
                 Ok(ExpressionValue::LValue(
@@ -2605,18 +2607,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ))
             }
 
-            // &base
+            // `&base`
             (ReferenceAccess::Address, Some(base)) => {
                 let lvalue = self.generate_expression_value(base)?;
                 Ok(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
             }
 
-            (ReferenceAccess::Index(_), None) // [idx];
-            | (ReferenceAccess::Cast(_), None) // INT#;
-            | (ReferenceAccess::Deref, None)  // ^;
-            | (ReferenceAccess::Address, None) // &;
+            (ReferenceAccess::Index(_), None)   // [idx];
+            | (ReferenceAccess::Cast(_), None)  // INT#;
+            | (ReferenceAccess::Deref, None)    // ^;
+            | (ReferenceAccess::Address, None)  // &;
             => Err(Diagnostic::codegen_error(
-                "Expected a base-expressions, but found none.",
+                "Expected a base expression, but found none",
                 original_expression,
             ))
         }

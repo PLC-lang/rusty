@@ -1773,6 +1773,8 @@ fn global_namespace_operator() {
     END_FUNCTION
     "#;
 
-    let parse_result = parse(src).0;
-    assert_debug_snapshot!(parse_result.implementations[0].statements);
+    let result = parse(src).0;
+
+    assert_eq!(&src[result.implementations[0].statements[0].get_location().to_range().unwrap()], ".foo");
+    assert_debug_snapshot!(result.implementations[0].statements);
 }
