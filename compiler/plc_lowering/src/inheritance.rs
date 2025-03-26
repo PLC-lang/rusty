@@ -67,18 +67,26 @@ use plc_source::source_location::SourceLocation;
 struct Context {
     base_type_name: Option<String>,
     pou: Option<String>,
+    access_kind: Option<AccessKind>,
     id_provider: IdProvider,
+}
+
+#[derive(Debug, Copy, Clone)]
+enum AccessKind {
+    MemberOrIndex,
+    Cast,
 }
 
 impl Context {
     fn new(id_provider: IdProvider) -> Self {
-        Self { base_type_name: None, pou: None, id_provider }
+        Self { base_type_name: None, pou: None, access_kind: None, id_provider }
     }
 
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
         Self {
             base_type_name: Some(base_type_name.into()),
             pou: self.pou.clone(),
+            access_kind: self.access_kind,
             id_provider: self.id_provider.clone(),
         }
     }
@@ -94,6 +102,7 @@ impl Context {
         Self {
             base_type_name: self.base_type_name.clone(),
             pou: Some(pou.into()),
+            access_kind: self.access_kind,
             id_provider: self.id_provider.clone(),
         }
     }
@@ -346,19 +355,57 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
         }
 
         match access {
-            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) | ReferenceAccess::Cast(t) => {
-                let is_super = t.is_super();
+            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) /* ReferenceAccess::Cast(t) */ => {
+                if !t.is_super() {
+                    return self.visit(t);
+                };
+                self.ctx.access_kind = Some(AccessKind::MemberOrIndex);
                 self.visit(t);
+                self.ctx.access_kind = None;
 
                 // if we encountered a `super` reference and were able to lower it, we need to add the original base
                 // to the new `ReferenceExpr` that was created
-                if is_super && !t.is_super(){
-                    let ReferenceExpr { base: super_base, .. } =
-                        try_from_mut!(t, ReferenceExpr).expect("ReferenceExpr");
-                    std::mem::swap(super_base, base);
+                if !t.is_super(){
+                    match t.get_stmt_mut() {
+                        AstStatement::ReferenceExpr(ReferenceExpr { base: super_base, .. }) => {
+                              std::mem::swap(base, super_base);
+                        }
+                        _ => if cfg!(debug_assertions) {
+                            unreachable!("Edge-case of `SUPER` usage we didn't expect");
+                        }
+
+                    }
+                };
+            }
+            ReferenceAccess::Cast(t) => {
+                if !t.is_super() {
+                    return self.visit(t);
+                };
+                self.ctx.access_kind = Some(AccessKind::Cast);
+                self.visit(t);
+                self.ctx.access_kind = None;
+
+                // TODO: not sure what we actually need to do here. casting to `SUPER` is not valid
+            }
+            ReferenceAccess::Deref => {
+                // this might be a parenthesized super deref, i.e. `(SUPER)^`
+                if base.as_ref().is_some_and(|it| it.is_paren()) {
+                    // is the inner expression a super?
+                    if let Some(inner) = base {
+                        if inner.get_metadata().is_some_and(|it| 
+                            matches!(it.get_inner().get_stmt(), AstStatement::Super(None))) {
+
+                            }        
+                    }
+                }
+                
+            }
+            _ => {
+                // We don't need to do anything for other access types (famous last words)
+                if cfg!(debug_assertions) {
+                    unimplemented!("Unsupported access type: {access:?}");
                 }
             }
-            _ => {}
         };
     }
 
@@ -379,7 +426,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             return;
         };
 
-        let old_node = std::mem::take(node);
+        let mut old_node = std::mem::take(node);
         let location = old_node.get_location();
         let AstStatement::Super(deref_marker) = old_node.get_stmt() else {
             unreachable!("Must be a super statement")
@@ -394,9 +441,26 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
                 self.provider().next_id(),
             )
         } else {
-            // If the super statement is not dereferenced, we need to bitcast the base-class instance
-            create_call_statement("REF", &base_type_name, None, self.provider().clone(), &location)
-                .with_metadata(old_node.into())
+            match self.ctx.access_kind {
+                Some(AccessKind::Cast) => {
+                    todo!("not sure if this is valid code");
+                }
+                Some(AccessKind::MemberOrIndex) => {
+                    // If the super statement is not dereferenced, but it is used in a `ReferenceAccess::Member` or `ReferenceAccess::Index`, it's an invalid use of `SUPER`.
+                    // Neither of these cases are valid code:
+                    //      1. `myFb.SUPER`   - this is a qualified access to `SUPER` outside of the derived POU
+                    //      2. `SUPER.x`      - this is a member access to a parent variable through the pointer instead of the instance
+                    //      3. `myFb.SUPER.x` - this is all of the above
+                    // Return the original node and let the validator handle it
+                    std::mem::swap(node, &mut old_node);
+                    return;
+                }
+                None => {
+                    // If the super statement is not dereferenced, we need to bitcast the base-class instance
+                    create_call_statement("REF", &base_type_name, None, self.provider().clone(), &location)
+                        .with_metadata(old_node.into())
+                }
+            }
         };
 
         std::mem::swap(node, &mut new_node);
@@ -4018,7 +4082,8 @@ mod super_tests {
                 y : INT := SUPER^.x + 5;
             END_VAR
             END_FUNCTION_BLOCK
-        "#.into();
+        "#
+        .into();
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let initializer = &project.units[0].get_unit().pous[1].variable_blocks[1].variables[0].initializer;
         assert_debug_snapshot!(initializer, @r#"
@@ -4066,7 +4131,8 @@ mod super_tests {
                 END_VAR
                 END_METHOD
             END_FUNCTION_BLOCK
-        "#.into();
+        "#
+        .into();
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let initializer = &project.units[0].get_unit().pous[2].variable_blocks[0].variables[0].initializer;
         assert_debug_snapshot!(initializer, @r#"
@@ -4095,6 +4161,398 @@ mod super_tests {
                 },
             },
         )
+        "#);
+    }
+
+    #[test]
+    fn super_method_called_in_initializer() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK parent
+            VAR
+                x : INT := 10;
+            END_VAR
+            METHOD init : INT
+                init := x + 1;
+            END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                VAR
+                    y : INT := SUPER^.init();
+                END_VAR
+            END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let initializer = &project.units[0].get_unit().pous[2].variable_blocks[1].variables[0].initializer;
+        assert_debug_snapshot!(initializer, @r#"
+        Some(
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "init",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                parameters: None,
+            },
+        )
+        "#);
+    }
+
+    #[test]
+    fn super_ref_in_reference_access() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            p : parent;
+        END_VAR
+                // We don't want `SUPER` to be lowered to `REF(p)` here,
+                // since it will lead to incomprehensible error messages later on
+                // (.e.g. `p.REF(p).x` or p.REF(p)^.x)
+                p.SUPER.x := 40;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Super,
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "p",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 40,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn super_in_paren_expressions() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            y : INT;
+        END_VAR
+            // While these are errors that will be caught during validation,
+            // we want to ensure we handle it gracefully
+            
+            // Multiple dereferencing of SUPER
+            (SUPER^)^.x := 20;                
+            (SUPER^)^ := 30;
+            
+            // Invalid chain with wrong syntax
+            (SUPER^).SUPER.x := 40;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Deref,
+                            base: Some(
+                                ParenExpression {
+                                    expression: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__parent",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 20,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Deref,
+                    base: Some(
+                        ParenExpression {
+                            expression: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 30,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Super,
+                            ),
+                            base: Some(
+                                ParenExpression {
+                                    expression: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__parent",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 40,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn valid_super_deref_in_paren_expression_edge_case() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+            y : INT := 20;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            z : INT;
+            local: parent;
+        END_VAR
+            // Valid deref in parentheses
+            z := (SUPER)^.x + y;
+            local := (SUPER)^;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "z",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    ParenExpression {
+                                        expression: CallStatement {
+                                            operator: ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "REF",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                            parameters: Some(
+                                                ReferenceExpr {
+                                                    kind: Member(
+                                                        Identifier {
+                                                            name: "__parent",
+                                                        },
+                                                    ),
+                                                    base: None,
+                                                },
+                                            ),
+                                        },
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn pointer_arithmetic_with_super() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : LINT := 10;
+            y : LINT := 20;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            a : INT;
+        END_VAR
+            // Pointer arithmetic with SUPER
+            a := (SUPER + 1)^ + 5;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "a",
+                        },
+                    ),
+                    base: None,
+                },
+                right: BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            ParenExpression {
+                                expression: BinaryExpression {
+                                    operator: Plus,
+                                    left: CallStatement {
+                                        operator: ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "REF",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                        parameters: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "__parent",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                    right: LiteralInteger {
+                                        value: 1,
+                                    },
+                                },
+                            },
+                        ),
+                    },
+                    right: LiteralInteger {
+                        value: 5,
+                    },
+                },
+            },
+        ]
         "#);
     }
 }

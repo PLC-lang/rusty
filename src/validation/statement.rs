@@ -220,8 +220,9 @@ fn validate_reference_expression<T: AnnotationMap>(
                 );
             }
             // If we find a `SUPER` reference as an immediate base in a deref access, it's a double dereference
-            if base.as_deref().is_some_and(|it| it.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()))
-            {
+            if base.as_deref().is_some_and(|it| {
+                it.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super())
+            }) {
                 validator.diagnostics.push(
                     Diagnostic::new("Multiple dereferencing of SUPER is not allowed")
                         .with_error_code("E119")

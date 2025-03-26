@@ -685,7 +685,6 @@ fn super_in_variable_initialization() {
     "#);
 }
 
-
 #[test]
 fn const_super_variable_in_child_variable_initialization() {
     let diagnostics = parse_and_validate_buffered(
@@ -1163,5 +1162,28 @@ fn super_with_property_access_errors() {
         "#,
     );
 
+    assert_snapshot!(diagnostics, @r#""#);
+}
+
+#[test]
+fn pointer_arithmetic_with_super() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+    FUNCTION_BLOCK parent
+    VAR
+        x : LINT := 10;
+        y : LINT := 20;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK child EXTENDS parent
+    VAR
+        a : INT;
+    END_VAR
+        // Pointer arithmetic with SUPER
+        a := (SUPER + 1)^ + 5;
+    END_FUNCTION_BLOCK
+    "#,
+    );
     assert_snapshot!(diagnostics, @r#""#);
 }
