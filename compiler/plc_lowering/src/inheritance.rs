@@ -2147,7 +2147,7 @@ mod units_tests {
             return_type: None,
             interfaces: [],
         }
-        "###);
+        "#);
     }
 
     #[test]
