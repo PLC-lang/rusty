@@ -515,7 +515,7 @@ pub struct InterfaceIndexEntry {
     /// A list of other interfaces this interface extends
     pub extensions: Vec<Identifier>,
 
-    /// A list of the property definitions in this interface, lowered into methods
+    /// A list of the properties declared in this interface
     pub properties: Vec<PropertyBlock>,
 }
 
@@ -735,10 +735,16 @@ impl PouIndexEntry {
         match self {
             PouIndexEntry::Program { properties, .. }
             | PouIndexEntry::FunctionBlock { properties, .. }
-            | PouIndexEntry::Class { properties, .. } => Some(properties),
+            | PouIndexEntry::Class { properties, .. } => {
+                if !properties.is_empty() {
+                    return Some(properties);
+                }
+            }
 
-            _ => None,
+            _ => (),
         }
+
+        None
     }
 
     pub fn get_properties_vec(&self) -> Vec<&PropertyBlock> {

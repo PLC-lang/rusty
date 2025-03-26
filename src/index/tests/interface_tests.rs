@@ -615,7 +615,6 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
     "###);
 }
 
-// TODO: Tests here
 #[test]
 fn find_all_derived_interfaces_directly_or_indirectly() {
     /*

@@ -446,6 +446,54 @@ fn overriding_property_in_function_block_with_different_datatype_is_not_ok() {
 }
 
 #[test]
+fn extending_property_in_function_block_by_accessor_with_same_datatype_is_ok() {
+    let source = r"
+    FUNCTION_BLOCK fb1
+        PROPERTY prop : DINT
+            GET END_GET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fb2 EXTENDS fb1
+        PROPERTY prop : DINT
+            SET END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    // Essentially we're extending fb2 by a `__set_prop` method which isn't defined in the parent
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"");
+}
+
+#[test]
+fn extending_property_in_function_block_by_accessor_with_different_datatype_is_not_ok() {
+    let source = r"
+    FUNCTION_BLOCK fb1
+        PROPERTY prop : DINT
+            GET END_GET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fb2 EXTENDS fb1
+        PROPERTY prop : INT
+            SET END_SET
+        END_PROPERTY
+    END_FUNCTION_BLOCK
+    ";
+
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r###"
+    error[E112]: Overridden property `prop` has different signatures in POU `fb2` and `fb1`
+      ┌─ <internal>:9:18
+      │
+    3 │         PROPERTY prop : DINT
+      │                  ---- see also
+      ·
+    9 │         PROPERTY prop : INT
+      │                  ^^^^ Overridden property `prop` has different signatures in POU `fb2` and `fb1`
+    "###);
+}
+
+#[test]
 fn overriding_property_in_interface_with_same_datatype_is_ok() {
     let diagnostics = test_utils::parse_and_validate_buffered(
         r"
@@ -707,5 +755,41 @@ fn undefined_references_inheritance() {
        │
     26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
        │                       ^^^^^^ Could not resolve reference to myProp
+    "###);
+}
+
+#[test]
+fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
+    let diagnostics = test_utils::parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK fbA
+            PROPERTY myProp : DINT
+                GET END_GET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fbB EXTENDS fbA
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fbC EXTENDS fbB
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK fbD EXTENDS fbC
+            PROPERTY myProp : STRING // Conflicting signature with A, where myProp has a `DINT` datatype
+                SET END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    insta::assert_snapshot!(diagnostics, @r###"
+    error[E112]: Overridden property `myProp` has different signatures in POU `fbD` and `fbA`
+       ┌─ <internal>:15:22
+       │
+     3 │             PROPERTY myProp : DINT
+       │                      ------ see also
+       ·
+    15 │             PROPERTY myProp : STRING // Conflicting signature with A, where myProp has a `DINT` datatype
+       │                      ^^^^^^ Overridden property `myProp` has different signatures in POU `fbD` and `fbA`
     "###);
 }

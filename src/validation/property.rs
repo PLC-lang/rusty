@@ -33,17 +33,6 @@ fn validate_definition(validator: &mut Validator, pou: &PouIndexEntry) {
         let mut count_get = 0;
         let mut count_set = 0;
 
-        if !pou.is_stateful() {
-            validator.push_diagnostic(
-                Diagnostic::new(format!(
-                    "Property `{}` must be defined in a stateful POU type (PROGRAM, CLASS or FUNCTION_BLOCK)",
-                    property.ident.name,
-                ))
-                .with_location(pou.get_location())
-                .with_error_code("E115"),
-            );
-        }
-
         for implementation in &property.implementations {
             for variable in &implementation.variable_blocks {
                 if variable.location.is_internal() {
@@ -171,11 +160,13 @@ fn validate_overridden_signatures<T>(
 
         // No conflicts if one of the two has no properties
         let Some(properties_child) = pou.get_properties() else {
-            break;
+            super_class = pou_parent.get_super_class();
+            continue;
         };
 
         let Some(properties_parent) = pou_parent.get_properties() else {
-            break;
+            super_class = pou_parent.get_super_class();
+            continue;
         };
 
         for (name, property_child) in properties_child {
@@ -219,13 +210,13 @@ pub(crate) fn validate_properties_in_interfaces<T>(
 {
     let interface = context.index.find_interface(&interface.ident.name).expect("must exist");
 
-    // Retrieve all properties a interface inherits directly or indirectly and map them into tuples of
+    // Retrieve all properties an interface inherits directly or indirectly and map them into tuples of
     // (<interface name>, <property defined in that interface>)
     let derived_properties = interface
         .get_derived_interfaces_recursive(context.index)
         .iter()
         .map(|it| (&it.ident, &it.properties))
-        .flat_map(|(name, properties)| properties.iter().map(move |property| (name.clone(), property)))
+        .flat_map(|(name, properties)| properties.iter().map(|property| (name.clone(), property)))
         .collect_vec();
 
     // Group all these properties by their name
