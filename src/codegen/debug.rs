@@ -323,7 +323,7 @@ impl<'ink> DebugBuilder<'ink> {
                         file,
                         location.get_line_plus_one() as u32,
                         size,
-                        0, // no alignment for now
+                        0, // No set alignment
                         offset,
                         DIFlags::PUBLIC,
                         di_type.into(),
@@ -340,7 +340,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             location.get_line_plus_one() as u32,
             size,
-            0, // no alignment for now
+            0, // No set alignment
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -471,7 +471,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
-            0, // no alignment for now
+            0, //No set alignment
         );
         self.register_concrete_type(name, DebugType::Derived(typedef));
 
@@ -655,7 +655,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let location = &datatype.location;
             match type_info {
                 DataTypeInformation::Struct { members, .. } => {
-                    //TODO: we can only register this after expansion
                     self.create_struct_type(name, members.as_slice(), location, index, types_index)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
