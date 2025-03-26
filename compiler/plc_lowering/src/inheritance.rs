@@ -298,6 +298,22 @@ impl<'sup> SuperKeywordLowerer<'sup> {
 }
 
 impl AstVisitorMut for SuperKeywordLowerer<'_> {
+    fn visit_pou(&mut self, pou: &mut Pou) {
+        if self.index.is_some() {
+            // methods need to be walked in the context of its container
+            let pou_name = if let PouType::Method { parent, .. } = &pou.kind { parent } else { &pou.name };
+            return self.walk_with_context(pou, self.ctx.with_pou(pou_name));
+        }
+        if !matches!(pou.kind, PouType::FunctionBlock | PouType::Class) {
+            return;
+        }
+
+        if pou.super_class.is_none() {
+            return;
+        };
+
+        self.walk_with_context(pou, self.ctx.with_pou(&pou.name));
+    }
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         //Only go through the implementation if we have the index and annotations
         if self.index.is_none() || self.annotations.is_none() {
@@ -3985,6 +4001,100 @@ mod super_tests {
                 },
             },
         ]
+        "#);
+    }
+
+    #[test]
+    fn super_in_initializer() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK parent
+            VAR
+                x : INT := 10;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+            VAR
+                y : INT := SUPER^.x + 5;
+            END_VAR
+            END_FUNCTION_BLOCK
+        "#.into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let initializer = &project.units[0].get_unit().pous[1].variable_blocks[1].variables[0].initializer;
+        assert_debug_snapshot!(initializer, @r#"
+        Some(
+            BinaryExpression {
+                operator: Plus,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 5,
+                },
+            },
+        )
+        "#);
+    }
+
+    #[test]
+    fn super_in_method_initializer() {
+        let src: SourceCode = r#"
+            FUNCTION_BLOCK parent
+            VAR
+                x : INT := 10;
+            END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK child EXTENDS parent
+                METHOD test
+                VAR
+                    y : INT := SUPER^.x + 5;
+                END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+        "#.into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let initializer = &project.units[0].get_unit().pous[2].variable_blocks[0].variables[0].initializer;
+        assert_debug_snapshot!(initializer, @r#"
+        Some(
+            BinaryExpression {
+                operator: Plus,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 5,
+                },
+            },
+        )
         "#);
     }
 }
