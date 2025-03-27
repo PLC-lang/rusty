@@ -2190,7 +2190,16 @@
 <a href="#2189" id="2189">2189</a>
 <a href="#2190" id="2190">2190</a>
 <a href="#2191" id="2191">2191</a>
-<a href="#2192" id="2192">2192</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2192" id="2192">2192</a>
+<a href="#2193" id="2193">2193</a>
+<a href="#2194" id="2194">2194</a>
+<a href="#2195" id="2195">2195</a>
+<a href="#2196" id="2196">2196</a>
+<a href="#2197" id="2197">2197</a>
+<a href="#2198" id="2198">2198</a>
+<a href="#2199" id="2199">2199</a>
+<a href="#2200" id="2200">2200</a>
+<a href="#2201" id="2201">2201</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{collections::VecDeque, hash::BuildHasherDefault};
 
@@ -3658,20 +3667,29 @@
         container_name: <span class="kw-2">&amp;</span>str,
         variable_name: <span class="kw-2">&amp;</span>str,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
+        <span class="self">self</span>.find_local_member_recursive(container_name, variable_name, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="kw">fn </span>find_local_member_recursive(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        container_name: <span class="kw-2">&amp;</span>str,
+        variable_name: <span class="kw-2">&amp;</span>str,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;String&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableIndexEntry&gt; {
         <span class="self">self</span>.type_index
             .find_type(container_name)
             .and_then(|it| it.find_member(variable_name))
             .or(<span class="self">self</span>.find_enum_variant_in_pou(container_name, variable_name))
-            <span class="comment">// underlying type of an `ACTION`
+            <span class="comment">// underlying type of an `ACTION` or `METHOD`
             </span>.or(container_name
                 .rfind(<span class="string">'.'</span>)
                 .map(|p| <span class="kw-2">&amp;</span>container_name[..p])
-                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| <span class="self">self</span>.find_member_recursive(qualifier, variable_name, seen)))
             <span class="comment">// 'self' instance of a POUs init function
             </span>.or(container_name
                 .rfind(<span class="string">"__init_"</span>)
                 .map(|p| <span class="kw-2">&amp;</span>container_name[p + <span class="number">1</span>..])
-                .and_then(|qualifier| <span class="self">self</span>.find_member(qualifier, variable_name)))
+                .and_then(|qualifier| <span class="self">self</span>.find_member_recursive(qualifier, variable_name, seen)))
     }
 
     <span class="doccomment">/// Searches for variable name in the given container, if not found, attempts to search for it in super classes
@@ -3683,13 +3701,13 @@
         <span class="kw-2">&amp;</span><span class="lifetime">'b </span><span class="self">self</span>,
         container_name: <span class="kw-2">&amp;</span>str,
         variable_name: <span class="kw-2">&amp;</span>str,
-        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>str&gt;,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;String&gt;,
     ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>VariableIndexEntry&gt; {
         <span class="comment">// Find pou in index
-        </span><span class="self">self</span>.find_local_member(container_name, variable_name)
+        </span><span class="self">self</span>.find_local_member_recursive(container_name, variable_name, seen)
             .or_else(|| {
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(class) = <span class="self">self</span>.find_pou(container_name).and_then(|it| it.get_super_class()) {
-                    <span class="kw">if </span>!seen.insert(class) {
+                    <span class="kw">if </span>!seen.insert(class.into()) {
                         <span class="kw">return </span><span class="prelude-val">None</span>;
                     }
                     <span class="self">self</span>.find_member_recursive(class, variable_name, seen).filter(|it| !(it.is_temp()))
