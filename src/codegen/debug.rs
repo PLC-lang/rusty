@@ -9,6 +9,7 @@ use inkwell::{
         DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
+    targets::TargetData,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 use rustc_hash::FxHashMap;
@@ -18,13 +19,15 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
 use crate::{
-    datalayout::{Bytes, MemoryLocation},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
-use super::generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL};
+use super::{
+    generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL},
+    llvm_index::LlvmTypedIndex,
+};
 
 #[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -83,6 +86,7 @@ pub trait Debug<'ink> {
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,
+        types_index: &'idx LlvmTypedIndex,
     ) -> Result<(), Diagnostic>;
 
     /// Creates a globally accessible variable with the given datatype.
@@ -167,6 +171,7 @@ pub struct DebugBuilder<'ink> {
     variables: FxHashMap<VariableKey, DILocalVariable<'ink>>,
     optimization: OptimizationLevel,
     files: FxHashMap<&'static str, DIFile<'ink>>,
+    target_data: TargetData,
 }
 
 /// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -230,6 +235,9 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     "",
                 );
 
+                let data_layout = module.get_data_layout();
+                let data_layout = data_layout.as_str().to_str().expect("Data layout is valid");
+                let target_data = TargetData::create(data_layout);
                 let dbg_obj = DebugBuilder {
                     context,
                     debug_info,
@@ -238,6 +246,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
                     variables: Default::default(),
                     optimization,
                     files: Default::default(),
+                    target_data,
                 };
                 match debug_level {
                     DebugLevel::VariablesOnly(_) => DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -273,8 +282,9 @@ impl<'ink> DebugBuilder<'ink> {
         &mut self,
         name: &str,
         members: &[VariableIndexEntry],
-        index: &Index,
         location: &SourceLocation,
+        index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         //Create each type
         let index_types = members
@@ -285,6 +295,7 @@ impl<'ink> DebugBuilder<'ink> {
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
+        let struct_type = types_index.get_associated_type(name).map(|it| it.into_struct_type())?;
 
         let file = location
             .get_file_name()
@@ -292,15 +303,17 @@ impl<'ink> DebugBuilder<'ink> {
             .unwrap_or_else(|| self.compile_unit.get_file());
 
         let mut types = vec![];
-        let mut running_offset = MemoryLocation::new(0);
-        for (member_name, dt, location) in index_types.into_iter() {
-            let di_type = self.get_or_create_debug_type(dt, index)?;
+        for (element_index, (member_name, dt, location)) in index_types.into_iter().enumerate() {
+            let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
 
             //Adjust the offset based on the field alignment
-            let type_info = dt.get_type_information();
-            let alignment = type_info.get_alignment(index);
-            let size = type_info.get_size(index).unwrap();
-            running_offset = running_offset.align_to(alignment);
+            let size = types_index
+                .find_associated_type(dt.get_name())
+                .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
+                .unwrap_or(0);
+            //Offset in bits
+            let offset =
+                self.target_data.offset_of_element(&struct_type, element_index as u32).unwrap_or(0) * 8;
 
             types.push(
                 self.debug_info
@@ -309,27 +322,25 @@ impl<'ink> DebugBuilder<'ink> {
                         member_name,
                         file,
                         location.get_line_plus_one() as u32,
-                        size.bits().into(),
-                        alignment.bits(),
-                        running_offset.bits().into(),
+                        size,
+                        0, // No set alignment
+                        offset,
                         DIFlags::PUBLIC,
                         di_type.into(),
                     )
                     .as_type(),
             );
-            running_offset += size;
         }
 
-        let struct_dt = index.get_type_information_or_void(name);
-
+        let size = self.target_data.get_bit_size(&struct_type);
         //Create a struct type
         let struct_type = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() as u32,
-            running_offset.bits().into(),
-            struct_dt.get_alignment(index).bits(),
+            size,
+            0, // No set alignment
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -347,9 +358,9 @@ impl<'ink> DebugBuilder<'ink> {
         name: &str,
         inner_type: &str,
         dimensions: &[Dimension],
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         //find the inner type debug info
         let inner_type = index.get_type(inner_type)?;
@@ -360,11 +371,11 @@ impl<'ink> DebugBuilder<'ink> {
             //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
-        let inner_type = self.get_or_create_debug_type(inner_type, index)?;
+        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
+            size,
+            0, //No set alignment
             subscript.as_slice(),
         );
         self.register_concrete_type(name, DebugType::Composite(array_type));
@@ -375,17 +386,17 @@ impl<'ink> DebugBuilder<'ink> {
         &mut self,
         name: &str,
         inner_type: &str,
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         let inner_type = index.get_type(inner_type)?;
-        let inner_type = self.get_or_create_debug_type(inner_type, index)?;
+        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
         let pointer_type = self.debug_info.create_pointer_type(
             name,
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
+            size,
+            0, //No set alignment
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         self.register_concrete_type(name, DebugType::Derived(pointer_type));
@@ -396,14 +407,15 @@ impl<'ink> DebugBuilder<'ink> {
         &mut self,
         dt: &DataType,
         index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<DebugType<'ink>, Diagnostic> {
         //Try to find a type in the types
-        let dt_name = dt.get_name().to_lowercase();
+        let dt_name = dt.get_name();
         //Attempt to re-register the type, this will do nothing if the type exists.
         //TODO: This will crash on recursive datatypes
-        self.register_debug_type(&dt_name, dt, index)?;
+        self.register_debug_type(dt_name, dt, index, types_index)?;
         self.types
-            .get(&dt_name)
+            .get(&dt_name.to_lowercase())
             .ok_or_else(|| {
                 Diagnostic::new(format!("Cannot find debug information for type {dt_name}"))
                     .with_error_code("E076")
@@ -416,21 +428,21 @@ impl<'ink> DebugBuilder<'ink> {
         name: &str,
         length: i64,
         encoding: StringEncoding,
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         // Register a utf8 or 16 basic type
         let inner_type = match encoding {
             StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),
             StringEncoding::Utf16 => index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
-        let inner_type = self.get_or_create_debug_type(inner_type, index)?;
+        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
         //Register an array
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
+            size,
+            0, //No set alignment
             #[allow(clippy::single_range_in_vec_init)]
             &[(0..length)],
         );
@@ -442,11 +454,12 @@ impl<'ink> DebugBuilder<'ink> {
         &mut self,
         name: &str,
         referenced_type: &str,
-        index: &Index,
         location: &SourceLocation,
+        index: &Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         let inner_dt = index.get_effective_type_by_name(referenced_type)?;
-        let inner_type = self.get_or_create_debug_type(inner_dt, index)?;
+        let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
         let file = location
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
@@ -458,7 +471,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
-            inner_dt.get_type_information().get_alignment(index).bits(),
+            0, //No set alignment
         );
         self.register_concrete_type(name, DebugType::Derived(typedef));
 
@@ -542,11 +555,7 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            let var_type = index
-                .find_effective_type_by_name(variable.get_type_name())
-                .expect("Type should exist at this stage");
-            let alignment = var_type.get_type_information().get_alignment(index).bits();
-            self.register_local_variable(variable, alignment, func);
+            self.register_local_variable(variable, 0, func);
         }
 
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
@@ -634,22 +643,25 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,
+        types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         //check if the type is currently registered
         if !self.types.contains_key(&name.to_lowercase()) {
             let type_info = datatype.get_type_information();
-            let size = type_info.get_size(index).unwrap();
-            let alignment = type_info.get_alignment(index);
+            let size = types_index
+                .find_associated_type(name)
+                .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
+                .unwrap_or(0);
             let location = &datatype.location;
             match type_info {
                 DataTypeInformation::Struct { members, .. } => {
-                    self.create_struct_type(name, members.as_slice(), index, location)
+                    self.create_struct_type(name, members.as_slice(), location, index, types_index)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } => {
-                    self.create_array_type(name, inner_type_name, dimensions, size, alignment, index)
+                    self.create_array_type(name, inner_type_name, dimensions, size, index, types_index)
                 }
                 DataTypeInformation::Pointer { name, inner_type_name, .. } => {
-                    self.create_pointer_type(name, inner_type_name, size, alignment, index)
+                    self.create_pointer_type(name, inner_type_name, size, index, types_index)
                 }
                 DataTypeInformation::Integer { signed, size, .. } => {
                     let encoding = if type_info.is_bool() {
@@ -671,11 +683,11 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     let length = string_size
                         .as_int_value(index)
                         .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
-                    self.create_string_type(name, length, *encoding, size, alignment, index)
+                    self.create_string_type(name, length, *encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
                 | DataTypeInformation::Enum { name, referenced_type, .. } => {
-                    self.create_typedef_type(name, referenced_type, index, location)
+                    self.create_typedef_type(name, referenced_type, location, index, types_index)
                 }
                 // Other types are just derived basic types
                 _ => Ok(()),
@@ -905,10 +917,13 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         name: &str,
         datatype: &'idx DataType,
         index: &'idx Index,
+        types_index: &'idx LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         match self {
             Self::None => Ok(()),
-            Self::VariablesOnly(obj) | Self::Full(obj) => obj.register_debug_type(name, datatype, index),
+            Self::VariablesOnly(obj) | Self::Full(obj) => {
+                obj.register_debug_type(name, datatype, index, types_index)
+            }
         }
     }
 

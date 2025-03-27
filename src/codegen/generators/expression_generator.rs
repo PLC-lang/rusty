@@ -2402,6 +2402,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .as_int_value(self.index)
                     .map_err(|err| Diagnostic::codegen_error(err.as_str(), right_location))?;
                 let size = std::cmp::min(target_size - 1, value_size);
+                //FIXME: use the target_layout for this operation
                 let alignment = left_type.get_string_character_width(self.index).value();
                 //Multiply by the string alignment to copy enough for widestrings
                 //This is done at compile time to avoid generating an extra mul
