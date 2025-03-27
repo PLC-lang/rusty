@@ -2858,7 +2858,8 @@
 <a href="#2857" id="2857">2857</a>
 <a href="#2858" id="2858">2858</a>
 <a href="#2859" id="2859">2859</a>
-<a href="#2860" id="2860">2860</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2860" id="2860">2860</a>
+<a href="#2861" id="2861">2861</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -5262,7 +5263,8 @@
                     .as_int_value(<span class="self">self</span>.index)
                     .map_err(|err| Diagnostic::codegen_error(err.as_str(), right_location))<span class="question-mark">?</span>;
                 <span class="kw">let </span>size = std::cmp::min(target_size - <span class="number">1</span>, value_size);
-                <span class="kw">let </span>alignment = left_type.get_string_character_width(<span class="self">self</span>.index).value();
+                <span class="comment">//FIXME: use the target_layout for this operation
+                </span><span class="kw">let </span>alignment = left_type.get_string_character_width(<span class="self">self</span>.index).value();
                 <span class="comment">//Multiply by the string alignment to copy enough for widestrings
                 //This is done at compile time to avoid generating an extra mul
                 </span><span class="kw">let </span>size = <span class="self">self</span>.llvm.context.i32_type().const_int((size * alignment <span class="kw">as </span>i64) <span class="kw">as </span>u64, <span class="bool-val">true</span>);

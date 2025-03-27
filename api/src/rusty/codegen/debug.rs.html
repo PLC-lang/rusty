@@ -980,7 +980,22 @@
 <a href="#979" id="979">979</a>
 <a href="#980" id="980">980</a>
 <a href="#981" id="981">981</a>
-<a href="#982" id="982">982</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a>
+<a href="#988" id="988">988</a>
+<a href="#989" id="989">989</a>
+<a href="#990" id="990">990</a>
+<a href="#991" id="991">991</a>
+<a href="#992" id="992">992</a>
+<a href="#993" id="993">993</a>
+<a href="#994" id="994">994</a>
+<a href="#995" id="995">995</a>
+<a href="#996" id="996">996</a>
+<a href="#997" id="997">997</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -991,6 +1006,7 @@
         DWARFEmissionKind, DebugInfoBuilder,
     },
     module::Module,
+    targets::TargetData,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -1000,13 +1016,15 @@
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 
 <span class="kw">use crate</span>::{
-    datalayout::{Bytes, MemoryLocation},
     index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
     DebugLevel, OptimizationLevel,
 };
 
-<span class="kw">use </span><span class="kw">super</span>::generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL};
+<span class="kw">use super</span>::{
+    generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL},
+    llvm_index::LlvmTypedIndex,
+};
 
 <span class="attr">#[derive(PartialEq, Eq)]
 #[allow(non_camel_case_types)]
@@ -1065,6 +1083,7 @@
         name: <span class="kw-2">&amp;</span>str,
         datatype: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        types_index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt;;
 
     <span class="doccomment">/// Creates a globally accessible variable with the given datatype.
@@ -1149,6 +1168,7 @@
     variables: FxHashMap&lt;VariableKey, DILocalVariable&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     optimization: OptimizationLevel,
     files: FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, DIFile&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    target_data: TargetData,
 }
 
 <span class="doccomment">/// A wrapper that redirects to correct debug builder implementation based on the debug context.
@@ -1212,6 +1232,9 @@
                     <span class="string">""</span>,
                 );
 
+                <span class="kw">let </span>data_layout = module.get_data_layout();
+                <span class="kw">let </span>data_layout = data_layout.as_str().to_str().expect(<span class="string">"Data layout is valid"</span>);
+                <span class="kw">let </span>target_data = TargetData::create(data_layout);
                 <span class="kw">let </span>dbg_obj = DebugBuilder {
                     context,
                     debug_info,
@@ -1220,6 +1243,7 @@
                     variables: Default::default(),
                     optimization,
                     files: Default::default(),
+                    target_data,
                 };
                 <span class="kw">match </span>debug_level {
                     DebugLevel::VariablesOnly(<span class="kw">_</span>) =&gt; DebugBuilderEnum::VariablesOnly(dbg_obj),
@@ -1255,8 +1279,9 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         members: <span class="kw-2">&amp;</span>[VariableIndexEntry],
-        index: <span class="kw-2">&amp;</span>Index,
         location: <span class="kw-2">&amp;</span>SourceLocation,
+        index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//Create each type
         </span><span class="kw">let </span>index_types = members
@@ -1267,6 +1292,7 @@
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
             })
             .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
+        <span class="kw">let </span>struct_type = types_index.get_associated_type(name).map(|it| it.into_struct_type())<span class="question-mark">?</span>;
 
         <span class="kw">let </span>file = location
             .get_file_name()
@@ -1274,15 +1300,17 @@
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
 
         <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>running_offset = MemoryLocation::new(<span class="number">0</span>);
-        <span class="kw">for </span>(member_name, dt, location) <span class="kw">in </span>index_types.into_iter() {
-            <span class="kw">let </span>di_type = <span class="self">self</span>.get_or_create_debug_type(dt, index)<span class="question-mark">?</span>;
+        <span class="kw">for </span>(element_index, (member_name, dt, location)) <span class="kw">in </span>index_types.into_iter().enumerate() {
+            <span class="kw">let </span>di_type = <span class="self">self</span>.get_or_create_debug_type(dt, index, types_index)<span class="question-mark">?</span>;
 
             <span class="comment">//Adjust the offset based on the field alignment
-            </span><span class="kw">let </span>type_info = dt.get_type_information();
-            <span class="kw">let </span>alignment = type_info.get_alignment(index);
-            <span class="kw">let </span>size = type_info.get_size(index).unwrap();
-            running_offset = running_offset.align_to(alignment);
+            </span><span class="kw">let </span>size = types_index
+                .find_associated_type(dt.get_name())
+                .map(|llvm_type| <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>llvm_type))
+                .unwrap_or(<span class="number">0</span>);
+            <span class="comment">//Offset in bits
+            </span><span class="kw">let </span>offset =
+                <span class="self">self</span>.target_data.offset_of_element(<span class="kw-2">&amp;</span>struct_type, element_index <span class="kw">as </span>u32).unwrap_or(<span class="number">0</span>) * <span class="number">8</span>;
 
             types.push(
                 <span class="self">self</span>.debug_info
@@ -1291,28 +1319,26 @@
                         member_name,
                         file,
                         location.get_line_plus_one() <span class="kw">as </span>u32,
-                        size.bits().into(),
-                        alignment.bits(),
-                        running_offset.bits().into(),
+                        size,
+                        <span class="number">0</span>, <span class="comment">// No set alignment
+                        </span>offset,
                         DIFlags::PUBLIC,
                         di_type.into(),
                     )
                     .as_type(),
             );
-            running_offset += size;
         }
 
-        <span class="kw">let </span>struct_dt = index.get_type_information_or_void(name);
-
+        <span class="kw">let </span>size = <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>struct_type);
         <span class="comment">//Create a struct type
         </span><span class="kw">let </span>struct_type = <span class="self">self</span>.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() <span class="kw">as </span>u32,
-            running_offset.bits().into(),
-            struct_dt.get_alignment(index).bits(),
-            DIFlags::PUBLIC,
+            size,
+            <span class="number">0</span>, <span class="comment">// No set alignment
+            </span>DIFlags::PUBLIC,
             <span class="prelude-val">None</span>,
             types.as_slice(),
             <span class="number">0</span>,
@@ -1329,9 +1355,9 @@
         name: <span class="kw-2">&amp;</span>str,
         inner_type: <span class="kw-2">&amp;</span>str,
         dimensions: <span class="kw-2">&amp;</span>[Dimension],
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//find the inner type debug info
         </span><span class="kw">let </span>inner_type = index.get_type(inner_type)<span class="question-mark">?</span>;
@@ -1342,12 +1368,12 @@
             <span class="comment">//Convert to normal range
             </span>.collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Range&lt;i64&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))<span class="question-mark">?</span>;
-        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
         <span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
-            subscript.as_slice(),
+            size,
+            <span class="number">0</span>, <span class="comment">//No set alignment
+            </span>subscript.as_slice(),
         );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
         <span class="prelude-val">Ok</span>(())
@@ -1357,18 +1383,18 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         inner_type: <span class="kw-2">&amp;</span>str,
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>inner_type = index.get_type(inner_type)<span class="question-mark">?</span>;
-        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
         <span class="kw">let </span>pointer_type = <span class="self">self</span>.debug_info.create_pointer_type(
             name,
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
-            inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
+            size,
+            <span class="number">0</span>, <span class="comment">//No set alignment
+            </span>inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(pointer_type));
         <span class="prelude-val">Ok</span>(())
@@ -1378,14 +1404,15 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         dt: <span class="kw-2">&amp;</span>DataType,
         index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;DebugType&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="comment">//Try to find a type in the types
-        </span><span class="kw">let </span>dt_name = dt.get_name().to_lowercase();
+        </span><span class="kw">let </span>dt_name = dt.get_name();
         <span class="comment">//Attempt to re-register the type, this will do nothing if the type exists.
         //TODO: This will crash on recursive datatypes
-        </span><span class="self">self</span>.register_debug_type(<span class="kw-2">&amp;</span>dt_name, dt, index)<span class="question-mark">?</span>;
+        </span><span class="self">self</span>.register_debug_type(dt_name, dt, index, types_index)<span class="question-mark">?</span>;
         <span class="self">self</span>.types
-            .get(<span class="kw-2">&amp;</span>dt_name)
+            .get(<span class="kw-2">&amp;</span>dt_name.to_lowercase())
             .ok_or_else(|| {
                 Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Cannot find debug information for type {dt_name}"</span>))
                     .with_error_code(<span class="string">"E076"</span>)
@@ -1398,22 +1425,22 @@
         name: <span class="kw-2">&amp;</span>str,
         length: i64,
         encoding: StringEncoding,
-        size: Bytes,
-        alignment: Bytes,
+        size: u64,
         index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">// Register a utf8 or 16 basic type
         </span><span class="kw">let </span>inner_type = <span class="kw">match </span>encoding {
             StringEncoding::Utf8 =&gt; index.get_effective_type_or_void_by_name(CHAR_TYPE),
             StringEncoding::Utf16 =&gt; index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
-        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
         <span class="comment">//Register an array
         </span><span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
             inner_type.into(),
-            size.bits().into(),
-            alignment.bits(),
-            <span class="attr">#[allow(clippy::single_range_in_vec_init)]
+            size,
+            <span class="number">0</span>, <span class="comment">//No set alignment
+            </span><span class="attr">#[allow(clippy::single_range_in_vec_init)]
             </span><span class="kw-2">&amp;</span>[(<span class="number">0</span>..length)],
         );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
@@ -1424,11 +1451,12 @@
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         referenced_type: <span class="kw-2">&amp;</span>str,
-        index: <span class="kw-2">&amp;</span>Index,
         location: <span class="kw-2">&amp;</span>SourceLocation,
+        index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>inner_dt = index.get_effective_type_by_name(referenced_type)<span class="question-mark">?</span>;
-        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_dt, index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_dt, index, types_index)<span class="question-mark">?</span>;
         <span class="kw">let </span>file = location
             .get_file_name()
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
@@ -1440,8 +1468,8 @@
             file,
             location.get_line_plus_one() <span class="kw">as </span>u32,
             file.as_debug_info_scope(),
-            inner_dt.get_type_information().get_alignment(index).bits(),
-        );
+            <span class="number">0</span>, <span class="comment">//No set alignment
+        </span>);
         <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(typedef));
 
         <span class="prelude-val">Ok</span>(())
@@ -1524,11 +1552,7 @@
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            <span class="kw">let </span>var_type = index
-                .find_effective_type_by_name(variable.get_type_name())
-                .expect(<span class="string">"Type should exist at this stage"</span>);
-            <span class="kw">let </span>alignment = var_type.get_type_information().get_alignment(index).bits();
-            <span class="self">self</span>.register_local_variable(variable, alignment, func);
+            <span class="self">self</span>.register_local_variable(variable, <span class="number">0</span>, func);
         }
 
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
@@ -1616,22 +1640,25 @@
         name: <span class="kw-2">&amp;</span>str,
         datatype: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//check if the type is currently registered
         </span><span class="kw">if </span>!<span class="self">self</span>.types.contains_key(<span class="kw-2">&amp;</span>name.to_lowercase()) {
             <span class="kw">let </span>type_info = datatype.get_type_information();
-            <span class="kw">let </span>size = type_info.get_size(index).unwrap();
-            <span class="kw">let </span>alignment = type_info.get_alignment(index);
+            <span class="kw">let </span>size = types_index
+                .find_associated_type(name)
+                .map(|llvm_type| <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>llvm_type))
+                .unwrap_or(<span class="number">0</span>);
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>datatype.location;
             <span class="kw">match </span>type_info {
                 DataTypeInformation::Struct { members, .. } =&gt; {
-                    <span class="self">self</span>.create_struct_type(name, members.as_slice(), index, location)
+                    <span class="self">self</span>.create_struct_type(name, members.as_slice(), location, index, types_index)
                 }
                 DataTypeInformation::Array { name, inner_type_name, dimensions, .. } =&gt; {
-                    <span class="self">self</span>.create_array_type(name, inner_type_name, dimensions, size, alignment, index)
+                    <span class="self">self</span>.create_array_type(name, inner_type_name, dimensions, size, index, types_index)
                 }
                 DataTypeInformation::Pointer { name, inner_type_name, .. } =&gt; {
-                    <span class="self">self</span>.create_pointer_type(name, inner_type_name, size, alignment, index)
+                    <span class="self">self</span>.create_pointer_type(name, inner_type_name, size, index, types_index)
                 }
                 DataTypeInformation::Integer { signed, size, .. } =&gt; {
                     <span class="kw">let </span>encoding = <span class="kw">if </span>type_info.is_bool() {
@@ -1653,11 +1680,11 @@
                     <span class="kw">let </span>length = string_size
                         .as_int_value(index)
                         .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))<span class="question-mark">?</span>;
-                    <span class="self">self</span>.create_string_type(name, length, <span class="kw-2">*</span>encoding, size, alignment, index)
+                    <span class="self">self</span>.create_string_type(name, length, <span class="kw-2">*</span>encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
                 | DataTypeInformation::Enum { name, referenced_type, .. } =&gt; {
-                    <span class="self">self</span>.create_typedef_type(name, referenced_type, index, location)
+                    <span class="self">self</span>.create_typedef_type(name, referenced_type, location, index, types_index)
                 }
                 <span class="comment">// Other types are just derived basic types
                 </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
@@ -1887,10 +1914,13 @@
         name: <span class="kw-2">&amp;</span>str,
         datatype: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType,
         index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+        types_index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None =&gt; <span class="prelude-val">Ok</span>(()),
-            <span class="self">Self</span>::VariablesOnly(obj) | <span class="self">Self</span>::Full(obj) =&gt; obj.register_debug_type(name, datatype, index),
+            <span class="self">Self</span>::VariablesOnly(obj) | <span class="self">Self</span>::Full(obj) =&gt; {
+                obj.register_debug_type(name, datatype, index, types_index)
+            }
         }
     }
 

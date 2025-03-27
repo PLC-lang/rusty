@@ -189,8 +189,7 @@
 <a href="#188" id="188">188</a>
 <a href="#189" id="189">189</a>
 <a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::{Add, AddAssign};
+<a href="#191" id="191">191</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::ops::{Add, AddAssign};
 
 <span class="attr">#[derive(Copy, Clone, Debug)]
 </span><span class="kw">pub struct </span>DataLayout {
@@ -377,9 +376,8 @@
         );
 
         <span class="kw">let </span>struct_type = index.get_effective_type_by_name(<span class="string">"MyStruct"</span>).unwrap().get_type_information();
-        <span class="comment">// And the struct size takes the alignment into account
-        </span><span class="macro">assert_eq!</span>(struct_type.get_size(<span class="kw-2">&amp;</span>index).unwrap().bits(), <span class="number">192</span>);
-        <span class="macro">assert_eq!</span>(struct_type.get_alignment(<span class="kw-2">&amp;</span>index), Bytes::new(<span class="number">8</span>)) <span class="comment">//Struct alignment is 64 by default
-    </span>}
+        <span class="comment">// The size is 120 bytes and the struct is not aligned
+        </span><span class="macro">assert_eq!</span>(struct_type.get_size(<span class="kw-2">&amp;</span>index).unwrap().bits(), <span class="number">120</span>);
+    }
 }
 </code></pre></div></section></main></body></html>
