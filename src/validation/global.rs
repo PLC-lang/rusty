@@ -184,8 +184,9 @@ impl GlobalValidator {
                 matches!(
                     p,
                     PouIndexEntry::Program { .. }
-                        | PouIndexEntry::Method { .. }
                         | PouIndexEntry::Action { .. }
+                        // Properties are already covered somewhere else
+                        | PouIndexEntry::Method { property: None, .. }
                 )
             })
             .map(|it| (it.get_name(), it.get_location()));

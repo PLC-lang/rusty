@@ -213,7 +213,7 @@ fn invalid_variable_name_error_recovery() {
                     address: None,
                     location: SourceLocation::internal(),
                 },],
-                variable_block_type: VariableBlockType::Local,
+                kind: VariableBlockType::Local,
                 linkage: LinkageType::Internal,
             }
         )

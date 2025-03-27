@@ -224,9 +224,11 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
 }
 
 fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
-    let mut block = if let Some(index) = unit.global_vars.iter().position(|block| {
-        block.variable_block_type == VariableBlockType::Global && block.location.is_builtin_internal()
-    }) {
+    let mut block = if let Some(index) = unit
+        .global_vars
+        .iter()
+        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
+    {
         unit.global_vars.remove(index)
     } else {
         VariableBlock::default().with_block_type(VariableBlockType::Global)
@@ -243,9 +245,7 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
 fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
     unit.global_vars
         .iter()
-        .position(|block| {
-            block.variable_block_type == VariableBlockType::Global && block.location.is_builtin_internal()
-        })
+        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
         .and_then(|index| unit.global_vars.get(index))
 }
 

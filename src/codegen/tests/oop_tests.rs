@@ -534,3 +534,54 @@ fn complex_array_access_generated() {
     }
     "###);
 }
+
+#[test]
+fn properties_are_methods() {
+    let property = codegen(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                localPrivateVariable : DINT;
+            END_VAR
+            PROPERTY foo : DINT
+                GET
+                    foo := localPrivateVariable;
+                END_GET
+
+                SET
+                    localPrivateVariable := foo;
+                END_SET
+            END_PROPERTY
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    let method = codegen(
+        "
+        FUNCTION_BLOCK fb
+          VAR
+            localPrivateVariable : DINT;
+          END_VAR
+
+          METHOD __get_foo : DINT
+            VAR
+              foo : DINT;
+            END_VAR
+
+            foo := localPrivateVariable;
+            __get_foo := foo;
+          END_METHOD
+
+          METHOD __set_foo
+            VAR_INPUT
+              foo : DINT;
+            END_VAR
+
+            localPrivateVariable := foo;
+          END_METHOD
+        END_FUNCTION_BLOCK
+        ",
+    );
+
+    assert_eq!(property, method);
+}
