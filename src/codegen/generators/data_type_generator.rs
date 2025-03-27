@@ -117,6 +117,9 @@ pub fn generate_data_types<'ink>(
         generator.expand_opaque_types(user_type)?;
     }
 
+    // Now generate debug information for all types
+    generator.generate_debug_types()?;
+
     let mut tries = 0;
     let mut errors = FxHashMap::default();
 
@@ -198,7 +201,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
     fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
-        self.debug.register_debug_type(name, data_type, self.index)?;
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
@@ -461,6 +463,30 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         .as_basic_type_enum();
 
         Ok(result)
+    }
+
+    fn generate_debug_types(&mut self) -> Result<(), Diagnostic> {
+        for data_type in self
+            .index
+            .get_types()
+            .entries()
+            .flat_map(|(_, data_type)| data_type.first())
+            .filter(|data_type| !data_type.is_generic(self.index))
+        {
+            self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
+        }
+        for data_type in self
+            .index
+            .get_pou_types()
+            .entries()
+            .flat_map(|(_, data_type)| data_type.first())
+            .filter(|data_type| !data_type.is_generic(self.index))
+            .filter(|data_type| data_type.is_backed_by_struct())
+        {
+            self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
+        }
+
+        Ok(())
     }
 }
 

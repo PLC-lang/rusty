@@ -662,6 +662,7 @@ pub(super) mod signature_validation {
             let ctxt = self.context;
             let method_impl = ctxt.method_impl;
             let method_ref = ctxt.method_ref;
+            //FIXME: this is not accurate, we should not do our own data layout calculations
             let l_encoding = left.get_string_character_width(ctxt.index);
             let r_encoding = right.get_string_character_width(ctxt.index);
             let left_length = left.get_size_in_bits(ctxt.index).unwrap() / l_encoding.bits();
