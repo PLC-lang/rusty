@@ -2621,7 +2621,24 @@
 <a href="#2620" id="2620">2620</a>
 <a href="#2621" id="2621">2621</a>
 <a href="#2622" id="2622">2622</a>
-<a href="#2623" id="2623">2623</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2623" id="2623">2623</a>
+<a href="#2624" id="2624">2624</a>
+<a href="#2625" id="2625">2625</a>
+<a href="#2626" id="2626">2626</a>
+<a href="#2627" id="2627">2627</a>
+<a href="#2628" id="2628">2628</a>
+<a href="#2629" id="2629">2629</a>
+<a href="#2630" id="2630">2630</a>
+<a href="#2631" id="2631">2631</a>
+<a href="#2632" id="2632">2632</a>
+<a href="#2633" id="2633">2633</a>
+<a href="#2634" id="2634">2634</a>
+<a href="#2635" id="2635">2635</a>
+<a href="#2636" id="2636">2636</a>
+<a href="#2637" id="2637">2637</a>
+<a href="#2638" id="2638">2638</a>
+<a href="#2639" id="2639">2639</a>
+<a href="#2640" id="2640">2640</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -4507,6 +4524,16 @@
                     }
                 }
             }
+
+            (ReferenceAccess::Global(node), <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>ctx = ctx.with_resolving_strategy(<span class="macro">vec!</span>[ResolvingStrategy::Global]);
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(annotation) = <span class="self">self</span>.resolve_reference_expression(node, <span class="prelude-val">None</span>, <span class="kw-2">&amp;</span>ctx) {
+                    <span class="comment">// Annotate both the identifier and the statement, i.e. `.foo` and `foo`
+                    </span><span class="self">self</span>.annotate(stmt, annotation.clone());
+                    <span class="self">self</span>.annotate(node, annotation);
+                }
+            }
+
             (ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(qualifier)) =&gt; {
                 <span class="comment">// STRING#"abc"
                 //  base
@@ -4567,7 +4594,8 @@
                     <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
-            <span class="kw">_ </span>=&gt; {}
+
+            <span class="kw">_ </span>=&gt; (),
         }
     }
 
@@ -5041,6 +5069,9 @@
     <span class="doccomment">/// try to resolve a variable
     </span>Variable,
 
+    <span class="doccomment">/// try to resolve a global variable
+    </span>Global,
+
     <span class="doccomment">/// try to resolve a POU
     </span>POU,
 
@@ -5118,6 +5149,9 @@
                         .or_else(|| index.find_global_variable(name))
                         .map(|g| to_variable_annotation(g, index, g.is_constant()))
                 }
+            }
+            ResolvingStrategy::Global =&gt; {
+                index.find_global_variable(name).map(|g| to_variable_annotation(g, index, g.is_constant()))
             }
             <span class="comment">// try to resolve the name as POU/Action/Method
             </span>ResolvingStrategy::POU =&gt; {

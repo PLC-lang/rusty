@@ -961,7 +961,17 @@
 <a href="#960" id="960">960</a>
 <a href="#961" id="961">961</a>
 <a href="#962" id="962">962</a>
-<a href="#963" id="963">963</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use crate</span>::{
     expect_token,
@@ -1386,6 +1396,16 @@
                 } <span class="kw">else </span>{
                     <span class="prelude-val">Some</span>(exp)
                 };
+            }
+            <span class="comment">// Global Namespace Operator, e.g. `.foo`
+            </span>(<span class="prelude-val">None</span>, <span class="prelude-val">Some</span>(KeywordDot)) =&gt; {
+                <span class="kw">let </span>location_dot = lexer.location();
+                lexer.advance();
+
+                <span class="kw">let </span>expr = parse_atomic_leaf_expression(lexer)<span class="question-mark">?</span>;
+                <span class="kw">let </span>location = location_dot.span(<span class="kw-2">&amp;</span>expr.location);
+
+                current = <span class="prelude-val">Some</span>(AstFactory::create_global_reference(lexer.next_id(), expr, location));
             }
             <span class="comment">// base._ -&gt; a segment of a qualified reference, we stand right after the dot
             </span>(<span class="prelude-val">Some</span>(base), <span class="prelude-val">Some</span>(KeywordDot)) =&gt; {

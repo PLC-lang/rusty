@@ -1904,7 +1904,15 @@
 <a href="#1903" id="1903">1903</a>
 <a href="#1904" id="1904">1904</a>
 <a href="#1905" id="1905">1905</a>
-<a href="#1906" id="1906">1906</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1906" id="1906">1906</a>
+<a href="#1907" id="1907">1907</a>
+<a href="#1908" id="1908">1908</a>
+<a href="#1909" id="1909">1909</a>
+<a href="#1910" id="1910">1910</a>
+<a href="#1911" id="1911">1911</a>
+<a href="#1912" id="1912">1912</a>
+<a href="#1913" id="1913">1913</a>
+<a href="#1914" id="1914">1914</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2690,25 +2698,22 @@
 
 <span class="attr">#[derive(Debug, Clone, PartialEq)]
 </span><span class="kw">pub enum </span>ReferenceAccess {
-    <span class="doccomment">/**
-     * a, a.b
-     */
+    <span class="doccomment">/// `.foo`
+    </span>Global(Box&lt;AstNode&gt;),
+
+    <span class="doccomment">/// a, a.b
     </span>Member(Box&lt;AstNode&gt;),
-    <span class="doccomment">/**
-     * a[3]
-     */
+
+    <span class="doccomment">/// a[3]
     </span>Index(Box&lt;AstNode&gt;),
-    <span class="doccomment">/**
-     * Color#Red
-     */
+
+    <span class="doccomment">/// Color#Red
     </span>Cast(Box&lt;AstNode&gt;),
-    <span class="doccomment">/**
-     * a^
-     */
+
+    <span class="doccomment">/// a^
     </span>Deref,
-    <span class="doccomment">/**
-     * &amp;a
-     */
+
+    <span class="doccomment">/// &amp;a
     </span>Address,
 }
 
@@ -3007,11 +3012,11 @@
     <span class="doccomment">/// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     </span><span class="kw">pub fn </span>get_flat_reference_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt; {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
-                ..,
-            ) =&gt; reference.as_ref().get_flat_reference_name(),
             AstStatement::Identifier(name, ..) =&gt; <span class="prelude-val">Some</span>(name),
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(reference) | ReferenceAccess::Global(reference),
+                ..
+            }) =&gt; reference.as_ref().get_flat_reference_name(),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -3486,6 +3491,17 @@
             stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Member(Box::new(member)),
                 base: base.map(Box::new),
+            }),
+            id,
+            location,
+        }
+    }
+
+    <span class="kw">pub fn </span>create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -&gt; AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Global(Box::new(member)),
+                base: <span class="prelude-val">None</span>,
             }),
             id,
             location,

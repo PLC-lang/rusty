@@ -2859,7 +2859,18 @@
 <a href="#2858" id="2858">2858</a>
 <a href="#2859" id="2859">2859</a>
 <a href="#2860" id="2860">2860</a>
-<a href="#2861" id="2861">2861</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2861" id="2861">2861</a>
+<a href="#2862" id="2862">2862</a>
+<a href="#2863" id="2863">2863</a>
+<a href="#2864" id="2864">2864</a>
+<a href="#2865" id="2865">2865</a>
+<a href="#2866" id="2866">2866</a>
+<a href="#2867" id="2867">2867</a>
+<a href="#2868" id="2868">2868</a>
+<a href="#2869" id="2869">2869</a>
+<a href="#2870" id="2870">2870</a>
+<a href="#2871" id="2871">2871</a>
+<a href="#2872" id="2872">2872</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -5400,7 +5411,18 @@
         original_expression: <span class="kw-2">&amp;</span>AstNode,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">match </span>(access, base) {
-            <span class="comment">// expressions like `base.member`, or just `member`
+            <span class="comment">// `.foo`
+            </span>(ReferenceAccess::Global(node), <span class="kw">_</span>) =&gt; {
+                <span class="kw">let </span>name = node.get_flat_reference_name().unwrap_or(<span class="string">"unknown"</span>);
+
+                <span class="self">self</span>.create_llvm_pointer_value_for_reference(
+                    <span class="prelude-val">None</span>,
+                    <span class="self">self</span>.get_load_name(node).as_deref().unwrap_or(name),
+                    node,
+                ).map(ExpressionValue::LValue)
+            }
+
+            <span class="comment">// `base.member` or just `member`
             </span>(ReferenceAccess::Member(member), base) =&gt; {
                 <span class="kw">let </span>base_value = base.map(|it| <span class="self">self</span>.generate_expression_value(it)).transpose()<span class="question-mark">?</span>;
 
@@ -5411,16 +5433,16 @@
                     <span class="self">self</span>.generate_direct_access_expression(base, <span class="kw-2">&amp;</span>base_value, member, <span class="kw-2">&amp;</span>data.access, <span class="kw-2">&amp;</span>data.index)
                 } <span class="kw">else </span>{
                     <span class="kw">let </span>member_name = member.get_flat_reference_name().unwrap_or(<span class="string">"unknown"</span>);
+
                     <span class="self">self</span>.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
                         <span class="self">self</span>.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
-                    )
-                        .map(ExpressionValue::LValue)
+                    ).map(ExpressionValue::LValue)
                 }
             }
 
-            <span class="comment">// expressions like: base[idx]
+            <span class="comment">// `base[idx]`
             </span>(ReferenceAccess::Index(array_idx), <span class="prelude-val">Some</span>(base)) =&gt; {
                 <span class="kw">if </span><span class="self">self</span>.annotations.get_type_or_void(base, <span class="self">self</span>.index).is_vla() {
                     <span class="comment">// vla array needs special handling
@@ -5437,7 +5459,7 @@
                 }
             }
 
-            <span class="comment">// INT#target (INT = base)
+            <span class="comment">// `INT#target` (INT = base)
             </span>(ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(_base)) =&gt; {
                 <span class="kw">if </span>target.as_ref().is_identifier() {
                     <span class="kw">let </span>mr =
@@ -5448,7 +5470,7 @@
                 }
             }
 
-            <span class="comment">// base^
+            <span class="comment">// `base^`
             </span>(ReferenceAccess::Deref, <span class="prelude-val">Some</span>(base)) =&gt; {
                 <span class="kw">let </span>ptr = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(ExpressionValue::LValue(
@@ -5458,20 +5480,20 @@
                 ))
             }
 
-            <span class="comment">// &amp;base
+            <span class="comment">// `&amp;base`
             </span>(ReferenceAccess::Address, <span class="prelude-val">Some</span>(base)) =&gt; {
                 <span class="kw">let </span>lvalue = <span class="self">self</span>.generate_expression_value(base)<span class="question-mark">?</span>;
                 <span class="prelude-val">Ok</span>(ExpressionValue::RValue(lvalue.get_basic_value_enum()))
             }
 
-            (ReferenceAccess::Index(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="comment">// [idx];
-            </span>| (ReferenceAccess::Cast(<span class="kw">_</span>), <span class="prelude-val">None</span>) <span class="comment">// INT#;
-            </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)  <span class="comment">// ^;
-            </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>) <span class="comment">// &amp;;
+            (ReferenceAccess::Index(<span class="kw">_</span>), <span class="prelude-val">None</span>)   <span class="comment">// [idx];
+            </span>| (ReferenceAccess::Cast(<span class="kw">_</span>), <span class="prelude-val">None</span>)  <span class="comment">// INT#;
+            </span>| (ReferenceAccess::Deref, <span class="prelude-val">None</span>)    <span class="comment">// ^;
+            </span>| (ReferenceAccess::Address, <span class="prelude-val">None</span>)  <span class="comment">// &amp;;
             </span>=&gt; <span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-                <span class="string">"Expected a base-expressions, but found none."</span>,
+                <span class="string">"Expected a base expression, but found none"</span>,
                 original_expression,
-            )),
+            ))
         }
     }
 
