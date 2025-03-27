@@ -5826,3 +5826,131 @@ fn reference_inside_array_access_index_is_resolved() {
         unreachable!("Expected a reference expression")
     }
 }
+
+#[test]
+fn global_namespace_operator_is_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        VAR_GLOBAL
+            foo : DINT;
+        END_VAR
+
+        FUNCTION idk
+            VAR_INPUT
+                in : DINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION main
+            VAR
+                foo : DINT;
+            END_VAR
+
+            .foo;
+            idk(.foo);
+            foo := .foo;
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    // .foo
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+    let AstNode {
+        stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(node), .. }),
+        ..
+    } = stmt
+    else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get(node).unwrap(), @r#"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo",
+        constant: false,
+        argument_type: ByVal(
+            Global,
+        ),
+        auto_deref: None,
+    }
+    "#);
+
+    // idk(.foo)
+    let stmt = &unit.implementations[1].statements[1];
+    let AstNode { stmt: AstStatement::CallStatement(CallStatement { parameters, .. }), .. } = stmt else {
+        unreachable!()
+    };
+
+    let param = parameters.as_ref().unwrap();
+    let statement = flatten_expression_list(param)[0];
+
+    insta::assert_debug_snapshot!(annotations.get(statement).unwrap(), @r#"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo",
+        constant: false,
+        argument_type: ByVal(
+            Global,
+        ),
+        auto_deref: None,
+    }
+    "#);
+
+    // foo := .foo
+    let stmt = &unit.implementations[1].statements[2];
+    let AstNode { stmt: AstStatement::Assignment(Assignment { left, right, .. }), .. } = stmt else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "main.foo",
+        constant: false,
+        argument_type: ByVal(
+            Local,
+        ),
+        auto_deref: None,
+    }
+    "#);
+
+    insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "foo",
+        constant: false,
+        argument_type: ByVal(
+            Global,
+        ),
+        auto_deref: None,
+    }
+    "#);
+}
+
+#[test]
+fn global_namespace_operator_is_not_resolved() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION main
+            .foo
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[0].statements[0];
+    let AstNode {
+        stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Global(node), .. }),
+        ..
+    } = stmt
+    else {
+        unreachable!()
+    };
+
+    assert_eq!(annotations.get(node), None);
+}
