@@ -1,0 +1,179 @@
+---
+source: src/parser/tests/expressions_parser_tests.rs
+expression: "parse_result.implementations[0].statements"
+snapshot_kind: text
+---
+[
+    ReferenceExpr {
+        kind: Global(
+            Identifier {
+                name: "foo",
+            },
+        ),
+        base: None,
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Global(
+                Identifier {
+                    name: "foo",
+                },
+            ),
+            base: None,
+        },
+        right: LiteralInteger {
+            value: 1,
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Global(
+                Identifier {
+                    name: "foo",
+                },
+            ),
+            base: None,
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: ReferenceExpr {
+                kind: Global(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+            right: LiteralInteger {
+                value: 1,
+            },
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "foo",
+                },
+            ),
+            base: None,
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: BinaryExpression {
+                operator: Plus,
+                left: LiteralInteger {
+                    value: 1,
+                },
+                right: ReferenceExpr {
+                    kind: Global(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: None,
+            },
+        },
+    },
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "foo",
+                },
+            ),
+            base: None,
+        },
+        right: BinaryExpression {
+            operator: Plus,
+            left: BinaryExpression {
+                operator: Plus,
+                left: BinaryExpression {
+                    operator: Plus,
+                    left: LiteralInteger {
+                        value: 1,
+                    },
+                    right: ReferenceExpr {
+                        kind: Global(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+                right: LiteralInteger {
+                    value: 2,
+                },
+            },
+            right: ReferenceExpr {
+                kind: Global(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+        },
+    },
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "someFunc",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Global(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    },
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "printf",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ExpressionList {
+                expressions: [
+                    LiteralString {
+                        value: "%d\n",
+                        is_wide: true,
+                    },
+                    ReferenceExpr {
+                        kind: Global(
+                            Identifier {
+                                name: "foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ],
+            },
+        ),
+    },
+]

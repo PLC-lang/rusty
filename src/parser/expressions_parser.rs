@@ -424,6 +424,16 @@ pub fn parse_qualified_reference(lexer: &mut ParseSession) -> Option<AstNode> {
                     Some(exp)
                 };
             }
+            // Global Namespace Operator, e.g. `.foo`
+            (None, Some(KeywordDot)) => {
+                let location_dot = lexer.location();
+                lexer.advance();
+
+                let expr = parse_atomic_leaf_expression(lexer)?;
+                let location = location_dot.span(&expr.location);
+
+                current = Some(AstFactory::create_global_reference(lexer.next_id(), expr, location));
+            }
             // base._ -> a segment of a qualified reference, we stand right after the dot
             (Some(base), Some(KeywordDot)) => {
                 lexer.advance();

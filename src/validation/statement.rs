@@ -145,7 +145,7 @@ fn validate_reference_expression<T: AnnotationMap>(
     base: &Option<Box<AstNode>>,
 ) {
     match access {
-        ReferenceAccess::Member(m) => {
+        ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
             visit_statement(validator, m.as_ref(), context);
 
             if let Some(reference_name) = statement.get_flat_reference_name() {

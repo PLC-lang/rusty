@@ -784,25 +784,22 @@ fn replace_reference(
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ReferenceAccess {
-    /**
-     * a, a.b
-     */
+    /// `.foo`
+    Global(Box<AstNode>),
+
+    /// a, a.b
     Member(Box<AstNode>),
-    /**
-     * a[3]
-     */
+
+    /// a[3]
     Index(Box<AstNode>),
-    /**
-     * Color#Red
-     */
+
+    /// Color#Red
     Cast(Box<AstNode>),
-    /**
-     * a^
-     */
+
+    /// a^
     Deref,
-    /**
-     * &a
-     */
+
+    /// &a
     Address,
 }
 
@@ -1101,11 +1098,11 @@ impl AstNode {
     /// Returns the reference-name if this is a flat reference like `a`, or None if this is no flat reference
     pub fn get_flat_reference_name(&self) -> Option<&str> {
         match &self.stmt {
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
-                ..,
-            ) => reference.as_ref().get_flat_reference_name(),
             AstStatement::Identifier(name, ..) => Some(name),
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(reference) | ReferenceAccess::Global(reference),
+                ..
+            }) => reference.as_ref().get_flat_reference_name(),
             _ => None,
         }
     }
@@ -1580,6 +1577,17 @@ impl AstFactory {
             stmt: AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Member(Box::new(member)),
                 base: base.map(Box::new),
+            }),
+            id,
+            location,
+        }
+    }
+
+    pub fn create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -> AstNode {
+        AstNode {
+            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Global(Box::new(member)),
+                base: None,
             }),
             id,
             location,
