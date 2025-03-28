@@ -1651,6 +1651,7 @@ impl AstFactory {
             }),
             id,
             location,
+            metadata: None
         }
     }
 
