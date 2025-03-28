@@ -123,6 +123,8 @@ impl<'ink> LlvmTypedIndex<'ink> {
     }
 
     pub fn find_associated_type(&self, type_name: &str) -> Option<BasicTypeEnum<'ink>> {
+        eprintln!("Looking for type: {}", type_name);
+        eprintln!("In: {:?}", self.pou_type_associations.keys());
         self.type_associations
             .get(&type_name.to_lowercase())
             .copied()
