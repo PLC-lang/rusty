@@ -100,6 +100,7 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                             stmt: AstStatement::Literal(AstLiteral::Integer(i)),
                             id,
                             location,
+                            ..
                         })),
                         Some(DataTypeInformation::Integer { size, signed: false, .. }),
                     ) => {
@@ -485,10 +486,12 @@ fn evaluate_with_target_hint(
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
             let eval = evaluate(value, scope, index)?;
             match eval.as_ref() {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location }) => {
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) => {
                     Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
                 }
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) => {
+                Some(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) => {
                     evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)?;
                     Some(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), *id))
                 }
@@ -501,10 +504,10 @@ fn evaluate_with_target_hint(
         // - x
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
             match evaluate(value, scope, index)? {
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) => {
-                    Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location))
-                }
-                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location }) => {
+                Some(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) => Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
+                Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location, .. }) => {
                     let lit = AstNode::new(
                         AstStatement::Literal(AstLiteral::new_real(format!(
                             "{:}",

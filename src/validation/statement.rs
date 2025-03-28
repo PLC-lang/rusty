@@ -1,3 +1,4 @@
+use helper::is_referenced_through_super;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
@@ -132,6 +133,14 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
+        AstStatement::Super(_) => {
+            // this is an unlowered reference to super => the keyword has been used in a non-extended function block
+            validator.push_diagnostic(
+                Diagnostic::new("`SUPER` can only be used within a POU that extends another POU")
+                    .with_location(statement.get_location())
+                    .with_error_code("E119"),
+            );
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -146,6 +155,20 @@ fn validate_reference_expression<T: AnnotationMap>(
 ) {
     match access {
         ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
+            if let Some(base) = base {
+                if base.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super())
+                    && m.get_metadata().is_some_and(|it| it.is_super())
+                {
+                    validator.push_diagnostic(
+                        Diagnostic::new("Chaining multiple `SUPER` accessors is not allowed")
+                            .with_location(
+                                base.get_identifier().unwrap().get_location().span(&m.get_location()),
+                            )
+                            .with_error_code("E119"),
+                    );
+                    return;
+                };
+            };
             visit_statement(validator, m.as_ref(), context);
 
             if let Some(reference_name) = statement.get_flat_reference_name() {
@@ -195,6 +218,16 @@ fn validate_reference_expression<T: AnnotationMap>(
                         .with_error_code("E068")
                         .with_location(statement),
                 );
+            }
+            // If we find a `SUPER` reference as an immediate base in a deref access, it's a double dereference
+            if base.as_deref().is_some_and(|it| {
+                it.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super())
+            }) {
+                validator.diagnostics.push(
+                    Diagnostic::new("Multiple dereferencing of SUPER is not allowed")
+                        .with_error_code("E119")
+                        .with_location(statement),
+                )
             }
         }
         ReferenceAccess::Address => {
@@ -485,6 +518,12 @@ fn validate_reference<T: AnnotationMap>(
             _ => (),
         };
 
+        if statement.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
+            // We don't want to show unresolved reference or bitaccess diagnostics for super-keywords,
+            // these are validated elsewhere
+            return;
+        }
+
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -494,7 +533,8 @@ fn validate_reference<T: AnnotationMap>(
                 context.index.find_effective_type_by_name(alternative_target.get_type_name())
             })
         {
-            if base.is_some() && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
+            if base.is_some_and(|it| !it.is_super())
+                && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
             {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
@@ -511,8 +551,11 @@ fn validate_reference<T: AnnotationMap>(
     match context.annotations.get(statement) {
         Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
             // check if we're accessing a private variable AND the variable's qualifier is not the
-            // POU we're accessing it from
+            // POU we're accessing it from.
+            // If the variables qualifier is `SUPER`, we don't want to emit an illegal access warning
+            // since this is a valid use-case
             if argument_type.is_private()
+                && !is_referenced_through_super(base)
                 && context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -1708,7 +1751,8 @@ fn validate_argument_count<T: AnnotationMap>(
 pub(crate) mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::{AstNode, DirectAccessType};
+    use plc_ast::ast::{AstNode, DirectAccessType, ReferenceExpr};
+    use plc_ast::try_from;
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
@@ -1774,5 +1818,14 @@ pub(crate) mod helper {
         }
 
         variant_const_values
+    }
+
+    pub fn is_referenced_through_super(base: Option<&AstNode>) -> bool {
+        let Some(base) = base else { return false };
+        if base.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
+            return true;
+        };
+        let Some(ReferenceExpr { base, .. }) = try_from!(base, ReferenceExpr) else { return false };
+        is_referenced_through_super(base.as_deref())
     }
 }
