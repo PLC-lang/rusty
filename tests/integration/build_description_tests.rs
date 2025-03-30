@@ -1,5 +1,6 @@
 use crate::get_test_file;
 use driver::compile;
+use std::fs;
 
 #[test]
 #[serial]
@@ -155,4 +156,39 @@ fn build_with_clang_linker_windows() {
     compile(parameters).unwrap();
 
     assert!(dir.path().join("clang_proj.so").is_file());
+}
+
+#[test]
+#[serial]
+fn build_empty_project() {
+    let dir = tempfile::tempdir().unwrap();
+    let parameters = &[
+        "plc",
+        "build",
+        &get_test_file("empty_proj/conf/plc.json"),
+        "--target",
+        "x86_64-linux-gnu",
+        "--build-location",
+        dir.path().to_str().unwrap(),
+    ];
+    compile(parameters).unwrap();
+    assert!(dir.path().join("x86_64-linux-gnu").join("prog.so").is_file());
+}
+
+#[test]
+#[serial]
+fn build_empty_project_debug() {
+    let dir = tempfile::tempdir().unwrap();
+    let parameters = &[
+        "plc",
+        "build",
+        &get_test_file("empty_proj/conf/plc.json"),
+        "--target",
+        "x86_64-linux-gnu",
+        "--debug",
+        "--build-location",
+        dir.path().to_str().unwrap(),
+    ];
+    compile(parameters).unwrap();
+    assert!(dbg!(dir.path().join("x86_64-linux-gnu").join("prog.so")).is_file());
 }

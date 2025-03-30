@@ -1,0 +1,1 @@
+../../target/release/plc build --target=x86_64-unknown-linux-gnu  --debug  conf/plc.json
