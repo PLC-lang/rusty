@@ -1,6 +1,5 @@
 use crate::get_test_file;
 use driver::compile;
-use std::fs;
 
 #[test]
 #[serial]
