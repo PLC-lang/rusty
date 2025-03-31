@@ -1434,11 +1434,7 @@
 <a href="#1433" id="1433">1433</a>
 <a href="#1434" id="1434">1434</a>
 <a href="#1435" id="1435">1435</a>
-<a href="#1436" id="1436">1436</a>
-<a href="#1437" id="1437">1437</a>
-<a href="#1438" id="1438">1438</a>
-<a href="#1439" id="1439">1439</a>
-<a href="#1440" id="1440">1440</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1436" id="1436">1436</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -1710,10 +1706,6 @@
 
     <span class="kw">pub fn </span>get_enum_variants(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>Vec&lt;VariableIndexEntry&gt;&gt; {
         <span class="self">self</span>.information.get_enum_variants()
-    }
-
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_generic(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
-        <span class="self">self</span>.information.is_generic(index)
     }
 
     <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>is_backed_by_struct(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
