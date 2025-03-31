@@ -118,7 +118,7 @@ pub fn generate_data_types<'ink>(
     }
 
     // Now generate debug information for all types
-    generator.generate_debug_types()?;
+    generator.generate_debug_types(&types_to_init)?;
 
     let mut tries = 0;
     let mut errors = FxHashMap::default();
@@ -465,24 +465,8 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         Ok(result)
     }
 
-    fn generate_debug_types(&mut self) -> Result<(), Diagnostic> {
-        for data_type in self
-            .index
-            .get_types()
-            .entries()
-            .flat_map(|(_, data_type)| data_type.first())
-            .filter(|data_type| !data_type.is_generic(self.index))
-        {
-            self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
-        }
-        for data_type in self
-            .index
-            .get_pou_types()
-            .entries()
-            .flat_map(|(_, data_type)| data_type.first())
-            .filter(|data_type| !data_type.is_generic(self.index))
-            .filter(|data_type| data_type.is_backed_by_struct())
-        {
+    fn generate_debug_types(&mut self, types: &VecDeque<(&str, &DataType)>) -> Result<(), Diagnostic> {
+        for (_, data_type) in types.iter().filter(|(_, data_type)| data_type.is_backed_by_struct()) {
             self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
         }
 

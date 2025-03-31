@@ -1,0 +1,11 @@
+{
+    "name": "proj",
+    "files": [
+        "mainProg.st",
+        "globals.st"
+    ],
+    "compile_type": "Shared",
+    "libraries": [
+    ],
+    "output": "proj.so"
+}

@@ -1,0 +1,7 @@
+PROGRAM mainProg
+VAR
+
+END_VAR
+
+;
+END_PROGRAM

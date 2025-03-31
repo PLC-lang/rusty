@@ -1,0 +1,13 @@
+{
+	"name" : "EmptyProject",
+	"files" : [
+		"../src/**/*.st",
+		"../src/**/*.gvl",
+		"../conf/tasks/*.st"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+
