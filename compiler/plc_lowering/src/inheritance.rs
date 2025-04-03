@@ -387,19 +387,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
 
                 // TODO: not sure what we actually need to do here. casting to `SUPER` is not valid
             }
-            ReferenceAccess::Deref => {
-                // this might be a parenthesized super deref, i.e. `(SUPER)^`
-                if base.as_ref().is_some_and(|it| it.is_paren()) {
-                    // is the inner expression a super?
-                    if let Some(inner) = base {
-                        if inner.get_metadata().is_some_and(|it| 
-                            matches!(it.get_inner().get_stmt(), AstStatement::Super(None))) {
-
-                            }        
-                    }
-                }
-                
-            }
+            ReferenceAccess::Deref => {}
             _ => {
                 // We don't need to do anything for other access types (famous last words)
                 if cfg!(debug_assertions) {
@@ -449,8 +437,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
                     // If the super statement is not dereferenced, but it is used in a `ReferenceAccess::Member` or `ReferenceAccess::Index`, it's an invalid use of `SUPER`.
                     // Neither of these cases are valid code:
                     //      1. `myFb.SUPER`   - this is a qualified access to `SUPER` outside of the derived POU
-                    //      2. `SUPER.x`      - this is a member access to a parent variable through the pointer instead of the instance
-                    //      3. `myFb.SUPER.x` - this is all of the above
+                    //      3. `myFb.SUPER.x` - this is a member access to a parent variable through the pointer instead of the instance on top of an outside access
                     // Return the original node and let the validator handle it
                     std::mem::swap(node, &mut old_node);
                     return;
@@ -4473,6 +4460,43 @@ mod super_tests {
                             },
                         ),
                     },
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "local",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Deref,
+                    base: Some(
+                        ParenExpression {
+                            expression: CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "REF",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__parent",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        },
+                    ),
                 },
             },
         ]

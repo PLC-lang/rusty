@@ -67,7 +67,6 @@ pub fn visit_statement<T: AnnotationMap>(
             if let Some(base) = &data.base {
                 visit_statement(validator, base, context);
             }
-
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
         }
         AstStatement::BinaryExpression(data) => {
@@ -134,9 +133,9 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
         AstStatement::Super(_) => {
-            // this is an unlowered reference to super => the keyword has been used in a non-extended function block
+            // this is an unlowered reference to super => the keyword has been used in a non-extended function block/chained access
             validator.push_diagnostic(
-                Diagnostic::new("`SUPER` can only be used within a POU that extends another POU")
+                Diagnostic::new("`SUPER` can only be used in POUs that extend another POU.")
                     .with_location(statement.get_location())
                     .with_error_code("E119"),
             );
@@ -156,19 +155,24 @@ fn validate_reference_expression<T: AnnotationMap>(
     match access {
         ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
             if let Some(base) = base {
-                if base.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super())
-                    && m.get_metadata().is_some_and(|it| it.is_super())
-                {
-                    validator.push_diagnostic(
-                        Diagnostic::new("Chaining multiple `SUPER` accessors is not allowed")
-                            .with_location(
-                                base.get_identifier().unwrap().get_location().span(&m.get_location()),
-                            )
-                            .with_error_code("E119"),
-                    );
-                    return;
-                };
-            };
+                if base.is_super() || base.has_super_metadata() {
+                    if m.is_super() || m.has_super_metadata() {
+                        validator.push_diagnostic(
+                            Diagnostic::new("Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU")
+                                .with_location(
+                                    base.get_identifier().unwrap().get_location().span(&m.get_location()),
+                                )
+                                .with_error_code("E119"),
+                        );
+                    } else if !(base.is_super_deref() || base.has_super_metadata_deref()) {
+                        validator.push_diagnostic(
+                            Diagnostic::new("`SUPER` must be dereferenced to access its members.")
+                                .with_location(m.get_location())
+                                .with_error_code("E119"),
+                        );
+                    }
+                }
+            }
             visit_statement(validator, m.as_ref(), context);
 
             if let Some(reference_name) = statement.get_flat_reference_name() {
@@ -212,22 +216,19 @@ fn validate_reference_expression<T: AnnotationMap>(
             }
         }
         ReferenceAccess::Deref => {
-            if base.is_none() {
+            if base.is_none()
+                || base.as_ref().is_some_and(|it| {
+                    context
+                        .annotations
+                        .get_type(it.as_ref(), context.index)
+                        .is_some_and(|it| !it.is_pointer())
+                })
+            {
                 validator.diagnostics.push(
                     Diagnostic::new("Dereferencing requires a pointer-value.")
                         .with_error_code("E068")
                         .with_location(statement),
                 );
-            }
-            // If we find a `SUPER` reference as an immediate base in a deref access, it's a double dereference
-            if base.as_deref().is_some_and(|it| {
-                it.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super())
-            }) {
-                validator.diagnostics.push(
-                    Diagnostic::new("Multiple dereferencing of SUPER is not allowed")
-                        .with_error_code("E119")
-                        .with_location(statement),
-                )
             }
         }
         ReferenceAccess::Address => {
@@ -492,6 +493,13 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
+        if statement.has_super_metadata()
+            || statement.is_super()
+            || base.is_some_and(|it| it.has_super_metadata_no_deref() || it.is_super())
+        {
+            // We don't want to show unresolved reference/bitaccess diagnostics for invalid super accesses without deref
+            return;
+        }
         // XXX: Temporary solution, is there a better way? Technically we could introduce a diagnostic when
         //      lowering the references to calls, then checking with the index if the defined POU exists but
         //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
@@ -518,12 +526,6 @@ fn validate_reference<T: AnnotationMap>(
             _ => (),
         };
 
-        if statement.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
-            // We don't want to show unresolved reference or bitaccess diagnostics for super-keywords,
-            // these are validated elsewhere
-            return;
-        }
-
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -533,9 +535,7 @@ fn validate_reference<T: AnnotationMap>(
                 context.index.find_effective_type_by_name(alternative_target.get_type_name())
             })
         {
-            if base.is_some_and(|it| !it.is_super())
-                && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
-            {
+            if alternative_target_type.is_numerical() || alternative_target_type.is_enum() {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
                     Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))

@@ -823,6 +823,14 @@ impl MetaData {
     pub fn is_super(&self) -> bool {
         self.get_inner().is_super()
     }
+
+    pub fn is_super_deref(&self) -> bool {
+        self.get_inner().is_super_deref()
+    }
+
+    pub fn is_super_no_deref(&self) -> bool {
+        self.get_inner().is_super_no_deref()
+    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -1086,8 +1094,15 @@ impl AstNode {
         }
     }
 
+    pub fn get_node_peeled(&self) -> &AstNode {
+        match &self.stmt {
+            AstStatement::ParenExpression(expr) => expr.get_node_peeled(),
+            _ => self,
+        }
+    }
+
     pub fn get_metadata(&self) -> Option<&MetaData> {
-        self.metadata.as_ref()
+        self.get_node_peeled().metadata.as_ref()
     }
 
     /// Returns true if the current statement has a direct access.
@@ -1219,11 +1234,41 @@ impl AstNode {
     }
 
     pub fn is_super(&self) -> bool {
-        matches!(self.stmt, AstStatement::Super(..))
+        matches!(self.get_stmt_peeled(), AstStatement::Super(..))
+    }
+
+    pub fn is_super_deref(&self) -> bool {
+        matches!(self.get_stmt_peeled(), AstStatement::Super(Some(_)))
+    }
+
+    pub fn is_super_no_deref(&self) -> bool {
+        matches!(self.get_stmt_peeled(), AstStatement::Super(None))
+    }
+
+    pub fn has_super_metadata(&self) -> bool {
+        self.get_metadata()
+            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
+            .map_or(false, |it| it.is_super())
+    }
+
+    pub fn has_super_metadata_deref(&self) -> bool {
+        self.get_metadata()
+            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
+            .map_or(false, |it| it.is_super_deref())
+    }
+
+    pub fn has_super_metadata_no_deref(&self) -> bool {
+        self.get_metadata()
+            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
+            .map_or(false, |it| it.is_super_no_deref())
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
-        if self.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
+        if self
+            .get_metadata()
+            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
+            .is_some_and(|it| it.is_super())
+        {
             return false;
         }
         self.has_direct_access()
@@ -1651,7 +1696,7 @@ impl AstFactory {
             }),
             id,
             location,
-            metadata: None
+            metadata: None,
         }
     }
 

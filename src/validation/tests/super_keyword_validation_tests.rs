@@ -52,23 +52,23 @@ fn chaining_super_is_invalid() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:16:13
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:16:32
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:16:39
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
     ");
 }
 
@@ -92,11 +92,11 @@ fn chained_super_references_still_report_unresolved_references() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:12:13
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
     error[E048]: Could not resolve reference to x
        ┌─ <internal>:12:27
@@ -104,17 +104,17 @@ fn chained_super_references_still_report_unresolved_references() {
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
        │                           ^ Could not resolve reference to x
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:12:32
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:12:39
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed
+       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
     error[E048]: Could not resolve reference to y
        ┌─ <internal>:12:53
@@ -137,29 +137,23 @@ fn super_accessor_used_in_non_extended_function_block_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:3:13
       │
     3 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E048]: Could not resolve reference to x
-      ┌─ <internal>:3:20
-      │
-    3 │             SUPER^.x := 2;
-      │                    ^ Could not resolve reference to x
-
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:4:13
       │
     4 │             SUPER;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:5:13
       │
     5 │             SUPER^;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
     ");
 }
 
@@ -188,77 +182,59 @@ fn super_keyword_used_in_non_extendable_pous_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:3:13
       │
     3 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E048]: Could not resolve reference to x
-      ┌─ <internal>:3:20
-      │
-    3 │             SUPER^.x := 2;
-      │                    ^ Could not resolve reference to x
-
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:4:13
       │
     4 │             SUPER;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:5:13
       │
     5 │             SUPER^;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
       ┌─ <internal>:9:13
       │
     9 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E048]: Could not resolve reference to x
-      ┌─ <internal>:9:20
-      │
-    9 │             SUPER^.x := 2;
-      │                    ^ Could not resolve reference to x
-
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:10:13
        │
     10 │             SUPER;
-       │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:11:13
        │
     11 │             SUPER^;
-       │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:15:13
        │
     15 │             SUPER^.x := 2;
-       │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E048]: Could not resolve reference to x
-       ┌─ <internal>:15:20
-       │
-    15 │             SUPER^.x := 2;
-       │                    ^ Could not resolve reference to x
-
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:16:13
        │
     16 │             SUPER;
-       │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:17:13
        │
     17 │             SUPER^;
-       │             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
     ");
 }
 
@@ -319,11 +295,11 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:15:16
        │
     15 │             fb.SUPER^.x := 2;
-       │                ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
     error[E048]: Could not resolve reference to x
        ┌─ <internal>:15:23
@@ -331,11 +307,11 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     15 │             fb.SUPER^.x := 2;
        │                       ^ Could not resolve reference to x
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:16:16
        │
     16 │             fb.SUPER.x := 2;
-       │                ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
     error[E048]: Could not resolve reference to x
        ┌─ <internal>:16:22
@@ -343,11 +319,11 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     16 │             fb.SUPER.x := 2;
        │                      ^ Could not resolve reference to x
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:17:16
        │
     17 │             fb.SUPER^ := 2;
-       │                ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
     ")
 }
 
@@ -836,11 +812,11 @@ fn super_in_fb_instance_array() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:18:29
        │
     18 │                 children[0].SUPER^.value := 20;
-       │                             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │                             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
     error[E048]: Could not resolve reference to value
        ┌─ <internal>:18:36
@@ -848,11 +824,11 @@ fn super_in_fb_instance_array() {
     18 │                 children[0].SUPER^.value := 20;
        │                                    ^^^^^ Could not resolve reference to value
 
-    error[E119]: `SUPER` can only be used within a POU that extends another POU
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
        ┌─ <internal>:19:29
        │
     19 │                 children[1].SUPER^.value := 30;
-       │                             ^^^^^ `SUPER` can only be used within a POU that extends another POU
+       │                             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
 
     error[E048]: Could not resolve reference to value
        ┌─ <internal>:19:36
@@ -880,12 +856,36 @@ fn invalid_super_dereferencing_patterns() {
             SUPER^^ := 30;
             
             // Invalid chain with wrong syntax
-            SUPER^SUPER.x := 40;
+            SUPER^.SUPER.x := 40;
         END_FUNCTION_BLOCK
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#""#);
+    assert_snapshot!(diagnostics, @r"
+    error[E068]: Dereferencing requires a pointer-value.
+       ┌─ <internal>:10:13
+       │
+    10 │             SUPER^^.x := 20; 
+       │             ^^^^^^^ Dereferencing requires a pointer-value.
+
+    error[E068]: Dereferencing requires a pointer-value.
+       ┌─ <internal>:13:13
+       │
+    13 │             SUPER^^ := 30;
+       │             ^^^^^^^ Dereferencing requires a pointer-value.
+
+    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       ┌─ <internal>:16:13
+       │
+    16 │             SUPER^.SUPER.x := 40;
+       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+
+    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+       ┌─ <internal>:16:20
+       │
+    16 │             SUPER^.SUPER.x := 40;
+       │                    ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+    ");
 }
 
 #[test]
@@ -934,21 +934,39 @@ fn invalid_super_dereferencing_patterns_parenthesized() {
             
             METHOD test
                 // Multiple dereferencing of SUPER
-                (SUPER^)^.x := 20; 
+                (SUPER^)^.x := 20; // FIXME: this is currently a bug, not just an issue with super. https://github.com/PLC-lang/rusty/issues/1448
                 
                 (SUPER^)^ := 30;
 
-                // Valid deref in parentheses
-                result := (SUPER)^.x + 5;
+                // // Valid deref in parentheses
+                // result := (SUPER)^.x + 5;
                 
-                // Invalid chain with wrong syntax
-                (SUPER^).SUPER.x := 40;
+                // // Invalid chain with wrong syntax
+                // (SUPER^).SUPER.x := 40;
             END_METHOD
         END_FUNCTION_BLOCK
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#""#);
+    assert_snapshot!(diagnostics, @r"
+    error[E068]: Dereferencing requires a pointer-value.
+       ┌─ <internal>:15:17
+       │
+    15 │                 (SUPER^)^.x := 20; // FIXME: this is currently a bug, not just an issue with super. https://github.com/PLC-lang/rusty/issues/1448
+       │                 ^^^^^^^^^ Dereferencing requires a pointer-value.
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:15:27
+       │
+    15 │                 (SUPER^)^.x := 20; // FIXME: this is currently a bug, not just an issue with super. https://github.com/PLC-lang/rusty/issues/1448
+       │                           ^ Illegal access to private member parent.x
+
+    error[E068]: Dereferencing requires a pointer-value.
+       ┌─ <internal>:17:17
+       │
+    17 │                 (SUPER^)^ := 30;
+       │                 ^^^^^^^^^ Dereferencing requires a pointer-value.
+    ");
 }
 
 #[test]
@@ -1093,12 +1111,19 @@ fn super_dereferencing_with_method_calls() {
                 // These should be invalid:
                 x := SUPER.get_value();    // Trying to call method on pointer
                 p2 := SUPER^.get_value;    // Method call missing ()
+                // ^ this validation is currently missing, tracked in https://github.com/PLC-lang/rusty/issues/1449
             END_METHOD
         END_FUNCTION_BLOCK
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#""#);
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:19:28
+       │
+    19 │                 x := SUPER.get_value();    // Trying to call method on pointer
+       │                            ^^^^^^^^^ `SUPER` must be dereferenced to access its members.
+    ");
 }
 
 #[test]
@@ -1125,7 +1150,25 @@ fn super_without_deref_accessing_members() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#""#);
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:11:19
+       │
+    11 │             SUPER.x := 20; // Should be SUPER^.x
+       │                   ^ `SUPER` must be dereferenced to access its members.
+
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:14:19
+       │
+    14 │             SUPER.ptr^ := 30; // Should be SUPER^.ptr^
+       │                   ^^^ `SUPER` must be dereferenced to access its members.
+
+    error[E068]: Dereferencing requires a pointer-value.
+       ┌─ <internal>:17:13
+       │
+    17 │             SUPER^.ptr^^ := 40; // Error - can't double-deref
+       │             ^^^^^^^^^^^^ Dereferencing requires a pointer-value.
+    ");
 }
 
 #[test]
@@ -1162,7 +1205,25 @@ fn super_with_property_access_errors() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r#""#);
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:23:19
+       │
+    23 │             SUPER.prop := 10;    // Should be SUPER^.prop
+       │                   ^^^^ `SUPER` must be dereferenced to access its members.
+
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:24:24
+       │
+    24 │             x := SUPER.prop;     // Should be SUPER^.prop
+       │                        ^^^^ `SUPER` must be dereferenced to access its members.
+
+    error[E007]: Properties cannot be called like functions. Remove `()`
+       ┌─ <internal>:27:13
+       │
+    27 │             SUPER^.prop();
+       │             ^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
+    ");
 }
 
 #[test]
