@@ -375,7 +375,7 @@ impl Context {
     }
 }
 
-fn create_member_reference_with_location(
+pub fn create_member_reference_with_location(
     ident: &str,
     mut id_provider: IdProvider,
     base: Option<AstNode>,
@@ -434,7 +434,7 @@ fn create_assignment(
     AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())
 }
 
-fn create_call_statement(
+pub fn create_call_statement(
     operator: &str,
     member_id: &str,
     base_id: Option<&str>,

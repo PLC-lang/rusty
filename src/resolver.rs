@@ -103,7 +103,7 @@ impl<'s> VisitorContext<'s> {
     }
 
     /// returns a copy of the current context and changes the `current_pou` to the given pou
-    fn with_pou(&self, pou: &'s str) -> VisitorContext<'s> {
+    pub fn with_pou(&self, pou: &'s str) -> VisitorContext<'s> {
         let mut ctx = self.clone();
         ctx.pou = Some(pou);
         ctx.constant = false;
@@ -145,7 +145,7 @@ impl<'s> VisitorContext<'s> {
     }
 
     // returns a copy of the current context and sets the resolve_strategy field to the given strategies
-    fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingStrategy>) -> Self {
+    pub fn with_resolving_strategy(&self, resolve_strategy: Vec<ResolvingStrategy>) -> Self {
         let mut ctx = self.clone();
         ctx.in_body = true;
         ctx.resolve_strategy = resolve_strategy;
@@ -165,7 +165,7 @@ impl<'s> VisitorContext<'s> {
 
 pub struct TypeAnnotator<'i> {
     pub(crate) index: &'i Index,
-    pub(crate) annotation_map: AnnotationMapImpl,
+    pub annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
     dependencies: FxIndexSet<Dependency>,
     /// A map containing every jump encountered in a file, and the label of where this jump should
@@ -852,6 +852,8 @@ pub trait AnnotationMap {
     fn has_type_annotation(&self, s: &AstNode) -> bool;
 
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature>;
+
+    fn import(&mut self, other: AnnotationMapImpl);
 }
 
 #[derive(Debug, Default)]
@@ -889,6 +891,10 @@ impl AnnotationMap for AstAnnotations {
 
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.annotation_map.get_generic_nature(s)
+    }
+
+    fn import(&mut self, other: AnnotationMapImpl) {
+        self.annotation_map.import(other);
     }
 }
 
@@ -1001,6 +1007,10 @@ impl AnnotationMap for AnnotationMapImpl {
     fn get_generic_nature(&self, s: &AstNode) -> Option<&TypeNature> {
         self.generic_nature_map.get(&s.get_id())
     }
+
+    fn import(&mut self, other: AnnotationMapImpl) {
+        self.import(other);
+    }
 }
 
 #[derive(Default, Debug)]
@@ -1018,7 +1028,7 @@ impl StringLiterals {
 
 impl<'i> TypeAnnotator<'i> {
     /// constructs a new TypeAnnotater that works with the given index for type-lookups
-    fn new(index: &'i Index) -> TypeAnnotator<'i> {
+    pub fn new(index: &'i Index) -> TypeAnnotator<'i> {
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,
