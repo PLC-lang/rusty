@@ -1,4 +1,3 @@
-use helper::is_referenced_through_super;
 use rustc_hash::{FxHashMap, FxHashSet};
 use std::mem::discriminant;
 
@@ -132,13 +131,15 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
-        AstStatement::Super(_) => {
-            // this is an unlowered reference to super => the keyword has been used in a non-extended function block/chained access
-            validator.push_diagnostic(
-                Diagnostic::new("`SUPER` can only be used in POUs that extend another POU.")
-                    .with_location(statement.get_location())
-                    .with_error_code("E119"),
-            );
+        AstStatement::Super(_) if !context.is_accessed_through_super => {
+            let diagnostic = if context.is_cast {
+                Diagnostic::new("The `<type>#` operator cannot be used with `SUPER`")
+            } else {
+                Diagnostic::new("Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.")
+            };
+            // this is an unlowered reference to super => the keyword has been used in a non-extended function block
+            validator
+                .push_diagnostic(diagnostic.with_location(statement.get_location()).with_error_code("E119"));
         }
         _ => {}
     }
@@ -154,13 +155,24 @@ fn validate_reference_expression<T: AnnotationMap>(
 ) {
     match access {
         ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
+            let context = &base
+                .as_ref()
+                .map(|base| {
+                    if base.is_super() || base.has_super_metadata() {
+                        context.set_access_through_super()
+                    } else {
+                        context.clone()
+                    }
+                })
+                .unwrap_or_else(|| context.clone());
+
             if let Some(base) = base {
-                if base.is_super() || base.has_super_metadata() {
+                if context.is_accessed_through_super {
                     if m.is_super() || m.has_super_metadata() {
                         validator.push_diagnostic(
                             Diagnostic::new("Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU")
                                 .with_location(
-                                    base.get_identifier().unwrap().get_location().span(&m.get_location()),
+                                    base.get_location().span(&m.get_location()),
                                 )
                                 .with_error_code("E119"),
                         );
@@ -199,7 +211,7 @@ fn validate_reference_expression<T: AnnotationMap>(
             }
         }
         ReferenceAccess::Cast(c) => {
-            visit_statement(validator, c.as_ref(), context);
+            visit_statement(validator, c.as_ref(), &context.set_cast());
 
             // see if we try to cast a literal
             if let (AstStatement::Literal(literal), Some(StatementAnnotation::Type { type_name })) =
@@ -233,7 +245,12 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Address => {
             if let Some(base) = base {
-                validate_address_of_expression(validator, base, statement.get_location(), context);
+                validate_address_of_expression(
+                    validator,
+                    base.get_node_peeled(),
+                    statement.get_location(),
+                    context,
+                );
             } else {
                 validator.diagnostics.push(
                     Diagnostic::new("Address-of requires a value.")
@@ -251,11 +268,6 @@ fn validate_address_of_expression<T: AnnotationMap>(
     location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
-    if let AstStatement::ParenExpression(expr) = &target.stmt {
-        validate_address_of_expression(validator, expr, location, context);
-        return;
-    }
-
     let a = context.annotations.get(target);
 
     if !matches!(a, Some(StatementAnnotation::Variable { .. })) && !target.is_array_access() {
@@ -493,10 +505,7 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
-        if statement.has_super_metadata()
-            || statement.is_super()
-            || base.is_some_and(|it| it.has_super_metadata_no_deref() || it.is_super())
-        {
+        if base.is_some_and(|it| it.has_super_metadata() || it.is_super()) {
             // We don't want to show unresolved reference/bitaccess diagnostics for invalid super accesses without deref
             return;
         }
@@ -525,7 +534,6 @@ fn validate_reference<T: AnnotationMap>(
 
             _ => (),
         };
-
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -552,10 +560,7 @@ fn validate_reference<T: AnnotationMap>(
         Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
-            // If the variables qualifier is `SUPER`, we don't want to emit an illegal access warning
-            // since this is a valid use-case
             if argument_type.is_private()
-                && !is_referenced_through_super(base)
                 && context
                     .qualifier
                     .and_then(|qualifier| context.index.find_pou(qualifier))
@@ -1751,8 +1756,7 @@ fn validate_argument_count<T: AnnotationMap>(
 pub(crate) mod helper {
     use std::ops::Range;
 
-    use plc_ast::ast::{AstNode, DirectAccessType, ReferenceExpr};
-    use plc_ast::try_from;
+    use plc_ast::ast::{AstNode, DirectAccessType};
 
     use crate::index::VariableIndexEntry;
     use crate::resolver::AnnotationMap;
@@ -1818,14 +1822,5 @@ pub(crate) mod helper {
         }
 
         variant_const_values
-    }
-
-    pub fn is_referenced_through_super(base: Option<&AstNode>) -> bool {
-        let Some(base) = base else { return false };
-        if base.get_identifier().and_then(|it| it.get_metadata()).is_some_and(|it| it.is_super()) {
-            return true;
-        };
-        let Some(ReferenceExpr { base, .. }) = try_from!(base, ReferenceExpr) else { return false };
-        is_referenced_through_super(base.as_deref())
     }
 }

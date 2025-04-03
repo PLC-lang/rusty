@@ -2,33 +2,6 @@ use insta::assert_snapshot;
 use test_utils::parse_and_validate_buffered;
 
 #[test]
-fn accessing_derived_member_through_dereferenced_super_is_no_illegal_access() {
-    let diagnostics = parse_and_validate_buffered(
-        r"
-        FUNCTION_BLOCK greatgrandparent
-        VAR
-            x : INT;
-            y : INT;
-        END_VAR
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK grandparent EXTENDS greatgrandparent
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK parent EXTENDS grandparent
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK child EXTENDS parent
-            SUPER^.x := 2;
-            SUPER^.y := SUPER^.x + 1;
-        END_FUNCTION_BLOCK
-    ",
-    );
-
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
-}
-
-#[test]
 fn chaining_super_is_invalid() {
     let diagnostics = parse_and_validate_buffered(
         r"
@@ -58,6 +31,12 @@ fn chaining_super_is_invalid() {
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
        │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
+    warning[E049]: Illegal access to private member greatgrandparent.x
+       ┌─ <internal>:16:27
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                           ^ Illegal access to private member greatgrandparent.x
+
     error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:16:32
        │
@@ -65,10 +44,16 @@ fn chaining_super_is_invalid() {
        │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
     error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:16:39
+       ┌─ <internal>:16:32
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                                ^^^^^^^^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+
+    warning[E049]: Illegal access to private member greatgrandparent.y
+       ┌─ <internal>:16:53
+       │
+    16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
+       │                                                     ^ Illegal access to private member greatgrandparent.y
     ");
 }
 
@@ -98,12 +83,6 @@ fn chained_super_references_still_report_unresolved_references() {
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
        │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
-    error[E048]: Could not resolve reference to x
-       ┌─ <internal>:12:27
-       │
-    12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                           ^ Could not resolve reference to x
-
     error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
        ┌─ <internal>:12:32
        │
@@ -111,16 +90,10 @@ fn chained_super_references_still_report_unresolved_references() {
        │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
     error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:12:39
+       ┌─ <internal>:12:32
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                       ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-
-    error[E048]: Could not resolve reference to y
-       ┌─ <internal>:12:53
-       │
-    12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                                     ^ Could not resolve reference to y
+       │                                ^^^^^^^^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
     ");
 }
 
@@ -137,23 +110,23 @@ fn super_accessor_used_in_non_extended_function_block_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:3:13
       │
     3 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:4:13
       │
     4 │             SUPER;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:5:13
       │
     5 │             SUPER^;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
     ");
 }
 
@@ -182,59 +155,59 @@ fn super_keyword_used_in_non_extendable_pous_is_an_error() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:3:13
       │
     3 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:4:13
       │
     4 │             SUPER;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:5:13
       │
     5 │             SUPER^;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
       ┌─ <internal>:9:13
       │
     9 │             SUPER^.x := 2;
-      │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+      │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:10:13
        │
     10 │             SUPER;
-       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:11:13
        │
     11 │             SUPER^;
-       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:15:13
        │
     15 │             SUPER^.x := 2;
-       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:16:13
        │
     16 │             SUPER;
-       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:17:13
        │
     17 │             SUPER^;
-       │             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
     ");
 }
 
@@ -295,35 +268,29 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:15:16
        │
     15 │             fb.SUPER^.x := 2;
-       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E048]: Could not resolve reference to x
-       ┌─ <internal>:15:23
-       │
-    15 │             fb.SUPER^.x := 2;
-       │                       ^ Could not resolve reference to x
-
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:16:16
        │
     16 │             fb.SUPER.x := 2;
-       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E048]: Could not resolve reference to x
+    error[E119]: `SUPER` must be dereferenced to access its members.
        ┌─ <internal>:16:22
        │
     16 │             fb.SUPER.x := 2;
-       │                      ^ Could not resolve reference to x
+       │                      ^ `SUPER` must be dereferenced to access its members.
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:17:16
        │
     17 │             fb.SUPER^ := 2;
-       │                ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
     ")
 }
 
@@ -499,7 +466,25 @@ fn super_with_mixed_access_patterns() {
     ",
     );
 
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member parent.arr
+       ┌─ <internal>:20:37
+       │
+    20 │                 local_idx := SUPER^.arr[SUPER^.get_value() MOD 6];
+       │                                     ^^^ Illegal access to private member parent.arr
+
+    warning[E049]: Illegal access to private member parent.ptr
+       ┌─ <internal>:23:24
+       │
+    23 │                 SUPER^.ptr := REF(SUPER^.arr[0]);
+       │                        ^^^ Illegal access to private member parent.ptr
+
+    warning[E049]: Illegal access to private member parent.arr
+       ┌─ <internal>:23:42
+       │
+    23 │                 SUPER^.ptr := REF(SUPER^.arr[0]);
+       │                                          ^^^ Illegal access to private member parent.arr
+    ");
 }
 
 #[test]
@@ -623,6 +608,12 @@ fn super_in_variable_initialization() {
     );
 
     assert_snapshot!(diagnostics, @r#"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:15:38
+       │
+    15 │                 val1 : INT := SUPER^.value;
+       │                                      ^^^^^ Illegal access to private member parent.value
+
     error[E033]: Unresolved constant `val1` variable: `value` is no const reference
        ┌─ <internal>:15:31
        │
@@ -679,7 +670,13 @@ fn const_super_variable_in_child_variable_initialization() {
     ",
     );
 
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:10:38
+       │
+    10 │                 val1 : INT := SUPER^.value;
+       │                                      ^^^^^ Illegal access to private member parent.value
+    ");
 }
 
 #[test]
@@ -781,7 +778,55 @@ fn super_in_nested_conditionals() {
     ",
     );
 
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:18:32
+       │
+    18 │                         SUPER^.value := SUPER^.value + 1;
+       │                                ^^^^^ Illegal access to private member parent.value
+
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:18:48
+       │
+    18 │                         SUPER^.value := SUPER^.value + 1;
+       │                                                ^^^^^ Illegal access to private member parent.value
+
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:20:32
+       │
+    20 │                         SUPER^.value := SUPER^.value - 1;
+       │                                ^^^^^ Illegal access to private member parent.value
+
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:20:48
+       │
+    20 │                         SUPER^.value := SUPER^.value - 1;
+       │                                                ^^^^^ Illegal access to private member parent.value
+
+    warning[E049]: Illegal access to private member parent.value
+       ┌─ <internal>:25:29
+       │
+    25 │                 CASE SUPER^.value OF
+       │                             ^^^^^ Illegal access to private member parent.value
+
+    warning[E049]: Illegal access to private member parent.threshold
+       ┌─ <internal>:26:32
+       │
+    26 │                     10: SUPER^.threshold := 40;
+       │                                ^^^^^^^^^ Illegal access to private member parent.threshold
+
+    warning[E049]: Illegal access to private member parent.threshold
+       ┌─ <internal>:27:32
+       │
+    27 │                     20: SUPER^.threshold := 60;
+       │                                ^^^^^^^^^ Illegal access to private member parent.threshold
+
+    warning[E049]: Illegal access to private member parent.threshold
+       ┌─ <internal>:29:32
+       │
+    29 │                         SUPER^.threshold := 50;
+       │                                ^^^^^^^^^ Illegal access to private member parent.threshold
+    ");
 }
 
 #[test]
@@ -812,29 +857,17 @@ fn super_in_fb_instance_array() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:18:29
        │
     18 │                 children[0].SUPER^.value := 20;
-       │                             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │                             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
 
-    error[E048]: Could not resolve reference to value
-       ┌─ <internal>:18:36
-       │
-    18 │                 children[0].SUPER^.value := 20;
-       │                                    ^^^^^ Could not resolve reference to value
-
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:19:29
        │
     19 │                 children[1].SUPER^.value := 30;
-       │                             ^^^^^ `SUPER` can only be used in POUs that extend another POU.
-
-    error[E048]: Could not resolve reference to value
-       ┌─ <internal>:19:36
-       │
-    19 │                 children[1].SUPER^.value := 30;
-       │                                    ^^^^^ Could not resolve reference to value
+       │                             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
     ");
 }
 
@@ -868,6 +901,12 @@ fn invalid_super_dereferencing_patterns() {
     10 │             SUPER^^.x := 20; 
        │             ^^^^^^^ Dereferencing requires a pointer-value.
 
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:10:21
+       │
+    10 │             SUPER^^.x := 20; 
+       │                     ^ Illegal access to private member parent.x
+
     error[E068]: Dereferencing requires a pointer-value.
        ┌─ <internal>:13:13
        │
@@ -880,11 +919,17 @@ fn invalid_super_dereferencing_patterns() {
     16 │             SUPER^.SUPER.x := 40;
        │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
 
-    error[E119]: `SUPER` can only be used in POUs that extend another POU.
-       ┌─ <internal>:16:20
+    error[E119]: `SUPER` must be dereferenced to access its members.
+       ┌─ <internal>:16:26
        │
     16 │             SUPER^.SUPER.x := 40;
-       │                    ^^^^^ `SUPER` can only be used in POUs that extend another POU.
+       │                          ^ `SUPER` must be dereferenced to access its members.
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:16:26
+       │
+    16 │             SUPER^.SUPER.x := 40;
+       │                          ^ Illegal access to private member parent.x
     ");
 }
 
@@ -914,7 +959,25 @@ fn super_in_paren_expressions() {
         "#,
     );
 
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:15:35
+       │
+    15 │                 result := (SUPER^.x + 5) * 2;
+       │                                   ^ Illegal access to private member parent.x
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:18:35
+       │
+    18 │                 result := (SUPER^.x + (SUPER^.x * 2)) / 3;
+       │                                   ^ Illegal access to private member parent.x
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:18:47
+       │
+    18 │                 result := (SUPER^.x + (SUPER^.x * 2)) / 3;
+       │                                               ^ Illegal access to private member parent.x
+    ");
 }
 
 #[test]
@@ -1038,7 +1101,31 @@ fn super_with_pointer_operations() {
         END_FUNCTION_BLOCK
         "#,
     );
-    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
+    assert_snapshot!(diagnostics, @r"
+    warning[E049]: Illegal access to private member parent.ptr
+       ┌─ <internal>:11:20
+       │
+    11 │             SUPER^.ptr := REF(SUPER^.val);
+       │                    ^^^ Illegal access to private member parent.ptr
+
+    warning[E049]: Illegal access to private member parent.val
+       ┌─ <internal>:11:38
+       │
+    11 │             SUPER^.ptr := REF(SUPER^.val);
+       │                                      ^^^ Illegal access to private member parent.val
+
+    warning[E049]: Illegal access to private member parent.val
+       ┌─ <internal>:13:20
+       │
+    13 │             SUPER^.val := SUPER^.ptr^ + 5;
+       │                    ^^^ Illegal access to private member parent.val
+
+    warning[E049]: Illegal access to private member parent.ptr
+       ┌─ <internal>:13:34
+       │
+    13 │             SUPER^.val := SUPER^.ptr^ + 5;
+       │                                  ^^^ Illegal access to private member parent.ptr
+    ");
 }
 
 #[test]
@@ -1073,6 +1160,12 @@ fn super_with_invalid_operations() {
        │
     18 │             p2 := SUPER;            // Type mismatch (expecting parent, got REF_TO parent)
        │             ^^^^^^^^^^^ The type parent 16 is too small to hold a Pointer
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:19:26
+       │
+    19 │             p1 := SUPER^.x;         // Type mismatch (expecting REF_TO parent, got INT)
+       │                          ^ Illegal access to private member parent.x
 
     error[E065]: The type INT 16 is too small to be stored in a Pointer
        ┌─ <internal>:19:13
@@ -1163,6 +1256,12 @@ fn super_without_deref_accessing_members() {
     14 │             SUPER.ptr^ := 30; // Should be SUPER^.ptr^
        │                   ^^^ `SUPER` must be dereferenced to access its members.
 
+    warning[E049]: Illegal access to private member parent.ptr
+       ┌─ <internal>:17:20
+       │
+    17 │             SUPER^.ptr^^ := 40; // Error - can't double-deref
+       │                    ^^^ Illegal access to private member parent.ptr
+
     error[E068]: Dereferencing requires a pointer-value.
        ┌─ <internal>:17:13
        │
@@ -1246,5 +1345,129 @@ fn pointer_arithmetic_with_super() {
     END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn super_access_behind_global_namespace_operator() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            p: parent;
+        END_VAR
+
+        FUNCTION_BLOCK child EXTENDS parent
+            // accessing SUPER with global namespace operator is invalid
+            .SUPER^.x := 0;
+            // valid global access but invalid use of `SUPER` outside its POU/in non-extended POU
+            .p.SUPER^.x := 0;
+        END_FUNCTION_BLOCK
+    "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+       ┌─ <internal>:14:14
+       │
+    14 │             .SUPER^.x := 0;
+       │              ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:14:21
+       │
+    14 │             .SUPER^.x := 0;
+       │                     ^ Illegal access to private member parent.x
+
+    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+       ┌─ <internal>:16:16
+       │
+    16 │             .p.SUPER^.x := 0;
+       │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:16:23
+       │
+    16 │             .p.SUPER^.x := 0;
+       │                       ^ Illegal access to private member parent.x
+    ");
+}
+
+#[test]
+fn super_behind_cast_access() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+    FUNCTION_BLOCK parent
+    VAR
+        x : INT := 10;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK child EXTENDS parent
+    VAR
+        p: parent;
+    END_VAR
+        // these are all invalid
+        // `<type>#<value>` statements currently aren't properly validated. this is a temporary diagnostic for `SUPER`
+        p := parent#SUPER^;
+        p := parent#SUPER;
+        p := parent#SUPER^.x;
+        p := parent#SUPER.x;
+    END_FUNCTION_BLOCK
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E119]: The `<type>#` operator cannot be used with `SUPER`
+       ┌─ <internal>:14:21
+       │
+    14 │         p := parent#SUPER^;
+       │                     ^^^^^ The `<type>#` operator cannot be used with `SUPER`
+
+    error[E119]: The `<type>#` operator cannot be used with `SUPER`
+       ┌─ <internal>:15:21
+       │
+    15 │         p := parent#SUPER;
+       │                     ^^^^^ The `<type>#` operator cannot be used with `SUPER`
+
+    error[E119]: The `<type>#` operator cannot be used with `SUPER`
+       ┌─ <internal>:16:21
+       │
+    16 │         p := parent#SUPER^.x;
+       │                     ^^^^^ The `<type>#` operator cannot be used with `SUPER`
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:16:28
+       │
+    16 │         p := parent#SUPER^.x;
+       │                            ^ Illegal access to private member parent.x
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'parent'
+       ┌─ <internal>:16:9
+       │
+    16 │         p := parent#SUPER^.x;
+       │         ^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'parent'
+
+    error[E119]: The `<type>#` operator cannot be used with `SUPER`
+       ┌─ <internal>:17:21
+       │
+    17 │         p := parent#SUPER.x;
+       │                     ^^^^^ The `<type>#` operator cannot be used with `SUPER`
+
+    warning[E049]: Illegal access to private member parent.x
+       ┌─ <internal>:17:27
+       │
+    17 │         p := parent#SUPER.x;
+       │                           ^ Illegal access to private member parent.x
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'parent'
+       ┌─ <internal>:17:9
+       │
+    17 │         p := parent#SUPER.x;
+       │         ^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'parent'
+    ");
 }

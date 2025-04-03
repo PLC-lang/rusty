@@ -1234,15 +1234,36 @@ impl AstNode {
     }
 
     pub fn is_super(&self) -> bool {
-        matches!(self.get_stmt_peeled(), AstStatement::Super(..))
+        let node = match &self.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) => reference,
+            _ => self,
+        };
+        matches!(node.get_stmt_peeled(), AstStatement::Super(..))
     }
 
     pub fn is_super_deref(&self) -> bool {
-        matches!(self.get_stmt_peeled(), AstStatement::Super(Some(_)))
+        let node = match &self.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) => reference,
+            _ => self,
+        };
+        matches!(node.get_stmt_peeled(), AstStatement::Super(Some(_)))
     }
 
     pub fn is_super_no_deref(&self) -> bool {
-        matches!(self.get_stmt_peeled(), AstStatement::Super(None))
+        let node = match &self.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) => reference,
+            _ => self,
+        };
+        matches!(node.get_stmt_peeled(), AstStatement::Super(None))
     }
 
     pub fn has_super_metadata(&self) -> bool {

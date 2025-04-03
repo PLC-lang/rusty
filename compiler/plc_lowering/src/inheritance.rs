@@ -75,6 +75,7 @@ struct Context {
 enum AccessKind {
     MemberOrIndex,
     Cast,
+    Global,
 }
 
 impl Context {
@@ -83,12 +84,7 @@ impl Context {
     }
 
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
-        Self {
-            base_type_name: Some(base_type_name.into()),
-            pou: self.pou.clone(),
-            access_kind: self.access_kind,
-            id_provider: self.id_provider.clone(),
-        }
+        Self { base_type_name: Some(base_type_name.into()), ..self.clone() }
     }
 
     fn try_with_base(&self, implementation_name: &str, index: &Index) -> Option<Self> {
@@ -99,16 +95,22 @@ impl Context {
     }
 
     fn with_pou(&self, pou: impl Into<String>) -> Self {
-        Self {
-            base_type_name: self.base_type_name.clone(),
-            pou: Some(pou.into()),
-            access_kind: self.access_kind,
-            id_provider: self.id_provider.clone(),
-        }
+        Self { pou: Some(pou.into()), ..self.clone() }
     }
 
     fn provider(&self) -> IdProvider {
         self.id_provider.clone()
+    }
+}
+
+impl Clone for Context {
+    fn clone(&self) -> Self {
+        Self {
+            base_type_name: self.base_type_name.clone(),
+            pou: self.pou.clone(),
+            access_kind: self.access_kind,
+            id_provider: self.id_provider.clone(),
+        }
     }
 }
 
@@ -348,14 +350,13 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
         if self.index.is_none() || self.annotations.is_none() {
             return;
         }
-
         let ReferenceExpr { base, access } = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
         if let Some(base) = base {
             self.visit(base);
         }
 
         match access {
-            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) /* ReferenceAccess::Cast(t) */ => {
+            ReferenceAccess::Member(t) | ReferenceAccess::Index(t) => {
                 if !t.is_super() {
                     return self.visit(t);
                 };
@@ -365,17 +366,23 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
 
                 // if we encountered a `super` reference and were able to lower it, we need to add the original base
                 // to the new `ReferenceExpr` that was created
-                if !t.is_super(){
+                if !t.is_super() {
                     match t.get_stmt_mut() {
                         AstStatement::ReferenceExpr(ReferenceExpr { base: super_base, .. }) => {
-                              std::mem::swap(base, super_base);
+                            std::mem::swap(base, super_base);
                         }
-                        _ => if cfg!(debug_assertions) {
-                            unreachable!("Edge-case of `SUPER` usage we didn't expect");
+                        _ => {
+                            if cfg!(debug_assertions) {
+                                unreachable!("Edge-case of `SUPER` usage we didn't expect");
+                            }
                         }
-
                     }
                 };
+            }
+            ReferenceAccess::Global(t) => {
+                self.ctx.access_kind = Some(AccessKind::Global);
+                self.visit(t);
+                self.ctx.access_kind = None;
             }
             ReferenceAccess::Cast(t) => {
                 if !t.is_super() {
@@ -420,33 +427,30 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             unreachable!("Must be a super statement")
         };
 
-        let mut new_node = if deref_marker.is_some() {
-            // If the super statement is dereferenced, we can just use the existing base-class instance
-            AstFactory::create_member_reference(
-                AstFactory::create_identifier(&base_type_name, location, self.provider().next_id())
-                    .with_metadata(old_node.into()),
-                None,
-                self.provider().next_id(),
-            )
-        } else {
-            match self.ctx.access_kind {
-                Some(AccessKind::Cast) => {
-                    todo!("not sure if this is valid code");
-                }
-                Some(AccessKind::MemberOrIndex) => {
-                    // If the super statement is not dereferenced, but it is used in a `ReferenceAccess::Member` or `ReferenceAccess::Index`, it's an invalid use of `SUPER`.
-                    // Neither of these cases are valid code:
-                    //      1. `myFb.SUPER`   - this is a qualified access to `SUPER` outside of the derived POU
-                    //      3. `myFb.SUPER.x` - this is a member access to a parent variable through the pointer instead of the instance on top of an outside access
-                    // Return the original node and let the validator handle it
-                    std::mem::swap(node, &mut old_node);
-                    return;
-                }
-                None => {
-                    // If the super statement is not dereferenced, we need to bitcast the base-class instance
-                    create_call_statement("REF", &base_type_name, None, self.provider().clone(), &location)
-                        .with_metadata(old_node.into())
-                }
+        let mut new_node = match self.ctx.access_kind {
+            Some(AccessKind::MemberOrIndex) | Some(AccessKind::Global) | Some(AccessKind::Cast) => {
+                // Neither of these cases are valid code:
+                //      1. `myFb.SUPER`     - this is a qualified access to `SUPER` outside of the derived POU
+                //      2. `myFb.SUPER.x`   - this is a member access to a parent variable through the pointer instead of the instance on top of an outside access
+                //      3. `.SUPER^.x`      - this is an access to super through the global namespace operator
+                //      4. `superTy#SUPER`  - this is an attempted cast of super to some type
+                // Return the original node and let the validator handle it
+                std::mem::swap(node, &mut old_node);
+                return;
+            }
+            None if deref_marker.is_some() => {
+                // If the super statement is dereferenced, we can just use the existing base-class instance
+                AstFactory::create_member_reference(
+                    AstFactory::create_identifier(&base_type_name, location, self.provider().next_id())
+                        .with_metadata(old_node.into()),
+                    None,
+                    self.provider().next_id(),
+                )
+            }
+            None => {
+                // If the super statement is not dereferenced, we need to bitcast the base-class instance
+                create_call_statement("REF", &base_type_name, None, self.provider().clone(), &location)
+                    .with_metadata(old_node.into())
             }
         };
 
@@ -3105,25 +3109,18 @@ mod super_tests {
                     base: Some(
                         ReferenceExpr {
                             kind: Member(
+                                Super(derefed),
+                            ),
+                            base: Some(
                                 ReferenceExpr {
                                     kind: Member(
                                         Identifier {
                                             name: "__parent",
                                         },
                                     ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "__parent",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
+                                    base: None,
                                 },
                             ),
-                            base: None,
                         },
                     ),
                 },
@@ -3136,25 +3133,18 @@ mod super_tests {
                     base: Some(
                         ReferenceExpr {
                             kind: Member(
+                                Super(derefed),
+                            ),
+                            base: Some(
                                 ReferenceExpr {
                                     kind: Member(
                                         Identifier {
                                             name: "__parent",
                                         },
                                     ),
-                                    base: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "__parent",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
+                                    base: None,
                                 },
                             ),
-                            base: None,
                         },
                     ),
                 },
@@ -3960,25 +3950,18 @@ mod super_tests {
                         base: Some(
                             ReferenceExpr {
                                 kind: Member(
+                                    Super(derefed),
+                                ),
+                                base: Some(
                                     ReferenceExpr {
                                         kind: Member(
                                             Identifier {
                                                 name: "__parent",
                                             },
                                         ),
-                                        base: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__parent",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
+                                        base: None,
                                     },
                                 ),
-                                base: None,
                             },
                         ),
                     },
@@ -4574,6 +4557,234 @@ mod super_tests {
                     right: LiteralInteger {
                         value: 5,
                     },
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn global_accessor() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        VAR_GLOBAL
+            p: parent;
+        END_VAR
+
+        FUNCTION_BLOCK child EXTENDS parent
+            // the following statements are invalid but should be handled gracefully
+            // accessing SUPER with global namespace operator
+            .SUPER^.x := 0;
+            // valid global access but invalid use of `SUPER` outside its POU/in non-extended POU
+            .p.SUPER^.x := 0;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Global(
+                                Super(derefed),
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Super(derefed),
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Global(
+                                        Identifier {
+                                            name: "p",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 0,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn cast_statement() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK parent
+        VAR
+            x : INT := 10;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            p: parent;
+        END_VAR
+            // these are all invalid, but should be handled gracefully
+            p := parent#SUPER^;
+            p := parent#SUPER;
+            p := parent#SUPER^.x;
+            p := parent#SUPER.x;
+        END_FUNCTION_BLOCK
+        "#
+        .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let implementation = &project.units[0].get_unit().implementations[1];
+        let statements = &implementation.statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "p",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Cast(
+                        Super(derefed),
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "p",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Cast(
+                        Super,
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "p",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Cast(
+                                Super(derefed),
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "p",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "x",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Cast(
+                                Super,
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
                 },
             },
         ]
