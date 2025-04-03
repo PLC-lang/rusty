@@ -1781,6 +1781,7 @@ fn global_namespace_operator() {
 
 #[test]
 fn this_keyword_can_be_parsed_in_expressions() {
+    // TODO: `this()` is not valid
     let src = "
     FUNCTION_BLOCK fb
         this.x;
