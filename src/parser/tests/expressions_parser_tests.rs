@@ -2006,3 +2006,119 @@ fn this_keyword_can_be_parsed_in_expressions() {
     ]
     "#);
 }
+
+#[test]
+fn this_keyword_can_be_mixed_with_super() {
+    // TODO: `this()` is not valid
+    let src = "
+    FUNCTION_BLOCK fb
+        this^.super^.foo(this^.x + this^.y);
+    END_FUNCTION_BLOCK
+        ";
+
+    let parse_result = parse(src).0;
+    assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
+    [
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: Some(
+                This,
+            ),
+        },
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "y",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Deref,
+                    base: Some(
+                        This,
+                    ),
+                },
+            ),
+        },
+        This,
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            This,
+                        ),
+                    },
+                ),
+            },
+            parameters: Some(
+                BinaryExpression {
+                    operator: Plus,
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            This,
+                        ),
+                    },
+                    right: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "y",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    This,
+                                ),
+                            },
+                        ),
+                    },
+                },
+            ),
+        },
+        CallStatement {
+            operator: This,
+            parameters: None,
+        },
+        Assignment {
+            left: This,
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "fb2",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
+}
