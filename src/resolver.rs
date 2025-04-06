@@ -1646,6 +1646,15 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate an expression statement
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
+            AstStatement::This => {
+                // TODO: only for `THIS` in FunctionBlock context annotate with ptr_type
+                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    if let PouIndexEntry::FunctionBlock { name, .. } = pou {
+                        let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, name.to_string());
+                        self.annotate(statement, StatementAnnotation::value(ptr_type));
+                    }
+                }
+            }
             AstStatement::DirectAccess(data, ..) => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 visit_all_statements!(self, &ctx, &data.index);
@@ -1986,6 +1995,19 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
+            AstStatement::This => {
+                // Only `THIS` in FunctionBlock context
+                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    if let PouIndexEntry::FunctionBlock { name, .. } = pou {
+                        let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, name.to_string());
+                        Some(StatementAnnotation::value(ptr_type))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()
