@@ -217,6 +217,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // generate the expression
         match expression.get_stmt() {
+            AstStatement::This => {
+                // TODO: ask node for type (annotations).
+                !todo!()
+            }
             AstStatement::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
