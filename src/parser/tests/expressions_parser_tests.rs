@@ -2122,3 +2122,47 @@ fn this_keyword_can_be_mixed_with_super() {
     ]
     "#);
 }
+
+#[test]
+fn this_keyword_can_be_parsed_in_method() {
+    // TODO: `this()` is not valid
+    let src = "
+    FUNCTION_BLOCK fb
+        METHOD doSomething : INT
+            doSomething := this^.y;
+        END_METHOD
+    END_FUNCTION_BLOCK
+somePtr := this;
+        ";
+
+    let parse_result = parse(src).0;
+    assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "doSomething",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            This,
+                        ),
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
+}
