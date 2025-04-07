@@ -39,6 +39,7 @@ fn cant_chain_this() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    panic!("This test should not work");
 }
 
 #[test]
