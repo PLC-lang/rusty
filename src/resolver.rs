@@ -763,6 +763,25 @@ impl Dependency {
             Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) => name,
         }
     }
+
+    pub fn get_pou<'idx>(&self, index: &'idx Index) -> Option<&'idx PouIndexEntry> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_pou(name)
+    }
+    pub fn get_type<'idx>(&self, index: &'idx Index) -> Option<&'idx typesystem::DataType> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_type(name)
+    }
+    pub fn get_vtable<'idx>(&self, index: &'idx Index) -> Option<&'idx typesystem::DataType> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_type(&format!("__vtable_{name}"))
+    }
 }
 
 pub trait AnnotationMap {

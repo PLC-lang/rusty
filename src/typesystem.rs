@@ -378,6 +378,7 @@ impl StructSource {
 pub enum InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
     __VLA, // used for error-reporting only
+    VTable,
 }
 
 type TypeId = String;

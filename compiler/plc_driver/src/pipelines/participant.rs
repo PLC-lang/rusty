@@ -13,13 +13,17 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
-    OnlineChange, Target,
+    codegen::GeneratedModule,
+    index::{ArgumentType, PouIndexEntry, VariableIndexEntry},
+    lowering::calls::AggregateTypeLowerer,
+    output::FormatOption,
+    typesystem::{DataType, DataTypeInformation, VOID_TYPE},
+    ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;
 use project::{object::Object, project::LibraryInformation};
-use source_code::SourceContainer;
+use source_code::{source_location::SourceLocation, SourceContainer};
 
 use super::{AnnotatedProject, AnnotatedUnit, GeneratedProject, IndexedProject, ParsedProject};
 
@@ -279,5 +283,69 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
+    }
+}
+
+pub struct VTableIndexer;
+
+impl VTableIndexer {
+
+    fn get_vtable_name(name: &str) -> String {
+        format!("__vtable_{name}")
+    }
+
+    fn create_vtable(name: &str, methods: Vec<&PouIndexEntry>) -> DataType {
+        let mut members = Vec::new();
+        for (index, method) in methods.iter().enumerate() {
+            let entry = VariableIndexEntry::new(
+                method.get_name(),
+                method.get_name(),
+                VOID_TYPE,
+                ArgumentType::ByRef(plc::index::VariableType::Local),
+                index as u32,
+                SourceLocation::internal(),
+            );
+            members.push(entry);
+        }
+
+        let information = DataTypeInformation::Struct {
+            name: Self::get_vtable_name(name),
+            members,
+            source: plc::typesystem::StructSource::Internal(plc::typesystem::InternalType::VTable),
+        };
+        let datatype = DataType {
+            information,
+            name: Self::get_vtable_name(name),
+            nature: ast::ast::TypeNature::Derived,
+            initial_value: None,
+            location: SourceLocation::internal(),
+        };
+        datatype
+    }
+}
+
+impl PipelineParticipantMut for VTableIndexer {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        //For each class or interface, create a vtable type
+        //and add it to the index
+        let IndexedProject { project, index, unresolvables } = indexed_project;
+        let mut vtables = Vec::new();
+        for interface in index.get_interfaces().values() {
+            let methods = interface.get_methods(&index);
+            let vtable = Self::create_vtable(interface.get_name(), methods);
+            vtables.push(vtable);
+        }
+
+        for pou in index.get_pous().values().filter(|it| it.is_function_block() || it.is_class()) {
+            let methods = index.get_methods(pou.get_name());
+            let vtable = Self::create_vtable(pou.get_name(), methods);
+            vtables.push(vtable);
+        }
+
+        let mut index = index;
+        for vtable in vtables {
+            index.register_type(vtable);
+        }
+        IndexedProject { project, index, unresolvables }
     }
 }
