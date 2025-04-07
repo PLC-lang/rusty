@@ -65,17 +65,20 @@ pub fn generate_data_types<'ink>(
     }
 
     for dep in dependencies {
-        if let Dependency::Datatype(name) = dep {
-            if let Some(pou) = index.find_pou(name) {
+            if let Some(pou) = dep.get_pou(index) {
                 if !pou.is_generic() && !pou.is_action() {
-                    pou_types.push((name.as_str(), pou.get_instance_struct_type_or_void(index)));
+                    pou_types.push((dep.get_name(), pou.get_instance_struct_type_or_void(index)));
                 }
-            } else if let Some(datatype) = index.find_type(name) {
+            } else if let Some(datatype) = dep.get_type(index) {
                 if !datatype.get_type_information().is_generic(index) {
-                    types.push((name, datatype))
+                    types.push((dep.get_name(), datatype))
                 }
             }
-        }
+            if let Some(datatype) = dep.get_vtable(index) {
+                if !datatype.get_type_information().is_generic(index) {
+                    types.push((dep.get_name(), datatype))
+                }
+            }
     }
 
     let mut generator =

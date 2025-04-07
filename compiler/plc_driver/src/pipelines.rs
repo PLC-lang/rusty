@@ -19,7 +19,7 @@ use ast::{
 
 use itertools::Itertools;
 use log::debug;
-use participant::{PipelineParticipant, PipelineParticipantMut};
+use participant::{PipelineParticipant, PipelineParticipantMut, VTableIndexer};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
@@ -263,6 +263,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(VTableIndexer),
         ];
 
         for participant in mut_participants {
