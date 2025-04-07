@@ -5,7 +5,10 @@ use plc::{
 use plc_ast::{ast::AstNode, provider::IdProvider};
 
 pub mod inheritance;
+#[cfg(test)]
+mod tests;
 
+// TODO: implement `AnnotationMap` trait or create a new one for lowering
 pub(crate) struct LoweringResolver<'rslv> {
     index: &'rslv Index,
     ctx: VisitorContext<'rslv>,

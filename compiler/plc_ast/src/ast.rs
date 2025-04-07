@@ -827,10 +827,6 @@ impl MetaData {
     pub fn is_super_deref(&self) -> bool {
         self.get_inner().is_super_deref()
     }
-
-    pub fn is_super_no_deref(&self) -> bool {
-        self.get_inner().is_super_no_deref()
-    }
 }
 
 #[derive(Clone, PartialEq)]
@@ -1255,17 +1251,6 @@ impl AstNode {
         matches!(node.get_stmt_peeled(), AstStatement::Super(Some(_)))
     }
 
-    pub fn is_super_no_deref(&self) -> bool {
-        let node = match &self.stmt {
-            AstStatement::ReferenceExpr(
-                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
-                ..,
-            ) => reference,
-            _ => self,
-        };
-        matches!(node.get_stmt_peeled(), AstStatement::Super(None))
-    }
-
     pub fn has_super_metadata(&self) -> bool {
         self.get_metadata()
             .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
@@ -1278,18 +1263,8 @@ impl AstNode {
             .map_or(false, |it| it.is_super_deref())
     }
 
-    pub fn has_super_metadata_no_deref(&self) -> bool {
-        self.get_metadata()
-            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
-            .map_or(false, |it| it.is_super_no_deref())
-    }
-
     pub fn can_be_assigned_to(&self) -> bool {
-        if self
-            .get_metadata()
-            .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
-            .is_some_and(|it| it.is_super())
-        {
+        if self.has_super_metadata() {
             return false;
         }
         self.has_direct_access()

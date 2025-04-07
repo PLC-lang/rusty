@@ -281,8 +281,6 @@ fn parse_atomic_leaf_expression(lexer: &mut ParseSession<'_>) -> Option<AstNode>
         Identifier => Some(parse_identifier(lexer)),
         KeywordSuper => {
             lexer.advance();
-            // TODO: parenthesized expression => (super)^
-            // other edge cases?
             Some(AstFactory::create_super_reference(
                 lexer.last_location(),
                 lexer.try_consume(OperatorDeref).then_some(()),
