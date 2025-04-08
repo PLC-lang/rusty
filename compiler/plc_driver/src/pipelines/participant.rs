@@ -312,14 +312,14 @@ impl VTableIndexer {
             members,
             source: plc::typesystem::StructSource::Internal(plc::typesystem::InternalType::VTable),
         };
-        let datatype = DataType {
+
+        DataType {
             information,
             name: Self::get_vtable_name(name),
             nature: ast::ast::TypeNature::Derived,
             initial_value: None,
             location: SourceLocation::internal(),
-        };
-        datatype
+        }
     }
 }
 

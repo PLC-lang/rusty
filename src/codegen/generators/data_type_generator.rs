@@ -75,7 +75,7 @@ pub fn generate_data_types<'ink>(
             }
         }
 
-        if let Some(datatype) = dbg!(dep.get_vtable(index)) {
+        if let Some(datatype) = dep.get_vtable(index) {
             if !datatype.get_type_information().is_generic(index) {
                 types.push((datatype.get_name(), datatype))
             }
@@ -201,6 +201,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             .map(BasicTypeEnum::into_struct_type)?;
 
             struct_type.set_body(members.as_slice(), false);
+            dbg!(&struct_type);
         }
         Ok(())
     }
@@ -317,6 +318,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 }?
                 .into_struct_type();
 
+                eprintln!("Init for : {}", data_type.get_name());
                 Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
