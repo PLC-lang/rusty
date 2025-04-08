@@ -129,7 +129,7 @@ lazy_static! {
         E025,   Error,      include_str!("./error_codes/E025.md"), // Missing return type
         E026,   Error,      include_str!("./error_codes/E026.md"),
         E027,   Error,      include_str!("./error_codes/E027.md"),
-        E028,   Error,      include_str!("./error_codes/E028.md"),
+        E028,   Info,       include_str!("./error_codes/E028.md"),
         E029,   Error,      include_str!("./error_codes/E029.md"),
         E030,   Error,      include_str!("./error_codes/E030.md"),
         E031,   Error,      include_str!("./error_codes/E031.md"),

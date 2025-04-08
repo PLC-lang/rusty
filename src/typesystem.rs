@@ -91,6 +91,7 @@ pub const WCHAR_TYPE: &str = "WCHAR";
 pub const VOID_TYPE: &str = "VOID";
 pub const VOID_INTERNAL_NAME: &str = "__VOID";
 pub const __VLA_TYPE: &str = "__VLA";
+pub const VOID_POINTER_TYPE: &str = "VOID_POINTER";
 
 #[cfg(test)]
 mod tests;
@@ -842,6 +843,17 @@ pub fn get_builtin_types() -> Vec<DataType> {
             name: VOID_INTERNAL_NAME.into(),
             initial_value: None,
             information: DataTypeInformation::Void,
+            nature: TypeNature::Any,
+            location: SourceLocation::internal(),
+        },
+        DataType {
+            name: VOID_POINTER_TYPE.into(),
+            initial_value: None,
+            information: DataTypeInformation::Pointer {
+                name: VOID_POINTER_TYPE.into(),
+                inner_type_name: VOID_INTERNAL_NAME.into(),
+                auto_deref: None,
+            },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
         },
