@@ -17,7 +17,7 @@ use plc::{
     index::{ArgumentType, PouIndexEntry, VariableIndexEntry},
     lowering::calls::AggregateTypeLowerer,
     output::FormatOption,
-    typesystem::{DataType, DataTypeInformation, VOID_TYPE},
+    typesystem::{DataType, DataTypeInformation, VOID_INTERNAL_NAME, VOID_TYPE},
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
@@ -289,7 +289,6 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
 pub struct VTableIndexer;
 
 impl VTableIndexer {
-
     fn get_vtable_name(name: &str) -> String {
         format!("__vtable_{name}")
     }
@@ -300,7 +299,7 @@ impl VTableIndexer {
             let entry = VariableIndexEntry::new(
                 method.get_name(),
                 method.get_name(),
-                VOID_TYPE,
+                VOID_INTERNAL_NAME,
                 ArgumentType::ByRef(plc::index::VariableType::Local),
                 index as u32,
                 SourceLocation::internal(),
@@ -325,7 +324,7 @@ impl VTableIndexer {
 }
 
 impl PipelineParticipantMut for VTableIndexer {
-    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+    fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         //For each class or interface, create a vtable type
         //and add it to the index
         let IndexedProject { project, index, unresolvables } = indexed_project;
@@ -346,6 +345,7 @@ impl PipelineParticipantMut for VTableIndexer {
         for vtable in vtables {
             index.register_type(vtable);
         }
+
         IndexedProject { project, index, unresolvables }
     }
 }
