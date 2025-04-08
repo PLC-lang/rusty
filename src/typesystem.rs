@@ -273,12 +273,10 @@ impl DataType {
     }
 
     pub(crate) fn is_backed_by_struct(&self) -> bool {
-        if let DataTypeInformation::Struct { source: StructSource::Pou(pou_type), .. } =
-            self.get_type_information()
-        {
-            pou_type.is_stateful()
-        } else {
-            true
+        match self.get_type_information() {
+            DataTypeInformation::Struct { source: StructSource::Internal(InternalType::VTable), .. } => false,
+            DataTypeInformation::Struct { source: StructSource::Pou(pou_type), .. } => pou_type.is_stateful(),
+            _ => true,
         }
     }
 }
