@@ -586,3 +586,16 @@ fn properties_are_methods() {
 
     assert_eq!(property, method);
 }
+#[test]
+fn this() {
+    let property = codegen(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                localPrivateVariable : DINT;
+            END_VAR
+            this^.localPrivateVariable := 5;
+        END_FUNCTION_BLOCK
+        ",
+    );
+}

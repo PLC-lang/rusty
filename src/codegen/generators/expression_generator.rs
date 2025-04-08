@@ -219,7 +219,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         match expression.get_stmt() {
             AstStatement::This => {
                 // TODO: ask node for type (annotations).
-                !todo!()
+                let typebla = self.annotations.get_type(expression, self.index).unwrap().get_name();
+                let sth = self.llvm_index.get_associated_pou_type(typebla).unwrap();
+                let Some(first_param) = self.function_context.and_then(|fc| fc.function.get_first_param())
+                else {
+                    todo!();
+                };
+                let bc = self.llvm.builder.build_bitcast(
+                    first_param,
+                    sth.ptr_type(AddressSpace::default()).ptr_type(AddressSpace::default()),
+                    "this",
+                );
+                Ok(ExpressionValue::LValue(bc.into_pointer_value()))
+                // dbg!(first_param);
+                // todo!()
             }
             AstStatement::ReferenceExpr(data) => {
                 let res =

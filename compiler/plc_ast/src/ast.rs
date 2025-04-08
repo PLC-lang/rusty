@@ -1238,6 +1238,10 @@ impl AstNode {
         )
     }
 
+    pub fn is_this(&self) -> bool {
+        matches!(self.stmt, AstStatement::This)
+    }
+
     pub fn is_paren(&self) -> bool {
         matches!(self.stmt, AstStatement::ParenExpression { .. })
     }
