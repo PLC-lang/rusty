@@ -44,7 +44,6 @@ pub struct ValidationContext<'s, T: AnnotationMap> {
     qualifier: Option<&'s str>,
     is_call: bool,
     is_cast: bool,
-    is_accessed_through_super: bool,
 }
 
 impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
@@ -78,10 +77,6 @@ impl<'s, T: AnnotationMap> ValidationContext<'s, T> {
         self.is_call
     }
 
-    fn set_access_through_super(&self) -> Self {
-        ValidationContext { is_accessed_through_super: true, ..self.to_owned() }
-    }
-
     fn set_cast(&self) -> Self {
         ValidationContext { is_cast: true, ..self.to_owned() }
     }
@@ -94,7 +89,6 @@ impl<T: AnnotationMap> Clone for ValidationContext<'_, T> {
             index: self.index,
             qualifier: self.qualifier,
             is_call: self.is_call,
-            is_accessed_through_super: self.is_accessed_through_super,
             is_cast: self.is_cast,
         }
     }
@@ -171,14 +165,8 @@ impl<'a> Validator<'a> {
     }
 
     pub fn visit_unit<T: AnnotationMap>(&mut self, annotations: &T, index: &Index, unit: &CompilationUnit) {
-        let context = ValidationContext {
-            annotations,
-            index,
-            qualifier: None,
-            is_call: false,
-            is_accessed_through_super: false,
-            is_cast: false,
-        };
+        let context =
+            ValidationContext { annotations, index, qualifier: None, is_call: false, is_cast: false };
         // Validate POU and declared Variables
         for pou in &unit.pous {
             let context = context.with_qualifier(pou.name.as_str());

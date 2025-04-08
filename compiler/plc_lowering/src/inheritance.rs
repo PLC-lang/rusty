@@ -395,6 +395,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
             ReferenceAccess::Deref => {}
             _ => {
                 // We don't need to do anything for other access types (famous last words)
+                log::trace!("Unsupported access type: {access:?}");
                 if cfg!(debug_assertions) {
                     unimplemented!("Unsupported access type: {access:?}");
                 }

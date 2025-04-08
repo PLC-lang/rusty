@@ -1186,6 +1186,19 @@ impl AstNode {
         )
     }
 
+    pub fn get_initial_base(&self) -> Option<&AstNode> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base, .. }, ..) => {
+                if base.is_none() {
+                    return Some(self);
+                }
+                base.as_ref().and_then(|it| it.get_initial_base())
+            }
+            AstStatement::Identifier(_) => Some(self),
+            _ => None,
+        }
+    }
+
     pub fn get_identifier(&self) -> Option<&AstNode> {
         if self.is_identifier() {
             return Some(self);

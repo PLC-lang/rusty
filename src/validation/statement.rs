@@ -66,6 +66,7 @@ pub fn visit_statement<T: AnnotationMap>(
             if let Some(base) = &data.base {
                 visit_statement(validator, base, context);
             }
+
             validate_reference_expression(&data.access, validator, context, statement, &data.base);
         }
         AstStatement::BinaryExpression(data) => {
@@ -131,15 +132,24 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
-        AstStatement::Super(_) if !context.is_accessed_through_super => {
-            let diagnostic = if context.is_cast {
-                Diagnostic::new("The `<type>#` operator cannot be used with `SUPER`")
-            } else {
-                Diagnostic::new("Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.")
-            };
-            // this is an unlowered reference to super => the keyword has been used in a non-extended function block
-            validator
-                .push_diagnostic(diagnostic.with_location(statement.get_location()).with_error_code("E119"));
+        AstStatement::Super(_) => {
+            if context.is_cast {
+                validator.push_diagnostic(
+                    Diagnostic::new("The `<type>#` operator cannot be used with `SUPER`")
+                        .with_location(statement.get_location())
+                        .with_error_code("E119"),
+                );
+            }
+
+            // do I have a parent_class? if not, this is invalid
+            if context
+                .qualifier
+                .and_then(|it| context.index.find_pou(it).and_then(|it| it.get_super_class()))
+                .is_none()
+            {
+                validator.push_diagnostic(Diagnostic::new("Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.")
+                        .with_location(statement.get_location()).with_error_code("E119"));
+            }
         }
         _ => {}
     }
@@ -154,50 +164,40 @@ fn validate_reference_expression<T: AnnotationMap>(
     base: &Option<Box<AstNode>>,
 ) {
     match access {
-        ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
-            let context = &base
-                .as_ref()
-                .map(|base| {
-                    if base.is_super() || base.has_super_metadata() {
-                        context.set_access_through_super()
-                    } else {
-                        context.clone()
-                    }
-                })
-                .unwrap_or_else(|| context.clone());
+        ReferenceAccess::Global(m) => {
+            if m.get_initial_base().or(Some(m)).is_some_and(|it| it.is_super() || it.has_super_metadata()) {
+                // super cannot be accessed as a global
+                validator.push_diagnostic(
+                    Diagnostic::new("`SUPER` is not allowed in global-access position.")
+                        .with_location(m.get_location())
+                        .with_error_code("E119"),
+                );
+            };
 
+            validate_member_access(validator, context, statement, m, base);
+        }
+        ReferenceAccess::Member(m) => {
+            // FIXME: `SUPER` access behind the global namespace operator is not caught. i.e. `.SUPER^...`, since we do not have a base here
             if let Some(base) = base {
-                if context.is_accessed_through_super {
-                    if m.is_super() || m.has_super_metadata() {
-                        validator.push_diagnostic(
-                            Diagnostic::new("Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU")
-                                .with_location(
-                                    base.get_location().span(&m.get_location()),
-                                )
-                                .with_error_code("E119"),
-                        );
-                    } else if !(base.is_super_deref() || base.has_super_metadata_deref()) {
-                        validator.push_diagnostic(
-                            Diagnostic::new("`SUPER` must be dereferenced to access its members.")
-                                .with_location(m.get_location())
-                                .with_error_code("E119"),
-                        );
-                    }
+                if m.is_super() || m.has_super_metadata() {
+                    // super cannot be accessed as a member
+                    validator.push_diagnostic(
+                        Diagnostic::new("`SUPER` is not allowed in member-access position.")
+                            .with_location(m.get_location())
+                            .with_error_code("E119"),
+                    );
+                } else if (base.is_super() || base.has_super_metadata())
+                    && !(base.is_super_deref() || base.has_super_metadata_deref())
+                {
+                    validator.push_diagnostic(
+                        Diagnostic::new("`SUPER` must be dereferenced to access its members.")
+                            .with_location(m.get_location())
+                            .with_error_code("E119"),
+                    );
                 }
             }
-            visit_statement(validator, m.as_ref(), context);
 
-            if let Some(reference_name) = statement.get_flat_reference_name() {
-                validate_reference(
-                    validator,
-                    statement,
-                    base.as_deref(),
-                    reference_name,
-                    &m.get_location(),
-                    context,
-                );
-            }
-            validate_direct_access(m, base.as_deref(), context, validator);
+            validate_member_access(validator, context, statement, m, base);
         }
         ReferenceAccess::Index(i) => {
             if let Some(base) = base {
@@ -260,6 +260,28 @@ fn validate_reference_expression<T: AnnotationMap>(
             }
         }
     }
+}
+
+fn validate_member_access<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+    member: &AstNode,
+    base: &Option<Box<AstNode>>,
+) {
+    visit_statement(validator, member, context);
+
+    if let Some(reference_name) = statement.get_flat_reference_name() {
+        validate_reference(
+            validator,
+            statement,
+            base.as_deref(),
+            reference_name,
+            &member.get_location(),
+            context,
+        );
+    }
+    validate_direct_access(member, base.as_deref(), context, validator);
 }
 
 fn validate_address_of_expression<T: AnnotationMap>(

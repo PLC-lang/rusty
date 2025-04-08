@@ -25,11 +25,11 @@ fn chaining_super_is_invalid() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:16:13
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:20
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                    ^^^^^ `SUPER` is not allowed in member-access position.
 
     warning[E049]: Illegal access to private member greatgrandparent.x
        ┌─ <internal>:16:27
@@ -37,17 +37,17 @@ fn chaining_super_is_invalid() {
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
        │                           ^ Illegal access to private member greatgrandparent.x
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:16:32
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:39
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                                       ^^^^^ `SUPER` is not allowed in member-access position.
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:16:32
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:46
        │
     16 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                                              ^^^^^ `SUPER` is not allowed in member-access position.
 
     warning[E049]: Illegal access to private member greatgrandparent.y
        ┌─ <internal>:16:53
@@ -77,23 +77,23 @@ fn chained_super_references_still_report_unresolved_references() {
     );
 
     assert_snapshot!(diagnostics, @r"
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:12:13
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:12:20
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                    ^^^^^ `SUPER` is not allowed in member-access position.
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:12:32
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:12:39
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                                       ^^^^^ `SUPER` is not allowed in member-access position.
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:12:32
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:12:46
        │
     12 │             SUPER^.SUPER^.x := SUPER^.SUPER^.SUPER^.y;
-       │                                ^^^^^^^^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                                              ^^^^^ `SUPER` is not allowed in member-access position.
     ");
 }
 
@@ -268,11 +268,23 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
     );
 
     assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:15:16
+       │
+    15 │             fb.SUPER^.x := 2;
+       │                ^^^^^ `SUPER` is not allowed in member-access position.
+
     error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:15:16
        │
     15 │             fb.SUPER^.x := 2;
        │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:16
+       │
+    16 │             fb.SUPER.x := 2;
+       │                ^^^^^ `SUPER` is not allowed in member-access position.
 
     error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:16:16
@@ -285,6 +297,12 @@ fn super_accessor_cannot_be_accessed_from_outside_of_its_pou() {
        │
     16 │             fb.SUPER.x := 2;
        │                      ^ `SUPER` must be dereferenced to access its members.
+
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:17:16
+       │
+    17 │             fb.SUPER^ := 2;
+       │                ^^^^^ `SUPER` is not allowed in member-access position.
 
     error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:17:16
@@ -857,11 +875,23 @@ fn super_in_fb_instance_array() {
     );
 
     assert_snapshot!(diagnostics, @r"
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:18:29
+       │
+    18 │                 children[0].SUPER^.value := 20;
+       │                             ^^^^^ `SUPER` is not allowed in member-access position.
+
     error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:18:29
        │
     18 │                 children[0].SUPER^.value := 20;
        │                             ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:19:29
+       │
+    19 │                 children[1].SUPER^.value := 30;
+       │                             ^^^^^ `SUPER` is not allowed in member-access position.
 
     error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
        ┌─ <internal>:19:29
@@ -913,11 +943,11 @@ fn invalid_super_dereferencing_patterns() {
     13 │             SUPER^^ := 30;
        │             ^^^^^^^ Dereferencing requires a pointer-value.
 
-    error[E119]: Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
-       ┌─ <internal>:16:13
+    error[E119]: `SUPER` is not allowed in member-access position.
+       ┌─ <internal>:16:20
        │
     16 │             SUPER^.SUPER.x := 40;
-       │             ^^^^^^^^^^^^ Chaining multiple `SUPER` accessors is not allowed, use a single `SUPER` to access the parent POU
+       │                    ^^^^^ `SUPER` is not allowed in member-access position.
 
     error[E119]: `SUPER` must be dereferenced to access its members.
        ┌─ <internal>:16:26
@@ -1371,11 +1401,11 @@ fn super_access_behind_global_namespace_operator() {
     "#,
     );
     assert_snapshot!(diagnostics, @r"
-    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+    error[E119]: `SUPER` is not allowed in global-access position.
        ┌─ <internal>:14:14
        │
     14 │             .SUPER^.x := 0;
-       │              ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+       │              ^^^^^ `SUPER` is not allowed in global-access position.
 
     warning[E049]: Illegal access to private member parent.x
        ┌─ <internal>:14:21
@@ -1383,11 +1413,11 @@ fn super_access_behind_global_namespace_operator() {
     14 │             .SUPER^.x := 0;
        │                     ^ Illegal access to private member parent.x
 
-    error[E119]: Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+    error[E119]: `SUPER` is not allowed in member-access position.
        ┌─ <internal>:16:16
        │
     16 │             .p.SUPER^.x := 0;
-       │                ^^^^^ Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.
+       │                ^^^^^ `SUPER` is not allowed in member-access position.
 
     warning[E049]: Illegal access to private member parent.x
        ┌─ <internal>:16:23
