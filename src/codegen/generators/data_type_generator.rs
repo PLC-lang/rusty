@@ -65,28 +65,33 @@ pub fn generate_data_types<'ink>(
     }
 
     for dep in dependencies {
-            if let Some(pou) = dep.get_pou(index) {
-                if !pou.is_generic() && !pou.is_action() {
-                    pou_types.push((dep.get_name(), pou.get_instance_struct_type_or_void(index)));
-                }
-            } else if let Some(datatype) = dep.get_type(index) {
-                if !datatype.get_type_information().is_generic(index) {
-                    types.push((dep.get_name(), datatype))
-                }
+        if let Some(pou) = dep.get_pou(index) {
+            if !pou.is_generic() && !pou.is_action() {
+                pou_types.push((dep.get_name(), pou.get_instance_struct_type_or_void(index)));
             }
-            if let Some(datatype) = dep.get_vtable(index) {
-                if !datatype.get_type_information().is_generic(index) {
-                    types.push((dep.get_name(), datatype))
-                }
+        } else if let Some(datatype) = dep.get_type(index) {
+            if !datatype.get_type_information().is_generic(index) {
+                types.push((dep.get_name(), datatype))
             }
+        }
+
+        if let Some(datatype) = dbg!(dep.get_vtable(index)) {
+            if !datatype.get_type_information().is_generic(index) {
+                types.push((datatype.get_name(), datatype))
+            }
+        }
     }
 
     let mut generator =
         DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
 
+    // dbg!(&types);
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
     for (name, user_type) in &types {
+        if *name == "__vtable_fb" {
+            eprintln!("hi")
+        }
         if let DataTypeInformation::Struct { name: struct_name, .. } = user_type.get_type_information() {
             generator.types_index.associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
