@@ -263,7 +263,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-            Box::new(VTableIndexer),
+            Box::new(VTableIndexer::new(self.context.provider())),
         ];
 
         for participant in mut_participants {
