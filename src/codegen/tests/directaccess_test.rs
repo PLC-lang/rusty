@@ -141,7 +141,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -166,6 +166,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%FOO* %f)
+      call void @__user_init_FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %load_error_bits = load i8, i8* %error_bits, align 1
       %shift = lshr i8 %load_error_bits, 0
@@ -217,6 +218,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     declare void @__init_foo(%FOO*)
 
+    declare void @__user_init_FOO(%FOO*)
+
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
@@ -236,6 +239,13 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     }
 
     declare void @FOO(%FOO*)
+
+    define void @__user_init_FOO(%FOO* %0) {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -245,7 +255,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -269,7 +279,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -293,6 +303,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%FOO* %f)
+      call void @__user_init_FOO(%FOO* %f)
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
@@ -306,6 +317,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     }
 
     declare void @__init_foo(%FOO*)
+
+    declare void @__user_init_FOO(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -326,6 +339,13 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     }
 
     declare void @FOO(%FOO*)
+
+    define void @__user_init_FOO(%FOO* %0) {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -335,7 +355,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -359,7 +379,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -383,6 +403,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%FOO* %f)
+      call void @__user_init_FOO(%FOO* %f)
       call void @FOO(%FOO* %f)
       %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
       %2 = load i8, i8* %error_bits, align 1
@@ -396,6 +417,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     }
 
     declare void @__init_foo(%FOO*)
+
+    declare void @__user_init_FOO(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -416,6 +439,13 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     }
 
     declare void @FOO(%FOO*)
+
+    define void @__user_init_FOO(%FOO* %0) {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -425,7 +455,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -458,7 +488,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r###"
+    assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -488,6 +518,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       store i32 0, i32* %main, align 4
       call void @__init_foo_struct(%foo_struct* %foo)
       call void @__init_quux(%QUUX* %f)
+      call void @__user_init_QUUX(%QUUX* %f)
       call void @QUUX(%QUUX* %f)
       %bar = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz = getelementptr inbounds %bar_struct, %bar_struct* %bar, i32 0, i32 0
@@ -517,6 +548,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     declare void @__init_foo_struct(%foo_struct*)
 
     declare void @__init_quux(%QUUX*)
+
+    declare void @__user_init_QUUX(%QUUX*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -558,6 +591,13 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     }
 
     declare void @QUUX(%QUUX*)
+
+    define void @__user_init_QUUX(%QUUX* %0) {
+    entry:
+      %self = alloca %QUUX*, align 8
+      store %QUUX* %0, %QUUX** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -567,5 +607,5 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }

@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -35,6 +36,13 @@ entry:
 }
 
 declare void @aaa(%aaa*)
+
+define void @__user_init_aaa(%aaa* %0) {
+entry:
+  %self = alloca %aaa*, align 8
+  store %aaa* %0, %aaa** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -46,9 +54,12 @@ source_filename = "__init___testproject"
 define void @__init___testproject() {
 entry:
   call void @__init_aaa(%aaa* @aaa_instance)
+  call void @__user_init_aaa(%aaa* @aaa_instance)
   ret void
 }
 
 declare void @__init_aaa(%aaa*)
 
 declare void @aaa(%aaa*)
+
+declare void @__user_init_aaa(%aaa*)

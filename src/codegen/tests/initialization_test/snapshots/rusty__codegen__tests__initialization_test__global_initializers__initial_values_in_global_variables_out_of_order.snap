@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -52,6 +53,23 @@ entry:
   store %MyFB* %0, %MyFB** %self, align 8
   ret void
 }
+
+define void @__user_init_MyFB(%MyFB* %0) {
+entry:
+  %self = alloca %MyFB*, align 8
+  store %MyFB* %0, %MyFB** %self, align 8
+  ret void
+}
+
+define void @__user_init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  %deref = load %prg*, %prg** %self, align 8
+  %x = getelementptr inbounds %prg, %prg* %deref, i32 0, i32 0
+  call void @__user_init_MyFB(%MyFB* %x)
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -67,6 +85,8 @@ define void @__init___testproject() {
 entry:
   call void @__init_prg(%prg* @prg_instance)
   call void @__init_myfb(%MyFB* @x)
+  call void @__user_init_prg(%prg* @prg_instance)
+  call void @__user_init_MyFB(%MyFB* @x)
   ret void
 }
 
@@ -77,3 +97,7 @@ declare void @prg(%prg*)
 declare void @MyFB(%MyFB*)
 
 declare void @__init_myfb(%MyFB*)
+
+declare void @__user_init_prg(%prg*)
+
+declare void @__user_init_MyFB(%MyFB*)

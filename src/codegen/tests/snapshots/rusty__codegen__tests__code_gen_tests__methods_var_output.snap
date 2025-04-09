@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -34,6 +35,7 @@ entry:
   %1 = bitcast %foo* %fb to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
   call void @__init_foo(%foo* %fb)
+  call void @__user_init_foo(%foo* %fb)
   %2 = bitcast [81 x i8]* %s to i8*
   call void @foo.baz(%foo* %fb, i8* %2)
   %3 = bitcast [81 x i8]* %s to i8*
@@ -42,6 +44,8 @@ entry:
 }
 
 declare void @__init_foo(%foo*)
+
+declare void @__user_init_foo(%foo*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
@@ -69,6 +73,13 @@ entry:
 }
 
 declare void @foo(%foo*)
+
+define void @__user_init_foo(%foo* %0) {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

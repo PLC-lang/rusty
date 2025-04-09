@@ -118,6 +118,13 @@ fn address_variable_used_with_symbolic_name() {
     }
 
     declare void @mainProg(%mainProg*)
+
+    define void @__user_init_mainProg(%mainProg* %0) {
+    entry:
+      %self = alloca %mainProg*, align 8
+      store %mainProg* %0, %mainProg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -134,12 +141,15 @@ fn address_variable_used_with_symbolic_name() {
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       store i8* @__PI_1_2_3_4, i8** @baz, align 8
       call void @__init_mainprog(%mainProg* @mainProg_instance)
+      call void @__user_init_mainProg(%mainProg* @mainProg_instance)
       ret void
     }
 
     declare void @__init_mainprog(%mainProg*)
 
     declare void @mainProg(%mainProg*)
+
+    declare void @__user_init_mainProg(%mainProg*)
     "#);
 }
 
@@ -195,6 +205,13 @@ fn address_used_in_body() {
     }
 
     declare void @mainProg(%mainProg*)
+
+    define void @__user_init_mainProg(%mainProg* %0) {
+    entry:
+      %self = alloca %mainProg*, align 8
+      store %mainProg* %0, %mainProg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -212,11 +229,14 @@ fn address_used_in_body() {
       store i8* @__PI_1_2_3_4, i8** @foo, align 8
       store i8* @__PI_1_2_3_5, i8** @baz, align 8
       call void @__init_mainprog(%mainProg* @mainProg_instance)
+      call void @__user_init_mainProg(%mainProg* @mainProg_instance)
       ret void
     }
 
     declare void @__init_mainprog(%mainProg*)
 
     declare void @mainProg(%mainProg*)
+
+    declare void @__user_init_mainProg(%mainProg*)
     "#);
 }

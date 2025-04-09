@@ -140,7 +140,7 @@ fn initializing_a_struct() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -205,6 +205,13 @@ fn initializing_a_struct() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -220,13 +227,16 @@ fn initializing_a_struct() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }
 
 /// Structs are aggregate types. This means that passing them to functions and assigning them
@@ -253,7 +263,7 @@ fn assigning_structs() {
         "#;
 
     // ... the assignment p1 := p2 will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -307,6 +317,13 @@ fn assigning_structs() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -320,13 +337,16 @@ fn assigning_structs() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }
 
 /// Accessing STRUCT's members uses the LLVM GEP statement to get a pointer
@@ -358,7 +378,7 @@ fn accessing_struct_members() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -427,6 +447,13 @@ fn accessing_struct_members() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -442,11 +469,14 @@ fn accessing_struct_members() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }

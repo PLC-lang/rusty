@@ -349,7 +349,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___testproject");
-    assert_eq!(init_impl.statements.len(), 4);
+    assert_eq!(init_impl.statements.len(), 7);
     // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
     // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
     // instance.
@@ -553,7 +553,7 @@ fn generating_init_functions() {
     ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -641,6 +641,33 @@ fn generating_init_functions() {
     }
 
     declare void @baz(%baz*)
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %fb)
+      ret void
+    }
+
+    define void @__user_init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      %deref = load %baz*, %baz** %self, align 8
+      %fb = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
+      call void @__user_init_bar(%bar* %fb)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -660,6 +687,7 @@ fn generating_init_functions() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
+      call void @__user_init_baz(%baz* @baz_instance)
       ret void
     }
 
@@ -672,7 +700,9 @@ fn generating_init_functions() {
     declare void @foo(%foo*)
 
     declare void @__init_mystruct(%myStruct*)
-    "###);
+
+    declare void @__user_init_baz(%baz*)
+    "#);
 }
 
 /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
@@ -708,7 +738,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -741,12 +771,15 @@ fn intializing_temporary_variables() {
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
       call void @foo(%foo* %fb)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
 
     declare void @__init_foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -771,6 +804,13 @@ fn intializing_temporary_variables() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -780,7 +820,7 @@ fn intializing_temporary_variables() {
     entry:
       ret void
     }
-    "###)
+    "#)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.
@@ -802,7 +842,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -839,6 +879,13 @@ fn initializing_method_variables() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -848,7 +895,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.
@@ -923,6 +970,13 @@ fn initializing_method_variables() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -989,6 +1043,13 @@ fn initializing_method_variables() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 

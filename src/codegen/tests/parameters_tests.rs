@@ -1114,7 +1114,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1136,6 +1136,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%FOO* %fb)
+      call void @__user_init_FOO(%FOO* %fb)
       %3 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 0
       %4 = bitcast [65537 x i8]* %3 to i8*
       %5 = bitcast [65537 x i8]* %str to i8*
@@ -1157,6 +1158,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     }
 
     declare void @__init_foo(%FOO*)
+
+    declare void @__user_init_FOO(%FOO*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
@@ -1184,6 +1187,13 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     }
 
     declare void @FOO(%FOO*)
+
+    define void @__user_init_FOO(%FOO* %0) {
+    entry:
+      %self = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1193,7 +1203,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1229,7 +1239,7 @@ fn var_output_aggregate_types_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1334,6 +1344,23 @@ fn var_output_aggregate_types_are_memcopied() {
     }
 
     declare void @PRG(%PRG*)
+
+    define void @__user_init_FB(%FB* %0) {
+    entry:
+      %self = alloca %FB*, align 8
+      store %FB* %0, %FB** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_PRG(%PRG* %0) {
+    entry:
+      %self = alloca %PRG*, align 8
+      store %PRG* %0, %PRG** %self, align 8
+      %deref = load %PRG*, %PRG** %self, align 8
+      %station = getelementptr inbounds %PRG, %PRG* %deref, i32 0, i32 5
+      call void @__user_init_FB(%FB* %station)
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1349,6 +1376,7 @@ fn var_output_aggregate_types_are_memcopied() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%PRG* @PRG_instance)
+      call void @__user_init_PRG(%PRG* @PRG_instance)
       ret void
     }
 
@@ -1357,5 +1385,7 @@ fn var_output_aggregate_types_are_memcopied() {
     declare void @PRG(%PRG*)
 
     declare void @FB(%FB*)
-    "###);
+
+    declare void @__user_init_PRG(%PRG*)
+    "#);
 }

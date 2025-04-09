@@ -145,6 +145,7 @@ fn create_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
 
             create_init_unit(lowerer, container, init, &lookup)
         })
+        .chain(create_user_init_units(lowerer))
         .collect()
 }
 
@@ -195,22 +196,6 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    if let Some(fbinit) = lowerer
-        .index
-        .find_method(container_name, "fb_init")
-        .and_then(|it| it.find_implementation(&lowerer.index))
-    {
-        let base = create_member_reference("self", id_provider.clone(), None);
-        let op = create_member_reference(
-            &fbinit.get_call_name().rsplit_once('.').map(|(_, name)| name).unwrap(),
-            id_provider.clone(),
-            Some(base),
-        );
-        let call_statement =
-            AstFactory::create_call_statement(op, None, id_provider.next_id(), location.clone());
-        statements.push(call_statement);
-    }
-
     let member_init_calls = lowerer
         .index
         .get_container_members(container_name)
@@ -242,6 +227,69 @@ fn create_init_unit(
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
+}
+
+fn create_user_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
+    lowerer
+        .user_inits
+        .iter()
+        .map(|(container_name, has_fb_init)| {
+            let location = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));
+            let mut id_provider = lowerer.ctxt.get_id_provider();
+            let param = vec![VariableBlock::default()
+                .with_block_type(VariableBlockType::InOut)
+                .with_variables(vec![Variable {
+                    name: "self".into(),
+                    data_type_declaration: DataTypeDeclaration::Reference {
+                        referenced_type: container_name.to_string(),
+                        location: location.clone(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: location.clone(),
+                }])];
+
+            let fn_name = get_user_init_fn_name(container_name);
+            let init_pou = new_pou(&fn_name, id_provider.next_id(), param, PouType::Init, &location);
+
+            let mut statements = lowerer
+                .index
+                .get_container_members(container_name)
+                .iter()
+                .filter_map(|member| {
+                    let member_type_name = member.get_type_name();
+                    let type_name = lowerer
+                        .index
+                        .get_effective_type_by_name(member_type_name)
+                        .map(|it| it.get_type_information().get_name())
+                        .unwrap_or(member_type_name);
+                    let call_name = get_user_init_fn_name(type_name);
+                    if !member.is_temp() && lowerer.user_inits.contains_key(type_name) {
+                        Some(create_call_statement(
+                            &call_name,
+                            member.get_name(),
+                            Some("self"),
+                            id_provider.clone(),
+                            &location,
+                        ))
+                    } else {
+                        None
+                    }
+                })
+                .collect::<Vec<_>>();
+
+            if *has_fb_init {
+                let base = create_member_reference("self", id_provider.clone(), None);
+                let op = create_member_reference("fb_init", id_provider.clone(), Some(base));
+                let call_statement =
+                    AstFactory::create_call_statement(op, None, id_provider.next_id(), location.clone());
+                statements.push(call_statement);
+            }
+            let implementation = new_implementation(&fn_name, statements, PouType::Init, location);
+
+            new_unit(init_pou, implementation, INIT_COMPILATION_UNIT)
+        })
+        .collect()
 }
 
 fn create_init_wrapper_function(
@@ -290,7 +338,7 @@ fn create_init_wrapper_function(
         }
     });
 
-    let mut assignments = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
+    let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
             .filter_map(|(var_name, initializer)| {
@@ -314,10 +362,10 @@ fn create_init_wrapper_function(
         })
         .collect::<Vec<_>>();
 
-    assignments.extend(calls);
+    statements.extend(calls);
 
     if !skip_var_config {
-        assignments.push(AstFactory::create_call_statement(
+        statements.push(AstFactory::create_call_statement(
             create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), None),
             None,
             id_provider.next_id(),
@@ -325,8 +373,10 @@ fn create_init_wrapper_function(
         ));
     };
 
+    let user_init_calls = get_global_user_init_statements(lowerer);
+    statements.extend(user_init_calls);
     let implementation =
-        new_implementation(init_symbol_name, assignments, PouType::ProjectInit, SourceLocation::internal());
+        new_implementation(init_symbol_name, statements, PouType::ProjectInit, SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     if skip_var_config {
@@ -337,6 +387,50 @@ fn create_init_wrapper_function(
         create_var_config_init(std::mem::take(&mut lowerer.var_config_initializers), id_provider.clone());
     global_init.import(var_config_init);
     Some(global_init)
+}
+
+fn get_global_user_init_statements(lowerer: &InitVisitor) -> Vec<AstNode> {
+    let global_instances = if let Some(global_instances) =
+        lowerer.unresolved_initializers.get(GLOBAL_SCOPE).map(|it| {
+            it.keys().filter_map(|var_name| {
+                lowerer.index.find_variable(None, &[var_name]).and_then(|it| {
+                    lowerer.index.find_effective_type_by_name(it.get_type_name()).and_then(|dt| {
+                        let name = dt.get_type_information().get_name();
+                        if lowerer.user_inits.contains_key(name) {
+                            Some((get_user_init_fn_name(name), var_name))
+                        } else {
+                            None
+                        }
+                    })
+                })
+            })
+        }) {
+        global_instances.collect::<Vec<_>>()
+    } else {
+        vec![]
+    };
+
+    let programs = lowerer.unresolved_initializers.iter().filter_map(|(scope, _)| {
+        if lowerer.index.find_pou(scope).is_some_and(|pou| pou.is_program()) {
+            Some((get_user_init_fn_name(scope), scope))
+        } else {
+            None
+        }
+    });
+    let mut id_provider = lowerer.ctxt.id_provider.clone();
+    programs
+        .chain(global_instances)
+        .map(|(fn_name, param)| {
+            let op = create_member_reference(&fn_name, lowerer.ctxt.id_provider.clone(), None);
+            let param = create_member_reference(param, lowerer.ctxt.id_provider.clone(), None);
+            AstFactory::create_call_statement(
+                op,
+                Some(param),
+                id_provider.next_id(),
+                SourceLocation::internal(),
+            )
+        })
+        .collect::<Vec<_>>()
 }
 
 fn new_pou(
@@ -395,4 +489,8 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
         user_types: vec![],
         file: FileMarker::Internal(file_name),
     }
+}
+
+pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
+    format!("__user_init_{}", type_name)
 }

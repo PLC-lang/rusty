@@ -54,14 +54,14 @@ fn generate_program_with_online_change() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(src, @r###"
+    assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %prg = type { i32 }
 
     @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [10 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
 
     define void @prg(%prg* %0) section "$RUSTY$fn-prg:v[]" {
     entry:
@@ -74,7 +74,7 @@ fn generate_program_with_online_change() {
     %prg = type { i32 }
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [10 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
 
     define void @__init_prg(%prg* %0) section "$RUSTY$fn-__init_prg:v[pr1i32]" {
     entry:
@@ -84,26 +84,37 @@ fn generate_program_with_online_change() {
     }
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
+
+    define void @__user_init_prg(%prg* %0) section "$RUSTY$fn-__user_init_prg:v[pr1i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { i32 }
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [10 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:
       %0 = load void (%prg*)*, void (%prg*)** getelementptr inbounds (void (%prg*)*, void (%prg*)** inttoptr (i64 -2401053092612145152 to void (%prg*)**), i32 7), align 8
       call void %0(%prg* @prg_instance)
+      %1 = load void (%prg*)*, void (%prg*)** getelementptr inbounds (void (%prg*)*, void (%prg*)** inttoptr (i64 -2401053092612145152 to void (%prg*)**), i32 9), align 8
+      call void %1(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*) section "$RUSTY$fn-__init_prg:v[pr1i32]"
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
-    "###)
+
+    declare void @__user_init_prg(%prg*) section "$RUSTY$fn-__user_init_prg:v[pr1i32]"
+    "#)
 }
 
 #[test]
@@ -122,7 +133,7 @@ fn generate_program_and_var_with_online_change() {
         END_VAR
         ",
     );
-    assert_snapshot!(src, @r###"
+    assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -130,7 +141,7 @@ fn generate_program_and_var_with_online_change() {
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
     @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [14 x i8*] zeroinitializer
 
     define void @prg(%prg* %0) section "$RUSTY$fn-prg:v[]" {
     entry:
@@ -146,7 +157,7 @@ fn generate_program_and_var_with_online_change() {
     %prg = type { i32 }
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [14 x i8*] zeroinitializer
 
     define void @__init_prg(%prg* %0) section "$RUSTY$fn-__init_prg:v[pr1i32]" {
     entry:
@@ -156,26 +167,37 @@ fn generate_program_and_var_with_online_change() {
     }
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
+
+    define void @__user_init_prg(%prg* %0) section "$RUSTY$fn-__user_init_prg:v[pr1i32]" {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
     %prg = type { i32 }
 
     @prg_instance = external global %prg, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [12 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [14 x i8*] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
 
     define void @__init___testproject() section "$RUSTY$fn-__init___testproject:v[]" {
     entry:
       %0 = load void (%prg*)*, void (%prg*)** getelementptr inbounds (void (%prg*)*, void (%prg*)** inttoptr (i64 -2401053092612145152 to void (%prg*)**), i32 9), align 8
       call void %0(%prg* @prg_instance)
+      %1 = load void (%prg*)*, void (%prg*)** getelementptr inbounds (void (%prg*)*, void (%prg*)** inttoptr (i64 -2401053092612145152 to void (%prg*)**), i32 11), align 8
+      call void %1(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*) section "$RUSTY$fn-__init_prg:v[pr1i32]"
 
     declare void @prg(%prg*) section "$RUSTY$fn-prg:v[]"
-    "###)
+
+    declare void @__user_init_prg(%prg*) section "$RUSTY$fn-__user_init_prg:v[pr1i32]"
+    "#)
 }
 
 #[test]

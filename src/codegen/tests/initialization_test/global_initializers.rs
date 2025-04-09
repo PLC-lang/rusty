@@ -163,7 +163,7 @@ fn external_pous_get_external_initializers() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -176,7 +176,33 @@ fn external_pous_get_external_initializers() {
     declare void @ext_fb(%ext_fb*)
 
     declare void @ext_prog(%ext_prog*)
-    "###);
+    ; ModuleID = '__initializers'
+    source_filename = "__initializers"
+
+    %ext_prog = type {}
+    %ext_fb = type {}
+
+    @ext_prog_instance = external global %ext_prog
+    @__ext_fb__init = external global %ext_fb
+
+    define void @__user_init_ext_prog(%ext_prog* %0) {
+    entry:
+      %self = alloca %ext_prog*, align 8
+      store %ext_prog* %0, %ext_prog** %self, align 8
+      ret void
+    }
+
+    declare void @ext_prog(%ext_prog*)
+
+    define void @__user_init_ext_fb(%ext_fb* %0) {
+    entry:
+      %self = alloca %ext_fb*, align 8
+      store %ext_fb* %0, %ext_fb** %self, align 8
+      ret void
+    }
+
+    declare void @ext_fb(%ext_fb*)
+    "#);
 }
 
 #[test]

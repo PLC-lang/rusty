@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -58,6 +59,23 @@ entry:
   store %file_t* %0, %file_t** %self, align 8
   ret void
 }
+
+define void @__user_init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  %deref = load %main*, %main** %self, align 8
+  %file = getelementptr inbounds %main, %main* %deref, i32 0, i32 0
+  call void @__user_init_file_t(%file_t* %file)
+  ret void
+}
+
+define void @__user_init_file_t(%file_t* %0) {
+entry:
+  %self = alloca %file_t*, align 8
+  store %file_t* %0, %file_t** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -71,6 +89,7 @@ source_filename = "__init___testproject"
 define void @__init___testproject() {
 entry:
   call void @__init_main(%main* @main_instance)
+  call void @__user_init_main(%main* @main_instance)
   ret void
 }
 
@@ -79,3 +98,5 @@ declare void @__init_main(%main*)
 declare void @main(%main*)
 
 declare void @file_t(%file_t*)
+
+declare void @__user_init_main(%main*)

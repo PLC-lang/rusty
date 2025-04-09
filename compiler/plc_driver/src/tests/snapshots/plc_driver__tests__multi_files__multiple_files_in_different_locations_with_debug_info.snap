@@ -1,6 +1,7 @@
 ---
 source: compiler/plc_driver/./src/tests/multi_files.rs
 expression: "results.join(\"\\n\")"
+snapshot_kind: text
 ---
 ; ModuleID = 'app/file1.st'
 source_filename = "app/file1.st"
@@ -105,6 +106,13 @@ entry:
 
 declare void @mainProg(%mainProg*)
 
+define void @__user_init_mainProg(%mainProg* %0) {
+entry:
+  %self = alloca %mainProg*, align 8
+  store %mainProg* %0, %mainProg** %self, align 8
+  ret void
+}
+
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
 
@@ -116,9 +124,12 @@ source_filename = "__init___TestProject"
 define void @__init___TestProject() {
 entry:
   call void @__init_mainprog(%mainProg* @mainProg_instance)
+  call void @__user_init_mainProg(%mainProg* @mainProg_instance)
   ret void
 }
 
 declare void @__init_mainprog(%mainProg*)
 
 declare void @mainProg(%mainProg*)
+
+declare void @__user_init_mainProg(%mainProg*)

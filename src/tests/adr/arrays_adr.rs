@@ -103,6 +103,13 @@ fn assigning_full_arrays() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -115,12 +122,15 @@ fn assigning_full_arrays() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
+
+    declare void @__user_init_prg(%prg*)
     "#);
 }
 
@@ -186,6 +196,13 @@ fn accessing_array_elements() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -198,11 +215,14 @@ fn accessing_array_elements() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
+
+    declare void @__user_init_prg(%prg*)
     "#);
 }

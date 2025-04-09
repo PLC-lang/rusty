@@ -1792,7 +1792,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "main",
             type_name: "main",
@@ -1804,6 +1804,26 @@ mod units_tests {
                         kind: Member(
                             Identifier {
                                 name: "__init_child",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "fb",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__user_init_child",
                             },
                         ),
                         base: None,
@@ -1980,7 +2000,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###)
+        "#)
     }
 
     #[test]

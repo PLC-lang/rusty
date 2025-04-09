@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -33,3 +34,29 @@ declare void @myFb(%myFb*)
 !10 = distinct !DICompileUnit(language: DW_LANG_C, file: !11, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !12, splitDebugInlining: false)
 !11 = !DIFile(filename: "<internal>", directory: "src")
 !12 = !{!0, !5}
+; ModuleID = '__initializers'
+source_filename = "__initializers"
+
+%myFb = type {}
+%myPrg = type {}
+
+@__myFb__init = external global %myFb
+@myPrg_instance = external global %myPrg
+
+define void @__user_init_myFb(%myFb* %0) {
+entry:
+  %self = alloca %myFb*, align 8
+  store %myFb* %0, %myFb** %self, align 8
+  ret void
+}
+
+declare void @myFb(%myFb*)
+
+define void @__user_init_myPrg(%myPrg* %0) {
+entry:
+  %self = alloca %myPrg*, align 8
+  store %myPrg* %0, %myPrg** %self, align 8
+  ret void
+}
+
+declare void @myPrg(%myPrg*)
