@@ -54,24 +54,6 @@ Implementation {
             ),
         },
     ],
-    location: SourceLocation {
-        span: None,
-        file: Some(
-            "<internal>.cfc",
-        ),
-    },
-    name_location: SourceLocation {
-        span: None,
-        file: Some(
-            "<internal>.cfc",
-        ),
-    },
-    end_location: SourceLocation {
-        span: None,
-        file: Some(
-            "<internal>.cfc",
-        ),
-    },
     overriding: false,
     generic: false,
     access: None,

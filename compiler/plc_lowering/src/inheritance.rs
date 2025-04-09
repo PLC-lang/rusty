@@ -377,54 +377,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 16,
-                        column: 16,
-                        offset: 359,
-                    }..TextLocation {
-                        line: 17,
-                        column: 23,
-                        offset: 418,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 27,
-                        offset: 250,
-                    }..TextLocation {
-                        line: 11,
-                        column: 30,
-                        offset: 253,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 18,
-                        column: 12,
-                        offset: 471,
-                    }..TextLocation {
-                        line: 18,
-                        column: 30,
-                        offset: 489,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -480,54 +432,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 16,
-                        offset: 187,
-                    }..TextLocation {
-                        line: 8,
-                        column: 29,
-                        offset: 200,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 27,
-                        offset: 155,
-                    }..TextLocation {
-                        line: 7,
-                        column: 30,
-                        offset: 158,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 9,
-                        column: 12,
-                        offset: 213,
-                    }..TextLocation {
-                        line: 9,
-                        column: 30,
-                        offset: 231,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -595,54 +499,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 16,
-                        offset: 289,
-                    }..TextLocation {
-                        line: 11,
-                        column: 25,
-                        offset: 298,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 10,
-                        column: 27,
-                        offset: 252,
-                    }..TextLocation {
-                        line: 10,
-                        column: 32,
-                        offset: 257,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 12,
-                        column: 12,
-                        offset: 311,
-                    }..TextLocation {
-                        line: 12,
-                        column: 30,
-                        offset: 329,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -1018,54 +874,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 20,
-                        offset: 598,
-                    }..TextLocation {
-                        line: 24,
-                        column: 33,
-                        offset: 949,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 15,
-                        column: 31,
-                        offset: 456,
-                    }..TextLocation {
-                        line: 15,
-                        column: 36,
-                        offset: 461,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 25,
-                        column: 16,
-                        offset: 1008,
-                    }..TextLocation {
-                        line: 25,
-                        column: 34,
-                        offset: 1026,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -1152,54 +960,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 21,
-                        column: 16,
-                        offset: 470,
-                    }..TextLocation {
-                        line: 21,
-                        column: 28,
-                        offset: 482,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 17,
-                        column: 27,
-                        offset: 377,
-                    }..TextLocation {
-                        line: 17,
-                        column: 30,
-                        offset: 380,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 23,
-                        column: 12,
-                        offset: 537,
-                    }..TextLocation {
-                        line: 23,
-                        column: 30,
-                        offset: 555,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -1489,54 +1249,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 25,
-                        column: 16,
-                        offset: 668,
-                    }..TextLocation {
-                        line: 29,
-                        column: 34,
-                        offset: 820,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 21,
-                        column: 21,
-                        offset: 567,
-                    }..TextLocation {
-                        line: 21,
-                        column: 25,
-                        offset: 571,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 30,
-                        column: 12,
-                        offset: 833,
-                    }..TextLocation {
-                        line: 30,
-                        column: 24,
-                        offset: 845,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -1703,54 +1415,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 16,
-                        offset: 530,
-                    }..TextLocation {
-                        line: 19,
-                        column: 40,
-                        offset: 554,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 15,
-                        column: 27,
-                        offset: 404,
-                    }..TextLocation {
-                        line: 15,
-                        column: 32,
-                        offset: 409,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 20,
-                        column: 12,
-                        offset: 567,
-                    }..TextLocation {
-                        line: 20,
-                        column: 30,
-                        offset: 585,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -1928,54 +1592,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 23,
-                        column: 20,
-                        offset: 627,
-                    }..TextLocation {
-                        line: 25,
-                        column: 32,
-                        offset: 705,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 25,
-                        offset: 527,
-                    }..TextLocation {
-                        line: 19,
-                        column: 29,
-                        offset: 531,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 26,
-                        column: 16,
-                        offset: 722,
-                    }..TextLocation {
-                        line: 26,
-                        column: 28,
-                        offset: 734,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -2203,54 +1819,6 @@ mod units_tests {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 9,
-                        column: 12,
-                        offset: 245,
-                    }..TextLocation {
-                        line: 9,
-                        column: 20,
-                        offset: 253,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 15,
-                        offset: 166,
-                    }..TextLocation {
-                        line: 8,
-                        column: 19,
-                        offset: 170,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 10,
-                        column: 8,
-                        offset: 262,
-                    }..TextLocation {
-                        line: 10,
-                        column: 18,
-                        offset: 272,
-                    },
-                ),
-                file: Some(
-                    "<internal>",
-                ),
-            },
             overriding: false,
             generic: false,
             access: Some(

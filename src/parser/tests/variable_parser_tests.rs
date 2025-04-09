@@ -513,45 +513,6 @@ fn var_external() {
                 linkage: Internal,
                 pou_type: Function,
                 statements: [],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 155,
-                        }..TextLocation {
-                            line: 8,
-                            column: 11,
-                            offset: 150,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 13,
-                            offset: 80,
-                        }..TextLocation {
-                            line: 5,
-                            column: 16,
-                            offset: 83,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 155,
-                        }..TextLocation {
-                            line: 9,
-                            column: 16,
-                            offset: 167,
-                        },
-                    ),
-                },
                 overriding: false,
                 generic: false,
                 access: None,
@@ -654,45 +615,6 @@ fn var_external_constant() {
                 linkage: Internal,
                 pou_type: Function,
                 statements: [],
-                location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 163,
-                        }..TextLocation {
-                            line: 8,
-                            column: 11,
-                            offset: 158,
-                        },
-                    ),
-                },
-                name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 13,
-                            offset: 80,
-                        }..TextLocation {
-                            line: 5,
-                            column: 16,
-                            offset: 83,
-                        },
-                    ),
-                },
-                end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 163,
-                        }..TextLocation {
-                            line: 9,
-                            column: 16,
-                            offset: 175,
-                        },
-                    ),
-                },
                 overriding: false,
                 generic: false,
                 access: None,

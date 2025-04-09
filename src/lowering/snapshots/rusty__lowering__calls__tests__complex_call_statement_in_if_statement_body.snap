@@ -71,54 +71,6 @@ Implementation {
             else_block: [],
         },
     ],
-    location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 7,
-                column: 8,
-                offset: 155,
-            }..TextLocation {
-                line: 13,
-                column: 14,
-                offset: 373,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 5,
-                column: 17,
-                offset: 110,
-            }..TextLocation {
-                line: 5,
-                column: 21,
-                offset: 114,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 15,
-                column: 8,
-                offset: 383,
-            }..TextLocation {
-                line: 15,
-                column: 20,
-                offset: 395,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
     overriding: false,
     generic: false,
     access: None,

@@ -92,45 +92,6 @@ CompilationUnit {
             linkage: Internal,
             pou_type: Function,
             statements: [],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 8,
-                        offset: 219,
-                    }..TextLocation {
-                        line: 10,
-                        column: 15,
-                        offset: 210,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 17,
-                        offset: 18,
-                    }..TextLocation {
-                        line: 1,
-                        column: 20,
-                        offset: 21,
-                    },
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 8,
-                        offset: 219,
-                    }..TextLocation {
-                        line: 11,
-                        column: 20,
-                        offset: 231,
-                    },
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
@@ -191,45 +152,6 @@ CompilationUnit {
                     ),
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 17,
-                        column: 8,
-                        offset: 317,
-                    }..TextLocation {
-                        line: 17,
-                        column: 49,
-                        offset: 358,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 13,
-                        column: 16,
-                        offset: 249,
-                    }..TextLocation {
-                        line: 13,
-                        column: 20,
-                        offset: 253,
-                    },
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 18,
-                        column: 8,
-                        offset: 367,
-                    }..TextLocation {
-                        line: 18,
-                        column: 19,
-                        offset: 378,
-                    },
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,

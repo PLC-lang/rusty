@@ -133,45 +133,6 @@ CompilationUnit {
                     },
                 },
             ],
-            location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 8,
-                        offset: 25,
-                    }..TextLocation {
-                        line: 4,
-                        column: 22,
-                        offset: 85,
-                    },
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 12,
-                        offset: 13,
-                    }..TextLocation {
-                        line: 1,
-                        column: 15,
-                        offset: 16,
-                    },
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 4,
-                        offset: 90,
-                    }..TextLocation {
-                        line: 5,
-                        column: 15,
-                        offset: 101,
-                    },
-                ),
-            },
             overriding: false,
             generic: false,
             access: None,
