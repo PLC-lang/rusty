@@ -195,6 +195,22 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
+    if let Some(fbinit) = lowerer
+        .index
+        .find_method(container_name, "fb_init")
+        .and_then(|it| it.find_implementation(&lowerer.index))
+    {
+        let base = create_member_reference("self", id_provider.clone(), None);
+        let op = create_member_reference(
+            &fbinit.get_call_name().rsplit_once('.').map(|(_, name)| name).unwrap(),
+            id_provider.clone(),
+            Some(base),
+        );
+        let call_statement =
+            AstFactory::create_call_statement(op, None, id_provider.next_id(), location.clone());
+        statements.push(call_statement);
+    }
+
     let member_init_calls = lowerer
         .index
         .get_container_members(container_name)
