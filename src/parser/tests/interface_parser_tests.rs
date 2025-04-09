@@ -67,7 +67,7 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 2,
@@ -135,13 +135,14 @@ fn interface_with_single_method() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
             ],
             extensions: [],
             properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -170,7 +171,7 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 3,
@@ -238,6 +239,7 @@ fn interface_with_multiple_methods() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
                 POU {
                     name: "myInterface.bar",
@@ -278,13 +280,14 @@ fn interface_with_multiple_methods() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
             ],
             extensions: [],
             properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -320,6 +323,7 @@ fn pou_implementing_single_interface() {
                 },
             },
         ],
+        properties: [],
     }
     "###);
 }
@@ -389,6 +393,7 @@ fn pou_implementing_multiple_interfaces() {
                 },
             },
         ],
+        properties: [],
     }
     "###);
 }
@@ -410,7 +415,7 @@ fn interface_deriving_from_other_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[1], @r#"
+    insta::assert_debug_snapshot!(unit.interfaces[1], @r###"
     Interface {
         id: 4,
         ident: Identifier {
@@ -453,6 +458,7 @@ fn interface_deriving_from_other_interface() {
                 },
                 return_type: None,
                 interfaces: [],
+                properties: [],
             },
         ],
         extensions: [
@@ -475,7 +481,7 @@ fn interface_deriving_from_other_interface() {
         ],
         properties: [],
     }
-    "#);
+    "###);
 }
 
 #[test]
