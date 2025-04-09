@@ -699,6 +699,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 location.get_column(),
             );
         }
+        let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
+        self.llvm.builder.build_store(alloca, param_pointer);
+        index.associate_loaded_local_variable(type_name, "this", alloca)?;
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;

@@ -1648,6 +1648,7 @@ impl<'i> TypeAnnotator<'i> {
         match statement.get_stmt() {
             AstStatement::This => {
                 // TODO: only for `THIS` in FunctionBlock context annotate with ptr_type
+                // TODO: also support methods
                 if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     if let PouIndexEntry::FunctionBlock { name, .. } = pou {
                         // TODO: check index if ptr already exists
@@ -1996,7 +1997,8 @@ impl<'i> TypeAnnotator<'i> {
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
             AstStatement::This => {
-                // Only `THIS` in FunctionBlock context
+                // Only `THIS` in FunctionBlock/methods context
+                // TODO: also support methods
                 if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     if let PouIndexEntry::FunctionBlock { name, .. } = pou {
                         // TODO: check if ptr already exists and return exisiting one
