@@ -217,14 +217,25 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // generate the expression
         match expression.get_stmt() {
-            AstStatement::This => Ok(ExpressionValue::LValue(
-                self.llvm_index
+            AstStatement::This => {
+                // TODO: #THIS meaningful errors
+                // [ ] add tests
+                let function_context = self.function_context.ok_or_else(|| {
+                    Diagnostic::codegen_error("Cannot use 'this' without context", expression)
+                })?;
+                let this_value = self
+                    .llvm_index
                     .find_loaded_associated_variable_value(&format!(
                         "{}.this",
-                        self.function_context.unwrap().linking_context.get_call_name()
+                        function_context.linking_context.get_call_name()
                     ))
-                    .unwrap(),
-            )),
+                    .ok_or_else(|| {
+                        let message = format!("Cannot find 'this' for ''");
+                        Diagnostic::codegen_error(message, expression)
+                    })?;
+
+                Ok(ExpressionValue::LValue(this_value))
+            }
             AstStatement::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
