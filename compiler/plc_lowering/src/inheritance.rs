@@ -295,6 +295,7 @@ mod units_tests {
             pou_type: FunctionBlock,
             return_type: None,
             interfaces: [],
+            properties: [],
         }
         "###);
     }
@@ -1681,6 +1682,7 @@ mod units_tests {
             pou_type: FunctionBlock,
             return_type: None,
             interfaces: [],
+            properties: [],
         }
         "###);
     }
@@ -1711,7 +1713,7 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().pous[3];
-        assert_debug_snapshot!(unit, @r#"
+        assert_debug_snapshot!(unit, @r###"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -1762,8 +1764,9 @@ mod units_tests {
             },
             return_type: None,
             interfaces: [],
+            properties: [],
         }
-        "#);
+        "###);
     }
 
     #[test]

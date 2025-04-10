@@ -299,18 +299,26 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         self.initialize_thread_pool();
 
+        // 1. Parse
         let parsed_project = self.parse()?;
+
+        if self.compile_parameters.as_ref().is_some_and(|opt| opt.print_ast) {
+            println!("{:#?}", parsed_project.units);
+            return Ok(());
+        }
+
+        // 2. Index
         let indexed_project = self.index(parsed_project)?;
+
+        // 3. Resolve
         let annotated_project = self.annotate(indexed_project)?;
 
-        //TODO : this is post lowering, we might want to control this
-        if let Some(CompileParameters { output_ast: true, .. }) = self.compile_parameters {
+        if self.compile_parameters.as_ref().is_some_and(|opt| opt.print_ast_lowered) {
             println!("{:#?}", annotated_project.units);
             return Ok(());
         }
 
-        // 5. Validate
-        //TODO: this goes into a participant
+        // 4. Validate
         annotated_project.validate(&self.context, &mut self.diagnostician)?;
 
         //TODO: probably not needed, should be a participant anyway
@@ -323,13 +331,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
-        // 5 : Codegen
-        if !self.compile_parameters.as_ref().map(CompileParameters::is_check).unwrap_or_default() {
-            let context = CodegenContext::create();
-            self.generate(&context, annotated_project)?;
+        // 5. Codegen
+        if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_check) {
+            return Ok(());
         }
 
-        Ok(())
+        self.generate(&CodegenContext::create(), annotated_project)
     }
 
     fn parse(&mut self) -> Result<ParsedProject, Diagnostic> {

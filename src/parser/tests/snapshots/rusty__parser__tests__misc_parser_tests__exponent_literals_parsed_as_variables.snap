@@ -26,4 +26,5 @@ POU {
         },
     ),
     interfaces: [],
+    properties: [],
 }

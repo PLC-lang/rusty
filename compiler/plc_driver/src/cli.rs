@@ -27,7 +27,15 @@ pub struct CompileParameters {
         global = true,
         help = "Emit AST (Abstract Syntax Tree) as output"
     )]
-    pub output_ast: bool,
+    pub print_ast: bool,
+
+    #[clap(
+        long = "ast-lowered",
+        group = "format",
+        global = true,
+        help = "Emit lowered AST (Abstract Syntax Tree) as output"
+    )]
+    pub print_ast_lowered: bool,
 
     #[clap(long = "version", group = "format", global = true)]
     pub build_info: bool,
@@ -673,7 +681,8 @@ mod cli_tests {
     fn valid_output_formats() {
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ir")).unwrap();
         assert!(parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -682,7 +691,18 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ast")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(parameters.output_ast);
+        assert!(parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
+        assert!(!parameters.output_bit_code);
+        assert!(!parameters.output_obj_code);
+        assert!(!parameters.output_pic_obj);
+        assert!(!parameters.output_shared_obj);
+        assert!(!parameters.output_reloc_code);
+
+        let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--ast-lowered")).unwrap();
+        assert!(!parameters.output_ir);
+        assert!(!parameters.print_ast);
+        assert!(parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -691,7 +711,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--bc")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -700,7 +721,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--static")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -709,7 +731,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--pic")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(parameters.output_pic_obj);
@@ -718,7 +741,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--shared")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -727,7 +751,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st", "--relocatable")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);
@@ -736,7 +761,8 @@ mod cli_tests {
 
         let parameters = CompileParameters::parse(vec_of_strings!("input.st")).unwrap();
         assert!(!parameters.output_ir);
-        assert!(!parameters.output_ast);
+        assert!(!parameters.print_ast);
+        assert!(!parameters.print_ast_lowered);
         assert!(!parameters.output_bit_code);
         assert!(!parameters.output_obj_code);
         assert!(!parameters.output_pic_obj);

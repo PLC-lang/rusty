@@ -74,6 +74,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
         pou_type: Init,
         return_type: None,
         interfaces: [],
+        properties: [],
     }
     "###);
 }
@@ -344,6 +345,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
         pou_type: ProjectInit,
         return_type: None,
         interfaces: [],
+        properties: [],
     }
     "###);
 

@@ -1,6 +1,6 @@
 ---
 source: src/parser/tests/type_parser_tests.rs
-expression: "result.units[0]"
+expression: "result.pous[0]"
 ---
 POU {
     name: "prg",
@@ -66,4 +66,5 @@ POU {
     pou_type: Program,
     return_type: None,
     interfaces: [],
+    properties: [],
 }

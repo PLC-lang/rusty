@@ -33,6 +33,7 @@ CompilationUnit {
                 },
             ),
             interfaces: [],
+            properties: [],
         },
         POU {
             name: "main",
@@ -40,6 +41,7 @@ CompilationUnit {
             pou_type: Function,
             return_type: None,
             interfaces: [],
+            properties: [],
         },
     ],
     implementations: [
