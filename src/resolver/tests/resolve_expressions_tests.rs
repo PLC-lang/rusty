@@ -5968,11 +5968,22 @@ fn is_this_there() {
                 myvar : INT;
             END_VAR
             this^.myvar := 8;
+            myvar := this^.myvar;
         END_FUNCTION_BLOCK
         ",
         id_provider.clone(),
     );
 
-    // let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
+        unreachable!()
+    };
     assert!(index.find_type("__THIS_fb").is_some());
+    assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    // let AstStatement::CallStatement(data) = stmt.get_stmt() else { unreachable!() };
 }
