@@ -1647,10 +1647,9 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
             AstStatement::This => {
-                // TODO: only for `THIS` in FunctionBlock context annotate with ptr_type
-                // TODO: also support methods
                 if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     match pou {
+                        // TODO: #THIS for method check if parent is of type functionblock
                         PouIndexEntry::FunctionBlock { name, .. }
                         | PouIndexEntry::Method { parent_name: name, .. } => {
                             self.annotate(statement, StatementAnnotation::value(name));
