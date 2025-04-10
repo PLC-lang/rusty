@@ -700,30 +700,24 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             );
         }
         // TODO: add am I a functionblock?
-        // if function_context.linking_context.is_method() {
-        //     println!("is method");
-        //     let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
-        //     self.llvm.builder.build_store(alloca, param_pointer);
-        //     let parent = function_context.linking_context.get_associated_class_name().unwrap_or(type_name);
-        //     index.associate_loaded_local_variable(
-        //         type_name,
-        //         !format!("{}.this", function_context.linking_context.get_associated_class_name()),
-        //         alloca,
-        //     )?;
-        // }
+        let name = &format!("{}.this", type_name);
+        if function_context.linking_context.is_method()
+            && self.index.find_pou(type_name).is_some_and(|it| it.is_function_block())
+        {
+            println!("is method");
+            dbg!(&param_pointer);
+            let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
+            self.llvm.builder.build_store(alloca, param_pointer);
+            dbg!(&name);
+            index.associate_loaded_local_variable(type_name, "this", alloca)?;
+            // index.associate_loaded_local_variable(type_name, "this", alloca)?;
+        }
         if function_context.linking_context.get_implementation_type() == &ImplementationType::FunctionBlock {
             println!("is functionblock");
             let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
             self.llvm.builder.build_store(alloca, param_pointer);
             index.associate_loaded_local_variable(type_name, "this", alloca)?;
         }
-        dbg!(&function_context.linking_context.get_implementation_type());
-        dbg!(&function_context.linking_context.get_type_name());
-        dbg!(&function_context.linking_context.is_method());
-        dbg!(&function_context.linking_context.get_call_name());
-        dbg!(&function_context.linking_context.get_associated_class_name());
-        dbg!(&function_context.function.get_name());
-        dbg!(&function_context.linking_context.get_associated_class_name());
         // TODO: associate loaded variable for methods:
         //       - am I a method?
         //       AND
