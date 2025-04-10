@@ -5957,3 +5957,22 @@ fn global_namespace_operator_is_not_resolved() {
 
     assert_eq!(annotations.get(node), None);
 }
+
+#[test]
+fn is_this_there() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                myvar : INT;
+            END_VAR
+            this^.myvar := 8;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    // let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    assert!(index.find_type("__THIS_fb").is_some());
+}

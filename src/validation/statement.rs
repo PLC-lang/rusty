@@ -913,8 +913,6 @@ pub fn validate_pointer_assignment<T>(
 ) where
     T: AnnotationMap,
 {
-    // TODO: #THIS fix validation
-    return;
     let type_info_lhs = context.index.get_intrinsic_type_information(
         context.index.find_elementary_pointer_type(type_lhs.get_type_information()),
     );
@@ -1297,8 +1295,6 @@ fn is_invalid_pointer_assignment(
     location: &SourceLocation,
     validator: &mut Validator,
 ) -> bool {
-    // TODO: #THIS fix validation
-    return false;
     if left_type.is_pointer() & right_type.is_pointer() {
         return !typesystem::is_same_type_class(left_type, right_type, index);
     }

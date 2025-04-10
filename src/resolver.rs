@@ -1652,7 +1652,28 @@ impl<'i> TypeAnnotator<'i> {
                         // TODO: #THIS for method check if parent is of type functionblock
                         PouIndexEntry::FunctionBlock { name, .. }
                         | PouIndexEntry::Method { parent_name: name, .. } => {
-                            self.annotate(statement, StatementAnnotation::value(name));
+                            let ptr_name = format!("__THIS_{}", name);
+                            if self
+                                .index
+                                .find_type(&ptr_name)
+                                .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
+                                .is_none()
+                            {
+                                let information = DataTypeInformation::Pointer {
+                                    name: ptr_name.clone(),
+                                    inner_type_name: name.to_string(),
+                                    auto_deref: None,
+                                };
+                                let dt = crate::typesystem::DataType {
+                                    name: ptr_name.clone(),
+                                    initial_value: None,
+                                    information,
+                                    nature: TypeNature::Any,
+                                    location: SourceLocation::internal(),
+                                };
+                                self.annotation_map.new_index.register_type(dt);
+                            }
+                            self.annotate(statement, StatementAnnotation::value(ptr_name));
                         }
                         _ => {}
                     }
