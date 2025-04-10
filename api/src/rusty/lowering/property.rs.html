@@ -1296,7 +1296,11 @@
 <a href="#1295" id="1295">1295</a>
 <a href="#1296" id="1296">1296</a>
 <a href="#1297" id="1297">1297</a>
-<a href="#1298" id="1298">1298</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
+<a href="#1298" id="1298">1298</a>
+<a href="#1299" id="1299">1299</a>
+<a href="#1300" id="1300">1300</a>
+<a href="#1301" id="1301">1301</a>
+<a href="#1302" id="1302">1302</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering any
 //! 1. [`CompilationUnit::properties`] into [`CompilationUnit::units`] and [`CompilationUnit::implementations`]
 //! 2. [`AstStatement::ReferenceExpr`] into [`AstStatement::CallStatement`] to call the GET or SET methods
 //!
@@ -1755,6 +1759,7 @@
                     },
                 ),
                 interfaces: [],
+                properties: [],
             }
             "###</span>);
 
@@ -1823,6 +1828,7 @@
                 },
                 return_type: None,
                 interfaces: [],
+                properties: [],
             }
             "###</span>);
         }
@@ -2101,6 +2107,7 @@
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
                 POU {
                     name: "foo.__set_bar",
@@ -2131,6 +2138,7 @@
                     },
                     return_type: None,
                     interfaces: [],
+                    properties: [],
                 },
             ]
             "###</span>);

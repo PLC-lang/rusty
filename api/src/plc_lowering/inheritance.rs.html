@@ -2549,7 +2549,10 @@
 <a href="#2548" id="2548">2548</a>
 <a href="#2549" id="2549">2549</a>
 <a href="#2550" id="2550">2550</a>
-<a href="#2551" id="2551">2551</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
+<a href="#2551" id="2551">2551</a>
+<a href="#2552" id="2552">2552</a>
+<a href="#2553" id="2553">2553</a>
+<a href="#2554" id="2554">2554</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module is responsible for lowering inherited references.
 //! Derived POUs can access members of their base class using the `__SUPER` qualifier,
 //! which is an implicit reference to an instance of the base class which
 //! is added as a member variable of the derived class in the 'pre_index' pass.
@@ -2846,6 +2849,7 @@
             pou_type: FunctionBlock,
             return_type: None,
             interfaces: [],
+            properties: [],
         }
         "###</span>);
     }
@@ -4616,6 +4620,7 @@
             pou_type: FunctionBlock,
             return_type: None,
             interfaces: [],
+            properties: [],
         }
         "###</span>);
     }
@@ -4646,7 +4651,7 @@
 
         <span class="kw">let </span>(<span class="kw">_</span>, project) = parse_and_annotate(<span class="string">"test"</span>, <span class="macro">vec!</span>[src]).unwrap();
         <span class="kw">let </span>unit = <span class="kw-2">&amp;</span>project.units[<span class="number">0</span>].get_unit().pous[<span class="number">3</span>];
-        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r#"
+        <span class="macro">assert_debug_snapshot!</span>(unit, @<span class="string">r###"
         POU {
             name: "child.foo",
             variable_blocks: [
@@ -4697,8 +4702,9 @@
             },
             return_type: None,
             interfaces: [],
+            properties: [],
         }
-        "#</span>);
+        "###</span>);
     }
 
     <span class="attr">#[test]

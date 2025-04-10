@@ -1912,7 +1912,9 @@
 <a href="#1911" id="1911">1911</a>
 <a href="#1912" id="1912">1912</a>
 <a href="#1913" id="1913">1913</a>
-<a href="#1914" id="1914">1914</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1914" id="1914">1914</a>
+<a href="#1915" id="1915">1915</a>
+<a href="#1916" id="1916">1916</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2183,7 +2185,9 @@
             .field(<span class="string">"variable_blocks"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.variable_blocks)
             .field(<span class="string">"pou_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.kind)
             .field(<span class="string">"return_type"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.return_type)
-            .field(<span class="string">"interfaces"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interfaces);
+            .field(<span class="string">"interfaces"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.interfaces)
+            .field(<span class="string">"properties"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.properties);
+
         <span class="kw">if </span>!<span class="self">self</span>.generics.is_empty() {
             str.field(<span class="string">"generics"</span>, <span class="kw-2">&amp;</span><span class="self">self</span>.generics);
         }

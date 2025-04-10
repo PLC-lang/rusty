@@ -959,7 +959,33 @@
 <a href="#958" id="958">958</a>
 <a href="#959" id="959">959</a>
 <a href="#960" id="960">960</a>
-<a href="#961" id="961">961</a></pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
+<a href="#961" id="961">961</a>
+<a href="#962" id="962">962</a>
+<a href="#963" id="963">963</a>
+<a href="#964" id="964">964</a>
+<a href="#965" id="965">965</a>
+<a href="#966" id="966">966</a>
+<a href="#967" id="967">967</a>
+<a href="#968" id="968">968</a>
+<a href="#969" id="969">969</a>
+<a href="#970" id="970">970</a>
+<a href="#971" id="971">971</a>
+<a href="#972" id="972">972</a>
+<a href="#973" id="973">973</a>
+<a href="#974" id="974">974</a>
+<a href="#975" id="975">975</a>
+<a href="#976" id="976">976</a>
+<a href="#977" id="977">977</a>
+<a href="#978" id="978">978</a>
+<a href="#979" id="979">979</a>
+<a href="#980" id="980">980</a>
+<a href="#981" id="981">981</a>
+<a href="#982" id="982">982</a>
+<a href="#983" id="983">983</a>
+<a href="#984" id="984">984</a>
+<a href="#985" id="985">985</a>
+<a href="#986" id="986">986</a>
+<a href="#987" id="987">987</a></pre></div><pre class="rust"><code><span class="kw">use </span>anyhow::{bail, <span class="prelude-ty">Result</span>};
 <span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>clap::{ArgGroup, Parser, Subcommand};
 <span class="kw">use </span>encoding_rs::Encoding;
@@ -988,7 +1014,15 @@
         global = <span class="bool-val">true</span>,
         help = <span class="string">"Emit AST (Abstract Syntax Tree) as output"
     </span>)]
-    </span><span class="kw">pub </span>output_ast: bool,
+    </span><span class="kw">pub </span>print_ast: bool,
+
+    <span class="attr">#[clap(
+        long = <span class="string">"ast-lowered"</span>,
+        group = <span class="string">"format"</span>,
+        global = <span class="bool-val">true</span>,
+        help = <span class="string">"Emit lowered AST (Abstract Syntax Tree) as output"
+    </span>)]
+    </span><span class="kw">pub </span>print_ast_lowered: bool,
 
     <span class="attr">#[clap(long = <span class="string">"version"</span>, group = <span class="string">"format"</span>, global = <span class="bool-val">true</span>)]
     </span><span class="kw">pub </span>build_info: bool,
@@ -1634,7 +1668,8 @@
     </span><span class="kw">fn </span>valid_output_formats() {
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ir"</span>)).unwrap();
         <span class="macro">assert!</span>(parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1643,7 +1678,18 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ast"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(parameters.output_ast);
+        <span class="macro">assert!</span>(parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
+        <span class="macro">assert!</span>(!parameters.output_bit_code);
+        <span class="macro">assert!</span>(!parameters.output_obj_code);
+        <span class="macro">assert!</span>(!parameters.output_pic_obj);
+        <span class="macro">assert!</span>(!parameters.output_shared_obj);
+        <span class="macro">assert!</span>(!parameters.output_reloc_code);
+
+        <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--ast-lowered"</span>)).unwrap();
+        <span class="macro">assert!</span>(!parameters.output_ir);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1652,7 +1698,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--bc"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1661,7 +1708,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--static"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1670,7 +1718,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--pic"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(parameters.output_pic_obj);
@@ -1679,7 +1728,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--shared"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1688,7 +1738,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>, <span class="string">"--relocatable"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
@@ -1697,7 +1748,8 @@
 
         <span class="kw">let </span>parameters = CompileParameters::parse(<span class="macro">vec_of_strings!</span>(<span class="string">"input.st"</span>)).unwrap();
         <span class="macro">assert!</span>(!parameters.output_ir);
-        <span class="macro">assert!</span>(!parameters.output_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast);
+        <span class="macro">assert!</span>(!parameters.print_ast_lowered);
         <span class="macro">assert!</span>(!parameters.output_bit_code);
         <span class="macro">assert!</span>(!parameters.output_obj_code);
         <span class="macro">assert!</span>(!parameters.output_pic_obj);
