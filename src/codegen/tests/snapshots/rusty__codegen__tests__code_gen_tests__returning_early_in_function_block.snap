@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -43,6 +44,13 @@ entry:
 }
 
 declare void @abcdef(%abcdef*)
+
+define void @__user_init_abcdef(%abcdef* %0) {
+entry:
+  %self = alloca %abcdef*, align 8
+  store %abcdef* %0, %abcdef** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

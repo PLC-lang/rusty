@@ -812,6 +812,13 @@ fn global_namespace_operator() {
     }
 
     declare void @main(%main*)
+
+    define void @__user_init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -823,11 +830,14 @@ fn global_namespace_operator() {
     define void @__init___testproject() {
     entry:
       call void @__init_main(%main* @main_instance)
+      call void @__user_init_main(%main* @main_instance)
       ret void
     }
 
     declare void @__init_main(%main*)
 
     declare void @main(%main*)
+
+    declare void @__user_init_main(%main*)
     "#);
 }

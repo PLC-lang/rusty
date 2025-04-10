@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -31,6 +32,13 @@ entry:
 }
 
 declare void @fbWithConstant(%fbWithConstant*)
+
+define void @__user_init_fbWithConstant(%fbWithConstant* %0) {
+entry:
+  %self = alloca %fbWithConstant*, align 8
+  store %fbWithConstant* %0, %fbWithConstant** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

@@ -1145,12 +1145,15 @@ fn fb_method_called_locally() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
       call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
       %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
 
     declare void @__init_foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1171,6 +1174,13 @@ fn fb_method_called_locally() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1257,12 +1267,15 @@ fn fb_local_method_var_shadows_parent_var() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
       call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
       %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
 
     declare void @__init_foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1283,6 +1296,13 @@ fn fb_local_method_var_shadows_parent_var() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1379,6 +1399,13 @@ fn prog_method_called_locally() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1390,12 +1417,15 @@ fn prog_method_called_locally() {
     define void @__init___testproject() {
     entry:
       call void @__init_foo(%foo* @foo_instance)
+      call void @__user_init_foo(%foo* @foo_instance)
       ret void
     }
 
     declare void @__init_foo(%foo*)
 
     declare void @foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
     "#)
 }
 
@@ -1487,6 +1517,13 @@ fn prog_local_method_var_shadows_parent_var() {
     }
 
     declare void @foo(%foo*)
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1498,12 +1535,15 @@ fn prog_local_method_var_shadows_parent_var() {
     define void @__init___testproject() {
     entry:
       call void @__init_foo(%foo* @foo_instance)
+      call void @__user_init_foo(%foo* @foo_instance)
       ret void
     }
 
     declare void @__init_foo(%foo*)
 
     declare void @foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
     "#)
 }
 
@@ -1780,6 +1820,13 @@ fn for_statement_with_binary_expressions() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1791,12 +1838,15 @@ fn for_statement_with_binary_expressions() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
+
+    declare void @__user_init_prg(%prg*)
     "#);
 }
 
@@ -4177,6 +4227,20 @@ fn variables_in_var_external_block_are_not_generated() {
     }
 
     declare void @qux(%qux*)
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -4188,12 +4252,15 @@ fn variables_in_var_external_block_are_not_generated() {
     define void @__init___testproject() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
+      call void @__user_init_baz(%baz* @baz_instance)
       ret void
     }
 
     declare void @__init_baz(%baz*)
 
     declare void @baz(%baz*)
+
+    declare void @__user_init_baz(%baz*)
     "#);
 }
 

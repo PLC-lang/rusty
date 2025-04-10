@@ -249,7 +249,7 @@ fn programs_state_is_stored_in_a_struct() {
 
 #[test]
 fn codegen_of_a_program_pou() {
-    insta::assert_snapshot!(codegen(DEFAULT_PRG),@r###"
+    insta::assert_snapshot!(codegen(DEFAULT_PRG),@r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -282,6 +282,13 @@ fn codegen_of_a_program_pou() {
     }
 
     declare void @main_prg(%main_prg*)
+
+    define void @__user_init_main_prg(%main_prg* %0) {
+    entry:
+      %self = alloca %main_prg*, align 8
+      store %main_prg* %0, %main_prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -293,13 +300,16 @@ fn codegen_of_a_program_pou() {
     define void @__init___testproject() {
     entry:
       call void @__init_main_prg(%main_prg* @main_prg_instance)
+      call void @__user_init_main_prg(%main_prg* @main_prg_instance)
       ret void
     }
 
     declare void @__init_main_prg(%main_prg*)
 
     declare void @main_prg(%main_prg*)
-    "###);
+
+    declare void @__user_init_main_prg(%main_prg*)
+    "#);
 }
 
 /// Calling a program works like this:
@@ -319,7 +329,7 @@ fn calling_a_program() {
         {DEFAULT_PRG}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -369,6 +379,13 @@ fn calling_a_program() {
     }
 
     declare void @main_prg(%main_prg*)
+
+    define void @__user_init_main_prg(%main_prg* %0) {
+    entry:
+      %self = alloca %main_prg*, align 8
+      store %main_prg* %0, %main_prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -380,13 +397,16 @@ fn calling_a_program() {
     define void @__init___testproject() {
     entry:
       call void @__init_main_prg(%main_prg* @main_prg_instance)
+      call void @__user_init_main_prg(%main_prg* @main_prg_instance)
       ret void
     }
 
     declare void @__init_main_prg(%main_prg*)
 
     declare void @main_prg(%main_prg*)
-    "###);
+
+    declare void @__user_init_main_prg(%main_prg*)
+    "#);
 }
 
 /// # FUNCTION BLOCK
@@ -414,7 +434,7 @@ const DEFAULT_FB: &str = r#"
 
 #[test]
 fn function_blocks_get_a_method_with_a_self_parameter() {
-    insta::assert_snapshot!(codegen(DEFAULT_FB), @r###"
+    insta::assert_snapshot!(codegen(DEFAULT_FB), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -447,6 +467,13 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     }
 
     declare void @main_fb(%main_fb*)
+
+    define void @__user_init_main_fb(%main_fb* %0) {
+    entry:
+      %self = alloca %main_fb*, align 8
+      store %main_fb* %0, %main_fb** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -456,7 +483,7 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 /// Calling a function block works like this:
@@ -477,7 +504,7 @@ fn calling_a_function_block() {
         {DEFAULT_FB}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -542,6 +569,23 @@ fn calling_a_function_block() {
       store %main_fb* %0, %main_fb** %self, align 8
       ret void
     }
+
+    define void @__user_init_main_fb(%main_fb* %0) {
+    entry:
+      %self = alloca %main_fb*, align 8
+      store %main_fb* %0, %main_fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %fb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+      call void @__user_init_main_fb(%main_fb* %fb)
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -555,6 +599,7 @@ fn calling_a_function_block() {
     define void @__init___testproject() {
     entry:
       call void @__init_foo(%foo* @foo_instance)
+      call void @__user_init_foo(%foo* @foo_instance)
       ret void
     }
 
@@ -563,7 +608,9 @@ fn calling_a_function_block() {
     declare void @foo(%foo*)
 
     declare void @main_fb(%main_fb*)
-    "###);
+
+    declare void @__user_init_foo(%foo*)
+    "#);
 }
 
 /// # FUNCTION
@@ -636,7 +683,7 @@ fn calling_a_function() {
         {DEFAULT_FUNC}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -686,6 +733,13 @@ fn calling_a_function() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -697,13 +751,16 @@ fn calling_a_function() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }
 
 /// Returning complex/aggregate types (string, array, struct) from a function cost a lot of compile-performance. complex types
@@ -730,7 +787,7 @@ fn return_a_complex_type_from_function() {
             s := foo();
         END_FUNCTION
     "#;
-    insta::assert_snapshot!(codegen(returning_string), @r###"
+    insta::assert_snapshot!(codegen(returning_string), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -785,6 +842,13 @@ fn return_a_complex_type_from_function() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -796,13 +860,16 @@ fn return_a_complex_type_from_function() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }
 
 /// Aggregate types which are passed to a function by-value will be passed as a reference by the compiler.
@@ -843,7 +910,7 @@ fn passing_aggregate_types_to_functions_by_value() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -926,6 +993,13 @@ fn passing_aggregate_types_to_functions_by_value() {
     }
 
     declare void @main(%main*)
+
+    define void @__user_init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -939,13 +1013,16 @@ fn passing_aggregate_types_to_functions_by_value() {
     define void @__init___testproject() {
     entry:
       call void @__init_main(%main* @main_instance)
+      call void @__user_init_main(%main* @main_instance)
       ret void
     }
 
     declare void @__init_main(%main*)
 
     declare void @main(%main*)
-    "###);
+
+    declare void @__user_init_main(%main*)
+    "#);
 }
 
 /// Passing aggregate types to a function is an expensive operation, this is why the compiler offers
@@ -975,7 +1052,7 @@ fn passing_by_ref_to_functions() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1019,6 +1096,13 @@ fn passing_by_ref_to_functions() {
     }
 
     declare void @main(%main*)
+
+    define void @__user_init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -1030,11 +1114,14 @@ fn passing_by_ref_to_functions() {
     define void @__init___testproject() {
     entry:
       call void @__init_main(%main* @main_instance)
+      call void @__user_init_main(%main* @main_instance)
       ret void
     }
 
     declare void @__init_main(%main*)
 
     declare void @main(%main*)
-    "###);
+
+    declare void @__user_init_main(%main*)
+    "#);
 }

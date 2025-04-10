@@ -115,7 +115,7 @@ fn using_enums() {
         END_PROGRAM
     "#;
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -154,6 +154,13 @@ fn using_enums() {
     }
 
     declare void @prg(%prg*)
+
+    define void @__user_init_prg(%prg* %0) {
+    entry:
+      %self = alloca %prg*, align 8
+      store %prg* %0, %prg** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -165,11 +172,14 @@ fn using_enums() {
     define void @__init___testproject() {
     entry:
       call void @__init_prg(%prg* @prg_instance)
+      call void @__user_init_prg(%prg* @prg_instance)
       ret void
     }
 
     declare void @__init_prg(%prg*)
 
     declare void @prg(%prg*)
-    "###);
+
+    declare void @__user_init_prg(%prg*)
+    "#);
 }

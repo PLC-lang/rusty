@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -96,6 +97,20 @@ entry:
 }
 
 declare void @myFb(%myFb*)
+
+define void @__user_init_myFb(%myFb* %0) {
+entry:
+  %self = alloca %myFb*, align 8
+  store %myFb* %0, %myFb** %self, align 8
+  ret void
+}
+
+define void @__user_init_myPrg(%myPrg* %0) {
+entry:
+  %self = alloca %myPrg*, align 8
+  store %myPrg* %0, %myPrg** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -107,9 +122,12 @@ source_filename = "__init___testproject"
 define void @__init___testproject() {
 entry:
   call void @__init_myprg(%myPrg* @myPrg_instance)
+  call void @__user_init_myPrg(%myPrg* @myPrg_instance)
   ret void
 }
 
 declare void @__init_myprg(%myPrg*)
 
 declare void @myPrg(%myPrg*)
+
+declare void @__user_init_myPrg(%myPrg*)

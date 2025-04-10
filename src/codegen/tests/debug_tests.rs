@@ -349,7 +349,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         ",
     );
 
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -374,6 +374,13 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_fb(%fb* %0) {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
@@ -407,7 +414,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !14 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !9, file: !2, line: 3, type: !10, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !15 = !DILocalVariable(name: "fb", scope: !14, file: !2, line: 4, type: !3)
     !16 = !DILocation(line: 4, column: 8, scope: !14)
-    "###);
+    "#);
 }
 
 #[test]
@@ -487,9 +494,17 @@ fn action_with_var_temp() {
       ret void
     }
 
+    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
 

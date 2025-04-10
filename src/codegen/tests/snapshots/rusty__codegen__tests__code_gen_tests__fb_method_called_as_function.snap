@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -63,6 +64,13 @@ entry:
 }
 
 declare void @MyClass(%MyClass*)
+
+define void @__user_init_MyClass(%MyClass* %0) {
+entry:
+  %self = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 

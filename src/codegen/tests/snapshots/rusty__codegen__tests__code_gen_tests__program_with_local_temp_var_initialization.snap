@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -57,6 +58,20 @@ entry:
 }
 
 declare void @prg(%prg*)
+
+define void @__user_init_prg(%prg* %0) {
+entry:
+  %self = alloca %prg*, align 8
+  store %prg* %0, %prg** %self, align 8
+  ret void
+}
+
+define void @__user_init_foo(%foo* %0) {
+entry:
+  %self = alloca %foo*, align 8
+  store %foo* %0, %foo** %self, align 8
+  ret void
+}
 ; ModuleID = '__init___testproject'
 source_filename = "__init___testproject"
 
@@ -71,6 +86,8 @@ define void @__init___testproject() {
 entry:
   call void @__init_foo(%foo* @foo_instance)
   call void @__init_prg(%prg* @prg_instance)
+  call void @__user_init_foo(%foo* @foo_instance)
+  call void @__user_init_prg(%prg* @prg_instance)
   ret void
 }
 
@@ -81,3 +98,7 @@ declare void @foo(%foo*)
 declare void @__init_prg(%prg*)
 
 declare void @prg(%prg*)
+
+declare void @__user_init_foo(%foo*)
+
+declare void @__user_init_prg(%prg*)
