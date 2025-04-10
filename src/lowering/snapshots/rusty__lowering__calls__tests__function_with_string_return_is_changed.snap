@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-expression: "unit.units[0]"
+expression: "unit.pous[0]"
 ---
 POU {
     name: "complexType",
@@ -37,4 +37,5 @@ POU {
         },
     ),
     interfaces: [],
+    properties: [],
 }
