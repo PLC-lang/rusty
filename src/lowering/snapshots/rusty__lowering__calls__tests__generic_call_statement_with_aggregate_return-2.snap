@@ -8,54 +8,6 @@ Implementation {
     linkage: External,
     pou_type: Function,
     statements: [],
-    location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 10,
-                column: 8,
-                offset: 215,
-            }..TextLocation {
-                line: 9,
-                column: 15,
-                offset: 206,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 6,
-                column: 17,
-                offset: 124,
-            }..TextLocation {
-                line: 6,
-                column: 20,
-                offset: 127,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 10,
-                column: 8,
-                offset: 215,
-            }..TextLocation {
-                line: 10,
-                column: 20,
-                offset: 227,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
     overriding: false,
     generic: true,
     access: None,

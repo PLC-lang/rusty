@@ -49,54 +49,6 @@ Implementation {
             ],
         },
     ],
-    location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 13,
-                column: 12,
-                offset: 331,
-            }..TextLocation {
-                line: 13,
-                column: 26,
-                offset: 345,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 17,
-                offset: 160,
-            }..TextLocation {
-                line: 8,
-                column: 21,
-                offset: 164,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 14,
-                column: 8,
-                offset: 354,
-            }..TextLocation {
-                line: 14,
-                column: 20,
-                offset: 366,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
     overriding: false,
     generic: false,
     access: None,

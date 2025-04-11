@@ -119,54 +119,6 @@ Implementation {
             ],
         },
     ],
-    location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 16,
-                column: 12,
-                offset: 481,
-            }..TextLocation {
-                line: 16,
-                column: 56,
-                offset: 525,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 17,
-                offset: 168,
-            }..TextLocation {
-                line: 8,
-                column: 21,
-                offset: 172,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
-    end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 17,
-                column: 8,
-                offset: 534,
-            }..TextLocation {
-                line: 17,
-                column: 20,
-                offset: 546,
-            },
-        ),
-        file: Some(
-            "<internal>",
-        ),
-    },
     overriding: false,
     generic: false,
     access: None,
