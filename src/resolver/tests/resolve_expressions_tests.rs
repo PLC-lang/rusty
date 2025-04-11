@@ -5981,7 +5981,15 @@ fn is_this_there() {
     let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
         unreachable!()
     };
-    assert!(index.find_type("__THIS_fb").is_some());
+    assert!(index.find_type("fb.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
     assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert_type_and_hint!(&annotations, &index, this, "fb.__THIS", None);
 }

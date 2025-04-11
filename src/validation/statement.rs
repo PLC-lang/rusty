@@ -159,7 +159,7 @@ pub fn visit_statement<T: AnnotationMap>(
                 //error
                 validator.push_diagnostic(
                     Diagnostic::new("THIS is only allowed in fb and method")
-                        // .with_error_code("E069")
+                        .with_error_code("E120")
                         .with_location(statement),
                 );
             }
