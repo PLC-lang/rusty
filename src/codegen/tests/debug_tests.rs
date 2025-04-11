@@ -353,25 +353,34 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_fb = type { i32* }
     %fb = type {}
 
-    @__fb__init = constant %fb zeroinitializer, !dbg !0
+    @____vtable_fb__init = constant %__vtable_fb zeroinitializer, !dbg !0
+    @__fb__init = constant %fb zeroinitializer, !dbg !8
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
-    define void @fb(%fb* %0) !dbg !9 {
+    define void @fb(%fb* %0) !dbg !16 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !12, metadata !DIExpression()), !dbg !13
-      ret void, !dbg !13
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !19, metadata !DIExpression()), !dbg !20
+      ret void, !dbg !20
     }
 
-    define void @fb_foo(%fb* %0) !dbg !14 {
+    define void @fb_foo(%fb* %0) !dbg !21 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !15, metadata !DIExpression()), !dbg !16
-      ret void, !dbg !16
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !22, metadata !DIExpression()), !dbg !23
+      ret void, !dbg !23
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init___vtable_fb(%__vtable_fb* %0) {
+    entry:
+      %self = alloca %__vtable_fb*, align 8
+      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      ret void
+    }
 
     define void @__init_fb(%fb* %0) {
     entry:
@@ -387,11 +396,11 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!5, !6}
-    !llvm.dbg.cu = !{!7}
+    !llvm.module.flags = !{!12, !13}
+    !llvm.dbg.cu = !{!14}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !1 = distinct !DIGlobalVariable(name: "____vtable_fb__init", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}

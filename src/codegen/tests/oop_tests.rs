@@ -19,13 +19,17 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_foo = type {}
+    %__vtable_bar = type { %__vtable_foo }
     %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
 
+    @____vtable_foo__init = constant %__vtable_foo zeroinitializer
+    @____vtable_bar__init = constant %__vtable_bar zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @__bar__init = constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -41,6 +45,23 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @bar(%bar* %0) {
     entry:
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar(%__vtable_bar* %0) {
+    entry:
+      %self = alloca %__vtable_bar*, align 8
+      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %__vtable_foo = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
+      call void @__init___vtable_foo(%__vtable_foo* %__vtable_foo)
       ret void
     }
 
@@ -65,7 +86,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -91,14 +112,20 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_fb = type {}
+    %__vtable_fb2 = type { %__vtable_fb }
+    %__vtable_foo = type {}
     %fb2 = type { %fb }
     %fb = type { i16, i16 }
     %foo = type { %fb2 }
 
+    @____vtable_fb__init = constant %__vtable_fb zeroinitializer
+    @____vtable_fb2__init = constant %__vtable_fb2 zeroinitializer
+    @____vtable_foo__init = constant %__vtable_foo zeroinitializer
     @__fb2__init = constant %fb2 zeroinitializer
     @__fb__init = constant %fb zeroinitializer
     @__foo__init = constant %foo zeroinitializer
@@ -123,6 +150,30 @@ fn write_to_parent_variable_qualified_access() {
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
       %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 0
       store i16 1, i16* %x, align 2
+      ret void
+    }
+
+    define void @__init___vtable_fb(%__vtable_fb* %0) {
+    entry:
+      %self = alloca %__vtable_fb*, align 8
+      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_fb2(%__vtable_fb2* %0) {
+    entry:
+      %self = alloca %__vtable_fb2*, align 8
+      store %__vtable_fb2* %0, %__vtable_fb2** %self, align 8
+      %deref = load %__vtable_fb2*, %__vtable_fb2** %self, align 8
+      %__vtable_fb = getelementptr inbounds %__vtable_fb2, %__vtable_fb2* %deref, i32 0, i32 0
+      call void @__init___vtable_fb(%__vtable_fb* %__vtable_fb)
+      ret void
+    }
+
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
       ret void
     }
 
@@ -157,7 +208,7 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -191,11 +242,15 @@ fn write_to_parent_variable_in_instance() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_foo = type { i32* }
+    %__vtable_bar = type { %__vtable_foo }
     %bar = type { %foo }
     %foo = type { [81 x i8] }
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
+    @____vtable_foo__init = constant %__vtable_foo zeroinitializer
+    @____vtable_bar__init = constant %__vtable_bar zeroinitializer
     @__bar__init = constant %bar zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -246,6 +301,23 @@ fn write_to_parent_variable_in_instance() {
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar(%__vtable_bar* %0) {
+    entry:
+      %self = alloca %__vtable_bar*, align 8
+      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %__vtable_foo = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
+      call void @__init___vtable_foo(%__vtable_foo* %__vtable_foo)
+      ret void
+    }
 
     define void @__init_bar(%bar* %0) {
     entry:
@@ -310,14 +382,20 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_grandparent = type {}
+    %__vtable_parent = type { %__vtable_grandparent }
+    %__vtable_child = type { %__vtable_parent }
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }
 
+    @____vtable_grandparent__init = constant %__vtable_grandparent zeroinitializer
+    @____vtable_parent__init = constant %__vtable_parent zeroinitializer
+    @____vtable_child__init = constant %__vtable_child zeroinitializer
     @__child__init = constant %child zeroinitializer
     @__parent__init = constant %parent zeroinitializer
     @__grandparent__init = constant %grandparent zeroinitializer
@@ -380,6 +458,33 @@ fn array_in_parent_generated() {
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
+    define void @__init___vtable_grandparent(%__vtable_grandparent* %0) {
+    entry:
+      %self = alloca %__vtable_grandparent*, align 8
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    entry:
+      %self = alloca %__vtable_parent*, align 8
+      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__vtable_grandparent = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      call void @__init___vtable_grandparent(%__vtable_grandparent* %__vtable_grandparent)
+      ret void
+    }
+
+    define void @__init___vtable_child(%__vtable_child* %0) {
+    entry:
+      %self = alloca %__vtable_child*, align 8
+      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__vtable_parent = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      call void @__init___vtable_parent(%__vtable_parent* %__vtable_parent)
+      ret void
+    }
+
     define void @__init_child(%child* %0) {
     entry:
       %self = alloca %child*, align 8
@@ -413,7 +518,7 @@ fn array_in_parent_generated() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -443,14 +548,20 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_grandparent = type {}
+    %__vtable_parent = type { %__vtable_grandparent }
+    %__vtable_child = type { %__vtable_parent }
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
+    @____vtable_grandparent__init = constant %__vtable_grandparent zeroinitializer
+    @____vtable_parent__init = constant %__vtable_parent zeroinitializer
+    @____vtable_child__init = constant %__vtable_child zeroinitializer
     @__parent__init = constant %parent zeroinitializer
     @__grandparent__init = constant %grandparent zeroinitializer
     @__child__init = constant %child zeroinitializer
@@ -502,6 +613,33 @@ fn complex_array_access_generated() {
       ret void
     }
 
+    define void @__init___vtable_grandparent(%__vtable_grandparent* %0) {
+    entry:
+      %self = alloca %__vtable_grandparent*, align 8
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    entry:
+      %self = alloca %__vtable_parent*, align 8
+      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__vtable_grandparent = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      call void @__init___vtable_grandparent(%__vtable_grandparent* %__vtable_grandparent)
+      ret void
+    }
+
+    define void @__init___vtable_child(%__vtable_child* %0) {
+    entry:
+      %self = alloca %__vtable_child*, align 8
+      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__vtable_parent = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      call void @__init___vtable_parent(%__vtable_parent* %__vtable_parent)
+      ret void
+    }
+
     define void @__init_parent(%parent* %0) {
     entry:
       %self = alloca %parent*, align 8
@@ -533,7 +671,7 @@ fn complex_array_access_generated() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
