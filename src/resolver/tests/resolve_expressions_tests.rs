@@ -5954,3 +5954,39 @@ fn global_namespace_operator_is_not_resolved() {
 
     assert_eq!(annotations.get(node), None);
 }
+
+#[test]
+fn is_this_there() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                myvar : INT;
+            END_VAR
+                this^.myvar := 8;
+                myvar := this^.myvar;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
+        unreachable!()
+    };
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert_type_and_hint!(&annotations, &index, this, "fb.__THIS", None);
+}

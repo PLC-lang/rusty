@@ -1636,6 +1636,39 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate an expression statement
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
+            AstStatement::This => {
+                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    match pou {
+                        // TODO: #THIS for method check if parent is of type functionblock
+                        PouIndexEntry::FunctionBlock { name, .. }
+                        | PouIndexEntry::Method { parent_name: name, .. } => {
+                            let ptr_name = format!("{}.__THIS", name);
+                            if self
+                                .index
+                                .find_type(&ptr_name)
+                                .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
+                                .is_none()
+                            {
+                                let information = DataTypeInformation::Pointer {
+                                    name: ptr_name.clone(),
+                                    inner_type_name: name.to_string(),
+                                    auto_deref: None,
+                                };
+                                let dt = crate::typesystem::DataType {
+                                    name: ptr_name.clone(),
+                                    initial_value: None,
+                                    information,
+                                    nature: TypeNature::Any,
+                                    location: SourceLocation::internal(),
+                                };
+                                self.annotation_map.new_index.register_type(dt);
+                            }
+                            self.annotate(statement, StatementAnnotation::value(ptr_name));
+                        }
+                        _ => {}
+                    }
+                }
+            }
             AstStatement::DirectAccess(data, ..) => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 visit_all_statements!(self, &ctx, &data.index);
@@ -1976,6 +2009,23 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
+            AstStatement::This => {
+                // Only `THIS` in FunctionBlock/methods context
+                // TODO: also support methods
+                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    if let PouIndexEntry::FunctionBlock { name, .. } | PouIndexEntry::Method { name, .. } =
+                        pou
+                    {
+                        // TODO: check if ptr already exists and return exisiting one
+                        // check if ptr can be added to index during indexing
+                        Some(StatementAnnotation::value(name))
+                    } else {
+                        None
+                    }
+                } else {
+                    None
+                }
+            }
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()

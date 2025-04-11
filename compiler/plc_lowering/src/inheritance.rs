@@ -2551,4 +2551,46 @@ mod inherited_properties {
         }
         "###);
     }
+    // TODO: this test is completly in the wrong place => move!
+    #[test]
+    fn simple_this_deref() {
+        let src: SourceCode = "
+        FUNCTION_BLOCK foo
+            VAR
+                x : INT;
+                y : INT;
+            END_VAR
+            y := this^.x;
+        END_FUNCTION_BLOCK
+
+        "
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let statements = &project.units[0].get_unit().implementations[1].statements;
+        assert_debug_snapshot!(statements, @r#"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "#);
+    }
 }

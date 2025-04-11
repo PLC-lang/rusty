@@ -833,6 +833,7 @@ pub enum AstStatement {
     // Expressions
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
+    This,
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -901,6 +902,7 @@ impl Debug for AstNode {
             AstStatement::DefaultValue(..) => f.debug_struct("DefaultValue").finish(),
             AstStatement::Literal(literal) => literal.fmt(f),
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
+            AstStatement::This => f.debug_struct("This").finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -1167,6 +1169,10 @@ impl AstNode {
             self.stmt,
             AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }, ..)
         )
+    }
+
+    pub fn is_this(&self) -> bool {
+        matches!(self.stmt, AstStatement::This)
     }
 
     pub fn is_paren(&self) -> bool {
@@ -1524,6 +1530,13 @@ impl AstFactory {
         U: Into<SourceLocation>,
     {
         AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
+    }
+
+    pub fn create_this_reference<T>(location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::This, id, location.into())
     }
 
     pub fn create_unary_expression(
