@@ -19,15 +19,12 @@ use ast::{
 
 use itertools::Itertools;
 use log::debug;
-use participant::{PipelineParticipant, PipelineParticipantMut, VTableIndexer};
+use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{
-        property::PropertyLowerer,
-        {calls::AggregateTypeLowerer, InitVisitor},
-    },
+    lowering::{calls::AggregateTypeLowerer, property::PropertyLowerer, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -35,6 +32,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
+    vtable::VTableIndexer,
     ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
