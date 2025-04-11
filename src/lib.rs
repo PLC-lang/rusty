@@ -43,6 +43,7 @@ pub mod output;
 pub mod parser;
 pub mod resolver;
 mod test_utils;
+pub mod vtable;
 
 pub mod typesystem;
 pub mod validation;
