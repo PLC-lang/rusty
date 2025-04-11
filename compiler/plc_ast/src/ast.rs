@@ -650,7 +650,7 @@ impl DataTypeDeclaration {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstNode>,
