@@ -457,6 +457,7 @@ mod tests {
                     },
                 ),
                 interfaces: [],
+                properties: [],
             }
             "###);
 
@@ -525,6 +526,7 @@ mod tests {
                 },
                 return_type: None,
                 interfaces: [],
+                properties: [],
             }
             "###);
         }
@@ -803,6 +805,7 @@ mod tests {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
                 POU {
                     name: "foo.__set_bar",
@@ -833,6 +836,7 @@ mod tests {
                     },
                     return_type: None,
                     interfaces: [],
+                    properties: [],
                 },
             ]
             "###);
