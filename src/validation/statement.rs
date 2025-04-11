@@ -132,6 +132,20 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
+        AstStatement::This => {
+            dbg!(statement);
+            // TODO: check if I have an annotation. Only this in fb or method has annoation. If I
+            // dont have an annotation then something is wrong.
+            if context.annotations.get_type(statement, context.index).is_none() {
+                //error
+                validator.push_diagnostic(
+                    Diagnostic::new("THIS is only allowed in fb and method")
+                        // .with_error_code("E069")
+                        .with_location(statement),
+                );
+            }
+            // todo!()
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
