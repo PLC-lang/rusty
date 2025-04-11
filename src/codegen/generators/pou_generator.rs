@@ -705,12 +705,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         {
             let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
             self.llvm.builder.build_store(alloca, param_pointer);
-            index.associate_loaded_local_variable(type_name, "this", alloca)?;
+            index.associate_loaded_local_variable(type_name, "__THIS", alloca)?;
         }
         if function_context.linking_context.get_implementation_type() == &ImplementationType::FunctionBlock {
             let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
             self.llvm.builder.build_store(alloca, param_pointer);
-            index.associate_loaded_local_variable(type_name, "this", alloca)?;
+            index.associate_loaded_local_variable(type_name, "__THIS", alloca)?;
         }
 
         //Generate reference to parameter

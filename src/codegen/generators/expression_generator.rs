@@ -223,7 +223,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let function_context = self.function_context.ok_or_else(|| {
                     Diagnostic::codegen_error("Cannot use 'this' without context", expression)
                 })?;
-                let this_name = &format!("{}.this", self.annotations.get_call_name(expression).unwrap());
+                let this_name = self.annotations.get_call_name(expression).unwrap();
+                let Some(this_name) = self.annotations.get_call_name(expression) else {
+                    todo!("error handling")
+                };
                 let this_value =
                     self.llvm_index.find_loaded_associated_variable_value(&this_name).ok_or_else(|| {
                         let message = format!("Cannot find '{}' in associated variable values", this_name);

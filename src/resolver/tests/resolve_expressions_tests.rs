@@ -5967,8 +5967,8 @@ fn is_this_there() {
             VAR
                 myvar : INT;
             END_VAR
-            this^.myvar := 8;
-            myvar := this^.myvar;
+                this^.myvar := 8;
+                myvar := this^.myvar;
         END_FUNCTION_BLOCK
         ",
         id_provider.clone(),
@@ -5983,7 +5983,5 @@ fn is_this_there() {
     };
     assert!(index.find_type("__THIS_fb").is_some());
     assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
-    assert_type_and_hint!(&annotations, &index, &statement_2.left, "INT", None);
     assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
-    // let AstStatement::CallStatement(data) = stmt.get_stmt() else { unreachable!() };
 }

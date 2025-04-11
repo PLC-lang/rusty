@@ -1652,7 +1652,7 @@ impl<'i> TypeAnnotator<'i> {
                         // TODO: #THIS for method check if parent is of type functionblock
                         PouIndexEntry::FunctionBlock { name, .. }
                         | PouIndexEntry::Method { parent_name: name, .. } => {
-                            let ptr_name = format!("__THIS_{}", name);
+                            let ptr_name = format!("{}.__THIS", name);
                             if self
                                 .index
                                 .find_type(&ptr_name)

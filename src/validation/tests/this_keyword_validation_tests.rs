@@ -5,23 +5,24 @@ use test_utils::parse_and_validate_buffered;
 fn pointer_arithmetic_with_this() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-    FUNCTION_BLOCK parent
-    VAR
-        x : LINT := 10;
-        y : LINT := 20;
-    END_VAR
-    END_FUNCTION_BLOCK
+        FUNCTION_BLOCK parent
+        VAR
+            x : LINT := 10;
+            y : LINT := 20;
+        END_VAR
+        END_FUNCTION_BLOCK
 
-    FUNCTION_BLOCK child EXTENDS parent
-    VAR
-        a : INT;
-    END_VAR
-        // Pointer arithmetic with SUPER
-        a := (THIS + 1)^ + 5;
-    END_FUNCTION_BLOCK
+        FUNCTION_BLOCK child EXTENDS parent
+        VAR
+            a : INT;
+        END_VAR
+            // Pointer arithmetic with SUPER
+            a := (THIS + 1)^ + 5;
+        END_FUNCTION_BLOCK
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -39,7 +40,7 @@ fn cant_chain_this() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    panic!("This test should not work");
+    panic!("Chaining this is not allowed");
 }
 
 #[test]
@@ -62,6 +63,7 @@ fn this_in_method_call_chain() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -72,12 +74,13 @@ fn this_not_allowed_in_program() {
             VAR
                 x : INT := 5;
             END_VAR
-            x := THIS.x;
+            x := THIS^.x;
         END_PROGRAM
     "#,
     );
     assert_snapshot!(diagnostics, @r###"
 "###);
+    todo!();
 }
 
 #[test]
@@ -94,6 +97,7 @@ fn this_in_function_is_not_allowed() {
     );
     assert_snapshot!(diagnostics, @r###"
 "###);
+    todo!();
 }
 
 #[test]
@@ -110,6 +114,7 @@ fn cant_assign_to_this() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -128,6 +133,7 @@ fn basic_use() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -161,6 +167,7 @@ fn pass_this_to_method() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -184,6 +191,7 @@ fn simple_shadowing() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -209,14 +217,15 @@ fn nested_fbs_and_this_passing() {
         FUNCTION_BLOCK InnerFB
             METHOD UseOuter
             VAR_INPUT
-                ref : OuterFB;
+                ref : REF_TO OuterFB;
             END_VAR
-                ref.DoSomething();
+                ref^.DoSomething();
             END_METHOD
         END_FUNCTION_BLOCK
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -240,6 +249,7 @@ fn this_as_method_argument() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -260,6 +270,7 @@ fn this_in_recursive_method() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -273,6 +284,7 @@ fn this_is_read_only() {
                 test : FB_Test;
             END_VAR
             this := ADR(test); // this is not allowed
+            this^ := test;
         END_FUNCTION_BLOCK
     "#,
     );
@@ -294,6 +306,7 @@ fn this_chained_with_super() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -314,6 +327,35 @@ fn this_in_properties() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
+}
+
+#[test]
+fn this_calling_function_and_passing_this() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK FB_Test
+            VAR
+                x : INT;
+            END_VAR
+            METHOD return_x : INT
+                VAR_INPUT
+                    fb_from_foo : FB_Test
+                END_VAR
+                return_x := fb_from_foo^.this^.x;
+            END_METHOD
+            foo(this);
+        END_FUNCTION_BLOCK
+        FUNCTION foo : INT
+            VAR
+                pfb: REF_TO FB_TEST
+            END_VAR
+            foo := pfb^.return_x(pfb);
+        END_FUNCTION
+    "#,
+    );
+    assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
@@ -338,10 +380,11 @@ fn this_in_property_calling_method() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
 
 #[test]
-fn this_with_adr_pointer() {
+fn this_with_self_pointer() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -351,12 +394,22 @@ fn this_with_adr_pointer() {
 
             METHOD InitRef
                 refToSelf := ADR(THIS^);
+                refToSelf := REF(THIS^);
             END_METHOD
         END_FUNCTION_BLOCK
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
+    todo!();
 }
+
+// TODO: test with incompatible types (refToSelf gets assigned something of different type)
+// TODO: global namespaces operator tests
+// TODO: .this^ tests
+// TODO: codegen tests
+// TODO: lit tests
+// TODO: resolver tests (parenthesized expressions, nested binary expressions ...)
+// TODO: this in variable initializers
 
 #[test]
 fn dummy() {
