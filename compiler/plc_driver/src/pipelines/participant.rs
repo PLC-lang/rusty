@@ -5,21 +5,17 @@
 //!
 
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
 
-use ast::ast::{DataType, DataTypeDeclaration, Identifier, UserTypeDeclaration};
+use ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration};
 use ast::{ast::Variable, provider::IdProvider};
 use plc::{
-    codegen::GeneratedModule,
-    index::{Index, PouIndexEntry},
-    lowering::calls::AggregateTypeLowerer,
-    output::FormatOption,
-    typesystem::{VOID_INTERNAL_NAME, VOID_POINTER_TYPE},
-    ConfigFormat, OnlineChange, Target,
+    codegen::GeneratedModule, index::Index, lowering::calls::AggregateTypeLowerer, output::FormatOption,
+    typesystem::VOID_POINTER_TYPE, ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;
@@ -296,77 +292,46 @@ impl VTableIndexer {
         Self { id_provider }
     }
 
-    fn get_vtable_name(name: &str) -> String {
+    fn generate_vtable_name(name: &str) -> String {
         format!("__vtable_{name}")
     }
 
-    fn create_vtables_for_pous(index: &Index) -> HashMap<String, UserTypeDeclaration> {
-        let mut vtables = HashMap::new();
+    fn create_vtables_for_pous(index: &Index) -> Vec<UserTypeDeclaration> {
+        let mut vtables = Vec::new();
         for pou in index.get_pous().values().filter(|pou| pou.is_function_block() || pou.is_class()) {
             let mut variables = Vec::new();
 
             if let Some(parent) = pou.get_super_class() {
-                variables.push(Variable {
-                    name: VTableIndexer::get_vtable_name(parent),
-                    data_type_declaration: DataTypeDeclaration::Reference {
-                        referenced_type: VTableIndexer::get_vtable_name(parent),
-                        location: SourceLocation::internal(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                });
+                variables.push(VTableIndexer::create_vtable_reference(parent));
             }
 
             for interface in pou.get_interfaces() {
-                variables.push(Variable {
-                    name: VTableIndexer::get_vtable_name(interface),
-                    data_type_declaration: DataTypeDeclaration::Reference {
-                        referenced_type: VTableIndexer::get_vtable_name(interface),
-                        location: SourceLocation::internal(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                });
+                variables.push(VTableIndexer::create_vtable_reference(interface));
             }
 
             for method in index.get_methods_local(pou.get_name()) {
                 variables.push(VTableIndexer::create_void_pointer(method.get_name()));
             }
 
-            vtables
-                .insert(pou.get_name().to_string(), VTableIndexer::create_vtable(pou.get_name(), variables));
+            vtables.push(VTableIndexer::create_vtable(pou.get_name(), variables));
         }
 
         vtables
     }
 
-    fn create_vtables_for_interfaces(index: &Index) -> HashMap<String, UserTypeDeclaration> {
-        let mut vtables = HashMap::new();
+    fn create_vtables_for_interfaces(index: &Index) -> Vec<UserTypeDeclaration> {
+        let mut vtables = Vec::new();
         for interface in index.get_interfaces().values() {
             let mut variables = Vec::new();
-            for Identifier { name, location } in &interface.extensions {
-                variables.push(Variable {
-                    name: VTableIndexer::get_vtable_name(name),
-                    data_type_declaration: DataTypeDeclaration::Reference {
-                        referenced_type: VTableIndexer::get_vtable_name(name),
-                        location: location.clone(),
-                    },
-                    initializer: None,
-                    address: None,
-                    location: SourceLocation::internal(),
-                });
+            for extension in &interface.extensions {
+                variables.push(VTableIndexer::create_vtable_reference(&extension.name));
             }
 
             for method in interface.get_declared_methods(index) {
                 variables.push(VTableIndexer::create_void_pointer(method.get_name()));
             }
 
-            vtables.insert(
-                interface.get_name().to_string(),
-                VTableIndexer::create_vtable(interface.get_name(), variables),
-            );
+            vtables.push(VTableIndexer::create_vtable(interface.get_name(), variables));
         }
 
         vtables
@@ -386,10 +351,23 @@ impl VTableIndexer {
         }
     }
 
+    fn create_vtable_reference(name: &str) -> Variable {
+        Variable {
+            name: VTableIndexer::generate_vtable_name(name),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: VTableIndexer::generate_vtable_name(name),
+                location: SourceLocation::internal(),
+            },
+            initializer: None,
+            address: None,
+            location: SourceLocation::internal(),
+        }
+    }
+
     /// Creates a vtable with the given member variables and a mangled name of the form `__vtable_<name>`
     fn create_vtable(name: &str, variables: Vec<Variable>) -> UserTypeDeclaration {
         UserTypeDeclaration {
-            data_type: DataType::StructType { name: Some(Self::get_vtable_name(name)), variables },
+            data_type: DataType::StructType { name: Some(Self::generate_vtable_name(name)), variables },
             initializer: None,
             location: SourceLocation::internal(),
             scope: Some(name.to_string()),
@@ -406,8 +384,8 @@ impl PipelineParticipantMut for VTableIndexer {
         let vtables_intf = VTableIndexer::create_vtables_for_interfaces(&index);
 
         if let Some(unit) = project.units.first_mut() {
-            unit.user_types.extend(vtables_pou.into_iter().map(|(_, vtable)| vtable));
-            unit.user_types.extend(vtables_intf.into_iter().map(|(_, vtable)| vtable));
+            unit.user_types.extend(vtables_pou);
+            unit.user_types.extend(vtables_intf);
         }
 
         project.index(self.id_provider.clone())
