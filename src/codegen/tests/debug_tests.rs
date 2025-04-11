@@ -349,29 +349,38 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         ",
     );
 
-    assert_snapshot!(codegen, @r###"
+    assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %__vtable_fb = type { i32* }
     %fb = type {}
 
-    @__fb__init = constant %fb zeroinitializer, !dbg !0
+    @____vtable_fb__init = constant %__vtable_fb zeroinitializer, !dbg !0
+    @__fb__init = constant %fb zeroinitializer, !dbg !8
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
-    define void @fb(%fb* %0) !dbg !9 {
+    define void @fb(%fb* %0) !dbg !16 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !12, metadata !DIExpression()), !dbg !13
-      ret void, !dbg !13
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !19, metadata !DIExpression()), !dbg !20
+      ret void, !dbg !20
     }
 
-    define void @fb.foo(%fb* %0) !dbg !14 {
+    define void @fb.foo(%fb* %0) !dbg !21 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !15, metadata !DIExpression()), !dbg !16
-      ret void, !dbg !16
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !22, metadata !DIExpression()), !dbg !23
+      ret void, !dbg !23
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init___vtable_fb(%__vtable_fb* %0) {
+    entry:
+      %self = alloca %__vtable_fb*, align 8
+      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      ret void
+    }
 
     define void @__init_fb(%fb* %0) {
     entry:
@@ -387,27 +396,34 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!5, !6}
-    !llvm.dbg.cu = !{!7}
+    !llvm.module.flags = !{!12, !13}
+    !llvm.dbg.cu = !{!14}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !1 = distinct !DIGlobalVariable(name: "____vtable_fb__init", scope: !2, file: !2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
-    !4 = !{}
-    !5 = !{i32 2, !"Dwarf Version", i32 5}
-    !6 = !{i32 2, !"Debug Info Version", i32 3}
-    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
-    !8 = !{!0}
-    !9 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !10, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-    !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
-    !11 = !{null, !3}
-    !12 = !DILocalVariable(name: "fb", scope: !9, file: !2, line: 5, type: !3)
-    !13 = !DILocation(line: 5, column: 8, scope: !9)
-    !14 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !9, file: !2, line: 3, type: !10, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-    !15 = !DILocalVariable(name: "fb", scope: !14, file: !2, line: 4, type: !3)
-    !16 = !DILocation(line: 4, column: 8, scope: !14)
-    "###);
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_fb", scope: !2, file: !2, size: 64, flags: DIFlagPublic, elements: !4, identifier: "__vtable_fb")
+    !4 = !{!5}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "fb.foo", scope: !2, file: !2, baseType: !6, size: 64, flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "VOID_POINTER", baseType: !7, size: 64, dwarfAddressSpace: 1)
+    !7 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !8 = !DIGlobalVariableExpression(var: !9, expr: !DIExpression())
+    !9 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !10, isLocal: false, isDefinition: true)
+    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !11, identifier: "fb")
+    !11 = !{}
+    !12 = !{i32 2, !"Dwarf Version", i32 5}
+    !13 = !{i32 2, !"Debug Info Version", i32 3}
+    !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)
+    !15 = !{!8, !0}
+    !16 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !17, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !11)
+    !17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
+    !18 = !{null, !10}
+    !19 = !DILocalVariable(name: "fb", scope: !16, file: !2, line: 5, type: !10)
+    !20 = !DILocation(line: 5, column: 8, scope: !16)
+    !21 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !16, file: !2, line: 3, type: !17, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !11)
+    !22 = !DILocalVariable(name: "fb", scope: !21, file: !2, line: 4, type: !10)
+    !23 = !DILocation(line: 4, column: 8, scope: !21)
+    "#);
 }
 
 #[test]
