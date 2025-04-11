@@ -13,7 +13,7 @@ fn compile_all(name: &str, encoding: Option<&'static Encoding>) {
     let out_name = format!("{}.out", &name);
     out.push(out_name);
     let out = out.into_os_string().into_string().unwrap();
-    let mut main_args = vec!["plc", &path, "-o", &out, "-Odefault", "--target", "x86_64-unknown-linux-pc"];
+    let mut main_args = vec!["plc", &path, "-o", &out, "-Odefault", "--target", "x86_64-linux-pc"];
     if let Some(encoding) = encoding {
         main_args.push("--encoding");
         main_args.push(encoding.name());
