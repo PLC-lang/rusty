@@ -91,6 +91,10 @@ function run_std_build() {
     if [[ ! -z $target ]]; then
         for val in ${target//,/ }
         do
+            # if the target ends with -linux-gnu but does not have unknown, add unknown
+            if [[ $val == *"-linux-gnu" && $val != *"unknown-linux-gnu" ]]; then
+                val="${val/-linux-gnu/-unknown-linux-gnu}"
+            fi
             new_cmd="$cmd --target=$val"
             log "Running $new_cmd"
             eval "$new_cmd"
@@ -129,7 +133,7 @@ function run_doc() {
     log "Building book"
     log "Building preprocessor for the book"
     cargo build --release -p errorcode_book_generator
-    cd book && mdbook build 
+    cd book && mdbook build
     # test is disabled because not all files in the book exist. The pre-processor for error codes adds new files
     # mdbook test
 }
@@ -163,7 +167,7 @@ function run_test() {
         rm -rf "$project_location/test_results"
         make_dir "$project_location/test_results"
         # JUnit test should run via cargo-nextest
-        log "cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci \ 
+        log "cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci \
         mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml"
         cargo-nextest nextest run $CARGO_OPTIONS --lib --profile ci
         mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/unit_tests.xml
@@ -176,11 +180,11 @@ function run_test() {
         mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/integration_tests.xml
 
         # Run the std integration
-        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*' \ 
+        log "cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*' \
         mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml"
         cargo-nextest nextest run $CARGO_OPTIONS --profile ci -p iec61131std --test '*'
         mv "$project_location"/target/nextest/ci/junit.xml "$project_location"/test_results/std_integration_tests.xml
-        
+
     else
         cargo test $CARGO_OPTIONS --workspace
     fi
@@ -222,7 +226,12 @@ function run_package_std() {
         do
             lib_dir=$OUTPUT_DIR/$val/lib
             make_dir $lib_dir
-            rel_dir="$target_dir/$val"
+
+            # if the target ends with -linux-gnu but does not have unknown, add unknown
+            if [[ $val == *"-linux-gnu" && $val != *"unknown-linux-gnu" ]]; then
+                rustc_target="${val/-linux-gnu/-unknown-linux-gnu}"
+            fi
+            rel_dir="$target_dir/$rustc_target"
             if [[ $release -ne 0 ]]; then
                 rel_dir="$rel_dir/release"
             else
