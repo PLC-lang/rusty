@@ -63,7 +63,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Context {
     base_type_name: Option<String>,
     pou: Option<String>,
@@ -100,17 +100,6 @@ impl Context {
 
     fn provider(&self) -> IdProvider {
         self.id_provider.clone()
-    }
-}
-
-impl Clone for Context {
-    fn clone(&self) -> Self {
-        Self {
-            base_type_name: self.base_type_name.clone(),
-            pou: self.pou.clone(),
-            access_kind: self.access_kind,
-            id_provider: self.id_provider.clone(),
-        }
     }
 }
 

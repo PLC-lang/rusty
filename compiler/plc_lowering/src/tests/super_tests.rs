@@ -241,7 +241,6 @@ fn access_grandparent_through_super() {
 }
 
 #[test]
-#[ignore = "stack overflow"]
 fn access_great_grandparent_through_super() {
     let src: SourceCode = r#"
         FUNCTION_BLOCK great_grandparent
@@ -265,7 +264,50 @@ fn access_great_grandparent_through_super() {
 
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[3].statements;
-    assert_debug_snapshot!(statements, @r#""#);
+    assert_debug_snapshot!(statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__great_grandparent",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__grandparent",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "__parent",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ),
+            },
+            right: LiteralInteger {
+                value: 100,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]

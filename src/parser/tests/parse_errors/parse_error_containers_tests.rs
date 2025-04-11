@@ -186,6 +186,7 @@ fn super_is_a_reserved_keyword() {
     //                  Also, half the diagnostics in this file are moot since
     //                  the pipeline will abort compilation on parse errors,
     //                  i.e. the validation stage is never reached.
+    //                  Related: https://github.com/PLC-lang/rusty/issues/1408
 
     let diagnostics = parse_and_report_parse_errors_buffered(src);
     assert_snapshot!(diagnostics, @r"

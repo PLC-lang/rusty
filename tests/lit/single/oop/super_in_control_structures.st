@@ -1,12 +1,4 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// CHECK: Initial counter: 0
-// CHECK: Loop increment: 1
-// CHECK: Loop increment: 2
-// CHECK: Loop increment: 3
-// CHECK: Counter is three
-// CHECK: While increment: 4
-// CHECK: While increment: 5
-// CHECK: Parent counter: 5
 FUNCTION_BLOCK parent
 VAR
     counter : INT := 0;
@@ -37,11 +29,15 @@ METHOD test
     SUPER^.reset();
     
     // Use SUPER^ in IF statement
+    // CHECK: Initial counter: 0
     IF SUPER^.counter < SUPER^.threshold THEN
         printf('Initial counter: %d$N', SUPER^.counter);
     END_IF;
     
     // Use SUPER^ in FOR loop
+    // CHECK: Loop increment: 1
+    // CHECK: Loop increment: 2
+    // CHECK: Loop increment: 3
     FOR i := 1 TO 3 BY 1 DO
         result := SUPER^.increment();
         printf('Loop increment: %d$N', result);
@@ -49,11 +45,14 @@ METHOD test
     
     // Use SUPER^ in CASE statement
     CASE SUPER^.counter OF
+        // CHECK: Counter is three
         3: printf('Counter is three$N');
         4: printf('Counter is four$N');
     END_CASE;
     
     // Use SUPER^ in WHILE loop
+    // CHECK: While increment: 4
+    // CHECK: While increment: 5
     WHILE SUPER^.counter < 5 DO
         result := SUPER^.increment();
         printf('While increment: %d$N', result);
@@ -62,6 +61,7 @@ END_METHOD
 
     test();
     
+    // CHECK: Parent counter: 5
     printf('Parent counter: %d$N', SUPER^.counter);
 END_FUNCTION_BLOCK
 

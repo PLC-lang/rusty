@@ -177,7 +177,6 @@ fn validate_reference_expression<T: AnnotationMap>(
             validate_member_access(validator, context, statement, m, base);
         }
         ReferenceAccess::Member(m) => {
-            // FIXME: `SUPER` access behind the global namespace operator is not caught. i.e. `.SUPER^...`, since we do not have a base here
             if let Some(base) = base {
                 if m.is_super() || m.has_super_metadata() {
                     // super cannot be accessed as a member

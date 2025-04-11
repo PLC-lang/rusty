@@ -224,6 +224,9 @@ fn super_keyword_is_not_assignable() {
         END_VAR
             SUPER^ := super_inst;
             SUPER := super_ptr;
+
+            (SUPER)^ := super_inst; // FIXME: Immediate deref of `REF` result is not validated and panics in codegen. tracked in #1463
+            (SUPER) := super_ptr;
         END_FUNCTION_BLOCK
     ",
     );
@@ -240,6 +243,12 @@ fn super_keyword_is_not_assignable() {
        │
     10 │             SUPER := super_ptr;
        │             ^^^^^ Expression SUPER is not assignable.
+
+    error[E050]: Expression (SUPER) is not assignable.
+       ┌─ <internal>:13:13
+       │
+    13 │             (SUPER) := super_ptr;
+       │             ^^^^^^^ Expression (SUPER) is not assignable.
     ");
 }
 
