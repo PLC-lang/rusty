@@ -45,13 +45,13 @@ fn exports_env_variable() {
         "build",
         &get_test_file("json/build_to_temp.json"),
         "--target",
-        "aarch64-unknown-linux-gnu",
+        "aarch64-linux-gnu",
         "--build-location",
         dir.path().to_str().unwrap(),
     ];
     compile(parameters).unwrap();
 
-    assert_eq!(std::env::var("ARCH").unwrap(), "aarch64-unknown-linux-gnu");
+    assert_eq!(std::env::var("ARCH").unwrap(), "aarch64-linux-gnu");
 }
 
 #[test]
@@ -86,13 +86,13 @@ fn build_with_target_but_without_sysroot() {
         "build",
         &get_test_file("json/build_without_sysroot.json"),
         "--target",
-        "x86_64-unknown-linux-gnu",
+        "x86_64-linux-gnu",
         "--build-location",
         dir.path().to_str().unwrap(),
     ];
     compile(parameters).unwrap();
 
-    assert!(dir.path().join("x86_64-unknown-linux-gnu").join("proj.so").is_file());
+    assert!(dir.path().join("x86_64-linux-gnu").join("proj.so").is_file());
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn build_with_cc_linker() {
     let dir = tempfile::tempdir().unwrap();
     let arch = match () {
         #[cfg(target_arch = "x86_64")]
-        _ => "x86_64-unknown-linux-gnu",
+        _ => "x86_64-linux-gnu",
 
         #[cfg(target_arch = "aarch64")]
         _ => match () {
@@ -110,7 +110,7 @@ fn build_with_cc_linker() {
             _ => "aarch64-apple-darwin",
 
             #[cfg(not(target_os = "macos"))]
-            _ => "aarch64-unknown-linux-gnu",
+            _ => "aarch64-linux-gnu",
         },
     };
 
