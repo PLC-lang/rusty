@@ -5,17 +5,17 @@
 //!
 
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env, fs,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, RwLock},
 };
 
-use ast::ast::{DataType, DataTypeDeclaration, UserTypeDeclaration};
+use ast::ast::{DataType, DataTypeDeclaration, Identifier, UserTypeDeclaration};
 use ast::{ast::Variable, provider::IdProvider};
 use plc::{
     codegen::GeneratedModule,
-    index::PouIndexEntry,
+    index::{Index, PouIndexEntry},
     lowering::calls::AggregateTypeLowerer,
     output::FormatOption,
     typesystem::{VOID_INTERNAL_NAME, VOID_POINTER_TYPE},
@@ -300,48 +300,116 @@ impl VTableIndexer {
         format!("__vtable_{name}")
     }
 
-    fn create_vtable(
-        name: &str,
-        methods: Vec<&PouIndexEntry>,
-        location: SourceLocation,
-    ) -> UserTypeDeclaration {
-        let mut variables = Vec::new();
-        for method in methods.iter() {
-            let variable = Variable {
-                name: method.get_name().to_string(),
-                data_type_declaration: DataTypeDeclaration::Reference {
-                    referenced_type: VOID_POINTER_TYPE.into(),
-                    location: method.get_location().clone(),
-                },
-                initializer: None,
-                address: None,
-                location: method.get_location().clone(),
-            };
-            variables.push(variable);
+    fn create_vtables_for_pous(index: &Index) -> HashMap<String, UserTypeDeclaration> {
+        let mut vtables = HashMap::new();
+        for pou in index.get_pous().values().filter(|pou| pou.is_function_block() || pou.is_class()) {
+            let mut variables = Vec::new();
+
+            if let Some(parent) = pou.get_super_class() {
+                variables.push(Variable {
+                    name: VTableIndexer::get_vtable_name(parent),
+                    data_type_declaration: DataTypeDeclaration::Reference {
+                        referenced_type: VTableIndexer::get_vtable_name(parent),
+                        location: SourceLocation::internal(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceLocation::internal(),
+                });
+            }
+
+            for interface in pou.get_interfaces() {
+                variables.push(Variable {
+                    name: VTableIndexer::get_vtable_name(interface),
+                    data_type_declaration: DataTypeDeclaration::Reference {
+                        referenced_type: VTableIndexer::get_vtable_name(interface),
+                        location: SourceLocation::internal(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceLocation::internal(),
+                });
+            }
+
+            for method in index.get_methods_local(pou.get_name()) {
+                variables.push(VTableIndexer::create_void_pointer(method.get_name()));
+            }
+
+            vtables
+                .insert(pou.get_name().to_string(), VTableIndexer::create_vtable(pou.get_name(), variables));
         }
-        let data_type = DataType::StructType { name: Some(Self::get_vtable_name(name)), variables };
-        UserTypeDeclaration { data_type, initializer: None, location, scope: Some(name.to_string()) }
+
+        vtables
+    }
+
+    fn create_vtables_for_interfaces(index: &Index) -> HashMap<String, UserTypeDeclaration> {
+        let mut vtables = HashMap::new();
+        for interface in index.get_interfaces().values() {
+            let mut variables = Vec::new();
+            for Identifier { name, location } in &interface.extensions {
+                variables.push(Variable {
+                    name: VTableIndexer::get_vtable_name(name),
+                    data_type_declaration: DataTypeDeclaration::Reference {
+                        referenced_type: VTableIndexer::get_vtable_name(name),
+                        location: location.clone(),
+                    },
+                    initializer: None,
+                    address: None,
+                    location: SourceLocation::internal(),
+                });
+            }
+
+            for method in interface.get_declared_methods(index) {
+                variables.push(VTableIndexer::create_void_pointer(method.get_name()));
+            }
+
+            vtables.insert(
+                interface.get_name().to_string(),
+                VTableIndexer::create_vtable(interface.get_name(), variables),
+            );
+        }
+
+        vtables
+    }
+
+    /// Creates a void pointer variable with the given name and location
+    fn create_void_pointer(name: &str) -> Variable {
+        Variable {
+            name: name.to_string(),
+            data_type_declaration: DataTypeDeclaration::Reference {
+                referenced_type: VOID_POINTER_TYPE.into(),
+                location: SourceLocation::internal(),
+            },
+            initializer: None,
+            address: None,
+            location: SourceLocation::internal(),
+        }
+    }
+
+    /// Creates a vtable with the given member variables and a mangled name of the form `__vtable_<name>`
+    fn create_vtable(name: &str, variables: Vec<Variable>) -> UserTypeDeclaration {
+        UserTypeDeclaration {
+            data_type: DataType::StructType { name: Some(Self::get_vtable_name(name)), variables },
+            initializer: None,
+            location: SourceLocation::internal(),
+            scope: Some(name.to_string()),
+        }
     }
 }
 
 impl PipelineParticipantMut for VTableIndexer {
+    // TODO: Don't track overridden methods in vtable, as they're part of the parent instance (same for interfaces)
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        //For each class or interface, create a vtable type
-        //and add it to the index
         let IndexedProject { mut project, index, .. } = indexed_project;
-        let mut vtables = Vec::new();
-        for interface in index.get_interfaces().values() {
-            let methods = interface.get_methods(&index);
-            let vtable = Self::create_vtable(interface.get_name(), methods, interface.get_location().clone());
-            vtables.push(vtable);
+
+        let vtables_pou = VTableIndexer::create_vtables_for_pous(&index);
+        let vtables_intf = VTableIndexer::create_vtables_for_interfaces(&index);
+
+        if let Some(unit) = project.units.first_mut() {
+            unit.user_types.extend(vtables_pou.into_iter().map(|(_, vtable)| vtable));
+            unit.user_types.extend(vtables_intf.into_iter().map(|(_, vtable)| vtable));
         }
 
-        for pou in index.get_pous().values().filter(|it| it.is_function_block() || it.is_class()) {
-            let methods = index.get_methods(pou.get_name());
-            let vtable = Self::create_vtable(pou.get_name(), methods, pou.get_location().clone());
-            vtables.push(vtable);
-        }
-        project.units.first_mut().unwrap().user_types.extend(vtables);
         project.index(self.id_provider.clone())
     }
 }
