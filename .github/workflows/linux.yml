@@ -49,7 +49,7 @@ jobs:
         run: |
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package \
-          --target x86_64-linux-gnu,aarch64-linux-gnu \
+          --target x86_64-linux-gnu,aarch64-linux-gnu, \
           x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
 
       - uses: actions/upload-artifact@master
