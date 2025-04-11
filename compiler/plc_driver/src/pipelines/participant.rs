@@ -341,7 +341,6 @@ impl PipelineParticipantMut for VTableIndexer {
             let vtable = Self::create_vtable(pou.get_name(), methods, pou.get_location().clone());
             vtables.push(vtable);
         }
-
         project.units.first_mut().unwrap().user_types.extend(vtables);
         project.index(self.id_provider.clone())
     }

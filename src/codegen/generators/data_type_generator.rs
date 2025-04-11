@@ -74,24 +74,14 @@ pub fn generate_data_types<'ink>(
                 types.push((dep.get_name(), datatype))
             }
         }
-
-        if let Some(datatype) = dep.get_vtable(index) {
-            if !datatype.get_type_information().is_generic(index) {
-                types.push((datatype.get_name(), datatype))
-            }
-        }
     }
 
     let mut generator =
         DataTypeGenerator { llvm, debug, index, annotations, types_index: LlvmTypedIndex::default() };
 
-    // dbg!(&types);
     // first create all STUBs for struct types (empty structs)
     // and associate them in the llvm index
     for (name, user_type) in &types {
-        if *name == "__vtable_fb" {
-            eprintln!("hi")
-        }
         if let DataTypeInformation::Struct { name: struct_name, .. } = user_type.get_type_information() {
             generator.types_index.associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
@@ -201,7 +191,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             .map(BasicTypeEnum::into_struct_type)?;
 
             struct_type.set_body(members.as_slice(), false);
-            dbg!(&struct_type);
         }
         Ok(())
     }
@@ -318,7 +307,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 }?
                 .into_struct_type();
 
-                eprintln!("Init for : {}", data_type.get_name());
                 Ok(Some(struct_type.const_named_struct(&member_values).as_basic_value_enum()))
             }
             DataTypeInformation::Array { .. } => self.generate_array_initializer(
