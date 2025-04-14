@@ -1649,31 +1649,38 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::This => {
                 if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     match pou {
-                        // TODO: #THIS for method check if parent is of type functionblock
+                        // TODO: #THIS for functionblock and for method if parent is of type functionblock
                         PouIndexEntry::FunctionBlock { name, .. }
                         | PouIndexEntry::Method { parent_name: name, .. } => {
-                            let ptr_name = format!("{}.__THIS", name);
-                            if self
-                                .index
-                                .find_type(&ptr_name)
-                                .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
-                                .is_none()
-                            {
-                                let information = DataTypeInformation::Pointer {
-                                    name: ptr_name.clone(),
-                                    inner_type_name: name.to_string(),
-                                    auto_deref: None,
-                                };
-                                let dt = crate::typesystem::DataType {
-                                    name: ptr_name.clone(),
-                                    initial_value: None,
-                                    information,
-                                    nature: TypeNature::Any,
-                                    location: SourceLocation::internal(),
-                                };
-                                self.annotation_map.new_index.register_type(dt);
+                            if let Some(parent_name) = self.index.find_pou(name) {
+                                match parent_name {
+                                    PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. } => {
+                                        let ptr_name = format!("{}.__THIS", name);
+                                        if self
+                                            .index
+                                            .find_type(&ptr_name)
+                                            .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
+                                            .is_none()
+                                        {
+                                            let information = DataTypeInformation::Pointer {
+                                                name: ptr_name.clone(),
+                                                inner_type_name: name.to_string(),
+                                                auto_deref: None,
+                                            };
+                                            let dt = crate::typesystem::DataType {
+                                                name: ptr_name.clone(),
+                                                initial_value: None,
+                                                information,
+                                                nature: TypeNature::Any,
+                                                location: SourceLocation::internal(),
+                                            };
+                                            self.annotation_map.new_index.register_type(dt);
+                                        }
+                                        self.annotate(statement, StatementAnnotation::value(ptr_name));
+                                    }
+                                    _ => {}
+                                }
                             }
-                            self.annotate(statement, StatementAnnotation::value(ptr_name));
                         }
                         _ => {}
                     }
@@ -2023,14 +2030,22 @@ impl<'i> TypeAnnotator<'i> {
                 // Only `THIS` in FunctionBlock/methods context
                 // TODO: also support methods
                 if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
-                    if let PouIndexEntry::FunctionBlock { name, .. } | PouIndexEntry::Method { name, .. } =
-                        pou
-                    {
-                        // TODO: check if ptr already exists and return exisiting one
-                        // check if ptr can be added to index during indexing
-                        Some(StatementAnnotation::value(name))
-                    } else {
-                        None
+                    match pou {
+                        // TODO: #THIS for functionblock and for method if parent is of type functionblock
+                        PouIndexEntry::FunctionBlock { name, .. }
+                        | PouIndexEntry::Method { parent_name: name, .. } => {
+                            if let Some(parent_name) = self.index.find_pou(name) {
+                                match parent_name {
+                                    PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. } => {
+                                        Some(StatementAnnotation::value(name))
+                                    }
+                                    _ => None,
+                                }
+                            } else {
+                                None
+                            }
+                        }
+                        _ => None,
                     }
                 } else {
                     None
