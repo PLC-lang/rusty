@@ -230,6 +230,8 @@ function run_package_std() {
             # if the target ends with -linux-gnu but does not have unknown, add unknown
             if [[ $val == *"-linux-gnu" && $val != *"unknown-linux-gnu" ]]; then
                 rustc_target="${val/-linux-gnu/-unknown-linux-gnu}"
+            else
+                rustc_target=$val
             fi
             rel_dir="$target_dir/$rustc_target"
             if [[ $release -ne 0 ]]; then
