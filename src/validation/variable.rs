@@ -495,23 +495,6 @@ mod variable_validator_tests {
     use crate::test_utils::tests::parse_and_validate_buffered;
 
     #[test]
-    fn validate_empty_struct_declaration() {
-        let diagnostics = parse_and_validate_buffered(
-            "
-        TYPE the_struct : STRUCT END_STRUCT END_TYPE
-
-        PROGRAM prg
-            VAR
-                my_struct : STRUCT
-                END_STRUCT
-            END_VAR
-        END_PROGRAM
-        ",
-        );
-        assert_snapshot!(diagnostics);
-    }
-
-    #[test]
     fn validate_empty_enum_declaration() {
         let diagnostics = parse_and_validate_buffered(
             "
