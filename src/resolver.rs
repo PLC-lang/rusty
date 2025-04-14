@@ -1647,44 +1647,37 @@ impl<'i> TypeAnnotator<'i> {
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
             AstStatement::This => {
-                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
-                    match pou {
-                        // TODO: #THIS for functionblock and for method if parent is of type functionblock
-                        PouIndexEntry::FunctionBlock { name, .. }
-                        | PouIndexEntry::Method { parent_name: name, .. } => {
-                            if let Some(parent_name) = self.index.find_pou(name) {
-                                match parent_name {
-                                    PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. } => {
-                                        let ptr_name = format!("{}.__THIS", name);
-                                        if self
-                                            .index
-                                            .find_type(&ptr_name)
-                                            .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
-                                            .is_none()
-                                        {
-                                            let information = DataTypeInformation::Pointer {
-                                                name: ptr_name.clone(),
-                                                inner_type_name: name.to_string(),
-                                                auto_deref: None,
-                                            };
-                                            let dt = crate::typesystem::DataType {
-                                                name: ptr_name.clone(),
-                                                initial_value: None,
-                                                information,
-                                                nature: TypeNature::Any,
-                                                location: SourceLocation::internal(),
-                                            };
-                                            self.annotation_map.new_index.register_type(dt);
-                                        }
-                                        self.annotate(statement, StatementAnnotation::value(ptr_name));
-                                    }
-                                    _ => {}
-                                }
-                            }
-                        }
-                        _ => {}
+                let name = match ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    Some(PouIndexEntry::FunctionBlock { name, .. }) => name,
+                    Some(PouIndexEntry::Method { parent_name: name, .. })
+                        if self.index.find_pou(&name).is_some_and(|it| it.is_function_block()) =>
+                    {
+                        name
                     }
+                    _ => return,
+                };
+                let ptr_name = format!("{}.__THIS", name);
+                if self
+                    .index
+                    .find_type(&ptr_name)
+                    .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
+                    .is_none()
+                {
+                    let information = DataTypeInformation::Pointer {
+                        name: ptr_name.clone(),
+                        inner_type_name: name.to_string(),
+                        auto_deref: None,
+                    };
+                    let dt = crate::typesystem::DataType {
+                        name: ptr_name.clone(),
+                        initial_value: None,
+                        information,
+                        nature: TypeNature::Any,
+                        location: SourceLocation::internal(),
+                    };
+                    self.annotation_map.new_index.register_type(dt);
                 }
+                self.annotate(statement, StatementAnnotation::value(ptr_name));
             }
             AstStatement::DirectAccess(data, ..) => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
@@ -2026,31 +2019,6 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
-            AstStatement::This => {
-                // Only `THIS` in FunctionBlock/methods context
-                // TODO: also support methods
-                if let Some(pou) = ctx.pou.and_then(|name| self.index.find_pou(name)) {
-                    match pou {
-                        // TODO: #THIS for functionblock and for method if parent is of type functionblock
-                        PouIndexEntry::FunctionBlock { name, .. }
-                        | PouIndexEntry::Method { parent_name: name, .. } => {
-                            if let Some(parent_name) = self.index.find_pou(name) {
-                                match parent_name {
-                                    PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Method { .. } => {
-                                        Some(StatementAnnotation::value(name))
-                                    }
-                                    _ => None,
-                                }
-                            } else {
-                                None
-                            }
-                        }
-                        _ => None,
-                    }
-                } else {
-                    None
-                }
-            }
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()
