@@ -73,17 +73,7 @@ fn programs_state_is_stored_in_a_struct() {
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 2,
-                                    column: 20,
-                                    offset: 42,
-                                }..TextLocation {
-                                    line: 2,
-                                    column: 21,
-                                    offset: 43,
-                                },
-                            ),
+                            span: Range(2:20 - 2:21),
                             file: Some(
                                 "<internal>",
                             ),
@@ -104,17 +94,7 @@ fn programs_state_is_stored_in_a_struct() {
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 3,
-                                    column: 20,
-                                    offset: 82,
-                                }..TextLocation {
-                                    line: 3,
-                                    column: 22,
-                                    offset: 84,
-                                },
-                            ),
+                            span: Range(3:20 - 3:22),
                             file: Some(
                                 "<internal>",
                             ),
@@ -135,17 +115,7 @@ fn programs_state_is_stored_in_a_struct() {
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 4,
-                                    column: 20,
-                                    offset: 122,
-                                }..TextLocation {
-                                    line: 4,
-                                    column: 21,
-                                    offset: 123,
-                                },
-                            ),
+                            span: Range(4:20 - 4:21),
                             file: Some(
                                 "<internal>",
                             ),
@@ -166,17 +136,7 @@ fn programs_state_is_stored_in_a_struct() {
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 5,
-                                    column: 20,
-                                    offset: 162,
-                                }..TextLocation {
-                                    line: 5,
-                                    column: 21,
-                                    offset: 163,
-                                },
-                            ),
+                            span: Range(5:20 - 5:21),
                             file: Some(
                                 "<internal>",
                             ),
@@ -197,17 +157,7 @@ fn programs_state_is_stored_in_a_struct() {
                         linkage: Internal,
                         binding: None,
                         source_location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 6,
-                                    column: 20,
-                                    offset: 202,
-                                }..TextLocation {
-                                    line: 6,
-                                    column: 22,
-                                    offset: 204,
-                                },
-                            ),
+                            span: Range(6:20 - 6:22),
                             file: Some(
                                 "<internal>",
                             ),
@@ -221,17 +171,7 @@ fn programs_state_is_stored_in_a_struct() {
             },
             nature: Any,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 12,
-                        offset: 13,
-                    }..TextLocation {
-                        line: 1,
-                        column: 20,
-                        offset: 21,
-                    },
-                ),
+                span: Range(1:12 - 1:20),
                 file: Some(
                     "<internal>",
                 ),

@@ -304,31 +304,11 @@ fn var_config_test() {
                         },
                     ],
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 2,
-                                column: 26,
-                                offset: 42,
-                            }..TextLocation {
-                                line: 2,
-                                column: 35,
-                                offset: 51,
-                            },
-                        ),
+                        span: Range(2:26 - 2:35),
                     },
                 },
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 8,
-                            offset: 24,
-                        }..TextLocation {
-                            line: 2,
-                            column: 25,
-                            offset: 41,
-                        },
-                    ),
+                    span: Range(2:8 - 2:25),
                 },
             },
             ConfigVariable {
@@ -373,31 +353,11 @@ fn var_config_test() {
                         },
                     ],
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 26,
-                                offset: 86,
-                            }..TextLocation {
-                                line: 3,
-                                column: 35,
-                                offset: 95,
-                            },
-                        ),
+                        span: Range(3:26 - 3:35),
                     },
                 },
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 3,
-                            column: 8,
-                            offset: 68,
-                        }..TextLocation {
-                            line: 3,
-                            column: 25,
-                            offset: 85,
-                        },
-                    ),
+                    span: Range(3:8 - 3:25),
                 },
             },
         ],

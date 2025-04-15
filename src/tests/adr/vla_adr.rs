@@ -81,17 +81,7 @@ fn representation() {
         },
         nature: __VLA,
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 3,
-                    column: 22,
-                    offset: 79,
-                }..TextLocation {
-                    line: 3,
-                    column: 38,
-                    offset: 95,
-                },
-            ),
+            span: Range(3:22 - 3:38),
             file: Some(
                 "<internal>",
             ),
@@ -112,17 +102,7 @@ fn representation() {
         },
         nature: Any,
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 3,
-                    column: 22,
-                    offset: 79,
-                }..TextLocation {
-                    line: 3,
-                    column: 38,
-                    offset: 95,
-                },
-            ),
+            span: Range(3:22 - 3:38),
             file: Some(
                 "<internal>",
             ),
@@ -181,17 +161,7 @@ fn representation() {
         },
         nature: Any,
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 3,
-                    column: 22,
-                    offset: 79,
-                }..TextLocation {
-                    line: 3,
-                    column: 38,
-                    offset: 95,
-                },
-            ),
+            span: Range(3:22 - 3:38),
             file: Some(
                 "<internal>",
             ),
@@ -269,17 +239,7 @@ fn pass() {
         },
         nature: Any,
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 3,
-                    column: 24,
-                    offset: 70,
-                }..TextLocation {
-                    line: 3,
-                    column: 43,
-                    offset: 89,
-                },
-            ),
+            span: Range(3:24 - 3:43),
             file: Some(
                 "<internal>",
             ),

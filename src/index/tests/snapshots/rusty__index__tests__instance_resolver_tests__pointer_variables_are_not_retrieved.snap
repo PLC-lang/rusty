@@ -25,17 +25,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 12,
-                        offset: 98,
-                    }..TextLocation {
-                        line: 6,
-                        column: 20,
-                        offset: 106,
-                    },
-                ),
+                span: Range(6:12 - 6:20),
                 file: Some(
                     "<internal>",
                 ),
@@ -68,17 +58,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 8,
-                        offset: 123,
-                    }..TextLocation {
-                        line: 8,
-                        column: 11,
-                        offset: 126,
-                    },
-                ),
+                span: Range(8:8 - 8:11),
                 file: Some(
                     "<internal>",
                 ),

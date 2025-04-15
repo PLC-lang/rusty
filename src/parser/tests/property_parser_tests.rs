@@ -35,23 +35,13 @@ fn properties_can_be_parsed() {
     assert_eq!(properties[0].ident.name, "bar");
     assert_eq!(properties[0].implementations.len(), 2);
 
-    insta::assert_debug_snapshot!(properties, @r#"
+    insta::assert_debug_snapshot!(properties, @r###"
     [
         PropertyBlock {
             ident: Identifier {
                 name: "bar",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 21,
-                            offset: 49,
-                        }..TextLocation {
-                            line: 2,
-                            column: 24,
-                            offset: 52,
-                        },
-                    ),
+                    span: Range(2:21 - 2:24),
                 },
             },
             datatype: DataTypeReference {
@@ -61,17 +51,7 @@ fn properties_can_be_parsed() {
                 PropertyImplementation {
                     kind: Get,
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 16,
-                                offset: 75,
-                            }..TextLocation {
-                                line: 3,
-                                column: 19,
-                                offset: 78,
-                            },
-                        ),
+                        span: Range(3:16 - 3:19),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -102,33 +82,13 @@ fn properties_can_be_parsed() {
                         },
                     ],
                     end_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 9,
-                                column: 16,
-                                offset: 227,
-                            }..TextLocation {
-                                line: 9,
-                                column: 23,
-                                offset: 234,
-                            },
-                        ),
+                        span: Range(9:16 - 9:23),
                     },
                 },
                 PropertyImplementation {
                     kind: Set,
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 10,
-                                column: 16,
-                                offset: 251,
-                            }..TextLocation {
-                                line: 10,
-                                column: 19,
-                                offset: 254,
-                            },
-                        ),
+                        span: Range(10:16 - 10:19),
                     },
                     variable_blocks: [
                         VariableBlock {
@@ -164,23 +124,13 @@ fn properties_can_be_parsed() {
                         },
                     ],
                     end_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 16,
-                                column: 16,
-                                offset: 426,
-                            }..TextLocation {
-                                line: 16,
-                                column: 23,
-                                offset: 433,
-                            },
-                        ),
+                        span: Range(16:16 - 16:23),
                     },
                 },
             ],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]

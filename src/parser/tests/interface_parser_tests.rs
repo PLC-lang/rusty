@@ -10,45 +10,25 @@ fn empty_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 1,
             ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 14,
-                            offset: 15,
-                        }..TextLocation {
-                            line: 1,
-                            column: 25,
-                            offset: 26,
-                        },
-                    ),
+                    span: Range(1:14 - 1:25),
                 },
             },
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 4,
-                        offset: 5,
-                    }..TextLocation {
-                        line: 3,
-                        column: 4,
-                        offset: 49,
-                    },
-                ),
+                span: Range(1:4 - 3:4),
             },
             methods: [],
             extensions: [],
             properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -67,38 +47,18 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 2,
             ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 14,
-                            offset: 15,
-                        }..TextLocation {
-                            line: 1,
-                            column: 25,
-                            offset: 26,
-                        },
-                    ),
+                    span: Range(1:14 - 1:25),
                 },
             },
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 4,
-                        offset: 5,
-                    }..TextLocation {
-                        line: 9,
-                        column: 4,
-                        offset: 185,
-                    },
-                ),
+                span: Range(1:4 - 9:4),
             },
             methods: [
                 POU {
@@ -141,7 +101,7 @@ fn interface_with_single_method() {
             properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -170,38 +130,18 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces, @r###"
     [
         Interface {
             id: 3,
             ident: Identifier {
                 name: "myInterface",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 14,
-                            offset: 15,
-                        }..TextLocation {
-                            line: 1,
-                            column: 25,
-                            offset: 26,
-                        },
-                    ),
+                    span: Range(1:14 - 1:25),
                 },
             },
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 4,
-                        offset: 5,
-                    }..TextLocation {
-                        line: 19,
-                        column: 4,
-                        offset: 366,
-                    },
-                ),
+                span: Range(1:4 - 19:4),
             },
             methods: [
                 POU {
@@ -284,7 +224,7 @@ fn interface_with_multiple_methods() {
             properties: [],
         },
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -306,17 +246,7 @@ fn pou_implementing_single_interface() {
             Identifier {
                 name: "myInterface",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 34,
-                            offset: 35,
-                        }..TextLocation {
-                            line: 1,
-                            column: 45,
-                            offset: 46,
-                        },
-                    ),
+                    span: Range(1:34 - 1:45),
                 },
             },
         ],
@@ -343,49 +273,19 @@ fn pou_implementing_multiple_interfaces() {
             Identifier {
                 name: "InterfaceA",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 34,
-                            offset: 35,
-                        }..TextLocation {
-                            line: 1,
-                            column: 44,
-                            offset: 45,
-                        },
-                    ),
+                    span: Range(1:34 - 1:44),
                 },
             },
             Identifier {
                 name: "InterfaceB",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 46,
-                            offset: 47,
-                        }..TextLocation {
-                            line: 1,
-                            column: 56,
-                            offset: 57,
-                        },
-                    ),
+                    span: Range(1:46 - 1:56),
                 },
             },
             Identifier {
                 name: "InterfaceC",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 58,
-                            offset: 59,
-                        }..TextLocation {
-                            line: 1,
-                            column: 68,
-                            offset: 69,
-                        },
-                    ),
+                    span: Range(1:58 - 1:68),
                 },
             },
         ],
@@ -410,37 +310,17 @@ fn interface_deriving_from_other_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[1], @r#"
+    insta::assert_debug_snapshot!(unit.interfaces[1], @r###"
     Interface {
         id: 4,
         ident: Identifier {
             name: "bar",
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 18,
-                        offset: 102,
-                    }..TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 105,
-                    },
-                ),
+                span: Range(6:18 - 6:21),
             },
         },
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 6,
-                    column: 8,
-                    offset: 92,
-                }..TextLocation {
-                    line: 10,
-                    column: 4,
-                    offset: 182,
-                },
-            ),
+            span: Range(6:8 - 10:4),
         },
         methods: [
             POU {
@@ -459,23 +339,13 @@ fn interface_deriving_from_other_interface() {
             Identifier {
                 name: "foo",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 30,
-                            offset: 114,
-                        }..TextLocation {
-                            line: 6,
-                            column: 33,
-                            offset: 117,
-                        },
-                    ),
+                    span: Range(6:30 - 6:33),
                 },
             },
         ],
         properties: [],
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -498,76 +368,36 @@ fn interface_deriving_from_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[2], @r#"
+    insta::assert_debug_snapshot!(unit.interfaces[2], @r###"
     Interface {
         id: 5,
         ident: Identifier {
             name: "quux",
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 14,
-                        offset: 149,
-                    }..TextLocation {
-                        line: 11,
-                        column: 18,
-                        offset: 153,
-                    },
-                ),
+                span: Range(11:14 - 11:18),
             },
         },
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 11,
-                    column: 4,
-                    offset: 139,
-                }..TextLocation {
-                    line: 13,
-                    column: 4,
-                    offset: 193,
-                },
-            ),
+            span: Range(11:4 - 13:4),
         },
         methods: [],
         extensions: [
             Identifier {
                 name: "foo",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 11,
-                            column: 27,
-                            offset: 162,
-                        }..TextLocation {
-                            line: 11,
-                            column: 30,
-                            offset: 165,
-                        },
-                    ),
+                    span: Range(11:27 - 11:30),
                 },
             },
             Identifier {
                 name: "bar",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 11,
-                            column: 32,
-                            offset: 167,
-                        }..TextLocation {
-                            line: 11,
-                            column: 35,
-                            offset: 170,
-                        },
-                    ),
+                    span: Range(11:32 - 11:35),
                 },
             },
         ],
         properties: [],
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -588,23 +418,13 @@ fn interface_with_property() {
     assert_eq!(unit.interfaces.len(), 1);
     assert_eq!(unit.interfaces[0].ident.name, "myInterface");
 
-    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r#"
+    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r###"
     [
         PropertyBlock {
             ident: Identifier {
                 name: "foo",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 17,
-                            offset: 44,
-                        }..TextLocation {
-                            line: 2,
-                            column: 20,
-                            offset: 47,
-                        },
-                    ),
+                    span: Range(2:17 - 2:20),
                 },
             },
             datatype: DataTypeReference {
@@ -614,69 +434,29 @@ fn interface_with_property() {
                 PropertyImplementation {
                     kind: Get,
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 12,
-                                offset: 66,
-                            }..TextLocation {
-                                line: 3,
-                                column: 15,
-                                offset: 69,
-                            },
-                        ),
+                        span: Range(3:12 - 3:15),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 16,
-                                offset: 70,
-                            }..TextLocation {
-                                line: 3,
-                                column: 23,
-                                offset: 77,
-                            },
-                        ),
+                        span: Range(3:16 - 3:23),
                     },
                 },
                 PropertyImplementation {
                     kind: Set,
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 4,
-                                column: 12,
-                                offset: 90,
-                            }..TextLocation {
-                                line: 4,
-                                column: 15,
-                                offset: 93,
-                            },
-                        ),
+                        span: Range(4:12 - 4:15),
                     },
                     variable_blocks: [],
                     body: [],
                     end_location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 4,
-                                column: 16,
-                                offset: 94,
-                            }..TextLocation {
-                                line: 4,
-                                column: 23,
-                                offset: 101,
-                            },
-                        ),
+                        span: Range(4:16 - 4:23),
                     },
                 },
             ],
         },
     ]
-    "#);
+    "###);
 }
 
 mod error_handling {

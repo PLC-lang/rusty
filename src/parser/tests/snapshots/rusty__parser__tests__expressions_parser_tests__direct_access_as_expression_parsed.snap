@@ -47,17 +47,7 @@ CompilationUnit {
                                 },
                             ],
                             location: SourceLocation {
-                                span: Range(
-                                    TextLocation {
-                                        line: 2,
-                                        column: 15,
-                                        offset: 32,
-                                    }..TextLocation {
-                                        line: 2,
-                                        column: 23,
-                                        offset: 40,
-                                    },
-                                ),
+                                span: Range(2:15 - 2:23),
                             },
                         },
                     },
@@ -80,17 +70,7 @@ CompilationUnit {
                             },
                         ],
                         location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 3,
-                                    column: 10,
-                                    offset: 52,
-                                }..TextLocation {
-                                    line: 3,
-                                    column: 19,
-                                    offset: 61,
-                                },
-                            ),
+                            span: Range(3:10 - 3:19),
                         },
                     },
                 },
@@ -114,17 +94,7 @@ CompilationUnit {
                                 },
                             ],
                             location: SourceLocation {
-                                span: Range(
-                                    TextLocation {
-                                        line: 4,
-                                        column: 10,
-                                        offset: 73,
-                                    }..TextLocation {
-                                        line: 4,
-                                        column: 17,
-                                        offset: 80,
-                                    },
-                                ),
+                                span: Range(4:10 - 4:17),
                             },
                         },
                         right: LiteralInteger {

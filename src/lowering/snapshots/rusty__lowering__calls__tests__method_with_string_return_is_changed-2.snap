@@ -22,17 +22,7 @@ DataType {
                 linkage: Internal,
                 binding: None,
                 source_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 15,
-                            offset: 42,
-                        }..TextLocation {
-                            line: 2,
-                            column: 28,
-                            offset: 55,
-                        },
-                    ),
+                    span: Range(2:15 - 2:28),
                     file: Some(
                         "<internal>",
                     ),
@@ -50,17 +40,7 @@ DataType {
     },
     nature: Any,
     location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 2,
-                column: 15,
-                offset: 42,
-            }..TextLocation {
-                line: 2,
-                column: 28,
-                offset: 55,
-            },
-        ),
+        span: Range(2:15 - 2:28),
         file: Some(
             "<internal>",
         ),

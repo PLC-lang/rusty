@@ -30,17 +30,7 @@ CompilationUnit {
                                     access: Template,
                                     address: [],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 2,
-                                                column: 14,
-                                                offset: 35,
-                                            }..TextLocation {
-                                                line: 2,
-                                                column: 20,
-                                                offset: 41,
-                                            },
-                                        ),
+                                        span: Range(2:14 - 2:20),
                                     },
                                 },
                             ),
@@ -64,17 +54,7 @@ CompilationUnit {
                                     access: Template,
                                     address: [],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 3,
-                                                column: 14,
-                                                offset: 63,
-                                            }..TextLocation {
-                                                line: 3,
-                                                column: 20,
-                                                offset: 69,
-                                            },
-                                        ),
+                                        span: Range(3:14 - 3:20),
                                     },
                                 },
                             ),
@@ -98,17 +78,7 @@ CompilationUnit {
                                     access: Template,
                                     address: [],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 4,
-                                                column: 16,
-                                                offset: 93,
-                                            }..TextLocation {
-                                                line: 4,
-                                                column: 22,
-                                                offset: 99,
-                                            },
-                                        ),
+                                        span: Range(4:16 - 4:22),
                                     },
                                 },
                             ),
@@ -132,17 +102,7 @@ CompilationUnit {
                                     access: Template,
                                     address: [],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 4,
-                                                column: 16,
-                                                offset: 93,
-                                            }..TextLocation {
-                                                line: 4,
-                                                column: 22,
-                                                offset: 99,
-                                            },
-                                        ),
+                                        span: Range(4:16 - 4:22),
                                     },
                                 },
                             ),
@@ -170,17 +130,7 @@ CompilationUnit {
                                         },
                                     ],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 5,
-                                                column: 15,
-                                                offset: 122,
-                                            }..TextLocation {
-                                                line: 5,
-                                                column: 22,
-                                                offset: 129,
-                                            },
-                                        ),
+                                        span: Range(5:15 - 5:22),
                                     },
                                 },
                             ),
@@ -211,17 +161,7 @@ CompilationUnit {
                                         },
                                     ],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 6,
-                                                column: 15,
-                                                offset: 152,
-                                            }..TextLocation {
-                                                line: 6,
-                                                column: 24,
-                                                offset: 161,
-                                            },
-                                        ),
+                                        span: Range(6:15 - 6:24),
                                     },
                                 },
                             ),
@@ -255,17 +195,7 @@ CompilationUnit {
                                         },
                                     ],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 7,
-                                                column: 15,
-                                                offset: 184,
-                                            }..TextLocation {
-                                                line: 7,
-                                                column: 26,
-                                                offset: 195,
-                                            },
-                                        ),
+                                        span: Range(7:15 - 7:26),
                                     },
                                 },
                             ),
@@ -299,17 +229,7 @@ CompilationUnit {
                                         },
                                     ],
                                     location: SourceLocation {
-                                        span: Range(
-                                            TextLocation {
-                                                line: 8,
-                                                column: 15,
-                                                offset: 218,
-                                            }..TextLocation {
-                                                line: 8,
-                                                column: 26,
-                                                offset: 229,
-                                            },
-                                        ),
+                                        span: Range(8:15 - 8:26),
                                     },
                                 },
                             ),

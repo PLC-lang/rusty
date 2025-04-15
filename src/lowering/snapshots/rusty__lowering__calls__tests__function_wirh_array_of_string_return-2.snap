@@ -27,17 +27,7 @@ DataType {
     },
     nature: Any,
     location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 1,
-                column: 23,
-                offset: 24,
-            }..TextLocation {
-                line: 1,
-                column: 44,
-                offset: 45,
-            },
-        ),
+        span: Range(1:23 - 1:44),
         file: Some(
             "<internal>",
         ),
