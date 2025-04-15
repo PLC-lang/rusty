@@ -62,7 +62,7 @@ fn assigning_strings() {
         "#;
 
     // ... the assignments will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -84,39 +84,7 @@ fn assigning_strings() {
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [11 x i8], [11 x i8] }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [11 x i8], [11 x i8] }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// STRING literals will be generated as global constants, so they can be used as a source of a memcpy
@@ -135,7 +103,7 @@ fn assigning_string_literals() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -160,37 +128,5 @@ fn assigning_string_literals() {
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [11 x i8], [11 x i8] }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [11 x i8], [11 x i8] }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-    "###);
+    "#);
 }

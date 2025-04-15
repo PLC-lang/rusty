@@ -346,7 +346,7 @@ fn pass() {
     // 2. GEP the structs array and dimension field
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
     insta::assert_snapshot!(codegen(src),
-    @r###"
+    @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -390,16 +390,7 @@ fn pass() {
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 /// Accessing arrays for read- / write-operations works by gepping the structs array and dimension fields,
@@ -421,7 +412,7 @@ fn access() {
     ";
 
     insta::assert_snapshot!(codegen(src),
-    @r###"
+    @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -449,16 +440,7 @@ fn access() {
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 /// Now that we have given an overview of how single-dimensional VLAs work, we'd now like to introduce
@@ -488,7 +470,7 @@ fn multi_dimensional() {
     // When dealing with a higher dimension-count or multiple access statements, the IR gets bloated really fast and
     // is borderline incomprehensible as a result, if not given readable names.
     insta::assert_snapshot!(codegen(src),
-    @r###"
+    @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -542,14 +524,5 @@ fn multi_dimensional() {
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }

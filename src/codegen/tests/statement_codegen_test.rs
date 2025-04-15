@@ -201,7 +201,7 @@ fn ref_assignment() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -214,16 +214,7 @@ fn ref_assignment() {
       store i32* %b, i32** %a, align 8
       ret void
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 #[test]
@@ -253,7 +244,7 @@ fn reference_to_assignment() {
     // We want to assert that `a := 5` and `a^ := 5` yield identical IR
     assert_eq!(auto_deref, manual_deref);
 
-    insta::assert_snapshot!(auto_deref, @r###"
+    insta::assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -265,16 +256,7 @@ fn reference_to_assignment() {
       store i32 5, i32* %deref, align 4
       ret void
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 #[test]
@@ -305,7 +287,7 @@ fn reference_to_string_assignment() {
     // We want to assert that `a := 'hello'` and `a^ := 'hello'` yield identical IR
     assert_eq!(auto_deref, manual_deref);
 
-    insta::assert_snapshot!(auto_deref, @r###"
+    insta::assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -325,16 +307,7 @@ fn reference_to_string_assignment() {
     declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 #[test]
@@ -360,16 +333,6 @@ fn local_alias() {
       %bar = alloca i32, align 4
       store i32* null, i32** %foo, align 8
       store i32 0, i32* %bar, align 4
-      store i32* %bar, i32** %foo, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
       ret void
     }
     "#);
@@ -388,7 +351,7 @@ fn local_string_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r##"
+    assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -399,7 +362,6 @@ fn local_string_alias() {
       store [81 x i8]* null, [81 x i8]** %foo, align 8
       %0 = bitcast [81 x i8]* %bar to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      store [81 x i8]* %bar, [81 x i8]** %foo, align 8
       ret void
     }
 
@@ -407,16 +369,7 @@ fn local_string_alias() {
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "##);
+    "#);
 }
 
 #[test]

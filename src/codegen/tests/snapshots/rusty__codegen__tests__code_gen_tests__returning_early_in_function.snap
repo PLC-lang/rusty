@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -28,13 +29,4 @@ buffer_block:                                     ; No predecessors!
 continue:                                         ; preds = %buffer_block, %entry
   %smaller_than_ten_ret1 = load i16, i16* %smaller_than_ten, align 2
   ret i16 %smaller_than_ten_ret1
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
 }

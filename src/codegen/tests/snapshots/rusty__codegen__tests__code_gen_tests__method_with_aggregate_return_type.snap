@@ -53,27 +53,3 @@ declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noa
 
 attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
 attributes #1 = { argmemonly nofree nounwind willreturn }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%fb_with_method = type {}
-
-@__fb_with_method__init = external global %fb_with_method
-
-define void @__init_fb_with_method(%fb_with_method* %0) {
-entry:
-  %self = alloca %fb_with_method*, align 8
-  store %fb_with_method* %0, %fb_with_method** %self, align 8
-  ret void
-}
-
-declare void @fb_with_method(%fb_with_method*)
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
-}

@@ -18,7 +18,7 @@ pub mod tests {
         codegen::{CodegenContext, GeneratedModule},
         index::{self, FxIndexSet, Index},
         lexer,
-        lowering::{calls::AggregateTypeLowerer, InitVisitor},
+        lowering::calls::AggregateTypeLowerer,
         parser,
         resolver::{
             const_evaluator::evaluate_constants, AnnotationMapImpl, AstAnnotations, Dependency,
@@ -133,70 +133,33 @@ pub mod tests {
         annotations
     }
 
-    type Lowered = (AnnotationMapImpl, Index, Vec<(CompilationUnit, FxIndexSet<Dependency>, StringLiterals)>);
+    type Lowered = (AnnotationMapImpl, Index, (CompilationUnit, FxIndexSet<Dependency>, StringLiterals));
 
     pub fn annotate_and_lower_with_ids(
-        parse_result: CompilationUnit,
+        mut unit: CompilationUnit,
         index: Index,
         id_provider: IdProvider,
     ) -> Lowered {
-        let (index, unresolvables) = evaluate_constants(index);
-        let lowered = InitVisitor::visit(
-            vec![parse_result],
-            index,
-            unresolvables,
-            id_provider.clone(),
-            get_project_init_symbol(),
-        );
-
-        let mut index = Index::default();
-        let builtins = builtins::parse_built_ins(id_provider.clone());
-        index.import(index::indexer::index(&builtins));
-
-        for data_type in get_builtin_types() {
-            index.register_type(data_type);
-        }
-
-        let indexed_units = lowered
-            .into_iter()
-            .map(|mut unit| {
-                pre_process(&mut unit, id_provider.clone());
-                index.import(index::indexer::index(&unit));
-                unit
-            })
-            .collect::<Vec<_>>();
-        let (mut full_index, _) = evaluate_constants(index);
-
+        let (mut index, _) = evaluate_constants(index);
         let mut all_annotations = AnnotationMapImpl::default();
-        let mut units = indexed_units
-            .into_iter()
-            .inspect(|unit| {
-                let (mut annotations, ..) = TypeAnnotator::visit_unit(&full_index, unit, id_provider.clone());
-                full_index.import(std::mem::take(&mut annotations.new_index));
-                all_annotations.import(annotations);
-            })
-            .collect::<Vec<_>>();
+
+        let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
+        index.import(std::mem::take(&mut annotations.new_index));
+        all_annotations.import(annotations);
 
         let mut aggregate_lowerer = AggregateTypeLowerer::new(id_provider.clone());
-        aggregate_lowerer.index.replace(full_index);
+        aggregate_lowerer.index.replace(index);
         aggregate_lowerer.annotation.replace(Box::new(all_annotations));
-        units.iter_mut().for_each(|unit| {
-            aggregate_lowerer.visit_unit(unit);
-        });
+        aggregate_lowerer.visit_unit(&mut unit);
         let mut full_index = aggregate_lowerer.index.take().unwrap();
         let mut all_annotations = AnnotationMapImpl::default();
-        let annotated_units = units
-            .into_iter()
-            .map(|unit| {
-                let (mut annotations, dependencies, literals) =
-                    TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
-                full_index.import(std::mem::take(&mut annotations.new_index));
-                all_annotations.import(annotations);
-                (unit, dependencies, literals)
-            })
-            .collect::<Vec<_>>();
 
-        (all_annotations, full_index, annotated_units)
+        let (mut annotations, dependencies, literals) =
+            TypeAnnotator::visit_unit(&full_index, &unit, id_provider.clone());
+        full_index.import(std::mem::take(&mut annotations.new_index));
+        all_annotations.import(annotations);
+
+        (all_annotations, full_index, (unit, dependencies, literals))
     }
 
     pub fn parse_and_validate_buffered(src: &str) -> String {
@@ -269,49 +232,31 @@ pub mod tests {
 
         let got_layout = Mutex::new(HashMap::default());
 
-        annotated_units
-            .into_iter()
-            .map(|(unit, dependencies, literals)| {
-                let context = CodegenContext::create();
-                let path = PathBuf::from_str("src").ok();
-                let mut code_generator = crate::codegen::CodeGen::new(
-                    &context,
-                    path.as_deref(),
-                    unit.file,
-                    crate::OptimizationLevel::None,
-                    debug_level,
-                    online_change.clone(),
-                );
-                let llvm_index = code_generator
-                    .generate_llvm_index(
-                        &context,
-                        &annotations,
-                        &literals,
-                        &dependencies,
-                        &index,
-                        &got_layout,
-                    )
-                    .map_err(|err| {
-                        reporter.handle(&[err]);
-                        reporter.buffer().unwrap()
-                    })?;
+        let (unit, dependencies, literals) = annotated_units;
+        let context = CodegenContext::create();
+        let path = PathBuf::from_str("src").ok();
+        let mut code_generator = crate::codegen::CodeGen::new(
+            &context,
+            path.as_deref(),
+            unit.file,
+            crate::OptimizationLevel::None,
+            debug_level,
+            online_change.clone(),
+        );
+        let llvm_index = code_generator
+            .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
+            .map_err(|err| {
+                reporter.handle(&[err]);
+                reporter.buffer().unwrap()
+            })?;
 
-                code_generator
-                    .generate(&context, &unit, &annotations, &index, llvm_index)
-                    .map(|module| module.persist_to_string())
-                    .map_err(|err| {
-                        reporter.handle(&[err]);
-                        reporter.buffer().unwrap()
-                    })
+        code_generator
+            .generate(&context, &unit, &annotations, &index, llvm_index)
+            .map(|module| module.persist_to_string())
+            .map_err(|err| {
+                reporter.handle(&[err]);
+                reporter.buffer().unwrap()
             })
-            .reduce(|acc, ir| {
-                Ok(format!(
-                    "{}\
-                        {}",
-                    acc?, ir?
-                ))
-            })
-            .unwrap()
     }
 
     pub fn codegen_with_debug(src: &str) -> String {
@@ -396,9 +341,5 @@ pub mod tests {
     pub fn generate_with_empty_program(src: &str) -> String {
         let source = format!("{} {}", "PROGRAM main END_PROGRAM", src);
         codegen(source.as_str())
-    }
-
-    fn get_project_init_symbol() -> &'static str {
-        "__init___testproject"
     }
 }

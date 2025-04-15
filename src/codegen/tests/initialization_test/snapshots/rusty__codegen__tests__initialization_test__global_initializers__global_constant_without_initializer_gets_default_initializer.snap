@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -29,13 +30,9 @@ entry:
   %4 = bitcast [4 x i16]* %myArr2 to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %4, i8 0, i64 ptrtoint ([4 x i16]* getelementptr ([4 x i16], [4 x i16]* null, i32 1) to i64), i1 false)
   store i32 0, i32* %main, align 4
-  call void @__init_commands(%commands* %cmd1)
-  call void @__init_commands(%commands* %cmd2)
   %main_ret = load i32, i32* %main, align 4
   ret i32 %main_ret
 }
-
-declare void @__init_commands(%commands*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -45,25 +42,3 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%commands = type { i8, i8 }
-
-@__commands__init = external global %commands
-
-define void @__init_commands(%commands* %0) {
-entry:
-  %self = alloca %commands*, align 8
-  store %commands* %0, %commands** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
-}

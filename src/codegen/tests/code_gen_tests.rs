@@ -1144,42 +1144,15 @@ fn fb_method_called_locally() {
       %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
-      call void @__init_foo(%foo* %fb)
       %call = call i32 @foo_addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
 
-    declare void @__init_foo(%foo*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @__foo__init = external global %foo
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
     "#)
 }
 
@@ -1256,42 +1229,15 @@ fn fb_local_method_var_shadows_parent_var() {
       %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
-      call void @__init_foo(%foo* %fb)
       %call = call i32 @foo_addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
 
-    declare void @__init_foo(%foo*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @__foo__init = external global %foo
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
     "#)
 }
 
@@ -1364,38 +1310,6 @@ fn prog_method_called_locally() {
       store i32 %call, i32* %x, align 4
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @foo_instance = external global %foo
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %foo = type { i32 }
-
-    @foo_instance = external global %foo
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_foo(%foo* @foo_instance)
-      ret void
-    }
-
-    declare void @__init_foo(%foo*)
-
-    declare void @foo(%foo*)
     "#)
 }
 
@@ -1472,38 +1386,6 @@ fn prog_local_method_var_shadows_parent_var() {
       store i32 %call, i32* %x, align 4
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @foo_instance = external global %foo
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      ret void
-    }
-
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %foo = type { i32 }
-
-    @foo_instance = external global %foo
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_foo(%foo* @foo_instance)
-      ret void
-    }
-
-    declare void @__init_foo(%foo*)
-
-    declare void @foo(%foo*)
     "#)
 }
 
@@ -1765,38 +1647,6 @@ fn for_statement_with_binary_expressions() {
     continue:                                         ; preds = %predicate_sge, %predicate_sle
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { i32, i32, i32, i32 }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { i32, i32, i32, i32 }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
     "#);
 }
 
@@ -1862,15 +1712,6 @@ fn for_statement_type_casting() {
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
       ret void
     }
     "#);
@@ -4140,60 +3981,6 @@ fn variables_in_var_external_block_are_not_generated() {
     entry:
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %baz = type {}
-    %bar = type {}
-    %qux = type {}
-
-    @baz_instance = external global %baz
-    @__bar__init = external global %bar
-    @__qux__init = external global %qux
-
-    define void @__init_baz(%baz* %0) {
-    entry:
-      %self = alloca %baz*, align 8
-      store %baz* %0, %baz** %self, align 8
-      ret void
-    }
-
-    declare void @baz(%baz*)
-
-    define void @__init_bar(%bar* %0) {
-    entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      ret void
-    }
-
-    declare void @bar(%bar*)
-
-    define void @__init_qux(%qux* %0) {
-    entry:
-      %self = alloca %qux*, align 8
-      store %qux* %0, %qux** %self, align 8
-      ret void
-    }
-
-    declare void @qux(%qux*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %baz = type {}
-
-    @baz_instance = external global %baz
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_baz(%baz* @baz_instance)
-      ret void
-    }
-
-    declare void @__init_baz(%baz*)
-
-    declare void @baz(%baz*)
     "#);
 }
 

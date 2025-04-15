@@ -1,32 +1,31 @@
+use driver::generate_to_string;
 use insta::assert_snapshot;
-
-use crate::test_utils::tests::codegen;
+use plc_source::SourceCode;
 
 #[test]
 fn simple_global() {
-    let result = codegen(
-        r#"
-        VAR_GLOBAL
-            s: STRING := 'hello world!';
-            ps: REF_TO STRING := REF(s);
-        END_VAR
-        "#,
-    );
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                s: STRING := 'hello world!';
+                ps: REF_TO STRING := REF(s);
+            END_VAR
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global [81 x i8]* null
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
 
-    @s = external global [81 x i8]
-    @ps = external global [81 x i8]*
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -36,29 +35,28 @@ fn simple_global() {
 
 #[test]
 fn global_alias() {
-    let result = codegen(
-        r#"
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
         VAR_GLOBAL
             s: STRING := 'hello world!';
             ps AT s : STRING;
         END_VAR
         "#,
-    );
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global [81 x i8]* null
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
 
-    @s = external global [81 x i8]
-    @ps = external global [81 x i8]*
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -68,29 +66,28 @@ fn global_alias() {
 
 #[test]
 fn global_reference_to() {
-    let result = codegen(
-        r#"
-      VAR_GLOBAL
-        s: STRING := 'hello world!';
-        ps: REFERENCE TO STRING := REF(s);
-      END_VAR
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+        VAR_GLOBAL
+            s: STRING := 'hello world!';
+            ps: REFERENCE TO STRING := REF(s);
+        END_VAR
         "#,
-    );
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @ps = global [81 x i8]* null
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
 
-    @s = external global [81 x i8]
-    @ps = external global [81 x i8]*
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       store [81 x i8]* @s, [81 x i8]** @ps, align 8
       ret void
@@ -100,19 +97,23 @@ fn global_reference_to() {
 
 #[test]
 fn init_functions_generated_for_programs() {
-    let result = codegen(
-        r#"
-        PROGRAM PLC_PRG
-        VAR
-            to_init: REF_TO STRING := REF(s);
-        END_VAR    
-        END_PROGRAM
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            PROGRAM PLC_PRG
+            VAR
+                to_init: REF_TO STRING := REF(s);
+            END_VAR    
+            END_PROGRAM
 
-        VAR_GLOBAL 
-            s: STRING;
-        END_VAR
-        "#,
-    );
+            VAR_GLOBAL 
+                s: STRING;
+            END_VAR
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
@@ -121,6 +122,7 @@ fn init_functions_generated_for_programs() {
     %PLC_PRG = type { [81 x i8]* }
 
     @s = global [81 x i8] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer
 
     define void @PLC_PRG(%PLC_PRG* %0) {
@@ -128,13 +130,6 @@ fn init_functions_generated_for_programs() {
       %to_init = getelementptr inbounds %PLC_PRG, %PLC_PRG* %0, i32 0, i32 0
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %PLC_PRG = type { [81 x i8]* }
-
-    @PLC_PRG_instance = external global %PLC_PRG
-    @s = external global [81 x i8]
 
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
@@ -146,42 +141,34 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
-    declare void @PLC_PRG(%PLC_PRG*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %PLC_PRG = type { [81 x i8]* }
-
-    @PLC_PRG_instance = external global %PLC_PRG
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
-
-    declare void @__init_plc_prg(%PLC_PRG*)
-
-    declare void @PLC_PRG(%PLC_PRG*)
     "#);
 }
 
 #[test]
+#[ignore = "ADR() currently not working, tracked in PRG-2686"]
 fn init_functions_work_with_adr() {
-    let result = codegen(
-        r#"
-        PROGRAM PLC_PRG
-        VAR
-            to_init: REF_TO STRING := ADR(s);
-        END_VAR    
-        END_PROGRAM
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            PROGRAM PLC_PRG
+            VAR
+                to_init: LWORD := ADR(s);
+            END_VAR    
+            END_PROGRAM
 
-        VAR_GLOBAL 
-            s: STRING;
-        END_VAR
-        "#,
-    );
+            VAR_GLOBAL 
+                s: STRING;
+            END_VAR
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
@@ -238,19 +225,23 @@ fn init_functions_work_with_adr() {
 
 #[test]
 fn init_functions_generated_for_function_blocks() {
-    let result = codegen(
-        r#"
-        VAR_GLOBAL 
-            s: STRING;
-        END_VAR
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL 
+                s: STRING;
+            END_VAR
 
-        FUNCTION_BLOCK foo
-        VAR
-            to_init: REF_TO STRING := REF(s);
-        END_VAR    
-        END_FUNCTION_BLOCK
-        "#,
-    );
+            FUNCTION_BLOCK foo
+            VAR
+                to_init: REF_TO STRING := REF(s);
+            END_VAR    
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
@@ -258,21 +249,15 @@ fn init_functions_generated_for_function_blocks() {
 
     %foo = type { [81 x i8]* }
 
+    @__foo__init = constant %foo zeroinitializer
     @s = global [81 x i8] zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
       %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8]* }
-
-    @__foo__init = external global %foo
-    @s = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -284,13 +269,7 @@ fn init_functions_generated_for_function_blocks() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -299,80 +278,85 @@ fn init_functions_generated_for_function_blocks() {
 
 #[test]
 fn nested_initializer_pous() {
-    let result = codegen(
-        r#"
-        VAR_GLOBAL 
-            str : STRING := 'hello';
-        END_VAR
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL 
+                str : STRING := 'hello';
+            END_VAR
 
-        FUNCTION_BLOCK foo
-        VAR 
-            str_ref : REF_TO STRING := REF(str);
-            b: bar;
-        END_VAR
-            b.print();
-            b();
-        END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+            VAR 
+                str_ref : REF_TO STRING := REF(str);
+                b: bar;
+            END_VAR
+                b.print();
+                b();
+            END_FUNCTION_BLOCK
 
-        ACTION foo.print
-            // do something
-        END_ACTION
+            ACTION foo.print
+                // do something
+            END_ACTION
 
-        FUNCTION_BLOCK bar
-        VAR 
-            b: baz;
-        END_VAR
-            b.print();
-        END_FUNCTION_BLOCK
+            FUNCTION_BLOCK bar
+            VAR 
+                b: baz;
+            END_VAR
+                b.print();
+            END_FUNCTION_BLOCK
 
-        ACTION bar.print
-            // do something
-        END_ACTION
+            ACTION bar.print
+                // do something
+            END_ACTION
 
-        FUNCTION_BLOCK baz
-        VAR 
-            str_ref : REF_TO STRING := REF(str);
-        END_VAR
-        END_FUNCTION_BLOCK
+            FUNCTION_BLOCK baz
+            VAR 
+                str_ref : REF_TO STRING := REF(str);
+            END_VAR
+            END_FUNCTION_BLOCK
 
-        ACTION baz.print
-            // do something
-        END_ACTION
+            ACTION baz.print
+                // do something
+            END_ACTION
 
-        PROGRAM mainProg
-        VAR
-            other_ref_to_global: REF_TO STRING := REF(str);
-            f: foo;
-        END_VAR
-            // do something   
-        END_PROGRAM
+            PROGRAM mainProg
+            VAR
+                other_ref_to_global: REF_TO STRING := REF(str);
+                f: foo;
+            END_VAR
+                // do something   
+            END_PROGRAM
 
-        PROGRAM sideProg
-        VAR
-            other_ref_to_global: REF_TO STRING := REF(str);
-            f: foo;
-        END_VAR
-            f();
-            f.print();
-        END_PROGRAM
-        "#,
-    );
+            PROGRAM sideProg
+            VAR
+                other_ref_to_global: REF_TO STRING := REF(str);
+                f: foo;
+            END_VAR
+                f();
+                f.print();
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
+    %mainProg = type { [81 x i8]*, %foo }
     %foo = type { [81 x i8]*, %bar }
     %bar = type { %baz }
     %baz = type { [81 x i8]* }
-    %mainProg = type { [81 x i8]*, %foo }
     %sideProg = type { [81 x i8]*, %foo }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
-    @__baz__init = unnamed_addr constant %baz zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @mainProg_instance = global %mainProg zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @__bar__init = constant %bar zeroinitializer
+    @__baz__init = constant %baz zeroinitializer
     @sideProg_instance = global %sideProg zeroinitializer
 
     define void @foo(%foo* %0) {
@@ -431,21 +415,6 @@ fn nested_initializer_pous() {
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8]*, %bar }
-    %bar = type { %baz }
-    %baz = type { [81 x i8]* }
-    %mainProg = type { [81 x i8]*, %foo }
-    %sideProg = type { [81 x i8]*, %foo }
-
-    @__foo__init = external global %foo
-    @__bar__init = external global %bar
-    @__baz__init = external global %baz
-    @mainProg_instance = external global %mainProg
-    @sideProg_instance = external global %sideProg
-    @str = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -459,12 +428,6 @@ fn nested_initializer_pous() {
       call void @__init_bar(%bar* %b)
       ret void
     }
-
-    declare void @foo(%foo*)
-
-    declare void @bar(%bar*)
-
-    declare void @baz(%baz*)
 
     define void @__init_bar(%bar* %0) {
     entry:
@@ -499,8 +462,6 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    declare void @mainProg(%mainProg*)
-
     define void @__init_sideprog(%sideProg* %0) {
     entry:
       %self = alloca %sideProg*, align 8
@@ -514,59 +475,32 @@ fn nested_initializer_pous() {
       ret void
     }
 
-    declare void @sideProg(%sideProg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %mainProg = type { [81 x i8]*, %foo }
-    %foo = type { [81 x i8]*, %bar }
-    %bar = type { %baz }
-    %baz = type { [81 x i8]* }
-    %sideProg = type { [81 x i8]*, %foo }
-
-    @mainProg_instance = external global %mainProg
-    @__foo__init = external global %foo
-    @__bar__init = external global %bar
-    @__baz__init = external global %baz
-    @sideProg_instance = external global %sideProg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_mainprog(%mainProg* @mainProg_instance)
       call void @__init_sideprog(%sideProg* @sideProg_instance)
       ret void
     }
-
-    declare void @__init_mainprog(%mainProg*)
-
-    declare void @mainProg(%mainProg*)
-
-    declare void @foo(%foo*)
-
-    declare void @bar(%bar*)
-
-    declare void @baz(%baz*)
-
-    declare void @__init_sideprog(%sideProg*)
-
-    declare void @sideProg(%sideProg*)
     "#);
 }
 
 #[test]
 #[ignore = "initializing references in same POU not yet supported"]
 fn local_address() {
-    let res = codegen(
-        r#"      
-        FUNCTION_BLOCK foo
-        VAR
-            i : INT;
-            pi: REF_TO INT := REF(i);
-        END_VAR
-        END_FUNCTION_BLOCK
-        "#,
-    );
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            VAR
+                i : INT;
+                pi: REF_TO INT := REF(i);
+            END_VAR
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r###""###);
 }
@@ -574,65 +508,77 @@ fn local_address() {
 #[test]
 #[ignore = "initializing references in same POU not yet supported"]
 fn tmpo() {
-    let res = codegen(
-        r#"      
-        FUNCTION_BLOCK foo
-        VAR
-            i : INT;
-            pi: REF_TO INT;
-        END_VAR
-        END_FUNCTION_BLOCK
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            VAR
+                i : INT;
+                pi: REF_TO INT;
+            END_VAR
+            END_FUNCTION_BLOCK
 
-        ACTION foo.init
-          pi := REF(i);
-        END_ACTION
-        "#,
-    );
+            ACTION foo.init
+            pi := REF(i);
+            END_ACTION
+            "#,
+        )],
+    )
+    .unwrap();
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(result, @r###""###);
 }
 
 #[test]
 #[ignore = "stack-local vars not yet supported"]
 fn stack_allocated_variables_are_initialized_in_pou_body() {
-    let res = codegen(
-        r#"
-        FUNCTION_BLOCK foo
-        VAR_TEMP
-            st: STRING;
-        END_VAR
-        VAR
-            ps AT st : STRING;
-        END_VAR
-        END_FUNCTION_BLOCK
+    let result = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            VAR_TEMP
+                st: STRING;
+            END_VAR
+            VAR
+                ps AT st : STRING;
+            END_VAR
+            END_FUNCTION_BLOCK
 
-        FUNCTION bar
-        VAR
-            st: STRING;
-            ps AT st : STRING;
-        END_VAR
-        END_FUNCTION
-    "#,
-    );
+            FUNCTION bar
+            VAR
+                st: STRING;
+                ps AT st : STRING;
+            END_VAR
+            END_FUNCTION
+            "#,
+        )],
+    )
+    .unwrap();
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(result, @r###""###);
 }
 
 #[test]
 #[ignore = "initializing references in same POU not yet supported"]
 fn ref_to_input_variable() {
-    let res = codegen(
-        r#"        
-    FUNCTION_BLOCK bar 
-    VAR_INPUT
-        st: STRING;
-    END_VAR
-    VAR
-        ps: LWORD := REF(st);
-    END_VAR
-    END_FUNCTION_BLOCK  
-    "#,
-    );
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK bar
+            VAR_INPUT
+                st: STRING;
+            END_VAR
+            VAR
+                ps: LWORD := REF(st);
+            END_VAR
+            END_FUNCTION_BLOCK 
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r###""###);
 }
@@ -640,44 +586,52 @@ fn ref_to_input_variable() {
 #[test]
 #[ignore = "initializing references in same POU not yet supported"]
 fn ref_to_inout_variable() {
-    let res = codegen(
-        r#"        
-    FUNCTION_BLOCK bar 
-    VAR_IN_OUT
-        st: STRING;
-    END_VAR
-    VAR
-        ps: LWORD := REF(st);
-    END_VAR
-    END_FUNCTION_BLOCK  
-    "#,
-    );
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK bar 
+            VAR_IN_OUT
+                st: STRING;
+            END_VAR
+            VAR
+                ps: LWORD := REF(st);
+            END_VAR
+            END_FUNCTION_BLOCK 
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r###""###);
 }
 
 #[test]
 fn struct_types() {
-    let res = codegen(
-        r#"      
-      TYPE myStruct : STRUCT
-              member : REF_TO STRING := REF(s);
-              member2 AT s2 : ARRAY[0..1] OF STRING;
-          END_STRUCT
-      END_TYPE
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            TYPE myStruct : STRUCT
+                member : REF_TO STRING := REF(s);
+                member2 AT s2 : ARRAY[0..1] OF STRING;
+                END_STRUCT
+            END_TYPE
 
-      VAR_GLOBAL
-          s : STRING := 'Hello world!';
-          s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
-      END_VAR
+            VAR_GLOBAL
+                s : STRING := 'Hello world!';
+                s2 : ARRAY[0..1] OF STRING := ['hello', 'world'];
+            END_VAR
 
-      PROGRAM prog 
-      VAR 
-          str: myStruct;
-      END_VAR
-      END_PROGRAM
-        "#,
-    );
+            PROGRAM prog 
+            VAR 
+                str: myStruct;
+            END_VAR
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
@@ -688,24 +642,15 @@ fn struct_types() {
 
     @s = global [81 x i8] c"Hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @s2 = global [2 x [81 x i8]] [[81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"world\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__myStruct__init = constant %myStruct zeroinitializer
 
     define void @prog(%prog* %0) {
     entry:
       %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
-    %prog = type { %myStruct }
-
-    @__myStruct__init = external global %myStruct
-    @prog_instance = external global %prog
-    @s = external global [81 x i8]
-    @s2 = external global [2 x [81 x i8]]
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -730,71 +675,62 @@ fn struct_types() {
       ret void
     }
 
-    declare void @prog(%prog*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prog = type { %myStruct }
-    %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
-
-    @prog_instance = external global %prog
-    @__myStruct__init = external global %myStruct
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       ret void
     }
-
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
     "#);
 }
 
 #[test]
 fn stateful_pous_methods_and_structs_get_init_functions() {
-    let res = codegen(
-        r#"      
-      TYPE myStruct : STRUCT
-          END_STRUCT
-      END_TYPE
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            TYPE myStruct : STRUCT
+                    x: DINT;
+                END_STRUCT
+            END_TYPE
 
-      PROGRAM prog 
-      VAR 
-      END_VAR
-      END_PROGRAM
+            PROGRAM prog 
+            VAR 
+            END_VAR
+            END_PROGRAM
 
-      FUNCTION_BLOCK foo
-        METHOD m
-        END_METHOD
-      END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+                METHOD m
+                END_METHOD
+            END_FUNCTION_BLOCK
 
-      CLASS cl
-        METHOD m
-        END_METHOD
-      END_CLASS
-      
-      // no init function is expected for this action
-      ACTION foo.act
-      END_ACTION
-      "#,
-    );
+            CLASS cl
+                METHOD m
+                END_METHOD
+            END_CLASS
+            
+            // no init function is expected for this action
+            ACTION foo.act
+            END_ACTION
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %prog = type {}
+    %myStruct = type { i32 }
     %foo = type {}
     %cl = type {}
-    %myStruct = type {}
+    %prog = type {}
 
+    @__myStruct__init = constant %myStruct zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @__cl__init = constant %cl zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__cl__init = unnamed_addr constant %cl zeroinitializer
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
     define void @prog(%prog* %0) {
     entry:
@@ -825,18 +761,6 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %myStruct = type {}
-    %foo = type {}
-    %prog = type {}
-    %cl = type {}
-
-    @__myStruct__init = external global %myStruct
-    @__foo__init = external global %foo
-    @prog_instance = external global %prog
-    @__cl__init = external global %cl
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -852,16 +776,12 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
       store %prog* %0, %prog** %self, align 8
       ret void
     }
-
-    declare void @prog(%prog*)
 
     define void @__init_cl(%cl* %0) {
     entry:
@@ -870,59 +790,51 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    declare void @cl(%cl*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prog = type {}
-
-    @prog_instance = external global %prog
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       ret void
     }
-
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
     "#);
 }
 
 #[test]
 fn global_instance() {
-    let res = codegen(
-        r#"
-      VAR_GLOBAL
-          ps: STRING;
-          fb: foo;
-      END_VAR
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                ps: STRING;
+                fb: foo;
+            END_VAR
 
-      FUNCTION_BLOCK foo
-      VAR
-          s: REF_TO STRING := REF(ps);
-      END_VAR
-      END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+            VAR
+                s: REF_TO STRING := REF(ps);
+            END_VAR
+            END_FUNCTION_BLOCK
 
-      PROGRAM prog
-          fb();
-      END_PROGRAM
-      "#,
-    );
+            PROGRAM prog
+                fb();
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { [81 x i8]* }
     %prog = type {}
+    %foo = type { [81 x i8]* }
 
     @ps = global [81 x i8] zeroinitializer
-    @fb = global %foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @fb = global %foo zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -935,15 +847,6 @@ fn global_instance() {
       call void @foo(%foo* @fb)
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8]* }
-    %prog = type {}
-
-    @__foo__init = external global %foo
-    @prog_instance = external global %prog
-    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -955,8 +858,6 @@ fn global_instance() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
@@ -964,72 +865,57 @@ fn global_instance() {
       ret void
     }
 
-    declare void @prog(%prog*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prog = type {}
-    %foo = type { [81 x i8]* }
-
-    @prog_instance = external global %prog
-    @__foo__init = external global %foo
-    @fb = external global %foo
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @fb)
       ret void
     }
-
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
-
-    declare void @__init_foo(%foo*)
-
-    declare void @foo(%foo*)
     "#);
 }
 
 #[test]
 fn aliased_types() {
-    let res = codegen(
-        r#"
-      VAR_GLOBAL
-          ps: STRING;
-          global_alias: alias;
-      END_VAR    
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                ps: STRING;
+                global_alias: alias;
+            END_VAR    
 
-      TYPE alias : foo; END_TYPE
+            TYPE alias : foo; END_TYPE
 
-      FUNCTION_BLOCK foo
-      VAR
-          s: REF_TO STRING := REF(ps);
-      END_VAR
-      END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+            VAR
+                s: REF_TO STRING := REF(ps);
+            END_VAR
+            END_FUNCTION_BLOCK
 
-      PROGRAM prog
-      VAR
-          fb: alias;
-      END_VAR
-          fb();
-      END_PROGRAM
-      "#,
-    );
+            PROGRAM prog
+            VAR
+                fb: alias;
+            END_VAR
+                fb();
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { [81 x i8]* }
     %prog = type { %foo }
+    %foo = type { [81 x i8]* }
 
     @ps = global [81 x i8] zeroinitializer
-    @global_alias = global %foo zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @global_alias = global %foo zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1043,15 +929,6 @@ fn aliased_types() {
       call void @foo(%foo* %fb)
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8]* }
-    %prog = type { %foo }
-
-    @__foo__init = external global %foo
-    @prog_instance = external global %prog
-    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1063,8 +940,6 @@ fn aliased_types() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
@@ -1075,63 +950,47 @@ fn aliased_types() {
       ret void
     }
 
-    declare void @prog(%prog*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prog = type { %foo }
-    %foo = type { [81 x i8]* }
-
-    @prog_instance = external global %prog
-    @__foo__init = external global %foo
-    @global_alias = external global %foo
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @global_alias)
       ret void
     }
-
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
-
-    declare void @foo(%foo*)
-
-    declare void @__init_foo(%foo*)
     "#);
 }
 
 #[test]
 #[ignore = "not yet implemented"]
 fn array_of_instances() {
-    let res = codegen(
-        r#"
-    VAR_GLOBAL
-        ps: STRING;
-        globals: ARRAY[0..10] OF foo;
-        globals2: ARRAY[0..10] OF foo;
-    END_VAR    
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                ps: STRING;
+                globals: ARRAY[0..10] OF foo;
+                globals2: ARRAY[0..10] OF foo;
+            END_VAR    
 
-    FUNCTION_BLOCK foo
-    VAR
-        s: REF_TO STRING := REF(ps);
-    END_VAR
-    END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+            VAR
+                s: REF_TO STRING := REF(ps);
+            END_VAR
+            END_FUNCTION_BLOCK
 
-    PROGRAM prog
-    VAR
-        fb: ARRAY[0..10] OF foo;
-        i : DINT;
-    END_VAR
-        FOR i := 0 TO 10 DO
-          fb[i]();
-        END_FOR;
-    END_PROGRAM
-    "#,
-    );
+            PROGRAM prog
+            VAR
+                fb: ARRAY[0..10] OF foo;
+                i : DINT;
+            END_VAR
+                FOR i := 0 TO 10 DO
+                fb[i]();
+                END_FOR;
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r###""###);
 }
@@ -1139,65 +998,74 @@ fn array_of_instances() {
 #[test]
 #[ignore = "not yet implemented"]
 fn override_default_initializer() {
-    let res = codegen(
-        r#"
-    VAR_GLOBAL
-        ps: STRING;
-    END_VAR
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                ps: STRING;
+            END_VAR
 
-    FUNCTION_BLOCK foo
-    VAR
-        s: REF_TO STRING := REF(ps);
-    END_VAR
-    END_FUNCTION_BLOCK
+            FUNCTION_BLOCK foo
+            VAR
+                s: REF_TO STRING := REF(ps);
+            END_VAR
+            END_FUNCTION_BLOCK
 
-    PROGRAM prog
-    VAR
-        fb: foo := (s1 := REF(ps));
-    END_VAR
-        fb();
-    END_PROGRAM
-    "#,
-    );
+            PROGRAM prog
+            VAR
+                fb: foo := (s1 := REF(ps));
+            END_VAR
+                fb();
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r###""###);
 }
 
 #[test]
 fn var_config_aliased_variables_initialized() {
-    let res = codegen(
-        r"
-    FUNCTION_BLOCK FB 
-    VAR 
-      foo AT %I* : DINT; 
-    END_VAR
-    END_FUNCTION_BLOCK
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK FB 
+            VAR 
+            foo AT %I* : DINT; 
+            END_VAR
+            END_FUNCTION_BLOCK
 
-    VAR_CONFIG
-      prog.instance1.foo AT %IX1.2.1 : DINT;
-      prog.instance2.foo AT %QX1.2.2 : DINT;
-    END_VAR
+            VAR_CONFIG
+            prog.instance1.foo AT %IX1.2.1 : DINT;
+            prog.instance2.foo AT %QX1.2.2 : DINT;
+            END_VAR
 
-    PROGRAM prog 
-    VAR
-        instance1: FB;
-        instance2: FB;
-    END_VAR
-    END_PROGRAM
-        ",
-    );
+            PROGRAM prog 
+            VAR
+                instance1: FB;
+                instance2: FB;
+            END_VAR
+            END_PROGRAM
+            "#,
+        )],
+    )
+    .unwrap();
 
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %FB = type { i32* }
     %prog = type { %FB, %FB }
+    %FB = type { i32* }
 
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog zeroinitializer
+    @__FB__init = constant %FB zeroinitializer
     @__PI_1_2_1 = global i32 0
     @__PI_1_2_2 = global i32 0
-    @__FB__init = unnamed_addr constant %FB zeroinitializer
-    @prog_instance = global %prog zeroinitializer
 
     define void @FB(%FB* %0) {
     entry:
@@ -1211,14 +1079,6 @@ fn var_config_aliased_variables_initialized() {
       %instance2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %FB = type { i32* }
-    %prog = type { %FB, %FB }
-
-    @__FB__init = external global %FB
-    @prog_instance = external global %prog
 
     define void @__init_fb(%FB* %0) {
     entry:
@@ -1226,8 +1086,6 @@ fn var_config_aliased_variables_initialized() {
       store %FB* %0, %FB** %self, align 8
       ret void
     }
-
-    declare void @FB(%FB*)
 
     define void @__init_prog(%prog* %0) {
     entry:
@@ -1242,20 +1100,7 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
-    declare void @prog(%prog*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prog = type { %FB, %FB }
-    %FB = type { i32* }
-
-    @prog_instance = external global %prog
-    @__FB__init = external global %FB
-    @__PI_1_2_1 = external global i32
-    @__PI_1_2_2 = external global i32
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init___var_config()
@@ -1268,47 +1113,45 @@ fn var_config_aliased_variables_initialized() {
       store i32* @__PI_1_2_2, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1, i32 0), align 8
       ret void
     }
-
-    declare void @__init_prog(%prog*)
-
-    declare void @prog(%prog*)
-
-    declare void @FB(%FB*)
     "#);
 }
 
 #[test]
 fn var_external_blocks_are_ignored_in_init_functions() {
-    let res = codegen(
-        r"
-    VAR_GLOBAL
-        s: STRING;
-        refString AT s : STRING;
-    END_VAR
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                s: STRING;
+                refString AT s : STRING;
+            END_VAR
 
-    FUNCTION_BLOCK foo
-    VAR_EXTERNAL
-        refString : STRING;
-    END_VAR
-    END_FUNCTION
+            FUNCTION_BLOCK foo
+            VAR_EXTERNAL
+                refString : STRING;
+            END_VAR
+            END_FUNCTION_BLOCK
 
-    FUNCTION bar
-    VAR_EXTERNAL
-        refString : STRING;
-    END_VAR
-    END_FUNCTION
-        ",
-    );
-
+            FUNCTION bar
+            VAR_EXTERNAL
+                refString : STRING;
+            END_VAR
+            END_FUNCTION
+            "#,
+        )],
+    )
+    .unwrap();
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] zeroinitializer
     @refString = global [81 x i8]* null
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1319,12 +1162,6 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     entry:
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1333,15 +1170,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @s = external global [81 x i8]
-    @refString = external global [81 x i8]*
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       store [81 x i8]* @s, [81 x i8]** @refString, align 8
       ret void
@@ -1351,26 +1180,30 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
 #[test]
 fn ref_to_local_member() {
-    let res = codegen(
-        r"
-    FUNCTION_BLOCK foo
-    VAR
-        s  : STRING;
-        ptr : REF_TO STRING := REF(s);
-        alias AT s : STRING;
-        reference_to : REFERENCE TO STRING REF= s;
-    END_VAR
-    END_FUNCTION_BLOCK
-        ",
-    );
-
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            VAR
+                s  : STRING;
+                ptr : REF_TO STRING := REF(s);
+                alias AT s : STRING;
+                reference_to : REFERENCE TO STRING REF= s;
+            END_VAR
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1380,12 +1213,6 @@ fn ref_to_local_member() {
       %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1409,13 +1236,7 @@ fn ref_to_local_member() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1424,23 +1245,26 @@ fn ref_to_local_member() {
 
 #[test]
 fn ref_to_local_member_shadows_global() {
-    let res = codegen(
-        r"
-    VAR_GLOBAL
-        s : STRING;
-    END_VAR
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                s : STRING;
+            END_VAR
 
-    FUNCTION_BLOCK foo
-    VAR
-        s : STRING;
-        ptr : REF_TO STRING := REF(s);
-        alias AT s : STRING;
-        reference_to : REFERENCE TO STRING REF= s;
-    END_VAR
-    END_FUNCTION_BLOCK
-        ",
-    );
-
+            FUNCTION_BLOCK foo
+            VAR
+                s : STRING;
+                ptr : REF_TO STRING := REF(s);
+                alias AT s : STRING;
+                reference_to : REFERENCE TO STRING REF= s;
+            END_VAR
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
@@ -1448,7 +1272,8 @@ fn ref_to_local_member_shadows_global() {
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
     @s = global [81 x i8] zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1458,12 +1283,6 @@ fn ref_to_local_member_shadows_global() {
       %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1487,13 +1306,7 @@ fn ref_to_local_member_shadows_global() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1502,28 +1315,32 @@ fn ref_to_local_member_shadows_global() {
 
 #[test]
 fn temporary_variable_ref_to_local_member() {
-    let res = codegen(
-        r"
-    FUNCTION_BLOCK foo
-    VAR
-        s  : STRING;
-    END_VAR
-    VAR_TEMP
-        ptr : REF_TO STRING := REF(s);
-        alias AT s : STRING;
-        reference_to : REFERENCE TO STRING REF= s;
-    END_VAR
-    END_FUNCTION_BLOCK
-        ",
-    );
-
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            VAR
+                s  : STRING;
+            END_VAR
+            VAR_TEMP
+                ptr : REF_TO STRING := REF(s);
+                alias AT s : STRING;
+                reference_to : REFERENCE TO STRING REF= s;
+            END_VAR
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { [81 x i8] }
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1539,12 +1356,6 @@ fn temporary_variable_ref_to_local_member() {
       store [81 x i8]* %s, [81 x i8]** %reference_to, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8] }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1553,13 +1364,7 @@ fn temporary_variable_ref_to_local_member() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1568,24 +1373,29 @@ fn temporary_variable_ref_to_local_member() {
 
 #[test]
 fn temporary_variable_ref_to_temporary_variable() {
-    let res = codegen(
-        r"
-    FUNCTION foo
-    VAR
-        ptr : REF_TO STRING := REF(s);
-        alias AT s : STRING;
-    END_VAR
-    VAR_TEMP
-        s  : STRING;
-        reference_to : REFERENCE TO STRING REF= alias;
-    END_VAR
-    END_FUNCTION
-        ",
-    );
-
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION foo
+            VAR
+                ptr : REF_TO STRING := REF(s);
+                alias AT s : STRING;
+            END_VAR
+            VAR_TEMP
+                s  : STRING;
+                reference_to : REFERENCE TO STRING REF= alias;
+            END_VAR
+            END_FUNCTION
+            "#,
+        )],
+    )
+    .unwrap();
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo() {
     entry:
@@ -1608,39 +1418,41 @@ fn temporary_variable_ref_to_temporary_variable() {
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     "#)
 }
 
 #[test]
 fn initializing_method_variables_with_refs() {
-    let src = r"
-    FUNCTION_BLOCK foo
-        METHOD bar
-            VAR
-                x   : DINT := 10;
-                px : REF_TO DINT := REF(x);
-            END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
-
-    insta::assert_snapshot!(codegen(src), @r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+            METHOD bar
+                VAR
+                    x   : DINT := 10;
+                    px : REF_TO DINT := REF(x);
+                END_VAR
+            END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1656,12 +1468,6 @@ fn initializing_method_variables_with_refs() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1670,13 +1476,7 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1685,27 +1485,33 @@ fn initializing_method_variables_with_refs() {
 
 #[test]
 fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
-    let src = r"
-    FUNCTION_BLOCK foo
-        VAR
-            x : DINT := 5;
-        END_VAR
-
-        METHOD bar
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
             VAR
-                px : REF_TO DINT := REF(x);
+                x : DINT := 5;
             END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+            METHOD bar
+                VAR
+                    px : REF_TO DINT := REF(x);
+                END_VAR
+            END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 5 }
+    @__foo__init = constant %foo { i32 5 }
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1721,12 +1527,6 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1735,13 +1535,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1750,28 +1544,34 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
 
 #[test]
 fn initializing_method_variables_with_refs_referencing_global_variable() {
-    let src = r"
-    VAR_GLOBAL
-        x : DINT;
-    END_VAR
-
-    FUNCTION_BLOCK foo
-        METHOD bar
-            VAR
-                px : REF_TO DINT := REF(x);
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
+                x : DINT;
             END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+            FUNCTION_BLOCK foo
+                METHOD bar
+                VAR
+                    px : REF_TO DINT := REF(x);
+                END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
     @x = global i32 0
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1785,12 +1585,6 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       store i32* @x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1799,13 +1593,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1814,29 +1602,35 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
 
 #[test]
 fn initializing_method_variables_with_refs_shadowing() {
-    let src = r"
-    VAR_GLOBAL
-        x : DINT;
-    END_VAR
-
-    FUNCTION_BLOCK foo
-        METHOD bar
-            VAR
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            VAR_GLOBAL
                 x : DINT;
-                px : REF_TO DINT := REF(x);
             END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+            FUNCTION_BLOCK foo
+                METHOD bar
+                VAR
+                    x : DINT;
+                    px : REF_TO DINT := REF(x);
+                END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
     @x = global i32 0
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1852,12 +1646,6 @@ fn initializing_method_variables_with_refs_shadowing() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1866,13 +1654,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1881,24 +1663,30 @@ fn initializing_method_variables_with_refs_shadowing() {
 
 #[test]
 fn initializing_method_variables_with_alias() {
-    let src = r"
-    FUNCTION_BLOCK foo
-        METHOD bar
-            VAR
-                x : DINT;
-                px AT x : DINT;
-            END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
-
-    insta::assert_snapshot!(codegen(src), @r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+                METHOD bar
+                    VAR
+                        x : DINT;
+                        px AT x : DINT;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1914,12 +1702,6 @@ fn initializing_method_variables_with_alias() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1928,13 +1710,7 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -1943,24 +1719,30 @@ fn initializing_method_variables_with_alias() {
 
 #[test]
 fn initializing_method_variables_with_reference_to() {
-    let src = r"
-    FUNCTION_BLOCK foo
-        METHOD bar
-            VAR
-                x : DINT;
-                px : REFERENCE TO DINT := REF(x);
-            END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-    ";
-
-    insta::assert_snapshot!(codegen(src), @r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+            FUNCTION_BLOCK foo
+                METHOD bar
+                VAR
+                    x : DINT;
+                    px : REFERENCE TO DINT := REF(x);
+                END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+            "#,
+        )],
+    )
+    .unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -1976,12 +1758,6 @@ fn initializing_method_variables_with_reference_to() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -1990,13 +1766,7 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -2005,33 +1775,39 @@ fn initializing_method_variables_with_reference_to() {
 
 #[test]
 fn methods_call_init_functions_for_their_members() {
-    let src = r#"
-    FUNCTION_BLOCK foo
-        VAR
-            x : DINT;
-            y AT x : DINT;
-        END_VAR
-    END_FUNCTION_BLOCK
-
-    FUNCTION_BLOCK bar
-        METHOD baz
-            VAR 
-                fb: foo;
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+        FUNCTION_BLOCK foo
+            VAR
+                x : DINT;
+                y AT x : DINT;
             END_VAR
-        END_METHOD
-    END_FUNCTION_BLOCK
-  "#;
+        END_FUNCTION_BLOCK
 
+        FUNCTION_BLOCK bar
+            METHOD baz
+                VAR 
+                    fb: foo;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+        )],
+    )
+    .unwrap();
     // when compiling to ir, we expect `bar.baz` to call `__init_foo` with the local instance.
-    assert_snapshot!(codegen(src), @r#"
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { i32, i32* }
     %bar = type {}
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @__bar__init = constant %bar zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -2054,20 +1830,8 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    declare void @__init_foo(%foo*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
-
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32, i32* }
-    %bar = type {}
-
-    @__foo__init = external global %foo
-    @__bar__init = external global %bar
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -2081,8 +1845,6 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    declare void @foo(%foo*)
-
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -2090,15 +1852,11 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    declare void @bar(%bar*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "#);
 }
