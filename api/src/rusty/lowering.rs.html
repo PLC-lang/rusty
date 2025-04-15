@@ -826,7 +826,7 @@
     }
 }
 
-<span class="kw">fn </span>create_member_reference_with_location(
+<span class="kw">pub fn </span>create_member_reference_with_location(
     ident: <span class="kw-2">&amp;</span>str,
     <span class="kw-2">mut </span>id_provider: IdProvider,
     base: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
@@ -885,7 +885,7 @@
     AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())
 }
 
-<span class="kw">fn </span>create_call_statement(
+<span class="kw">pub fn </span>create_call_statement(
     operator: <span class="kw-2">&amp;</span>str,
     member_id: <span class="kw-2">&amp;</span>str,
     base_id: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,

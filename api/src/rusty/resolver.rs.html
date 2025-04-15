@@ -2638,7 +2638,17 @@
 <a href="#2637" id="2637">2637</a>
 <a href="#2638" id="2638">2638</a>
 <a href="#2639" id="2639">2639</a>
-<a href="#2640" id="2640">2640</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2640" id="2640">2640</a>
+<a href="#2641" id="2641">2641</a>
+<a href="#2642" id="2642">2642</a>
+<a href="#2643" id="2643">2643</a>
+<a href="#2644" id="2644">2644</a>
+<a href="#2645" id="2645">2645</a>
+<a href="#2646" id="2646">2646</a>
+<a href="#2647" id="2647">2647</a>
+<a href="#2648" id="2648">2648</a>
+<a href="#2649" id="2649">2649</a>
+<a href="#2650" id="2650">2650</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2743,7 +2753,7 @@
     }
 
     <span class="doccomment">/// returns a copy of the current context and changes the `current_pou` to the given pou
-    </span><span class="kw">fn </span>with_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
+    </span><span class="kw">pub fn </span>with_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, pou: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; VisitorContext&lt;<span class="lifetime">'s</span>&gt; {
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
         ctx.pou = <span class="prelude-val">Some</span>(pou);
         ctx.constant = <span class="bool-val">false</span>;
@@ -2785,7 +2795,7 @@
     }
 
     <span class="comment">// returns a copy of the current context and sets the resolve_strategy field to the given strategies
-    </span><span class="kw">fn </span>with_resolving_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>, resolve_strategy: Vec&lt;ResolvingStrategy&gt;) -&gt; <span class="self">Self </span>{
+    </span><span class="kw">pub fn </span>with_resolving_strategy(<span class="kw-2">&amp;</span><span class="self">self</span>, resolve_strategy: Vec&lt;ResolvingStrategy&gt;) -&gt; <span class="self">Self </span>{
         <span class="kw">let </span><span class="kw-2">mut </span>ctx = <span class="self">self</span>.clone();
         ctx.in_body = <span class="bool-val">true</span>;
         ctx.resolve_strategy = resolve_strategy;
@@ -2805,7 +2815,7 @@
 
 <span class="kw">pub struct </span>TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
     <span class="kw">pub</span>(<span class="kw">crate</span>) index: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Index,
-    <span class="kw">pub</span>(<span class="kw">crate</span>) annotation_map: AnnotationMapImpl,
+    <span class="kw">pub </span>annotation_map: AnnotationMapImpl,
     string_literals: StringLiterals,
     dependencies: FxIndexSet&lt;Dependency&gt;,
     <span class="doccomment">/// A map containing every jump encountered in a file, and the label of where this jump should
@@ -3492,6 +3502,8 @@
     <span class="kw">fn </span>has_type_annotation(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; bool;
 
     <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt;;
+
+    <span class="kw">fn </span>import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: AnnotationMapImpl);
 }
 
 <span class="attr">#[derive(Debug, Default)]
@@ -3529,6 +3541,10 @@
 
     <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
         <span class="self">self</span>.annotation_map.get_generic_nature(s)
+    }
+
+    <span class="kw">fn </span>import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: AnnotationMapImpl) {
+        <span class="self">self</span>.annotation_map.import(other);
     }
 }
 
@@ -3641,6 +3657,10 @@
     <span class="kw">fn </span>get_generic_nature(<span class="kw-2">&amp;</span><span class="self">self</span>, s: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>TypeNature&gt; {
         <span class="self">self</span>.generic_nature_map.get(<span class="kw-2">&amp;</span>s.get_id())
     }
+
+    <span class="kw">fn </span>import(<span class="kw-2">&amp;mut </span><span class="self">self</span>, other: AnnotationMapImpl) {
+        <span class="self">self</span>.import(other);
+    }
 }
 
 <span class="attr">#[derive(Default, Debug)]
@@ -3658,7 +3678,7 @@
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'i</span>&gt; TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
     <span class="doccomment">/// constructs a new TypeAnnotater that works with the given index for type-lookups
-    </span><span class="kw">fn </span>new(index: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Index) -&gt; TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
+    </span><span class="kw">pub fn </span>new(index: <span class="kw-2">&amp;</span><span class="lifetime">'i </span>Index) -&gt; TypeAnnotator&lt;<span class="lifetime">'i</span>&gt; {
         TypeAnnotator {
             annotation_map: AnnotationMapImpl::new(),
             index,

@@ -779,7 +779,10 @@
 <a href="#778" id="778">778</a>
 <a href="#779" id="779">779</a>
 <a href="#780" id="780">780</a>
-<a href="#781" id="781">781</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
+<a href="#781" id="781">781</a>
+<a href="#782" id="782">782</a>
+<a href="#783" id="783">783</a>
+<a href="#784" id="784">784</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use </span>plc_ast::{
     ast::{
@@ -881,6 +884,7 @@
                             stmt: AstStatement::Literal(AstLiteral::Integer(i)),
                             id,
                             location,
+                            ..
                         })),
                         <span class="prelude-val">Some</span>(DataTypeInformation::Integer { size, signed: <span class="bool-val">false</span>, .. }),
                     ) =&gt; {
@@ -1266,10 +1270,12 @@
         </span>AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) =&gt; {
             <span class="kw">let </span>eval = evaluate(value, scope, index)<span class="question-mark">?</span>;
             <span class="kw">match </span>eval.as_ref() {
-                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location }) =&gt; {
+                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) =&gt; {
                     <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), <span class="kw-2">*</span>id))
                 }
-                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) =&gt; {
+                <span class="prelude-val">Some</span>(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) =&gt; {
                     evaluate_with_target_hint(eval.as_ref().unwrap(), scope, index, target_type, lhs)<span class="question-mark">?</span>;
                     <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::Integer(!v), location.clone(), <span class="kw-2">*</span>id))
                 }
@@ -1282,10 +1288,10 @@
         <span class="comment">// - x
         </span>AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) =&gt; {
             <span class="kw">match </span>evaluate(value, scope, index)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location }) =&gt; {
-                    <span class="prelude-val">Some</span>(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location))
-                }
-                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location }) =&gt; {
+                <span class="prelude-val">Some</span>(AstNode {
+                    stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
+                }) =&gt; <span class="prelude-val">Some</span>(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
+                <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Real(v)), id, location, .. }) =&gt; {
                     <span class="kw">let </span>lit = AstNode::new(
                         AstStatement::Literal(AstLiteral::new_real(<span class="macro">format!</span>(
                             <span class="string">"{:}"</span>,

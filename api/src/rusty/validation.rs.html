@@ -269,15 +269,7 @@
 <a href="#268" id="268">268</a>
 <a href="#269" id="269">269</a>
 <a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
+<a href="#271" id="271">271</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{AstNode, CompilationUnit, DirectAccessType};
 <span class="kw">use </span>plc_derive::Validators;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_index::GlobalContext;
@@ -322,25 +314,16 @@
     <span class="doccomment">/// the type_name of the context for a reference (e.g. `a.b` where `a`'s type is the context of `b`)
     </span>qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt;,
     is_call: bool,
+    is_cast: bool,
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'s</span>, T: AnnotationMap&gt; ValidationContext&lt;<span class="lifetime">'s</span>, T&gt; {
     <span class="kw">fn </span>with_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="kw-2">&amp;</span><span class="lifetime">'s </span>str) -&gt; <span class="self">Self </span>{
-        ValidationContext {
-            annotations: <span class="self">self</span>.annotations,
-            index: <span class="self">self</span>.index,
-            qualifier: <span class="prelude-val">Some</span>(qualifier),
-            is_call: <span class="self">self</span>.is_call,
-        }
+        ValidationContext { qualifier: <span class="prelude-val">Some</span>(qualifier), ..<span class="self">self</span>.to_owned() }
     }
 
     <span class="kw">fn </span>with_optional_qualifier(<span class="kw-2">&amp;</span><span class="self">self</span>, qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt;) -&gt; <span class="self">Self </span>{
-        ValidationContext {
-            annotations: <span class="self">self</span>.annotations,
-            index: <span class="self">self</span>.index,
-            qualifier,
-            is_call: <span class="self">self</span>.is_call,
-        }
+        ValidationContext { qualifier, ..<span class="self">self</span>.to_owned() }
     }
 
     <span class="kw">fn </span>find_pou(<span class="kw-2">&amp;</span><span class="self">self</span>, stmt: <span class="kw-2">&amp;</span>AstNode) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; {
@@ -358,16 +341,15 @@
     }
 
     <span class="kw">fn </span>set_is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
-        ValidationContext {
-            annotations: <span class="self">self</span>.annotations,
-            index: <span class="self">self</span>.index,
-            qualifier: <span class="self">self</span>.qualifier,
-            is_call: <span class="bool-val">true</span>,
-        }
+        ValidationContext { is_call: <span class="bool-val">true</span>, ..<span class="self">self</span>.to_owned() }
     }
 
     <span class="kw">fn </span>is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.is_call
+    }
+
+    <span class="kw">fn </span>set_cast(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
+        ValidationContext { is_cast: <span class="bool-val">true</span>, ..<span class="self">self</span>.to_owned() }
     }
 }
 
@@ -378,6 +360,7 @@
             index: <span class="self">self</span>.index,
             qualifier: <span class="self">self</span>.qualifier,
             is_call: <span class="self">self</span>.is_call,
+            is_cast: <span class="self">self</span>.is_cast,
         }
     }
 }
@@ -453,7 +436,8 @@
     }
 
     <span class="kw">pub fn </span>visit_unit&lt;T: AnnotationMap&gt;(<span class="kw-2">&amp;mut </span><span class="self">self</span>, annotations: <span class="kw-2">&amp;</span>T, index: <span class="kw-2">&amp;</span>Index, unit: <span class="kw-2">&amp;</span>CompilationUnit) {
-        <span class="kw">let </span>context = ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false </span>};
+        <span class="kw">let </span>context =
+            ValidationContext { annotations, index, qualifier: <span class="prelude-val">None</span>, is_call: <span class="bool-val">false</span>, is_cast: <span class="bool-val">false </span>};
         <span class="comment">// Validate POU and declared Variables
         </span><span class="kw">for </span>pou <span class="kw">in </span><span class="kw-2">&amp;</span>unit.pous {
             <span class="kw">let </span>context = context.with_qualifier(pou.name.as_str());

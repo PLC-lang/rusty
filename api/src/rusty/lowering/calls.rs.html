@@ -1198,7 +1198,8 @@
 <a href="#1197" id="1197">1197</a>
 <a href="#1198" id="1198">1198</a>
 <a href="#1199" id="1199">1199</a>
-<a href="#1200" id="1200">1200</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
+<a href="#1200" id="1200">1200</a>
+<a href="#1201" id="1201">1201</a></pre></div><pre class="rust"><code><span class="doccomment">//! Changes the calls to aggregate return types
 //! to make them VAR_IN_OUT calls, allowing them
 //! to be called from C_APIs and simplifying code generation
 //!
@@ -1507,6 +1508,7 @@
                 }),
                 id: <span class="self">self</span>.id_provider.next_id(),
                 location: original_location.clone(),
+                metadata: <span class="prelude-val">None</span>,
             };
             <span class="self">self</span>.push_statement(alloca);
             <span class="kw">let </span>location = stmt.parameters.as_ref().map(|it| it.get_location()).unwrap_or_default();

@@ -2572,7 +2572,7 @@
 
     <span class="kw">if </span>name.is_some() || bounds.is_some() {
         <span class="kw">let </span>data_type = <span class="kw">match </span>bounds {
-            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location }) =&gt; {
+            <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location, .. }) =&gt; {
                 <span class="comment">//this is an enum
                 </span>DataTypeDeclaration::Definition {
                     data_type: DataType::EnumType {

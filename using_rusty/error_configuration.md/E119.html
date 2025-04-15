@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E118 - RuSTy User Documentation</title>
+        <title>E119 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -152,18 +152,68 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="signature-mismatch"><a class="header" href="#signature-mismatch">Signature mismatch</a></h1>
-<p>This error is generally a follow-up error to "E112" to give more detailed information about why the error occured. Please use <code>plc explain E112</code> get more information about the general causes of these errors.</p>
+                        <h1 id="invalid-use-of-the-super-keyword"><a class="header" href="#invalid-use-of-the-super-keyword">Invalid use of the <code>SUPER</code> keyword</a></h1>
+<p>The <code>SUPER</code> keyword provides access to members of a parent POU (Program Organization Unit) in an inheritance hierarchy. However, there are several rules governing its proper use:</p>
+<h2 id="common-errors"><a class="header" href="#common-errors">Common errors</a></h2>
+<ol>
+<li>
+<p><strong>Using <code>SUPER</code> in a POU that doesn't extend another POU</strong>:<br />
+The <code>SUPER</code> keyword can only be used inside a POU that directly extends another POU through the <code>EXTENDS</code> keyword.</p>
+</li>
+<li>
+<p><strong>Not dereferencing <code>SUPER</code> to access members</strong>:<br />
+When accessing members of a superclass, <code>SUPER</code> must be dereferenced using the <code>^</code> operator: <code>SUPER^.member</code>.</p>
+</li>
+<li>
+<p><strong>Chaining <code>SUPER</code> references</strong>:<br />
+<code>SUPER</code> cannot be accessed as a member of another object. Expressions like <code>SUPER^.SUPER^</code> are invalid.</p>
+</li>
+<li>
+<p><strong>Global access position</strong>:<br />
+<code>SUPER</code> cannot be used with the global access operator (<code>.SUPER^.member</code>).</p>
+</li>
+<li>
+<p><strong>Using <code>SUPER</code> with type cast operators</strong>:<br />
+The type cast operator (<code>&lt;type&gt;#</code>) cannot be used with <code>SUPER</code>.</p>
+</li>
+</ol>
+<h2 id="examples-of-invalid-use"><a class="header" href="#examples-of-invalid-use">Examples of invalid use</a></h2>
+<pre><code class="language-iecst">// Error: Using SUPER in a POU that doesn't extend another POU
+FUNCTION_BLOCK fb
+    SUPER^.x := 2;  // Error: Invalid use of `SUPER`
+END_FUNCTION_BLOCK
+
+// Error: Not dereferencing SUPER when accessing members
+FUNCTION_BLOCK child EXTENDS parent
+    SUPER.x := 20;  // Error: `SUPER` must be dereferenced to access its members
+END_FUNCTION_BLOCK
+
+// Error: Chaining SUPER references/SUPER in member access
+FUNCTION_BLOCK child EXTENDS parent
+    x.SUPER^.y := 20;    
+    SUPER^.SUPER^.x := 20;  
+    // Error: `SUPER` is not allowed in member-access position
+END_FUNCTION_BLOCK
+
+// Error: Global access position
+FUNCTION_BLOCK child EXTENDS parent
+    .SUPER^.x := 20;  // Error: `SUPER` is not allowed in global-access position
+END_FUNCTION_BLOCK
+
+// Error: Using SUPER with type cast
+FUNCTION_BLOCK child EXTENDS parent
+    p := parent#SUPER;  // Error: The `&lt;type&gt;#` operator cannot be used with `SUPER`
+END_FUNCTION_BLOCK</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E117.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E118.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E119.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -173,11 +223,11 @@
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E117.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E118.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E119.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

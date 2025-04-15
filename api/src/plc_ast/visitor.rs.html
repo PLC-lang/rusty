@@ -788,7 +788,8 @@
 <a href="#787" id="787">787</a>
 <a href="#788" id="788">788</a>
 <a href="#789" id="789">789</a>
-<a href="#790" id="790">790</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitor` trait and its associated macros.
 //! The `AstVisitor` trait provides a set of methods for traversing and visiting ASTs
 
 </span><span class="kw">use </span><span class="kw">crate</span>::ast::{
@@ -1400,6 +1401,7 @@
             AstStatement::JumpStatement(stmt) =&gt; visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) =&gt; visitor.visit_label_statement(stmt, node),
             AstStatement::AllocationStatement(stmt) =&gt; visitor.visit_allocation(stmt, node),
+            AstStatement::Super(<span class="kw">_</span>) =&gt; {}
         }
     }
 }

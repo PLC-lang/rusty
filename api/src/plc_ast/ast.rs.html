@@ -1914,7 +1914,121 @@
 <a href="#1913" id="1913">1913</a>
 <a href="#1914" id="1914">1914</a>
 <a href="#1915" id="1915">1915</a>
-<a href="#1916" id="1916">1916</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1916" id="1916">1916</a>
+<a href="#1917" id="1917">1917</a>
+<a href="#1918" id="1918">1918</a>
+<a href="#1919" id="1919">1919</a>
+<a href="#1920" id="1920">1920</a>
+<a href="#1921" id="1921">1921</a>
+<a href="#1922" id="1922">1922</a>
+<a href="#1923" id="1923">1923</a>
+<a href="#1924" id="1924">1924</a>
+<a href="#1925" id="1925">1925</a>
+<a href="#1926" id="1926">1926</a>
+<a href="#1927" id="1927">1927</a>
+<a href="#1928" id="1928">1928</a>
+<a href="#1929" id="1929">1929</a>
+<a href="#1930" id="1930">1930</a>
+<a href="#1931" id="1931">1931</a>
+<a href="#1932" id="1932">1932</a>
+<a href="#1933" id="1933">1933</a>
+<a href="#1934" id="1934">1934</a>
+<a href="#1935" id="1935">1935</a>
+<a href="#1936" id="1936">1936</a>
+<a href="#1937" id="1937">1937</a>
+<a href="#1938" id="1938">1938</a>
+<a href="#1939" id="1939">1939</a>
+<a href="#1940" id="1940">1940</a>
+<a href="#1941" id="1941">1941</a>
+<a href="#1942" id="1942">1942</a>
+<a href="#1943" id="1943">1943</a>
+<a href="#1944" id="1944">1944</a>
+<a href="#1945" id="1945">1945</a>
+<a href="#1946" id="1946">1946</a>
+<a href="#1947" id="1947">1947</a>
+<a href="#1948" id="1948">1948</a>
+<a href="#1949" id="1949">1949</a>
+<a href="#1950" id="1950">1950</a>
+<a href="#1951" id="1951">1951</a>
+<a href="#1952" id="1952">1952</a>
+<a href="#1953" id="1953">1953</a>
+<a href="#1954" id="1954">1954</a>
+<a href="#1955" id="1955">1955</a>
+<a href="#1956" id="1956">1956</a>
+<a href="#1957" id="1957">1957</a>
+<a href="#1958" id="1958">1958</a>
+<a href="#1959" id="1959">1959</a>
+<a href="#1960" id="1960">1960</a>
+<a href="#1961" id="1961">1961</a>
+<a href="#1962" id="1962">1962</a>
+<a href="#1963" id="1963">1963</a>
+<a href="#1964" id="1964">1964</a>
+<a href="#1965" id="1965">1965</a>
+<a href="#1966" id="1966">1966</a>
+<a href="#1967" id="1967">1967</a>
+<a href="#1968" id="1968">1968</a>
+<a href="#1969" id="1969">1969</a>
+<a href="#1970" id="1970">1970</a>
+<a href="#1971" id="1971">1971</a>
+<a href="#1972" id="1972">1972</a>
+<a href="#1973" id="1973">1973</a>
+<a href="#1974" id="1974">1974</a>
+<a href="#1975" id="1975">1975</a>
+<a href="#1976" id="1976">1976</a>
+<a href="#1977" id="1977">1977</a>
+<a href="#1978" id="1978">1978</a>
+<a href="#1979" id="1979">1979</a>
+<a href="#1980" id="1980">1980</a>
+<a href="#1981" id="1981">1981</a>
+<a href="#1982" id="1982">1982</a>
+<a href="#1983" id="1983">1983</a>
+<a href="#1984" id="1984">1984</a>
+<a href="#1985" id="1985">1985</a>
+<a href="#1986" id="1986">1986</a>
+<a href="#1987" id="1987">1987</a>
+<a href="#1988" id="1988">1988</a>
+<a href="#1989" id="1989">1989</a>
+<a href="#1990" id="1990">1990</a>
+<a href="#1991" id="1991">1991</a>
+<a href="#1992" id="1992">1992</a>
+<a href="#1993" id="1993">1993</a>
+<a href="#1994" id="1994">1994</a>
+<a href="#1995" id="1995">1995</a>
+<a href="#1996" id="1996">1996</a>
+<a href="#1997" id="1997">1997</a>
+<a href="#1998" id="1998">1998</a>
+<a href="#1999" id="1999">1999</a>
+<a href="#2000" id="2000">2000</a>
+<a href="#2001" id="2001">2001</a>
+<a href="#2002" id="2002">2002</a>
+<a href="#2003" id="2003">2003</a>
+<a href="#2004" id="2004">2004</a>
+<a href="#2005" id="2005">2005</a>
+<a href="#2006" id="2006">2006</a>
+<a href="#2007" id="2007">2007</a>
+<a href="#2008" id="2008">2008</a>
+<a href="#2009" id="2009">2009</a>
+<a href="#2010" id="2010">2010</a>
+<a href="#2011" id="2011">2011</a>
+<a href="#2012" id="2012">2012</a>
+<a href="#2013" id="2013">2013</a>
+<a href="#2014" id="2014">2014</a>
+<a href="#2015" id="2015">2015</a>
+<a href="#2016" id="2016">2016</a>
+<a href="#2017" id="2017">2017</a>
+<a href="#2018" id="2018">2018</a>
+<a href="#2019" id="2019">2019</a>
+<a href="#2020" id="2020">2020</a>
+<a href="#2021" id="2021">2021</a>
+<a href="#2022" id="2022">2022</a>
+<a href="#2023" id="2023">2023</a>
+<a href="#2024" id="2024">2024</a>
+<a href="#2025" id="2025">2025</a>
+<a href="#2026" id="2026">2026</a>
+<a href="#2027" id="2027">2027</a>
+<a href="#2028" id="2028">2028</a>
+<a href="#2029" id="2029">2029</a>
+<a href="#2030" id="2030">2030</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2721,11 +2835,38 @@
     </span>Address,
 }
 
+<span class="comment">// XXX: this should probably be an enum or dyn trait at some point, but for now we only have a singular use-case (preserving lowered AST for validation)
+// Another use-case might be markers to exclude internals from validation - this currently happens based on `SourceLocation` with `FileMarker`s,
+// this might be a better alternative
+</span><span class="attr">#[derive(Debug, Clone, PartialEq)]
+</span><span class="kw">pub struct </span>MetaData(Box&lt;AstNode&gt;);
+
+<span class="kw">impl </span>From&lt;AstNode&gt; <span class="kw">for </span>MetaData {
+    <span class="kw">fn </span>from(value: AstNode) -&gt; <span class="self">Self </span>{
+        <span class="self">Self</span>(Box::new(value))
+    }
+}
+
+<span class="kw">impl </span>MetaData {
+    <span class="kw">pub fn </span>get_inner(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AstNode {
+        <span class="self">self</span>.<span class="number">0</span>.as_ref()
+    }
+
+    <span class="kw">pub fn </span>is_super(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_inner().is_super()
+    }
+
+    <span class="kw">pub fn </span>is_super_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_inner().is_super_deref()
+    }
+}
+
 <span class="attr">#[derive(Clone, PartialEq)]
 </span><span class="kw">pub struct </span>AstNode {
     <span class="kw">pub </span>stmt: AstStatement,
     <span class="kw">pub </span>id: AstId,
     <span class="kw">pub </span>location: SourceLocation,
+    <span class="kw">pub </span>metadata: <span class="prelude-ty">Option</span>&lt;MetaData&gt;,
 }
 
 <span class="kw">impl </span>Default <span class="kw">for </span>AstNode {
@@ -2749,6 +2890,7 @@
     <span class="comment">// Expressions
     </span>ReferenceExpr(ReferenceExpr),
     Identifier(String),
+    Super(<span class="prelude-ty">Option</span>&lt;DerefMarker&gt;),
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -2817,6 +2959,8 @@
             AstStatement::DefaultValue(..) =&gt; f.debug_struct(<span class="string">"DefaultValue"</span>).finish(),
             AstStatement::Literal(literal) =&gt; literal.fmt(f),
             AstStatement::Identifier(name) =&gt; f.debug_struct(<span class="string">"Identifier"</span>).field(<span class="string">"name"</span>, name).finish(),
+            AstStatement::Super(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; f.debug_struct(<span class="string">"Super(derefed)"</span>).finish(),
+            AstStatement::Super(<span class="kw">_</span>) =&gt; f.debug_struct(<span class="string">"Super"</span>).finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) =&gt; f
                 .debug_struct(<span class="string">"BinaryExpression"</span>)
                 .field(<span class="string">"operator"</span>, operator)
@@ -2978,6 +3122,17 @@
         }
     }
 
+    <span class="kw">pub fn </span>get_node_peeled(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>AstNode {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ParenExpression(expr) =&gt; expr.get_node_peeled(),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>MetaData&gt; {
+        <span class="self">self</span>.get_node_peeled().metadata.as_ref()
+    }
+
     <span class="doccomment">/// Returns true if the current statement has a direct access.
     </span><span class="kw">pub fn </span>has_direct_access(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
@@ -3063,6 +3218,32 @@
         )
     }
 
+    <span class="kw">pub fn </span>get_initial_base(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base, .. }, ..) =&gt; {
+                <span class="kw">if </span>base.is_none() {
+                    <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>);
+                }
+                base.as_ref().and_then(|it| it.get_initial_base())
+            }
+            AstStatement::Identifier(<span class="kw">_</span>) =&gt; <span class="prelude-val">Some</span>(<span class="self">self</span>),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">pub fn </span>get_identifier(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt; {
+        <span class="kw">if </span><span class="self">self</span>.is_identifier() {
+            <span class="kw">return </span><span class="prelude-val">Some</span>(<span class="self">self</span>);
+        }
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) =&gt; reference.get_identifier(),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
     <span class="kw">pub fn </span>is_call(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::CallStatement(..))
     }
@@ -3093,7 +3274,44 @@
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ExpressionList { .. })
     }
 
+    <span class="kw">pub fn </span>is_super(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>node = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) =&gt; reference,
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
+        };
+        <span class="macro">matches!</span>(node.get_stmt_peeled(), AstStatement::Super(..))
+    }
+
+    <span class="kw">pub fn </span>is_super_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">let </span>node = <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Member(reference), .. },
+                ..,
+            ) =&gt; reference,
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>,
+        };
+        <span class="macro">matches!</span>(node.get_stmt_peeled(), AstStatement::Super(<span class="prelude-val">Some</span>(<span class="kw">_</span>)))
+    }
+
+    <span class="kw">pub fn </span>has_super_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_metadata()
+            .or_else(|| <span class="self">self</span>.get_identifier().and_then(|it| it.get_metadata()))
+            .map_or(<span class="bool-val">false</span>, |it| it.is_super())
+    }
+
+    <span class="kw">pub fn </span>has_super_metadata_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_metadata()
+            .or_else(|| <span class="self">self</span>.get_identifier().and_then(|it| it.get_metadata()))
+            .map_or(<span class="bool-val">false</span>, |it| it.is_super_deref())
+    }
+
     <span class="kw">pub fn </span>can_be_assigned_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">if </span><span class="self">self</span>.has_super_metadata() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
+        }
         <span class="self">self</span>.has_direct_access()
             || <span class="self">self</span>.is_flat_reference()
             || <span class="self">self</span>.is_reference()
@@ -3102,8 +3320,8 @@
             || <span class="self">self</span>.is_hardware_access()
     }
 
-    <span class="kw">pub fn </span>new(stmt: AstStatement, id: AstId, location: SourceLocation) -&gt; AstNode {
-        AstNode { stmt, id, location }
+    <span class="kw">pub fn </span>new(stmt: AstStatement, id: AstId, location: <span class="kw">impl </span>Into&lt;SourceLocation&gt;) -&gt; AstNode {
+        AstNode { stmt, id, location: location.into(), metadata: <span class="prelude-val">None </span>}
     }
 
     <span class="kw">pub fn </span>new_literal(kind: AstLiteral, id: AstId, location: SourceLocation) -&gt; AstNode {
@@ -3175,6 +3393,10 @@
             <span class="self">self</span>.stmt,
             AstStatement::HardwareAccess(HardwareAccess { access: DirectAccessType::Template, .. })
         )
+    }
+
+    <span class="kw">pub fn </span>with_metadata(<span class="self">self</span>, metadata: MetaData) -&gt; AstNode {
+        AstNode { metadata: <span class="prelude-val">Some</span>(metadata), ..<span class="self">self </span>}
     }
 }
 
@@ -3322,9 +3544,8 @@
 
 <span class="kw">impl </span>AstFactory {
     <span class="kw">pub fn </span>create_empty_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::EmptyStatement(EmptyStatement {}), location, id }
-        <span class="comment">// AstStatement::EmptyStatement (  EmptyStatement {}, location, id }
-    </span>}
+        AstNode { stmt: AstStatement::EmptyStatement(EmptyStatement {}), location, id, metadata: <span class="prelude-val">None </span>}
+    }
 
     <span class="kw">pub fn </span>create_return_statement(
         condition: <span class="prelude-ty">Option</span>&lt;AstNode&gt;,
@@ -3332,27 +3553,27 @@
         id: AstId,
     ) -&gt; AstNode {
         <span class="kw">let </span>condition = condition.map(Box::new);
-        AstNode { stmt: AstStatement::ReturnStatement(ReturnStatement { condition }), location, id }
+        AstNode::new(AstStatement::ReturnStatement(ReturnStatement { condition }), id, location)
     }
 
     <span class="kw">pub fn </span>create_exit_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ExitStatement(()), location, id }
+        AstNode::new(AstStatement::ExitStatement(()), id, location)
     }
 
     <span class="kw">pub fn </span>create_continue_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ContinueStatement(()), location, id }
+        AstNode::new(AstStatement::ContinueStatement(()), id, location)
     }
 
     <span class="kw">pub fn </span>create_case_condition(result: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::CaseCondition(Box::new(result)), id, location }
+        AstNode::new(AstStatement::CaseCondition(Box::new(result)), id, location)
     }
 
     <span class="kw">pub fn </span>create_vla_range_statement(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::VlaRangeStatement, id, location }
+        AstNode::new(AstStatement::VlaRangeStatement, id, location)
     }
 
     <span class="kw">pub fn </span>create_literal(kind: AstLiteral, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::Literal(kind), id, location }
+        AstNode::new(AstStatement::Literal(kind), id, location)
     }
 
     <span class="kw">pub fn </span>create_hardware_access(
@@ -3362,75 +3583,75 @@
         location: SourceLocation,
         id: usize,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
-            location,
+        AstNode::new(
+            AstStatement::HardwareAccess(HardwareAccess { access, direction, address }),
             id,
-        }
+            location,
+        )
     }
 
     <span class="kw">pub fn </span>create_default_value(location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::DefaultValue(DefaultValue {}), location, id }
+        AstNode::new(AstStatement::DefaultValue(DefaultValue {}), id, location)
     }
 
     <span class="kw">pub fn </span>create_expression_list(expressions: Vec&lt;AstNode&gt;, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ExpressionList(expressions), location, id }
+        AstNode::new(AstStatement::ExpressionList(expressions), id, location)
     }
 
     <span class="kw">pub fn </span>create_paren_expression(expression: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ParenExpression(Box::new(expression)), location, id }
+        AstNode::new(AstStatement::ParenExpression(Box::new(expression)), id, location)
     }
 
     <span class="doccomment">/// creates a new if-statement
     </span><span class="kw">pub fn </span>create_if_statement(stmt: IfStatement, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::If(stmt)), location, id }
+        AstNode::new(AstStatement::ControlStatement(AstControlStatement::If(stmt)), id, location)
     }
 
     <span class="doccomment">///  creates a new for loop statement
     </span><span class="kw">pub fn </span>create_for_loop(stmt: ForLoopStatement, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt)), location, id }
+        AstNode::new(AstStatement::ControlStatement(AstControlStatement::ForLoop(stmt)), id, location)
     }
 
     <span class="doccomment">/// creates a new while statement
     </span><span class="kw">pub fn </span>create_while_statement(stmt: LoopStatement, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt)), id, location }
+        AstNode::new(AstStatement::ControlStatement(AstControlStatement::WhileLoop(stmt)), id, location)
     }
 
     <span class="doccomment">/// creates a new repeat-statement
     </span><span class="kw">pub fn </span>create_repeat_statement(stmt: LoopStatement, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt)), id, location }
+        AstNode::new(AstStatement::ControlStatement(AstControlStatement::RepeatLoop(stmt)), id, location)
     }
 
     <span class="doccomment">/// creates a new case-statement
     </span><span class="kw">pub fn </span>create_case_statement(stmt: CaseStatement, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::ControlStatement(AstControlStatement::Case(stmt)), id, location }
+        AstNode::new(AstStatement::ControlStatement(AstControlStatement::Case(stmt)), id, location)
     }
 
     <span class="doccomment">/// creates an or-expression
     </span><span class="kw">pub fn </span>create_or_expression(left: AstNode, right: AstNode) -&gt; AstNode {
         <span class="kw">let </span>id = left.get_id();
         <span class="kw">let </span>location = left.get_location().span(<span class="kw-2">&amp;</span>right.get_location());
-        AstNode {
-            stmt: AstStatement::BinaryExpression(BinaryExpression {
+        AstNode::new(
+            AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
                 right: Box::new(right),
                 operator: Operator::Or,
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="doccomment">/// creates a not-expression
     </span><span class="kw">pub fn </span>create_not_expression(operator: AstNode, location: SourceLocation, id: usize) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::UnaryExpression(UnaryExpression {
+        AstNode::new(
+            AstStatement::UnaryExpression(UnaryExpression {
                 value: Box::new(operator),
                 operator: Operator::Not,
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="doccomment">/// creates a new Identifier
@@ -3442,26 +3663,33 @@
         AstNode::new(AstStatement::Identifier(name.into()), id, location.into())
     }
 
+    <span class="kw">pub fn </span>create_super_reference&lt;T&gt;(location: T, deref: <span class="prelude-ty">Option</span>&lt;DerefMarker&gt;, id: AstId) -&gt; AstNode
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        AstNode::new(AstStatement::Super(deref), id, location.into())
+    }
+
     <span class="kw">pub fn </span>create_unary_expression(
         operator: Operator,
         value: AstNode,
         location: SourceLocation,
         id: AstId,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
-            location,
+        AstNode::new(
+            AstStatement::UnaryExpression(UnaryExpression { operator, value: Box::new(value) }),
             id,
-        }
+            location,
+        )
     }
 
     <span class="kw">pub fn </span>create_assignment(left: AstNode, right: AstNode, id: AstId) -&gt; AstNode {
         <span class="kw">let </span>location = left.location.span(<span class="kw-2">&amp;</span>right.location);
-        AstNode {
-            stmt: AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
+        AstNode::new(
+            AstStatement::Assignment(Assignment { left: Box::new(left), right: Box::new(right) }),
             id,
             location,
-        }
+        )
     }
 
     <span class="kw">pub fn </span>create_output_assignment(left: AstNode, right: AstNode, id: AstId) -&gt; AstNode {
@@ -3491,14 +3719,14 @@
             .as_ref()
             .map(|it| it.get_location().span(<span class="kw-2">&amp;</span>member.get_location()))
             .unwrap_or_else(|| member.get_location());
-        AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Member(Box::new(member)),
                 base: base.map(Box::new),
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="kw">pub fn </span>create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -&gt; AstNode {
@@ -3509,6 +3737,7 @@
             }),
             id,
             location,
+            metadata: <span class="prelude-val">None</span>,
         }
     }
 
@@ -3518,36 +3747,36 @@
         id: AstId,
         location: SourceLocation,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Index(Box::new(index)),
                 base: base.map(Box::new),
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="kw">pub fn </span>create_address_of_reference(base: AstNode, id: AstId, location: SourceLocation) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Address,
                 base: <span class="prelude-val">Some</span>(Box::new(base)),
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="kw">pub fn </span>create_deref_reference(base: AstNode, id: AstId, location: SourceLocation) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Deref,
                 base: <span class="prelude-val">Some</span>(Box::new(base)),
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="kw">pub fn </span>create_direct_access(
@@ -3556,25 +3785,25 @@
         id: AstId,
         location: SourceLocation,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::DirectAccess(DirectAccess { access, index: Box::new(index) }),
-            location,
+        AstNode::new(
+            AstStatement::DirectAccess(DirectAccess { access, index: Box::new(index) }),
             id,
-        }
+            location,
+        )
     }
 
     <span class="doccomment">/// creates a new binary statement
     </span><span class="kw">pub fn </span>create_binary_expression(left: AstNode, operator: Operator, right: AstNode, id: AstId) -&gt; AstNode {
         <span class="kw">let </span>location = left.location.span(<span class="kw-2">&amp;</span>right.location);
-        AstNode {
-            stmt: AstStatement::BinaryExpression(BinaryExpression {
+        AstNode::new(
+            AstStatement::BinaryExpression(BinaryExpression {
                 left: Box::new(left),
                 operator,
                 right: Box::new(right),
             }),
             id,
             location,
-        }
+        )
     }
 
     <span class="doccomment">/// creates a new cast statement
@@ -3585,14 +3814,14 @@
         id: AstId,
     ) -&gt; AstNode {
         <span class="kw">let </span>new_location = location.span(<span class="kw-2">&amp;</span>stmt.get_location());
-        AstNode {
-            stmt: AstStatement::ReferenceExpr(ReferenceExpr {
+        AstNode::new(
+            AstStatement::ReferenceExpr(ReferenceExpr {
                 access: ReferenceAccess::Cast(Box::new(stmt)),
                 base: <span class="prelude-val">Some</span>(Box::new(type_name)),
             }),
             id,
-            location: new_location,
-        }
+            new_location,
+        )
     }
 
     <span class="kw">pub fn </span>create_call_statement&lt;T&gt;(
@@ -3604,14 +3833,14 @@
     <span class="kw">where
         </span>T: Into&lt;SourceLocation&gt;,
     {
-        AstNode {
-            stmt: AstStatement::CallStatement(CallStatement {
+        AstNode::new(
+            AstStatement::CallStatement(CallStatement {
                 operator: Box::new(operator),
                 parameters: parameters.map(Box::new),
             }),
-            location: location.into(),
             id,
-        }
+            location.into(),
+        )
     }
 
     <span class="doccomment">/// creates a new call statement to the given function and parameters
@@ -3622,8 +3851,8 @@
         parameter_list_id: usize,
         location: <span class="kw-2">&amp;</span>SourceLocation,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::CallStatement(CallStatement {
+        AstNode::new(
+            AstStatement::CallStatement(CallStatement {
                 operator: Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(<span class="kw-2">&amp;</span>function_name, location, id),
                     <span class="prelude-val">None</span>,
@@ -3635,9 +3864,9 @@
                     SourceLocation::internal(), <span class="comment">//TODO: get real location
                 </span>))),
             }),
-            location: location.clone(),
             id,
-        }
+            location,
+        )
     }
 
     <span class="kw">pub fn </span>create_multiplied_statement(
@@ -3646,20 +3875,17 @@
         location: SourceLocation,
         id: AstId,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::MultipliedStatement(MultipliedStatement {
-                multiplier,
-                element: Box::new(element),
-            }),
-            location,
+        AstNode::new(
+            AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element: Box::new(element) }),
             id,
-        }
+            location,
+        )
     }
 
     <span class="kw">pub fn </span>create_range_statement(start: AstNode, end: AstNode, id: AstId) -&gt; AstNode {
         <span class="kw">let </span>location = start.location.span(<span class="kw-2">&amp;</span>end.location);
         <span class="kw">let </span>data = RangeStatement { start: Box::new(start), end: Box::new(end) };
-        AstNode { stmt: AstStatement::RangeStatement(data), id, location }
+        AstNode::new(AstStatement::RangeStatement(data), id, location)
     }
 
     <span class="kw">pub fn </span>create_call_to_with_ids(
@@ -3668,8 +3894,8 @@
         location: <span class="kw-2">&amp;</span>SourceLocation,
         <span class="kw-2">mut </span>id_provider: IdProvider,
     ) -&gt; AstNode {
-        AstNode {
-            stmt: AstStatement::CallStatement(CallStatement {
+        AstNode::new(
+            AstStatement::CallStatement(CallStatement {
                 operator: Box::new(AstFactory::create_member_reference(
                     AstFactory::create_identifier(function_name, location, id_provider.next_id()),
                     <span class="prelude-val">None</span>,
@@ -3681,9 +3907,9 @@
                     id_provider.next_id(),
                 ))),
             }),
-            location: location.clone(),
-            id: id_provider.next_id(),
-        }
+            id_provider.next_id(),
+            location,
+        )
     }
 
     <span class="kw">pub fn </span>create_call_to_check_function_ast(
@@ -3707,11 +3933,11 @@
         location: SourceLocation,
         id: AstId,
     ) -&gt; AstNode {
-        AstNode { stmt: AstStatement::JumpStatement(JumpStatement { condition, target }), location, id }
+        AstNode::new(AstStatement::JumpStatement(JumpStatement { condition, target }), id, location)
     }
 
     <span class="kw">pub fn </span>create_label_statement(name: String, location: SourceLocation, id: AstId) -&gt; AstNode {
-        AstNode { stmt: AstStatement::LabelStatement(LabelStatement { name }), location, id }
+        AstNode::new(AstStatement::LabelStatement(LabelStatement { name }), id, location)
     }
 
     <span class="kw">pub fn </span>create_plus_one_expression(value: AstNode, location: SourceLocation, id: AstId) -&gt; AstNode {
@@ -3806,6 +4032,8 @@
     <span class="kw">pub </span>name: String,
     <span class="kw">pub </span>reference_type: String,
 }
+
+<span class="kw">type </span>DerefMarker = ();
 
 <span class="kw">impl </span>HardwareAccess {
     <span class="kw">pub fn </span>get_mangled_variable_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
