@@ -15,6 +15,10 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
     declaration: &DataTypeDeclaration,
     context: &ValidationContext<T>,
 ) {
+    if declaration.get_location().is_internal() {
+        return;
+    }
+
     match declaration {
         DataTypeDeclaration::Reference { referenced_type, location } => {
             if context.index.find_effective_type_by_name(referenced_type).is_none() {
