@@ -762,7 +762,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 
             let variable_key = VariableKey::new(
                 variable.get_qualified_name(),
-                Some(function_scope.linking_context.get_call_name()),
+                Some(&function_scope.linking_context.get_call_name_for_ir()),
             );
             self.variables.insert(variable_key, debug_variable);
         }
@@ -801,7 +801,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 
             let variable_key = VariableKey::new(
                 variable.get_qualified_name(),
-                Some(function_scope.linking_context.get_call_name()),
+                Some(&function_scope.linking_context.get_call_name_for_ir()),
             );
             self.variables.insert(variable_key, debug_variable);
         }
@@ -819,7 +819,8 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .get_subprogram()
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| file.as_debug_info_scope());
-        let variable_key = VariableKey::new(name, Some(function_scope.linking_context.get_call_name()));
+        let variable_key =
+            VariableKey::new(name, Some(&function_scope.linking_context.get_call_name_for_ir()));
         if let Some(debug_type) = self.types.get(&name.to_lowercase()) {
             let debug_type = *debug_type;
             let line = function_scope.linking_context.get_location().get_line_plus_one() as u32;
@@ -865,7 +866,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             scope,
             None,
         );
-        let key = VariableKey::new(name, Some(function_scope.linking_context.get_call_name()));
+        let key = VariableKey::new(name, Some(&function_scope.linking_context.get_call_name_for_ir()));
         let variable = self.variables.get(&key);
         self.debug_info.insert_declare_at_end(value, variable.copied(), None, location, block);
     }
