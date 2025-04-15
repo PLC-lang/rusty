@@ -507,6 +507,20 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_myRefStruct(%myRefStruct* %0) {
+    entry:
+      %self = alloca %myRefStruct*, align 8
+      store %myRefStruct* %0, %myRefStruct** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -618,6 +632,16 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__user_init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      %deref = load %baz*, %baz** %self, align 8
+      %fb = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
+      call void @__user_init_bar(%bar* %fb)
+      ret void
+    }
+
     define void @__user_init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -635,13 +659,10 @@ fn generating_init_functions() {
       ret void
     }
 
-    define void @__user_init_baz(%baz* %0) {
+    define void @__user_init_myStruct(%myStruct* %0) {
     entry:
-      %self = alloca %baz*, align 8
-      store %baz* %0, %baz** %self, align 8
-      %deref = load %baz*, %baz** %self, align 8
-      %fb = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
-      call void @__user_init_bar(%bar* %fb)
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
@@ -650,6 +671,7 @@ fn generating_init_functions() {
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
       call void @__user_init_baz(%baz* @baz_instance)
+      call void @__user_init_myStruct(%myStruct* @s)
       ret void
     }
     "#);

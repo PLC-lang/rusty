@@ -338,6 +338,9 @@ impl AstVisitorMut for InitVisitor {
 
     fn visit_data_type(&mut self, data_type: &mut DataType) {
         if matches!(data_type, plc_ast::ast::DataType::StructType { .. }) {
+            if let Some(name) = data_type.get_name() {
+                self.user_inits.insert(name.to_string(), false);
+            };
             self.walk_with_scope(data_type, data_type.get_name().map(ToOwned::to_owned))
         } else {
             data_type.walk(self)

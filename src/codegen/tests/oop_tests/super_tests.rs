@@ -1752,6 +1752,7 @@ fn super_with_structured_types() {
       %1 = bitcast %Complex_Type* %local_data to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%Complex_Type* @__Complex_Type__init to i8*), i64 ptrtoint (%Complex_Type* getelementptr (%Complex_Type, %Complex_Type* null, i32 1) to i64), i1 false)
       call void @__init_complex_type(%Complex_Type* %local_data)
+      call void @__user_init_Complex_Type(%Complex_Type* %local_data)
       %x = getelementptr inbounds %Complex_Type, %Complex_Type* %local_data, i32 0, i32 0
       %data = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
       %x1 = getelementptr inbounds %Complex_Type, %Complex_Type* %data, i32 0, i32 0
@@ -1815,6 +1816,13 @@ fn super_with_structured_types() {
       ret void
     }
 
+    define void @__user_init_Complex_Type(%Complex_Type* %0) {
+    entry:
+      %self = alloca %Complex_Type*, align 8
+      store %Complex_Type* %0, %Complex_Type** %self, align 8
+      ret void
+    }
+
     define void @__user_init_child(%child* %0) {
     entry:
       %self = alloca %child*, align 8
@@ -1829,6 +1837,9 @@ fn super_with_structured_types() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %data = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_Complex_Type(%Complex_Type* %data)
       ret void
     }
 

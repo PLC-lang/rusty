@@ -599,7 +599,7 @@ END_FUNCTION
     ",
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -631,6 +631,7 @@ END_FUNCTION
       call void @llvm.dbg.declare(metadata i16* %i, metadata !48, metadata !DIExpression()), !dbg !49
       store i16 0, i16* %i, align 2
       call void @__init_struct_(%struct_* %st), !dbg !50
+      call void @__user_init_struct_(%struct_* %st), !dbg !50
       %s1 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 2, !dbg !51
       %3 = bitcast [81 x i8]* %s to i8*, !dbg !51
       %4 = bitcast [81 x i8]* %s1 to i8*, !dbg !51
@@ -715,6 +716,23 @@ END_FUNCTION
       ret void
     }
 
+    define void @__user_init_inner(%inner* %0) {
+    entry:
+      %self = alloca %inner*, align 8
+      store %inner* %0, %inner** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_struct_(%struct_* %0) {
+    entry:
+      %self = alloca %struct_*, align 8
+      store %struct_* %0, %struct_** %self, align 8
+      %deref = load %struct_*, %struct_** %self, align 8
+      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
+      call void @__user_init_inner(%inner* %inner)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -790,5 +808,5 @@ END_FUNCTION
     !60 = !DILocation(line: 42, column: 4, scope: !36)
     !61 = !DILocation(line: 43, column: 4, scope: !36)
     !62 = !DILocation(line: 45, scope: !36)
-    "###);
+    "#);
 }
