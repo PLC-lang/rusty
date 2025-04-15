@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -9,32 +10,3 @@ source_filename = "<internal>"
 
 @x = global %__global_x zeroinitializer
 @____global_x__init = unnamed_addr constant %__global_x zeroinitializer
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%__global_x = type { i32, i32 }
-
-@____global_x__init = external global %__global_x
-
-define void @__init___global_x(%__global_x* %0) {
-entry:
-  %self = alloca %__global_x*, align 8
-  store %__global_x* %0, %__global_x** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-%__global_x = type { i32, i32 }
-
-@____global_x__init = external global %__global_x
-@x = external global %__global_x
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  call void @__init___global_x(%__global_x* @x)
-  ret void
-}
-
-declare void @__init___global_x(%__global_x*)

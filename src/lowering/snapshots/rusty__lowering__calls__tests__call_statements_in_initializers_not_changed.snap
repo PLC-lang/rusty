@@ -1,62 +1,14 @@
 ---
 source: src/lowering/calls.rs
-expression: "units[0].0.implementations[0]"
+expression: "units.0.implementations[0]"
+snapshot_kind: text
 ---
 Implementation {
     name: "main",
     type_name: "main",
     linkage: Internal,
     pou_type: Function,
-    statements: [
-        Assignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "b",
-                    },
-                ),
-                base: None,
-            },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "ADR",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        },
-        ReferenceAssignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "c",
-                    },
-                ),
-                base: None,
-            },
-            right: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "b",
-                    },
-                ),
-                base: None,
-            },
-        },
-    ],
+    statements: [],
     location: SourceLocation {
         span: Range(
             TextLocation {

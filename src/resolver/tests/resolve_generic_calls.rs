@@ -1056,8 +1056,8 @@ fn literal_string_as_parameter_resolves_correctly() {
         id_provider.clone(),
     );
 
-    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let statement = flatten_expression_list(&units[0].0.implementations[1].statements[0])[1];
+    let (annotations, index, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let statement = flatten_expression_list(&unit.0.implementations[1].statements[0])[1];
 
     if let AstNode {
         stmt: AstStatement::CallStatement(CallStatement { operator, parameters, .. }, ..), ..
@@ -1164,8 +1164,8 @@ END_FUNCTION
         id_provider.clone(),
     );
 
-    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let call_statement = flatten_expression_list(&units[0].0.implementations[0].statements[0])[1];
+    let (annotations, index, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement = flatten_expression_list(&unit.0.implementations[0].statements[0])[1];
     if let AstStatement::CallStatement(CallStatement { parameters, .. }) = call_statement.get_stmt() {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());
         assert_type_and_hint!(&annotations, &index, parameters[2], DINT_TYPE, Some(DINT_TYPE));
@@ -1202,9 +1202,8 @@ fn generic_function_with_aggregate_return() {
         id_provider.clone(),
     );
 
-    let (annotations, index, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let call_statement =
-        flatten_expression_list(&units[0].0.implementations.last().unwrap().statements[0])[1];
+    let (annotations, index, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let call_statement = flatten_expression_list(&unit.0.implementations.last().unwrap().statements[0])[1];
     if let AstStatement::CallStatement(CallStatement { operator, parameters, .. }) = call_statement.get_stmt()
     {
         let parameters = flatten_expression_list(parameters.as_ref().as_ref().unwrap());

@@ -1029,7 +1029,7 @@ mod tests {
 
         let (unit, index, ..) = index_and_lower(src, id_provider.clone());
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
-        assert_debug_snapshot!(units[0].0.implementations[0]);
+        assert_debug_snapshot!(units.0.implementations[0]);
     }
 
     #[test]
@@ -1046,7 +1046,7 @@ mod tests {
 
         let (unit, index, ..) = index_and_lower(src, id_provider.clone());
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
-        assert_debug_snapshot!(units[0].0.global_vars);
+        assert_debug_snapshot!(units.0.global_vars);
     }
 
     #[test]
@@ -1068,7 +1068,7 @@ mod tests {
         let (unit, index, ..) = index_and_lower(src, id_provider.clone());
         let (_, index, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
         assert_debug_snapshot!(index.find_pou_type("MID__STRING").unwrap());
-        assert_debug_snapshot!(units[0].0.implementations[1]);
+        assert_debug_snapshot!(units.0.implementations[1]);
     }
 
     #[test]
@@ -1090,7 +1090,7 @@ mod tests {
         let (unit, index, ..) = index_and_lower(src, id_provider.clone());
         let (_, index, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
         assert_debug_snapshot!(index.find_pou_type("MID__STRING").unwrap());
-        assert_debug_snapshot!(units[0].0.implementations[1]);
+        assert_debug_snapshot!(units.0.implementations[1]);
     }
 
     #[test]
@@ -1144,7 +1144,7 @@ mod tests {
 
         let (unit, index, ..) = index_and_lower(src, id_provider.clone());
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
-        let unit = &units[0].0;
+        let unit = &units.0;
         assert_debug_snapshot!(unit.implementations[0]);
     }
 
@@ -1169,7 +1169,7 @@ mod tests {
         let res_type = index.find_type("__foo_return").unwrap();
         assert_debug_snapshot!(res_type);
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
-        let unit = &units[0].0;
+        let unit = &units.0;
         assert_debug_snapshot!(unit);
     }
 
@@ -1194,7 +1194,7 @@ mod tests {
 
         assert_debug_snapshot!(index.find_pou_type("foo").unwrap());
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
-        let unit = &units[0].0;
+        let unit = &units.0;
         assert_debug_snapshot!(unit.implementations[1]);
     }
 }

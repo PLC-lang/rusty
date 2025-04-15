@@ -267,48 +267,6 @@ fn codegen_of_a_program_pou() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-
-    define void @__init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    declare void @main_prg(%main_prg*)
-
-    define void @__user_init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      call void @__user_init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
-
-    declare void @__init_main_prg(%main_prg*)
-
-    declare void @main_prg(%main_prg*)
-
-    declare void @__user_init_main_prg(%main_prg*)
     "#);
 }
 
@@ -364,48 +322,6 @@ fn calling_a_program() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-
-    define void @__init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    declare void @main_prg(%main_prg*)
-
-    define void @__user_init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      call void @__user_init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
-
-    declare void @__init_main_prg(%main_prg*)
-
-    declare void @main_prg(%main_prg*)
-
-    declare void @__user_init_main_prg(%main_prg*)
     "#);
 }
 
@@ -450,37 +366,6 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
       %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
-      ret void
-    }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @__main_fb__init = external global %main_fb
-
-    define void @__init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    declare void @main_fb(%main_fb*)
-
-    define void @__user_init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
       ret void
     }
     "#);
@@ -540,76 +425,6 @@ fn calling_a_function_block() {
       store i16 2, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @foo_instance = external global %foo
-    @__main_fb__init = external global %main_fb
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %fb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__init_main_fb(%main_fb* %fb)
-      ret void
-    }
-
-    declare void @foo(%foo*)
-
-    declare void @main_fb(%main_fb*)
-
-    define void @__init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    define void @__user_init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    define void @__user_init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %fb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__user_init_main_fb(%main_fb* %fb)
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @foo_instance = external global %foo
-    @__main_fb__init = external global %main_fb
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_foo(%foo* @foo_instance)
-      call void @__user_init_foo(%foo* @foo_instance)
-      ret void
-    }
-
-    declare void @__init_foo(%foo*)
-
-    declare void @foo(%foo*)
-
-    declare void @main_fb(%main_fb*)
-
-    declare void @__user_init_foo(%foo*)
     "#);
 }
 
@@ -632,7 +447,7 @@ const DEFAULT_FUNC: &str = r#"
 ///  ... a return variable is allocated on the stack and returned at the end of the function
 #[test]
 fn function_get_a_method_with_by_ref_parameters() {
-    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r###"
+    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -653,16 +468,7 @@ fn function_get_a_method_with_by_ref_parameters() {
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 /// Calling a function works like this:
@@ -718,48 +524,6 @@ fn calling_a_function() {
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { i16, i8 }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-
-    define void @__user_init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { i16, i8 }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      call void @__user_init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-
-    declare void @__user_init_prg(%prg*)
     "#);
 }
 
@@ -827,48 +591,6 @@ fn return_a_complex_type_from_function() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [81 x i8] }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-
-    define void @__user_init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [81 x i8] }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      call void @__user_init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-
-    declare void @__user_init_prg(%prg*)
     "#);
 }
 
@@ -966,62 +688,6 @@ fn passing_aggregate_types_to_functions_by_value() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #1 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %myStruct = type { i32, i32, i32, [81 x i8] }
-    %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
-
-    @__myStruct__init = external global %myStruct
-    @main_instance = external global %main
-
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
-    define void @__init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      %deref = load %main*, %main** %self, align 8
-      %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 3
-      call void @__init_mystruct(%myStruct* %struct1)
-      ret void
-    }
-
-    declare void @main(%main*)
-
-    define void @__user_init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
-    %myStruct = type { i32, i32, i32, [81 x i8] }
-
-    @main_instance = external global %main
-    @__myStruct__init = external global %myStruct
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      call void @__user_init_main(%main* @main_instance)
-      ret void
-    }
-
-    declare void @__init_main(%main*)
-
-    declare void @main(%main*)
-
-    declare void @__user_init_main(%main*)
     "#);
 }
 
@@ -1081,47 +747,5 @@ fn passing_by_ref_to_functions() {
       %call = call i8 @StrEqual(i8* %1, i8* %2)
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main = type { [81 x i8], [81 x i8] }
-
-    @main_instance = external global %main
-
-    define void @__init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-
-    declare void @main(%main*)
-
-    define void @__user_init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main = type { [81 x i8], [81 x i8] }
-
-    @main_instance = external global %main
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      call void @__user_init_main(%main* @main_instance)
-      ret void
-    }
-
-    declare void @__init_main(%main*)
-
-    declare void @main(%main*)
-
-    declare void @__user_init_main(%main*)
     "#);
 }

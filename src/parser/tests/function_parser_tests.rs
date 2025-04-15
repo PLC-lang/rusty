@@ -183,7 +183,7 @@ fn varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.pous[0], @r#"
+    assert_debug_snapshot!(parse_result.pous[0], @r###"
     POU {
         name: "foo",
         variable_blocks: [
@@ -224,8 +224,9 @@ fn varargs_parameters_can_be_parsed() {
             },
         ),
         interfaces: [],
+        properties: [],
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -241,7 +242,7 @@ fn sized_varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.pous[0], @r#"
+    assert_debug_snapshot!(parse_result.pous[0], @r###"
     POU {
         name: "foo",
         variable_blocks: [
@@ -282,8 +283,9 @@ fn sized_varargs_parameters_can_be_parsed() {
             },
         ),
         interfaces: [],
+        properties: [],
     }
-    "#);
+    "###);
 }
 
 // Tests for function return types

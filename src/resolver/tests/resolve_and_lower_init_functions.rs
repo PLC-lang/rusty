@@ -1,30 +1,31 @@
+use driver::{parse_and_annotate, pipelines::AnnotatedProject};
 use insta::assert_debug_snapshot;
-use plc_ast::{ast::PouType, provider::IdProvider};
-
-use crate::test_utils::tests::{annotate_and_lower_with_ids, index_with_ids};
+use plc_ast::ast::PouType;
+use plc_source::SourceCode;
 
 #[test]
 fn function_block_init_fn_created() {
-    let id_provider = IdProvider::default();
     // GIVEN a function block with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids(
-        "
-        FUNCTION_BLOCK foo
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
+           FUNCTION_BLOCK foo
         VAR
             s : STRING;
             ps: REF_TO STRING := REF(s);
         END_VAR
         END_FUNCTION_BLOCK
-        ",
-        id_provider.clone(),
-    );
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, index, .. } = annotated_project;
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
@@ -97,25 +98,27 @@ fn function_block_init_fn_created() {
 
 #[test]
 fn program_init_fn_created() {
-    let id_provider = IdProvider::default();
     // GIVEN a program with a ref initializer
     // WHEN lowered
-    let (unit, index) = index_with_ids(
-        "
-        PROGRAM foo
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
+   PROGRAM foo
         VAR
             s : STRING;
             ps: REF_TO STRING := REF(s);
         END_VAR
         END_PROGRAM
-        ",
-        id_provider.clone(),
-    );
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, index, .. } = annotated_project;
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // THEN we expect the index to now have a corresponding init function
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
     let init_foo = &units[1];
     let implementation = &init_foo.implementations[0];
     assert_eq!(implementation.name, "__init_foo");
@@ -188,9 +191,10 @@ fn program_init_fn_created() {
 
 #[test]
 fn init_wrapper_function_created() {
-    let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
-        "
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
         VAR_GLOBAL
             s : STRING;
             gs : REFERENCE TO STRING := REF(s);
@@ -207,23 +211,24 @@ fn init_wrapper_function_created() {
             fb: bar;
         END_VAR
         END_PROGRAM
-        ",
-        id_provider.clone(),
-    );
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, index, .. } = annotated_project;
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
 
     // we expect there to be 3 `CompilationUnit`s, one for the original source, one with pou initializer functions, and finally
     // one for the `__init` wrapper
     assert_eq!(units.len(), 3);
 
     // we expect the index to now have an `__init` function for our `TestProject`
-    assert!(index.find_pou("__init___testproject").is_some());
+    assert!(index.find_pou("__init___Test").is_some());
 
     // we expect a new function to be created for it
     let init = &units[2];
     let implementation = &init.implementations[0];
-    assert_eq!(implementation.name, "__init___testproject");
+    assert_eq!(implementation.name, "__init___Test");
     assert_eq!(implementation.pou_type, PouType::ProjectInit);
 
     // we expect this function to have no parameters

@@ -11,18 +11,3 @@ source_filename = "<internal>"
 @prg_instance = external global %prg
 
 declare void @prg(%prg*)
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%prg = type { i32, i32 }
-
-@prg_instance = external global %prg
-
-define void @__user_init_prg(%prg* %0) {
-entry:
-  %self = alloca %prg*, align 8
-  store %prg* %0, %prg** %self, align 8
-  ret void
-}
-
-declare void @prg(%prg*)

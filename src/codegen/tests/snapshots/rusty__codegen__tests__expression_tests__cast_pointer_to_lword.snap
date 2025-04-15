@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,13 +19,4 @@ entry:
   store i64 %0, i64* %y, align 4
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
 }

@@ -17,34 +17,3 @@ entry:
   store i16 2, i16* %x, align 2
   ret void
 }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%fbWithConstant = type { i16, i16 }
-
-@__fbWithConstant__init = external global %fbWithConstant
-
-define void @__init_fbwithconstant(%fbWithConstant* %0) {
-entry:
-  %self = alloca %fbWithConstant*, align 8
-  store %fbWithConstant* %0, %fbWithConstant** %self, align 8
-  ret void
-}
-
-declare void @fbWithConstant(%fbWithConstant*)
-
-define void @__user_init_fbWithConstant(%fbWithConstant* %0) {
-entry:
-  %self = alloca %fbWithConstant*, align 8
-  store %fbWithConstant* %0, %fbWithConstant** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
-}
