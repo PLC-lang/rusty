@@ -854,7 +854,8 @@
 <a href="#853" id="853">853</a>
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
-<a href="#856" id="856">856</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#856" id="856">856</a>
+<a href="#857" id="857">857</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     expression_generator::ExpressionCodeGenerator,
@@ -1018,7 +1019,7 @@
     }
 
     <span class="kw">fn </span>mangle_function(<span class="kw-2">&amp;</span><span class="self">self</span>, implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-        <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name().to_lowercase());
+        <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 
         <span class="kw">let </span>params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
 
@@ -1135,7 +1136,8 @@
 
         <span class="kw">let </span>function_declaration = <span class="self">self</span>.create_llvm_function_type(parameters, variadic, return_type_llvm)<span class="question-mark">?</span>;
 
-        <span class="kw">let </span>curr_f = module.add_function(implementation.get_call_name(), function_declaration, <span class="prelude-val">None</span>);
+        <span class="kw">let </span>curr_f: FunctionValue&lt;<span class="lifetime">'_</span>&gt; =
+            module.add_function(<span class="kw-2">&amp;</span>implementation.get_call_name_for_ir(), function_declaration, <span class="prelude-val">None</span>);
 
         <span class="kw">let </span>section_name = <span class="self">self</span>.get_section(implementation)<span class="question-mark">?</span>;
         curr_f.set_section(section_name.as_deref());

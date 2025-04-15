@@ -1686,8 +1686,8 @@
                 <span class="comment">//generate return void
                 </span><span class="self">self</span>.llvm.builder.build_return(<span class="prelude-val">None</span>);
             } <span class="kw">else </span>{
-                <span class="comment">// renerate return statement
-                </span><span class="kw">let </span>call_name = <span class="self">self</span>.function_context.linking_context.get_call_name();
+                <span class="comment">// generate return statement
+                </span><span class="kw">let </span>call_name = <span class="kw-2">&amp;</span><span class="self">self</span>.function_context.linking_context.get_call_name_for_ir();
                 <span class="kw">let </span>var_name = <span class="macro">format!</span>(<span class="string">"{call_name}_ret"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
                 </span><span class="kw">let </span>ret_name = ret_v.get_qualified_name();
                 <span class="kw">let </span>value_ptr =

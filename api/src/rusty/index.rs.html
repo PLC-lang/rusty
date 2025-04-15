@@ -2199,7 +2199,15 @@
 <a href="#2198" id="2198">2198</a>
 <a href="#2199" id="2199">2199</a>
 <a href="#2200" id="2200">2200</a>
-<a href="#2201" id="2201">2201</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2201" id="2201">2201</a>
+<a href="#2202" id="2202">2202</a>
+<a href="#2203" id="2203">2203</a>
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a>
+<a href="#2209" id="2209">2209</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{collections::VecDeque, hash::BuildHasherDefault};
 
@@ -2632,6 +2640,14 @@
     <span class="kw">pub fn </span>get_call_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.call_name
     }
+
+    <span class="kw">pub fn </span>get_call_name_for_ir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
+        <span class="kw">match </span><span class="self">self</span>.implementation_type {
+            ImplementationType::Method | ImplementationType::Action =&gt; <span class="self">self</span>.call_name.replace(<span class="string">"."</span>, <span class="string">"_"</span>),
+            <span class="kw">_ </span>=&gt; <span class="self">self</span>.call_name.clone(),
+        }
+    }
+
     <span class="kw">pub fn </span>get_type_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
         <span class="kw-2">&amp;</span><span class="self">self</span>.type_name
     }

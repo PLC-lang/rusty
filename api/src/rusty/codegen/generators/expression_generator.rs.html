@@ -3369,7 +3369,7 @@
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
         <span class="kw">let </span>parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
-        <span class="kw">let </span>implementation_name = implementation.get_call_name();
+        <span class="kw">let </span>implementation_name = <span class="kw-2">&amp;</span>implementation.get_call_name();
         <span class="comment">// if the function is builtin, generate a basic value enum for it
         </span><span class="kw">if let </span><span class="prelude-val">Some</span>(builtin) = <span class="self">self</span>.index.get_builtin_function(implementation_name) {
             <span class="comment">// adr, ref, etc.
@@ -3737,7 +3737,7 @@
                     .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
                 <span class="self">self</span>.generate_stateful_pou_arguments(
-                    implementation.get_call_name(),
+                    <span class="kw-2">&amp;</span>implementation.get_call_name_for_ir(),
                     <span class="prelude-val">None</span>,
                     call_ptr,
                     passed_parameters,
@@ -3746,7 +3746,7 @@
             <span class="kw">_ </span>=&gt; {
                 <span class="kw">let </span>call_ptr = <span class="self">self</span>.generate_lvalue(operator)<span class="question-mark">?</span>;
                 <span class="self">self</span>.generate_stateful_pou_arguments(
-                    implementation.get_call_name(),
+                    <span class="kw-2">&amp;</span>implementation.get_call_name_for_ir(),
                     <span class="prelude-val">None</span>,
                     call_ptr,
                     passed_parameters,
