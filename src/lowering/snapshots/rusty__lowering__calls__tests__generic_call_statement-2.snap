@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-expression: "units[0].0.implementations[1]"
+expression: "units.0.implementations[1]"
 ---
 Implementation {
     name: "MID",
@@ -8,6 +8,24 @@ Implementation {
     linkage: External,
     pou_type: Function,
     statements: [],
+    location: SourceLocation {
+        span: Range(10:8 - 9:15),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(6:17 - 6:20),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    end_location: SourceLocation {
+        span: Range(10:8 - 10:20),
+        file: Some(
+            "<internal>",
+        ),
+    },
     overriding: false,
     generic: true,
     access: None,

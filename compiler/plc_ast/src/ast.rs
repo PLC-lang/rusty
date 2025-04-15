@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use std::{
-    fmt::{self, Debug, Display, Formatter},
+    fmt::{Debug, Display, Formatter},
     hash::Hash,
     ops::Range,
 };
@@ -297,7 +297,7 @@ impl Pou {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct Implementation {
     pub name: String,
     pub type_name: String,
@@ -310,21 +310,6 @@ pub struct Implementation {
     pub overriding: bool,
     pub generic: bool,
     pub access: Option<AccessModifier>,
-}
-
-impl fmt::Debug for Implementation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
-        f.debug_struct("Implementation")
-            .field("name", &self.name)
-            .field("type_name", &self.type_name)
-            .field("linkage", &self.linkage)
-            .field("pou_type", &self.pou_type)
-            .field("statements", &self.statements)
-            .field("overriding", &self.overriding)
-            .field("generic", &self.generic)
-            .field("access", &self.access)
-            .finish()
-    }
 }
 
 #[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]

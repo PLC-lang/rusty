@@ -77,6 +77,24 @@ CompilationUnit {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: None,
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: None,
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: None,
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,

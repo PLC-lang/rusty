@@ -29,10 +29,10 @@ entry:
   call void @fb_t(%fb_t* %fb)
   %load_out2 = load i8, i8* %out2, align 1
   %load_out1 = load i8, i8* %out1, align 1
-  call void @fb_t.foo(%fb_t* %fb)
+  call void @fb_t_foo(%fb_t* %fb)
   %load_out21 = load i8, i8* %out2, align 1
   %load_out12 = load i8, i8* %out1, align 1
-  call void @fb_t.foo(%fb_t* %fb)
+  call void @fb_t_foo(%fb_t* %fb)
   ret void
 }
 
@@ -46,7 +46,7 @@ entry:
   ret void
 }
 
-define void @fb_t.foo(%fb_t* %0) {
+define void @fb_t_foo(%fb_t* %0) {
 entry:
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1

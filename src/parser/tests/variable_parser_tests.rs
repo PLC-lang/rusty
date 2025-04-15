@@ -474,6 +474,15 @@ fn var_external() {
                 linkage: Internal,
                 pou_type: Function,
                 statements: [],
+                location: SourceLocation {
+                    span: Range(9:4 - 8:11),
+                },
+                name_location: SourceLocation {
+                    span: Range(5:13 - 5:16),
+                },
+                end_location: SourceLocation {
+                    span: Range(9:4 - 9:16),
+                },
                 overriding: false,
                 generic: false,
                 access: None,
@@ -577,6 +586,15 @@ fn var_external_constant() {
                 linkage: Internal,
                 pou_type: Function,
                 statements: [],
+                location: SourceLocation {
+                    span: Range(9:4 - 8:11),
+                },
+                name_location: SourceLocation {
+                    span: Range(5:13 - 5:16),
+                },
+                end_location: SourceLocation {
+                    span: Range(9:4 - 9:16),
+                },
                 overriding: false,
                 generic: false,
                 access: None,

@@ -251,6 +251,15 @@ CompilationUnit {
             linkage: Internal,
             pou_type: Program,
             statements: [],
+            location: SourceLocation {
+                span: Range(10:4 - 9:11),
+            },
+            name_location: SourceLocation {
+                span: Range(0:8 - 0:12),
+            },
+            end_location: SourceLocation {
+                span: Range(10:4 - 10:15),
+            },
             overriding: false,
             generic: false,
             access: None,

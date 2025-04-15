@@ -71,6 +71,24 @@ Implementation {
             ],
         },
     ],
+    location: SourceLocation {
+        span: Range(7:8 - 15:14),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(5:17 - 5:21),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    end_location: SourceLocation {
+        span: Range(17:8 - 17:20),
+        file: Some(
+            "<internal>",
+        ),
+    },
     overriding: false,
     generic: false,
     access: None,

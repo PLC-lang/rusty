@@ -15,7 +15,7 @@ source_filename = "<internal>"
 define void @bar(%bar* %0) {
 entry:
   %fb_inst = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-  call void @fb.foo(%fb* %fb_inst)
+  call void @fb_foo(%fb* %fb_inst)
   ret void
 }
 
@@ -25,7 +25,7 @@ entry:
   ret void
 }
 
-define void @fb.foo(%fb* %0) {
+define void @fb_foo(%fb* %0) {
 entry:
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4

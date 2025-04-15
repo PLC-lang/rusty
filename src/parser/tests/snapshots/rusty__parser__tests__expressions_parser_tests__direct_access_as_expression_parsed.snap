@@ -104,6 +104,15 @@ CompilationUnit {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(2:8 - 4:22),
+            },
+            name_location: SourceLocation {
+                span: Range(1:12 - 1:15),
+            },
+            end_location: SourceLocation {
+                span: Range(5:4 - 5:15),
+            },
             overriding: false,
             generic: false,
             access: None,

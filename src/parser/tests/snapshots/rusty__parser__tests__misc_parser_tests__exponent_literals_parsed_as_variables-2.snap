@@ -22,6 +22,15 @@ Implementation {
             },
         },
     ],
+    location: SourceLocation {
+        span: Range(5:12 - 5:24),
+    },
+    name_location: SourceLocation {
+        span: Range(1:21 - 1:23),
+    },
+    end_location: SourceLocation {
+        span: Range(6:12 - 6:24),
+    },
     overriding: false,
     generic: false,
     access: None,

@@ -805,8 +805,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 //generate return void
                 self.llvm.builder.build_return(None);
             } else {
-                // renerate return statement
-                let call_name = self.function_context.linking_context.get_call_name();
+                // generate return statement
+                let call_name = &self.function_context.linking_context.get_call_name_for_ir();
                 let var_name = format!("{call_name}_ret"); // TODO: Naming convention (see plc_util/src/convention.rs)
                 let ret_name = ret_v.get_qualified_name();
                 let value_ptr =

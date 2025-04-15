@@ -1115,11 +1115,11 @@ fn fb_method_called_locally() {
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
+      %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, i16 %1) {
+    define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
@@ -1133,8 +1133,8 @@ fn fb_method_called_locally() {
       store i32 %tmpVar, i32* %bar, align 4
       %load_bar1 = load i32, i32* %bar, align 4
       store i32 %load_bar1, i32* %foo.addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
-      ret i32 %foo.addToBar_ret
+      %foo_addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      ret i32 %foo_addToBar_ret
     }
 
     define void @main() {
@@ -1144,7 +1144,7 @@ fn fb_method_called_locally() {
       %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
-      %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
+      %call = call i32 @foo_addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1198,11 +1198,11 @@ fn fb_local_method_var_shadows_parent_var() {
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
+      %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, i16 %1) {
+    define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
@@ -1218,8 +1218,8 @@ fn fb_local_method_var_shadows_parent_var() {
       store i32 %tmpVar, i32* %bar1, align 4
       %load_bar2 = load i32, i32* %bar1, align 4
       store i32 %load_bar2, i32* %foo.addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
-      ret i32 %foo.addToBar_ret
+      %foo_addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      ret i32 %foo_addToBar_ret
     }
 
     define void @main() {
@@ -1229,7 +1229,7 @@ fn fb_local_method_var_shadows_parent_var() {
       %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %x, align 4
-      %call = call i32 @foo.addToBar(%foo* %fb, i16 3)
+      %call = call i32 @foo_addToBar(%foo* %fb, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1280,11 +1280,11 @@ fn prog_method_called_locally() {
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
+      %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, i16 %1) {
+    define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
@@ -1298,15 +1298,15 @@ fn prog_method_called_locally() {
       store i32 %tmpVar, i32* %bar, align 4
       %load_bar1 = load i32, i32* %bar, align 4
       store i32 %load_bar1, i32* %foo.addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
-      ret i32 %foo.addToBar_ret
+      %foo_addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      ret i32 %foo_addToBar_ret
     }
 
     define void @main() {
     entry:
       %x = alloca i32, align 4
       store i32 0, i32* %x, align 4
-      %call = call i32 @foo.addToBar(%foo* @foo_instance, i16 3)
+      %call = call i32 @foo_addToBar(%foo* @foo_instance, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }
@@ -1354,11 +1354,11 @@ fn prog_local_method_var_shadows_parent_var() {
     define void @foo(%foo* %0) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo.addToBar(%foo* %0, i16 42)
+      %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
-    define i32 @foo.addToBar(%foo* %0, i16 %1) {
+    define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
@@ -1374,15 +1374,15 @@ fn prog_local_method_var_shadows_parent_var() {
       store i32 %tmpVar, i32* %bar1, align 4
       %load_bar2 = load i32, i32* %bar1, align 4
       store i32 %load_bar2, i32* %foo.addToBar, align 4
-      %foo.addToBar_ret = load i32, i32* %foo.addToBar, align 4
-      ret i32 %foo.addToBar_ret
+      %foo_addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      ret i32 %foo_addToBar_ret
     }
 
     define void @main() {
     entry:
       %x = alloca i32, align 4
       store i32 0, i32* %x, align 4
-      %call = call i32 @foo.addToBar(%foo* @foo_instance, i16 3)
+      %call = call i32 @foo_addToBar(%foo* @foo_instance, i16 3)
       store i32 %call, i32* %x, align 4
       ret void
     }

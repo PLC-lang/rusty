@@ -186,7 +186,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -205,7 +205,7 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @foo.baz(%foo* %0) {
+    define void @foo_baz(%foo* %0) {
     entry:
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*
@@ -232,7 +232,7 @@ fn write_to_parent_variable_in_instance() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
-      call void @foo.baz(%foo* %__foo)
+      call void @foo_baz(%foo* %__foo)
       call void @bar(%bar* %fb)
       ret void
     }
@@ -270,7 +270,7 @@ fn write_to_parent_variable_in_instance() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]

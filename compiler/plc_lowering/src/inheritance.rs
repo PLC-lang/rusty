@@ -378,6 +378,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(16:16 - 17:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(11:27 - 11:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(18:12 - 18:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -433,6 +451,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(8:16 - 8:29),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(7:27 - 7:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(9:12 - 9:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -500,6 +536,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(11:16 - 11:25),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(10:27 - 10:32),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(12:12 - 12:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -875,6 +929,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(19:20 - 24:33),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(15:31 - 15:36),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(25:16 - 25:34),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -961,6 +1033,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(21:16 - 21:28),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(17:27 - 17:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(23:12 - 23:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1250,6 +1340,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(25:16 - 29:34),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(21:21 - 21:25),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(30:12 - 30:24),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1416,6 +1524,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(19:16 - 19:40),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(15:27 - 15:32),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(20:12 - 20:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1593,6 +1719,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(23:20 - 25:32),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(19:25 - 19:29),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(26:16 - 26:28),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -1822,6 +1966,24 @@ mod units_tests {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(9:12 - 9:20),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(8:15 - 8:19),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(10:8 - 10:18),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: Some(

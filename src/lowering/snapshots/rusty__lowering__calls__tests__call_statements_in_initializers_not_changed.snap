@@ -1,7 +1,6 @@
 ---
 source: src/lowering/calls.rs
 expression: "units.0.implementations[0]"
-snapshot_kind: text
 ---
 Implementation {
     name: "main",
@@ -10,49 +9,19 @@ Implementation {
     pou_type: Function,
     statements: [],
     location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 8,
-                offset: 212,
-            }..TextLocation {
-                line: 7,
-                column: 15,
-                offset: 203,
-            },
-        ),
+        span: Range(8:8 - 7:15),
         file: Some(
             "<internal>",
         ),
     },
     name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 1,
-                column: 17,
-                offset: 18,
-            }..TextLocation {
-                line: 1,
-                column: 21,
-                offset: 22,
-            },
-        ),
+        span: Range(1:17 - 1:21),
         file: Some(
             "<internal>",
         ),
     },
     end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 8,
-                offset: 212,
-            }..TextLocation {
-                line: 8,
-                column: 20,
-                offset: 224,
-            },
-        ),
+        span: Range(8:8 - 8:20),
         file: Some(
             "<internal>",
         ),

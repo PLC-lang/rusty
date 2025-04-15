@@ -98,6 +98,24 @@ CompilationUnit {
                     },
                 },
             ],
+            location: SourceLocation {
+                span: Range(2:12 - 3:30),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(1:17 - 1:20),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(4:8 - 4:20),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,
@@ -149,6 +167,24 @@ CompilationUnit {
                     ],
                 },
             ],
+            location: SourceLocation {
+                span: Range(7:12 - 7:18),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(6:17 - 6:21),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(8:8 - 8:20),
+                file: Some(
+                    "<internal>",
+                ),
+            },
             overriding: false,
             generic: false,
             access: None,

@@ -43,6 +43,24 @@ Implementation {
             },
         },
     ],
+    location: SourceLocation {
+        span: Range(3:12 - 3:39),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(1:17 - 1:21),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    end_location: SourceLocation {
+        span: Range(4:8 - 4:20),
+        file: Some(
+            "<internal>",
+        ),
+    },
     overriding: false,
     generic: false,
     access: None,
