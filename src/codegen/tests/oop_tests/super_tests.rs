@@ -58,6 +58,23 @@ fn super_keyword_basic_access() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -123,6 +140,23 @@ fn super_without_deref() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -239,6 +273,23 @@ fn super_in_method_calls() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -318,6 +369,23 @@ fn super_in_complex_expressions() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -390,6 +458,23 @@ fn super_with_array_access() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -536,6 +621,33 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -611,6 +723,23 @@ fn super_with_pointer_operations() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -740,6 +869,23 @@ fn super_in_conditionals() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -806,6 +952,23 @@ fn super_with_const_variables() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -924,6 +1087,23 @@ fn super_as_function_parameter() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -1050,6 +1230,23 @@ fn super_with_deeply_nested_expressions() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
@@ -1264,6 +1461,23 @@ fn super_in_loop_constructs() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1387,6 +1601,33 @@ fn super_with_method_overrides_in_three_levels() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
       ret void
     }
 
@@ -1574,6 +1815,23 @@ fn super_with_structured_types() {
       ret void
     }
 
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1669,6 +1927,23 @@ fn super_in_action_blocks() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
       ret void
     }
 
