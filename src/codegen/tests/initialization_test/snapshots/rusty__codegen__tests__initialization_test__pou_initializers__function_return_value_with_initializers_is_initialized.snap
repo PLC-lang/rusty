@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -37,27 +38,5 @@ define void @foo_strct(%MyStrct* %0) {
 entry:
   %foo_strct = alloca %MyStrct*, align 8
   store %MyStrct* %0, %MyStrct** %foo_strct, align 8
-  ret void
-}
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%MyStrct = type { i32, i32, i32 }
-
-@__MyStrct__init = external global %MyStrct
-
-define void @__init_mystrct(%MyStrct* %0) {
-entry:
-  %self = alloca %MyStrct*, align 8
-  store %MyStrct* %0, %MyStrct** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
   ret void
 }

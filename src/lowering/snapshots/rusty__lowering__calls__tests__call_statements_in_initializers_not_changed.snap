@@ -1,62 +1,62 @@
 ---
 source: src/lowering/calls.rs
-expression: "units[0].0.implementations[0]"
+expression: "units.0.implementations[0]"
+snapshot_kind: text
 ---
 Implementation {
     name: "main",
     type_name: "main",
     linkage: Internal,
     pou_type: Function,
-    statements: [
-        Assignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "b",
-                    },
-                ),
-                base: None,
+    statements: [],
+    location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 8,
+                offset: 212,
+            }..TextLocation {
+                line: 7,
+                column: 15,
+                offset: 203,
             },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "ADR",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
+        ),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    name_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 1,
+                column: 17,
+                offset: 18,
+            }..TextLocation {
+                line: 1,
+                column: 21,
+                offset: 22,
             },
-        },
-        ReferenceAssignment {
-            left: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "c",
-                    },
-                ),
-                base: None,
+        ),
+        file: Some(
+            "<internal>",
+        ),
+    },
+    end_location: SourceLocation {
+        span: Range(
+            TextLocation {
+                line: 8,
+                column: 8,
+                offset: 212,
+            }..TextLocation {
+                line: 8,
+                column: 20,
+                offset: 224,
             },
-            right: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "b",
-                    },
-                ),
-                base: None,
-            },
-        },
-    ],
+        ),
+        file: Some(
+            "<internal>",
+        ),
+    },
     overriding: false,
     generic: false,
     access: None,

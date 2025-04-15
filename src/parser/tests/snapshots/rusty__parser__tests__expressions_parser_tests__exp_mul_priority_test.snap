@@ -16,6 +16,7 @@ CompilationUnit {
                 },
             ),
             interfaces: [],
+            properties: [],
         },
     ],
     implementations: [

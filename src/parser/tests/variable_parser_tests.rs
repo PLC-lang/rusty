@@ -464,6 +464,7 @@ fn var_external() {
                 pou_type: Function,
                 return_type: None,
                 interfaces: [],
+                properties: [],
             },
         ],
         implementations: [
@@ -566,6 +567,7 @@ fn var_external_constant() {
                 pou_type: Function,
                 return_type: None,
                 interfaces: [],
+                properties: [],
             },
         ],
         implementations: [

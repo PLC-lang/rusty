@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,36 +17,11 @@ entry:
   %0 = bitcast %__func_a* %a to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%__func_a* @____func_a__init to i8*), i64 ptrtoint (%__func_a* getelementptr (%__func_a, %__func_a* null, i32 1) to i64), i1 false)
   store i16 0, i16* %func, align 2
-  call void @__init___func_a(%__func_a* %a)
   %func_ret = load i16, i16* %func, align 2
   ret i16 %func_ret
 }
-
-declare void @__init___func_a(%__func_a*)
 
 ; Function Attrs: argmemonly nofree nounwind willreturn
 declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%__func_a = type { i16 }
-
-@____func_a__init = external global %__func_a
-
-define void @__init___func_a(%__func_a* %0) {
-entry:
-  %self = alloca %__func_a*, align 8
-  store %__func_a* %0, %__func_a** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
-}

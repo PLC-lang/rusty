@@ -269,7 +269,9 @@ impl Debug for Pou {
             .field("variable_blocks", &self.variable_blocks)
             .field("pou_type", &self.kind)
             .field("return_type", &self.return_type)
-            .field("interfaces", &self.interfaces);
+            .field("interfaces", &self.interfaces)
+            .field("properties", &self.properties);
+
         if !self.generics.is_empty() {
             str.field("generics", &self.generics);
         }

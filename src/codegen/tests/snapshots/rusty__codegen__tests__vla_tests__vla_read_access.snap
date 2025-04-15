@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/vla_tests.rs
 expression: res
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -62,12 +63,3 @@ declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) 
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
 attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  ret void
-}

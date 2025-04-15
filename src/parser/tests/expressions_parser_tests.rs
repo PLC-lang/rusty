@@ -1571,7 +1571,7 @@ fn sized_string_as_function_return() {
     END_FUNCTION
     ",
     );
-    assert_debug_snapshot!(ast.pous[0], @r#"
+    assert_debug_snapshot!(ast.pous[0], @r###"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -1590,8 +1590,9 @@ fn sized_string_as_function_return() {
             },
         ),
         interfaces: [],
+        properties: [],
     }
-    "#);
+    "###);
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -1604,7 +1605,7 @@ fn array_type_as_function_return() {
     ",
     );
 
-    assert_debug_snapshot!(ast.pous[0], @r#"
+    assert_debug_snapshot!(ast.pous[0], @r###"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -1629,8 +1630,9 @@ fn array_type_as_function_return() {
             },
         ),
         interfaces: [],
+        properties: [],
     }
-    "#);
+    "###);
     assert_eq!(diagnostics.is_empty(), true);
 }
 

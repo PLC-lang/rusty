@@ -29,6 +29,7 @@ CompilationUnit {
             pou_type: Program,
             return_type: None,
             interfaces: [],
+            properties: [],
         },
     ],
     implementations: [

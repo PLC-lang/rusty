@@ -1,10 +1,10 @@
+use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::provider::IdProvider;
+use plc_source::SourceCode;
 
 use crate::{
-    index::const_expressions::UnresolvableKind,
-    resolver::const_evaluator::evaluate_constants,
-    test_utils::tests::{annotate_and_lower_with_ids, codegen, index, index_with_ids},
+    index::const_expressions::UnresolvableKind, resolver::const_evaluator::evaluate_constants,
+    test_utils::tests::index,
 };
 
 /// # Architecture Design Records: Lowering of complex initializers to initializer functions
@@ -36,23 +36,24 @@ fn ref_initializer_is_marked_for_later_resolution() {
 /// in the global `Index` and a new `POU` named `__init_<pou-name>` created.
 #[test]
 fn ref_call_in_initializer_is_lowered_to_init_function() {
-    let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
-        "
-        FUNCTION_BLOCK foo
-        VAR
-            s : STRING;
-            ps: REFERENCE TO STRING := REF(s);
-        END_VAR
-        END_FUNCTION_BLOCK
-        ",
-        id_provider.clone(),
-    );
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
+            FUNCTION_BLOCK foo
+            VAR
+                s : STRING;
+                ps: REFERENCE TO STRING := REF(s);
+            END_VAR
+            END_FUNCTION_BLOCK
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, index, .. } = annotated_project;
     assert!(index.find_pou("__init_foo").is_some());
 
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     let init_foo_unit = &units[1].pous[0];
 
     assert_debug_snapshot!(init_foo_unit, @r###"
@@ -74,6 +75,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
         pou_type: Init,
         return_type: None,
         interfaces: [],
+        properties: [],
     }
     "###);
 }
@@ -83,9 +85,10 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
 /// have complex initializers themselves, calling the corresponding init function with the member-instance.
 #[test]
 fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
-    let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
-        "
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
         FUNCTION_BLOCK foo
         VAR
             s : STRING;
@@ -106,12 +109,12 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
             fb: bar;
         END_VAR
         END_PROGRAM
-        ",
-        id_provider.clone(),
-    );
-    let (_, _, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
-
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, .. } = annotated_project;
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // the init-function for `foo` is expected to have a single assignment statement in its function body
     let init_foo_impl = &units[1].implementations[0];
     assert_eq!(&init_foo_impl.name, "__init_foo");
@@ -296,9 +299,10 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
 /// passing the global instance as argument
 #[test]
 fn global_initializers_are_wrapped_in_single_init_function() {
-    let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
-        "
+    let (_, annotated_project) = parse_and_annotate(
+        "Test",
+        vec![SourceCode::from(
+            "
         VAR_GLOBAL
             s : STRING;
             gs : REFERENCE TO STRING := REF(s);
@@ -327,28 +331,29 @@ fn global_initializers_are_wrapped_in_single_init_function() {
             fb: foo;
         END_VAR
         END_PROGRAM
-        ",
-        id_provider.clone(),
-    );
-    let (_, index, annotated_units) = annotate_and_lower_with_ids(unit, index, id_provider);
+            ",
+        )],
+    )
+    .unwrap();
+    let AnnotatedProject { units, index, .. } = annotated_project;
+    let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
 
-    assert!(index.find_pou("__init___testproject").is_some());
-
-    let units = annotated_units.iter().map(|(units, _, _)| units).collect::<Vec<_>>();
+    assert!(index.find_pou("__init___Test").is_some());
 
     let init = &units[2].pous[0];
-    assert_debug_snapshot!(init, @r###"
+    assert_debug_snapshot!(init, @r#"
     POU {
-        name: "__init___testproject",
+        name: "__init___Test",
         variable_blocks: [],
         pou_type: ProjectInit,
         return_type: None,
         interfaces: [],
+        properties: [],
     }
-    "###);
+    "#);
 
     let init_impl = &units[2].implementations[0];
-    assert_eq!(&init_impl.name, "__init___testproject");
+    assert_eq!(&init_impl.name, "__init___Test");
     assert_eq!(init_impl.statements.len(), 4);
     // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
     // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
@@ -476,24 +481,17 @@ fn generating_init_functions() {
         END_TYPE
         ";
 
-    let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %myStruct = type { i8, i8 }
-    %myRefStruct = type { %myStruct* }
-
-    @__myStruct__init = external global %myStruct
-    @__myRefStruct__init = external global %myRefStruct
+    @__myStruct__init = constant %myStruct zeroinitializer
+    @__myRefStruct__init = constant %myRefStruct zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -508,16 +506,12 @@ fn generating_init_functions() {
       store %myRefStruct* %0, %myRefStruct** %self, align 8
       ret void
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -535,7 +529,7 @@ fn generating_init_functions() {
 
     FUNCTION_BLOCK foo
     VAR
-        ps: REF_TO STRING := REF(s);
+        ps: REF_TO myStruct := REF(s);
     END_VAR
     END_FUNCTION_BLOCK
 
@@ -552,21 +546,22 @@ fn generating_init_functions() {
     END_PROGRAM
     ";
 
-    let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %myStruct = type { i8, i8 }
-    %foo = type { [81 x i8]* }
-    %bar = type { %foo }
     %baz = type { %bar }
+    %bar = type { %foo }
+    %foo = type { %myStruct* }
+    %myStruct = type { i8, i8 }
 
-    @s = global %myStruct zeroinitializer
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @baz_instance = global %baz zeroinitializer
+    @__bar__init = constant %bar zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @__myStruct__init = constant %myStruct zeroinitializer
+    @s = global %myStruct zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -585,19 +580,6 @@ fn generating_init_functions() {
       %fb = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %bar = type { %foo }
-    %foo = type { [81 x i8]* }
-    %myStruct = type { i8, i8 }
-    %baz = type { %bar }
-
-    @__bar__init = external global %bar
-    @__foo__init = external global %foo
-    @__myStruct__init = external global %myStruct
-    @baz_instance = external global %baz
-    @s = external global %myStruct
 
     define void @__init_bar(%bar* %0) {
     entry:
@@ -609,24 +591,20 @@ fn generating_init_functions() {
       ret void
     }
 
-    declare void @bar(%bar*)
-
-    declare void @foo(%foo*)
-
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
       %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store [81 x i8]* bitcast (%myStruct* @s to [81 x i8]*), [81 x i8]** %ps, align 8
+      store %myStruct* @s, %myStruct** %ps, align 8
+      ret void
+    }
+
+    define void @__init_mystruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
@@ -640,39 +618,13 @@ fn generating_init_functions() {
       ret void
     }
 
-    declare void @baz(%baz*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %baz = type { %bar }
-    %bar = type { %foo }
-    %foo = type { [81 x i8]* }
-    %myStruct = type { i8, i8 }
-
-    @baz_instance = external global %baz
-    @__bar__init = external global %bar
-    @__foo__init = external global %foo
-    @__myStruct__init = external global %myStruct
-    @s = external global %myStruct
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
       ret void
     }
-
-    declare void @__init_baz(%baz*)
-
-    declare void @baz(%baz*)
-
-    declare void @bar(%bar*)
-
-    declare void @foo(%foo*)
-
-    declare void @__init_mystruct(%myStruct*)
-    "###);
+    "#);
 }
 
 /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
@@ -707,16 +659,17 @@ fn intializing_temporary_variables() {
     END_FUNCTION
         ";
 
-    let res = codegen(src);
-    assert_snapshot!(res, @r###"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { [81 x i8]* }
 
-    @ps = global [81 x i8] zeroinitializer
     @ps2 = global [81 x i8] zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @ps = global [81 x i8] zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -746,19 +699,8 @@ fn intializing_temporary_variables() {
       ret i32 %main_ret
     }
 
-    declare void @__init_foo(%foo*)
-
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
-
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { [81 x i8]* }
-
-    @__foo__init = external global %foo
-    @ps = external global [81 x i8]
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -770,17 +712,13 @@ fn intializing_temporary_variables() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
-    "###)
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.
@@ -802,13 +740,15 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type {}
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -824,12 +764,6 @@ fn initializing_method_variables() {
       store i32* %x, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type {}
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -838,17 +772,11 @@ fn initializing_method_variables() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.
@@ -876,14 +804,16 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { i32 }
 
     @y = global i32 0
-    @__foo__init = unnamed_addr constant %foo { i32 5 }
+    @__foo__init = constant %foo { i32 5 }
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -908,12 +838,6 @@ fn initializing_method_variables() {
       store i32* @y, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -922,13 +846,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }
@@ -950,13 +868,15 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r#"
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %foo = type { i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 5 }
+    @__foo__init = constant %foo { i32 5 }
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
     entry:
@@ -974,12 +894,6 @@ fn initializing_method_variables() {
       store i32* %x1, i32** %px, align 8
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i32 }
-
-    @__foo__init = external global %foo
 
     define void @__init_foo(%foo* %0) {
     entry:
@@ -988,13 +902,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    declare void @foo(%foo*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
+    define void @__init___Test() {
     entry:
       ret void
     }

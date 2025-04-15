@@ -95,6 +95,7 @@ fn interface_with_single_method() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
             ],
             extensions: [],
@@ -178,6 +179,7 @@ fn interface_with_multiple_methods() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
                 POU {
                     name: "myInterface.bar",
@@ -218,6 +220,7 @@ fn interface_with_multiple_methods() {
                         },
                     ),
                     interfaces: [],
+                    properties: [],
                 },
             ],
             extensions: [],
@@ -250,6 +253,7 @@ fn pou_implementing_single_interface() {
                 },
             },
         ],
+        properties: [],
     }
     "###);
 }
@@ -289,6 +293,7 @@ fn pou_implementing_multiple_interfaces() {
                 },
             },
         ],
+        properties: [],
     }
     "###);
 }
@@ -333,6 +338,7 @@ fn interface_deriving_from_other_interface() {
                 },
                 return_type: None,
                 interfaces: [],
+                properties: [],
             },
         ],
         extensions: [
