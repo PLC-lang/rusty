@@ -220,6 +220,7 @@ lazy_static! {
         E116,   Error,      include_str!("./error_codes/E116.md"),  // Property defined in unsupported variable block
         E117,   Error,      include_str!("./error_codes/E117.md"),  // Property with invalid number of GET and/or SET blocks
         E118,   Info,       include_str!("./error_codes/E118.md"),  // Follow-up error to 112
+        E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
     );
 }
 

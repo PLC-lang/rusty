@@ -1024,7 +1024,7 @@ fn parse_type_reference_type_definition(
 
     if name.is_some() || bounds.is_some() {
         let data_type = match bounds {
-            Some(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location }) => {
+            Some(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location, .. }) => {
                 //this is an enum
                 DataTypeDeclaration::Definition {
                     data_type: DataType::EnumType {

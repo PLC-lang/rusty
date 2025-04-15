@@ -2841,6 +2841,7 @@ name = "plc_lowering"
 version = "0.1.0"
 dependencies = [
  "insta",
+ "log",
  "plc_ast",
  "plc_driver",
  "plc_source",
