@@ -249,7 +249,7 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @foo.baz(%foo* %0) {
+    define void @foo_baz(%foo* %0) {
     entry:
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*
@@ -277,7 +277,7 @@ fn write_to_parent_variable_in_instance() {
       call void @__init_bar(%bar* %fb)
       call void @__user_init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
-      call void @foo.baz(%foo* %__foo)
+      call void @foo_baz(%foo* %__foo)
       call void @bar(%bar* %fb)
       ret void
     }

@@ -497,7 +497,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
         let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
-        let implementation_name = implementation.get_call_name();
+        let implementation_name = &implementation.get_call_name();
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
@@ -865,7 +865,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
                 self.generate_stateful_pou_arguments(
-                    implementation.get_call_name(),
+                    &implementation.get_call_name_for_ir(),
                     None,
                     call_ptr,
                     passed_parameters,
@@ -874,7 +874,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => {
                 let call_ptr = self.generate_lvalue(operator)?;
                 self.generate_stateful_pou_arguments(
-                    implementation.get_call_name(),
+                    &implementation.get_call_name_for_ir(),
                     None,
                     call_ptr,
                     passed_parameters,

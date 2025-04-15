@@ -162,7 +162,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     }
 
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
-        let ctx = SectionMangler::function(implementation.get_call_name().to_lowercase());
+        let ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 
@@ -279,7 +279,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
 
         let function_declaration = self.create_llvm_function_type(parameters, variadic, return_type_llvm)?;
 
-        let curr_f = module.add_function(implementation.get_call_name(), function_declaration, None);
+        let curr_f: FunctionValue<'_> =
+            module.add_function(&implementation.get_call_name_for_ir(), function_declaration, None);
 
         let section_name = self.get_section(implementation)?;
         curr_f.set_section(section_name.as_deref());

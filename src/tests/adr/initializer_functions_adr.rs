@@ -354,7 +354,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
-    assert_eq!(init_impl.statements.len(), 4);
+    assert_eq!(init_impl.statements.len(), 7);
     // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
     // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
     // instance.
@@ -791,7 +791,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -864,7 +864,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -873,7 +873,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.baz(%foo* %0) {
+    define void @foo_baz(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -934,7 +934,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x1 = alloca i32, align 4
