@@ -302,7 +302,7 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !24
     }
 
-    define void @foo.baz(%foo* %0) !dbg !25 {
+    define void @foo_baz(%foo* %0) !dbg !25 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !26, metadata !DIExpression()), !dbg !27
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
@@ -333,7 +333,7 @@ fn write_to_parent_variable_in_instance() {
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb), !dbg !42
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !42
-      call void @foo.baz(%foo* %__foo), !dbg !43
+      call void @foo_baz(%foo* %__foo), !dbg !43
       call void @bar(%bar* %fb), !dbg !44
       ret void, !dbg !45
     }
@@ -834,7 +834,7 @@ fn function_block_method_debug_info() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -851,7 +851,7 @@ fn function_block_method_debug_info() {
       ret void, !dbg !18
     }
 
-    define void @foo.baz(%foo* %0) !dbg !19 {
+    define void @foo_baz(%foo* %0) !dbg !19 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !20, metadata !DIExpression()), !dbg !21
       ret void, !dbg !21
@@ -921,7 +921,7 @@ fn function_block_method_debug_info() {
     !24 = !{null, !7}
     !25 = !DILocalVariable(name: "bar", scope: !22, file: !2, line: 8, type: !7)
     !26 = !DILocation(line: 8, column: 8, scope: !22)
-    "###);
+    "#);
 }
 
 #[test]
