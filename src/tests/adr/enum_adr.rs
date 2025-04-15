@@ -115,7 +115,7 @@ fn using_enums() {
         END_PROGRAM
     "#;
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -139,37 +139,5 @@ fn using_enums() {
       store i32 16, i32* %z, align 4
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { i32, i32, i32 }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { i32, i32, i32 }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-    "###);
+    "#);
 }

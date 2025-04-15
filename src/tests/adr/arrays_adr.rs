@@ -87,40 +87,6 @@ fn assigning_full_arrays() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [10 x i32], [10 x i32] }
-
-    @prg_instance = external global %prg
-    @__Data__init = external global [10 x i32]
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [10 x i32], [10 x i32] }
-
-    @prg_instance = external global %prg
-    @__Data__init = external global [10 x i32]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
     "#);
 }
 
@@ -170,39 +136,5 @@ fn accessing_array_elements() {
       store i32 %load_tmpVar, i32* %tmpVar, align 4
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [10 x i32], [3 x i32] }
-
-    @prg_instance = external global %prg
-    @__Data__init = external global [10 x i32]
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [10 x i32], [3 x i32] }
-
-    @prg_instance = external global %prg
-    @__Data__init = external global [10 x i32]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
     "#);
 }
