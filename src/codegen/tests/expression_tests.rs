@@ -797,37 +797,5 @@ fn global_namespace_operator() {
       store i32 %tmpVar7, i32* @foo, align 4
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main = type { i32 }
-
-    @main_instance = external global %main
-
-    define void @__init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-
-    declare void @main(%main*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main = type { i32 }
-
-    @main_instance = external global %main
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      ret void
-    }
-
-    declare void @__init_main(%main*)
-
-    declare void @main(%main*)
     "#);
 }

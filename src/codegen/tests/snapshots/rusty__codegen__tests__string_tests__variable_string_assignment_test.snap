@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -27,35 +28,3 @@ entry:
 declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
 attributes #0 = { argmemonly nofree nounwind willreturn }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%prg = type { [16 x i8], [31 x i8] }
-
-@prg_instance = external global %prg
-
-define void @__init_prg(%prg* %0) {
-entry:
-  %self = alloca %prg*, align 8
-  store %prg* %0, %prg** %self, align 8
-  ret void
-}
-
-declare void @prg(%prg*)
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-%prg = type { [16 x i8], [31 x i8] }
-
-@prg_instance = external global %prg
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  call void @__init_prg(%prg* @prg_instance)
-  ret void
-}
-
-declare void @__init_prg(%prg*)
-
-declare void @prg(%prg*)
