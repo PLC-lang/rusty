@@ -249,7 +249,7 @@ fn programs_state_is_stored_in_a_struct() {
 
 #[test]
 fn codegen_of_a_program_pou() {
-    insta::assert_snapshot!(codegen(DEFAULT_PRG),@r###"
+    insta::assert_snapshot!(codegen(DEFAULT_PRG),@r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -267,39 +267,7 @@ fn codegen_of_a_program_pou() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-
-    define void @__init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    declare void @main_prg(%main_prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
-
-    declare void @__init_main_prg(%main_prg*)
-
-    declare void @main_prg(%main_prg*)
-    "###);
+    "#);
 }
 
 /// Calling a program works like this:
@@ -319,7 +287,7 @@ fn calling_a_program() {
         {DEFAULT_PRG}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -354,39 +322,7 @@ fn calling_a_program() {
       store i16 0, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-
-    define void @__init_main_prg(%main_prg* %0) {
-    entry:
-      %self = alloca %main_prg*, align 8
-      store %main_prg* %0, %main_prg** %self, align 8
-      ret void
-    }
-
-    declare void @main_prg(%main_prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main_prg = type { i16, i16*, i16, i16 }
-
-    @main_prg_instance = external global %main_prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main_prg(%main_prg* @main_prg_instance)
-      ret void
-    }
-
-    declare void @__init_main_prg(%main_prg*)
-
-    declare void @main_prg(%main_prg*)
-    "###);
+    "#);
 }
 
 /// # FUNCTION BLOCK
@@ -414,7 +350,7 @@ const DEFAULT_FB: &str = r#"
 
 #[test]
 fn function_blocks_get_a_method_with_a_self_parameter() {
-    insta::assert_snapshot!(codegen(DEFAULT_FB), @r###"
+    insta::assert_snapshot!(codegen(DEFAULT_FB), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -432,31 +368,7 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
       store i16 2, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @__main_fb__init = external global %main_fb
-
-    define void @__init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-
-    declare void @main_fb(%main_fb*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 /// Calling a function block works like this:
@@ -477,7 +389,7 @@ fn calling_a_function_block() {
         {DEFAULT_FB}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -513,57 +425,7 @@ fn calling_a_function_block() {
       store i16 2, i16* %vt, align 2
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @foo_instance = external global %foo
-    @__main_fb__init = external global %main_fb
-
-    define void @__init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %fb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__init_main_fb(%main_fb* %fb)
-      ret void
-    }
-
-    declare void @foo(%foo*)
-
-    declare void @main_fb(%main_fb*)
-
-    define void @__init_main_fb(%main_fb* %0) {
-    entry:
-      %self = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %self, align 8
-      ret void
-    }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
-
-    @foo_instance = external global %foo
-    @__main_fb__init = external global %main_fb
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_foo(%foo* @foo_instance)
-      ret void
-    }
-
-    declare void @__init_foo(%foo*)
-
-    declare void @foo(%foo*)
-
-    declare void @main_fb(%main_fb*)
-    "###);
+    "#);
 }
 
 /// # FUNCTION
@@ -585,7 +447,7 @@ const DEFAULT_FUNC: &str = r#"
 ///  ... a return variable is allocated on the stack and returned at the end of the function
 #[test]
 fn function_get_a_method_with_by_ref_parameters() {
-    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r###"
+    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -606,16 +468,7 @@ fn function_get_a_method_with_by_ref_parameters() {
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
     }
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      ret void
-    }
-    "###);
+    "#);
 }
 
 /// Calling a function works like this:
@@ -636,7 +489,7 @@ fn calling_a_function() {
         {DEFAULT_FUNC}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r###"
+    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -671,39 +524,7 @@ fn calling_a_function() {
       %main_fun_ret = load i32, i32* %main_fun, align 4
       ret i32 %main_fun_ret
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { i16, i8 }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { i16, i8 }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// Returning complex/aggregate types (string, array, struct) from a function cost a lot of compile-performance. complex types
@@ -730,7 +551,7 @@ fn return_a_complex_type_from_function() {
             s := foo();
         END_FUNCTION
     "#;
-    insta::assert_snapshot!(codegen(returning_string), @r###"
+    insta::assert_snapshot!(codegen(returning_string), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -770,39 +591,7 @@ fn return_a_complex_type_from_function() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %prg = type { [81 x i8] }
-
-    @prg_instance = external global %prg
-
-    define void @__init_prg(%prg* %0) {
-    entry:
-      %self = alloca %prg*, align 8
-      store %prg* %0, %prg** %self, align 8
-      ret void
-    }
-
-    declare void @prg(%prg*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %prg = type { [81 x i8] }
-
-    @prg_instance = external global %prg
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_prg(%prg* @prg_instance)
-      ret void
-    }
-
-    declare void @__init_prg(%prg*)
-
-    declare void @prg(%prg*)
-    "###);
+    "#);
 }
 
 /// Aggregate types which are passed to a function by-value will be passed as a reference by the compiler.
@@ -843,7 +632,7 @@ fn passing_aggregate_types_to_functions_by_value() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -899,53 +688,7 @@ fn passing_aggregate_types_to_functions_by_value() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #1 = { argmemonly nofree nounwind willreturn }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %myStruct = type { i32, i32, i32, [81 x i8] }
-    %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
-
-    @__myStruct__init = external global %myStruct
-    @main_instance = external global %main
-
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
-    define void @__init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      %deref = load %main*, %main** %self, align 8
-      %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 3
-      call void @__init_mystruct(%myStruct* %struct1)
-      ret void
-    }
-
-    declare void @main(%main*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
-    %myStruct = type { i32, i32, i32, [81 x i8] }
-
-    @main_instance = external global %main
-    @__myStruct__init = external global %myStruct
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      ret void
-    }
-
-    declare void @__init_main(%main*)
-
-    declare void @main(%main*)
-    "###);
+    "#);
 }
 
 /// Passing aggregate types to a function is an expensive operation, this is why the compiler offers
@@ -975,7 +718,7 @@ fn passing_by_ref_to_functions() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1004,37 +747,5 @@ fn passing_by_ref_to_functions() {
       %call = call i8 @StrEqual(i8* %1, i8* %2)
       ret void
     }
-    ; ModuleID = '__initializers'
-    source_filename = "__initializers"
-
-    %main = type { [81 x i8], [81 x i8] }
-
-    @main_instance = external global %main
-
-    define void @__init_main(%main* %0) {
-    entry:
-      %self = alloca %main*, align 8
-      store %main* %0, %main** %self, align 8
-      ret void
-    }
-
-    declare void @main(%main*)
-    ; ModuleID = '__init___testproject'
-    source_filename = "__init___testproject"
-
-    %main = type { [81 x i8], [81 x i8] }
-
-    @main_instance = external global %main
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-    define void @__init___testproject() {
-    entry:
-      call void @__init_main(%main* @main_instance)
-      ret void
-    }
-
-    declare void @__init_main(%main*)
-
-    declare void @main(%main*)
-    "###);
+    "#);
 }

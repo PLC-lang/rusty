@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,49 +19,3 @@ entry:
   store i32 0, i32* %a, align 4
   ret void
 }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%MyStruct = type { i32, i32 }
-%MainProg = type { %MyStruct }
-
-@__MyStruct__init = external global %MyStruct
-@MainProg_instance = external global %MainProg
-
-define void @__init_mystruct(%MyStruct* %0) {
-entry:
-  %self = alloca %MyStruct*, align 8
-  store %MyStruct* %0, %MyStruct** %self, align 8
-  ret void
-}
-
-define void @__init_mainprog(%MainProg* %0) {
-entry:
-  %self = alloca %MainProg*, align 8
-  store %MainProg* %0, %MainProg** %self, align 8
-  %deref = load %MainProg*, %MainProg** %self, align 8
-  %Cord = getelementptr inbounds %MainProg, %MainProg* %deref, i32 0, i32 0
-  call void @__init_mystruct(%MyStruct* %Cord)
-  ret void
-}
-
-declare void @MainProg(%MainProg*)
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-%MainProg = type { %MyStruct }
-%MyStruct = type { i32, i32 }
-
-@MainProg_instance = external global %MainProg
-@__MyStruct__init = external global %MyStruct
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  call void @__init_mainprog(%MainProg* @MainProg_instance)
-  ret void
-}
-
-declare void @__init_mainprog(%MainProg*)
-
-declare void @MainProg(%MainProg*)

@@ -24,9 +24,9 @@ fn overriden_method_is_annotated() {
         id_provider.clone(),
     );
 
-    let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let (annotations, _, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.pous[3];
+    let unit = &unit.0.pous[3];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -69,7 +69,7 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.pous[1];
+    let unit = &units.0.pous[1];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -84,7 +84,7 @@ fn overriden_method_from_multiple_interfaces_is_annotated() {
         },
     )
     "#);
-    let unit = &units[0].0.pous[2];
+    let unit = &units.0.pous[2];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -118,7 +118,7 @@ fn overriden_method_from_interface_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.pous[1];
+    let unit = &units.0.pous[1];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -161,7 +161,7 @@ fn overriden_method_from_interface_and_base_is_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.pous[3];
+    let unit = &units.0.pous[3];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -176,7 +176,7 @@ fn overriden_method_from_interface_and_base_is_annotated() {
         },
     )
     "#);
-    let unit = &units[0].0.pous[4];
+    let unit = &units.0.pous[4];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         Override {
@@ -219,7 +219,7 @@ fn all_available_methods_of_container_are_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let unit = &units[0].0.pous[2];
+    let unit = &units.0.pous[2];
     assert_debug_snapshot!(annotations.get_with_id(unit.id), @r#"
     Some(
         MethodDeclarations {
@@ -289,7 +289,7 @@ fn all_available_methods_of_interface_are_annotated() {
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
-    let intf = &units[0].0.interfaces.last().unwrap();
+    let intf = &units.0.interfaces.last().unwrap();
     assert_debug_snapshot!(annotations.get_with_id(intf.id), @r###"
     Some(
         MethodDeclarations {
@@ -379,7 +379,7 @@ fn extended_interface_has_overridden_method_annotated() {
     );
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let intf_baz = &units[0].0.interfaces[1];
+    let intf_baz = &units.0.interfaces[1];
     let method = &intf_baz.methods[0];
     // for baz we only expect one override, `bar`
     assert_debug_snapshot!(annotations.get_with_id(method.id), @r#"
@@ -394,7 +394,7 @@ fn extended_interface_has_overridden_method_annotated() {
     )
     "#);
     // for grauply, we expect all 3 methods to be overrides at different inheritance levels.
-    let intf_grauply = &units[0].0.interfaces[4];
+    let intf_grauply = &units.0.interfaces[4];
     let method = &intf_grauply.methods[0];
     assert_debug_snapshot!(annotations.get_with_id(method.id), @r#"
     Some(
@@ -496,7 +496,7 @@ fn function_block_has_both_abstract_and_concrete_annotation_from_extended_intf()
     );
 
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let units = &units[0].0.pous;
+    let units = &units.0.pous;
     let fb = &units[0];
     assert_debug_snapshot!(annotations.get_with_id(fb.id), @r#"
     Some(
@@ -622,8 +622,8 @@ fn function_block_methods_have_overrides_from_extended_interface_annotated() {
         id_provider.clone(),
     );
 
-    let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
-    let units = &units[0].0.pous;
+    let (annotations, _, unit) = annotate_and_lower_with_ids(unit, index, id_provider);
+    let units = &unit.0.pous;
     let method = &units[1];
     assert_debug_snapshot!(annotations.get_with_id(method.id), @r#"
     Some(

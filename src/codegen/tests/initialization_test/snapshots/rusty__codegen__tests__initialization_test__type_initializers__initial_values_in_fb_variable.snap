@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -27,56 +28,3 @@ entry:
   %struct2 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
   ret void
 }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%TON = type { i16, i16 }
-%main = type { i16, %TON, %TON }
-
-@__TON__init = external global %TON
-@main_instance = external global %main
-
-define void @__init_ton(%TON* %0) {
-entry:
-  %self = alloca %TON*, align 8
-  store %TON* %0, %TON** %self, align 8
-  ret void
-}
-
-declare void @TON(%TON*)
-
-define void @__init_main(%main* %0) {
-entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
-  %deref = load %main*, %main** %self, align 8
-  %struct1 = getelementptr inbounds %main, %main* %deref, i32 0, i32 1
-  call void @__init_ton(%TON* %struct1)
-  %deref1 = load %main*, %main** %self, align 8
-  %struct2 = getelementptr inbounds %main, %main* %deref1, i32 0, i32 2
-  call void @__init_ton(%TON* %struct2)
-  ret void
-}
-
-declare void @main(%main*)
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-%main = type { i16, %TON, %TON }
-%TON = type { i16, i16 }
-
-@main_instance = external global %main
-@__TON__init = external global %TON
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  call void @__init_main(%main* @main_instance)
-  ret void
-}
-
-declare void @__init_main(%main*)
-
-declare void @main(%main*)
-
-declare void @TON(%TON*)

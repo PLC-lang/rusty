@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,27 +16,5 @@ entry:
   store %myStruct* %0, %myStruct** %func, align 8
   %xxx = alloca %myStruct*, align 8
   store %myStruct* %1, %myStruct** %xxx, align 8
-  ret void
-}
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%myStruct = type { i16 }
-
-@__myStruct__init = external global %myStruct
-
-define void @__init_mystruct(%myStruct* %0) {
-entry:
-  %self = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %self, align 8
-  ret void
-}
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
   ret void
 }

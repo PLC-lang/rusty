@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -98,35 +99,3 @@ entry:
   %tmpVar35 = icmp eq i64 %call33, %load_var_lint34
   ret void
 }
-; ModuleID = '__initializers'
-source_filename = "__initializers"
-
-%main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
-
-@main_instance = external global %main
-
-define void @__init_main(%main* %0) {
-entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
-  ret void
-}
-
-declare void @main(%main*)
-; ModuleID = '__init___testproject'
-source_filename = "__init___testproject"
-
-%main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
-
-@main_instance = external global %main
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___testproject, i8* null }]
-
-define void @__init___testproject() {
-entry:
-  call void @__init_main(%main* @main_instance)
-  ret void
-}
-
-declare void @__init_main(%main*)
-
-declare void @main(%main*)
