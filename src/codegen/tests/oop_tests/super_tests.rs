@@ -176,7 +176,7 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define i16 @parent.process(%parent* %0) {
+    define i16 @parent_process(%parent* %0) {
     entry:
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.process = alloca i16, align 2
@@ -186,8 +186,8 @@ fn super_in_method_calls() {
       %tmpVar = mul i32 %1, 2
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %parent.process, align 2
-      %parent.process_ret = load i16, i16* %parent.process, align 2
-      ret i16 %parent.process_ret
+      %parent_process_ret = load i16, i16* %parent.process, align 2
+      ret i16 %parent_process_ret
     }
 
     define void @child(%child* %0) {
@@ -196,7 +196,7 @@ fn super_in_method_calls() {
       ret void
     }
 
-    define i16 @child.process(%child* %0) {
+    define i16 @child_process(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.process = alloca i16, align 2
@@ -207,19 +207,19 @@ fn super_in_method_calls() {
       %tmpVar = add i32 %1, 5
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %child.process, align 2
-      %child.process_ret = load i16, i16* %child.process, align 2
-      ret i16 %child.process_ret
+      %child_process_ret = load i16, i16* %child.process, align 2
+      ret i16 %child_process_ret
     }
 
-    define i16 @child.test(%child* %0) {
+    define i16 @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
-      %call = call i16 @parent.process(%parent* %__parent)
+      %call = call i16 @parent_process(%parent* %__parent)
       store i16 %call, i16* %child.test, align 2
-      %child.test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child.test_ret
+      %child_test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child_test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -455,15 +455,15 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define i16 @grandparent.gp_method(%grandparent* %0) {
+    define i16 @grandparent_gp_method(%grandparent* %0) {
     entry:
       %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %grandparent.gp_method = alloca i16, align 2
       store i16 0, i16* %grandparent.gp_method, align 2
       %load_g_val = load i16, i16* %g_val, align 2
       store i16 %load_g_val, i16* %grandparent.gp_method, align 2
-      %grandparent.gp_method_ret = load i16, i16* %grandparent.gp_method, align 2
-      ret i16 %grandparent.gp_method_ret
+      %grandparent_gp_method_ret = load i16, i16* %grandparent.gp_method, align 2
+      ret i16 %grandparent_gp_method_ret
     }
 
     define void @parent(%parent* %0) {
@@ -473,7 +473,7 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define i16 @parent.p_method(%parent* %0) {
+    define i16 @parent_p_method(%parent* %0) {
     entry:
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %p_val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
@@ -481,13 +481,13 @@ fn super_in_multi_level_inheritance() {
       store i16 0, i16* %parent.p_method, align 2
       %load_p_val = load i16, i16* %p_val, align 2
       %1 = sext i16 %load_p_val to i32
-      %call = call i16 @grandparent.gp_method(%grandparent* %__grandparent)
+      %call = call i16 @grandparent_gp_method(%grandparent* %__grandparent)
       %2 = sext i16 %call to i32
       %tmpVar = add i32 %1, %2
       %3 = trunc i32 %tmpVar to i16
       store i16 %3, i16* %parent.p_method, align 2
-      %parent.p_method_ret = load i16, i16* %parent.p_method, align 2
-      ret i16 %parent.p_method_ret
+      %parent_p_method_ret = load i16, i16* %parent.p_method, align 2
+      ret i16 %parent_p_method_ret
     }
 
     define void @child(%child* %0) {
@@ -497,16 +497,16 @@ fn super_in_multi_level_inheritance() {
       ret void
     }
 
-    define i16 @child.test(%child* %0) {
+    define i16 @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %c_val = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
-      %call = call i16 @parent.p_method(%parent* %__parent)
+      %call = call i16 @parent_p_method(%parent* %__parent)
       store i16 %call, i16* %child.test, align 2
-      %child.test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child.test_ret
+      %child_test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child_test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -674,7 +674,7 @@ fn super_in_conditionals() {
       ret void
     }
 
-    define void @child.test(%child* %0) {
+    define void @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -872,7 +872,7 @@ fn super_as_function_parameter() {
       ret void
     }
 
-    define void @child.test(%child* %0) {
+    define void @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %call = call i16 @process_ref(%parent* %__parent)
@@ -979,7 +979,7 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define i16 @parent.calc(%parent* %0) {
+    define i16 @parent_calc(%parent* %0) {
     entry:
       %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
@@ -996,8 +996,8 @@ fn super_with_deeply_nested_expressions() {
       %tmpVar1 = add i32 %1, %tmpVar
       %4 = trunc i32 %tmpVar1 to i16
       store i16 %4, i16* %parent.calc, align 2
-      %parent.calc_ret = load i16, i16* %parent.calc, align 2
-      ret i16 %parent.calc_ret
+      %parent_calc_ret = load i16, i16* %parent.calc, align 2
+      ret i16 %parent_calc_ret
     }
 
     define void @child(%child* %0) {
@@ -1006,7 +1006,7 @@ fn super_with_deeply_nested_expressions() {
       ret void
     }
 
-    define i16 @child.test(%child* %0) {
+    define i16 @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
@@ -1022,7 +1022,7 @@ fn super_with_deeply_nested_expressions() {
       %load_c = load i16, i16* %c, align 2
       %3 = sext i16 %load_c to i32
       %tmpVar1 = mul i32 %tmpVar, %3
-      %call = call i16 @parent.calc(%parent* %__parent)
+      %call = call i16 @parent_calc(%parent* %__parent)
       %4 = sext i16 %call to i32
       %tmpVar2 = add i32 %tmpVar1, %4
       %a3 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
@@ -1032,8 +1032,8 @@ fn super_with_deeply_nested_expressions() {
       %tmpVar6 = sdiv i32 %tmpVar2, %tmpVar5
       %6 = trunc i32 %tmpVar6 to i16
       store i16 %6, i16* %child.test, align 2
-      %child.test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child.test_ret
+      %child_test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child_test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -1121,7 +1121,7 @@ fn super_in_loop_constructs() {
       ret void
     }
 
-    define void @parent.increment(%parent* %0) {
+    define void @parent_increment(%parent* %0) {
     entry:
       %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
@@ -1139,7 +1139,7 @@ fn super_in_loop_constructs() {
       ret void
     }
 
-    define void @child.process(%child* %0) {
+    define void @child_process(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %i = alloca i16, align 2
@@ -1175,7 +1175,7 @@ fn super_in_loop_constructs() {
       %tmpVar4 = add i32 %5, %7
       %8 = trunc i32 %tmpVar4 to i16
       store i16 %8, i16* %sum, align 2
-      call void @parent.increment(%parent* %__parent)
+      call void @parent_increment(%parent* %__parent)
       br label %increment
 
     increment:                                        ; preds = %loop
@@ -1212,7 +1212,7 @@ fn super_in_loop_constructs() {
       br label %continue6
 
     continue6:                                        ; preds = %buffer_block, %while_body
-      call void @parent.increment(%parent* %__parent)
+      call void @parent_increment(%parent* %__parent)
       br label %condition_check
 
     condition_check9:                                 ; preds = %continue16, %continue5
@@ -1314,13 +1314,13 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define i16 @grandparent.calculate(%grandparent* %0) {
+    define i16 @grandparent_calculate(%grandparent* %0) {
     entry:
       %grandparent.calculate = alloca i16, align 2
       store i16 0, i16* %grandparent.calculate, align 2
       store i16 100, i16* %grandparent.calculate, align 2
-      %grandparent.calculate_ret = load i16, i16* %grandparent.calculate, align 2
-      ret i16 %grandparent.calculate_ret
+      %grandparent_calculate_ret = load i16, i16* %grandparent.calculate, align 2
+      ret i16 %grandparent_calculate_ret
     }
 
     define void @parent(%parent* %0) {
@@ -1329,18 +1329,18 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define i16 @parent.calculate(%parent* %0) {
+    define i16 @parent_calculate(%parent* %0) {
     entry:
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.calculate = alloca i16, align 2
       store i16 0, i16* %parent.calculate, align 2
-      %call = call i16 @grandparent.calculate(%grandparent* %__grandparent)
+      %call = call i16 @grandparent_calculate(%grandparent* %__grandparent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 50
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %parent.calculate, align 2
-      %parent.calculate_ret = load i16, i16* %parent.calculate, align 2
-      ret i16 %parent.calculate_ret
+      %parent_calculate_ret = load i16, i16* %parent.calculate, align 2
+      ret i16 %parent_calculate_ret
     }
 
     define void @child(%child* %0) {
@@ -1349,18 +1349,18 @@ fn super_with_method_overrides_in_three_levels() {
       ret void
     }
 
-    define i16 @child.calculate(%child* %0) {
+    define i16 @child_calculate(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.calculate = alloca i16, align 2
       store i16 0, i16* %child.calculate, align 2
-      %call = call i16 @parent.calculate(%parent* %__parent)
+      %call = call i16 @parent_calculate(%parent* %__parent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 25
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %child.calculate, align 2
-      %child.calculate_ret = load i16, i16* %child.calculate, align 2
-      ret i16 %child.calculate_ret
+      %child_calculate_ret = load i16, i16* %child.calculate, align 2
+      ret i16 %child_calculate_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -1504,7 +1504,7 @@ fn super_with_structured_types() {
       ret void
     }
 
-    define void @child.test(%child* %0) {
+    define void @child_test(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %local_data = alloca %Complex_Type, align 8
@@ -1624,7 +1624,7 @@ fn super_in_action_blocks() {
       ret void
     }
 
-    define void @parent.increment(%parent* %0) {
+    define void @parent_increment(%parent* %0) {
     entry:
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %load_value = load i16, i16* %value, align 2
@@ -1641,7 +1641,7 @@ fn super_in_action_blocks() {
       ret void
     }
 
-    define void @child.increase(%child* %0) {
+    define void @child_increase(%child* %0) {
     entry:
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
@@ -1651,7 +1651,7 @@ fn super_in_action_blocks() {
       %tmpVar = add i32 %1, 5
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %value, align 2
-      call void @parent.increment(%parent* %__parent)
+      call void @parent_increment(%parent* %__parent)
       ret void
     }
 
