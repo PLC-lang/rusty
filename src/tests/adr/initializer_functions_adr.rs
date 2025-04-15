@@ -804,7 +804,7 @@ fn initializing_method_variables() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -817,7 +817,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -850,7 +850,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.
@@ -893,7 +893,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -902,7 +902,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.baz(%foo* %0) {
+    define void @foo_baz(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -966,7 +966,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x1 = alloca i32, align 4

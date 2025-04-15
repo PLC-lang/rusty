@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,7 +19,7 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, i16* %1) {
+define void @MyClass_testMethod(%MyClass* %0, i16* %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
@@ -34,7 +35,7 @@ define void @prg(%prg* %0) {
 entry:
   %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  call void @MyClass.testMethod(%MyClass* %cl, i16* %x)
+  call void @MyClass_testMethod(%MyClass* %cl, i16* %x)
   ret void
 }
 ; ModuleID = '__initializers'

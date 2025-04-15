@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,7 +15,7 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass_testMethod(%MyClass* %0, i16 %1) {
 entry:
   %myMethodArg = alloca i16, align 2
   store i16 %1, i16* %myMethodArg, align 2

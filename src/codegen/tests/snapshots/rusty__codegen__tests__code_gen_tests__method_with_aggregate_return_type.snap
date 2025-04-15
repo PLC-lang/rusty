@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -19,14 +20,14 @@ entry:
   %2 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   %3 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
-  call void @fb_with_method.method_with_aggregagte_return(%fb_with_method* %0, i8* %3, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
+  call void @fb_with_method_method_with_aggregagte_return(%fb_with_method* %0, i8* %3, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
   %4 = bitcast [81 x i8]* %ret to i8*
   %5 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
   call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 80, i1 false)
   ret void
 }
 
-define void @fb_with_method.method_with_aggregagte_return(%fb_with_method* %0, i8* %1, i8* %2) {
+define void @fb_with_method_method_with_aggregagte_return(%fb_with_method* %0, i8* %1, i8* %2) {
 entry:
   %ret = alloca [81 x i8], align 1
   %method_with_aggregagte_return = alloca i8*, align 8

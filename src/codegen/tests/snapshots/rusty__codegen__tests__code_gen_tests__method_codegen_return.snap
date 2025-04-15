@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,15 +15,15 @@ entry:
   ret void
 }
 
-define i16 @MyClass.testMethod(%MyClass* %0, i16 %1) {
+define i16 @MyClass_testMethod(%MyClass* %0, i16 %1) {
 entry:
   %MyClass.testMethod = alloca i16, align 2
   %myMethodArg = alloca i16, align 2
   store i16 %1, i16* %myMethodArg, align 2
   store i16 0, i16* %MyClass.testMethod, align 2
   store i16 1, i16* %MyClass.testMethod, align 2
-  %MyClass.testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
-  ret i16 %MyClass.testMethod_ret
+  %MyClass_testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  ret i16 %MyClass_testMethod_ret
 }
 ; ModuleID = '__initializers'
 source_filename = "__initializers"

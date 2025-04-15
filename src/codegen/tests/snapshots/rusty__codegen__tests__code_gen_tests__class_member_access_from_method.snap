@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,7 +17,7 @@ entry:
   ret void
 }
 
-define void @MyClass.testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass_testMethod(%MyClass* %0, i16 %1) {
 entry:
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1

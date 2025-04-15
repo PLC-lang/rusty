@@ -379,7 +379,7 @@ fn nested_initializer_pous() {
     entry:
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      call void @bar.print(%bar* %b)
+      call void @bar_print(%bar* %b)
       call void @bar(%bar* %b)
       ret void
     }
@@ -387,7 +387,7 @@ fn nested_initializer_pous() {
     define void @bar(%bar* %0) {
     entry:
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      call void @baz.print(%baz* %b)
+      call void @baz_print(%baz* %b)
       ret void
     }
 
@@ -409,24 +409,24 @@ fn nested_initializer_pous() {
       %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 0
       %f = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 1
       call void @foo(%foo* %f)
-      call void @foo.print(%foo* %f)
+      call void @foo_print(%foo* %f)
       ret void
     }
 
-    define void @bar.print(%bar* %0) {
+    define void @bar_print(%bar* %0) {
     entry:
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
-    define void @foo.print(%foo* %0) {
+    define void @foo_print(%foo* %0) {
     entry:
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
-    define void @baz.print(%baz* %0) {
+    define void @baz_print(%baz* %0) {
     entry:
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
@@ -806,7 +806,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @foo.m(%foo* %0) {
+    define void @foo_m(%foo* %0) {
     entry:
       ret void
     }
@@ -816,12 +816,12 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @cl.m(%cl* %0) {
+    define void @cl_m(%cl* %0) {
     entry:
       ret void
     }
 
-    define void @foo.act(%foo* %0) {
+    define void @foo_act(%foo* %0) {
     entry:
       ret void
     }
@@ -1647,7 +1647,7 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1713,7 +1713,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -1778,7 +1778,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
@@ -1843,7 +1843,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1905,7 +1905,7 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1967,7 +1967,7 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    define void @foo.bar(%foo* %0) {
+    define void @foo_bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -2045,7 +2045,7 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    define void @bar.baz(%bar* %0) {
+    define void @bar_baz(%bar* %0) {
     entry:
       %fb = alloca %foo, align 8
       %1 = bitcast %foo* %fb to i8*

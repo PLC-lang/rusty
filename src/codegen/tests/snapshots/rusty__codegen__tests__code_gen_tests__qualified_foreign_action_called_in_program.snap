@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,7 +14,7 @@ source_filename = "<internal>"
 
 define void @bar(%bar* %0) {
 entry:
-  call void @prg.foo(%prg* @prg_instance)
+  call void @prg_foo(%prg* @prg_instance)
   ret void
 }
 
@@ -23,7 +24,7 @@ entry:
   ret void
 }
 
-define void @prg.foo(%prg* %0) {
+define void @prg_foo(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4
