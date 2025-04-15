@@ -141,32 +141,6 @@ pub mod tests {
         id_provider: IdProvider,
     ) -> Lowered {
         let (mut index, _) = evaluate_constants(index);
-        // let lowered = InitVisitor::visit(
-        //     vec![parse_result],
-        //     index,
-        //     unresolvables,
-        //     id_provider.clone(),
-        //     get_project_init_symbol(),
-        // );
-
-        // let mut index = Index::default();
-        // let builtins = builtins::parse_built_ins(id_provider.clone());
-        // index.import(index::indexer::index(&builtins));
-
-        // for data_type in get_builtin_types() {
-        //     index.register_type(data_type);
-        // }
-
-        // let indexed_units = lowered
-        //     .into_iter()
-        //     .map(|mut unit| {
-        //         pre_process(&mut unit, id_provider.clone());
-        //         index.import(index::indexer::index(&unit));
-        //         unit
-        //     })
-        //     .collect::<Vec<_>>();
-        // let (mut full_index, _) = evaluate_constants(index);
-
         let mut all_annotations = AnnotationMapImpl::default();
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
