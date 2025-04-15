@@ -132,6 +132,25 @@ pub fn visit_statement<T: AnnotationMap>(
         // AstStatement::ReturnStatement { location, id } => (),
         // AstStatement::LiteralNull { location, id } => (),
         AstStatement::ParenExpression(expr) => visit_statement(validator, expr, context),
+        AstStatement::Super(_) => {
+            if context.is_cast {
+                validator.push_diagnostic(
+                    Diagnostic::new("The `<type>#` operator cannot be used with `SUPER`")
+                        .with_location(statement.get_location())
+                        .with_error_code("E119"),
+                );
+            }
+
+            // do I have a parent_class? if not, this is invalid
+            if context
+                .qualifier
+                .and_then(|it| context.index.find_pou(it).and_then(|it| it.get_super_class()))
+                .is_none()
+            {
+                validator.push_diagnostic(Diagnostic::new("Invalid use of `SUPER`. Usage is only allowed within a POU that directly extends another POU.")
+                        .with_location(statement.get_location()).with_error_code("E119"));
+            }
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -145,20 +164,39 @@ fn validate_reference_expression<T: AnnotationMap>(
     base: &Option<Box<AstNode>>,
 ) {
     match access {
-        ReferenceAccess::Member(m) | ReferenceAccess::Global(m) => {
-            visit_statement(validator, m.as_ref(), context);
-
-            if let Some(reference_name) = statement.get_flat_reference_name() {
-                validate_reference(
-                    validator,
-                    statement,
-                    base.as_deref(),
-                    reference_name,
-                    &m.get_location(),
-                    context,
+        ReferenceAccess::Global(m) => {
+            if m.get_initial_base().or(Some(m)).is_some_and(|it| it.is_super() || it.has_super_metadata()) {
+                // super cannot be accessed as a global
+                validator.push_diagnostic(
+                    Diagnostic::new("`SUPER` is not allowed in global-access position.")
+                        .with_location(m.get_location())
+                        .with_error_code("E119"),
                 );
+            };
+
+            validate_member_access(validator, context, statement, m, base);
+        }
+        ReferenceAccess::Member(m) => {
+            if let Some(base) = base {
+                if m.is_super() || m.has_super_metadata() {
+                    // super cannot be accessed as a member
+                    validator.push_diagnostic(
+                        Diagnostic::new("`SUPER` is not allowed in member-access position.")
+                            .with_location(m.get_location())
+                            .with_error_code("E119"),
+                    );
+                } else if (base.is_super() || base.has_super_metadata())
+                    && !(base.is_super_deref() || base.has_super_metadata_deref())
+                {
+                    validator.push_diagnostic(
+                        Diagnostic::new("`SUPER` must be dereferenced to access its members.")
+                            .with_location(m.get_location())
+                            .with_error_code("E119"),
+                    );
+                }
             }
-            validate_direct_access(m, base.as_deref(), context, validator);
+
+            validate_member_access(validator, context, statement, m, base);
         }
         ReferenceAccess::Index(i) => {
             if let Some(base) = base {
@@ -172,7 +210,7 @@ fn validate_reference_expression<T: AnnotationMap>(
             }
         }
         ReferenceAccess::Cast(c) => {
-            visit_statement(validator, c.as_ref(), context);
+            visit_statement(validator, c.as_ref(), &context.set_cast());
 
             // see if we try to cast a literal
             if let (AstStatement::Literal(literal), Some(StatementAnnotation::Type { type_name })) =
@@ -189,7 +227,14 @@ fn validate_reference_expression<T: AnnotationMap>(
             }
         }
         ReferenceAccess::Deref => {
-            if base.is_none() {
+            if base.is_none()
+                || base.as_ref().is_some_and(|it| {
+                    context
+                        .annotations
+                        .get_type(it.as_ref(), context.index)
+                        .is_some_and(|it| !it.is_pointer())
+                })
+            {
                 validator.diagnostics.push(
                     Diagnostic::new("Dereferencing requires a pointer-value.")
                         .with_error_code("E068")
@@ -199,7 +244,12 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Address => {
             if let Some(base) = base {
-                validate_address_of_expression(validator, base, statement.get_location(), context);
+                validate_address_of_expression(
+                    validator,
+                    base.get_node_peeled(),
+                    statement.get_location(),
+                    context,
+                );
             } else {
                 validator.diagnostics.push(
                     Diagnostic::new("Address-of requires a value.")
@@ -211,17 +261,34 @@ fn validate_reference_expression<T: AnnotationMap>(
     }
 }
 
+fn validate_member_access<T: AnnotationMap>(
+    validator: &mut Validator,
+    context: &ValidationContext<T>,
+    statement: &AstNode,
+    member: &AstNode,
+    base: &Option<Box<AstNode>>,
+) {
+    visit_statement(validator, member, context);
+
+    if let Some(reference_name) = statement.get_flat_reference_name() {
+        validate_reference(
+            validator,
+            statement,
+            base.as_deref(),
+            reference_name,
+            &member.get_location(),
+            context,
+        );
+    }
+    validate_direct_access(member, base.as_deref(), context, validator);
+}
+
 fn validate_address_of_expression<T: AnnotationMap>(
     validator: &mut Validator,
     target: &AstNode,
     location: SourceLocation,
     context: &ValidationContext<T>,
 ) {
-    if let AstStatement::ParenExpression(expr) = &target.stmt {
-        validate_address_of_expression(validator, expr, location, context);
-        return;
-    }
-
     let a = context.annotations.get(target);
 
     if !matches!(a, Some(StatementAnnotation::Variable { .. })) && !target.is_array_access() {
@@ -459,6 +526,10 @@ fn validate_reference<T: AnnotationMap>(
 ) {
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
+        if base.is_some_and(|it| it.has_super_metadata() || it.is_super()) {
+            // We don't want to show unresolved reference/bitaccess diagnostics for invalid super accesses without deref
+            return;
+        }
         // XXX: Temporary solution, is there a better way? Technically we could introduce a diagnostic when
         //      lowering the references to calls, then checking with the index if the defined POU exists but
         //      then we'd get two similar error, one describing what the exact issue is (i.e. no get/set) and
@@ -484,7 +555,6 @@ fn validate_reference<T: AnnotationMap>(
 
             _ => (),
         };
-
         validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
 
         // was this meant as a direct access?
@@ -494,8 +564,7 @@ fn validate_reference<T: AnnotationMap>(
                 context.index.find_effective_type_by_name(alternative_target.get_type_name())
             })
         {
-            if base.is_some() && (alternative_target_type.is_numerical() || alternative_target_type.is_enum())
-            {
+            if alternative_target_type.is_numerical() || alternative_target_type.is_enum() {
                 // we accessed a member that does not exist, but we could find a global/local variable that fits
                 validator.push_diagnostic(
                     Diagnostic::new(format!("If you meant to directly access a bit/byte/word/..., use %X/%B/%W{ref_name} instead."))
@@ -511,7 +580,7 @@ fn validate_reference<T: AnnotationMap>(
     match context.annotations.get(statement) {
         Some(StatementAnnotation::Variable { qualified_name, argument_type, .. }) => {
             // check if we're accessing a private variable AND the variable's qualifier is not the
-            // POU we're accessing it from
+            // POU we're accessing it from.
             if argument_type.is_private()
                 && context
                     .qualifier

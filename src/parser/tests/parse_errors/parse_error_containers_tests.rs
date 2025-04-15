@@ -1,6 +1,8 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use crate::test_utils::tests::{parse_and_validate_buffered, parse_buffered};
+use crate::test_utils::tests::{
+    parse_and_report_parse_errors_buffered, parse_and_validate_buffered, parse_buffered,
+};
 use insta::{assert_debug_snapshot, assert_snapshot};
 
 /*
@@ -165,4 +167,93 @@ fn a_variable_declaration_block_needs_to_end_with_endvar() {
     let src = "PROGRAM buz VAR END_PROGRAM ";
     let diagnostics = parse_and_validate_buffered(src);
     assert_snapshot!(diagnostics)
+}
+
+#[test]
+fn super_is_a_reserved_keyword() {
+    let src = "
+    INTERFACE super END_INTERFACE
+    PROGRAM super
+        VAR
+            super : INT;
+        END_VAR
+        METHOD super END_METHOD
+    END_PROGRAM
+    ";
+
+    // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
+    //                  we need to find a way to handle keywords as identifiers.
+    //                  Also, half the diagnostics in this file are moot since
+    //                  the pipeline will abort compilation on parse errors,
+    //                  i.e. the validation stage is never reached.
+    //                  Related: https://github.com/PLC-lang/rusty/issues/1408
+
+    let diagnostics = parse_and_report_parse_errors_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E006]: Expected a name for the interface definition but got nothing
+      ┌─ <internal>:2:5
+      │
+    2 │     INTERFACE super END_INTERFACE
+      │     ^^^^^^^^^ Expected a name for the interface definition but got nothing
+
+    error[E006]: Missing expected Token KeywordEndInterface
+      ┌─ <internal>:2:15
+      │
+    2 │     INTERFACE super END_INTERFACE
+      │               ^^^^^ Missing expected Token KeywordEndInterface
+
+    error[E007]: Unexpected token: expected StartKeyword but found super
+      ┌─ <internal>:2:15
+      │
+    2 │     INTERFACE super END_INTERFACE
+      │               ^^^^^ Unexpected token: expected StartKeyword but found super
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_INTERFACE
+      ┌─ <internal>:2:21
+      │
+    2 │     INTERFACE super END_INTERFACE
+      │                     ^^^^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_INTERFACE
+
+    error[E007]: Unexpected token: expected Identifier but found super
+      ┌─ <internal>:3:13
+      │
+    3 │     PROGRAM super
+      │             ^^^^^ Unexpected token: expected Identifier but found super
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'VAR
+                super'
+      ┌─ <internal>:4:9
+      │  
+    4 │ ╭         VAR
+    5 │ │             super : INT;
+      │ ╰─────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
+                super'
+
+    error[E007]: Unexpected token: expected Literal but found END_VAR
+      ┌─ <internal>:6:9
+      │
+    6 │         END_VAR
+      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
+            METHOD super END_METHOD'
+      ┌─ <internal>:6:9
+      │  
+    6 │ ╭         END_VAR
+    7 │ │         METHOD super END_METHOD
+      │ ╰───────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
+            METHOD super END_METHOD'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+      ┌─ <internal>:8:5
+      │
+    8 │     END_PROGRAM
+      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      ┌─ <internal>:8:5
+      │
+    8 │     END_PROGRAM
+      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+    ");
 }

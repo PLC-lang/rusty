@@ -7,6 +7,7 @@ edition = "2021"
 plc = { path = "../..", package = "rusty" }
 plc_ast = { path = "../plc_ast" }
 plc_source = { path = "../plc_source" }
+log.workspace = true
 
 [dev-dependencies]
 plc_driver = { path = "../plc_driver" }
