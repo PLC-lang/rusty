@@ -1,6 +1,7 @@
 use test_utils::codegen;
 
 mod debug_tests;
+mod super_tests;
 
 #[test]
 fn members_from_base_class_are_available_in_subclasses() {
