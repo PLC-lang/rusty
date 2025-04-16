@@ -1,0 +1,9 @@
+---
+source: src/resolver/tests/resolve_function_pointers.rs
+expression: annotations.get_hint(&assignment.right)
+---
+Some(
+    Value {
+        resulting_type: "__test_f",
+    },
+)
