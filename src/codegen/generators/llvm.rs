@@ -12,7 +12,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, GlobalValue, IntValue, PointerValue},
     AddressSpace,
 };
-use plc_ast::ast::AstNode;
+use plc_ast::ast::{AstNode, LinkageType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 
@@ -318,6 +318,9 @@ impl<'a> Llvm<'a> {
         exp_gen: &ExpressionCodeGenerator,
     ) -> Result<(), Diagnostic> {
         let (qualified_name, type_name, location) = variable;
+        if index.find_pou(type_name).is_some_and(|it| it.get_linkage() == &LinkageType::External) {
+            return Ok(());
+        }
         let variable_llvm_type =
             llvm_index.get_associated_type(type_name).map_err(|err| err.with_location(location))?;
 

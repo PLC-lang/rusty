@@ -2368,12 +2368,10 @@ fn user_init_called_when_declared_as_external() {
         {external}
         FUNCTION_BLOCK foo
         VAR
-            x : INT := 0;
-            y : INT := 0;
+            x : INT;
+            y : INT;
         END_VAR
             METHOD FB_INIT
-                x := 1;
-                y := 2;
             END_METHOD
         END_FUNCTION_BLOCK
 

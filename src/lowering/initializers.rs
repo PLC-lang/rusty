@@ -230,8 +230,8 @@ fn create_init_unit(
 }
 
 fn create_user_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
-    lowerer
-        .user_inits
+    dbg!(&lowerer
+                .user_inits)
         .iter()
         .map(|(container_name, has_fb_init)| {
             let location = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));

@@ -38,7 +38,7 @@ use inkwell::{
     types::{BasicType, StructType},
     values::PointerValue,
 };
-use plc_ast::ast::{AstNode, Implementation, PouType};
+use plc_ast::ast::{AstNode, Implementation, LinkageType, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
@@ -110,8 +110,8 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         .filter(|it| it.is_in_unit(location));
     for implementation in implementations {
         let type_name = implementation.get_type_name();
-        if implementation.is_init() {
-            // initializer functions don't need global constants to initialize members
+        if implementation.is_init() || index.find_pou(type_name).is_some_and(|it| it.get_linkage() == &LinkageType::External) {
+            // initializer functions and externals don't need global constants to initialize members
             continue;
         }
         let pou_members = index.get_pou_members(type_name);

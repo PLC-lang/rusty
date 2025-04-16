@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/main.st %S/header.pli && %RUN | %CHECK %s
+CHECK:6

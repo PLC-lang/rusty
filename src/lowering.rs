@@ -35,6 +35,11 @@ impl InitVisitor {
         init_symbol_name: &'static str,
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
+        // before visiting, we need to collect all candidates for user-defined init functions
+        units.iter().for_each(|unit| {
+            // TODO: probably also need to consider structs here
+            visitor.collect_user_init_candidates(unit);
+        });
         // visit all units
         units.iter_mut().for_each(|unit| {
             visitor.visit_compilation_unit(unit);
@@ -64,6 +69,15 @@ impl InitVisitor {
         let old = self.ctxt.scope(pou_name.map(Into::into));
         t.walk(self);
         self.ctxt.scope(old);
+    }
+
+    fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
+        // TODO: probably also need to consider structs here
+        // collect all candidates for user-defined init functions
+        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program)) {
+                // add the POU to potential `FB_INIT` candidates
+                self.user_inits.insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
+        }
     }
 
     fn update_initializer(&mut self, variable: &mut plc_ast::ast::Variable) {
@@ -219,11 +233,12 @@ impl InitVisitor {
         // collect necessary call statements to init-functions and user-defined init-functions
         let mut implicit_calls = Vec::new();
         let mut user_init_calls = Vec::new();
-        self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).for_each(
+        self.index.get_pou_members(dbg!(&implementation.name)).iter().filter(|var| predicate(var)).for_each(
             |var| {
                 let dti =
                     self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
-                if dti.is_struct() {
+                let is_external = self.index.find_pou(dti.get_name()).is_some_and(|it| it.get_linkage() == &LinkageType::External);
+                if dti.is_struct() && !is_external {
                     implicit_calls.push(create_call_statement(
                         &get_init_fn_name(dti.get_name()),
                         var.get_name(),
@@ -232,9 +247,9 @@ impl InitVisitor {
                         &implementation.name_location,
                     ));
                 }
-                if self.user_inits.contains_key(dti.get_name()) {
+                if dbg!(&self.user_inits).contains_key(dbg!(dti.get_name())) {
                     user_init_calls.push(create_call_statement(
-                        &get_user_init_fn_name(dti.get_name()),
+                        dbg!(&get_user_init_fn_name(dti.get_name())),
                         var.get_name(),
                         None,
                         self.ctxt.get_id_provider(),
@@ -350,12 +365,6 @@ impl AstVisitorMut for InitVisitor {
     fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
         if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
             self.unresolved_initializers.maybe_insert_initializer(&pou.name, None, &None);
-        }
-
-        if matches!(pou.kind, PouType::FunctionBlock | PouType::Program) {
-            // add the POU to potential `FB_INIT` candidates
-            self.user_inits
-                .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "fb_init").is_some());
         }
 
         self.walk_with_scope(pou, Some(&pou.name.to_owned()));
