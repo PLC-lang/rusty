@@ -303,18 +303,44 @@ impl<'ink> DebugBuilder<'ink> {
             .unwrap_or_else(|| self.compile_unit.get_file());
 
         let mut types = vec![];
-        for (element_index, (member_name, dt, location)) in index_types.into_iter().enumerate() {
+        let mut last_offset_bits = 0;
+        let mut last_size_bits = 0;
+
+        for (element_index, (member_name, dt, location)) in index_types.iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
 
-            //Adjust the offset based on the field alignment
-            let size = types_index
-                .find_associated_type(dt.get_name())
-                .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
-                .unwrap_or(0);
-            //Offset in bits
-            let offset =
-                self.target_data.offset_of_element(&struct_type, element_index as u32).unwrap_or(0) * 8;
+            // Get the size and alignment
+            let llvm_type = types_index.find_associated_type(dt.get_name());
+            let align_bits =
+                llvm_type.map(|ty| self.target_data.get_preferred_alignment(&ty) * 8).unwrap_or(0);
+            let size_bits = llvm_type.map(|ty| self.target_data.get_bit_size(&ty)).unwrap_or(0);
 
+            // Get LLVM's calculated offset
+            let llvm_offset_bits = self
+                .target_data
+                .offset_of_element(&struct_type, element_index as u32)
+                .map(|offset| offset * 8)
+                .unwrap_or(0);
+
+            // Calculate the properly aligned offset based on the previous field
+            // and this field's alignment requirements
+            let offset_bits = {
+                let next_offset_bits: u64 = last_offset_bits + last_size_bits;
+
+                // If this type requires alignment, round up to the nearest alignment boundary
+                if align_bits > 8 {
+                    next_offset_bits.div_ceil(align_bits as u64) * align_bits as u64
+                } else {
+                    // For byte-aligned fields, still ensure we don't overlap with previous field
+                    std::cmp::max(next_offset_bits, llvm_offset_bits)
+                }
+            };
+
+            // Update tracking variables for next field
+            last_offset_bits = offset_bits;
+            last_size_bits = size_bits;
+
+            // Create the member type with calculated offset
             types.push(
                 self.debug_info
                     .create_member_type(
@@ -322,9 +348,9 @@ impl<'ink> DebugBuilder<'ink> {
                         member_name,
                         file,
                         location.get_line_plus_one() as u32,
-                        size,
-                        0, // No set alignment
-                        offset,
+                        size_bits,
+                        align_bits,
+                        offset_bits,
                         DIFlags::PUBLIC,
                         di_type.into(),
                     )
@@ -332,15 +358,39 @@ impl<'ink> DebugBuilder<'ink> {
             );
         }
 
-        let size = self.target_data.get_bit_size(&struct_type);
-        //Create a struct type
+        // Calculate struct size based on the last field's offset + size, properly aligned
+        let llvm_size = self.target_data.get_bit_size(&struct_type);
+        // Calculate our manual size based on adjusted offsets
+        let calculated_size = {
+            // Get struct alignment requirement (usually 8 bytes/64 bits for 64-bit architectures)
+            let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
+
+            // Calculate total size based on last field offset + size, rounded up to alignment
+            let last_field_end_bits = last_offset_bits + last_size_bits;
+            let aligned_size_bits =
+                last_field_end_bits.div_ceil(struct_align_bits as u64) * struct_align_bits as u64;
+
+            // If our calculated size is larger than LLVM's, use ours
+            if aligned_size_bits > llvm_size {
+                log::trace!(
+                    "Struct {}: adjusted size from {} to {} bits due to field alignment",
+                    name,
+                    llvm_size,
+                    aligned_size_bits
+                );
+                aligned_size_bits
+            } else {
+                llvm_size
+            }
+        };
+
         let struct_type = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() as u32,
-            size,
-            0, // No set alignment
+            calculated_size,
+            self.target_data.get_preferred_alignment(&struct_type) * 8,
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -364,20 +414,21 @@ impl<'ink> DebugBuilder<'ink> {
     ) -> Result<(), Diagnostic> {
         //find the inner type debug info
         let inner_type = index.get_type(inner_type)?;
-        //Find the dimenstions as ranges
+        //Find the dimensions as ranges
         let subscript = dimensions
             .iter()
             .map(|it| it.get_range_plus_one(index))
-            //Convert to normal range
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
         let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
+        let array_type = types_index.get_associated_type(name).map(|it| it.into_array_type())?;
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
             size,
-            0, //No set alignment
+            self.target_data.get_preferred_alignment(&array_type),
             subscript.as_slice(),
         );
+
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
     }
@@ -446,6 +497,7 @@ impl<'ink> DebugBuilder<'ink> {
             #[allow(clippy::single_range_in_vec_init)]
             &[(0..length)],
         );
+
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
     }
