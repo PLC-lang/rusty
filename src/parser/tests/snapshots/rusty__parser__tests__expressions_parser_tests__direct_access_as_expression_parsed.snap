@@ -48,17 +48,7 @@ CompilationUnit {
                                 },
                             ],
                             location: SourceLocation {
-                                span: Range(
-                                    TextLocation {
-                                        line: 2,
-                                        column: 15,
-                                        offset: 32,
-                                    }..TextLocation {
-                                        line: 2,
-                                        column: 23,
-                                        offset: 40,
-                                    },
-                                ),
+                                span: Range(2:15 - 2:23),
                             },
                         },
                     },
@@ -81,17 +71,7 @@ CompilationUnit {
                             },
                         ],
                         location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 3,
-                                    column: 10,
-                                    offset: 52,
-                                }..TextLocation {
-                                    line: 3,
-                                    column: 19,
-                                    offset: 61,
-                                },
-                            ),
+                            span: Range(3:10 - 3:19),
                         },
                     },
                 },
@@ -115,17 +95,7 @@ CompilationUnit {
                                 },
                             ],
                             location: SourceLocation {
-                                span: Range(
-                                    TextLocation {
-                                        line: 4,
-                                        column: 10,
-                                        offset: 73,
-                                    }..TextLocation {
-                                        line: 4,
-                                        column: 17,
-                                        offset: 80,
-                                    },
-                                ),
+                                span: Range(4:10 - 4:17),
                             },
                         },
                         right: LiteralInteger {
@@ -135,43 +105,13 @@ CompilationUnit {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 8,
-                        offset: 25,
-                    }..TextLocation {
-                        line: 4,
-                        column: 22,
-                        offset: 85,
-                    },
-                ),
+                span: Range(2:8 - 4:22),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 12,
-                        offset: 13,
-                    }..TextLocation {
-                        line: 1,
-                        column: 15,
-                        offset: 16,
-                    },
-                ),
+                span: Range(1:12 - 1:15),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 4,
-                        offset: 90,
-                    }..TextLocation {
-                        line: 5,
-                        column: 15,
-                        offset: 101,
-                    },
-                ),
+                span: Range(5:4 - 5:15),
             },
             overriding: false,
             generic: false,

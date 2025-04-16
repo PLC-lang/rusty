@@ -73,49 +73,19 @@ Implementation {
         },
     ],
     location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 9,
-                column: 12,
-                offset: 171,
-            }..TextLocation {
-                line: 9,
-                column: 24,
-                offset: 183,
-            },
-        ),
+        span: Range(9:12 - 9:24),
         file: Some(
             "<internal>",
         ),
     },
     name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 17,
-                offset: 154,
-            }..TextLocation {
-                line: 8,
-                column: 21,
-                offset: 158,
-            },
-        ),
+        span: Range(8:17 - 8:21),
         file: Some(
             "<internal>",
         ),
     },
     end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 10,
-                column: 8,
-                offset: 192,
-            }..TextLocation {
-                line: 10,
-                column: 20,
-                offset: 204,
-            },
-        ),
+        span: Range(10:8 - 10:20),
         file: Some(
             "<internal>",
         ),

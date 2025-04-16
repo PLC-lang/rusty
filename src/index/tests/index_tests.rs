@@ -1747,17 +1747,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
                     },
                 ],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 16,
-                            offset: 40,
-                        }..TextLocation {
-                            line: 2,
-                            column: 29,
-                            offset: 53,
-                        },
-                    ),
+                    span: Range(2:16 - 2:29),
                     file: Some(
                         "<internal>",
                     ),
@@ -1765,17 +1755,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
             },
         ),
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 2,
-                    column: 12,
-                    offset: 36,
-                }..TextLocation {
-                    line: 2,
-                    column: 15,
-                    offset: 39,
-                },
-            ),
+            span: Range(2:12 - 2:15),
             file: Some(
                 "<internal>",
             ),
@@ -1813,17 +1793,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 2,
-                    column: 16,
-                    offset: 40,
-                }..TextLocation {
-                    line: 2,
-                    column: 29,
-                    offset: 53,
-                },
-            ),
+            span: Range(2:16 - 2:29),
             file: Some(
                 "<internal>",
             ),
@@ -1846,17 +1816,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
             },
             nature: Any,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 30,
-                        offset: 54,
-                    }..TextLocation {
-                        line: 2,
-                        column: 36,
-                        offset: 60,
-                    },
-                ),
+                span: Range(2:30 - 2:36),
                 file: Some(
                     "<internal>",
                 ),
@@ -1924,17 +1884,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
             },
             nature: Any,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 30,
-                        offset: 54,
-                    }..TextLocation {
-                        line: 2,
-                        column: 36,
-                        offset: 60,
-                    },
-                ),
+                span: Range(2:30 - 2:36),
                 file: Some(
                     "<internal>",
                 ),
@@ -1974,17 +1924,7 @@ fn address_used_in_2_aliases_only_created_once() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 16,
-                        offset: 40,
-                    }..TextLocation {
-                        line: 2,
-                        column: 29,
-                        offset: 53,
-                    },
-                ),
+                span: Range(2:16 - 2:29),
                 file: Some(
                     "<internal>",
                 ),
@@ -2027,17 +1967,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 16,
-                        offset: 40,
-                    }..TextLocation {
-                        line: 2,
-                        column: 29,
-                        offset: 53,
-                    },
-                ),
+                span: Range(2:16 - 2:29),
                 file: Some(
                     "<internal>",
                 ),
@@ -2062,17 +1992,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 4,
-                        column: 17,
-                        offset: 117,
-                    }..TextLocation {
-                        line: 4,
-                        column: 30,
-                        offset: 130,
-                    },
-                ),
+                span: Range(4:17 - 4:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -2113,17 +2033,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 16,
-                        offset: 40,
-                    }..TextLocation {
-                        line: 2,
-                        column: 29,
-                        offset: 53,
-                    },
-                ),
+                span: Range(2:16 - 2:29),
                 file: Some(
                     "<internal>",
                 ),
@@ -2161,17 +2071,7 @@ fn var_config_hardware_address_creates_global_variable() {
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 2,
-                    column: 24,
-                    offset: 48,
-                }..TextLocation {
-                    line: 2,
-                    column: 37,
-                    offset: 61,
-                },
-            ),
+            span: Range(2:24 - 2:37),
             file: Some(
                 "<internal>",
             ),

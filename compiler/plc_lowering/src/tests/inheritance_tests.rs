@@ -119,49 +119,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 16,
-                        column: 16,
-                        offset: 359,
-                    }..TextLocation {
-                        line: 17,
-                        column: 23,
-                        offset: 418,
-                    },
-                ),
+                span: Range(16:16 - 17:23),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 27,
-                        offset: 250,
-                    }..TextLocation {
-                        line: 11,
-                        column: 30,
-                        offset: 253,
-                    },
-                ),
+                span: Range(11:27 - 11:30),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 18,
-                        column: 12,
-                        offset: 471,
-                    }..TextLocation {
-                        line: 18,
-                        column: 30,
-                        offset: 489,
-                    },
-                ),
+                span: Range(18:12 - 18:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -222,49 +192,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 16,
-                        offset: 187,
-                    }..TextLocation {
-                        line: 8,
-                        column: 29,
-                        offset: 200,
-                    },
-                ),
+                span: Range(8:16 - 8:29),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 27,
-                        offset: 155,
-                    }..TextLocation {
-                        line: 7,
-                        column: 30,
-                        offset: 158,
-                    },
-                ),
+                span: Range(7:27 - 7:30),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 9,
-                        column: 12,
-                        offset: 213,
-                    }..TextLocation {
-                        line: 9,
-                        column: 30,
-                        offset: 231,
-                    },
-                ),
+                span: Range(9:12 - 9:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -337,49 +277,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 16,
-                        offset: 289,
-                    }..TextLocation {
-                        line: 11,
-                        column: 25,
-                        offset: 298,
-                    },
-                ),
+                span: Range(11:16 - 11:25),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 10,
-                        column: 27,
-                        offset: 252,
-                    }..TextLocation {
-                        line: 10,
-                        column: 32,
-                        offset: 257,
-                    },
-                ),
+                span: Range(10:27 - 10:32),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 12,
-                        column: 12,
-                        offset: 311,
-                    }..TextLocation {
-                        line: 12,
-                        column: 30,
-                        offset: 329,
-                    },
-                ),
+                span: Range(12:12 - 12:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -760,49 +670,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 20,
-                        offset: 598,
-                    }..TextLocation {
-                        line: 24,
-                        column: 33,
-                        offset: 949,
-                    },
-                ),
+                span: Range(19:20 - 24:33),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 15,
-                        column: 31,
-                        offset: 456,
-                    }..TextLocation {
-                        line: 15,
-                        column: 36,
-                        offset: 461,
-                    },
-                ),
+                span: Range(15:31 - 15:36),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 25,
-                        column: 16,
-                        offset: 1008,
-                    }..TextLocation {
-                        line: 25,
-                        column: 34,
-                        offset: 1026,
-                    },
-                ),
+                span: Range(25:16 - 25:34),
                 file: Some(
                     "<internal>",
                 ),
@@ -894,49 +774,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 21,
-                        column: 16,
-                        offset: 470,
-                    }..TextLocation {
-                        line: 21,
-                        column: 28,
-                        offset: 482,
-                    },
-                ),
+                span: Range(21:16 - 21:28),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 17,
-                        column: 27,
-                        offset: 377,
-                    }..TextLocation {
-                        line: 17,
-                        column: 30,
-                        offset: 380,
-                    },
-                ),
+                span: Range(17:27 - 17:30),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 23,
-                        column: 12,
-                        offset: 537,
-                    }..TextLocation {
-                        line: 23,
-                        column: 30,
-                        offset: 555,
-                    },
-                ),
+                span: Range(23:12 - 23:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -1231,49 +1081,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 25,
-                        column: 16,
-                        offset: 668,
-                    }..TextLocation {
-                        line: 29,
-                        column: 34,
-                        offset: 820,
-                    },
-                ),
+                span: Range(25:16 - 29:34),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 21,
-                        column: 21,
-                        offset: 567,
-                    }..TextLocation {
-                        line: 21,
-                        column: 25,
-                        offset: 571,
-                    },
-                ),
+                span: Range(21:21 - 21:25),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 30,
-                        column: 12,
-                        offset: 833,
-                    }..TextLocation {
-                        line: 30,
-                        column: 24,
-                        offset: 845,
-                    },
-                ),
+                span: Range(30:12 - 30:24),
                 file: Some(
                     "<internal>",
                 ),
@@ -1445,49 +1265,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 16,
-                        offset: 530,
-                    }..TextLocation {
-                        line: 19,
-                        column: 40,
-                        offset: 554,
-                    },
-                ),
+                span: Range(19:16 - 19:40),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 15,
-                        column: 27,
-                        offset: 404,
-                    }..TextLocation {
-                        line: 15,
-                        column: 32,
-                        offset: 409,
-                    },
-                ),
+                span: Range(15:27 - 15:32),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 20,
-                        column: 12,
-                        offset: 567,
-                    }..TextLocation {
-                        line: 20,
-                        column: 30,
-                        offset: 585,
-                    },
-                ),
+                span: Range(20:12 - 20:30),
                 file: Some(
                     "<internal>",
                 ),
@@ -1670,49 +1460,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 23,
-                        column: 20,
-                        offset: 627,
-                    }..TextLocation {
-                        line: 25,
-                        column: 32,
-                        offset: 705,
-                    },
-                ),
+                span: Range(23:20 - 25:32),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 19,
-                        column: 25,
-                        offset: 527,
-                    }..TextLocation {
-                        line: 19,
-                        column: 29,
-                        offset: 531,
-                    },
-                ),
+                span: Range(19:25 - 19:29),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 26,
-                        column: 16,
-                        offset: 722,
-                    }..TextLocation {
-                        line: 26,
-                        column: 28,
-                        offset: 734,
-                    },
-                ),
+                span: Range(26:16 - 26:28),
                 file: Some(
                     "<internal>",
                 ),
@@ -1947,49 +1707,19 @@ mod units_tests {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 9,
-                        column: 12,
-                        offset: 245,
-                    }..TextLocation {
-                        line: 9,
-                        column: 20,
-                        offset: 253,
-                    },
-                ),
+                span: Range(9:12 - 9:20),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 15,
-                        offset: 166,
-                    }..TextLocation {
-                        line: 8,
-                        column: 19,
-                        offset: 170,
-                    },
-                ),
+                span: Range(8:15 - 8:19),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 10,
-                        column: 8,
-                        offset: 262,
-                    }..TextLocation {
-                        line: 10,
-                        column: 18,
-                        offset: 272,
-                    },
-                ),
+                span: Range(10:8 - 10:18),
                 file: Some(
                     "<internal>",
                 ),

@@ -17,17 +17,7 @@ expression: members
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 3,
-                    column: 12,
-                    offset: 57,
-                }..TextLocation {
-                    line: 3,
-                    column: 18,
-                    offset: 63,
-                },
-            ),
+            span: Range(3:12 - 3:18),
             file: Some(
                 "<internal>",
             ),
@@ -48,17 +38,7 @@ expression: members
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 6,
-                    column: 12,
-                    offset: 118,
-                }..TextLocation {
-                    line: 6,
-                    column: 19,
-                    offset: 125,
-                },
-            ),
+            span: Range(6:12 - 6:19),
             file: Some(
                 "<internal>",
             ),
@@ -79,17 +59,7 @@ expression: members
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 9,
-                    column: 12,
-                    offset: 180,
-                }..TextLocation {
-                    line: 9,
-                    column: 18,
-                    offset: 186,
-                },
-            ),
+            span: Range(9:12 - 9:18),
             file: Some(
                 "<internal>",
             ),
