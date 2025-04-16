@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -30,9 +31,27 @@ entry:
   ret void
 }
 
+define void @__user_init_myStruct(%myStruct* %0) {
+entry:
+  %self = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %self, align 8
+  %deref = load %myStruct*, %myStruct** %self, align 8
+  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
+  call void @__user_init_myStruct2(%myStruct2* %b)
+  ret void
+}
+
+define void @__user_init_myStruct2(%myStruct2* %0) {
+entry:
+  %self = alloca %myStruct2*, align 8
+  store %myStruct2* %0, %myStruct2** %self, align 8
+  ret void
+}
+
 define void @__init___Test() {
 entry:
   call void @__init_mystruct(%myStruct* @gStruct)
+  call void @__user_init_myStruct(%myStruct* @gStruct)
   ret void
 }
 

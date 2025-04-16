@@ -19,7 +19,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -61,11 +61,28 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -91,7 +108,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -153,11 +170,38 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
+    define void @__user_init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_fb2(%fb2* %0) {
+    entry:
+      %self = alloca %fb2*, align 8
+      store %fb2* %0, %fb2** %self, align 8
+      %deref = load %fb2*, %fb2** %self, align 8
+      %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
+      call void @__user_init_fb(%fb* %__fb)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      call void @__user_init_fb2(%fb2* %myFb)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -232,6 +276,7 @@ fn write_to_parent_variable_in_instance() {
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb)
+      call void @__user_init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
       call void @foo_baz(%foo* %__foo)
       call void @bar(%bar* %fb)
@@ -258,6 +303,23 @@ fn write_to_parent_variable_in_instance() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -310,7 +372,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -407,13 +469,40 @@ fn array_in_parent_generated() {
       ret void
     }
 
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -443,7 +532,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -529,11 +618,38 @@ fn complex_array_access_generated() {
       ret void
     }
 
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
