@@ -861,6 +861,7 @@ pub enum AstStatement {
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
     Super(Option<DerefMarker>),
+    This,
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -931,6 +932,7 @@ impl Debug for AstNode {
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
             AstStatement::Super(Some(_)) => f.debug_struct("Super(derefed)").finish(),
             AstStatement::Super(_) => f.debug_struct("Super").finish(),
+            AstStatement::This => f.debug_struct("This").finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -1236,6 +1238,10 @@ impl AstNode {
         )
     }
 
+    pub fn is_this(&self) -> bool {
+        matches!(self.stmt, AstStatement::This)
+    }
+
     pub fn is_paren(&self) -> bool {
         matches!(self.stmt, AstStatement::ParenExpression { .. })
     }
@@ -1280,6 +1286,9 @@ impl AstNode {
 
     pub fn can_be_assigned_to(&self) -> bool {
         if self.has_super_metadata() {
+            return false;
+        }
+        if self.is_this() {
             return false;
         }
         self.has_direct_access()
@@ -1638,6 +1647,13 @@ impl AstFactory {
         T: Into<SourceLocation>,
     {
         AstNode::new(AstStatement::Super(deref), id, location.into())
+    }
+
+    pub fn create_this_reference<T>(location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::This, id, location.into())
     }
 
     pub fn create_unary_expression(
