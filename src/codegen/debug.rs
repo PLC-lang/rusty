@@ -73,6 +73,7 @@ pub trait Debug<'ink> {
     fn register_function<'idx>(
         &mut self,
         index: &Index,
+        type_index: &LlvmTypedIndex<'ink>,
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
@@ -421,13 +422,10 @@ impl<'ink> DebugBuilder<'ink> {
             .collect::<Result<Vec<Range<i64>>, _>>()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?;
         let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
-        let array_type = types_index.get_associated_type(name).map(|it| it.into_array_type())?;
-        let array_type = self.debug_info.create_array_type(
-            inner_type.into(),
-            size,
-            self.target_data.get_preferred_alignment(&array_type),
-            subscript.as_slice(),
-        );
+        let llvm_type = types_index.get_associated_type(name)?;
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
+        let array_type =
+            self.debug_info.create_array_type(inner_type.into(), size, align_bits, subscript.as_slice());
 
         self.register_concrete_type(name, DebugType::Composite(array_type));
         Ok(())
@@ -443,11 +441,13 @@ impl<'ink> DebugBuilder<'ink> {
     ) -> Result<(), Diagnostic> {
         let inner_type = index.get_type(inner_type)?;
         let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
+        let llvm_type = types_index.get_associated_type(name)?;
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
         let pointer_type = self.debug_info.create_pointer_type(
             name,
             inner_type.into(),
             size,
-            0, //No set alignment
+            align_bits,
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         self.register_concrete_type(name, DebugType::Derived(pointer_type));
@@ -489,11 +489,13 @@ impl<'ink> DebugBuilder<'ink> {
             StringEncoding::Utf16 => index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
         let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
+        let llvm_type = types_index.get_associated_type(name)?;
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
         //Register an array
         let array_type = self.debug_info.create_array_type(
             inner_type.into(),
             size,
-            0, //No set alignment
+            align_bits,
             #[allow(clippy::single_range_in_vec_init)]
             &[(0..length)],
         );
@@ -517,13 +519,15 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
 
+        let llvm_type = types_index.get_associated_type(name)?;
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
         let typedef = self.debug_info.create_typedef(
             inner_type.into(),
             name,
             file,
             location.get_line_plus_one() as u32,
             file.as_debug_info_scope(),
-            0, //No set alignment
+            align_bits,
         );
         self.register_concrete_type(name, DebugType::Derived(typedef));
 
@@ -599,6 +603,7 @@ impl<'ink> DebugBuilder<'ink> {
         pou: &PouIndexEntry,
         func: &FunctionContext<'ink, '_>,
         index: &Index,
+        types_index: &LlvmTypedIndex<'ink>,
     ) {
         let mut param_offset = 0;
         //Register the return and local variables for debugging
@@ -607,7 +612,11 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            self.register_local_variable(variable, 0, func);
+            let align_bits = types_index
+                .get_associated_type(&variable.data_type_name)
+                .map(|it| self.target_data.get_preferred_alignment(&it))
+                .unwrap_or(0) * 8;
+            self.register_local_variable(variable, align_bits, func);
         }
 
         let implementation = pou.find_implementation(index).expect("A POU will have an impl at this stage");
@@ -664,6 +673,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     fn register_function<'idx>(
         &mut self,
         index: &Index,
+        types_index: &LlvmTypedIndex<'ink>,
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
@@ -687,7 +697,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let subprogram = self.create_function(scope, pou, return_type, parameter_types, implementation_start);
         func.function.set_subprogram(subprogram);
         //Create function parameters
-        self.create_function_variables(pou, func, index);
+        self.create_function_variables(pou, func, index, types_index);
     }
 
     fn register_debug_type<'idx>(
@@ -772,7 +782,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 false,
                 None,
                 None,
-                global_variable.get_alignment(),
+                0, // Global variable alignment does not need to be forced/set. See https://llvm.org/docs/LangRef.html#global-variables
             );
             let gv_metadata = debug_variable.as_metadata_value(self.context);
 
@@ -946,6 +956,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
     fn register_function<'idx>(
         &mut self,
         index: &Index,
+        types_index: &'idx LlvmTypedIndex<'ink>,
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
@@ -956,6 +967,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
             Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.register_function(
                 index,
+                types_index,
                 func,
                 return_type,
                 parent_function,

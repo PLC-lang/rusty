@@ -315,6 +315,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         };
         debug.register_function(
             self.index,
+            &self.llvm_index,
             &function_context,
             return_type,
             parent_function,
