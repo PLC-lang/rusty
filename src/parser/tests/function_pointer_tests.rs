@@ -17,7 +17,7 @@ VAR_GLOBAL
 END_VAR
 ";
     let result = parse(src).0;
-    assert_debug_snapshot!(result, @r###"
+    assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [
             VariableBlock {
@@ -75,43 +75,13 @@ END_VAR
                 pou_type: Function,
                 statements: [],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 5,
-                            column: 7,
-                            offset: 64,
-                        },
-                    ),
+                    span: Range(6:0 - 5:7),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 9,
-                            offset: 21,
-                        }..TextLocation {
-                            line: 2,
-                            column: 13,
-                            offset: 25,
-                        },
-                    ),
+                    span: Range(2:9 - 2:13),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 6,
-                            column: 12,
-                            offset: 77,
-                        },
-                    ),
+                    span: Range(6:0 - 6:12),
                 },
                 overriding: false,
                 generic: false,
@@ -124,7 +94,7 @@ END_VAR
             "test.st",
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -146,7 +116,7 @@ END_VAR
 END_FUNCTION
 ";
     let result = parse(src).0;
-    assert_debug_snapshot!(result, @r###"
+    assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [],
         var_config: [],
@@ -238,43 +208,13 @@ END_FUNCTION
                 pou_type: Function,
                 statements: [],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 5,
-                            column: 7,
-                            offset: 64,
-                        },
-                    ),
+                    span: Range(6:0 - 5:7),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 9,
-                            offset: 21,
-                        }..TextLocation {
-                            line: 2,
-                            column: 13,
-                            offset: 25,
-                        },
-                    ),
+                    span: Range(2:9 - 2:13),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 6,
-                            column: 12,
-                            offset: 77,
-                        },
-                    ),
+                    span: Range(6:0 - 6:12),
                 },
                 overriding: false,
                 generic: false,
@@ -338,43 +278,13 @@ END_FUNCTION
                     },
                 ],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 12,
-                            column: 4,
-                            offset: 150,
-                        }..TextLocation {
-                            line: 13,
-                            column: 9,
-                            offset: 175,
-                        },
-                    ),
+                    span: Range(12:4 - 13:9),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 8,
-                            column: 9,
-                            offset: 88,
-                        }..TextLocation {
-                            line: 8,
-                            column: 13,
-                            offset: 92,
-                        },
-                    ),
+                    span: Range(8:9 - 8:13),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 0,
-                            offset: 176,
-                        }..TextLocation {
-                            line: 14,
-                            column: 12,
-                            offset: 188,
-                        },
-                    ),
+                    span: Range(14:0 - 14:12),
                 },
                 overriding: false,
                 generic: false,
@@ -387,7 +297,7 @@ END_FUNCTION
             "test.st",
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -409,7 +319,7 @@ END_VAR
 END_FUNCTION
 ";
     let result = parse(src).0;
-    assert_debug_snapshot!(result, @r###"
+    assert_debug_snapshot!(result, @r#"
     CompilationUnit {
         global_vars: [],
         var_config: [],
@@ -501,43 +411,13 @@ END_FUNCTION
                 pou_type: Function,
                 statements: [],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 5,
-                            column: 7,
-                            offset: 64,
-                        },
-                    ),
+                    span: Range(6:0 - 5:7),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 9,
-                            offset: 21,
-                        }..TextLocation {
-                            line: 2,
-                            column: 13,
-                            offset: 25,
-                        },
-                    ),
+                    span: Range(2:9 - 2:13),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 6,
-                            column: 0,
-                            offset: 65,
-                        }..TextLocation {
-                            line: 6,
-                            column: 12,
-                            offset: 77,
-                        },
-                    ),
+                    span: Range(6:0 - 6:12),
                 },
                 overriding: false,
                 generic: false,
@@ -610,43 +490,13 @@ END_FUNCTION
                     },
                 ],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 12,
-                            column: 4,
-                            offset: 152,
-                        }..TextLocation {
-                            line: 13,
-                            column: 15,
-                            offset: 183,
-                        },
-                    ),
+                    span: Range(12:4 - 13:15),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 8,
-                            column: 9,
-                            offset: 88,
-                        }..TextLocation {
-                            line: 8,
-                            column: 13,
-                            offset: 92,
-                        },
-                    ),
+                    span: Range(8:9 - 8:13),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 14,
-                            column: 0,
-                            offset: 184,
-                        }..TextLocation {
-                            line: 14,
-                            column: 12,
-                            offset: 196,
-                        },
-                    ),
+                    span: Range(14:0 - 14:12),
                 },
                 overriding: false,
                 generic: false,
@@ -659,5 +509,5 @@ END_FUNCTION
             "test.st",
         ),
     }
-    "###);
+    "#);
 }
