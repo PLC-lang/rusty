@@ -834,8 +834,8 @@ pub trait AnnotationMap {
             StatementAnnotation::Program { qualified_name }
             | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Label { .. }
+            StatementAnnotation::Function { qualified_name, .. } => Some(qualified_name),
+            StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::Property { .. }
@@ -1926,12 +1926,21 @@ impl<'i> TypeAnnotator<'i> {
             (ReferenceAccess::Cast(target), Some(qualifier)) => {
                 // STRING#"abc"
                 //  base
-                if let Some(base_type) = base.and_then(|base| self.annotation_map.get_type(base, self.index))
+                if let Some(base_type) =
+                    base.and_then(|base| self.annotation_map.get_type(base, self.index)).cloned()
                 {
+                    if base_type.is_fn() {
+                        let inner_type = base_type.get_name();
+
+                        self.annotate(target.as_ref(), StatementAnnotation::value(inner_type));
+                        self.annotate(stmt, StatementAnnotation::value(inner_type));
+                        return;
+                    }
+
                     // if base is an enum, we need to look for members of this specific enum
                     let optional_enum_qualifier = Some(qualifier.as_str()).filter(|_| base_type.is_enum());
                     if ctx.is_in_a_body() {
-                        accept_cast_string_literal(&mut self.string_literals, base_type, target);
+                        accept_cast_string_literal(&mut self.string_literals, &base_type, target);
                     }
 
                     if let Some(annotation) = self.resolve_reference_expression(

@@ -192,6 +192,13 @@ impl DataType {
         self.get_type_information().is_string()
     }
 
+    pub fn is_fn(&self) -> bool {
+        matches!(
+            self.get_type_information(),
+            DataTypeInformation::Struct { source: StructSource::Pou(PouType::Function), .. }
+        )
+    }
+
     pub fn get_nature(&self) -> TypeNature {
         self.nature
     }

@@ -20,7 +20,7 @@ VAR
     f : REF_TO prot := REF(prot);
 END_VAR
     f := REF(prot);
-     vvvv prot
+    //  vvvv prot
     f^(1);
 END_FUNCTION
     ",
@@ -31,19 +31,38 @@ END_FUNCTION
     let &AstStatement::Assignment(assignment) = &statements[0].get_stmt() else {
         panic!("Expected assignment statement");
     };
-    assert_debug_snapshot!(annotations.get(&assignment.right), @r###""###);
-    assert_debug_snapshot!(annotations.get_hint(&assignment.right), @r###""###);
+    assert_debug_snapshot!(annotations.get(&assignment.right), @r###"
+    Some(
+        Value {
+            resulting_type: "__POINTER_TO_prot",
+        },
+    )
+    "###);
+    assert_debug_snapshot!(annotations.get_hint(&assignment.right), @r###"
+    Some(
+        Value {
+            resulting_type: "__test_f",
+        },
+    )
+    "###);
     let &AstStatement::CallStatement(call) = &statements[1].get_stmt() else {
         panic!("Expected call statement");
     };
-    assert_debug_snapshot!(annotations.get(&call.operator), @r###""###);
+    assert_debug_snapshot!(annotations.get(&call.operator), @r###"
+    Some(
+        Value {
+            resulting_type: "prot",
+        },
+    )
+    "###);
 }
 
 #[test]
 fn cast_void_to_function_resolves_to_prototype() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
-        r"{external}
+        r"
+        {external}
 FUNCTION prot : DINT
 VAR_INPUT
     a : DINT;
@@ -54,10 +73,10 @@ FUNCTION test : DINT
 VAR
     f : REF_TO __VOID := REF(prot);
 END_VAR
-         vvvv type_hit: ref to void
+        //  vvvv type_hit: ref to void
     f := REF(prot);
-         vvvv prot
-    prot#f^(1);
+        //  vvvv prot
+    prot#(f^)(1);
 END_FUNCTION
     ",
         id_provider.clone(),
@@ -67,10 +86,28 @@ END_FUNCTION
     let &AstStatement::Assignment(assignment) = &statements[0].get_stmt() else {
         panic!("Expected assignment statement");
     };
-    assert_debug_snapshot!(annotations.get(&assignment.right), @r###""###);
-    assert_debug_snapshot!(annotations.get_hint(&assignment.right), @r###""###);
+    assert_debug_snapshot!(annotations.get(&assignment.right), @r###"
+    Some(
+        Value {
+            resulting_type: "__POINTER_TO_prot",
+        },
+    )
+    "###);
+    assert_debug_snapshot!(annotations.get_hint(&assignment.right), @r###"
+    Some(
+        Value {
+            resulting_type: "__test_f",
+        },
+    )
+    "###);
     let &AstStatement::CallStatement(call) = &statements[1].get_stmt() else {
         panic!("Expected call statement");
     };
-    assert_debug_snapshot!(annotations.get(&call.operator), @r###""###);
+    assert_debug_snapshot!(annotations.get(&call.operator), @r###"
+    Some(
+        Value {
+            resulting_type: "prot",
+        },
+    )
+    "###);
 }
