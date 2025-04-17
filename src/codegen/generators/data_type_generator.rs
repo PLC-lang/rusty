@@ -12,12 +12,13 @@ use crate::{
     typesystem::DataType,
 };
 
+use inkwell::types::{AnyType, AnyTypeEnum, BasicMetadataTypeEnum};
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::{AstNode, AstStatement};
+use plc_ast::ast::{AstNode, AstStatement, PouType};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -57,6 +58,7 @@ pub fn generate_data_types<'ink>(
 ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
     let mut types = vec![];
     let mut pou_types = vec![];
+    let mut function_types = vec![];
 
     // Always add the builtin types
     let builtins = typesystem::get_builtin_types();
@@ -67,6 +69,10 @@ pub fn generate_data_types<'ink>(
     for dep in dependencies {
         if let Some(pou) = dep.get_pou(index) {
             if !pou.is_generic() && !pou.is_action() {
+                if pou.is_function() {
+                    function_types.push((dep.get_name(), index.find_type(pou.get_name())));
+                }
+
                 pou_types.push((dep.get_name(), pou.get_instance_struct_type_or_void(index)));
             }
         } else if let Some(datatype) = dep.get_type(index) {
@@ -92,6 +98,12 @@ pub fn generate_data_types<'ink>(
             generator.types_index.associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
+
+    // // We want to create pointers of form `(<return type>)(<param1>, <param2>, ...)*` for functions
+    // for (name, kind) in function_types {
+    //     let gen_type = generator.create_function_type(name, kind.unwrap_or(index.get_void_type()))?;
+    //     generator.types_index.associate_type(name, gen_type)?;
+    // }
 
     // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in &types {
@@ -172,6 +184,39 @@ pub fn generate_data_types<'ink>(
 }
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
+    fn create_function_type(&self, name: &str, func: &DataType) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+        dbg!(&name, &func);
+
+        let return_type_dt = self.index.find_return_type(name).unwrap_or(self.index.get_void_type());
+        dbg!(&return_type_dt);
+
+        let return_type = self
+            .types_index
+            .find_associated_type(&return_type_dt.name)
+            .map(|opt| opt.as_any_type_enum())
+            .unwrap_or(self.llvm.context.void_type().into());
+
+        dbg!(&return_type);
+
+        let parameter_types = self
+            .index
+            .get_declared_parameters(name)
+            .iter()
+            .flat_map(|param| self.types_index.get_associated_type(&param.data_type_name))
+            .map(|opt| opt.into())
+            .collect::<Vec<BasicMetadataTypeEnum>>();
+
+        dbg!(&parameter_types);
+
+        let fn_type = match dbg!(return_type) {
+            AnyTypeEnum::IntType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::VoidType(value) => value.fn_type(parameter_types.as_slice(), false),
+            _ => unimplemented!(),
+        };
+
+        dbg!(Ok(fn_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum()))
+    }
+
     /// generates the members of an opaque struct and associates its initial values
     fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
         let information = data_type.get_type_information();
@@ -202,6 +247,14 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
+                StructSource::Pou(PouType::Function) => {
+                    // XXX: Hmmm, isn't this error prone? We'll create function types on the fly, which
+                    //      depend on other types that may have not yet been indexed and as a result will
+                    //      return a "Unknown type" error?
+                    let gen_type = self.create_function_type(name, data_type)?;
+                    self.types_index.associate_type(name, gen_type)?;
+                    self.types_index.get_associated_type(name)
+                }
                 StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
                 StructSource::OriginalDeclaration => {
                     self.types_index.get_associated_type(data_type.get_name())

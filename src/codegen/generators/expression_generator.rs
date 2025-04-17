@@ -1416,6 +1416,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::unresolved_reference(name, offset)),
                     Ok,
                 ),
+
+            // Something like `REF(myFunction)`
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                if let Some(function_value) = self.llvm_index.find_associated_implementation(qualified_name) {
+                    return Ok(function_value.as_global_value().as_pointer_value());
+                }
+
+                Err(Diagnostic::unresolved_reference(qualified_name, offset))
+            }
             _ => Err(Diagnostic::unresolved_reference(name, offset)),
         }
     }
