@@ -232,8 +232,7 @@ fn shadowing_is_working() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-    todo!();
+    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
 }
 
 #[test]
@@ -262,12 +261,12 @@ fn nested_fbs_and_this_passing() {
             VAR_INPUT
                 ref : REF_TO OuterFB;
             END_VAR
-                ref.doSomething();
+                ref^.doSomething();
             END_METHOD
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty(), "Expected no diagnostics, but found: {diagnostics:?}");
 }
 
 #[test]

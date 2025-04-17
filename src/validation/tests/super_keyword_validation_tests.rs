@@ -224,6 +224,7 @@ fn super_keyword_is_not_assignable() {
         END_VAR
             SUPER^ := super_inst;
             SUPER := super_ptr;
+            super^ := 5;
 
             (SUPER)^ := super_inst; // FIXME: Immediate deref of `REF` result is not validated and panics in codegen. tracked in #1463
             (SUPER) := super_ptr;
@@ -353,7 +354,7 @@ fn derefed_super_assigned_to_ptr_is_an_error() {
         // If this changes to LINT (i.e. 64-bit), the error goes away.
         // tracked in #1441
             VAR
-                x: DINT; 
+                x: DINT;
             END_VAR
         END_FUNCTION_BLOCK
 
@@ -415,7 +416,7 @@ fn super_accessing_private_methods() {
             END_VAR
 
             // I don't think the `PRIVATE` keyword does anything at this time,
-            // but it can't hurt to have this covered anyway 
+            // but it can't hurt to have this covered anyway
             METHOD PRIVATE do_something : INT
                 do_something := x * 2;
             END_METHOD
@@ -450,7 +451,7 @@ fn super_with_typed_methods() {
                 process[0] := 100;
                 process[1] := 200;
             END_METHOD
-            
+
             METHOD test : INT
                 // Access parent's process method which returns an array
                 test := SUPER^.process()[0] + SUPER^.process()[1];
@@ -471,7 +472,7 @@ fn super_with_mixed_access_patterns() {
                 arr : ARRAY[0..5] OF INT := [1,2,3,4,5,6];
                 ptr : REF_TO INT;
             END_VAR
-            
+
             METHOD get_value : INT
                 get_value := 42;
             END_METHOD
@@ -481,11 +482,11 @@ fn super_with_mixed_access_patterns() {
             VAR
                 local_idx : INT := 2;
             END_VAR
-            
+
             METHOD test
                 // Complex expression with SUPER^, array access, and method call
                 local_idx := SUPER^.arr[SUPER^.get_value() MOD 6];
-                
+
                 // Using SUPER^ with pointer operations
                 SUPER^.ptr := REF(SUPER^.arr[0]);
             END_METHOD
@@ -522,7 +523,7 @@ fn super_in_multi_level_inheritance() {
             VAR
                 g_val : INT := 10;
             END_VAR
-            
+
             METHOD gp_method : INT
                 gp_method := g_val;
             END_METHOD
@@ -532,11 +533,11 @@ fn super_in_multi_level_inheritance() {
             VAR
                 p_val : INT := 20;
             END_VAR
-            
+
             METHOD p_method : INT
                 p_method := p_val + SUPER^.gp_method();
             END_METHOD
-            
+
             METHOD gp_method : INT  // Override grandparent's method
                 gp_method := p_val * 2;
             END_METHOD
@@ -546,12 +547,12 @@ fn super_in_multi_level_inheritance() {
             VAR
                 c_val : INT := 30;
             END_VAR
-            
+
             METHOD test : INT
                 // Access parent's implementation which itself uses SUPER^
                 test := SUPER^.p_method();
             END_METHOD
-            
+
             METHOD p_method : INT  // Override parent's method
                 p_method := c_val * 3;
             END_METHOD
@@ -571,7 +572,7 @@ fn super_with_property_access() {
             VAR
                 _prop_val : INT := 10;
             END_VAR
-            
+
             PROPERTY prop : INT
                 GET
                     prop := _prop_val;
@@ -586,7 +587,7 @@ fn super_with_property_access() {
             VAR
                 local : INT;
             END_VAR
-            
+
             PROPERTY prop : INT // Override property
                 GET
                     prop := _prop_val * 2;
@@ -595,11 +596,11 @@ fn super_with_property_access() {
                     _prop_val := prop / 2;
                 END_SET
             END_PROPERTY
-            
+
             METHOD test
                 // Get using parent's property getter
                 local := SUPER^.prop;
-                
+
                 // Set using parent's property setter
                 SUPER^.prop := 42;
             END_METHOD
@@ -618,7 +619,7 @@ fn super_in_variable_initialization() {
             VAR
                 value : INT := 10;
             END_VAR
-            
+
             METHOD get_init_value : INT
                 get_init_value := 42;
             END_METHOD
@@ -719,12 +720,12 @@ fn super_with_interface_implementations() {
             VAR
                 count : INT := 0;
             END_VAR
-            
+
             METHOD increment : INT
                 count := count + 1;
                 increment := count;
             END_METHOD
-            
+
             METHOD get_count : INT
                 get_count := count;
             END_METHOD
@@ -735,7 +736,7 @@ fn super_with_interface_implementations() {
                 count := count + 10;
                 increment := count;
             END_METHOD
-            
+
             METHOD test : INT
                 // Use parent's interface implementation
                 SUPER^.increment();
@@ -776,7 +777,7 @@ fn super_in_nested_conditionals() {
                 threshold : INT := 50;
                 value : INT := 10;
             END_VAR
-            
+
             METHOD check_value : BOOL
                 check_value := value > threshold;
             END_METHOD
@@ -792,7 +793,7 @@ fn super_in_nested_conditionals() {
                         SUPER^.value := SUPER^.value - 1;
                     END_IF;
                 END_IF;
-                
+
                 // In CASE statement
                 CASE SUPER^.value OF
                     10: SUPER^.threshold := 40;
@@ -873,7 +874,7 @@ fn super_in_fb_instance_array() {
             VAR
                 children : ARRAY[0..2] OF child;
             END_VAR
-            
+
             METHOD test
                 // Should fail - SUPER is only available inside the POU that extends another
                 children[0].SUPER^.value := 20;
@@ -922,11 +923,11 @@ fn invalid_super_dereferencing_patterns() {
 
         FUNCTION_BLOCK child EXTENDS parent
             // Multiple dereferencing of SUPER (should be invalid)
-            SUPER^^.x := 20; 
-            
+            SUPER^^.x := 20;
+
             // Missing dot between derefs
             SUPER^^ := 30;
-            
+
             // Invalid chain with wrong syntax
             SUPER^.SUPER.x := 40;
         END_FUNCTION_BLOCK
@@ -937,13 +938,13 @@ fn invalid_super_dereferencing_patterns() {
     error[E068]: Dereferencing requires a pointer-value.
        ┌─ <internal>:10:13
        │
-    10 │             SUPER^^.x := 20; 
+    10 │             SUPER^^.x := 20;
        │             ^^^^^^^ Dereferencing requires a pointer-value.
 
     warning[E049]: Illegal access to private member parent.x
        ┌─ <internal>:10:21
        │
-    10 │             SUPER^^.x := 20; 
+    10 │             SUPER^^.x := 20;
        │                     ^ Illegal access to private member parent.x
 
     error[E068]: Dereferencing requires a pointer-value.
@@ -986,11 +987,11 @@ fn super_in_paren_expressions() {
             VAR
                 result: INT;
             END_VAR
-            
+
             METHOD test
                 // Using SUPER in parentheses
                 result := (SUPER^.x + 5) * 2;
-                
+
                 // Using SUPER in a nested expression
                 result := (SUPER^.x + (SUPER^.x * 2)) / 3;
             END_METHOD
@@ -1033,16 +1034,16 @@ fn invalid_super_dereferencing_patterns_parenthesized() {
             VAR
                 result: INT;
             END_VAR
-            
+
             METHOD test
                 // Multiple dereferencing of SUPER
                 (SUPER^)^.x := 20; // FIXME: this is currently a bug, not just an issue with super. https://github.com/PLC-lang/rusty/issues/1448
-                
+
                 (SUPER^)^ := 30;
 
                 // // Valid deref in parentheses
                 // result := (SUPER)^.x + 5;
-                
+
                 // // Invalid chain with wrong syntax
                 // (SUPER^).SUPER.x := 40;
             END_METHOD
@@ -1088,13 +1089,13 @@ fn incorrect_super_usage_with_ref_to_parameters() {
                 expect_ref_to_parent(SUPER^); // Should be SUPER
             END_METHOD
         END_FUNCTION_BLOCK
-        
+
         FUNCTION expect_parent
         VAR_INPUT
             p: parent;
         END_VAR
         END_FUNCTION
-        
+
         FUNCTION expect_ref_to_parent
         VAR_INPUT
             p: REF_TO parent;
@@ -1183,7 +1184,7 @@ fn super_with_invalid_operations() {
                 p1: REF_TO parent;
                 p2: parent;
             END_VAR
-            
+
             // Invalid operations on SUPER
             p1 := SUPER + SUPER;    // Can't add references
             result := SUPER = SUPER; // Ref comparison (might be allowed but semantically wrong)
@@ -1239,7 +1240,7 @@ fn super_dereferencing_with_method_calls() {
             METHOD test
                 // These should be valid:
                 x := SUPER^.get_value();
-                
+
                 // These should be invalid:
                 x := SUPER.get_value();    // Trying to call method on pointer
                 p2 := SUPER^.get_value;    // Method call missing ()
@@ -1272,10 +1273,10 @@ fn super_without_deref_accessing_members() {
         FUNCTION_BLOCK child EXTENDS parent
             // Trying to access member without dereferencing SUPER
             SUPER.x := 20; // Should be SUPER^.x
-            
+
             // Trying to access pointer member without dereferencing SUPER
             SUPER.ptr^ := 30; // Should be SUPER^.ptr^
-            
+
             // Double dereferencing
             SUPER^.ptr^^ := 40; // Error - can't double-deref
         END_FUNCTION_BLOCK
@@ -1317,7 +1318,7 @@ fn super_with_property_access_errors() {
             VAR
                 _value: INT;
             END_VAR
-            
+
             PROPERTY prop : INT
                 GET
                     prop := _value;
@@ -1336,7 +1337,7 @@ fn super_with_property_access_errors() {
             // Invalid property access
             SUPER.prop := 10;    // Should be SUPER^.prop
             x := SUPER.prop;     // Should be SUPER^.prop
-            
+
             // Invalid function-style property access
             SUPER^.prop();
         END_FUNCTION_BLOCK
