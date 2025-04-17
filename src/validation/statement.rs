@@ -199,6 +199,7 @@ fn validate_reference_expression<T: AnnotationMap>(
                             .with_location(m.get_location())
                             .with_error_code("E120"),
                     );
+                    return;
                 }
                 if m.is_super() || m.has_super_metadata() {
                     // super cannot be accessed as a member
