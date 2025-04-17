@@ -1,0 +1,96 @@
+---
+source: src/codegen/tests/debug_tests/expression_debugging.rs
+assertion_line: 372
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+%nonZeroA = type { i8 }
+%nonZeroB = type { i8 }
+%zeroB = type {}
+%zeroA = type {}
+
+@__nonZeroA__init = unnamed_addr constant %nonZeroA zeroinitializer, !dbg !0
+@nonZeroB_instance = global %nonZeroB zeroinitializer, !dbg !7
+@zeroB_instance = global %zeroB zeroinitializer, !dbg !12
+@__zeroA__init = unnamed_addr constant %zeroA zeroinitializer, !dbg !16
+
+define void @nonZeroA(%nonZeroA* %0) !dbg !24 {
+entry:
+  call void @llvm.dbg.declare(metadata %nonZeroA* %0, metadata !27, metadata !DIExpression()), !dbg !28
+  %idx = getelementptr inbounds %nonZeroA, %nonZeroA* %0, i32 0, i32 0
+  ret void, !dbg !28
+}
+
+define void @nonZeroB(%nonZeroB* %0) !dbg !29 {
+entry:
+  call void @llvm.dbg.declare(metadata %nonZeroB* %0, metadata !32, metadata !DIExpression()), !dbg !33
+  %idx = getelementptr inbounds %nonZeroB, %nonZeroB* %0, i32 0, i32 0
+  ret void, !dbg !33
+}
+
+define void @zeroB(%zeroB* %0) !dbg !34 {
+entry:
+  call void @llvm.dbg.declare(metadata %zeroB* %0, metadata !37, metadata !DIExpression()), !dbg !38
+  ret void, !dbg !38
+}
+
+define void @zeroA(%zeroA* %0) !dbg !39 {
+entry:
+  call void @llvm.dbg.declare(metadata %zeroA* %0, metadata !42, metadata !DIExpression()), !dbg !43
+  ret void, !dbg !43
+}
+
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+!llvm.module.flags = !{!19, !20}
+!llvm.dbg.cu = !{!21}
+
+!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+!1 = distinct !DIGlobalVariable(name: "__nonZeroA__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+!2 = !DIFile(filename: "<internal>", directory: "")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "nonZeroA", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "nonZeroA")
+!4 = !{!5}
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "idx", scope: !2, file: !2, line: 4, baseType: !6, size: 8, align: 8, flags: DIFlagPublic)
+!6 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+!7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
+!8 = distinct !DIGlobalVariable(name: "nonZeroB", scope: !2, file: !2, line: 8, type: !9, isLocal: false, isDefinition: true)
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "nonZeroB", scope: !2, file: !2, line: 8, size: 64, align: 64, flags: DIFlagPublic, elements: !10, identifier: "nonZeroB")
+!10 = !{!11}
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "idx", scope: !2, file: !2, line: 10, baseType: !6, size: 8, align: 8, flags: DIFlagPublic)
+!12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
+!13 = distinct !DIGlobalVariable(name: "zeroB", scope: !2, file: !2, line: 14, type: !14, isLocal: false, isDefinition: true)
+!14 = !DICompositeType(tag: DW_TAG_structure_type, name: "zeroB", scope: !2, file: !2, line: 14, align: 64, flags: DIFlagPublic, elements: !15, identifier: "zeroB")
+!15 = !{}
+!16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
+!17 = distinct !DIGlobalVariable(name: "__zeroA__init", scope: !2, file: !2, line: 15, type: !18, isLocal: false, isDefinition: true)
+!18 = !DICompositeType(tag: DW_TAG_structure_type, name: "zeroA", scope: !2, file: !2, line: 15, align: 64, flags: DIFlagPublic, elements: !15, identifier: "zeroA")
+!19 = !{i32 2, !"Dwarf Version", i32 5}
+!20 = !{i32 2, !"Debug Info Version", i32 3}
+!21 = distinct !DICompileUnit(language: DW_LANG_C, file: !22, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !23, splitDebugInlining: false)
+!22 = !DIFile(filename: "<internal>", directory: "src")
+!23 = !{!0, !7, !12, !16}
+!24 = distinct !DISubprogram(name: "nonZeroA", linkageName: "nonZeroA", scope: !2, file: !2, line: 2, type: !25, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !21, retainedNodes: !15)
+!25 = !DISubroutineType(flags: DIFlagPublic, types: !26)
+!26 = !{null, !3}
+!27 = !DILocalVariable(name: "nonZeroA", scope: !24, file: !2, line: 6, type: !3)
+!28 = !DILocation(line: 6, column: 8, scope: !24)
+!29 = distinct !DISubprogram(name: "nonZeroB", linkageName: "nonZeroB", scope: !2, file: !2, line: 8, type: !30, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !21, retainedNodes: !15)
+!30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
+!31 = !{null, !9}
+!32 = !DILocalVariable(name: "nonZeroB", scope: !29, file: !2, line: 12, type: !9)
+!33 = !DILocation(line: 12, column: 8, scope: !29)
+!34 = distinct !DISubprogram(name: "zeroB", linkageName: "zeroB", scope: !2, file: !2, line: 14, type: !35, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !21, retainedNodes: !15)
+!35 = !DISubroutineType(flags: DIFlagPublic, types: !36)
+!36 = !{null, !14}
+!37 = !DILocalVariable(name: "zeroB", scope: !34, file: !2, line: 14, type: !14)
+!38 = !DILocation(line: 14, column: 42, scope: !34)
+!39 = distinct !DISubprogram(name: "zeroA", linkageName: "zeroA", scope: !2, file: !2, line: 15, type: !40, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !21, retainedNodes: !15)
+!40 = !DISubroutineType(flags: DIFlagPublic, types: !41)
+!41 = !{null, !18}
+!42 = !DILocalVariable(name: "zeroA", scope: !39, file: !2, line: 15, type: !18)
+!43 = !DILocation(line: 15, column: 42, scope: !39)
