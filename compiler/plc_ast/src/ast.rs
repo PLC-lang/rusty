@@ -1288,6 +1288,9 @@ impl AstNode {
         if self.has_super_metadata() {
             return false;
         }
+        if self.is_this() {
+            return false;
+        }
         self.has_direct_access()
             || self.is_flat_reference()
             || self.is_reference()

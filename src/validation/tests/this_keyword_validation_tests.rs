@@ -34,17 +34,17 @@ fn cant_chain_this() {
         x : LINT := 10;
         y : LINT := 20;
     END_VAR
-        this^.x := this^.this^.y;
-        this^.this^.x := this^.y;
+        this^.x := this^.this^.this^.y;
+        this^.this^.this^.x := this^.y;
     END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-    panic!("Chaining this is not allowed");
+    dbg!(&diagnostics);
+    assert_snapshot!(diagnostics, @r"");
 }
 
 #[test]
-fn this_in_method_call_chain() {
+fn this_in_method_call_chain_is_allowed() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -63,11 +63,10 @@ fn this_in_method_call_chain() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    todo!();
 }
 
 #[test]
-fn this_not_allowed_in_program() {
+fn this_in_program_is_not_allowed_() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         PROGRAM Main
@@ -78,9 +77,13 @@ fn this_not_allowed_in_program() {
         END_PROGRAM
     "#,
     );
-    assert_snapshot!(diagnostics, @r###"
-"###);
-    todo!();
+    assert_snapshot!(diagnostics, @r"
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+      ┌─ <internal>:6:18
+      │
+    6 │             x := THIS^.x;
+      │                  ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+    ");
 }
 
 #[test]
@@ -95,26 +98,63 @@ fn this_in_function_is_not_allowed() {
         END_FUNCTION
     "#,
     );
-    assert_snapshot!(diagnostics, @r###"
-"###);
-    todo!();
+    assert_snapshot!(diagnostics, @r"
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+      ┌─ <internal>:6:25
+      │
+    6 │         SomeFunction := THIS^.SomeValue;
+      │                         ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+    ");
 }
 
 #[test]
-fn cant_assign_to_this() {
+fn this_cannot_be_assigned_to() {
     let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION_BLOCK parent
     VAR
         x : LINT := 10;
+        p : REF_TO parent;
     END_VAR
         this^ := 5;
         this := REF(x);
+        this := REF(parent);
+        this := ADR(parent); // this is not allowed
+        this^:= parent;
     END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-    todo!();
+    assert_snapshot!(diagnostics, @r"
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'parent'
+      ┌─ <internal>:7:9
+      │
+    7 │         this^ := 5;
+      │         ^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'parent'
+
+    error[E050]: Expression this is not assignable.
+      ┌─ <internal>:8:9
+      │
+    8 │         this := REF(x);
+      │         ^^^^ Expression this is not assignable.
+
+    warning[E090]: Pointers parent and LINT have different types
+      ┌─ <internal>:8:9
+      │
+    8 │         this := REF(x);
+      │         ^^^^^^^^^^^^^^ Pointers parent and LINT have different types
+
+    error[E050]: Expression this is not assignable.
+      ┌─ <internal>:9:9
+      │
+    9 │         this := REF(parent);
+      │         ^^^^ Expression this is not assignable.
+
+    error[E050]: Expression this is not assignable.
+       ┌─ <internal>:10:9
+       │
+    10 │         this := ADR(parent); // this is not allowed
+       │         ^^^^ Expression this is not assignable.
+    ");
 }
 
 #[test]
@@ -127,17 +167,17 @@ fn basic_use() {
         END_VAR
 
         METHOD GetVal : INT
-        GetVal := THIS.val;
+            GetVal := THIS^.val;
         END_METHOD
+        val := this^.val;
         END_FUNCTION_BLOCK
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    todo!();
 }
 
 #[test]
-fn pass_this_to_method() {
+fn pass_this_to_method_is_ok() {
     // pass `this` pointer of FB1 to a method of another fb called FB2 which calls a method of FB1
     // and changes a value of the passed `this` pointer
     let diagnostics = parse_and_validate_buffered(
@@ -149,6 +189,7 @@ fn pass_this_to_method() {
             END_VAR
             test.method2(THIS);
 
+        END_METHOD
         END_FUNCTION_BLOCK
         FUNCTION_BLOCK FB_Test2
         METHOD method1
@@ -171,7 +212,7 @@ fn pass_this_to_method() {
 }
 
 #[test]
-fn simple_shadowing() {
+fn shadowing_is_working() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -203,29 +244,29 @@ fn nested_fbs_and_this_passing() {
                 Inner : InnerFB;
             END_VAR
 
-            METHOD CallInner
+            METHOD CallInner : INT
                 Inner.UseOuter(THIS);
             END_METHOD
-            METHOD DoSomething
+            METHOD doSomething : INT
                 VAR
                     x : INT := 5;
                 END_VAR
                 x := 10;
             END_METHOD
+
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK InnerFB
-            METHOD UseOuter
+            METHOD UseOuter : INT
             VAR_INPUT
                 ref : REF_TO OuterFB;
             END_VAR
-                ref^.DoSomething();
+                ref.doSomething();
             END_METHOD
         END_FUNCTION_BLOCK
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    todo!();
 }
 
 #[test]

@@ -158,7 +158,7 @@ pub fn visit_statement<T: AnnotationMap>(
             if context.annotations.get_type(statement, context.index).is_none() {
                 //error
                 validator.push_diagnostic(
-                    Diagnostic::new("THIS is only allowed in fb and method")
+                    Diagnostic::new("Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`")
                         .with_error_code("E120")
                         .with_location(statement),
                 );
@@ -192,6 +192,14 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Member(m) => {
             if let Some(base) = base {
+                if m.is_this() {
+                    // this cannot be accessed as a member
+                    validator.push_diagnostic(
+                        Diagnostic::new("`THIS` is not allowed in member-access position.")
+                            .with_location(m.get_location())
+                            .with_error_code("E120"),
+                    );
+                }
                 if m.is_super() || m.has_super_metadata() {
                     // super cannot be accessed as a member
                     validator.push_diagnostic(
@@ -1102,6 +1110,7 @@ fn validate_assignment<T: AnnotationMap>(
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
+            // TODO: #THIS && !left_type.is_this()
             if left_type.is_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(

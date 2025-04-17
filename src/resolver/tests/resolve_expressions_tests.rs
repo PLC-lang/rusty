@@ -1,5 +1,4 @@
 use core::panic;
-use std::os::linux::raw::stat;
 
 use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::{
@@ -6169,7 +6168,6 @@ fn this_call() {
     let statement = &unit.implementations[0].statements[0];
     dbg!(&statement);
     assert!(index.find_type("fb.__THIS").is_some());
-    // assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
 }
 
 #[test]
@@ -6233,7 +6231,5 @@ fn this_in_conditionals() {
         unreachable!()
     };
     assert_eq!(resulting_type, "FB_Test.__THIS");
-    dbg!(resulting_type);
-    // dbg!(&statement);
     assert!(index.find_type("fb_test.__THIS").is_some());
 }
