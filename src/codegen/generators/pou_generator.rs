@@ -314,8 +314,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             blocks: FxHashMap::default(),
         };
         debug.register_function(
-            self.index,
-            &self.llvm_index,
+            (self.index, self.llvm_index),
             &function_context,
             return_type,
             parent_function,

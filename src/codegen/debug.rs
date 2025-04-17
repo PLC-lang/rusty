@@ -72,8 +72,7 @@ pub trait Debug<'ink> {
     /// function's stub as well as its interface (variables/parameters)
     fn register_function<'idx>(
         &mut self,
-        index: &Index,
-        type_index: &LlvmTypedIndex<'ink>,
+        indices: (&Index, &LlvmTypedIndex<'ink>),
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
@@ -615,7 +614,8 @@ impl<'ink> DebugBuilder<'ink> {
             let align_bits = types_index
                 .get_associated_type(&variable.data_type_name)
                 .map(|it| self.target_data.get_preferred_alignment(&it))
-                .unwrap_or(0) * 8;
+                .unwrap_or(0)
+                * 8;
             self.register_local_variable(variable, align_bits, func);
         }
 
@@ -672,14 +672,14 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
 
     fn register_function<'idx>(
         &mut self,
-        index: &Index,
-        types_index: &LlvmTypedIndex<'ink>,
+        indices: (&Index, &LlvmTypedIndex<'ink>),
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
         parameter_types: &[&'idx DataType],
         implementation_start: usize,
     ) {
+        let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
         if matches!(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
             return;
@@ -955,8 +955,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
 
     fn register_function<'idx>(
         &mut self,
-        index: &Index,
-        types_index: &'idx LlvmTypedIndex<'ink>,
+        indices: (&Index, &LlvmTypedIndex<'ink>),
         func: &FunctionContext<'ink, 'idx>,
         return_type: Option<&'idx DataType>,
         parent_function: Option<FunctionValue<'ink>>,
@@ -966,8 +965,7 @@ impl<'ink> Debug<'ink> for DebugBuilderEnum<'ink> {
         match self {
             Self::None | Self::VariablesOnly(..) => {}
             Self::Full(obj) => obj.register_function(
-                index,
-                types_index,
+                indices,
                 func,
                 return_type,
                 parent_function,
