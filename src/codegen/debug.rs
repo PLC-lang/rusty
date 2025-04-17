@@ -327,11 +327,21 @@ impl<'ink> DebugBuilder<'ink> {
             let offset_bits = {
                 let next_offset_bits: u64 = last_offset_bits + last_size_bits;
 
-                // If this type requires alignment, round up to the nearest alignment boundary
-                if align_bits > 8 {
+                // Special handling based on alignment requirements:
+                // - Fields with alignment of 64 bits need to be explicitly aligned
+                //   to their alignment boundary to prevent misaligned accesses
+                // - Fields with a lower alignment can use LLVM's natural layout
+                // This differentiation is crucial for correctly representing complex structures
+                // where some fields (like LWORD, LINT) need specific alignment while others (like BYTE, BOOL)
+                // can be packed more efficiently
+                if align_bits == 64 {
+                    // For fields requiring special alignment (64 bit types),
+                    // round up to the nearest alignment boundary
                     next_offset_bits.div_ceil(align_bits as u64) * align_bits as u64
                 } else {
-                    // For byte-aligned fields, still ensure we don't overlap with previous field
+                    // For smaller fields fields (BYTE, BOOL, DINT), we still ensure we don't
+                    // overlap with previous fields by using the maximum of our calculated offset
+                    // and LLVM's calculated offset
                     std::cmp::max(next_offset_bits, llvm_offset_bits)
                 }
             };
