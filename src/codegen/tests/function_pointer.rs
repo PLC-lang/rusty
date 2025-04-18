@@ -39,10 +39,10 @@ fn demo() {
     define i32 @test() {
     entry:
       %test = alloca i32, align 4
-      %f = alloca i32 (i32)**, align 8
-      store i32 (i32)** bitcast (i32 (i32)* @prototype to i32 (i32)**), i32 (i32)*** %f, align 8
+      %f = alloca i32 (i32)*, align 8
+      store i32 (i32)* @prototype, i32 (i32)** %f, align 8
       store i32 0, i32* %test, align 4
-      store i32 (i32)** bitcast (i32 (i32)* @prototype to i32 (i32)**), i32 (i32)*** %f, align 8
+      store i32 (i32)* @prototype, i32 (i32)** %f, align 8
       %call = call i32 @prototype(i32 1)
       %test_ret = load i32, i32* %test, align 4
       ret i32 %test_ret
