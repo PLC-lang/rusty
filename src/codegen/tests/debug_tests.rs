@@ -312,14 +312,14 @@ fn switch_case_debug_info() {
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
-    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9)
+    !8 = !DILocalVariable(name: "x1", scope: !4, file: !3, line: 4, type: !9, align: 16)
     !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !10 = !DILocation(line: 4, column: 16, scope: !4)
-    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9)
+    !11 = !DILocalVariable(name: "x2", scope: !4, file: !3, line: 5, type: !9, align: 16)
     !12 = !DILocation(line: 5, column: 16, scope: !4)
-    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9)
+    !13 = !DILocalVariable(name: "x3", scope: !4, file: !3, line: 6, type: !9, align: 16)
     !14 = !DILocation(line: 6, column: 16, scope: !4)
-    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16)
+    !15 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 2, type: !16, align: 32)
     !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !17 = !DILocation(line: 2, column: 17, scope: !4)
     !18 = !DILocation(line: 22, column: 12, scope: !4)
@@ -393,7 +393,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "fb")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -501,7 +501,7 @@ fn action_with_var_temp() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "PLC_PRG", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "PLC_PRG", scope: !2, file: !2, line: 7, align: 64, flags: DIFlagPublic, elements: !4, identifier: "PLC_PRG")
     !4 = !{}
     !5 = !{i32 2, !"Dwarf Version", i32 5}
     !6 = !{i32 2, !"Debug Info Version", i32 3}
@@ -510,7 +510,7 @@ fn action_with_var_temp() {
     !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 2, type: !10, scopeLine: 3, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
-    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13)
+    !12 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 2, type: !13, align: 32)
     !13 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !14 = !DILocation(line: 2, column: 17, scope: !9)
     !15 = !DILocation(line: 3, column: 12, scope: !9)
@@ -521,13 +521,13 @@ fn action_with_var_temp() {
     !20 = !{null, !3}
     !21 = !DILocalVariable(name: "PLC_PRG", scope: !18, file: !2, line: 12, type: !3)
     !22 = !DILocation(line: 12, column: 12, scope: !18)
-    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13)
+    !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align: 32)
     !24 = !DILocation(line: 9, column: 12, scope: !18)
     !25 = !DILocation(line: 13, column: 8, scope: !18)
     !26 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
     !27 = !DILocalVariable(name: "PLC_PRG", scope: !26, file: !2, line: 17, type: !3)
     !28 = !DILocation(line: 17, column: 16, scope: !26)
-    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13)
+    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13, align: 32)
     !30 = !DILocation(line: 9, column: 12, scope: !26)
     !31 = !DILocation(line: 18, column: 12, scope: !26)
     "#);
@@ -584,7 +584,7 @@ END_FUNCTION
     ",
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -715,33 +715,33 @@ END_FUNCTION
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__struct___init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "struct_", scope: !2, file: !2, line: 2, size: 13440, flags: DIFlagPublic, elements: !4, identifier: "struct_")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "struct_", scope: !2, file: !2, line: 2, size: 13440, align: 64, flags: DIFlagPublic, elements: !4, identifier: "struct_")
     !4 = !{!5, !23, !25, !26, !27, !28, !29}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "inner", scope: !2, file: !2, line: 3, baseType: !6, size: 2688, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "inner", scope: !2, file: !2, line: 13, size: 2688, flags: DIFlagPublic, elements: !7, identifier: "inner")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "inner", scope: !2, file: !2, line: 3, baseType: !6, size: 2688, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "inner", scope: !2, file: !2, line: 13, size: 2688, align: 64, flags: DIFlagPublic, elements: !7, identifier: "inner")
     !7 = !{!8, !13, !15, !17, !21}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 14, baseType: !9, size: 648, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 14, baseType: !9, size: 648, align: 8, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
     !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 15, baseType: !14, size: 8, offset: 648, flags: DIFlagPublic)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 15, baseType: !14, size: 8, align: 8, offset: 648, flags: DIFlagPublic)
     !14 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 16, baseType: !16, size: 32, offset: 672, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 16, baseType: !16, size: 32, align: 32, offset: 672, flags: DIFlagPublic)
     !16 = !DIBasicType(name: "REAL", size: 32, encoding: DW_ATE_float, flags: DIFlagPublic)
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 17, baseType: !18, size: 1944, offset: 704, flags: DIFlagPublic)
-    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 1944, elements: !19)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 17, baseType: !18, size: 1944, align: 8, offset: 704, flags: DIFlagPublic)
+    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 1944, align: 8, elements: !19)
     !19 = !{!20}
     !20 = !DISubrange(count: 3, lowerBound: 0)
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 18, baseType: !22, size: 16, offset: 2656, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 18, baseType: !22, size: 16, align: 16, offset: 2656, flags: DIFlagPublic)
     !22 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !23 = !DIDerivedType(tag: DW_TAG_member, name: "inner_arr", scope: !2, file: !2, line: 4, baseType: !24, size: 8064, offset: 2688, flags: DIFlagPublic)
-    !24 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 8064, elements: !19)
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 5, baseType: !9, size: 648, offset: 10752, flags: DIFlagPublic)
-    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 6, baseType: !14, size: 8, offset: 11400, flags: DIFlagPublic)
-    !27 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 7, baseType: !16, size: 32, offset: 11424, flags: DIFlagPublic)
-    !28 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 8, baseType: !18, size: 1944, offset: 11456, flags: DIFlagPublic)
-    !29 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 9, baseType: !22, size: 16, offset: 13408, flags: DIFlagPublic)
+    !23 = !DIDerivedType(tag: DW_TAG_member, name: "inner_arr", scope: !2, file: !2, line: 4, baseType: !24, size: 8064, align: 64, offset: 2688, flags: DIFlagPublic)
+    !24 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 8064, align: 64, elements: !19)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 5, baseType: !9, size: 648, align: 8, offset: 10752, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 6, baseType: !14, size: 8, align: 8, offset: 11400, flags: DIFlagPublic)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 7, baseType: !16, size: 32, align: 32, offset: 11424, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_member, name: "arr", scope: !2, file: !2, line: 8, baseType: !18, size: 1944, align: 8, offset: 11456, flags: DIFlagPublic)
+    !29 = !DIDerivedType(tag: DW_TAG_member, name: "i", scope: !2, file: !2, line: 9, baseType: !22, size: 16, align: 16, offset: 13408, flags: DIFlagPublic)
     !30 = !DIGlobalVariableExpression(var: !31, expr: !DIExpression())
     !31 = distinct !DIGlobalVariable(name: "__inner__init", scope: !2, file: !2, line: 13, type: !6, isLocal: false, isDefinition: true)
     !32 = !{i32 2, !"Dwarf Version", i32 5}
@@ -752,15 +752,15 @@ END_FUNCTION
     !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
     !38 = !{null}
     !39 = !{}
-    !40 = !DILocalVariable(name: "st", scope: !36, file: !2, line: 24, type: !3)
+    !40 = !DILocalVariable(name: "st", scope: !36, file: !2, line: 24, type: !3, align: 64)
     !41 = !DILocation(line: 24, column: 4, scope: !36)
-    !42 = !DILocalVariable(name: "s", scope: !36, file: !2, line: 25, type: !9)
+    !42 = !DILocalVariable(name: "s", scope: !36, file: !2, line: 25, type: !9, align: 8)
     !43 = !DILocation(line: 25, column: 4, scope: !36)
-    !44 = !DILocalVariable(name: "b", scope: !36, file: !2, line: 26, type: !14)
+    !44 = !DILocalVariable(name: "b", scope: !36, file: !2, line: 26, type: !14, align: 8)
     !45 = !DILocation(line: 26, column: 4, scope: !36)
-    !46 = !DILocalVariable(name: "arr", scope: !36, file: !2, line: 27, type: !18)
+    !46 = !DILocalVariable(name: "arr", scope: !36, file: !2, line: 27, type: !18, align: 8)
     !47 = !DILocation(line: 27, column: 4, scope: !36)
-    !48 = !DILocalVariable(name: "i", scope: !36, file: !2, line: 28, type: !22)
+    !48 = !DILocalVariable(name: "i", scope: !36, file: !2, line: 28, type: !22, align: 16)
     !49 = !DILocation(line: 28, column: 4, scope: !36)
     !50 = !DILocation(line: 0, scope: !36)
     !51 = !DILocation(line: 32, column: 4, scope: !36)
@@ -775,5 +775,5 @@ END_FUNCTION
     !60 = !DILocation(line: 42, column: 4, scope: !36)
     !61 = !DILocation(line: 43, column: 4, scope: !36)
     !62 = !DILocation(line: 45, scope: !36)
-    "###);
+    "#);
 }

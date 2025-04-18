@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -22,11 +23,11 @@ source_filename = "<internal>"
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "en3", scope: !2, file: !2, line: 5, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4)
+!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__global_en3", scope: !2, file: !2, line: 5, baseType: !4, align: 64)
 !4 = !DIBasicType(name: "LINT", size: 64, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
 !6 = distinct !DIGlobalVariable(name: "en1.a", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
-!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "en1", scope: !2, file: !2, line: 2, baseType: !8)
+!7 = !DIDerivedType(tag: DW_TAG_typedef, name: "en1", scope: !2, file: !2, line: 2, baseType: !8, align: 32)
 !8 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
 !10 = distinct !DIGlobalVariable(name: "en1.b", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
@@ -34,7 +35,7 @@ source_filename = "<internal>"
 !12 = distinct !DIGlobalVariable(name: "en1.c", scope: !2, file: !2, line: 2, type: !7, isLocal: false, isDefinition: true)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
 !14 = distinct !DIGlobalVariable(name: "en2.d", scope: !2, file: !2, line: 3, type: !15, isLocal: false, isDefinition: true)
-!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "en2", scope: !2, file: !2, line: 3, baseType: !16)
+!15 = !DIDerivedType(tag: DW_TAG_typedef, name: "en2", scope: !2, file: !2, line: 3, baseType: !16, align: 8)
 !16 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
 !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
 !18 = distinct !DIGlobalVariable(name: "en2.e", scope: !2, file: !2, line: 3, type: !15, isLocal: false, isDefinition: true)
