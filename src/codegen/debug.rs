@@ -324,7 +324,13 @@ impl<'ink> DebugBuilder<'ink> {
 
             // Calculate the properly aligned offset based on the previous field
             // and this field's alignment requirements
-            let offset_bits = {
+            let offset_bits = if size_bits == 0 || (last_size_bits == 0 && element_index > 0) {
+                // For zero-sized types, always use LLVM's offset directly
+                // This ensures they don't contribute to the overall layout calculation
+                // If the previous field was zero-sized, use LLVM's offset
+                // for proper alignment of fields after zero-sized types
+                llvm_offset_bits
+            } else {
                 let next_offset_bits: u64 = last_offset_bits + last_size_bits;
 
                 // Special handling based on alignment requirements:
