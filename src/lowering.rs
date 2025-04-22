@@ -37,7 +37,6 @@ impl InitVisitor {
         let mut visitor = Self::new(index, unresolvables, id_provider);
         // before visiting, we need to collect all candidates for user-defined init functions
         units.iter().for_each(|unit| {
-            // TODO: probably also need to consider structs here
             visitor.collect_user_init_candidates(unit);
         });
         // visit all units
@@ -72,13 +71,21 @@ impl InitVisitor {
     }
 
     fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
-        // TODO: probably also need to consider structs here
         // collect all candidates for user-defined init functions
         for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
         {
             // add the POU to potential `FB_INIT` candidates
             self.user_inits
                 .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
+        }
+
+        for user_type in
+            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+        {
+            // add the struct to potential `STRUCT_INIT` candidates
+            if let Some(name) = user_type.data_type.get_name() {
+                self.user_inits.insert(name.to_string(), false);
+            };
         }
     }
 
@@ -358,9 +365,6 @@ impl AstVisitorMut for InitVisitor {
 
     fn visit_data_type(&mut self, data_type: &mut DataType) {
         if matches!(data_type, plc_ast::ast::DataType::StructType { .. }) {
-            if let Some(name) = data_type.get_name() {
-                self.user_inits.insert(name.to_string(), false);
-            };
             self.walk_with_scope(data_type, data_type.get_name().map(ToOwned::to_owned))
         } else {
             data_type.walk(self)

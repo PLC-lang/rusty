@@ -136,3 +136,29 @@ Outputs the json schema used for the validation of the `plc.json` file
 Ouputs a json file with the default error severity configuration for the project.
 See [Error Configuration](./error_configuration.md) for more information.
 
+## Project-wide initialization
+
+When your code is compiled, the compiler creates a special initialization function with the naming pattern `__init___<projectname>`. This function is responsible for calling all implicit and user-defined initialization code, including all [`FB_INIT`](../pous.md#function_block-initialization) methods.
+
+`<projectname>` is either taken directly from the `plc.json`'s `name` field or derived from the first input file (replacing `.`/`-` with `_`) when compiling without a `plc.json` (e.g. `plc prog.st ...` would yield `__init___prog_st`).
+
+This function is added to the global constructor list, therefore loading the binary will automatically call the `__init___<projectname>` function (and therefore your `<FunctionBlockName>_FB_INIT` function) when an instance of your function block is created, before any other methods are called. This allows you to set default values or perform required setup for your function block.
+
+> **IMPORTANT:** The global constructor initialization is currently only supported for `x86` ISAs. To make sure initialization code runs reliably regardless of target-architecture, ensure your runtime calls this function before starting main task execution.
+If you're using the executable without a runtime, you **must** ensure that `__init___<projectname>` is called before any other code runs. Failure to do so will result in uninitialized function blocks and pointers, which can lead to undefined behavior and/or crashes.
+
+Example of ensuring initialization when using C (crt0):
+
+```c
+int main() {
+    // Call the project initialization function first
+    __init___myproject();
+    
+    // Now it's safe to start cyclic execution
+    for (;;) {
+        mainProg();
+    }
+    
+    return 0;
+}
+```
