@@ -99,49 +99,19 @@ CompilationUnit {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 12,
-                        offset: 58,
-                    }..TextLocation {
-                        line: 3,
-                        column: 30,
-                        offset: 107,
-                    },
-                ),
+                span: Range(2:12 - 3:30),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 17,
-                        offset: 18,
-                    }..TextLocation {
-                        line: 1,
-                        column: 20,
-                        offset: 21,
-                    },
-                ),
+                span: Range(1:17 - 1:20),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 4,
-                        column: 8,
-                        offset: 116,
-                    }..TextLocation {
-                        line: 4,
-                        column: 20,
-                        offset: 128,
-                    },
-                ),
+                span: Range(4:8 - 4:20),
                 file: Some(
                     "<internal>",
                 ),
@@ -198,49 +168,19 @@ CompilationUnit {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 12,
-                        offset: 164,
-                    }..TextLocation {
-                        line: 7,
-                        column: 18,
-                        offset: 170,
-                    },
-                ),
+                span: Range(7:12 - 7:18),
                 file: Some(
                     "<internal>",
                 ),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 6,
-                        column: 17,
-                        offset: 147,
-                    }..TextLocation {
-                        line: 6,
-                        column: 21,
-                        offset: 151,
-                    },
-                ),
+                span: Range(6:17 - 6:21),
                 file: Some(
                     "<internal>",
                 ),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 8,
-                        offset: 179,
-                    }..TextLocation {
-                        line: 8,
-                        column: 20,
-                        offset: 191,
-                    },
-                ),
+                span: Range(8:8 - 8:20),
                 file: Some(
                     "<internal>",
                 ),

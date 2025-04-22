@@ -95,43 +95,13 @@ CompilationUnit {
             pou_type: Function,
             statements: [],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 8,
-                        offset: 219,
-                    }..TextLocation {
-                        line: 10,
-                        column: 15,
-                        offset: 210,
-                    },
-                ),
+                span: Range(11:8 - 10:15),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 17,
-                        offset: 18,
-                    }..TextLocation {
-                        line: 1,
-                        column: 20,
-                        offset: 21,
-                    },
-                ),
+                span: Range(1:17 - 1:20),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 11,
-                        column: 8,
-                        offset: 219,
-                    }..TextLocation {
-                        line: 11,
-                        column: 20,
-                        offset: 231,
-                    },
-                ),
+                span: Range(11:8 - 11:20),
             },
             overriding: false,
             generic: false,
@@ -194,43 +164,13 @@ CompilationUnit {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 17,
-                        column: 8,
-                        offset: 317,
-                    }..TextLocation {
-                        line: 17,
-                        column: 49,
-                        offset: 358,
-                    },
-                ),
+                span: Range(17:8 - 17:49),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 13,
-                        column: 16,
-                        offset: 249,
-                    }..TextLocation {
-                        line: 13,
-                        column: 20,
-                        offset: 253,
-                    },
-                ),
+                span: Range(13:16 - 13:20),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 18,
-                        column: 8,
-                        offset: 367,
-                    }..TextLocation {
-                        line: 18,
-                        column: 19,
-                        offset: 378,
-                    },
-                ),
+                span: Range(18:8 - 18:19),
             },
             overriding: false,
             generic: false,

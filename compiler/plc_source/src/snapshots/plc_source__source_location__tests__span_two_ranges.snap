@@ -1,17 +1,7 @@
 ---
-source: compiler/plc_source/./src/source_location.rs
+source: compiler/plc_source/src/source_location.rs
 expression: loc1.span(&loc2)
 ---
 SourceLocation {
-    span: Range(
-        TextLocation {
-            line: 1,
-            column: 0,
-            offset: 0,
-        }..TextLocation {
-            line: 5,
-            column: 30,
-            offset: 10,
-        },
-    ),
+    span: Range(1:0 - 5:30),
 }

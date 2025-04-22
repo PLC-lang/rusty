@@ -76,7 +76,7 @@ impl TextLocation {
 }
 
 /// Represents the location of a code element in a source code
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, PartialEq, Eq, Hash)]
 pub enum CodeSpan {
     /// The location of a block in a diagram
     Block { local_id: usize, execution_order: Option<usize>, inner_range: Option<Range<usize>> },
@@ -86,6 +86,31 @@ pub enum CodeSpan {
     Range(Range<TextLocation>),
     /// The location does not point anywhere in the file
     None,
+}
+
+impl std::fmt::Debug for CodeSpan {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Block { local_id, execution_order, inner_range } => f
+                .debug_struct("Block")
+                .field("local_id", local_id)
+                .field("execution_order", execution_order)
+                .field("inner_range", inner_range)
+                .finish(),
+            Self::Combined(arg0) => f.debug_tuple("Combined").field(arg0).finish(),
+            Self::None => write!(f, "None"),
+
+            // The default debug implementation for Ranges is very verbose, which makes reading the output
+            // of `--ast` or snapshots "harder" than it should be. Thus we do it in a more concise way here
+            Self::Range(range) => {
+                write!(
+                    f,
+                    "Range({}:{} - {}:{})",
+                    range.start.line, range.start.column, range.end.line, range.end.column
+                )
+            }
+        }
+    }
 }
 
 impl Display for CodeSpan {

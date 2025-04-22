@@ -110,49 +110,19 @@ Implementation {
         },
     ],
     location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 14,
-                column: 12,
-                offset: 374,
-            }..TextLocation {
-                line: 19,
-                column: 31,
-                offset: 584,
-            },
-        ),
+        span: Range(14:12 - 19:31),
         file: Some(
             "<internal>",
         ),
     },
     name_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 8,
-                column: 17,
-                offset: 166,
-            }..TextLocation {
-                line: 8,
-                column: 21,
-                offset: 170,
-            },
-        ),
+        span: Range(8:17 - 8:21),
         file: Some(
             "<internal>",
         ),
     },
     end_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 20,
-                column: 8,
-                offset: 593,
-            }..TextLocation {
-                line: 20,
-                column: 20,
-                offset: 605,
-            },
-        ),
+        span: Range(20:8 - 20:20),
         file: Some(
             "<internal>",
         ),
