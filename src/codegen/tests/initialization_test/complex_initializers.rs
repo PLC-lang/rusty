@@ -2118,10 +2118,10 @@ fn methods_call_init_functions_for_their_members() {
 
 #[test]
 fn user_fb_init_is_added_and_called_if_it_exists() {
-  let res = generate_to_string(
-    "Test",
-    vec![SourceCode::from(
-        r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
         FUNCTION_BLOCK foo
         VAR
             x : INT := 0;
@@ -2225,15 +2225,19 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
 #[test]
 fn user_fb_init_in_global_struct() {
-  let res = generate_to_string(
-    "Test",
-    vec![SourceCode::from(
-        r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
         TYPE
             bar : STRUCT
                f: foo; 
             END_STRUCT;
         END_TYPE
+
+        VAR_GLOBAL
+            str: bar;
+        END_VAR
 
         FUNCTION_BLOCK foo
         VAR
@@ -2269,6 +2273,7 @@ fn user_fb_init_in_global_struct() {
     @prog_instance = global %prog zeroinitializer
     @__bar__init = constant %bar zeroinitializer
     @__foo__init = constant %foo zeroinitializer
+    @str = global %bar zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -2353,7 +2358,9 @@ fn user_fb_init_in_global_struct() {
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__init_bar(%bar* @str)
       call void @__user_init_prog(%prog* @prog_instance)
+      call void @__user_init_bar(%bar* @str)
       ret void
     }
     "#);
@@ -2361,10 +2368,10 @@ fn user_fb_init_in_global_struct() {
 
 #[test]
 fn user_init_called_when_declared_as_external() {
-  let res = generate_to_string(
-    "Test",
-    vec![SourceCode::from(
-        r#"
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
         {external}
         FUNCTION_BLOCK foo
         VAR

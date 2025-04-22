@@ -110,7 +110,9 @@ pub fn generate_global_constants_for_pou_members<'ink>(
         .filter(|it| it.is_in_unit(location));
     for implementation in implementations {
         let type_name = implementation.get_type_name();
-        if implementation.is_init() || index.find_pou(type_name).is_some_and(|it| it.get_linkage() == &LinkageType::External) {
+        if implementation.is_init()
+            || index.find_pou(type_name).is_some_and(|it| it.get_linkage() == &LinkageType::External)
+        {
             // initializer functions and externals don't need global constants to initialize members
             continue;
         }

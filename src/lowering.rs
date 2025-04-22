@@ -74,9 +74,11 @@ impl InitVisitor {
     fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
         // TODO: probably also need to consider structs here
         // collect all candidates for user-defined init functions
-        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program)) {
-                // add the POU to potential `FB_INIT` candidates
-                self.user_inits.insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
+        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
+        {
+            // add the POU to potential `FB_INIT` candidates
+            self.user_inits
+                .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
         }
     }
 
@@ -233,11 +235,14 @@ impl InitVisitor {
         // collect necessary call statements to init-functions and user-defined init-functions
         let mut implicit_calls = Vec::new();
         let mut user_init_calls = Vec::new();
-        self.index.get_pou_members(dbg!(&implementation.name)).iter().filter(|var| predicate(var)).for_each(
+        self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).for_each(
             |var| {
                 let dti =
                     self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
-                let is_external = self.index.find_pou(dti.get_name()).is_some_and(|it| it.get_linkage() == &LinkageType::External);
+                let is_external = self
+                    .index
+                    .find_pou(dti.get_name())
+                    .is_some_and(|it| it.get_linkage() == &LinkageType::External);
                 if dti.is_struct() && !is_external {
                     implicit_calls.push(create_call_statement(
                         &get_init_fn_name(dti.get_name()),
@@ -247,9 +252,9 @@ impl InitVisitor {
                         &implementation.name_location,
                     ));
                 }
-                if dbg!(&self.user_inits).contains_key(dbg!(dti.get_name())) {
+                if self.user_inits.contains_key(dti.get_name()) {
                     user_init_calls.push(create_call_statement(
-                        dbg!(&get_user_init_fn_name(dti.get_name())),
+                        &get_user_init_fn_name(dti.get_name()),
                         var.get_name(),
                         None,
                         self.ctxt.get_id_provider(),

@@ -1,2 +1,4 @@
-RUN: %COMPILE %S/main.st %S/header.pli && %RUN | %CHECK %s
-CHECK:6
+RUN: %COMPILE %S/main.st && %RUN | %CHECK %s
+CHECK: myFunctionBlock initialized with a = 1, b = 2
+CHECK: 1
+CHECK: 2
