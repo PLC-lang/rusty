@@ -189,5 +189,5 @@ fn build_empty_project_debug() {
         dir.path().to_str().unwrap(),
     ];
     compile(parameters).unwrap();
-    assert!(dbg!(dir.path().join("x86_64-linux-gnu").join("prog.so")).is_file());
+    assert!(dir.path().join("x86_64-linux-gnu").join("prog.so").is_file());
 }

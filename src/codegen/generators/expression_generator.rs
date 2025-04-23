@@ -590,7 +590,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.assign_output_value(&CallParameterAssignment {
                     assignment: assignment_statement,
                     function_name,
-                    index: index as u32,
+                    index: self
+                        .annotations
+                        .get_hint(assignment_statement)
+                        .expect("arguments must have a type hint")
+                        .get_location_in_parent(),
                     parameter_struct,
                 })?
             }
@@ -886,14 +890,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     fn generate_function_arguments(
         &self,
         pou: &PouIndexEntry,
-        passed_parameters: &[&AstNode],
+        arguments: &[&AstNode],
         declared_parameters: Vec<&VariableIndexEntry>,
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = Vec::new();
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
-        for (i, parameter) in passed_parameters.iter().enumerate() {
-            let (i, parameter, _) = get_implicit_call_parameter(parameter, &declared_parameters, i)?;
+        for (i, argument) in arguments.iter().enumerate() {
+            let (i, parameter, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
@@ -1155,18 +1159,22 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         pou_name: &str,
         class_struct: Option<PointerValue<'ink>>,
         parameter_struct: PointerValue<'ink>,
-        passed_parameters: &[&AstNode],
+        arguments: &[&AstNode],
     ) -> Result<Vec<BasicMetadataValueEnum<'ink>>, Diagnostic> {
         let mut result = class_struct
             .map(|class_struct| {
                 vec![class_struct.as_basic_value_enum().into(), parameter_struct.as_basic_value_enum().into()]
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
-        for (i, stmt) in passed_parameters.iter().enumerate() {
+        for argument in arguments.iter() {
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                assignment: stmt,
+                assignment: argument,
                 function_name: pou_name,
-                index: i as u32,
+                index: self
+                    .annotations
+                    .get_hint(argument)
+                    .expect("arguments must have a type-hint")
+                    .get_location_in_parent(),
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {

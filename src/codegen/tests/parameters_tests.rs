@@ -1025,7 +1025,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1077,7 +1077,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #1 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
