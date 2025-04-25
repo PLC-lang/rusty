@@ -442,9 +442,12 @@ pub enum StatementAnnotation {
     Value {
         resulting_type: String,
     },
-    /// XXX
+    /// An argument of a call statement
     Argument {
+        /// The resulting type of this argument
         resulting_type: String,
+
+        /// The position of the parameter this argument is assigned to
         position: usize,
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
@@ -728,10 +731,24 @@ impl StatementAnnotation {
         }
     }
 
+    /// Returns the location of a parameter in some POU the argument is assigned to, for example
+    /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
+    /// blocks
+    /// ```norun
+    /// VAR_INPUT
+    ///     a, b : DINT;
+    /// END_VAR
+    /// VAR
+    ///     placeholder: DINT;
+    /// END_VAR
+    /// VAR_INPUT
+    ///     c : DINT;
+    /// END_VAR`
+    /// ```
     pub(crate) fn get_location_in_parent(&self) -> u32 {
         match self {
             StatementAnnotation::Argument { position, .. } => *position as u32,
-            _ => panic!(),
+            _ => panic!("incorrect use, must only be used when we dealing with arguments"),
         }
     }
 }
