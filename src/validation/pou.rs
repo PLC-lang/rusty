@@ -56,7 +56,7 @@ fn validate_methods_overrides<T: AnnotationMap>(
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "{} in `{}` is declared with conflicting signatures in `{}` and `{}`",
-                        method1.get_method_name(),
+                        method1.get_method_name().expect("must be a method"),
                         container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
@@ -101,7 +101,7 @@ fn validate_methods_overrides<T: AnnotationMap>(
                     validator.push_diagnostic(
                         Diagnostic::new(format!(
                             "{} defined in interface `{}` is missing in POU `{}`",
-                            intf.get_method_name(),
+                            intf.get_method_name().expect("must be a method"),
                             name,
                             container_name
                         ))

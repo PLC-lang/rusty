@@ -1269,13 +1269,13 @@ impl AstNode {
     pub fn has_super_metadata(&self) -> bool {
         self.get_metadata()
             .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
-            .map_or(false, |it| it.is_super())
+            .is_some_and(|it| it.is_super())
     }
 
     pub fn has_super_metadata_deref(&self) -> bool {
         self.get_metadata()
             .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
-            .map_or(false, |it| it.is_super_deref())
+            .is_some_and(|it| it.is_super_deref())
     }
 
     pub fn can_be_assigned_to(&self) -> bool {
