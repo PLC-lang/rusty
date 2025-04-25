@@ -745,7 +745,7 @@
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"{} in `{}` is declared with conflicting signatures in `{}` and `{}`"</span>,
-                        method1.get_method_name(),
+                        method1.get_method_name().expect(<span class="string">"must be a method"</span>),
                         container_name,
                         method1.get_parent_pou_name().unwrap(),
                         method2.get_parent_pou_name().unwrap()
@@ -790,7 +790,7 @@
                     validator.push_diagnostic(
                         Diagnostic::new(<span class="macro">format!</span>(
                             <span class="string">"{} defined in interface `{}` is missing in POU `{}`"</span>,
-                            intf.get_method_name(),
+                            intf.get_method_name().expect(<span class="string">"must be a method"</span>),
                             name,
                             container_name
                         ))

@@ -3299,13 +3299,13 @@
     <span class="kw">pub fn </span>has_super_metadata(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_metadata()
             .or_else(|| <span class="self">self</span>.get_identifier().and_then(|it| it.get_metadata()))
-            .map_or(<span class="bool-val">false</span>, |it| it.is_super())
+            .is_some_and(|it| it.is_super())
     }
 
     <span class="kw">pub fn </span>has_super_metadata_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_metadata()
             .or_else(|| <span class="self">self</span>.get_identifier().and_then(|it| it.get_metadata()))
-            .map_or(<span class="bool-val">false</span>, |it| it.is_super_deref())
+            .is_some_and(|it| it.is_super_deref())
     }
 
     <span class="kw">pub fn </span>can_be_assigned_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

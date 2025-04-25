@@ -2648,7 +2648,40 @@
 <a href="#2647" id="2647">2647</a>
 <a href="#2648" id="2648">2648</a>
 <a href="#2649" id="2649">2649</a>
-<a href="#2650" id="2650">2650</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2650" id="2650">2650</a>
+<a href="#2651" id="2651">2651</a>
+<a href="#2652" id="2652">2652</a>
+<a href="#2653" id="2653">2653</a>
+<a href="#2654" id="2654">2654</a>
+<a href="#2655" id="2655">2655</a>
+<a href="#2656" id="2656">2656</a>
+<a href="#2657" id="2657">2657</a>
+<a href="#2658" id="2658">2658</a>
+<a href="#2659" id="2659">2659</a>
+<a href="#2660" id="2660">2660</a>
+<a href="#2661" id="2661">2661</a>
+<a href="#2662" id="2662">2662</a>
+<a href="#2663" id="2663">2663</a>
+<a href="#2664" id="2664">2664</a>
+<a href="#2665" id="2665">2665</a>
+<a href="#2666" id="2666">2666</a>
+<a href="#2667" id="2667">2667</a>
+<a href="#2668" id="2668">2668</a>
+<a href="#2669" id="2669">2669</a>
+<a href="#2670" id="2670">2670</a>
+<a href="#2671" id="2671">2671</a>
+<a href="#2672" id="2672">2672</a>
+<a href="#2673" id="2673">2673</a>
+<a href="#2674" id="2674">2674</a>
+<a href="#2675" id="2675">2675</a>
+<a href="#2676" id="2676">2676</a>
+<a href="#2677" id="2677">2677</a>
+<a href="#2678" id="2678">2678</a>
+<a href="#2679" id="2679">2679</a>
+<a href="#2680" id="2680">2680</a>
+<a href="#2681" id="2681">2681</a>
+<a href="#2682" id="2682">2682</a>
+<a href="#2683" id="2683">2683</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2954,7 +2987,6 @@
         } <span class="kw">else </span>{
             <span class="macro">vec!</span>[]
         };
-        <span class="kw">let </span>operator_qualifier = <span class="kw-2">&amp;</span><span class="self">self</span>.get_call_name(operator);
 
         <span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: FxHashMap&lt;String, Vec&lt;String&gt;&gt; = FxHashMap::default();
         <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
@@ -2962,7 +2994,8 @@
 
         <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
-        </span><span class="kw">let </span>implementation = <span class="self">self</span>.index.find_implementation_by_name(operator_qualifier);
+        </span><span class="kw">let </span>operator_qualifier = <span class="kw-2">&amp;</span><span class="self">self</span>.get_call_name(operator);
+        <span class="kw">let </span>implementation = <span class="self">self</span>.index.find_implementation_by_name(operator_qualifier);
         <span class="kw">let </span>operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
         <span class="kw">for </span>m <span class="kw">in </span><span class="self">self</span>.index.get_declared_parameters(operator_qualifier).into_iter() {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(p) = parameters.next() {
@@ -2972,7 +3005,7 @@
                 {
                     generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
                 } <span class="kw">else </span>{
-                    params.push((p, type_name.to_string()))
+                    params.push((p, type_name.to_string(), m.get_location_in_parent()))
                 }
             }
         }
@@ -2981,9 +3014,8 @@
         </span><span class="kw">match </span><span class="self">self</span>.index.find_pou(operator_qualifier) {
             <span class="prelude-val">Some</span>(pou) <span class="kw">if </span>pou.is_variadic() =&gt; {
                 <span class="comment">//get variadic argument type, if it is generic, update the generic candidates
-                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) =
-                    <span class="self">self</span>.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
-                {
+                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(variadic) = <span class="self">self</span>.index.get_variadic_member(pou.get_name()) {
+                    <span class="kw">let </span>type_name = variadic.get_type_name();
                     <span class="kw">for </span>parameter <span class="kw">in </span>parameters {
                         <span class="kw">if let </span><span class="prelude-val">Some</span>((key, candidate)) = TypeAnnotator::get_generic_candidate(
                             <span class="self">self</span>.index,
@@ -3033,17 +3065,23 @@
                                 </span>type_name
                             };
 
-                            params.push((parameter, type_name.to_string()));
+                            params.push((
+                                parameter,
+                                type_name.to_string(),
+                                variadic.get_location_in_parent(),
+                            ));
                         }
                     }
                 }
             }
             <span class="kw">_ </span>=&gt; {}
         }
-        <span class="kw">for </span>(p, name) <span class="kw">in </span>params {
-            <span class="self">self</span>.annotate_parameters(p, <span class="kw-2">&amp;</span>name);
+
+        <span class="kw">for </span>(p, name, position) <span class="kw">in </span>params {
+            <span class="self">self</span>.annotate_parameters(p, <span class="kw-2">&amp;</span>name, position <span class="kw">as </span>usize);
         }
-        <span class="comment">//Attempt to resolve the generic signature here
+
+        <span class="comment">// Attempt to resolve the generic signature here
         </span><span class="self">self</span>.update_generic_call_statement(
             generics_candidates,
             operator_qualifier,
@@ -3086,6 +3124,14 @@
     <span class="doccomment">/// an expression that resolves to a certain type (e.g. `a + b` --&gt; `INT`)
     </span>Value {
         resulting_type: String,
+    },
+    <span class="doccomment">/// An argument of a call statement
+    </span>Argument {
+        <span class="doccomment">/// The resulting type of this argument
+        </span>resulting_type: String,
+
+        <span class="doccomment">/// The position of the parameter this argument is assigned to
+        </span>position: usize,
     },
     <span class="doccomment">/// a reference that resolves to a declared variable (e.g. `a` --&gt; `PLC_PROGRAM.a`)
     </span>Variable {
@@ -3367,6 +3413,27 @@
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
+
+    <span class="doccomment">/// Returns the location of a parameter in some POU the argument is assigned to, for example
+    /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
+    /// blocks
+    /// ```norun
+    /// VAR_INPUT
+    ///     a, b : DINT;
+    /// END_VAR
+    /// VAR
+    ///     placeholder: DINT;
+    /// END_VAR
+    /// VAR_INPUT
+    ///     c : DINT;
+    /// END_VAR`
+    /// ```
+    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>get_location_in_parent(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u32&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            StatementAnnotation::Argument { position, .. } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>position <span class="kw">as </span>u32),
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
+    }
 }
 
 <span class="kw">impl </span>From&lt;<span class="kw-2">&amp;</span>PouIndexEntry&gt; <span class="kw">for </span>StatementAnnotation {
@@ -3457,6 +3524,7 @@
     <span class="kw">fn </span>get_type_name_for_annotation&lt;<span class="lifetime">'a</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="self">self</span>, annotation: <span class="kw-2">&amp;</span><span class="lifetime">'a </span>StatementAnnotation) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'a </span>str&gt; {
         <span class="kw">match </span>annotation {
             StatementAnnotation::Value { resulting_type } =&gt; <span class="prelude-val">Some</span>(resulting_type.as_str()),
+            StatementAnnotation::Argument { resulting_type, .. } =&gt; <span class="prelude-val">Some</span>(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } =&gt; <span class="prelude-val">Some</span>(resulting_type.as_str()),
             StatementAnnotation::ReplacementAst { statement } =&gt; <span class="self">self
                 </span>.get_hint(statement)
@@ -4783,10 +4851,9 @@
                 }
                 StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } =&gt; {
-                    <span class="comment">//lets see if this is a FB
-                    </span><span class="self">self</span>.index
+                    <span class="self">self</span>.index
                         .find_pou(resulting_type.as_str())
-                        .filter(|it| <span class="macro">matches!</span>(it, PouIndexEntry::FunctionBlock { .. }))
+                        .filter(|it| <span class="macro">matches!</span>(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. }))
                         .map(|it| it.get_name().to_string())
                 }
                 <span class="comment">// call statements on array access "arr[1]()" will return a StatementAnnotation::Value
@@ -4808,18 +4875,17 @@
         operator_qualifier
     }
 
-    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate_parameters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;</span>AstNode, type_name: <span class="kw-2">&amp;</span>str) {
-        <span class="kw">if </span>!<span class="macro">matches!</span>(
-            p.get_stmt(),
-            AstStatement::Assignment(..)
-                | AstStatement::OutputAssignment(..)
-                | AstStatement::RefAssignment(..)
-        ) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(effective_member_type) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) {
-                <span class="comment">//update the type hint
-                </span><span class="self">self</span>.annotation_map
-                    .annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
-            }
+    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>annotate_parameters(<span class="kw-2">&amp;mut </span><span class="self">self</span>, p: <span class="kw-2">&amp;</span>AstNode, type_name: <span class="kw-2">&amp;</span>str, position: usize) {
+        <span class="kw">if let </span><span class="prelude-val">Some</span>(effective_member_type) = <span class="self">self</span>.index.find_effective_type_by_name(type_name) {
+            <span class="comment">//update the type hint
+            // self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
+            </span><span class="self">self</span>.annotation_map.annotate_type_hint(
+                p,
+                StatementAnnotation::Argument {
+                    resulting_type: effective_member_type.get_name().to_string(),
+                    position,
+                },
+            );
         }
     }
 
