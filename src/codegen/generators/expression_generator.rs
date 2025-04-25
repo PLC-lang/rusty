@@ -593,8 +593,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     index: self
                         .annotations
                         .get_hint(assignment_statement)
-                        .expect("arguments must have a type hint")
-                        .get_location_in_parent(),
+                        .and_then(StatementAnnotation::get_location_in_parent)
+                        .expect("arguments must have a type hint"),
                     parameter_struct,
                 })?
             }
@@ -1173,8 +1173,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 index: self
                     .annotations
                     .get_hint(argument)
-                    .expect("arguments must have a type-hint")
-                    .get_location_in_parent(),
+                    .and_then(StatementAnnotation::get_location_in_parent)
+                    .expect("arguments must have a type hint"),
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {

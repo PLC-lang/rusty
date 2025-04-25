@@ -745,10 +745,10 @@ impl StatementAnnotation {
     ///     c : DINT;
     /// END_VAR`
     /// ```
-    pub(crate) fn get_location_in_parent(&self) -> u32 {
+    pub(crate) fn get_location_in_parent(&self) -> Option<u32> {
         match self {
-            StatementAnnotation::Argument { position, .. } => *position as u32,
-            _ => panic!("incorrect use, must only be used when we dealing with arguments"),
+            StatementAnnotation::Argument { position, .. } => Some(*position as u32),
+            _ => None,
         }
     }
 }
