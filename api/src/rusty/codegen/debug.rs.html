@@ -996,7 +996,85 @@
 <a href="#995" id="995">995</a>
 <a href="#996" id="996">996</a>
 <a href="#997" id="997">997</a>
-<a href="#998" id="998">998</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#998" id="998">998</a>
+<a href="#999" id="999">999</a>
+<a href="#1000" id="1000">1000</a>
+<a href="#1001" id="1001">1001</a>
+<a href="#1002" id="1002">1002</a>
+<a href="#1003" id="1003">1003</a>
+<a href="#1004" id="1004">1004</a>
+<a href="#1005" id="1005">1005</a>
+<a href="#1006" id="1006">1006</a>
+<a href="#1007" id="1007">1007</a>
+<a href="#1008" id="1008">1008</a>
+<a href="#1009" id="1009">1009</a>
+<a href="#1010" id="1010">1010</a>
+<a href="#1011" id="1011">1011</a>
+<a href="#1012" id="1012">1012</a>
+<a href="#1013" id="1013">1013</a>
+<a href="#1014" id="1014">1014</a>
+<a href="#1015" id="1015">1015</a>
+<a href="#1016" id="1016">1016</a>
+<a href="#1017" id="1017">1017</a>
+<a href="#1018" id="1018">1018</a>
+<a href="#1019" id="1019">1019</a>
+<a href="#1020" id="1020">1020</a>
+<a href="#1021" id="1021">1021</a>
+<a href="#1022" id="1022">1022</a>
+<a href="#1023" id="1023">1023</a>
+<a href="#1024" id="1024">1024</a>
+<a href="#1025" id="1025">1025</a>
+<a href="#1026" id="1026">1026</a>
+<a href="#1027" id="1027">1027</a>
+<a href="#1028" id="1028">1028</a>
+<a href="#1029" id="1029">1029</a>
+<a href="#1030" id="1030">1030</a>
+<a href="#1031" id="1031">1031</a>
+<a href="#1032" id="1032">1032</a>
+<a href="#1033" id="1033">1033</a>
+<a href="#1034" id="1034">1034</a>
+<a href="#1035" id="1035">1035</a>
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1070,7 +1148,7 @@
     /// function's stub as well as its interface (variables/parameters)
     </span><span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        index: <span class="kw-2">&amp;</span>Index,
+        indices: (<span class="kw-2">&amp;</span>Index, <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;),
         func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
         parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
@@ -1301,28 +1379,70 @@
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
 
         <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
-        <span class="kw">for </span>(element_index, (member_name, dt, location)) <span class="kw">in </span>index_types.into_iter().enumerate() {
+        <span class="kw">let </span><span class="kw-2">mut </span>last_offset_bits = <span class="number">0</span>;
+        <span class="kw">let </span><span class="kw-2">mut </span>last_size_bits = <span class="number">0</span>;
+
+        <span class="kw">for </span>(element_index, (member_name, dt, location)) <span class="kw">in </span>index_types.iter().enumerate() {
             <span class="kw">let </span>di_type = <span class="self">self</span>.get_or_create_debug_type(dt, index, types_index)<span class="question-mark">?</span>;
 
-            <span class="comment">//Adjust the offset based on the field alignment
-            </span><span class="kw">let </span>size = types_index
-                .find_associated_type(dt.get_name())
-                .map(|llvm_type| <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>llvm_type))
-                .unwrap_or(<span class="number">0</span>);
-            <span class="comment">//Offset in bits
-            </span><span class="kw">let </span>offset =
-                <span class="self">self</span>.target_data.offset_of_element(<span class="kw-2">&amp;</span>struct_type, element_index <span class="kw">as </span>u32).unwrap_or(<span class="number">0</span>) * <span class="number">8</span>;
+            <span class="comment">// Get the size and alignment
+            </span><span class="kw">let </span>llvm_type = types_index.find_associated_type(dt.get_name());
+            <span class="kw">let </span>align_bits =
+                llvm_type.map(|ty| <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>ty) * <span class="number">8</span>).unwrap_or(<span class="number">0</span>);
+            <span class="kw">let </span>size_bits = llvm_type.map(|ty| <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>ty)).unwrap_or(<span class="number">0</span>);
 
-            types.push(
+            <span class="comment">// Get LLVM's calculated offset
+            </span><span class="kw">let </span>llvm_offset_bits = <span class="self">self
+                </span>.target_data
+                .offset_of_element(<span class="kw-2">&amp;</span>struct_type, element_index <span class="kw">as </span>u32)
+                .map(|offset| offset * <span class="number">8</span>)
+                .unwrap_or(<span class="number">0</span>);
+
+            <span class="comment">// Calculate the properly aligned offset based on the previous field
+            // and this field's alignment requirements
+            </span><span class="kw">let </span>offset_bits = <span class="kw">if </span>size_bits == <span class="number">0 </span>|| (last_size_bits == <span class="number">0 </span>&amp;&amp; element_index &gt; <span class="number">0</span>) {
+                <span class="comment">// For zero-sized types, always use LLVM's offset directly
+                // This ensures they don't contribute to the overall layout calculation
+                // If the previous field was zero-sized, use LLVM's offset
+                // for proper alignment of fields after zero-sized types
+                </span>llvm_offset_bits
+            } <span class="kw">else </span>{
+                <span class="kw">let </span>next_offset_bits: u64 = last_offset_bits + last_size_bits;
+
+                <span class="comment">// Special handling based on alignment requirements:
+                // - Fields with alignment of 64 bits need to be explicitly aligned
+                //   to their alignment boundary to prevent misaligned accesses
+                // - Fields with a lower alignment can use LLVM's natural layout
+                // This differentiation is crucial for correctly representing complex structures
+                // where some fields (like LWORD, LINT) need specific alignment while others (like BYTE, BOOL)
+                // can be packed more efficiently
+                </span><span class="kw">if </span>align_bits == <span class="number">64 </span>{
+                    <span class="comment">// For fields requiring special alignment (64 bit types),
+                    // round up to the nearest alignment boundary
+                    </span>next_offset_bits.div_ceil(align_bits <span class="kw">as </span>u64) * align_bits <span class="kw">as </span>u64
+                } <span class="kw">else </span>{
+                    <span class="comment">// For smaller fields fields (BYTE, BOOL, DINT), we still ensure we don't
+                    // overlap with previous fields by using the maximum of our calculated offset
+                    // and LLVM's calculated offset
+                    </span>std::cmp::max(next_offset_bits, llvm_offset_bits)
+                }
+            };
+
+            <span class="comment">// Update tracking variables for next field
+            </span>last_offset_bits = offset_bits;
+            last_size_bits = size_bits;
+
+            <span class="comment">// Create the member type with calculated offset
+            </span>types.push(
                 <span class="self">self</span>.debug_info
                     .create_member_type(
                         file.as_debug_info_scope(),
                         member_name,
                         file,
                         location.get_line_plus_one() <span class="kw">as </span>u32,
-                        size,
-                        <span class="number">0</span>, <span class="comment">// No set alignment
-                        </span>offset,
+                        size_bits,
+                        align_bits,
+                        offset_bits,
                         DIFlags::PUBLIC,
                         di_type.into(),
                     )
@@ -1330,16 +1450,40 @@
             );
         }
 
-        <span class="kw">let </span>size = <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>struct_type);
-        <span class="comment">//Create a struct type
-        </span><span class="kw">let </span>struct_type = <span class="self">self</span>.debug_info.create_struct_type(
+        <span class="comment">// Calculate struct size based on the last field's offset + size, properly aligned
+        </span><span class="kw">let </span>llvm_size = <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>struct_type);
+        <span class="comment">// Calculate our manual size based on adjusted offsets
+        </span><span class="kw">let </span>calculated_size = {
+            <span class="comment">// Get struct alignment requirement (usually 8 bytes/64 bits for 64-bit architectures)
+            </span><span class="kw">let </span>struct_align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>struct_type) * <span class="number">8</span>;
+
+            <span class="comment">// Calculate total size based on last field offset + size, rounded up to alignment
+            </span><span class="kw">let </span>last_field_end_bits = last_offset_bits + last_size_bits;
+            <span class="kw">let </span>aligned_size_bits =
+                last_field_end_bits.div_ceil(struct_align_bits <span class="kw">as </span>u64) * struct_align_bits <span class="kw">as </span>u64;
+
+            <span class="comment">// If our calculated size is larger than LLVM's, use ours
+            </span><span class="kw">if </span>aligned_size_bits &gt; llvm_size {
+                <span class="macro">log::trace!</span>(
+                    <span class="string">"Struct {}: adjusted size from {} to {} bits due to field alignment"</span>,
+                    name,
+                    llvm_size,
+                    aligned_size_bits
+                );
+                aligned_size_bits
+            } <span class="kw">else </span>{
+                llvm_size
+            }
+        };
+
+        <span class="kw">let </span>struct_type = <span class="self">self</span>.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() <span class="kw">as </span>u32,
-            size,
-            <span class="number">0</span>, <span class="comment">// No set alignment
-            </span>DIFlags::PUBLIC,
+            calculated_size,
+            <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>struct_type) * <span class="number">8</span>,
+            DIFlags::PUBLIC,
             <span class="prelude-val">None</span>,
             types.as_slice(),
             <span class="number">0</span>,
@@ -1362,20 +1506,18 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="comment">//find the inner type debug info
         </span><span class="kw">let </span>inner_type = index.get_type(inner_type)<span class="question-mark">?</span>;
-        <span class="comment">//Find the dimenstions as ranges
+        <span class="comment">//Find the dimensions as ranges
         </span><span class="kw">let </span>subscript = dimensions
             .iter()
             .map(|it| it.get_range_plus_one(index))
-            <span class="comment">//Convert to normal range
-            </span>.collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Range&lt;i64&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
+            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;Range&lt;i64&gt;&gt;, <span class="kw">_</span>&gt;&gt;()
             .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))<span class="question-mark">?</span>;
         <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
-        <span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
-            inner_type.into(),
-            size,
-            <span class="number">0</span>, <span class="comment">//No set alignment
-            </span>subscript.as_slice(),
-        );
+        <span class="kw">let </span>llvm_type = types_index.get_associated_type(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>llvm_type) * <span class="number">8</span>;
+        <span class="kw">let </span>array_type =
+            <span class="self">self</span>.debug_info.create_array_type(inner_type.into(), size, align_bits, subscript.as_slice());
+
         <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
         <span class="prelude-val">Ok</span>(())
     }
@@ -1390,12 +1532,14 @@
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
         <span class="kw">let </span>inner_type = index.get_type(inner_type)<span class="question-mark">?</span>;
         <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>llvm_type = types_index.get_associated_type(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>llvm_type) * <span class="number">8</span>;
         <span class="kw">let </span>pointer_type = <span class="self">self</span>.debug_info.create_pointer_type(
             name,
             inner_type.into(),
             size,
-            <span class="number">0</span>, <span class="comment">//No set alignment
-            </span>inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
+            align_bits,
+            inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(pointer_type));
         <span class="prelude-val">Ok</span>(())
@@ -1436,14 +1580,17 @@
             StringEncoding::Utf16 =&gt; index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
         <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>llvm_type = types_index.get_associated_type(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>llvm_type) * <span class="number">8</span>;
         <span class="comment">//Register an array
         </span><span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
             inner_type.into(),
             size,
-            <span class="number">0</span>, <span class="comment">//No set alignment
-            </span><span class="attr">#[allow(clippy::single_range_in_vec_init)]
+            align_bits,
+            <span class="attr">#[allow(clippy::single_range_in_vec_init)]
             </span><span class="kw-2">&amp;</span>[(<span class="number">0</span>..length)],
         );
+
         <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
         <span class="prelude-val">Ok</span>(())
     }
@@ -1463,14 +1610,16 @@
             .map(|it| <span class="self">self</span>.get_or_create_debug_file(it))
             .unwrap_or_else(|| <span class="self">self</span>.compile_unit.get_file());
 
+        <span class="kw">let </span>llvm_type = types_index.get_associated_type(name)<span class="question-mark">?</span>;
+        <span class="kw">let </span>align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>llvm_type) * <span class="number">8</span>;
         <span class="kw">let </span>typedef = <span class="self">self</span>.debug_info.create_typedef(
             inner_type.into(),
             name,
             file,
             location.get_line_plus_one() <span class="kw">as </span>u32,
             file.as_debug_info_scope(),
-            <span class="number">0</span>, <span class="comment">//No set alignment
-        </span>);
+            align_bits,
+        );
         <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(typedef));
 
         <span class="prelude-val">Ok</span>(())
@@ -1545,6 +1694,7 @@
         pou: <span class="kw-2">&amp;</span>PouIndexEntry,
         func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'_</span>&gt;,
         index: <span class="kw-2">&amp;</span>Index,
+        types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
     ) {
         <span class="kw">let </span><span class="kw-2">mut </span>param_offset = <span class="number">0</span>;
         <span class="comment">//Register the return and local variables for debugging
@@ -1553,7 +1703,12 @@
             .iter()
             .filter(|it| it.is_local() || it.is_temp() || it.is_return())
         {
-            <span class="self">self</span>.register_local_variable(variable, <span class="number">0</span>, func);
+            <span class="kw">let </span>align_bits = types_index
+                .get_associated_type(<span class="kw-2">&amp;</span>variable.data_type_name)
+                .map(|it| <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>it))
+                .unwrap_or(<span class="number">0</span>)
+                * <span class="number">8</span>;
+            <span class="self">self</span>.register_local_variable(variable, align_bits, func);
         }
 
         <span class="kw">let </span>implementation = pou.find_implementation(index).expect(<span class="string">"A POU will have an impl at this stage"</span>);
@@ -1609,13 +1764,14 @@
 
     <span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        index: <span class="kw-2">&amp;</span>Index,
+        indices: (<span class="kw-2">&amp;</span>Index, <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;),
         func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
         parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
         parameter_types: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType],
         implementation_start: usize,
     ) {
+        <span class="kw">let </span>(index, types_index) = indices;
         <span class="kw">let </span>pou = index.find_pou(func.linking_context.get_call_name()).expect(<span class="string">"POU is available"</span>);
         <span class="kw">if </span><span class="macro">matches!</span>(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
             <span class="kw">return</span>;
@@ -1633,7 +1789,7 @@
         <span class="kw">let </span>subprogram = <span class="self">self</span>.create_function(scope, pou, return_type, parameter_types, implementation_start);
         func.function.set_subprogram(subprogram);
         <span class="comment">//Create function parameters
-        </span><span class="self">self</span>.create_function_variables(pou, func, index);
+        </span><span class="self">self</span>.create_function_variables(pou, func, index, types_index);
     }
 
     <span class="kw">fn </span>register_debug_type&lt;<span class="lifetime">'idx</span>&gt;(
@@ -1718,8 +1874,8 @@
                 <span class="bool-val">false</span>,
                 <span class="prelude-val">None</span>,
                 <span class="prelude-val">None</span>,
-                global_variable.get_alignment(),
-            );
+                <span class="number">0</span>, <span class="comment">// Global variable alignment does not need to be forced/set. See https://llvm.org/docs/LangRef.html#global-variables
+            </span>);
             <span class="kw">let </span>gv_metadata = debug_variable.as_metadata_value(<span class="self">self</span>.context);
 
             global_variable.set_metadata(gv_metadata, <span class="number">0</span>);
@@ -1891,7 +2047,7 @@
 
     <span class="kw">fn </span>register_function&lt;<span class="lifetime">'idx</span>&gt;(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        index: <span class="kw-2">&amp;</span>Index,
+        indices: (<span class="kw-2">&amp;</span>Index, <span class="kw-2">&amp;</span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;),
         func: <span class="kw-2">&amp;</span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'idx</span>&gt;,
         return_type: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>DataType&gt;,
         parent_function: <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
@@ -1901,7 +2057,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             <span class="self">Self</span>::None | <span class="self">Self</span>::VariablesOnly(..) =&gt; {}
             <span class="self">Self</span>::Full(obj) =&gt; obj.register_function(
-                index,
+                indices,
                 func,
                 return_type,
                 parent_function,

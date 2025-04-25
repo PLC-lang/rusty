@@ -1171,7 +1171,7 @@
             blocks: FxHashMap::default(),
         };
         debug.register_function(
-            <span class="self">self</span>.index,
+            (<span class="self">self</span>.index, <span class="self">self</span>.llvm_index),
             <span class="kw-2">&amp;</span>function_context,
             return_type,
             parent_function,
