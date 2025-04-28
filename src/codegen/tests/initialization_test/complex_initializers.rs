@@ -148,17 +148,9 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
-    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
-    entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
-      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
@@ -567,7 +559,6 @@ fn nested_initializer_pous() {
 }
 
 #[test]
-#[ignore = "initializing references in same POU not yet supported"]
 fn local_address() {
     let res = generate_to_string(
         "Test",
@@ -584,12 +575,50 @@ fn local_address() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i16, i16* }
+
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %pi = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %deref1 = load %foo*, %foo** %self, align 8
+      %i = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i16* %i, i16** %pi, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+    "#);
 }
 
 #[test]
-#[ignore = "initializing references in same POU not yet supported"]
-fn tmpo() {
+fn user_init_called_for_variables_on_stack() {
     let result = generate_to_string(
         "Test",
         vec![SourceCode::from(
@@ -599,17 +628,83 @@ fn tmpo() {
                 i : INT;
                 pi: REF_TO INT;
             END_VAR
+                METHOD FB_INIT
+                  pi := ADR(i);
+                END_METHOD
             END_FUNCTION_BLOCK
 
-            ACTION foo.init
-            pi := REF(i);
-            END_ACTION
+            FUNCTION main
+            VAR
+                fb: foo;
+            END_VAR
+                fb();
+            END_FUNCTION
             "#,
         )],
     )
     .unwrap();
 
-    insta::assert_snapshot!(result, @r###""###);
+    insta::assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i16, i16* }
+
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @foo__FB_INIT(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      store i16* %i, i16** %pi, align 8
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %foo, align 8
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
+      call void @foo(%foo* %fb)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      call void @foo__FB_INIT(%foo* %deref)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
 }
 
 #[test]
