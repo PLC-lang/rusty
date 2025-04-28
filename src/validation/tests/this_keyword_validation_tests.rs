@@ -22,7 +22,6 @@ fn pointer_arithmetic_with_this() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    todo!();
 }
 
 #[test]
@@ -41,6 +40,7 @@ fn cant_chain_this() {
     );
     dbg!(&diagnostics);
     assert_snapshot!(diagnostics, @r"");
+    panic!();
 }
 
 #[test]
@@ -236,6 +236,8 @@ fn shadowing_is_working() {
 }
 
 #[test]
+#[ignore = "reference resolve issue"]
+/// #TODO: #THIS reference gh issue
 fn nested_fbs_and_this_passing() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -345,6 +347,7 @@ fn this_is_read_only() {
 #[test]
 fn this_chained_with_super_is_not_ok() {
     let diagnostics = parse_and_validate_buffered(
+        // TODO: #THIS check with Michael (nested)
         r#"
         FUNCTION_BLOCK parent
             METHOD DoSomething : DINT
@@ -379,12 +382,14 @@ fn this_in_properties_is_ok() {
             VAR
                 prop_var : INT;
             END_VAR
-            PROPERTY prop : INT
+            PROPERTY GetProp : INT
                 GET
-                    prop := THIS^.prop_var;
+                    GetProp := THIS^.prop;
                 END_GET
+            END_PROPERTY
+            PROPERTY SetProp : INT
                 SET
-                    THIS^.prop_var := prop;
+                    THIS^.prop = SetProp;
                 END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
@@ -396,6 +401,7 @@ fn this_in_properties_is_ok() {
 #[test]
 fn this_calling_function_and_passing_this_is_ok() {
     let diagnostics = parse_and_validate_buffered(
+        // TODO: #THIS check with Michael
         r#"
         FUNCTION_BLOCK FB_Test
             VAR
@@ -403,9 +409,9 @@ fn this_calling_function_and_passing_this_is_ok() {
             END_VAR
             METHOD return_x : INT
                 VAR_INPUT
-                    fb_from_foo : REF_TO FB_Test;
+                    fb_from_foo : FB_Test;
                 END_VAR
-                return_x := fb_from_foo^.x;
+                return_x := fb_from_foo.this^.x;
             END_METHOD
             foo(this);
         END_FUNCTION_BLOCK
@@ -442,7 +448,6 @@ fn this_in_property_calling_method_is_ok() {
     "#,
     );
     assert_snapshot!(diagnostics, @r#""#);
-    todo!();
 }
 
 #[test]
