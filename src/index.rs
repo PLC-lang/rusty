@@ -700,24 +700,19 @@ pub enum PouIndexEntry {
 }
 
 impl PouIndexEntry {
-    pub fn get_method_name(&self) -> String {
+    pub fn get_method_name(&self) -> Option<String> {
         match self {
             PouIndexEntry::Method { property: Some((name, kind)), .. } => {
                 let kind = kind.to_string().to_uppercase();
-                format!("Property `{name}` ({kind})")
+                Some(format!("Property `{name}` ({kind})"))
             }
 
             PouIndexEntry::Method { name, .. } => {
                 let name = name.rsplit_once('.').map(|(_, rhs)| rhs).unwrap_or_default();
-                format!("Method `{name}`")
+                Some(format!("Method `{name}`"))
             }
 
-            _ => unreachable!(
-                "
-                *>yfw reading the name of this method*
-                https://i.pinimg.com/originals/47/8c/fe/478cfec0807b19eb0d96073c0301c82d.gif
-                "
-            ),
+            _ => None,
         }
     }
 }
