@@ -261,7 +261,10 @@ fn type_annotations_indicates_necessary_casts() {
     // foo(3)
     let (_, parameters) = deconstruct_call_statement!(&statements[2]);
     // 3 is a DINT but hinted as an INT because foo expects an INT as first parameter
-    assert_eq!(annotations.get_hint(parameters[0]), Some(&StatementAnnotation::value("INT")));
+    assert_eq!(
+        annotations.get_hint(parameters[0]).unwrap(),
+        &StatementAnnotation::Argument { resulting_type: "INT".to_string(), position: 0 }
+    );
 }
 
 /// The resolver also hints necessary upscaling of operands in binary-expressions (e.g. `myInt + mySInt;`

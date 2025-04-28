@@ -141,7 +141,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    assert_snapshot!(ir, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -218,7 +218,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -305,7 +305,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    assert_snapshot!(ir, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -344,7 +344,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
