@@ -14,12 +14,12 @@ entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   store i32 0, i32* %a, align 4, !dbg !18
-  call void @main_newAction(%main* %0), !dbg !17
-  call void @main_newAction2(%main* %0), !dbg !19
+  call void @main__newAction(%main* %0), !dbg !17
+  call void @main__newAction2(%main* %0), !dbg !19
   ret void, !dbg !20
 }
 
-define void @main_newAction(%main* %0) !dbg !21 {
+define void @main__newAction(%main* %0) !dbg !21 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !22, metadata !DIExpression()), !dbg !23
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
@@ -30,7 +30,7 @@ entry:
   ret void, !dbg !24
 }
 
-define void @main_newAction2(%main* %0) !dbg !25 {
+define void @main__newAction2(%main* %0) !dbg !25 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !26, metadata !DIExpression()), !dbg !27
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0

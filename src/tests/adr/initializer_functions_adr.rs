@@ -813,7 +813,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -886,7 +886,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -895,7 +895,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_baz(%foo* %0) {
+    define void @foo__baz(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -956,7 +956,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x1 = alloca i32, align 4

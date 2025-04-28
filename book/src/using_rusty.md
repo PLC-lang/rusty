@@ -142,7 +142,7 @@ When your code is compiled, the compiler creates a special initialization functi
 
 `<projectname>` is either taken directly from the `plc.json`'s `name` field or derived from the first input file (replacing `.`/`-` with `_`) when compiling without a `plc.json` (e.g. `plc prog.st ...` would yield `__init___prog_st`).
 
-This function is added to the global constructor list, therefore loading the binary will automatically call the `__init___<projectname>` function (and therefore your `<FunctionBlockName>_FB_INIT` function) when an instance of your function block is created, before any other methods are called. This allows you to set default values or perform required setup for your function block.
+This function is added to the global constructor list, therefore loading the binary will automatically call the `__init___<projectname>` function (and therefore your `<FunctionBlockName>__FB_INIT` function) when an instance of your function block is created, before any other methods are called. This allows you to set default values or perform required setup for your function block.
 
 > **IMPORTANT:** The global constructor initialization is currently only supported for `x86` ISAs. To make sure initialization code runs reliably regardless of target-architecture, ensure your runtime calls this function before starting main task execution.
 If you're using the executable without a runtime, you **must** ensure that `__init___<projectname>` is called before any other code runs. Failure to do so will result in uninitialized function blocks and pointers, which can lead to undefined behavior and/or crashes.

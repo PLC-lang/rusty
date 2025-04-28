@@ -14,7 +14,7 @@ source_filename = "<internal>"
 
 define void @bar(%bar* %0) {
 entry:
-  call void @prg_foo(%prg* @prg_instance)
+  call void @prg__foo(%prg* @prg_instance)
   ret void
 }
 
@@ -24,7 +24,7 @@ entry:
   ret void
 }
 
-define void @prg_foo(%prg* %0) {
+define void @prg__foo(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   store i32 2, i32* %x, align 4

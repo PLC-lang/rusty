@@ -12,19 +12,19 @@ source_filename = "<internal>"
 
 define void @fb(%fb* %0) {
 entry:
-  %call = call i32 @fb_meth(%fb* %0, i32 5)
-  %call1 = call i32 @fb_meth(%fb* %0, i32 4)
+  %call = call i32 @fb__meth(%fb* %0, i32 5)
+  %call1 = call i32 @fb__meth(%fb* %0, i32 4)
   ret void
 }
 
-define i32 @fb_meth(%fb* %0, i32 %1) {
+define i32 @fb__meth(%fb* %0, i32 %1) {
 entry:
   %fb.meth = alloca i32, align 4
   %a = alloca i32, align 4
   store i32 %1, i32* %a, align 4
   store i32 0, i32* %fb.meth, align 4
-  %fb_meth_ret = load i32, i32* %fb.meth, align 4
-  ret i32 %fb_meth_ret
+  %fb__meth_ret = load i32, i32* %fb.meth, align 4
+  ret i32 %fb__meth_ret
 }
 
 define i32 @foo() {

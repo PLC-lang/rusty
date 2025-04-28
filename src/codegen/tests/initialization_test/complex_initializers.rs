@@ -388,7 +388,7 @@ fn nested_initializer_pous() {
     entry:
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      call void @bar_print(%bar* %b)
+      call void @bar__print(%bar* %b)
       call void @bar(%bar* %b)
       ret void
     }
@@ -396,7 +396,7 @@ fn nested_initializer_pous() {
     define void @bar(%bar* %0) {
     entry:
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      call void @baz_print(%baz* %b)
+      call void @baz__print(%baz* %b)
       ret void
     }
 
@@ -418,24 +418,24 @@ fn nested_initializer_pous() {
       %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 0
       %f = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 1
       call void @foo(%foo* %f)
-      call void @foo_print(%foo* %f)
+      call void @foo__print(%foo* %f)
       ret void
     }
 
-    define void @bar_print(%bar* %0) {
+    define void @bar__print(%bar* %0) {
     entry:
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
-    define void @foo_print(%foo* %0) {
+    define void @foo__print(%foo* %0) {
     entry:
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
-    define void @baz_print(%baz* %0) {
+    define void @baz__print(%baz* %0) {
     entry:
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
@@ -559,7 +559,6 @@ fn nested_initializer_pous() {
 }
 
 #[test]
-#[ignore = "initializing references in same POU not yet supported"]
 fn local_address() {
     let res = generate_to_string(
         "Test",
@@ -576,12 +575,50 @@ fn local_address() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(res, @r###""###);
+    insta::assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i16, i16* }
+
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %pi = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %deref1 = load %foo*, %foo** %self, align 8
+      %i = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i16* %i, i16** %pi, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+    "#);
 }
 
 #[test]
-#[ignore = "initializing references in same POU not yet supported"]
-fn tmpo() {
+fn user_init_called_for_variables_on_stack() {
     let result = generate_to_string(
         "Test",
         vec![SourceCode::from(
@@ -591,17 +628,83 @@ fn tmpo() {
                 i : INT;
                 pi: REF_TO INT;
             END_VAR
+                METHOD FB_INIT
+                  pi := ADR(i);
+                END_METHOD
             END_FUNCTION_BLOCK
 
-            ACTION foo.init
-            pi := REF(i);
-            END_ACTION
+            FUNCTION main
+            VAR
+                fb: foo;
+            END_VAR
+                fb();
+            END_FUNCTION
             "#,
         )],
     )
     .unwrap();
 
-    insta::assert_snapshot!(result, @r###""###);
+    insta::assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %foo = type { i16, i16* }
+
+    @__foo__init = constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @foo__FB_INIT(%foo* %0) {
+    entry:
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      store i16* %i, i16** %pi, align 8
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %fb = alloca %foo, align 8
+      %0 = bitcast %foo* %fb to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
+      call void @foo(%foo* %fb)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      call void @foo__FB_INIT(%foo* %deref)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
 }
 
 #[test]
@@ -834,7 +937,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @foo_m(%foo* %0) {
+    define void @foo__m(%foo* %0) {
     entry:
       ret void
     }
@@ -844,12 +947,12 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
-    define void @cl_m(%cl* %0) {
+    define void @cl__m(%cl* %0) {
     entry:
       ret void
     }
 
-    define void @foo_act(%foo* %0) {
+    define void @foo__act(%foo* %0) {
     entry:
       ret void
     }
@@ -1657,7 +1760,7 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1724,7 +1827,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
@@ -1790,7 +1893,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
@@ -1856,7 +1959,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1919,7 +2022,7 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -1982,7 +2085,7 @@ fn initializing_method_variables_with_reference_to() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
@@ -2061,7 +2164,7 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    define void @bar_baz(%bar* %0) {
+    define void @bar__baz(%bar* %0) {
     entry:
       %fb = alloca %foo, align 8
       %1 = bitcast %foo* %fb to i8*
@@ -2162,7 +2265,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       ret void
     }
 
-    define void @foo_FB_INIT(%foo* %0) {
+    define void @foo__FB_INIT(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
@@ -2210,7 +2313,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      call void @foo_FB_INIT(%foo* %deref)
+      call void @foo__FB_INIT(%foo* %deref)
       ret void
     }
 
@@ -2282,7 +2385,7 @@ fn user_fb_init_in_global_struct() {
       ret void
     }
 
-    define void @foo_FB_INIT(%foo* %0) {
+    define void @foo__FB_INIT(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
@@ -2351,7 +2454,7 @@ fn user_fb_init_in_global_struct() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      call void @foo_FB_INIT(%foo* %deref)
+      call void @foo__FB_INIT(%foo* %deref)
       ret void
     }
 
@@ -2406,7 +2509,7 @@ fn user_init_called_when_declared_as_external() {
 
     declare void @foo(%foo*)
 
-    declare void @foo_FB_INIT(%foo*)
+    declare void @foo__FB_INIT(%foo*)
 
     define void @prog(%prog* %0) {
     entry:
@@ -2437,7 +2540,7 @@ fn user_init_called_when_declared_as_external() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      call void @foo_FB_INIT(%foo* %deref)
+      call void @foo__FB_INIT(%foo* %deref)
       ret void
     }
 
