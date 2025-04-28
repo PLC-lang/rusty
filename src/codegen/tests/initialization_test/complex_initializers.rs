@@ -148,9 +148,17 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
+    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
