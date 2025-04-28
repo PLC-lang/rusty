@@ -636,7 +636,7 @@
     <span class="doccomment">/// Returns the symbol name of this projects main initializer function
     </span><span class="kw">pub fn </span>get_init_symbol_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
         <span class="comment">//Converts into static because this will live forever
-        </span><span class="macro">format!</span>(<span class="string">"__init___{}"</span>, <span class="self">self</span>.get_name().replace(<span class="string">'.'</span>, <span class="string">"_"</span>)).leak()
+        </span><span class="macro">format!</span>(<span class="string">"__init___{}"</span>, <span class="self">self</span>.get_name().replace([<span class="string">'.'</span>, <span class="string">'-'</span>], <span class="string">"_"</span>)).leak()
     }
 }
 

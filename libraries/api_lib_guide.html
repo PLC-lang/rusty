@@ -415,7 +415,54 @@ pub struct myStruct {
 }
 <span class="boring">}</span></code></pre></pre>
 <h3 id="25-function_block-initialization"><a class="header" href="#25-function_block-initialization">2.5 <code>FUNCTION_BLOCK</code> initialization</a></h3>
-<p>Not yet implemented.</p>
+<p>When creating a library with <code>FUNCTION_BLOCK</code>s, you can implement initialization logic that runs when an instance is created.</p>
+<p>For more details on <code>FB_INIT</code> in IEC61131-3, refer to the <a href="../pous.html#function_block-initialization">Program Organization Units (POUs)</a> documentation.</p>
+<h4 id="interoperability-with-libraries-written-in-other-languages"><a class="header" href="#interoperability-with-libraries-written-in-other-languages">Interoperability with libraries written in other languages</a></h4>
+<p>When implementing a <code>FUNCTION_BLOCK</code> with initialization in C or other languages, you need to follow a specific naming convention for the initialization function.</p>
+<p>For a C implementation:</p>
+<ol>
+<li>Define a struct that matches your <code>FUNCTION_BLOCK</code> variables:</li>
+</ol>
+<pre><code class="language-c">typedef struct {
+    int a;
+    int b;
+    // Other members as needed
+} myFunctionBlock;
+</code></pre>
+<ol start="2">
+<li>ruSTy expects a default-initializer to be present to initialize instances on the stack
+(<code>VAR_TEMP</code> blocks or <code>VAR</code> blocks in functions or methods)</li>
+</ol>
+<p>This global instance follows the naming scheme of <code>__&lt;FunctionBlockName&gt;__init</code>, below is an example of a zero-initializer:</p>
+<pre><code class="language-c">myFunctionBlock __myFunctionBlock__init = { 0 };
+</code></pre>
+<ol start="3">
+<li>Optionally create an initialization function following the naming pattern <code>&lt;FunctionBlockName&gt;_FB_INIT</code>:</li>
+</ol>
+<pre><code class="language-c">void myFunctionBlock_FB_INIT(myFunctionBlock* fb_instance) {
+    // Initialize members here
+    fb_instance-&gt;a = 1;
+    fb_instance-&gt;b = 2;
+    
+    // ...perform any other needed initialization
+}
+</code></pre>
+<ol start="4">
+<li>In your IEC61131-3 declaration (e.g., in a header file [<code>*.pli</code>]), ensure your <code>FUNCTION_BLOCK</code> includes the <code>FB_INIT</code> method (if present):</li>
+</ol>
+<pre><code>{external}
+FUNCTION_BLOCK myFunctionBlock
+VAR
+    a : DINT;
+    b : DINT;
+END_VAR
+    METHOD FB_INIT
+    END_METHOD
+END_FUNCTION_BLOCK
+</code></pre>
+<p>Note that the <code>FB_INIT</code> method doesn't need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.</p>
+<h4 id="project-wide-initialization"><a class="header" href="#project-wide-initialization">Project-wide initialization</a></h4>
+<p>See <a href="../using_rusty.html#project-wide-initialization">Project-wide initialization</a></p>
 
                     </main>
 

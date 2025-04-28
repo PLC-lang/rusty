@@ -262,6 +262,23 @@ END_VAR
 (* code *)
 END_FUNCTION_BLOCK
 </code></pre>
+<h4 id="function_block-initialization"><a class="header" href="#function_block-initialization"><code>FUNCTION_BLOCK</code> initialization</a></h4>
+<p>Function blocks can define a special method called <code>FB_INIT</code> that is automatically called when an instance is created. This is analogous to a constructor in object-oriented programming.</p>
+<p>The <code>FB_INIT</code> method allows you to initialize the function block's variables to specific values. It is called during program initialization before any other code runs.</p>
+<p><code>FB_INIT</code> methods can neither have parameters nor a return type in their current implementation - violating this contract will lead to undefined behaviour at runtime.</p>
+<pre><code class="language-iecst">FUNCTION_BLOCK MyFB
+VAR
+    x : INT;
+    y : INT;
+END_VAR
+    METHOD FB_INIT
+        x := 1;
+        y := 2;
+    END_METHOD
+
+    // Other methods and code...
+END_FUNCTION_BLOCK
+</code></pre>
 <h3 id="action"><a class="header" href="#action">Action</a></h3>
 <p>An action is represented by a parent struct, and does not define its own interface (VAR blocks).
 An action can only be defined for Programs and Function Blocks.</p>
