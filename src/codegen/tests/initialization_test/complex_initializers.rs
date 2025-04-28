@@ -141,9 +141,17 @@ fn init_functions_generated_for_programs() {
       ret void
     }
 
+    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
     "#);
@@ -203,6 +211,13 @@ fn init_functions_work_with_adr() {
     }
 
     declare void @PLC_PRG(%PLC_PRG*)
+
+    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    entry:
+      %self = alloca %PLC_PRG*, align 8
+      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      ret void
+    }
     ; ModuleID = '__init___testproject'
     source_filename = "__init___testproject"
 
@@ -214,12 +229,15 @@ fn init_functions_work_with_adr() {
     define void @__init___testproject() {
     entry:
       call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
       ret void
     }
 
     declare void @__init_plc_prg(%PLC_PRG*)
 
     declare void @PLC_PRG(%PLC_PRG*)
+
+    declare void @__user_init_PLC_PRG(%PLC_PRG*)
     "#);
 }
 
@@ -266,6 +284,13 @@ fn init_functions_generated_for_function_blocks() {
       %deref = load %foo*, %foo** %self, align 8
       %to_init = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
       store [81 x i8]* @s, [81 x i8]** %to_init, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
       ret void
     }
 
@@ -475,10 +500,59 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    define void @__user_init_sideProg(%sideProg* %0) {
+    entry:
+      %self = alloca %sideProg*, align 8
+      store %sideProg* %0, %sideProg** %self, align 8
+      %deref = load %sideProg*, %sideProg** %self, align 8
+      %f = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 1
+      call void @__user_init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      call void @__user_init_bar(%bar* %b)
+      ret void
+    }
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_baz(%baz* %b)
+      ret void
+    }
+
+    define void @__user_init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_mainProg(%mainProg* %0) {
+    entry:
+      %self = alloca %mainProg*, align 8
+      store %mainProg* %0, %mainProg** %self, align 8
+      %deref = load %mainProg*, %mainProg** %self, align 8
+      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
+      call void @__user_init_foo(%foo* %f)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_mainprog(%mainProg* @mainProg_instance)
       call void @__init_sideprog(%sideProg* @sideProg_instance)
+      call void @__user_init_mainProg(%mainProg* @mainProg_instance)
+      call void @__user_init_sideProg(%sideProg* @sideProg_instance)
       ret void
     }
     "#);
@@ -675,9 +749,27 @@ fn struct_types() {
       ret void
     }
 
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_myStruct(%myStruct* %str)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
     "#);
@@ -790,9 +882,31 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
     "#);
@@ -865,10 +979,26 @@ fn global_instance() {
       ret void
     }
 
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @fb)
+      call void @__user_init_prog(%prog* @prog_instance)
+      call void @__user_init_foo(%foo* @fb)
       ret void
     }
     "#);
@@ -950,10 +1080,29 @@ fn aliased_types() {
       ret void
     }
 
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %fb = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %fb)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @global_alias)
+      call void @__user_init_prog(%prog* @prog_instance)
+      call void @__user_init_foo(%foo* @global_alias)
       ret void
     }
     "#);
@@ -1100,10 +1249,31 @@ fn var_config_aliased_variables_initialized() {
       ret void
     }
 
+    define void @__user_init_FB(%FB* %0) {
+    entry:
+      %self = alloca %FB*, align 8
+      store %FB* %0, %FB** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %instance1 = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_FB(%FB* %instance1)
+      %deref1 = load %prog*, %prog** %self, align 8
+      %instance2 = getelementptr inbounds %prog, %prog* %deref1, i32 0, i32 1
+      call void @__user_init_FB(%FB* %instance2)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init___var_config()
+      call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
 
@@ -1164,6 +1334,13 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -1233,6 +1410,13 @@ fn ref_to_local_member() {
       %deref6 = load %foo*, %foo** %self, align 8
       %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 0
       store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
       ret void
     }
 
@@ -1306,6 +1490,13 @@ fn ref_to_local_member_shadows_global() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1358,6 +1549,13 @@ fn temporary_variable_ref_to_local_member() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -1476,6 +1674,13 @@ fn initializing_method_variables_with_refs() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1535,6 +1740,13 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1587,6 +1799,13 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -1654,6 +1873,13 @@ fn initializing_method_variables_with_refs_shadowing() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1710,6 +1936,13 @@ fn initializing_method_variables_with_alias() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1760,6 +1993,13 @@ fn initializing_method_variables_with_reference_to() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -1827,6 +2067,7 @@ fn methods_call_init_functions_for_their_members() {
       %1 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
       ret void
     }
 
@@ -1852,11 +2093,359 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
+}
+
+#[test]
+fn user_fb_init_is_added_and_called_if_it_exists() {
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+        FUNCTION_BLOCK foo
+        VAR
+            x : INT := 0;
+            y : INT := 0;
+        END_VAR
+            METHOD FB_INIT
+                x := 1;
+                y := 2;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog 
+        VAR 
+            f : foo;
+        END_VAR
+            f();
+        END_PROGRAM
+        "#,
+        )],
+    )
+    .unwrap();
+
+    assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %prog = type { %foo }
+    %foo = type { i16, i16 }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @foo_FB_INIT(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      store i16 1, i16* %x, align 2
+      store i16 2, i16* %y, align 2
+      ret void
+    }
+
+    define void @prog(%prog* %0) {
+    entry:
+      %f = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      call void @foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %f = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %f = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      call void @foo_FB_INIT(%foo* %deref)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn user_fb_init_in_global_struct() {
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+        TYPE
+            bar : STRUCT
+               f: foo; 
+            END_STRUCT;
+        END_TYPE
+
+        VAR_GLOBAL
+            str: bar;
+        END_VAR
+
+        FUNCTION_BLOCK foo
+        VAR
+            x : INT := 0;
+            y : INT := 0;
+        END_VAR
+            METHOD FB_INIT
+                x := 1;
+                y := 2;
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog 
+        VAR 
+            str: bar;
+        END_VAR
+            str.f();
+        END_PROGRAM
+        "#,
+        )],
+    )
+    .unwrap();
+
+    assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %prog = type { %bar }
+    %bar = type { %foo }
+    %foo = type { i16, i16 }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog zeroinitializer
+    @__bar__init = constant %bar zeroinitializer
+    @__foo__init = constant %foo zeroinitializer
+    @str = global %bar zeroinitializer
+
+    define void @foo(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @foo_FB_INIT(%foo* %0) {
+    entry:
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      store i16 1, i16* %x, align 2
+      store i16 2, i16* %y, align 2
+      ret void
+    }
+
+    define void @prog(%prog* %0) {
+    entry:
+      %str = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      %f = getelementptr inbounds %bar, %bar* %str, i32 0, i32 0
+      call void @foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %f = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_bar(%bar* %str)
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %str = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_bar(%bar* %str)
+      ret void
+    }
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %f = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      call void @foo_FB_INIT(%foo* %deref)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__init_bar(%bar* @str)
+      call void @__user_init_prog(%prog* @prog_instance)
+      call void @__user_init_bar(%bar* @str)
+      ret void
+    }
+    "#);
+}
+
+#[test]
+fn user_init_called_when_declared_as_external() {
+    let res = generate_to_string(
+        "Test",
+        vec![SourceCode::from(
+            r#"
+        {external}
+        FUNCTION_BLOCK foo
+        VAR
+            x : INT;
+            y : INT;
+        END_VAR
+            METHOD FB_INIT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        PROGRAM prog 
+        VAR 
+            f: foo;
+        END_VAR
+            f();
+        END_PROGRAM
+        "#,
+        )],
+    )
+    .unwrap();
+
+    assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %prog = type { %foo }
+    %foo = type { i16, i16 }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog zeroinitializer
+    @__foo__init = external global %foo
+
+    declare void @foo(%foo*)
+
+    declare void @foo_FB_INIT(%foo*)
+
+    define void @prog(%prog* %0) {
+    entry:
+      %f = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      call void @foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %f = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      call void @foo_FB_INIT(%foo* %deref)
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
+      ret void
+    }
     "#);
 }

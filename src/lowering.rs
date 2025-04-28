@@ -2,7 +2,7 @@ use crate::{
     index::{get_init_fn_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::const_evaluator::UnresolvableConstant,
 };
-use initializers::{Init, InitAssignments, Initializers, GLOBAL_SCOPE};
+use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
@@ -12,6 +12,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+use rustc_hash::FxHashMap;
 
 pub mod calls;
 mod initializers;
@@ -21,6 +22,7 @@ pub struct InitVisitor {
     index: Index,
     unresolved_initializers: Initializers,
     var_config_initializers: Vec<AstNode>,
+    user_inits: FxHashMap<String, bool>,
     ctxt: Context,
 }
 
@@ -33,6 +35,10 @@ impl InitVisitor {
         init_symbol_name: &'static str,
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
+        // before visiting, we need to collect all candidates for user-defined init functions
+        units.iter().for_each(|unit| {
+            visitor.collect_user_init_candidates(unit);
+        });
         // visit all units
         units.iter_mut().for_each(|unit| {
             visitor.visit_compilation_unit(unit);
@@ -50,6 +56,7 @@ impl InitVisitor {
             index,
             unresolved_initializers: Initializers::new(&unresolved_initializers),
             var_config_initializers: vec![],
+            user_inits: FxHashMap::default(),
             ctxt: Context::new(id_provider),
         }
     }
@@ -61,6 +68,25 @@ impl InitVisitor {
         let old = self.ctxt.scope(pou_name.map(Into::into));
         t.walk(self);
         self.ctxt.scope(old);
+    }
+
+    fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
+        // collect all candidates for user-defined init functions
+        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
+        {
+            // add the POU to potential `FB_INIT` candidates
+            self.user_inits
+                .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
+        }
+
+        for user_type in
+            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+        {
+            // add the struct to potential `STRUCT_INIT` candidates
+            if let Some(name) = user_type.data_type.get_name() {
+                self.user_inits.insert(name.to_string(), false);
+            };
+        }
     }
 
     fn update_initializer(&mut self, variable: &mut plc_ast::ast::Variable) {
@@ -213,30 +239,41 @@ impl InitVisitor {
             })
         });
 
-        // collect necessary call statements to init-functions
-        let delegated_calls = self
-            .index
-            .get_pou_members(&implementation.name)
-            .iter()
-            .filter(|var| predicate(var))
-            .filter_map(|var| {
+        // collect necessary call statements to init-functions and user-defined init-functions
+        let mut implicit_calls = Vec::new();
+        let mut user_init_calls = Vec::new();
+        self.index.get_pou_members(&implementation.name).iter().filter(|var| predicate(var)).for_each(
+            |var| {
                 let dti =
                     self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
-                if dti.is_struct() {
-                    Some(create_call_statement(
+                let is_external = self
+                    .index
+                    .find_pou(dti.get_name())
+                    .is_some_and(|it| it.get_linkage() == &LinkageType::External);
+                if dti.is_struct() && !is_external {
+                    implicit_calls.push(create_call_statement(
                         &get_init_fn_name(dti.get_name()),
                         var.get_name(),
                         None,
                         self.ctxt.get_id_provider(),
                         &implementation.name_location,
-                    ))
-                } else {
-                    None
+                    ));
                 }
-            });
+                if self.user_inits.contains_key(dti.get_name()) {
+                    user_init_calls.push(create_call_statement(
+                        &get_user_init_fn_name(dti.get_name()),
+                        var.get_name(),
+                        None,
+                        self.ctxt.get_id_provider(),
+                        &implementation.name_location,
+                    ));
+                }
+            },
+        );
 
         let stmts = assignments
-            .chain(delegated_calls)
+            .chain(implicit_calls)
+            .chain(user_init_calls)
             .chain(std::mem::take(&mut implementation.statements))
             .collect::<Vec<_>>();
         implementation.statements = stmts;

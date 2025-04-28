@@ -142,8 +142,6 @@ void Count(CountStruct* countInst) {
 }
 ```
 
-
-
 #### 2.2.3 Return values
 
 A `FUNCTION` defines a return value in the signature, while a `FUNCTION_BLOCK` relies on `VAR_OUTPUT` definitions.
@@ -334,6 +332,67 @@ pub struct myStruct {
 ```
 
 ### 2.5 `FUNCTION_BLOCK` initialization
-Not yet implemented.
+
+When creating a library with `FUNCTION_BLOCK`s, you can implement initialization logic that runs when an instance is created. 
+
+For more details on `FB_INIT` in IEC61131-3, refer to the [Program Organization Units (POUs)](../pous.md#function_block-initialization) documentation.
+
+#### Interoperability with libraries written in other languages
+
+When implementing a `FUNCTION_BLOCK` with initialization in C or other languages, you need to follow a specific naming convention for the initialization function.
+
+For a C implementation:
+
+1. Define a struct that matches your `FUNCTION_BLOCK` variables:
+
+```c
+typedef struct {
+    int a;
+    int b;
+    // Other members as needed
+} myFunctionBlock;
+```
+
+2. ruSTy expects a default-initializer to be present to initialize instances on the stack
+(`VAR_TEMP` blocks or `VAR` blocks in functions or methods)
+
+This global instance follows the naming scheme of `__<FunctionBlockName>__init`, below is an example of a zero-initializer:
+
+```c
+myFunctionBlock __myFunctionBlock__init = { 0 };
+```
+
+3. Optionally create an initialization function following the naming pattern `<FunctionBlockName>_FB_INIT`:
+
+```c
+void myFunctionBlock_FB_INIT(myFunctionBlock* fb_instance) {
+    // Initialize members here
+    fb_instance->a = 1;
+    fb_instance->b = 2;
+    
+    // ...perform any other needed initialization
+}
+```
+
+4. In your IEC61131-3 declaration (e.g., in a header file [`*.pli`]), ensure your `FUNCTION_BLOCK` includes the `FB_INIT` method (if present):
+
+```
+{external}
+FUNCTION_BLOCK myFunctionBlock
+VAR
+    a : DINT;
+    b : DINT;
+END_VAR
+    METHOD FB_INIT
+    END_METHOD
+END_FUNCTION_BLOCK
+```
+
+Note that the `FB_INIT` method doesn't need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.
+
+#### Project-wide initialization
+
+See [Project-wide initialization](../using_rusty.md#project-wide-initialization)
+
 
 

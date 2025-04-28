@@ -26,9 +26,17 @@ entry:
   ret void
 }
 
+define void @__user_init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+  ret void
+}
+
 define void @__init___plc() {
 entry:
   call void @__init_main(%main* @main_instance)
+  call void @__user_init_main(%main* @main_instance)
   ret void
 }
 

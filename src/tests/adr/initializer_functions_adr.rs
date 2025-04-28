@@ -354,7 +354,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
-    assert_eq!(init_impl.statements.len(), 4);
+    assert_eq!(init_impl.statements.len(), 7);
     // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
     // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
     // instance.
@@ -507,6 +507,20 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_myRefStruct(%myRefStruct* %0) {
+    entry:
+      %self = alloca %myRefStruct*, align 8
+      store %myRefStruct* %0, %myRefStruct** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -618,10 +632,46 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__user_init_baz(%baz* %0) {
+    entry:
+      %self = alloca %baz*, align 8
+      store %baz* %0, %baz** %self, align 8
+      %deref = load %baz*, %baz** %self, align 8
+      %fb = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
+      call void @__user_init_bar(%bar* %fb)
+      ret void
+    }
+
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %fb)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
+      call void @__user_init_baz(%baz* @baz_instance)
+      call void @__user_init_myStruct(%myStruct* @s)
       ret void
     }
     "#);
@@ -694,6 +744,7 @@ fn intializing_temporary_variables() {
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       call void @__init_foo(%foo* %fb)
+      call void @__user_init_foo(%foo* %fb)
       call void @foo(%foo* %fb)
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
@@ -709,6 +760,13 @@ fn intializing_temporary_variables() {
       %deref = load %foo*, %foo** %self, align 8
       %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
       ret void
     }
 
@@ -766,6 +824,13 @@ fn initializing_method_variables() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
@@ -846,6 +911,13 @@ fn initializing_method_variables() {
       ret void
     }
 
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -896,6 +968,13 @@ fn initializing_method_variables() {
     }
 
     define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
