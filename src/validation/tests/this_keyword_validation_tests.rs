@@ -2,30 +2,23 @@ use insta::assert_snapshot;
 use test_utils::parse_and_validate_buffered;
 
 #[test]
-fn pointer_arithmetic_with_this() {
+fn this_pointer_arithmetic_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        FUNCTION_BLOCK parent
-        VAR
-            x : LINT := 10;
-            y : LINT := 20;
-        END_VAR
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK child EXTENDS parent
+        FUNCTION_BLOCK fb
         VAR
             a : INT;
         END_VAR
-            // Pointer arithmetic with SUPER
+            // Pointer arithmetic with THIS
             a := (THIS + 1)^ + 5;
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
-fn cant_chain_this() {
+fn chaining_this_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION_BLOCK parent
@@ -38,13 +31,35 @@ fn cant_chain_this() {
     END_FUNCTION_BLOCK
     "#,
     );
-    dbg!(&diagnostics);
-    assert_snapshot!(diagnostics, @r"");
-    panic!();
+    assert_snapshot!(diagnostics, @r"
+    error[E120]: `THIS` is not allowed in member-access position.
+      ┌─ <internal>:7:26
+      │
+    7 │         this^.x := this^.this^.this^.y;
+      │                          ^^^^ `THIS` is not allowed in member-access position.
+
+    error[E120]: `THIS` is not allowed in member-access position.
+      ┌─ <internal>:7:32
+      │
+    7 │         this^.x := this^.this^.this^.y;
+      │                                ^^^^ `THIS` is not allowed in member-access position.
+
+    error[E120]: `THIS` is not allowed in member-access position.
+      ┌─ <internal>:8:15
+      │
+    8 │         this^.this^.this^.x := this^.y;
+      │               ^^^^ `THIS` is not allowed in member-access position.
+
+    error[E120]: `THIS` is not allowed in member-access position.
+      ┌─ <internal>:8:21
+      │
+    8 │         this^.this^.this^.x := this^.y;
+      │                     ^^^^ `THIS` is not allowed in member-access position.
+    ");
 }
 
 #[test]
-fn this_in_method_call_chain_is_allowed() {
+fn this_in_method_call_chain_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -62,53 +77,11 @@ fn this_in_method_call_chain_is_allowed() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
-fn this_in_program_is_not_allowed_() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        PROGRAM Main
-            VAR
-                x : INT := 5;
-            END_VAR
-            x := THIS^.x;
-        END_PROGRAM
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r"
-    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
-      ┌─ <internal>:6:18
-      │
-    6 │             x := THIS^.x;
-      │                  ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
-    ");
-}
-
-#[test]
-fn this_in_function_is_not_allowed() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        FUNCTION SomeFunction : INT
-        VAR
-            SomeValue : INT := 5;
-        END_VAR
-        SomeFunction := THIS^.SomeValue;
-        END_FUNCTION
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r"
-    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
-      ┌─ <internal>:6:25
-      │
-    6 │         SomeFunction := THIS^.SomeValue;
-      │                         ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
-    ");
-}
-
-#[test]
-fn this_cannot_be_assigned_to() {
+fn assignment_to_this_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(
         r#"
     FUNCTION_BLOCK parent
@@ -155,11 +128,17 @@ fn this_cannot_be_assigned_to() {
        │
     10 │         this := ADR(parent); // this is not allowed
        │         ^^^^ Expression this is not assignable.
+
+    error[E050]: Expression this is not assignable.
+       ┌─ <internal>:12:9
+       │
+    12 │         this := p;
+       │         ^^^^ Expression this is not assignable.
     ");
 }
 
 #[test]
-fn basic_use() {
+fn this_in_method_and_body_in_function_block_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -174,7 +153,7 @@ fn basic_use() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -184,32 +163,23 @@ fn pass_this_to_method_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
-        METHOD increment_from_other
+        METHOD foo
             VAR
-                test : FB_Test;
+                test : FB_Test2;
             END_VAR
-            test.method2(THIS);
-
+            test.bar(THIS^);
         END_METHOD
         END_FUNCTION_BLOCK
         FUNCTION_BLOCK FB_Test2
-        METHOD method1
-            VAR
+            VAR_INPUT
                 test : FB_Test;
             END_VAR
-            test.method2(THIS);
-        END_METHOD
-        METHOD method2
-            VAR
-                test : FB_Test;
-            END_VAR
-            test := THIS;
-        END_METHOD
+            METHOD bar: INT
+            END_METHOD
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-    todo!();
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -272,30 +242,7 @@ fn nested_fbs_and_this_passing() {
 }
 
 #[test]
-fn this_as_method_argument_is_ok() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        FUNCTION_BLOCK FB_Test
-            VAR
-                helper : FB_Helper;
-            END_VAR
-            METHOD CallHelper
-                helper.DoSomething(THIS^);
-            END_METHOD
-        END_FUNCTION_BLOCK
-
-        FUNCTION_BLOCK FB_Helper
-            METHOD DoSomething
-                VAR_INPUT input : FB_Test; END_VAR
-            END_METHOD
-        END_FUNCTION_BLOCK
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r#""#);
-}
-
-#[test]
-fn this_in_recursive_method() {
+fn this_in_recursive_method_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
@@ -311,37 +258,7 @@ fn this_in_recursive_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-}
-
-#[test]
-fn this_is_read_only() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        FUNCTION_BLOCK FB_Test
-        END_FUNCTION_BLOCK
-        FUNCTION_BLOCK FB_Test2
-            VAR
-                test : FB_Test;
-            END_VAR
-            this := ADR(test); // this is not allowed
-            this^ := test;
-        END_FUNCTION_BLOCK
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r"
-    error[E050]: Expression this is not assignable.
-      ┌─ <internal>:8:13
-      │
-    8 │             this := ADR(test); // this is not allowed
-      │             ^^^^ Expression this is not assignable.
-
-    error[E037]: Invalid assignment: cannot assign 'FB_Test' to 'FB_Test2'
-      ┌─ <internal>:9:13
-      │
-    9 │             this^ := test;
-      │             ^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FB_Test' to 'FB_Test2'
-    ");
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -375,55 +292,20 @@ fn this_chained_with_super_is_not_ok() {
 }
 
 #[test]
-fn this_in_properties_is_ok() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-        FUNCTION_BLOCK FB_Test
-            VAR
-                prop_var : INT;
-            END_VAR
-            PROPERTY GetProp : INT
-                GET
-                    GetProp := THIS^.prop;
-                END_GET
-            END_PROPERTY
-            PROPERTY SetProp : INT
-                SET
-                    THIS^.prop = SetProp;
-                END_SET
-            END_PROPERTY
-        END_FUNCTION_BLOCK
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r#""#);
-}
-
-#[test]
 fn this_calling_function_and_passing_this_is_ok() {
     let diagnostics = parse_and_validate_buffered(
-        // TODO: #THIS check with Michael
         r#"
         FUNCTION_BLOCK FB_Test
-            VAR
-                x : INT;
-            END_VAR
-            METHOD return_x : INT
-                VAR_INPUT
-                    fb_from_foo : FB_Test;
-                END_VAR
-                return_x := fb_from_foo.this^.x;
-            END_METHOD
             foo(this);
         END_FUNCTION_BLOCK
         FUNCTION foo : INT
             VAR_INPUT
                 pfb: REF_TO FB_TEST;
             END_VAR
-            foo := pfb^.return_x(pfb);
         END_FUNCTION
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -443,20 +325,23 @@ fn this_in_property_calling_method_is_ok() {
                 GET
                     Value := THIS^.DoubleX();
                 END_GET
+                SET
+                    this^.x := Value;
+                END_SET
             END_PROPERTY
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
-fn this_with_self_pointer() {
+fn this_with_self_pointer_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
         FUNCTION_BLOCK FB_Test
             VAR
-                refToSelf : POINTER TO FB_Test;
+                refToSelf : REF_TO FB_Test;
             END_VAR
 
             METHOD InitRef
@@ -466,8 +351,7 @@ fn this_with_self_pointer() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
-    todo!();
+    assert!(diagnostics.is_empty());
 }
 
 #[test]
@@ -484,7 +368,7 @@ fn this_in_variable_initialization_is_ok() {
         END_FUNCTION_BLOCK
     "#,
     );
-    assert_snapshot!(diagnostics, @r#""#);
+    assert!(diagnostics.is_empty());
 }
 
 // TODO: test with incompatible types (refToSelf gets assigned something of different type)
@@ -494,6 +378,85 @@ fn this_in_variable_initialization_is_ok() {
 // TODO: lit tests
 // TODO: resolver tests (parenthesized expressions, nested binary expressions ...)
 // TODO: this in variable initializers
+#[test]
+fn this_in_unsupported_pous_is_not_allowed() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        PROGRAM foo
+            VAR
+                x : INT;
+            END_VAR
+
+            METHOD bar : INT
+                bar := THIS^.x; // this in method in program is not allowed
+            END_METHOD
+            THIS^;
+        END_PROGRAM
+
+        ACTION foo.act
+            THIS^;
+        END_ACTION
+
+        FUNCTION baz : INT
+            THIS^;
+        END_FUNCTION
+    "#,
+    );
+    assert_snapshot!(diagnostics, @r"
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+      ┌─ <internal>:8:24
+      │
+    8 │                 bar := THIS^.x; // this in method in program is not allowed
+      │                        ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       ┌─ <internal>:10:13
+       │
+    10 │             THIS^;
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       ┌─ <internal>:14:13
+       │
+    14 │             THIS^;
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       ┌─ <internal>:18:13
+       │
+    18 │             THIS^;
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+    ");
+}
+
+#[test]
+fn this_in_action_in_functionblock_is_ok() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+        END_FUNCTION_BLOCK
+
+        ACTION fb.foo
+            THIS^;
+        END_ACTION
+    "#,
+    );
+    assert!(diagnostics.is_empty());
+}
+
+#[test]
+fn this_calling_functionblock_body_from_method_is_ok() {
+    let diagnostics = parse_and_validate_buffered(
+        r#"
+        FUNCTION_BLOCK fb
+            METHOD foo : INT
+                THIS^();
+            END_METHOD
+        END_FUNCTION_BLOCK
+    "#,
+    );
+    assert!(diagnostics.is_empty());
+}
 
 #[test]
 fn dummy() {

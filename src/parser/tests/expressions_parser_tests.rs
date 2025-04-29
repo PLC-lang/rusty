@@ -2019,32 +2019,6 @@ fn this_keyword_can_be_mixed_with_super() {
     let parse_result = parse(src).0;
     assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
     [
-        ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "x",
-                },
-            ),
-            base: Some(
-                This,
-            ),
-        },
-        ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "y",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        This,
-                    ),
-                },
-            ),
-        },
-        This,
         CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
@@ -2054,9 +2028,16 @@ fn this_keyword_can_be_mixed_with_super() {
                 ),
                 base: Some(
                     ReferenceExpr {
-                        kind: Deref,
+                        kind: Member(
+                            Super(derefed),
+                        ),
                         base: Some(
-                            This,
+                            ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    This,
+                                ),
+                            },
                         ),
                     },
                 ),
@@ -2071,7 +2052,12 @@ fn this_keyword_can_be_mixed_with_super() {
                             },
                         ),
                         base: Some(
-                            This,
+                            ReferenceExpr {
+                                kind: Deref,
+                                base: Some(
+                                    This,
+                                ),
+                            },
                         ),
                     },
                     right: ReferenceExpr {
@@ -2091,33 +2077,6 @@ fn this_keyword_can_be_mixed_with_super() {
                     },
                 },
             ),
-        },
-        CallStatement {
-            operator: This,
-            parameters: None,
-        },
-        Assignment {
-            left: This,
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "REF",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "fb2",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
         },
     ]
     "#);

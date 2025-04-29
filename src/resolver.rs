@@ -1650,7 +1650,7 @@ impl<'i> TypeAnnotator<'i> {
                 let name = match ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     Some(PouIndexEntry::FunctionBlock { name, .. }) => name,
                     Some(PouIndexEntry::Method { parent_name: name, .. })
-                        if self.index.find_pou(&name).is_some_and(|it| it.is_function_block()) =>
+                        if self.index.find_pou(name).is_some_and(|it| it.is_function_block()) =>
                     {
                         name
                     }

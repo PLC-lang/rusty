@@ -152,22 +152,27 @@ pub fn visit_statement<T: AnnotationMap>(
             }
         }
         AstStatement::This => {
-            dbg!(statement);
-            // TODO: check if I have an annotation. Only this in fb or method has annoation. If I
-            // dont have an annotation then something is wrong.
-            // if context.annotations.get_type(statement, context.index).is_none() {
-            // if context.annotations.get_type(statement, context.index).is_none() {
             if !context.qualifier.is_some_and(|it| {
-                context.index.find_pou(it).is_some_and(|it| it.is_method() || it.is_function_block())
+                context
+                    .index
+                    .find_pou(it)
+                    .and_then(|it| {
+                        if it.is_function_block() {
+                            Some(it)
+                        } else {
+                            context.index.find_pou(it.get_parent_pou_name().unwrap_or_default())
+                        }
+                    })
+                    .is_some_and(|it| it.is_function_block())
             }) {
-                //error
                 validator.push_diagnostic(
-                    Diagnostic::new("Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`")
-                        .with_error_code("E120")
-                        .with_location(statement),
+                    Diagnostic::new(
+                        "Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`",
+                    )
+                    .with_error_code("E120")
+                    .with_location(statement),
                 );
             }
-            // todo!()
         }
         _ => {}
     }
