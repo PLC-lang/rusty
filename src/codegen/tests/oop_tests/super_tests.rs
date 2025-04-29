@@ -29,12 +29,16 @@ fn super_keyword_basic_access() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
       store i16 20, i16* %x, align 2
@@ -97,12 +101,16 @@ fn super_without_deref() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %p = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       store %parent* %__parent, %parent** %p, align 8
@@ -172,12 +180,16 @@ fn super_in_method_calls() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @parent_process(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.process = alloca i16, align 2
       store i16 0, i16* %parent.process, align 2
@@ -192,12 +204,16 @@ fn super_in_method_calls() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @child_process(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.process = alloca i16, align 2
       store i16 0, i16* %child.process, align 2
@@ -213,6 +229,8 @@ fn super_in_method_calls() {
 
     define i16 @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
@@ -279,6 +297,8 @@ fn super_in_complex_expressions() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %y = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -286,6 +306,8 @@ fn super_in_complex_expressions() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %x = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
@@ -358,12 +380,16 @@ fn super_with_array_access() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %index = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %arr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
@@ -451,12 +477,16 @@ fn super_in_multi_level_inheritance() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @grandparent_gp_method(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %grandparent.gp_method = alloca i16, align 2
       store i16 0, i16* %grandparent.gp_method, align 2
@@ -468,6 +498,8 @@ fn super_in_multi_level_inheritance() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %p_val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -475,6 +507,8 @@ fn super_in_multi_level_inheritance() {
 
     define i16 @parent_p_method(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %p_val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %parent.p_method = alloca i16, align 2
@@ -492,6 +526,8 @@ fn super_in_multi_level_inheritance() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %c_val = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void
@@ -499,6 +535,8 @@ fn super_in_multi_level_inheritance() {
 
     define i16 @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %c_val = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %child.test = alloca i16, align 2
@@ -575,6 +613,8 @@ fn super_with_pointer_operations() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %ptr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -582,6 +622,8 @@ fn super_with_pointer_operations() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %ptr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
       %val = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
@@ -663,6 +705,8 @@ fn super_in_conditionals() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %threshold = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -670,12 +714,16 @@ fn super_in_conditionals() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define void @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
       %load_value = load i16, i16* %value, align 2
@@ -779,6 +827,8 @@ fn super_with_const_variables() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %MAX_VALUE = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %current = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -786,6 +836,8 @@ fn super_with_const_variables() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %current = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
       store i16 50, i16* %current, align 2
@@ -862,18 +914,24 @@ fn super_as_function_parameter() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define void @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %call = call i16 @process_ref(%parent* %__parent)
       %call1 = call i16 @process_val(%parent* %__parent)
@@ -973,6 +1031,8 @@ fn super_with_deeply_nested_expressions() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
@@ -981,6 +1041,8 @@ fn super_with_deeply_nested_expressions() {
 
     define i16 @parent_calc(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
@@ -1002,12 +1064,16 @@ fn super_with_deeply_nested_expressions() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
@@ -1116,6 +1182,8 @@ fn super_in_loop_constructs() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -1123,6 +1191,8 @@ fn super_in_loop_constructs() {
 
     define void @parent_increment(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %load_counter = load i16, i16* %counter, align 2
@@ -1135,12 +1205,16 @@ fn super_in_loop_constructs() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define void @child_process(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %i = alloca i16, align 2
       %sum = alloca i16, align 2
@@ -1311,11 +1385,15 @@ fn super_with_method_overrides_in_three_levels() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       ret void
     }
 
     define i16 @grandparent_calculate(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %grandparent.calculate = alloca i16, align 2
       store i16 0, i16* %grandparent.calculate, align 2
       store i16 100, i16* %grandparent.calculate, align 2
@@ -1325,12 +1403,16 @@ fn super_with_method_overrides_in_three_levels() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @parent_calculate(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.calculate = alloca i16, align 2
       store i16 0, i16* %parent.calculate, align 2
@@ -1345,12 +1427,16 @@ fn super_with_method_overrides_in_three_levels() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define i16 @child_calculate(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.calculate = alloca i16, align 2
       store i16 0, i16* %child.calculate, align 2
@@ -1493,6 +1579,8 @@ fn super_with_structured_types() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %arr_data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
@@ -1500,12 +1588,16 @@ fn super_with_structured_types() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
     define void @child_test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %local_data = alloca %Complex_Type, align 8
       %1 = bitcast %Complex_Type* %local_data to i8*
@@ -1620,12 +1712,16 @@ fn super_in_action_blocks() {
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @parent_increment(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %load_value = load i16, i16* %value, align 2
       %1 = sext i16 %load_value to i32
@@ -1637,6 +1733,8 @@ fn super_in_action_blocks() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
