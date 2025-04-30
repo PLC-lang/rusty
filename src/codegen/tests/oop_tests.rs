@@ -797,6 +797,13 @@ fn this_in_method_call_chain() {
       ret void
     }
 
+    define void @__user_init_FB_Test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -862,6 +869,13 @@ fn this_in_method_and_body_in_function_block() {
     }
 
     define void @__init_fb_test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_FB_Test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
@@ -967,6 +981,13 @@ fn shadowing_is_working() {
       ret void
     }
 
+    define void @__user_init_FB_Test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1026,6 +1047,13 @@ fn this_calling_function_and_passing_this() {
     }
 
     define void @__init_fb_test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_FB_Test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
@@ -1137,6 +1165,13 @@ fn this_in_property_calling_method() {
       ret void
     }
 
+    define void @__user_init_FB_Test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1193,6 +1228,13 @@ fn this_with_self_pointer() {
     }
 
     define void @__init_fb_test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_FB_Test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
@@ -1279,6 +1321,13 @@ fn this_calling_functionblock_body_from_method() {
     }
 
     define void @__init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_fb(%fb* %0) {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8

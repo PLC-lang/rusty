@@ -223,7 +223,7 @@ fn super_is_a_reserved_keyword() {
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'VAR
                 super'
       ┌─ <internal>:4:9
-      │
+      │  
     4 │ ╭         VAR
     5 │ │             super : INT;
       │ ╰─────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
@@ -238,7 +238,7 @@ fn super_is_a_reserved_keyword() {
     error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
             METHOD super END_METHOD'
       ┌─ <internal>:6:9
-      │
+      │  
     6 │ ╭         END_VAR
     7 │ │         METHOD super END_METHOD
       │ ╰───────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
@@ -346,10 +346,10 @@ fn this_is_a_reserved_keyword() {
     3 │     PROGRAM this
       │             ^^^^ Case condition used outside of case statement! Did you mean to use ';'?
 
-    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
       ┌─ <internal>:3:13
       │
     3 │     PROGRAM this
-      │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK` or type `METHOD`
+      │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
     ");
 }

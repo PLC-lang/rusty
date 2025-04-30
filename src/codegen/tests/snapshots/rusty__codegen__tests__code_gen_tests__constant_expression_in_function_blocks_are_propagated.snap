@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,6 +11,8 @@ source_filename = "<internal>"
 
 define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
+  %this = alloca %fbWithConstant*, align 8
+  store %fbWithConstant* %0, %fbWithConstant** %this, align 8
   %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
   %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1
   store i16 2, i16* %x, align 2

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,6 +15,8 @@ source_filename = "<internal>"
 
 define void @TON(%TON* %0) {
 entry:
+  %this = alloca %TON*, align 8
+  store %TON* %0, %TON** %this, align 8
   %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
   %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
   ret void

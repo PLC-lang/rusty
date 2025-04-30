@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,11 +12,15 @@ source_filename = "<internal>"
 
 define void @foo(%foo* %0) {
 entry:
+  %this = alloca %foo*, align 8
+  store %foo* %0, %foo** %this, align 8
   ret void
 }
 
 define void @foo_baz(%foo* %0, [81 x i8]* %1) {
 entry:
+  %this = alloca %foo*, align 8
+  store %foo* %0, %foo** %this, align 8
   %out = alloca [81 x i8]*, align 8
   store [81 x i8]* %1, [81 x i8]** %out, align 8
   %deref = load [81 x i8]*, [81 x i8]** %out, align 8

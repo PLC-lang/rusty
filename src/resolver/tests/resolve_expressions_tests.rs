@@ -6322,7 +6322,7 @@ fn just_this() {
 }
 
 #[test]
-#[ignore = "Types on builtin types are not correctly annotated"]
+#[ignore = "TODO: #THIS: fix this test"]
 fn this_assignment() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(

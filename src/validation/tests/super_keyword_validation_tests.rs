@@ -245,10 +245,22 @@ fn super_keyword_is_not_assignable() {
     10 │             SUPER := super_ptr;
        │             ^^^^^ Expression SUPER is not assignable.
 
-    error[E050]: Expression (SUPER) is not assignable.
-       ┌─ <internal>:13:13
+    error[E050]: Expression super is not assignable.
+       ┌─ <internal>:11:13
        │
-    13 │             (SUPER) := super_ptr;
+    11 │             super^ := 5;
+       │             ^^^^^ Expression super is not assignable.
+
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'parent'
+       ┌─ <internal>:11:13
+       │
+    11 │             super^ := 5;
+       │             ^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'parent'
+
+    error[E050]: Expression (SUPER) is not assignable.
+       ┌─ <internal>:14:13
+       │
+    14 │             (SUPER) := super_ptr;
        │             ^^^^^^^ Expression (SUPER) is not assignable.
     ");
 }

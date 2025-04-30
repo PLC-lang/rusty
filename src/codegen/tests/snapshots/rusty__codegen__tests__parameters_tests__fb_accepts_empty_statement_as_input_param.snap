@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,6 +13,8 @@ source_filename = "<internal>"
 
 define void @fb_t(%fb_t* %0) {
 entry:
+  %this = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %this, align 8
   %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   ret void

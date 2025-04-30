@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -48,6 +47,8 @@ entry:
 define void @myFb(%myFb* %0) !dbg !37 {
 entry:
   call void @llvm.dbg.declare(metadata %myFb* %0, metadata !40, metadata !DIExpression()), !dbg !41
+  %this = alloca %myFb*, align 8
+  store %myFb* %0, %myFb** %this, align 8
   %a = alloca i32, align 4
   %b = alloca i32, align 4
   %c = alloca i32, align 4

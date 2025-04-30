@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,6 +13,8 @@ source_filename = "<internal>"
 
 define void @FB(%FB* %0) {
 entry:
+  %this = alloca %FB*, align 8
+  store %FB* %0, %FB** %this, align 8
   %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
   %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
   %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2

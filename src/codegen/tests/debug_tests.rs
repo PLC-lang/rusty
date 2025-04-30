@@ -361,12 +361,16 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     define void @fb(%fb* %0) !dbg !9 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !12, metadata !DIExpression()), !dbg !13
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
       ret void, !dbg !13
     }
 
     define void @fb_foo(%fb* %0) !dbg !14 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !15, metadata !DIExpression()), !dbg !16
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
       ret void, !dbg !16
     }
 
