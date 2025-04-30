@@ -19,6 +19,8 @@ fn super_keyword_basic_access() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16 }
     %child = type { %parent }
@@ -104,6 +106,8 @@ fn super_without_deref() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16 }
     %child = type { %parent, %parent* }
@@ -196,6 +200,8 @@ fn super_in_method_calls() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16 }
     %child = type { %parent }
@@ -320,6 +326,8 @@ fn super_in_complex_expressions() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, i16 }
     %child = type { %parent, i16 }
@@ -415,6 +423,8 @@ fn super_with_array_access() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { [6 x i16] }
     %child = type { %parent, i16 }
@@ -524,6 +534,8 @@ fn super_in_multi_level_inheritance() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { %grandparent, i16 }
     %grandparent = type { i16 }
@@ -677,6 +689,8 @@ fn super_with_pointer_operations() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, i16* }
     %child = type { %parent }
@@ -782,6 +796,8 @@ fn super_in_conditionals() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, i16 }
     %child = type { %parent }
@@ -915,6 +931,8 @@ fn super_with_const_variables() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, i16 }
     %child = type { %parent }
@@ -1015,6 +1033,8 @@ fn super_as_function_parameter() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16 }
     %child = type { %parent }
@@ -1143,6 +1163,8 @@ fn super_with_deeply_nested_expressions() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, i16, i16 }
     %child = type { %parent }
@@ -1302,6 +1324,8 @@ fn super_in_loop_constructs() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16, [6 x i16] }
     %child = type { %parent }
@@ -1513,6 +1537,8 @@ fn super_with_method_overrides_in_three_levels() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { %grandparent }
     %grandparent = type {}
@@ -1720,6 +1746,8 @@ fn super_with_structured_types() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Complex_Type = type { i16, i16, float }
     %parent = type { %Complex_Type, [2 x %Complex_Type] }
@@ -1879,6 +1907,8 @@ fn super_in_action_blocks() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i16 }
     %child = type { %parent }

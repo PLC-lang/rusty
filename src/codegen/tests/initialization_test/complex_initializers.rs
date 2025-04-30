@@ -20,6 +20,8 @@ fn simple_global() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
@@ -51,6 +53,8 @@ fn global_alias() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
@@ -82,6 +86,8 @@ fn global_reference_to() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
@@ -118,6 +124,8 @@ fn init_functions_generated_for_programs() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %PLC_PRG = type { [81 x i8]* }
 
@@ -264,6 +272,8 @@ fn init_functions_generated_for_function_blocks() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { [81 x i8]* }
 
@@ -369,6 +379,8 @@ fn nested_initializer_pous() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %mainProg = type { [81 x i8]*, %foo }
     %foo = type { [81 x i8]*, %bar }
@@ -710,6 +722,8 @@ fn struct_types() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %myStruct }
     %myStruct = type { [81 x i8]*, [2 x [81 x i8]]* }
@@ -812,6 +826,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %myStruct = type { i32 }
     %foo = type {}
@@ -940,6 +956,8 @@ fn global_instance() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type {}
     %foo = type { [81 x i8]* }
@@ -1037,6 +1055,8 @@ fn aliased_types() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %foo }
     %foo = type { [81 x i8]* }
@@ -1206,6 +1226,8 @@ fn var_config_aliased_variables_initialized() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %FB, %FB }
     %FB = type { i32* }
@@ -1315,6 +1337,8 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -1376,6 +1400,8 @@ fn ref_to_local_member() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
@@ -1452,6 +1478,8 @@ fn ref_to_local_member_shadows_global() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
@@ -1527,6 +1555,8 @@ fn temporary_variable_ref_to_local_member() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { [81 x i8] }
 
@@ -1592,6 +1622,8 @@ fn temporary_variable_ref_to_temporary_variable() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
@@ -1646,6 +1678,8 @@ fn initializing_method_variables_with_refs() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -1712,6 +1746,8 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32 }
 
@@ -1778,6 +1814,8 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -1844,6 +1882,8 @@ fn initializing_method_variables_with_refs_shadowing() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -1908,6 +1948,8 @@ fn initializing_method_variables_with_alias() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -1971,6 +2013,8 @@ fn initializing_method_variables_with_reference_to() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type {}
 
@@ -2041,6 +2085,8 @@ fn methods_call_init_functions_for_their_members() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32, i32* }
     %bar = type {}
@@ -2147,6 +2193,8 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %foo }
     %foo = type { i16, i16 }
@@ -2264,6 +2312,8 @@ fn user_fb_init_in_global_struct() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %bar }
     %bar = type { %foo }
@@ -2396,6 +2446,8 @@ fn user_init_called_when_declared_as_external() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prog = type { %foo }
     %foo = type { i16, i16 }

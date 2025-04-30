@@ -21,6 +21,8 @@ fn declaring_a_struct() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
@@ -51,6 +53,8 @@ fn default_values_of_a_struct() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
@@ -92,6 +96,8 @@ fn initializing_a_struct() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }
@@ -139,6 +145,8 @@ fn assigning_structs() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
@@ -195,6 +203,8 @@ fn accessing_struct_members() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }

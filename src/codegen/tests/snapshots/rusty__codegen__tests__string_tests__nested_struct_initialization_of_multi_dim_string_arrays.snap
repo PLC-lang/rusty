@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
 
 %CONSTANTS_LANGUAGE = type { i16, i16, [21 x [11 x i8]], [21 x [3 x i8]], [36 x [11 x i8]], [36 x [4 x i8]], [48 x [4 x i8]] }
 

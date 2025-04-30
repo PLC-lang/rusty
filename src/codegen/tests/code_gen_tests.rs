@@ -1107,6 +1107,8 @@ fn fb_method_called_locally() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32 }
 
@@ -1190,6 +1192,8 @@ fn fb_local_method_var_shadows_parent_var() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32 }
 
@@ -1272,6 +1276,8 @@ fn prog_method_called_locally() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32 }
 
@@ -1346,6 +1352,8 @@ fn prog_local_method_var_shadows_parent_var() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i32 }
 
@@ -1599,6 +1607,8 @@ fn for_statement_with_binary_expressions() {
     insta::assert_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { i32, i32, i32, i32 }
 
@@ -1666,6 +1676,8 @@ fn for_statement_type_casting() {
     insta::assert_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     define void @main() {
     entry:
@@ -3952,6 +3964,8 @@ fn variables_in_var_external_block_are_not_generated() {
     insta::assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %bar = type {}
     %baz = type {}

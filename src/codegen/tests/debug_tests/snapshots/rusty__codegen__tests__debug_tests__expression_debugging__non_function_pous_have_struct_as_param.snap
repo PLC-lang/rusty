@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
 
 %myProg = type { i32 }
 %fb = type { i32 }
@@ -43,13 +45,13 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "myProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myProg", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myProg")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myProg", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myProg")
 !4 = !{!5}
 !5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
 !8 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 9, type: !9, isLocal: false, isDefinition: true)
-!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 9, size: 64, align: 64, flags: DIFlagPublic, elements: !10, identifier: "fb")
+!9 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 9, size: 32, align: 64, flags: DIFlagPublic, elements: !10, identifier: "fb")
 !10 = !{!11}
 !11 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !12 = !{i32 2, !"Dwarf Version", i32 5}

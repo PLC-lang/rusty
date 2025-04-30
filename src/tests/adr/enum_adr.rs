@@ -18,15 +18,17 @@ fn enums_generate_a_global_constants_for_each_element() {
         VAR_GLOBAL
             myColor : Color;
         END_VAR"#;
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @myColor = global i32 0
     @Color.red = unnamed_addr constant i32 0
     @Color.yellow = unnamed_addr constant i32 1
     @Color.green = unnamed_addr constant i32 2
-    "###);
+    "#);
 }
 
 /// The values of the enum constants are stored as (enum-local) unique numeric values. The values and their
@@ -48,9 +50,11 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
             myState : State;
         END_VAR"#;
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @myColor = global i32 0
     @myState = global i8 0
@@ -62,7 +66,7 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     @State.closed = unnamed_addr constant i8 4
     @State.idle = unnamed_addr constant i8 5
     @State.running = unnamed_addr constant i8 6
-    "###);
+    "#);
 }
 
 /// Enum types can be declared as dedicated DataTypes (see above) or direclty as part of a
@@ -76,9 +80,11 @@ fn inline_declaration_of_enum_types() {
             backColor  : (red, green, yellow);
         END_VAR"#;
 
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @frontColor = global i32 0
     @backColor = global i32 0
@@ -88,7 +94,7 @@ fn inline_declaration_of_enum_types() {
     @__global_backColor.red = unnamed_addr constant i32 0
     @__global_backColor.green = unnamed_addr constant i32 1
     @__global_backColor.yellow = unnamed_addr constant i32 2
-    "###);
+    "#);
 }
 
 /// Enum elements can accessed like global variables. If there are mulitple candidates, one can
@@ -118,6 +124,8 @@ fn using_enums() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { i32, i32, i32 }
 

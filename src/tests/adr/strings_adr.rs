@@ -14,13 +14,15 @@ fn declaring_a_string() {
         "#;
 
     // ... are stored as i8/i16 arrays and get initialized to blank (0)
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @myUtf8 = global [21 x i8] zeroinitializer
     @myUtf16 = global [21 x i16] zeroinitializer
-    "###);
+    "#);
 }
 
 /// rusty treats strings like C-strings (char arrays) so the interoperability
@@ -37,13 +39,15 @@ fn strings_are_terminated_with_0byte() {
 
     // ... get stored as c-like char arrays with 0-terminators
     // ... offer one extra entry (length 21 while only 20 were declared) for a terminator
-    insta::assert_snapshot!(codegen(src), @r###"
+    insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @myUtf8 = global [6 x i8] c"Hello\00"
     @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
-    "###);
+    "#);
 }
 
 /// Strings are aggregate types. This means that passing them to functions and assigning them
@@ -65,6 +69,8 @@ fn assigning_strings() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { [11 x i8], [11 x i8] }
 
@@ -106,6 +112,8 @@ fn assigning_string_literals() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { [11 x i8], [11 x i8] }
 

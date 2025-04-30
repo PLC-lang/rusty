@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
 
 %main = type { i64, i64, i64, i64 }
 
@@ -16,14 +18,14 @@ entry:
   %var_time_of_day = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   %var_date = getelementptr inbounds %main, %main* %0, i32 0, i32 2
   %var_date_and_time = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %load_var_time = load i64, i64* %var_time, align 4
-  %load_var_time_of_day = load i64, i64* %var_time_of_day, align 4
+  %load_var_time = load i64, i64* %var_time, align 8
+  %load_var_time_of_day = load i64, i64* %var_time_of_day, align 8
   %tmpVar = icmp sgt i64 %load_var_time, %load_var_time_of_day
   br i1 %tmpVar, label %1, label %2
 
 1:                                                ; preds = %entry
-  %load_var_time_of_day1 = load i64, i64* %var_time_of_day, align 4
-  %load_var_date = load i64, i64* %var_date, align 4
+  %load_var_time_of_day1 = load i64, i64* %var_time_of_day, align 8
+  %load_var_date = load i64, i64* %var_date, align 8
   %tmpVar2 = icmp sgt i64 %load_var_time_of_day1, %load_var_date
   br label %2
 
@@ -32,8 +34,8 @@ entry:
   br i1 %3, label %4, label %5
 
 4:                                                ; preds = %2
-  %load_var_date3 = load i64, i64* %var_date, align 4
-  %load_var_date_and_time = load i64, i64* %var_date_and_time, align 4
+  %load_var_date3 = load i64, i64* %var_date, align 8
+  %load_var_date_and_time = load i64, i64* %var_date_and_time, align 8
   %tmpVar4 = icmp sgt i64 %load_var_date3, %load_var_date_and_time
   br label %5
 

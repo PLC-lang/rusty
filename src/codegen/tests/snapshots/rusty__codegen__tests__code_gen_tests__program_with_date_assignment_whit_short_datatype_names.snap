@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+target triple = "x86_64-pc-linux-gnu"
 
 %prg = type { i64, i64, i64, i64 }
 
@@ -16,14 +18,14 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  store i64 56190123000000, i64* %w, align 4
-  store i64 56190123000000, i64* %w, align 4
-  store i64 100012000000, i64* %x, align 4
-  store i64 100012000000, i64* %x, align 4
-  store i64 465436800000000000, i64* %y, align 4
-  store i64 0, i64* %y, align 4
-  store i64 465509700000000000, i64* %z, align 4
-  store i64 58808123000000, i64* %z, align 4
-  store i64 58804123456789, i64* %z, align 4
+  store i64 56190123000000, i64* %w, align 8
+  store i64 56190123000000, i64* %w, align 8
+  store i64 100012000000, i64* %x, align 8
+  store i64 100012000000, i64* %x, align 8
+  store i64 465436800000000000, i64* %y, align 8
+  store i64 0, i64* %y, align 8
+  store i64 465509700000000000, i64* %z, align 8
+  store i64 58808123000000, i64* %z, align 8
+  store i64 58804123456789, i64* %z, align 8
   ret void
 }

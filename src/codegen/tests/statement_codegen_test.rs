@@ -204,6 +204,8 @@ fn ref_assignment() {
     insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     define void @main() {
     entry:
@@ -247,6 +249,8 @@ fn reference_to_assignment() {
     insta::assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     define void @main() {
     entry:
@@ -290,6 +294,8 @@ fn reference_to_string_assignment() {
     insta::assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
@@ -326,6 +332,8 @@ fn local_alias() {
     assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     define void @main() {
     entry:
@@ -354,6 +362,8 @@ fn local_string_alias() {
     assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     define void @main() {
     entry:

@@ -15,6 +15,8 @@ fn aliased_address_in_global_generated() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -35,6 +37,8 @@ fn duplicate_aliased_address_in_global_generated() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -61,6 +65,8 @@ fn address_variable_used_with_symbolic_name() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %mainProg = type {}
 
@@ -100,6 +106,8 @@ fn address_used_in_body() {
     assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %mainProg = type {}
 
