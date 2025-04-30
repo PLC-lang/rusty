@@ -55,17 +55,7 @@ fn interface_with_single_method() {
         instance_struct_name: "myInterface.foo",
         linkage: Internal,
         location: SourceLocation {
-            span: Range(
-                TextLocation {
-                    line: 2,
-                    column: 15,
-                    offset: 42,
-                }..TextLocation {
-                    line: 2,
-                    column: 18,
-                    offset: 45,
-                },
-            ),
+            span: Range(2:15 - 2:18),
             file: Some(
                 "<internal>",
             ),
@@ -89,17 +79,7 @@ fn interface_with_single_method() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 4,
-                        column: 16,
-                        offset: 90,
-                    }..TextLocation {
-                        line: 4,
-                        column: 17,
-                        offset: 91,
-                    },
-                ),
+                span: Range(4:16 - 4:17),
                 file: Some(
                     "<internal>",
                 ),
@@ -120,17 +100,7 @@ fn interface_with_single_method() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 5,
-                        column: 16,
-                        offset: 115,
-                    }..TextLocation {
-                        line: 5,
-                        column: 17,
-                        offset: 116,
-                    },
-                ),
+                span: Range(5:16 - 5:17),
                 file: Some(
                     "<internal>",
                 ),
@@ -151,17 +121,7 @@ fn interface_with_single_method() {
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 15,
-                        offset: 42,
-                    }..TextLocation {
-                        line: 2,
-                        column: 18,
-                        offset: 45,
-                    },
-                ),
+                span: Range(2:15 - 2:18),
                 file: Some(
                     "<internal>",
                 ),
@@ -209,17 +169,7 @@ fn get_interface_methods() {
             instance_struct_name: "myInterface.foo",
             linkage: Internal,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 15,
-                        offset: 42,
-                    }..TextLocation {
-                        line: 2,
-                        column: 18,
-                        offset: 45,
-                    },
-                ),
+                span: Range(2:15 - 2:18),
                 file: Some(
                     "<internal>",
                 ),
@@ -234,17 +184,7 @@ fn get_interface_methods() {
             instance_struct_name: "myInterface.bar",
             linkage: Internal,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 8,
-                        column: 15,
-                        offset: 156,
-                    }..TextLocation {
-                        line: 8,
-                        column: 18,
-                        offset: 159,
-                    },
-                ),
+                span: Range(8:15 - 8:18),
                 file: Some(
                     "<internal>",
                 ),
@@ -259,17 +199,7 @@ fn get_interface_methods() {
             instance_struct_name: "myInterface.baz",
             linkage: Internal,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 14,
-                        column: 15,
-                        offset: 268,
-                    }..TextLocation {
-                        line: 14,
-                        column: 18,
-                        offset: 271,
-                    },
-                ),
+                span: Range(14:15 - 14:18),
                 file: Some(
                     "<internal>",
                 ),
@@ -379,7 +309,7 @@ fn nested_extended_interfaces() {
     "###);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
     [
         Ok(
             InterfaceIndexEntry {
@@ -391,17 +321,7 @@ fn nested_extended_interfaces() {
                     Identifier {
                         name: "foo",
                         location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 6,
-                                    column: 30,
-                                    offset: 116,
-                                }..TextLocation {
-                                    line: 6,
-                                    column: 33,
-                                    offset: 119,
-                                },
-                            ),
+                            span: Range(6:30 - 6:33),
                             file: Some(
                                 "<internal>",
                             ),
@@ -411,10 +331,10 @@ fn nested_extended_interfaces() {
             },
         ),
     ]
-    "#);
+    "###);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
     [
         Ok(
             InterfaceIndexEntry {
@@ -426,17 +346,7 @@ fn nested_extended_interfaces() {
                     Identifier {
                         name: "bar",
                         location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 11,
-                                    column: 30,
-                                    offset: 213,
-                                }..TextLocation {
-                                    line: 11,
-                                    column: 33,
-                                    offset: 216,
-                                },
-                            ),
+                            span: Range(11:30 - 11:33),
                             file: Some(
                                 "<internal>",
                             ),
@@ -446,7 +356,7 @@ fn nested_extended_interfaces() {
             },
         ),
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -461,23 +371,13 @@ fn deriving_from_undeclared_interface() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("foo").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
     [
         Err(
             Identifier {
                 name: "bar",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 1,
-                            column: 30,
-                            offset: 31,
-                        }..TextLocation {
-                            line: 1,
-                            column: 33,
-                            offset: 34,
-                        },
-                    ),
+                    span: Range(1:30 - 1:33),
                     file: Some(
                         "<internal>",
                     ),
@@ -485,10 +385,10 @@ fn deriving_from_undeclared_interface() {
             },
         ),
     ]
-    "#);
+    "###);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
     [
         Ok(
             InterfaceIndexEntry {
@@ -498,17 +398,7 @@ fn deriving_from_undeclared_interface() {
                     Identifier {
                         name: "bar",
                         location: SourceLocation {
-                            span: Range(
-                                TextLocation {
-                                    line: 1,
-                                    column: 30,
-                                    offset: 31,
-                                }..TextLocation {
-                                    line: 1,
-                                    column: 33,
-                                    offset: 34,
-                                },
-                            ),
+                            span: Range(1:30 - 1:33),
                             file: Some(
                                 "<internal>",
                             ),
@@ -521,17 +411,7 @@ fn deriving_from_undeclared_interface() {
             Identifier {
                 name: "bar",
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 4,
-                            column: 35,
-                            offset: 93,
-                        }..TextLocation {
-                            line: 4,
-                            column: 38,
-                            offset: 96,
-                        },
-                    ),
+                    span: Range(4:35 - 4:38),
                     file: Some(
                         "<internal>",
                     ),
@@ -539,7 +419,7 @@ fn deriving_from_undeclared_interface() {
             },
         ),
     ]
-    "#);
+    "###);
 }
 
 #[test]
@@ -570,17 +450,7 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
             instance_struct_name: "bar.foo",
             linkage: Internal,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 7,
-                        column: 15,
-                        offset: 145,
-                    }..TextLocation {
-                        line: 7,
-                        column: 18,
-                        offset: 148,
-                    },
-                ),
+                span: Range(7:15 - 7:18),
                 file: Some(
                     "<internal>",
                 ),
@@ -595,17 +465,7 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
             instance_struct_name: "foo.bar",
             linkage: Internal,
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 15,
-                        offset: 50,
-                    }..TextLocation {
-                        line: 2,
-                        column: 18,
-                        offset: 53,
-                    },
-                ),
+                span: Range(2:15 - 2:18),
                 file: Some(
                     "<internal>",
                 ),

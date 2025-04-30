@@ -71,43 +71,13 @@ CompilationUnit {
                 },
             ],
             location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 2,
-                        column: 8,
-                        offset: 32,
-                    }..TextLocation {
-                        line: 2,
-                        column: 19,
-                        offset: 43,
-                    },
-                ),
+                span: Range(2:8 - 2:19),
             },
             name_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 13,
-                        offset: 14,
-                    }..TextLocation {
-                        line: 1,
-                        column: 16,
-                        offset: 17,
-                    },
-                ),
+                span: Range(1:13 - 1:16),
             },
             end_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 3,
-                        column: 4,
-                        offset: 48,
-                    }..TextLocation {
-                        line: 3,
-                        column: 16,
-                        offset: 60,
-                    },
-                ),
+                span: Range(3:4 - 3:16),
             },
             overriding: false,
             generic: false,

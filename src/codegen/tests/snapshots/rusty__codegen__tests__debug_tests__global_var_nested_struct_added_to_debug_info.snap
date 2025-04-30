@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -30,9 +31,27 @@ entry:
   ret void
 }
 
+define void @__user_init_myStruct(%myStruct* %0) {
+entry:
+  %self = alloca %myStruct*, align 8
+  store %myStruct* %0, %myStruct** %self, align 8
+  %deref = load %myStruct*, %myStruct** %self, align 8
+  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
+  call void @__user_init_myStruct2(%myStruct2* %b)
+  ret void
+}
+
+define void @__user_init_myStruct2(%myStruct2* %0) {
+entry:
+  %self = alloca %myStruct2*, align 8
+  store %myStruct2* %0, %myStruct2** %self, align 8
+  ret void
+}
+
 define void @__init___Test() {
 entry:
   call void @__init_mystruct(%myStruct* @gStruct)
+  call void @__user_init_myStruct(%myStruct* @gStruct)
   ret void
 }
 
@@ -42,15 +61,15 @@ entry:
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 192, flags: DIFlagPublic, elements: !4, identifier: "myStruct")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myStruct")
 !4 = !{!5, !7}
-!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, flags: DIFlagPublic)
+!5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 3, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 128, offset: 64, flags: DIFlagPublic)
-!8 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct2", scope: !2, file: !2, line: 8, size: 128, flags: DIFlagPublic, elements: !9, identifier: "myStruct2")
+!7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 4, baseType: !8, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
+!8 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct2", scope: !2, file: !2, line: 8, size: 128, align: 64, flags: DIFlagPublic, elements: !9, identifier: "myStruct2")
 !9 = !{!10, !11}
-!10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 9, baseType: !6, size: 32, flags: DIFlagPublic)
-!11 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !12, size: 64, offset: 64, flags: DIFlagPublic)
+!10 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 9, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+!11 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !12, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
 !12 = !DIBasicType(name: "LREAL", size: 64, encoding: DW_ATE_float, flags: DIFlagPublic)
 !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
 !14 = distinct !DIGlobalVariable(name: "__myStruct2__init", scope: !2, file: !2, line: 8, type: !8, isLocal: false, isDefinition: true)

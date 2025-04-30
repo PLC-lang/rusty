@@ -25,17 +25,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 1,
-                        column: 16,
-                        offset: 17,
-                    }..TextLocation {
-                        line: 1,
-                        column: 24,
-                        offset: 25,
-                    },
-                ),
+                span: Range(1:16 - 1:24),
                 file: Some(
                     "<internal>",
                 ),
@@ -68,17 +58,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 3,
-                        column: 12,
-                        offset: 50,
-                    }..TextLocation {
-                        line: 3,
-                        column: 13,
-                        offset: 51,
-                    },
-                ),
+                span: Range(3:12 - 3:13),
                 file: Some(
                     "<internal>",
                 ),
@@ -111,17 +91,7 @@ expression: "index.find_instances().collect::<Vec<Instance<'_>>>()"
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
-                span: Range(
-                    TextLocation {
-                        line: 3,
-                        column: 14,
-                        offset: 52,
-                    }..TextLocation {
-                        line: 3,
-                        column: 15,
-                        offset: 53,
-                    },
-                ),
+                span: Range(3:14 - 3:15),
                 file: Some(
                     "<internal>",
                 ),

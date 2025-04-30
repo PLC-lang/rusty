@@ -67,6 +67,23 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -80,24 +97,24 @@ fn members_from_base_class_are_available_in_subclasses() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7792, flags: DIFlagPublic, elements: !4, identifier: "foo")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7808, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
     !4 = !{!5, !7, !12}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !6, size: 16, flags: DIFlagPublic)
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !6, size: 16, align: 16, flags: DIFlagPublic)
     !6 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !8, size: 648, offset: 16, flags: DIFlagPublic)
-    !8 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 648, elements: !10)
+    !7 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !8, size: 648, align: 8, offset: 16, flags: DIFlagPublic)
+    !8 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 648, align: 8, elements: !10)
     !9 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !10 = !{!11}
     !11 = !DISubrange(count: 81, lowerBound: 0)
-    !12 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !13, size: 7128, offset: 664, flags: DIFlagPublic)
-    !13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !8, size: 7128, elements: !14)
+    !12 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !13, size: 7128, align: 8, offset: 664, flags: DIFlagPublic)
+    !13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !8, size: 7128, align: 8, elements: !14)
     !14 = !{!15}
     !15 = !DISubrange(count: 11, lowerBound: 0)
     !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
     !17 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 10, type: !18, isLocal: false, isDefinition: true)
-    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7792, flags: DIFlagPublic, elements: !19, identifier: "bar")
+    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7808, align: 64, flags: DIFlagPublic, elements: !19, identifier: "bar")
     !19 = !{!20}
-    !20 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, size: 7792, flags: DIFlagPublic)
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, size: 7792, align: 64, flags: DIFlagPublic)
     !21 = !{i32 2, !"Dwarf Version", i32 5}
     !22 = !{i32 2, !"Debug Info Version", i32 3}
     !23 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !24, splitDebugInlining: false)
@@ -213,6 +230,33 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
+    define void @__user_init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_fb2(%fb2* %0) {
+    entry:
+      %self = alloca %fb2*, align 8
+      store %fb2* %0, %fb2** %self, align 8
+      %deref = load %fb2*, %fb2** %self, align 8
+      %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
+      call void @__user_init_fb(%fb* %__fb)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      call void @__user_init_fb2(%fb2* %myFb)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -226,21 +270,21 @@ fn write_to_parent_variable_qualified_access() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb2__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 32, flags: DIFlagPublic, elements: !4, identifier: "fb2")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb2")
     !4 = !{!5}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__fb", scope: !2, file: !2, baseType: !6, size: 32, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 32, flags: DIFlagPublic, elements: !7, identifier: "fb")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__fb", scope: !2, file: !2, baseType: !6, size: 32, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !7, identifier: "fb")
     !7 = !{!8, !10}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !9, size: 16, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !9, size: 16, align: 16, flags: DIFlagPublic)
     !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 5, baseType: !9, size: 16, offset: 16, flags: DIFlagPublic)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 5, baseType: !9, size: 16, align: 16, offset: 16, flags: DIFlagPublic)
     !11 = !DIGlobalVariableExpression(var: !12, expr: !DIExpression())
     !12 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !6, isLocal: false, isDefinition: true)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 32, flags: DIFlagPublic, elements: !16, identifier: "foo")
+    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 64, align: 64, flags: DIFlagPublic, elements: !16, identifier: "foo")
     !16 = !{!17}
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !3, size: 32, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !3, size: 32, align: 64, flags: DIFlagPublic)
     !18 = !{i32 2, !"Dwarf Version", i32 5}
     !19 = !{i32 2, !"Debug Info Version", i32 3}
     !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
@@ -348,6 +392,7 @@ fn write_to_parent_variable_in_instance() {
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb), !dbg !42
+      call void @__user_init_bar(%bar* %fb), !dbg !42
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !42
       call void @foo_baz(%foo* %__foo), !dbg !43
       call void @bar(%bar* %fb), !dbg !44
@@ -383,6 +428,23 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -398,13 +460,13 @@ fn write_to_parent_variable_in_instance() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 648, flags: DIFlagPublic, elements: !4, identifier: "bar")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 704, align: 64, flags: DIFlagPublic, elements: !4, identifier: "bar")
     !4 = !{!5}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !6, size: 648, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 648, flags: DIFlagPublic, elements: !7, identifier: "foo")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !6, size: 648, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 704, align: 64, flags: DIFlagPublic, elements: !7, identifier: "foo")
     !7 = !{!8}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !9, size: 648, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !9, size: 648, align: 8, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
     !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
@@ -433,9 +495,9 @@ fn write_to_parent_variable_in_instance() {
     !35 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !36, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !17, retainedNodes: !22)
     !36 = !DISubroutineType(flags: DIFlagPublic, types: !37)
     !37 = !{null}
-    !38 = !DILocalVariable(name: "s", scope: !35, file: !2, line: 17, type: !9)
+    !38 = !DILocalVariable(name: "s", scope: !35, file: !2, line: 17, type: !9, align: 8)
     !39 = !DILocation(line: 17, column: 12, scope: !35)
-    !40 = !DILocalVariable(name: "fb", scope: !35, file: !2, line: 18, type: !3)
+    !40 = !DILocalVariable(name: "fb", scope: !35, file: !2, line: 18, type: !3, align: 64)
     !41 = !DILocation(line: 18, column: 12, scope: !35)
     !42 = !DILocation(line: 0, scope: !35)
     !43 = !DILocation(line: 20, column: 12, scope: !35)
@@ -590,6 +652,33 @@ fn array_in_parent_generated() {
       ret void
     }
 
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -604,26 +693,26 @@ fn array_in_parent_generated() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 480, flags: DIFlagPublic, elements: !4, identifier: "child")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 512, align: 64, flags: DIFlagPublic, elements: !4, identifier: "child")
     !4 = !{!5, !22}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !6, size: 304, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 304, flags: DIFlagPublic, elements: !7, identifier: "parent")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !6, size: 304, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 320, align: 64, flags: DIFlagPublic, elements: !7, identifier: "parent")
     !7 = !{!8, !17, !21}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !9, size: 112, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 112, flags: DIFlagPublic, elements: !10, identifier: "grandparent")
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !9, size: 112, align: 64, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !10, identifier: "grandparent")
     !10 = !{!11, !16}
-    !11 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !12, size: 96, flags: DIFlagPublic)
-    !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 96, elements: !14)
+    !11 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !12, size: 96, align: 16, flags: DIFlagPublic)
+    !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 96, align: 16, elements: !14)
     !13 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !14 = !{!15}
     !15 = !DISubrange(count: 6, lowerBound: 0)
-    !16 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !13, size: 16, offset: 96, flags: DIFlagPublic)
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !18, size: 176, offset: 112, flags: DIFlagPublic)
-    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 176, elements: !19)
+    !16 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !13, size: 16, align: 16, offset: 96, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !18, size: 176, align: 16, offset: 112, flags: DIFlagPublic)
+    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 176, align: 16, elements: !19)
     !19 = !{!20}
     !20 = !DISubrange(count: 11, lowerBound: 0)
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !13, size: 16, offset: 288, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !18, size: 176, offset: 304, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !13, size: 16, align: 16, offset: 288, flags: DIFlagPublic)
+    !22 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !18, size: 176, align: 16, offset: 304, flags: DIFlagPublic)
     !23 = !DIGlobalVariableExpression(var: !24, expr: !DIExpression())
     !24 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !6, isLocal: false, isDefinition: true)
     !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
@@ -651,8 +740,8 @@ fn array_in_parent_generated() {
     !47 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !48, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
     !48 = !DISubroutineType(flags: DIFlagPublic, types: !49)
     !49 = !{null}
-    !50 = !DILocalVariable(name: "arr", scope: !47, file: !2, line: 24, type: !51)
-    !51 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5280, elements: !19)
+    !50 = !DILocalVariable(name: "arr", scope: !47, file: !2, line: 24, type: !51, align: 64)
+    !51 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 5280, align: 64, elements: !19)
     !52 = !DILocation(line: 24, column: 12, scope: !47)
     !53 = !DILocation(line: 26, column: 12, scope: !47)
     !54 = !DILocation(line: 27, column: 12, scope: !47)
@@ -788,6 +877,33 @@ fn complex_array_access_generated() {
       ret void
     }
 
+    define void @__user_init_grandparent(%grandparent* %0) {
+    entry:
+      %self = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      call void @__user_init_grandparent(%grandparent* %__grandparent)
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -801,30 +917,30 @@ fn complex_array_access_generated() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 304, flags: DIFlagPublic, elements: !4, identifier: "parent")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 320, align: 64, flags: DIFlagPublic, elements: !4, identifier: "parent")
     !4 = !{!5, !14, !18}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !6, size: 112, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 112, flags: DIFlagPublic, elements: !7, identifier: "grandparent")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !6, size: 112, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !7, identifier: "grandparent")
     !7 = !{!8, !13}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !9, size: 96, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 96, elements: !11)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !9, size: 96, align: 16, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 96, align: 16, elements: !11)
     !10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !11 = !{!12}
     !12 = !DISubrange(count: 6, lowerBound: 0)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !10, size: 16, offset: 96, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !15, size: 176, offset: 112, flags: DIFlagPublic)
-    !15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 176, elements: !16)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 5, baseType: !10, size: 16, align: 16, offset: 96, flags: DIFlagPublic)
+    !14 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !15, size: 176, align: 16, offset: 112, flags: DIFlagPublic)
+    !15 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 176, align: 16, elements: !16)
     !16 = !{!17}
     !17 = !DISubrange(count: 11, lowerBound: 0)
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !10, size: 16, offset: 288, flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 12, baseType: !10, size: 16, align: 16, offset: 288, flags: DIFlagPublic)
     !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
     !20 = distinct !DIGlobalVariable(name: "__grandparent__init", scope: !2, file: !2, line: 2, type: !6, isLocal: false, isDefinition: true)
     !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
     !22 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !23, isLocal: false, isDefinition: true)
-    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 480, flags: DIFlagPublic, elements: !24, identifier: "child")
+    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 512, align: 64, flags: DIFlagPublic, elements: !24, identifier: "child")
     !24 = !{!25, !26}
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !3, size: 304, flags: DIFlagPublic)
-    !26 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !15, size: 176, offset: 304, flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !3, size: 304, align: 64, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !15, size: 176, align: 16, offset: 304, flags: DIFlagPublic)
     !27 = !{i32 2, !"Dwarf Version", i32 5}
     !28 = !{i32 2, !"Debug Info Version", i32 3}
     !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
@@ -918,6 +1034,23 @@ fn function_block_method_debug_info() {
       ret void
     }
 
+    define void @__user_init_bar(%bar* %0) {
+    entry:
+      %self = alloca %bar*, align 8
+      store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -931,13 +1064,13 @@ fn function_block_method_debug_info() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, flags: DIFlagPublic, elements: !4, identifier: "foo")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
     !4 = !{}
     !5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
     !6 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 7, type: !7, isLocal: false, isDefinition: true)
-    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 7, flags: DIFlagPublic, elements: !8, identifier: "bar")
+    !7 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 7, align: 64, flags: DIFlagPublic, elements: !8, identifier: "bar")
     !8 = !{!9}
-    !9 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, align: 64, flags: DIFlagPublic)
     !10 = !{i32 2, !"Dwarf Version", i32 5}
     !11 = !{i32 2, !"Debug Info Version", i32 3}
     !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
@@ -1094,6 +1227,9 @@ END_FUNCTION
       call void @__init_parent(%parent* %parent1), !dbg !61
       call void @__init_child(%child* %child1), !dbg !61
       call void @__init_grandchild(%grandchild* %grandchild1), !dbg !61
+      call void @__user_init_parent(%parent* %parent1), !dbg !61
+      call void @__user_init_child(%child* %child1), !dbg !61
+      call void @__user_init_grandchild(%grandchild* %grandchild1), !dbg !61
       %a = getelementptr inbounds %parent, %parent* %parent1, i32 0, i32 0, !dbg !62
       store i32 1, i32* %a, align 4, !dbg !62
       %__parent = getelementptr inbounds %child, %child* %child1, i32 0, i32 0, !dbg !63
@@ -1216,6 +1352,33 @@ END_FUNCTION
       ret void
     }
 
+    define void @__user_init_grandchild(%grandchild* %0) {
+    entry:
+      %self = alloca %grandchild*, align 8
+      store %grandchild* %0, %grandchild** %self, align 8
+      %deref = load %grandchild*, %grandchild** %self, align 8
+      %__child = getelementptr inbounds %grandchild, %grandchild* %deref, i32 0, i32 0
+      call void @__user_init_child(%child* %__child)
+      ret void
+    }
+
+    define void @__user_init_child(%child* %0) {
+    entry:
+      %self = alloca %child*, align 8
+      store %child* %0, %child** %self, align 8
+      %deref = load %child*, %child** %self, align 8
+      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
+      call void @__user_init_parent(%parent* %__parent)
+      ret void
+    }
+
+    define void @__user_init_parent(%parent* %0) {
+    entry:
+      %self = alloca %parent*, align 8
+      store %parent* %0, %parent** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
       ret void
@@ -1231,18 +1394,18 @@ END_FUNCTION
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__grandchild__init", scope: !2, file: !2, line: 14, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 96, flags: DIFlagPublic, elements: !4, identifier: "grandchild")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 128, align: 64, flags: DIFlagPublic, elements: !4, identifier: "grandchild")
     !4 = !{!5, !14}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__child", scope: !2, file: !2, baseType: !6, size: 64, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 64, flags: DIFlagPublic, elements: !7, identifier: "child")
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "__child", scope: !2, file: !2, baseType: !6, size: 64, align: 64, flags: DIFlagPublic)
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 64, align: 64, flags: DIFlagPublic, elements: !7, identifier: "child")
     !7 = !{!8, !13}
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !9, size: 32, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 32, flags: DIFlagPublic, elements: !10, identifier: "parent")
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !9, size: 32, align: 64, flags: DIFlagPublic)
+    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !10, identifier: "parent")
     !10 = !{!11}
-    !11 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !12, size: 32, flags: DIFlagPublic)
+    !11 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !12, size: 32, align: 32, flags: DIFlagPublic)
     !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !12, size: 32, offset: 32, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 16, baseType: !12, size: 32, offset: 64, flags: DIFlagPublic)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !12, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+    !14 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 16, baseType: !12, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
     !15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
     !16 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 8, type: !6, isLocal: false, isDefinition: true)
     !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
@@ -1270,24 +1433,24 @@ END_FUNCTION
     !39 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 20, type: !40, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !21, retainedNodes: !26)
     !40 = !DISubroutineType(flags: DIFlagPublic, types: !41)
     !41 = !{null}
-    !42 = !DILocalVariable(name: "array_of_parent", scope: !39, file: !2, line: 22, type: !43)
-    !43 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 96, elements: !44)
+    !42 = !DILocalVariable(name: "array_of_parent", scope: !39, file: !2, line: 22, type: !43, align: 64)
+    !43 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 96, align: 64, elements: !44)
     !44 = !{!45}
     !45 = !DISubrange(count: 3, lowerBound: 0)
     !46 = !DILocation(line: 22, column: 4, scope: !39)
-    !47 = !DILocalVariable(name: "array_of_child", scope: !39, file: !2, line: 23, type: !48)
-    !48 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 192, elements: !44)
+    !47 = !DILocalVariable(name: "array_of_child", scope: !39, file: !2, line: 23, type: !48, align: 64)
+    !48 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 192, align: 64, elements: !44)
     !49 = !DILocation(line: 23, column: 4, scope: !39)
-    !50 = !DILocalVariable(name: "array_of_grandchild", scope: !39, file: !2, line: 24, type: !51)
-    !51 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 288, elements: !44)
+    !50 = !DILocalVariable(name: "array_of_grandchild", scope: !39, file: !2, line: 24, type: !51, align: 64)
+    !51 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 288, align: 64, elements: !44)
     !52 = !DILocation(line: 24, column: 4, scope: !39)
-    !53 = !DILocalVariable(name: "parent1", scope: !39, file: !2, line: 25, type: !9)
+    !53 = !DILocalVariable(name: "parent1", scope: !39, file: !2, line: 25, type: !9, align: 64)
     !54 = !DILocation(line: 25, column: 4, scope: !39)
-    !55 = !DILocalVariable(name: "child1", scope: !39, file: !2, line: 26, type: !6)
+    !55 = !DILocalVariable(name: "child1", scope: !39, file: !2, line: 26, type: !6, align: 64)
     !56 = !DILocation(line: 26, column: 4, scope: !39)
-    !57 = !DILocalVariable(name: "grandchild1", scope: !39, file: !2, line: 27, type: !3)
+    !57 = !DILocalVariable(name: "grandchild1", scope: !39, file: !2, line: 27, type: !3, align: 64)
     !58 = !DILocation(line: 27, column: 4, scope: !39)
-    !59 = !DILocalVariable(name: "main", scope: !39, file: !2, line: 20, type: !12)
+    !59 = !DILocalVariable(name: "main", scope: !39, file: !2, line: 20, type: !12, align: 32)
     !60 = !DILocation(line: 20, column: 9, scope: !39)
     !61 = !DILocation(line: 0, scope: !39)
     !62 = !DILocation(line: 30, column: 4, scope: !39)

@@ -304,31 +304,11 @@ fn var_config_test() {
                         },
                     ],
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 2,
-                                column: 26,
-                                offset: 42,
-                            }..TextLocation {
-                                line: 2,
-                                column: 35,
-                                offset: 51,
-                            },
-                        ),
+                        span: Range(2:26 - 2:35),
                     },
                 },
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 2,
-                            column: 8,
-                            offset: 24,
-                        }..TextLocation {
-                            line: 2,
-                            column: 25,
-                            offset: 41,
-                        },
-                    ),
+                    span: Range(2:8 - 2:25),
                 },
             },
             ConfigVariable {
@@ -373,31 +353,11 @@ fn var_config_test() {
                         },
                     ],
                     location: SourceLocation {
-                        span: Range(
-                            TextLocation {
-                                line: 3,
-                                column: 26,
-                                offset: 86,
-                            }..TextLocation {
-                                line: 3,
-                                column: 35,
-                                offset: 95,
-                            },
-                        ),
+                        span: Range(3:26 - 3:35),
                     },
                 },
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 3,
-                            column: 8,
-                            offset: 68,
-                        }..TextLocation {
-                            line: 3,
-                            column: 25,
-                            offset: 85,
-                        },
-                    ),
+                    span: Range(3:8 - 3:25),
                 },
             },
         ],
@@ -515,43 +475,13 @@ fn var_external() {
                 pou_type: Function,
                 statements: [],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 155,
-                        }..TextLocation {
-                            line: 8,
-                            column: 11,
-                            offset: 150,
-                        },
-                    ),
+                    span: Range(9:4 - 8:11),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 13,
-                            offset: 80,
-                        }..TextLocation {
-                            line: 5,
-                            column: 16,
-                            offset: 83,
-                        },
-                    ),
+                    span: Range(5:13 - 5:16),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 155,
-                        }..TextLocation {
-                            line: 9,
-                            column: 16,
-                            offset: 167,
-                        },
-                    ),
+                    span: Range(9:4 - 9:16),
                 },
                 overriding: false,
                 generic: false,
@@ -657,43 +587,13 @@ fn var_external_constant() {
                 pou_type: Function,
                 statements: [],
                 location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 163,
-                        }..TextLocation {
-                            line: 8,
-                            column: 11,
-                            offset: 158,
-                        },
-                    ),
+                    span: Range(9:4 - 8:11),
                 },
                 name_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 5,
-                            column: 13,
-                            offset: 80,
-                        }..TextLocation {
-                            line: 5,
-                            column: 16,
-                            offset: 83,
-                        },
-                    ),
+                    span: Range(5:13 - 5:16),
                 },
                 end_location: SourceLocation {
-                    span: Range(
-                        TextLocation {
-                            line: 9,
-                            column: 4,
-                            offset: 163,
-                        }..TextLocation {
-                            line: 9,
-                            column: 16,
-                            offset: 175,
-                        },
-                    ),
+                    span: Range(9:4 - 9:16),
                 },
                 overriding: false,
                 generic: false,

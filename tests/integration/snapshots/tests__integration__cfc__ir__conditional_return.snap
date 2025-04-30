@@ -1,6 +1,7 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
+snapshot_kind: text
 ---
 %conditional_return = type { i32 }
 
@@ -23,6 +24,13 @@ else_block:                                       ; preds = %entry
 }
 
 define void @__init_conditional_return(%conditional_return* %0) {
+entry:
+  %self = alloca %conditional_return*, align 8
+  store %conditional_return* %0, %conditional_return** %self, align 8
+  ret void
+}
+
+define void @__user_init_conditional_return(%conditional_return* %0) {
 entry:
   %self = alloca %conditional_return*, align 8
   store %conditional_return* %0, %conditional_return** %self, align 8

@@ -304,7 +304,6 @@ impl TypeAnnotator<'_> {
         } else {
             vec![]
         };
-        let operator_qualifier = &self.get_call_name(operator);
 
         let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
         let mut params = vec![];
@@ -312,6 +311,7 @@ impl TypeAnnotator<'_> {
 
         // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
+        let operator_qualifier = &self.get_call_name(operator);
         let implementation = self.index.find_implementation_by_name(operator_qualifier);
         let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
         for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
@@ -322,7 +322,7 @@ impl TypeAnnotator<'_> {
                 {
                     generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
                 } else {
-                    params.push((p, type_name.to_string()))
+                    params.push((p, type_name.to_string(), m.get_location_in_parent()))
                 }
             }
         }
@@ -331,9 +331,8 @@ impl TypeAnnotator<'_> {
         match self.index.find_pou(operator_qualifier) {
             Some(pou) if pou.is_variadic() => {
                 //get variadic argument type, if it is generic, update the generic candidates
-                if let Some(type_name) =
-                    self.index.get_variadic_member(pou.get_name()).map(VariableIndexEntry::get_type_name)
-                {
+                if let Some(variadic) = self.index.get_variadic_member(pou.get_name()) {
+                    let type_name = variadic.get_type_name();
                     for parameter in parameters {
                         if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
                             self.index,
@@ -383,17 +382,23 @@ impl TypeAnnotator<'_> {
                                 type_name
                             };
 
-                            params.push((parameter, type_name.to_string()));
+                            params.push((
+                                parameter,
+                                type_name.to_string(),
+                                variadic.get_location_in_parent(),
+                            ));
                         }
                     }
                 }
             }
             _ => {}
         }
-        for (p, name) in params {
-            self.annotate_parameters(p, &name);
+
+        for (p, name, position) in params {
+            self.annotate_parameters(p, &name, position as usize);
         }
-        //Attempt to resolve the generic signature here
+
+        // Attempt to resolve the generic signature here
         self.update_generic_call_statement(
             generics_candidates,
             operator_qualifier,
@@ -436,6 +441,14 @@ pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value {
         resulting_type: String,
+    },
+    /// An argument of a call statement
+    Argument {
+        /// The resulting type of this argument
+        resulting_type: String,
+
+        /// The position of the parameter this argument is assigned to
+        position: usize,
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
     Variable {
@@ -717,6 +730,27 @@ impl StatementAnnotation {
             _ => None,
         }
     }
+
+    /// Returns the location of a parameter in some POU the argument is assigned to, for example
+    /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
+    /// blocks
+    /// ```norun
+    /// VAR_INPUT
+    ///     a, b : DINT;
+    /// END_VAR
+    /// VAR
+    ///     placeholder: DINT;
+    /// END_VAR
+    /// VAR_INPUT
+    ///     c : DINT;
+    /// END_VAR`
+    /// ```
+    pub(crate) fn get_location_in_parent(&self) -> Option<u32> {
+        match self {
+            StatementAnnotation::Argument { position, .. } => Some(*position as u32),
+            _ => None,
+        }
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {
@@ -807,6 +841,7 @@ pub trait AnnotationMap {
     fn get_type_name_for_annotation<'a>(&'a self, annotation: &'a StatementAnnotation) -> Option<&'a str> {
         match annotation {
             StatementAnnotation::Value { resulting_type } => Some(resulting_type.as_str()),
+            StatementAnnotation::Argument { resulting_type, .. } => Some(resulting_type.as_str()),
             StatementAnnotation::Variable { resulting_type, .. } => Some(resulting_type.as_str()),
             StatementAnnotation::ReplacementAst { statement } => self
                 .get_hint(statement)
@@ -2166,10 +2201,9 @@ impl<'i> TypeAnnotator<'i> {
                 }
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } => {
-                    //lets see if this is a FB
                     self.index
                         .find_pou(resulting_type.as_str())
-                        .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. }))
+                        .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. }))
                         .map(|it| it.get_name().to_string())
                 }
                 // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
@@ -2191,18 +2225,17 @@ impl<'i> TypeAnnotator<'i> {
         operator_qualifier
     }
 
-    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str) {
-        if !matches!(
-            p.get_stmt(),
-            AstStatement::Assignment(..)
-                | AstStatement::OutputAssignment(..)
-                | AstStatement::RefAssignment(..)
-        ) {
-            if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
-                //update the type hint
-                self.annotation_map
-                    .annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
-            }
+    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str, position: usize) {
+        if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
+            //update the type hint
+            // self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
+            self.annotation_map.annotate_type_hint(
+                p,
+                StatementAnnotation::Argument {
+                    resulting_type: effective_member_type.get_name().to_string(),
+                    position,
+                },
+            );
         }
     }
 

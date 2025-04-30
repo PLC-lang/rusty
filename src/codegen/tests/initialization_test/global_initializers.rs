@@ -163,7 +163,7 @@ fn external_pous_get_external_initializers() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -176,7 +176,7 @@ fn external_pous_get_external_initializers() {
     declare void @ext_fb(%ext_fb*)
 
     declare void @ext_prog(%ext_prog*)
-    "###);
+    "#);
 }
 
 #[test]

@@ -1,0 +1,9 @@
+{external}
+FUNCTION_BLOCK myFunctionBlock
+VAR
+    a : DINT;
+    b : DINT;
+END_VAR
+    METHOD FB_INIT
+    END_METHOD
+END_FUNCTION_BLOCK

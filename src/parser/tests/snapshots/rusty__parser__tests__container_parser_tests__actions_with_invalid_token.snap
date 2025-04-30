@@ -5,17 +5,7 @@ expression: errors.first().unwrap()
 Diagnostic {
     message: "Unexpected token: expected KeywordAction but found BRAVO",
     primary_location: SourceLocation {
-        span: Range(
-            TextLocation {
-                line: 0,
-                column: 13,
-                offset: 13,
-            }..TextLocation {
-                line: 0,
-                column: 18,
-                offset: 18,
-            },
-        ),
+        span: Range(0:13 - 0:18),
     },
     secondary_locations: None,
     error_code: "E007",

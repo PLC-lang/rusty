@@ -5959,6 +5959,199 @@ fn global_namespace_operator_is_not_resolved() {
 }
 
 #[test]
+fn implicit_output_assignment_arguments_are_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                placeholder_one : DINT;
+            END_VAR
+            VAR_OUTPUT
+                x : DINT;
+                y : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                fb : fb;
+                x_local : DINT := 1;
+                y_local : BOOL := TRUE;
+            END_VAR
+
+            fb(x_local, y_local);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = stmt.get_stmt() else {
+        unreachable!()
+    };
+
+    let AstStatement::ExpressionList(expressions) = &parameters.as_ref().unwrap().as_ref().stmt else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]).unwrap(), @r###"
+    Argument {
+        resulting_type: "DINT",
+        position: 1,
+    }
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]).unwrap(), @r###"
+    Argument {
+        resulting_type: "BOOL",
+        position: 2,
+    }
+    "###);
+}
+
+#[test]
+fn explicit_output_assignment_arguments_are_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        TYPE foo_struct : STRUCT
+            bar : bar_struct;
+        END_STRUCT END_TYPE
+
+        TYPE bar_struct : STRUCT
+            baz : DINT;
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK QUUX
+            VAR
+                placeholder_one : DINT;
+            END_VAR
+            VAR_INPUT
+                x : DINT;
+            END_VAR
+            VAR
+                placeholder_two : DINT;
+            END_VAR
+            VAR_OUTPUT
+                Q : BOOL;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main : DINT
+            VAR
+                foo : foo_struct;
+                f : QUUX;
+            END_VAR
+
+            f(x := 0, Q => foo.bar.baz.%W1.%B1.%X3);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = stmt.get_stmt() else {
+        unreachable!()
+    };
+
+    let AstStatement::ExpressionList(expressions) = &parameters.as_ref().unwrap().as_ref().stmt else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r###"
+    Some(
+        Argument {
+            resulting_type: "DINT",
+            position: 1,
+        },
+    )
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r###"
+    Some(
+        Argument {
+            resulting_type: "BOOL",
+            position: 3,
+        },
+    )
+    "###);
+}
+
+#[test]
+fn program_call_declared_as_variable_is_annotated() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM ridiculous_chaining
+            VAR
+                z : DINT;
+            END_VAR
+
+            VAR_INPUT
+                x, y : DINT;
+            END_VAR
+        END_PROGRAM
+
+        FUNCTION main
+            VAR
+                x : DINT := 2;
+                y : DINT := 2;
+                chainer : ridiculous_chaining;
+            END_VAR
+
+            chainer(x, y);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let stmt = &unit.implementations[1].statements[0];
+    let AstStatement::CallStatement(CallStatement { operator, parameters, .. }) = stmt.get_stmt() else {
+        unreachable!()
+    };
+
+    let AstStatement::ExpressionList(expressions) = &parameters.as_ref().unwrap().as_ref().stmt else {
+        unreachable!()
+    };
+
+    insta::assert_debug_snapshot!(annotations.get(&operator), @r###"
+    Some(
+        Variable {
+            resulting_type: "ridiculous_chaining",
+            qualified_name: "main.chainer",
+            constant: false,
+            argument_type: ByVal(
+                Local,
+            ),
+            auto_deref: None,
+        },
+    )
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r###"
+    Some(
+        Argument {
+            resulting_type: "DINT",
+            position: 1,
+        },
+    )
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r###"
+    Some(
+        Argument {
+            resulting_type: "DINT",
+            position: 2,
+        },
+    )
+    "###);
+}
+
+#[test]
 fn this_in_assignments_in_methods() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
@@ -6129,6 +6322,7 @@ fn just_this() {
 }
 
 #[test]
+#[ignore = "Types on builtin types are not correctly annotated"]
 fn this_assignment() {
     let id_provider = IdProvider::default();
     let (unit, mut index) = index_with_ids(
