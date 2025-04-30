@@ -410,6 +410,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                         dependencies,
                         literals,
                         &got_layout,
+                        self.compile_parameters.as_ref().and_then(|it| it.target.as_ref()),
                     )?;
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
@@ -684,8 +685,16 @@ impl AnnotatedProject {
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
-                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
-                    .map(|it| it.persist_to_string())
+                self.generate_module(
+                    &context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    None,
+                )
+                .map(|it| it.persist_to_string())
             })
             .collect()
     }
@@ -707,7 +716,15 @@ impl AnnotatedProject {
             .iter()
             // TODO: this can be parallelized
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
+                self.generate_module(
+                    context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    None,
+                )
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -720,6 +737,7 @@ impl AnnotatedProject {
         module.map(Some)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn generate_module<'ctx>(
         &self,
         context: &'ctx CodegenContext,
@@ -728,7 +746,11 @@ impl AnnotatedProject {
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
         got_layout: &Mutex<HashMap<String, u64>>,
+        target: Option<&Target>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
+        // Determine target from compile_options or use default
+        let target = target.unwrap_or(&Target::System);
+
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
@@ -737,6 +759,7 @@ impl AnnotatedProject {
             compile_options.debug_level,
             //FIXME don't clone here
             compile_options.online_change.clone(),
+            target,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
@@ -796,7 +819,15 @@ impl AnnotatedProject {
         self.units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
+                self.generate_module(
+                    context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    None,
+                )
             })
             .collect()
     }
