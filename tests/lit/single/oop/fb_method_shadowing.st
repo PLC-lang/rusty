@@ -21,7 +21,7 @@ END_VAR
         bar: DINT := 17;
     END_VAR
         this^.bar := in + bar;
-        addToBar := this^.bar;
+        addToLocalBar := this^.bar;
     END_METHOD
 
     addToBar(3);
@@ -37,5 +37,5 @@ END_VAR
     x := fb.addToBar(3);
     printf('%d$N', x); // CHECK: 20
     x := fb.addToLocalBar(46);
-    printf('%d$N', x); // CHECK: 88
+    printf('%d$N', x); // CHECK: 63
 END_FUNCTION
