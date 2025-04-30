@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 @myEnum.a = unnamed_addr constant i32 1
 @myEnum.b = unnamed_addr constant i32 2
@@ -14,8 +12,6 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %fb = type { i32 }
 
@@ -29,8 +25,6 @@ entry:
 
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %myStruct = type { %fb.2 }
 %fb.2 = type { i32 }
@@ -42,8 +36,6 @@ declare void @fb(%fb.2*)
 
 ; ModuleID = 'fb2.st'
 source_filename = "fb2.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %fb2 = type { %myStruct.4 }
 %myStruct.4 = type { %fb.5 }
@@ -63,8 +55,6 @@ declare void @fb(%fb.5*)
 
 ; ModuleID = 'fb3.st'
 source_filename = "fb3.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %fb3 = type {}
 

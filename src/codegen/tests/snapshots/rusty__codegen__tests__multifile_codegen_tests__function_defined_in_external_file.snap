@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = 'func.st'
 source_filename = "func.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 define i32 @func() {
 entry:
@@ -18,8 +16,6 @@ entry:
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %fb = type {}
 
@@ -32,8 +28,6 @@ entry:
 
 ; ModuleID = 'prg.st'
 source_filename = "prg.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prg = type { i32 }
 
@@ -47,8 +41,6 @@ entry:
 
 ; ModuleID = 'prg2.st'
 source_filename = "prg2.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prg2 = type { i32 }
 
@@ -62,8 +54,6 @@ entry:
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prog = type { %fb.4 }
 %fb.4 = type {}

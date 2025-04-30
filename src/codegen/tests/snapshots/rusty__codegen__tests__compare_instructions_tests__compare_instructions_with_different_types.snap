@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %main = type { i16*, i16, i32, i8, i16, i32, i64, i8, i16, i32, i64 }
 
@@ -15,8 +13,8 @@ target triple = "x86_64-pc-linux-gnu"
 define i64 @foo() {
 entry:
   %foo = alloca i64, align 8
-  store i64 0, i64* %foo, align 8
-  %foo_ret = load i64, i64* %foo, align 8
+  store i64 0, i64* %foo, align 4
+  %foo_ret = load i64, i64* %foo, align 4
   ret i64 %foo_ret
 }
 
@@ -41,7 +39,7 @@ entry:
   %load_var_int = load i16, i16* %var_int, align 2
   %2 = sext i16 %load_var_int to i32
   %tmpVar1 = icmp slt i32 %2, 30
-  %load_var_lint = load i64, i64* %var_lint, align 8
+  %load_var_lint = load i64, i64* %var_lint, align 4
   %tmpVar2 = icmp sgt i64 10, %load_var_lint
   %load_var_usint = load i8, i8* %var_usint, align 1
   %3 = zext i8 %load_var_usint to i32
@@ -50,7 +48,7 @@ entry:
   %load_var_uint = load i16, i16* %var_uint, align 2
   %4 = zext i16 %load_var_uint to i32
   %tmpVar4 = icmp sle i32 %4, 40
-  %load_var_ulint = load i64, i64* %var_ulint, align 8
+  %load_var_ulint = load i64, i64* %var_ulint, align 4
   %tmpVar5 = icmp sge i64 10, %load_var_ulint
   %load_var_sint6 = load i8, i8* %var_sint, align 1
   %5 = sext i8 %load_var_sint6 to i32
@@ -59,13 +57,13 @@ entry:
   %tmpVar8 = icmp eq i32 %5, %6
   %load_var_uint9 = load i16, i16* %var_uint, align 2
   %7 = zext i16 %load_var_uint9 to i64
-  %load_var_lint10 = load i64, i64* %var_lint, align 8
+  %load_var_lint10 = load i64, i64* %var_lint, align 4
   %tmpVar11 = icmp sle i64 %7, %load_var_lint10
   %load_var_dint12 = load i32, i32* %var_dint, align 4
   %8 = sext i32 %load_var_dint12 to i64
-  %load_var_ulint13 = load i64, i64* %var_ulint, align 8
+  %load_var_ulint13 = load i64, i64* %var_ulint, align 4
   %tmpVar14 = icmp sge i64 %8, %load_var_ulint13
-  %load_var_lint15 = load i64, i64* %var_lint, align 8
+  %load_var_lint15 = load i64, i64* %var_lint, align 4
   %load_a = load i16, i16* %a, align 2
   %9 = sext i16 %load_a to i64
   %tmpVar16 = icmp slt i64 %load_var_lint15, %9
@@ -76,7 +74,7 @@ entry:
   %tmpVar19 = icmp sgt i32 %10, %11
   %load_b = load i32, i32* %b, align 4
   %12 = sext i32 %load_b to i64
-  %load_var_lint20 = load i64, i64* %var_lint, align 8
+  %load_var_lint20 = load i64, i64* %var_lint, align 4
   %tmpVar21 = icmp slt i64 %12, %load_var_lint20
   %load_b22 = load i32, i32* %b, align 4
   %tmpVar23 = icmp ne i32 5, %load_b22
@@ -97,7 +95,7 @@ entry:
   %call31 = call i64 @foo()
   %tmpVar32 = icmp sle i64 %17, %call31
   %call33 = call i64 @foo()
-  %load_var_lint34 = load i64, i64* %var_lint, align 8
+  %load_var_lint34 = load i64, i64* %var_lint, align 4
   %tmpVar35 = icmp eq i64 %call33, %load_var_lint34
   ret void
 }

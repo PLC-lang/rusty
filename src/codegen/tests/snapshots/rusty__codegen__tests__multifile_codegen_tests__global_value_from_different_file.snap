@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = 'g1.st'
 source_filename = "g1.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 @x = global i32 6
 @d = external global i32
@@ -15,8 +13,6 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; ModuleID = 'g2.st'
 source_filename = "g2.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 @c = unnamed_addr constant i32 5
 @d = unnamed_addr constant i32 6
@@ -24,8 +20,6 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prog = type {}
 

@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 define i16 @baz() {
 entry:
@@ -14,11 +12,11 @@ entry:
   %ptr_x = alloca i16*, align 8
   %y = alloca i64, align 8
   store i16* null, i16** %ptr_x, align 8
-  store i64 0, i64* %y, align 8
+  store i64 0, i64* %y, align 4
   store i16 0, i16* %baz, align 2
   %load_ptr_x = load i16*, i16** %ptr_x, align 8
   %0 = ptrtoint i16* %load_ptr_x to i64
-  store i64 %0, i64* %y, align 8
+  store i64 %0, i64* %y, align 4
   %baz_ret = load i16, i16* %baz, align 2
   ret i16 %baz_ret
 }

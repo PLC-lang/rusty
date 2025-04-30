@@ -192,8 +192,6 @@ fn codegen_of_a_program_pou() {
     insta::assert_snapshot!(codegen(DEFAULT_PRG),@r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %main_prg = type { i16, i16*, i16, i16 }
 
@@ -232,8 +230,6 @@ fn calling_a_program() {
     insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %main_prg = type { i16, i16*, i16, i16 }
 
@@ -297,8 +293,6 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     insta::assert_snapshot!(codegen(DEFAULT_FB), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %main_fb = type { i16, i16*, i16, i16 }
 
@@ -338,8 +332,6 @@ fn calling_a_function_block() {
     insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %foo = type { i16, i16, %main_fb }
     %main_fb = type { i16, i16*, i16, i16 }
@@ -398,8 +390,6 @@ fn function_get_a_method_with_by_ref_parameters() {
     insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
     entry:
@@ -442,8 +432,6 @@ fn calling_a_function() {
     insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { i16, i8 }
 
@@ -506,8 +494,6 @@ fn return_a_complex_type_from_function() {
     insta::assert_snapshot!(codegen(returning_string), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { [81 x i8] }
 
@@ -589,8 +575,6 @@ fn passing_aggregate_types_to_functions_by_value() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
@@ -677,8 +661,6 @@ fn passing_by_ref_to_functions() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %main = type { [81 x i8], [81 x i8] }
 

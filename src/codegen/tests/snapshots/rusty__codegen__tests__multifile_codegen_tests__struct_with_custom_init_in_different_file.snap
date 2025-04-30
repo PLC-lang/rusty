@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %myStruct = type { i32, i16 }
 
@@ -14,8 +12,6 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; ModuleID = 'myStruct2.st'
 source_filename = "myStruct2.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %myStruct2 = type { i32, i16 }
 
@@ -23,8 +19,6 @@ target triple = "x86_64-pc-linux-gnu"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prog = type { %myStruct.2, %myStruct2.3 }
 %myStruct.2 = type { i32, i16 }

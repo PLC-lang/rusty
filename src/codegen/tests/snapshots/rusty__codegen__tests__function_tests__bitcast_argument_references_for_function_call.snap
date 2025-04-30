@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %main = type { i8, i8, i16, i16, i32, i32, i64, i64, float, float, double, double }
 
@@ -31,8 +29,8 @@ entry:
   store i64* %0, i64** %in_ref, align 8
   %in_out = alloca i64*, align 8
   store i64* %1, i64** %in_out, align 8
-  store i64 0, i64* %fn_lint, align 8
-  %fn_lint_ret = load i64, i64* %fn_lint, align 8
+  store i64 0, i64* %fn_lint, align 4
+  %fn_lint_ret = load i64, i64* %fn_lint, align 4
   ret i64 %fn_lint_ret
 }
 
@@ -43,8 +41,8 @@ entry:
   store float* %0, float** %in_ref, align 8
   %in_out = alloca float*, align 8
   store float* %1, float** %in_out, align 8
-  store i64 0, i64* %fn_real, align 8
-  %fn_real_ret = load i64, i64* %fn_real, align 8
+  store i64 0, i64* %fn_real, align 4
+  %fn_real_ret = load i64, i64* %fn_real, align 4
   ret i64 %fn_real_ret
 }
 
@@ -55,8 +53,8 @@ entry:
   store double* %0, double** %in_ref, align 8
   %in_out = alloca double*, align 8
   store double* %1, double** %in_out, align 8
-  store i64 0, i64* %fn_lreal, align 8
-  %fn_lreal_ret = load i64, i64* %fn_lreal, align 8
+  store i64 0, i64* %fn_lreal, align 4
+  %fn_lreal_ret = load i64, i64* %fn_lreal, align 4
   ret i64 %fn_lreal_ret
 }
 

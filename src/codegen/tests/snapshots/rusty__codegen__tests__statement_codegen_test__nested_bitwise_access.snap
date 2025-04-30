@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prg = type { i8, i64 }
 
@@ -16,7 +14,7 @@ define void @prg(%prg* %0) {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_x = load i64, i64* %x, align 8
+  %load_x = load i64, i64* %x, align 4
   %shift = lshr i64 %load_x, 32
   %1 = trunc i64 %shift to i32
   %shift1 = lshr i32 %1, 16

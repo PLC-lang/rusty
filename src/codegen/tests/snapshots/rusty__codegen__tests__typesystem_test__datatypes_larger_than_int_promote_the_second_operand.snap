@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %prg = type { i32, i64, i64 }
 
@@ -19,8 +17,8 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
   %load_b = load i32, i32* %b, align 4
   %1 = sext i32 %load_b to i64
-  %load_c = load i64, i64* %c, align 8
+  %load_c = load i64, i64* %c, align 4
   %tmpVar = add i64 %1, %load_c
-  store i64 %tmpVar, i64* %x, align 8
+  store i64 %tmpVar, i64* %x, align 4
   ret void
 }

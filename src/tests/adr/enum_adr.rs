@@ -21,8 +21,6 @@ fn enums_generate_a_global_constants_for_each_element() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     @myColor = global i32 0
     @Color.red = unnamed_addr constant i32 0
@@ -53,8 +51,6 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     @myColor = global i32 0
     @myState = global i8 0
@@ -83,8 +79,6 @@ fn inline_declaration_of_enum_types() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     @frontColor = global i32 0
     @backColor = global i32 0
@@ -124,8 +118,6 @@ fn using_enums() {
     insta::assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
 
     %prg = type { i32, i32, i32 }
 

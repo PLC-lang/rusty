@@ -5,8 +5,6 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
 
 %main = type {}
 
@@ -46,37 +44,37 @@ entry:
   %dt2 = alloca i64, align 8
   %ldt1 = alloca i64, align 8
   %ldt2 = alloca i64, align 8
-  store i64 0, i64* %t1, align 8
-  store i64 0, i64* %t2, align 8
-  store i64 0, i64* %lt1, align 8
-  store i64 0, i64* %lt2, align 8
-  store i64 0, i64* %d1, align 8
-  store i64 0, i64* %d2, align 8
-  store i64 0, i64* %ld1, align 8
-  store i64 0, i64* %ld2, align 8
-  store i64 0, i64* %tod1, align 8
-  store i64 0, i64* %tod2, align 8
-  store i64 0, i64* %ltod1, align 8
-  store i64 0, i64* %ltod2, align 8
-  store i64 0, i64* %dt1, align 8
-  store i64 0, i64* %dt2, align 8
-  store i64 0, i64* %ldt1, align 8
-  store i64 0, i64* %ldt2, align 8
-  store i64 1000000000, i64* %t1, align 8
-  store i64 1000000000, i64* %t2, align 8
-  store i64 1000000000000, i64* %lt1, align 8
-  store i64 1000000000000, i64* %lt2, align 8
-  store i64 0, i64* %d1, align 8
-  store i64 161308800000000000, i64* %d2, align 8
-  store i64 161308800000000000, i64* %ld1, align 8
-  store i64 161308800000000000, i64* %ld2, align 8
-  store i64 0, i64* %tod1, align 8
-  store i64 0, i64* %tod2, align 8
-  store i64 86399999999999, i64* %ltod1, align 8
-  store i64 86399999999999, i64* %ltod2, align 8
-  store i64 172799000000000, i64* %dt1, align 8
-  store i64 172799000000000, i64* %dt2, align 8
-  store i64 172799123000000, i64* %ldt1, align 8
-  store i64 172799123000000, i64* %ldt2, align 8
+  store i64 0, i64* %t1, align 4
+  store i64 0, i64* %t2, align 4
+  store i64 0, i64* %lt1, align 4
+  store i64 0, i64* %lt2, align 4
+  store i64 0, i64* %d1, align 4
+  store i64 0, i64* %d2, align 4
+  store i64 0, i64* %ld1, align 4
+  store i64 0, i64* %ld2, align 4
+  store i64 0, i64* %tod1, align 4
+  store i64 0, i64* %tod2, align 4
+  store i64 0, i64* %ltod1, align 4
+  store i64 0, i64* %ltod2, align 4
+  store i64 0, i64* %dt1, align 4
+  store i64 0, i64* %dt2, align 4
+  store i64 0, i64* %ldt1, align 4
+  store i64 0, i64* %ldt2, align 4
+  store i64 1000000000, i64* %t1, align 4
+  store i64 1000000000, i64* %t2, align 4
+  store i64 1000000000000, i64* %lt1, align 4
+  store i64 1000000000000, i64* %lt2, align 4
+  store i64 0, i64* %d1, align 4
+  store i64 161308800000000000, i64* %d2, align 4
+  store i64 161308800000000000, i64* %ld1, align 4
+  store i64 161308800000000000, i64* %ld2, align 4
+  store i64 0, i64* %tod1, align 4
+  store i64 0, i64* %tod2, align 4
+  store i64 86399999999999, i64* %ltod1, align 4
+  store i64 86399999999999, i64* %ltod2, align 4
+  store i64 172799000000000, i64* %dt1, align 4
+  store i64 172799000000000, i64* %dt2, align 4
+  store i64 172799123000000, i64* %ldt1, align 4
+  store i64 172799123000000, i64* %ldt2, align 4
   ret void
 }
