@@ -388,11 +388,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             HashMap::default()
         };
         let got_layout = Mutex::new(got_layout);
+        let target = self.compile_parameters.as_ref().and_then(|it| it.target.as_ref());
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
             project
-                .generate_single_module(&context, &compile_options)?
+                .generate_single_module(&context, &compile_options, target)?
                 .map(|module| {
                     self.participants.iter_mut().try_fold((), |_, participant| participant.generate(&module))
                 })
@@ -410,7 +411,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                         dependencies,
                         literals,
                         &got_layout,
-                        self.compile_parameters.as_ref().and_then(|it| it.target.as_ref()),
+                        target,
                     )?;
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
@@ -703,6 +704,7 @@ impl AnnotatedProject {
         &self,
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
+        target: Option<&Target>,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
         let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
             read_got_layout(file_name, *format)?
@@ -723,7 +725,7 @@ impl AnnotatedProject {
                     dependencies,
                     literals,
                     &got_layout,
-                    None,
+                    target,
                 )
             })
             .reduce(|a, b| {
@@ -786,10 +788,12 @@ impl AnnotatedProject {
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
-        let module = self.generate_single_module(&context, compile_options)?.unwrap();
+        let modules =
+            targets.iter().map(|target| self.generate_single_module(&context, compile_options, Some(target)));
         let mut result = vec![];
-        for target in targets {
-            let obj: Object = module
+        for (target, module) in targets.iter().zip(modules) {
+            let obj: Object = module?
+                .unwrap()
                 .persist(
                     Some(&compile_directory),
                     &compile_options.output,
