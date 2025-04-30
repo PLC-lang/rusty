@@ -6118,7 +6118,7 @@ fn program_call_declared_as_variable_is_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get(&operator), @r###"
+    insta::assert_debug_snapshot!(annotations.get(operator), @r###"
     Some(
         Variable {
             resulting_type: "ridiculous_chaining",
@@ -6317,37 +6317,62 @@ fn just_this() {
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[0].statements[0];
-    assert!(index.find_type("fb.__THIS").is_some());
+    dbg!(annotations.get_type_hint(statement, &index)); // => none
+    dbg!(annotations.get_type(statement, &index)); // => none
+    dbg!(&index.get_type("fb.__THIS"));
+    assert!(index.find_type("b.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
 }
 
 #[test]
-#[ignore = "TODO: #THIS: fix this test"]
-fn this_assignment() {
-    let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
-        "
-        FUNCTION_BLOCK fb
-            VAR
-                x : REF_TO fb;
-            END_VAR
-            x := this;
-        END_FUNCTION_BLOCK
-        ",
-        id_provider.clone(),
-    );
+#[ignore = "TODO: #THIS fixme"]
+fn this_assignment_is_ok() {
+    todo!();
+    // let id_provider = IdProvider::default();
+    // let (unit, mut index) = index_with_ids(
+    //     "
+    //     FUNCTION_BLOCK fb
+    //         VAR
+    //             x : REF_TO fb;
+    //         END_VAR
+    //         x := this;
+    //     END_FUNCTION_BLOCK
+    //     ",
+    //     id_provider.clone(),
+    // );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let statement = &unit.implementations[0].statements[0];
-    dbg!(&statement);
-    assert!(index.find_type("fb.__THIS").is_some());
-    assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
+    // let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    // let statement = &unit.implementations[0].statements[0];
+    // dbg!(&statement);
+    // assert!(index.find_type("fb.__THIS").is_some());
+    // // $crate::resolver::AnnotationMap::get_type_hint($annotations, $stmt, $index),
+    // dbg!(annotations.get_type_hint(statement, &index)); // => none
+    // dbg!(annotations.get_type(statement, &index)); // => none
+    // dbg!(&index.get_type("this"));
+    // //  DataType {
+    // //     name: "fb.__THIS",
+    // //     initial_value: None,
+    // //     information: Pointer {
+    // //         name: "fb.__THIS",
+    // //         inner_type_name: "fb",
+    // //         auto_deref: None,
+    // //     },
+    // //     nature: Any,
+    // //     location: SourceLocation {
+    // //         span: None,
+    // //     },
+    // // },
+    // let AstStatement::Assignment(Assignment { left, right }) = statement.get_stmt() else { todo!() };
+    // dbg!(&right);
+    // dbg!(annotations.get_type_hint(right, &index)); // => none
+    // dbg!(annotations.get_type(right, &index)); // => none
+    // assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
 }
 
 #[test]
 fn this_call() {
     let id_provider = IdProvider::default();
-    let (unit, mut index) = index_with_ids(
+    let (unit, index) = index_with_ids(
         "
         FUNCTION_BLOCK fb
             VAR
@@ -6358,7 +6383,6 @@ fn this_call() {
         id_provider.clone(),
     );
 
-    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[0].statements[0];
     dbg!(&statement);
     assert!(index.find_type("fb.__THIS").is_some());
@@ -6408,7 +6432,6 @@ fn this_in_conditionals() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    let statement = &unit.implementations[0].statements[0];
     let AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. })) =
         unit.implementations[0].statements[0].get_stmt()
     else {
