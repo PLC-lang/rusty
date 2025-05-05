@@ -26,7 +26,7 @@ jobs:
 
   test-linux:
     name: Test Linux
-    runs-on: [ubuntu-latest, ubuntu-latest-arm]
+    runs-on: [ubuntu-latest, ubuntu-24.04-arm]
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
