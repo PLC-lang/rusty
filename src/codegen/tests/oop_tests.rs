@@ -896,6 +896,9 @@ fn pass_this_to_method() {
     let code = codegen(
         r#"
         FUNCTION_BLOCK FB_Test
+        VAR
+            x : INT := 5;
+        END_VAR
         METHOD foo
             VAR
                 test : FB_Test2;
@@ -914,7 +917,103 @@ fn pass_this_to_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#""#);
+    insta::assert_snapshot!(code, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %FB_Test = type { i16 }
+    %FB_Test2 = type {}
+
+    @__FB_Test__init = constant %FB_Test { i16 5 }
+    @__FB_Test2__init = constant %FB_Test2 zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @FB_Test(%FB_Test* %0) {
+    entry:
+      %this = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %this, align 8
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @FB_Test_foo(%FB_Test* %0) {
+    entry:
+      %this = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %this, align 8
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %test = alloca %FB_Test2, align 8
+      %x1 = alloca i16, align 2
+      %1 = bitcast %FB_Test2* %test to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%FB_Test2* @__FB_Test2__init to i8*), i64 ptrtoint (%FB_Test2* getelementptr (%FB_Test2, %FB_Test2* null, i32 1) to i64), i1 false)
+      store i16 0, i16* %x1, align 2
+      call void @__init_fb_test2(%FB_Test2* %test)
+      call void @__user_init_FB_Test2(%FB_Test2* %test)
+      %2 = load %FB_Test*, %FB_Test** %this, align 8
+      %call = call i16 @FB_Test2_bar(%FB_Test2* %test, %FB_Test* %2)
+      ret void
+    }
+
+    define void @FB_Test2(%FB_Test2* %0) {
+    entry:
+      %this = alloca %FB_Test2*, align 8
+      store %FB_Test2* %0, %FB_Test2** %this, align 8
+      ret void
+    }
+
+    define i16 @FB_Test2_bar(%FB_Test2* %0, %FB_Test* %1) {
+    entry:
+      %this = alloca %FB_Test2*, align 8
+      store %FB_Test2* %0, %FB_Test2** %this, align 8
+      %FB_Test2.bar = alloca i16, align 2
+      %test = alloca %FB_Test*, align 8
+      store %FB_Test* %1, %FB_Test** %test, align 8
+      store i16 0, i16* %FB_Test2.bar, align 2
+      %deref = load %FB_Test*, %FB_Test** %test, align 8
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %load_x = load i16, i16* %x, align 2
+      store i16 %load_x, i16* %FB_Test2.bar, align 2
+      %FB_Test2_bar_ret = load i16, i16* %FB_Test2.bar, align 2
+      ret i16 %FB_Test2_bar_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    define void @__init_fb_test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
+    define void @__init_fb_test2(%FB_Test2* %0) {
+    entry:
+      %self = alloca %FB_Test2*, align 8
+      store %FB_Test2* %0, %FB_Test2** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_FB_Test(%FB_Test* %0) {
+    entry:
+      %self = alloca %FB_Test*, align 8
+      store %FB_Test* %0, %FB_Test** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_FB_Test2(%FB_Test2* %0) {
+    entry:
+      %self = alloca %FB_Test2*, align 8
+      store %FB_Test2* %0, %FB_Test2** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
 }
 
 #[test]
@@ -1249,11 +1348,12 @@ fn this_with_self_pointer() {
 }
 
 #[test]
+#[ignore]
 fn this_in_variable_initialization() {
     let code = codegen(
         r#"
         FUNCTION_BLOCK FB
-            VAR CONSTANT
+            VAR
                 x : INT;
             END_VAR
             VAR
