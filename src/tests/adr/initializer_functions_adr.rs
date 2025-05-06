@@ -54,7 +54,7 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
     assert!(index.find_pou("__init_foo").is_some());
 
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
-    let init_foo_unit = &units[1].pous[0];
+    let init_foo_unit = &units[1].pous[1];
 
     assert_debug_snapshot!(init_foo_unit, @r###"
     POU {
@@ -211,7 +211,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
     // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
     // passing the member-instance `self.fb`
-    let init_baz_impl = &units[1].implementations[2];
+    let init_baz_impl = &units[1].implementations[4];
     assert_eq!(&init_baz_impl.name, "__init_baz");
     let statements = &init_baz_impl.statements;
     assert_eq!(statements.len(), 2);
@@ -354,7 +354,7 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
-    assert_eq!(init_impl.statements.len(), 7);
+    assert_eq!(init_impl.statements.len(), 8);
     // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
     // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
     // instance.

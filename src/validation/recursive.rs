@@ -165,7 +165,8 @@ impl CycleDetector for CycleInvestigator<DataType> {
         let mut nodes_visited = FxIndexSet::default();
 
         // Structs (includes arrays defined in structs)
-        nodes_all.extend(index.get_types().values().filter(|x| x.get_type_information().is_struct()));
+        nodes_all
+            .extend(index.get_types().values().filter(|dt| dt.is_struct() && !dt.location.is_internal()));
 
         // Function Blocks
         nodes_all.extend(index.get_pou_types().values().filter(|x| {

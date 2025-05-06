@@ -27,12 +27,12 @@ fn function_block_init_fn_created() {
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
     let init_foo = &units[1];
-    let implementation = &init_foo.implementations[0];
+    let implementation = &init_foo.implementations[1];
     assert_eq!(implementation.name, "__init_foo");
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[1].variable_blocks[0].variables[0], @r###"
     Variable {
         name: "self",
         data_type: DataTypeReference {
@@ -236,7 +236,7 @@ fn init_wrapper_function_created() {
 
     // we expect to the body to have 3 statements
     let statements = &implementation.statements;
-    assert_eq!(statements.len(), 3);
+    assert_eq!(statements.len(), 4);
 
     // we expect the first statement in the function-body to assign `REF(s)` to `gs`, since
     // global variables are to be initialized first
@@ -298,7 +298,7 @@ fn init_wrapper_function_created() {
     "###);
 
     // we expect the third statement to call `__user_init_foo`, which checks for user-defined init functions and calls them
-    assert_debug_snapshot!(statements[2], @r#"
+    assert_debug_snapshot!(statements[3], @r#"
     CallStatement {
         operator: ReferenceExpr {
             kind: Member(
@@ -322,7 +322,7 @@ fn init_wrapper_function_created() {
     "#);
 
     // since `foo` has a member-instance of `bar`, we expect its initializer to call/propagate to `__init_bar` with its local member
-    let init_foo = &units[1].implementations[1];
+    let init_foo = &units[1].implementations[2];
     assert_debug_snapshot!(init_foo.statements[0], @r###"
     CallStatement {
         operator: ReferenceExpr {
