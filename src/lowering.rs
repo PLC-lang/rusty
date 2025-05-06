@@ -79,8 +79,10 @@ impl InitVisitor {
                 .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
         }
 
-        for user_type in
-            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+        for user_type in unit
+            .user_types
+            .iter()
+            .filter(|it| !it.location.is_internal() && matches!(it.data_type, DataType::StructType { .. }))
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {

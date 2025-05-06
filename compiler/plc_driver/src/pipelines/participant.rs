@@ -13,8 +13,8 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
-    OnlineChange, Target,
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption,
+    vtable::VTableIndexer, ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;
@@ -279,5 +279,26 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for VTableIndexer {
+    // TODO: Don't track overridden methods in vtable, as they're part of the parent instance (same for interfaces)
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+
+        let vtables_pou = VTableIndexer::create_vtables_for_pous(&index);
+        let vtables_intf = VTableIndexer::create_vtables_for_interfaces(&index);
+        let (internal, external) = VTableIndexer::create_global_variables_for_vtable(&index);
+
+        //FIXME: should we create the vtable in the unit of its pou?
+        if let Some(unit) = project.units.first_mut() {
+            unit.user_types.extend(vtables_pou);
+            unit.user_types.extend(vtables_intf);
+            unit.global_vars.push(internal);
+            unit.global_vars.push(external);
+        }
+
+        project.index(self.id_provider.clone())
     }
 }

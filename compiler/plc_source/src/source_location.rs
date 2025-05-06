@@ -289,6 +289,15 @@ impl SourceLocation {
         let SourceLocation { span, file } = self;
         SourceLocation { span, file: FileMarker::Internal(file.get_name().unwrap_or_default()) }
     }
+
+    pub fn into_internal_with_file(self) -> Self {
+        let SourceLocation { file, .. } = self;
+        SourceLocation {
+            span: CodeSpan::None,
+            file: FileMarker::Internal(file.get_name().unwrap_or_default()),
+        }
+    }
+
     /// Constructs an undefined SourceRange with a 0..0 range and no filename
     pub fn undefined() -> SourceLocation {
         SourceLocation { span: CodeSpan::None, file: FileMarker::default() }

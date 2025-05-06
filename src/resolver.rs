@@ -734,7 +734,7 @@ impl StatementAnnotation {
     /// Returns the location of a parameter in some POU the argument is assigned to, for example
     /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
     /// blocks
-    /// ```norun
+    /// ```nocompile
     /// VAR_INPUT
     ///     a, b : DINT;
     /// END_VAR
@@ -796,6 +796,25 @@ impl Dependency {
         match self {
             Dependency::Datatype(name) | Dependency::Call(name) | Dependency::Variable(name) => name,
         }
+    }
+
+    pub fn get_pou<'idx>(&self, index: &'idx Index) -> Option<&'idx PouIndexEntry> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_pou(name)
+    }
+    pub fn get_type<'idx>(&self, index: &'idx Index) -> Option<&'idx typesystem::DataType> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_type(name)
+    }
+    pub fn get_vtable<'idx>(&self, index: &'idx Index) -> Option<&'idx typesystem::DataType> {
+        let Dependency::Datatype(name) = self else {
+            return None;
+        };
+        index.find_type(&format!("__vtable_{name}"))
     }
 }
 

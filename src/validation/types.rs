@@ -55,6 +55,9 @@ pub fn visit_data_type<T: AnnotationMap>(
 }
 
 fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceLocation) {
+    if location.is_internal() {
+        return;
+    }
     match data_type {
         DataType::StructType { variables, .. } => {
             if variables.is_empty() {

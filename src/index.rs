@@ -2161,6 +2161,15 @@ impl Index {
         self.get_methods_recursive(container, vec![], &mut FxHashSet::default())
     }
 
+    /// Returns all methods directly declared on a container, not including inherited methods.
+    pub fn get_methods_local(&self, container: &str) -> Vec<&PouIndexEntry> {
+        self.get_pous()
+            .values()
+            .filter(|pou| pou.is_method())
+            .filter(|pou| pou.get_parent_pou_name().is_some_and(|opt| opt == container))
+            .collect()
+    }
+
     fn get_methods_recursive<'b>(
         &'b self,
         container: &str,
