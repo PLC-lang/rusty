@@ -266,14 +266,24 @@ fn init_functions_generated_for_function_blocks() {
     source_filename = "<internal>"
 
     %foo = type { [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @s = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -296,6 +306,7 @@ fn init_functions_generated_for_function_blocks() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -375,6 +386,9 @@ fn nested_initializer_pous() {
     %bar = type { %baz }
     %baz = type { [81 x i8]* }
     %sideProg = type { [81 x i8]*, %foo }
+    %__vtable_foo_type = type { i32* }
+    %__vtable_bar_type = type { i32* }
+    %__vtable_baz_type = type { i32* }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -383,6 +397,12 @@ fn nested_initializer_pous() {
     @__bar__init = constant %bar zeroinitializer
     @__baz__init = constant %baz zeroinitializer
     @sideProg_instance = global %sideProg zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer
+    @____vtable_baz_type__init = constant %__vtable_baz_type zeroinitializer
+    @__vtable_baz = global %__vtable_baz_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -487,6 +507,27 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_baz_type(%__vtable_baz_type* %0) {
+    entry:
+      %self = alloca %__vtable_baz_type*, align 8
+      store %__vtable_baz_type* %0, %__vtable_baz_type** %self, align 8
+      ret void
+    }
+
     define void @__init_sideprog(%sideProg* %0) {
     entry:
       %self = alloca %sideProg*, align 8
@@ -551,6 +592,9 @@ fn nested_initializer_pous() {
     entry:
       call void @__init_mainprog(%mainProg* @mainProg_instance)
       call void @__init_sideprog(%sideProg* @sideProg_instance)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
+      call void @__init___vtable_baz_type(%__vtable_baz_type* @__vtable_baz)
       call void @__user_init_mainProg(%mainProg* @mainProg_instance)
       call void @__user_init_sideProg(%sideProg* @sideProg_instance)
       ret void
@@ -817,12 +861,18 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     %foo = type {}
     %cl = type {}
     %prog = type {}
+    %__vtable_foo_type = type { i32*, i32* }
+    %__vtable_cl_type = type { i32* }
 
     @__myStruct__init = constant %myStruct zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @__cl__init = constant %cl zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_cl_type__init = constant %__vtable_cl_type zeroinitializer
+    @__vtable_cl = global %__vtable_cl_type zeroinitializer
 
     define void @prog(%prog* %0) {
     entry:
@@ -858,6 +908,20 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_cl_type(%__vtable_cl_type* %0) {
+    entry:
+      %self = alloca %__vtable_cl_type*, align 8
+      store %__vtable_cl_type* %0, %__vtable_cl_type** %self, align 8
       ret void
     }
 
@@ -906,6 +970,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_cl_type(%__vtable_cl_type* @__vtable_cl)
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
@@ -943,12 +1009,15 @@ fn global_instance() {
 
     %prog = type {}
     %foo = type { [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @fb = global %foo zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -969,6 +1038,13 @@ fn global_instance() {
       %deref = load %foo*, %foo** %self, align 8
       %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -997,6 +1073,7 @@ fn global_instance() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @fb)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       call void @__user_init_prog(%prog* @prog_instance)
       call void @__user_init_foo(%foo* @fb)
       ret void
@@ -1040,12 +1117,15 @@ fn aliased_types() {
 
     %prog = type { %foo }
     %foo = type { [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @global_alias = global %foo zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1067,6 +1147,13 @@ fn aliased_types() {
       %deref = load %foo*, %foo** %self, align 8
       %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1101,6 +1188,7 @@ fn aliased_types() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_foo(%foo* @global_alias)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       call void @__user_init_prog(%prog* @prog_instance)
       call void @__user_init_foo(%foo* @global_alias)
       ret void
@@ -1317,11 +1405,14 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @s = global [81 x i8] zeroinitializer
     @refString = global [81 x i8]* null
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1330,6 +1421,13 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     define void @bar() {
     entry:
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1350,6 +1448,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     define void @__init___Test() {
     entry:
       store [81 x i8]* @s, [81 x i8]** @refString, align 8
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#)
@@ -1378,9 +1477,12 @@ fn ref_to_local_member() {
     source_filename = "<internal>"
 
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1388,6 +1490,13 @@ fn ref_to_local_member() {
       %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1422,6 +1531,7 @@ fn ref_to_local_member() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#)
@@ -1454,10 +1564,13 @@ fn ref_to_local_member_shadows_global() {
     source_filename = "<internal>"
 
     %foo = type { [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @s = global [81 x i8] zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1465,6 +1578,13 @@ fn ref_to_local_member_shadows_global() {
       %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1499,6 +1619,7 @@ fn ref_to_local_member_shadows_global() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#)
@@ -1529,9 +1650,12 @@ fn temporary_variable_ref_to_local_member() {
     source_filename = "<internal>"
 
     %foo = type { [81 x i8] }
+    %__vtable_foo_type = type { i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1545,6 +1669,13 @@ fn temporary_variable_ref_to_local_member() {
       store [81 x i8]* %s, [81 x i8]** %ptr, align 8
       store [81 x i8]* %s, [81 x i8]** %alias, align 8
       store [81 x i8]* %s, [81 x i8]** %reference_to, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1564,6 +1695,7 @@ fn temporary_variable_ref_to_local_member() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#)
@@ -1648,9 +1780,12 @@ fn initializing_method_variables_with_refs() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1664,6 +1799,13 @@ fn initializing_method_variables_with_refs() {
       store i32 10, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1683,6 +1825,7 @@ fn initializing_method_variables_with_refs() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -1714,9 +1857,12 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1730,6 +1876,13 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1749,6 +1902,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -1780,10 +1934,13 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @x = global i32 0
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1795,6 +1952,13 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
       store i32* @x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1814,6 +1978,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -1846,10 +2011,13 @@ fn initializing_method_variables_with_refs_shadowing() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @x = global i32 0
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1863,6 +2031,13 @@ fn initializing_method_variables_with_refs_shadowing() {
       store i32 0, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1882,6 +2057,7 @@ fn initializing_method_variables_with_refs_shadowing() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -1910,9 +2086,12 @@ fn initializing_method_variables_with_alias() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1926,6 +2105,13 @@ fn initializing_method_variables_with_alias() {
       store i32 0, i32* %x, align 4
       store i32* null, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1945,6 +2131,7 @@ fn initializing_method_variables_with_alias() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -1973,9 +2160,12 @@ fn initializing_method_variables_with_reference_to() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -1989,6 +2179,13 @@ fn initializing_method_variables_with_reference_to() {
       store i32 0, i32* %x, align 4
       store i32* null, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -2008,6 +2205,7 @@ fn initializing_method_variables_with_reference_to() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -2044,10 +2242,16 @@ fn methods_call_init_functions_for_their_members() {
 
     %foo = type { i32, i32* }
     %bar = type {}
+    %__vtable_foo_type = type { i32* }
+    %__vtable_bar_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @__bar__init = constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -2086,6 +2290,20 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
+      ret void
+    }
+
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -2109,6 +2327,8 @@ fn methods_call_init_functions_for_their_members() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
       ret void
     }
 
@@ -2150,10 +2370,13 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
     %prog = type { %foo }
     %foo = type { i16, i16 }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = constant %foo zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -2175,6 +2398,13 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     entry:
       %f = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
       call void @foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -2217,6 +2447,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
@@ -2268,12 +2499,15 @@ fn user_fb_init_in_global_struct() {
     %prog = type { %bar }
     %bar = type { %foo }
     %foo = type { i16, i16 }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__bar__init = constant %bar zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @str = global %bar zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -2313,6 +2547,13 @@ fn user_fb_init_in_global_struct() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -2359,6 +2600,7 @@ fn user_fb_init_in_global_struct() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
       call void @__init_bar(%bar* @str)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       call void @__user_init_prog(%prog* @prog_instance)
       call void @__user_init_bar(%bar* @str)
       ret void
@@ -2399,10 +2641,13 @@ fn user_init_called_when_declared_as_external() {
 
     %prog = type { %foo }
     %foo = type { i16, i16 }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = external global %foo
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = external global %__vtable_foo_type
 
     declare void @foo(%foo*)
 
@@ -2412,6 +2657,13 @@ fn user_init_called_when_declared_as_external() {
     entry:
       %f = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
       call void @foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -2444,6 +2696,7 @@ fn user_init_called_when_declared_as_external() {
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }

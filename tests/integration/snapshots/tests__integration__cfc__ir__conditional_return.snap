@@ -1,12 +1,14 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
-snapshot_kind: text
 ---
 %conditional_return = type { i32 }
+%__vtable_conditional_return_type = type { i32* }
 
 @__conditional_return__init = constant %conditional_return zeroinitializer
 @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@____vtable_conditional_return_type__init = external global %__vtable_conditional_return_type
+@__vtable_conditional_return = global %__vtable_conditional_return_type zeroinitializer
 
 define void @conditional_return(%conditional_return* %0) {
 entry:
@@ -20,6 +22,13 @@ then_block:                                       ; preds = %entry
 
 else_block:                                       ; preds = %entry
   store i32 10, i32* %val, align 4
+  ret void
+}
+
+define void @__init___vtable_conditional_return_type(%__vtable_conditional_return_type* %0) {
+entry:
+  %self = alloca %__vtable_conditional_return_type*, align 8
+  store %__vtable_conditional_return_type* %0, %__vtable_conditional_return_type** %self, align 8
   ret void
 }
 
@@ -39,5 +48,6 @@ entry:
 
 define void @__init___plc() {
 entry:
+  call void @__init___vtable_conditional_return_type(%__vtable_conditional_return_type* @__vtable_conditional_return)
   ret void
 }

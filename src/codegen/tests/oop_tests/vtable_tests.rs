@@ -16,14 +16,14 @@ fn vtables_are_created_for_function_blocks() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %Test = type { i32* }
+    %Test = type {}
     %Test2 = type { %Test }
-    %__vtable_Test_type = type { i32* }
-    %__vtable_Test2_type = type { %__vtable_Test_type }
+    %__vtable_Test_type = type { i32*, i32* }
+    %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
 
     @__Test__init = constant %Test zeroinitializer
     @__Test2__init = constant %Test2 zeroinitializer
@@ -35,13 +35,11 @@ fn vtables_are_created_for_function_blocks() {
 
     define void @Test(%Test* %0) {
     entry:
-      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
     define void @Test_TestMethod(%Test* %0) {
     entry:
-      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
@@ -63,7 +61,7 @@ fn vtables_are_created_for_function_blocks() {
       %self = alloca %__vtable_Test2_type*, align 8
       store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
       %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
+      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 1
       call void @__init___vtable_test_type(%__vtable_Test_type* %__vtable_Test_type)
       ret void
     }
@@ -92,13 +90,6 @@ fn vtables_are_created_for_function_blocks() {
       ret void
     }
 
-    define void @__user_init___vtable_Test_type(%__vtable_Test_type* %0) {
-    entry:
-      %self = alloca %__vtable_Test_type*, align 8
-      store %__vtable_Test_type* %0, %__vtable_Test_type** %self, align 8
-      ret void
-    }
-
     define void @__user_init_Test2(%Test2* %0) {
     entry:
       %self = alloca %Test2*, align 8
@@ -109,25 +100,13 @@ fn vtables_are_created_for_function_blocks() {
       ret void
     }
 
-    define void @__user_init___vtable_Test2_type(%__vtable_Test2_type* %0) {
-    entry:
-      %self = alloca %__vtable_Test2_type*, align 8
-      store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
-      %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
-      call void @__user_init___vtable_Test_type(%__vtable_Test_type* %__vtable_Test_type)
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       call void @__init___vtable_test_type(%__vtable_Test_type* @__vtable_Test)
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
-      call void @__user_init___vtable_Test_type(%__vtable_Test_type* @__vtable_Test)
-      call void @__user_init___vtable_Test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -143,7 +122,7 @@ fn vtables_are_created_for_interfaces() {
     );
     //Expecting a vtable type in the types for the interface vtable
     //Interfaces have no vtable global variables
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -168,25 +147,11 @@ fn vtables_are_created_for_interfaces() {
       ret void
     }
 
-    define void @__user_init___vtable_TestInt_type(%__vtable_TestInt_type* %0) {
-    entry:
-      %self = alloca %__vtable_TestInt_type*, align 8
-      store %__vtable_TestInt_type* %0, %__vtable_TestInt_type** %self, align 8
-      ret void
-    }
-
-    define void @__user_init___vtable_TestInt2_type(%__vtable_TestInt2_type* %0) {
-    entry:
-      %self = alloca %__vtable_TestInt2_type*, align 8
-      store %__vtable_TestInt2_type* %0, %__vtable_TestInt2_type** %self, align 8
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -208,12 +173,12 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     );
     //Expecting a vtable type in the types for the interface vtable
     //Interfaces have no vtable global variables
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %Test = type { i32* }
-    %__vtable_Test_type = type { %__vtable_TestInt_type, %__vtable_TestInt2_type, i32* }
+    %Test = type {}
+    %__vtable_Test_type = type { i32*, %__vtable_TestInt_type, %__vtable_TestInt2_type, i32* }
     %__vtable_TestInt_type = type { i32* }
     %__vtable_TestInt2_type = type {}
 
@@ -226,13 +191,11 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
 
     define void @Test(%Test* %0) {
     entry:
-      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
     define void @Test_TestMethod(%Test* %0) {
     entry:
-      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
@@ -241,10 +204,10 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
       %self = alloca %__vtable_Test_type*, align 8
       store %__vtable_Test_type* %0, %__vtable_Test_type** %self, align 8
       %deref = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref, i32 0, i32 0
+      %__vtable_TestInt_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref, i32 0, i32 1
       call void @__init___vtable_testint_type(%__vtable_TestInt_type* %__vtable_TestInt_type)
       %deref1 = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt2_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref1, i32 0, i32 1
+      %__vtable_TestInt2_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref1, i32 0, i32 2
       call void @__init___vtable_testint2_type(%__vtable_TestInt2_type* %__vtable_TestInt2_type)
       ret void
     }
@@ -277,40 +240,12 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
       ret void
     }
 
-    define void @__user_init___vtable_Test_type(%__vtable_Test_type* %0) {
-    entry:
-      %self = alloca %__vtable_Test_type*, align 8
-      store %__vtable_Test_type* %0, %__vtable_Test_type** %self, align 8
-      %deref = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref, i32 0, i32 0
-      call void @__user_init___vtable_TestInt_type(%__vtable_TestInt_type* %__vtable_TestInt_type)
-      %deref1 = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt2_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref1, i32 0, i32 1
-      call void @__user_init___vtable_TestInt2_type(%__vtable_TestInt2_type* %__vtable_TestInt2_type)
-      ret void
-    }
-
-    define void @__user_init___vtable_TestInt_type(%__vtable_TestInt_type* %0) {
-    entry:
-      %self = alloca %__vtable_TestInt_type*, align 8
-      store %__vtable_TestInt_type* %0, %__vtable_TestInt_type** %self, align 8
-      ret void
-    }
-
-    define void @__user_init___vtable_TestInt2_type(%__vtable_TestInt2_type* %0) {
-    entry:
-      %self = alloca %__vtable_TestInt2_type*, align 8
-      store %__vtable_TestInt2_type* %0, %__vtable_TestInt2_type** %self, align 8
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       call void @__init___vtable_test_type(%__vtable_Test_type* @__vtable_Test)
-      call void @__user_init___vtable_Test_type(%__vtable_Test_type* @__vtable_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -329,14 +264,14 @@ fn vtables_for_external_types_are_marked_as_external() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
     %Test2 = type { %Test }
-    %Test = type { i32* }
-    %__vtable_Test_type = type { i32* }
-    %__vtable_Test2_type = type { %__vtable_Test_type }
+    %Test = type {}
+    %__vtable_Test_type = type { i32*, i32* }
+    %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
 
     @__Test2__init = constant %Test2 zeroinitializer
     @__Test__init = external global %Test
@@ -368,7 +303,7 @@ fn vtables_for_external_types_are_marked_as_external() {
       %self = alloca %__vtable_Test2_type*, align 8
       store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
       %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
+      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 1
       call void @__init___vtable_test_type(%__vtable_Test_type* %__vtable_Test_type)
       ret void
     }
@@ -387,13 +322,6 @@ fn vtables_for_external_types_are_marked_as_external() {
       ret void
     }
 
-    define void @__user_init___vtable_Test_type(%__vtable_Test_type* %0) {
-    entry:
-      %self = alloca %__vtable_Test_type*, align 8
-      store %__vtable_Test_type* %0, %__vtable_Test_type** %self, align 8
-      ret void
-    }
-
     define void @__user_init_Test2(%Test2* %0) {
     entry:
       %self = alloca %Test2*, align 8
@@ -404,23 +332,11 @@ fn vtables_for_external_types_are_marked_as_external() {
       ret void
     }
 
-    define void @__user_init___vtable_Test2_type(%__vtable_Test2_type* %0) {
-    entry:
-      %self = alloca %__vtable_Test2_type*, align 8
-      store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
-      %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
-      call void @__user_init___vtable_Test_type(%__vtable_Test_type* %__vtable_Test_type)
-      ret void
-    }
-
     define void @__init___Test() {
     entry:
       call void @__init___vtable_test_type(%__vtable_Test_type* @__vtable_Test)
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
-      call void @__user_init___vtable_Test_type(%__vtable_Test_type* @__vtable_Test)
-      call void @__user_init___vtable_Test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "###);
+    "#);
 }

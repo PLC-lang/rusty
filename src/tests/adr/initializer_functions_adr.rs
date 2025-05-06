@@ -569,6 +569,8 @@ fn generating_init_functions() {
     %bar = type { %foo }
     %foo = type { %myStruct* }
     %myStruct = type { i8, i8 }
+    %__vtable_foo_type = type { i32* }
+    %__vtable_bar_type = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @baz_instance = global %baz zeroinitializer
@@ -576,6 +578,10 @@ fn generating_init_functions() {
     @__foo__init = constant %foo zeroinitializer
     @__myStruct__init = constant %myStruct zeroinitializer
     @s = global %myStruct zeroinitializer
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -619,6 +625,20 @@ fn generating_init_functions() {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
       ret void
     }
 
@@ -670,6 +690,8 @@ fn generating_init_functions() {
     entry:
       call void @__init_baz(%baz* @baz_instance)
       call void @__init_mystruct(%myStruct* @s)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
       call void @__user_init_baz(%baz* @baz_instance)
       call void @__user_init_myStruct(%myStruct* @s)
       ret void
@@ -715,11 +737,14 @@ fn intializing_temporary_variables() {
     source_filename = "<internal>"
 
     %foo = type { [81 x i8]* }
+    %__vtable_foo_type = type { i32* }
 
     @ps2 = global [81 x i8] zeroinitializer
     @__foo__init = constant %foo zeroinitializer
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -753,6 +778,13 @@ fn intializing_temporary_variables() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
@@ -772,6 +804,7 @@ fn intializing_temporary_variables() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
 
@@ -804,9 +837,12 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type {}
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -820,6 +856,13 @@ fn initializing_method_variables() {
       store i32 10, i32* %x, align 4
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -839,6 +882,7 @@ fn initializing_method_variables() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -875,10 +919,13 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
+    %__vtable_foo_type = type { i32*, i32*, i32* }
 
     @y = global i32 0
     @__foo__init = constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -904,6 +951,13 @@ fn initializing_method_variables() {
       ret void
     }
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
@@ -920,6 +974,7 @@ fn initializing_method_variables() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
@@ -946,9 +1001,12 @@ fn initializing_method_variables() {
     source_filename = "<internal>"
 
     %foo = type { i32 }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
@@ -964,6 +1022,13 @@ fn initializing_method_variables() {
       store i32 10, i32* %x1, align 4
       store i32* %x1, i32** %px, align 8
       store i32* %x1, i32** %px, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -983,6 +1048,7 @@ fn initializing_method_variables() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
     "#);
