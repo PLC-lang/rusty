@@ -20,7 +20,7 @@ fn vtables_are_created_for_function_blocks() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %Test = type {}
+    %Test = type { i32* }
     %Test2 = type { %Test }
     %__vtable_Test_type = type { i32*, i32* }
     %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
@@ -35,11 +35,13 @@ fn vtables_are_created_for_function_blocks() {
 
     define void @Test(%Test* %0) {
     entry:
+      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
     define void @Test_TestMethod(%Test* %0) {
     entry:
+      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
@@ -177,7 +179,7 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %Test = type {}
+    %Test = type { i32* }
     %__vtable_Test_type = type { i32*, %__vtable_TestInt_type, %__vtable_TestInt2_type, i32* }
     %__vtable_TestInt_type = type { i32* }
     %__vtable_TestInt2_type = type {}
@@ -191,11 +193,13 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
 
     define void @Test(%Test* %0) {
     entry:
+      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
     define void @Test_TestMethod(%Test* %0) {
     entry:
+      %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
@@ -269,7 +273,7 @@ fn vtables_for_external_types_are_marked_as_external() {
     source_filename = "<internal>"
 
     %Test2 = type { %Test }
-    %Test = type {}
+    %Test = type { i32* }
     %__vtable_Test_type = type { i32*, i32* }
     %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
 

@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DeclarationKind, PolymorphismMode, PouType, VariableBlockType,
 };
@@ -182,7 +182,7 @@ fn class_with_var_default_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -202,7 +202,7 @@ fn class_with_var_non_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -222,7 +222,7 @@ fn class_with_var_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, true);
@@ -667,4 +667,71 @@ fn function_block_can_only_be_extended_once() {
     14 │         FUNCTION_BLOCK quux EXTENDS bar EXTENDS baz EXTENDS qux
        │                                                             ^^^ Multiple inheritance. POUs can only be extended once.
     ")
+}
+
+#[test]
+fn function_block_and_classes_have_vtable_var() {
+    let src = r#"
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        CLASS bar
+        END_CLASS
+
+    "#;
+
+    let unit = parse(src).0;
+
+    assert_debug_snapshot!(unit.pous[0].variable_blocks, @r#"
+    [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "__vtable",
+                    data_type: DataTypeReference {
+                        referenced_type: "__VOID_POINTER",
+                    },
+                },
+            ],
+            variable_block_type: Local,
+        },
+    ]
+    "#);
+    assert_debug_snapshot!(unit.pous[1].variable_blocks, @r#"
+    [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "__vtable",
+                    data_type: DataTypeReference {
+                        referenced_type: "__VOID_POINTER",
+                    },
+                },
+            ],
+            variable_block_type: Local,
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn function_block_already_extended_do_not_have_vtable() {
+    let src = r#"
+        FUNCTION_BLOCK foo
+        END_FUNCTION_BLOCK
+
+        CLASS bar
+        END_CLASS
+
+        FUNCTION_BLOCK baz EXTENDS foo
+        END_FUNCTION_BLOCK
+
+        CLASS qux EXTENDS bar
+        END_CLASS
+
+    "#;
+
+    let unit = parse(src).0;
+    assert_debug_snapshot!(unit.pous[2].variable_blocks, @"[]");
+    assert_debug_snapshot!(unit.pous[3].variable_blocks, @"[]");
 }

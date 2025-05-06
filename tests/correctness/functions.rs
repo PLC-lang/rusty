@@ -228,6 +228,7 @@ fn function_block_instances_save_state_per_instance() {
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
+        __vtable: usize,
         i: i16,
     }
 
@@ -250,13 +251,13 @@ fn function_block_instances_save_state_per_instance() {
     END_VAR
     f();
     f();
-    j(4);
+    j(i := 4);
     j();
     j();
     END_PROGRAM
     "#;
 
-    let mut interface = MainType { f: FooType { i: 0 }, j: FooType { i: 0 } };
+    let mut interface = MainType { f: FooType { __vtable: 0, i: 0 }, j: FooType { __vtable: 0, i: 0 } };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
     assert_eq!(interface.f.i, 2);
     assert_eq!(interface.j.i, 7);
@@ -364,12 +365,14 @@ fn function_block_instances_save_state_per_instance_2() {
     #[allow(dead_code)]
     #[repr(C)]
     struct BazType {
+        __vtable: usize,
         i: i16,
     }
 
     #[allow(dead_code)]
     #[repr(C)]
     struct FooType {
+        __vtable: usize,
         i: i16,
         baz: BazType,
     }
@@ -410,8 +413,10 @@ fn function_block_instances_save_state_per_instance_2() {
     END_PROGRAM
     "#;
 
-    let mut interface =
-        MainType { f: FooType { i: 0, baz: BazType { i: 0 } }, j: FooType { i: 0, baz: BazType { i: 0 } } };
+    let mut interface = MainType {
+        f: FooType { __vtable: 0, i: 0, baz: BazType { __vtable: 0, i: 0 } },
+        j: FooType { __vtable: 0, i: 0, baz: BazType { __vtable: 0, i: 0 } },
+    };
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(2, interface.f.baz.i);
@@ -684,6 +689,7 @@ fn direct_call_on_function_block_array_access() {
     #[allow(dead_code)]
     #[derive(Default)]
     struct FooType {
+        __vtable: usize,
         i: i16,
         x: i16,
     }
@@ -1205,7 +1211,7 @@ fn sizeof_test() {
     let function = r#"
         CLASS MyClass
         VAR
-            x, y : INT; // 4 bytes
+            x, y : INT; // 4 bytes + 8 for the vtable
         END_VAR
         END_CLASS
         TYPE MyStruct : STRUCT
@@ -1250,7 +1256,7 @@ fn sizeof_test() {
     let module = compile(&context, function);
     let _: i32 = module.run("main", &mut maintype);
 
-    let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 4 };
+    let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 16 };
 
     assert_eq!(expected, maintype);
 }

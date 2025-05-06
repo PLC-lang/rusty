@@ -431,7 +431,7 @@ fn simple_fb_with_var_temp_can_be_parsed() {
     let result = parse(function).0;
 
     let prg = &result.pous[0];
-    let variable_block = &prg.variable_blocks[0];
+    let variable_block = &prg.variable_blocks[1];
     let ast_string = format!("{variable_block:#?}");
     let expected_ast = r#"VariableBlock {
     variables: [

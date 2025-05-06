@@ -1,23 +1,24 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%foo = type {}
+%foo = type { i32* }
 
 @__foo__init = unnamed_addr constant %foo zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
 define void @foo(%foo* %0) {
 entry:
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
 define void @foo_baz(%foo* %0, [81 x i8]* %1) {
 entry:
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %out = alloca [81 x i8]*, align 8
   store [81 x i8]* %1, [81 x i8]** %out, align 8
   %deref = load [81 x i8]*, [81 x i8]** %out, align 8

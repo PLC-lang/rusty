@@ -358,15 +358,16 @@ fn zero_sized_types_offset_and_size_are_correct() {
         END_VAR
         END_PROGRAM
 
-        FUNCTION_BLOCK zeroSize
+        //Function blockes are no longer zero sized because of the vtable
+        PROGRAM zeroSize
             VAR
             END_VAR
-        END_FUNCTION_BLOCK
+        END_PROGRAM
         ",
     );
     // We expect the element after the zero sized member to have the offset same offset as the zero sized member
     assert!(result.contains(r#"!DIDerivedType(tag: DW_TAG_member, name: "fb", scope: !2, file: !2, line: 6, baseType: !13, align: 64, offset: 104, flags: DIFlagPublic)"#));
     assert!(result.contains(r#"!DIDerivedType(tag: DW_TAG_member, name: "arr2", scope: !2, file: !2, line: 7, baseType: !8, size: 88, align: 8, offset: 104, flags: DIFlagPublic)"#));
     // We also expect the zero sized type to not have a size set in the debug info
-    assert!(result.contains(r#"!DICompositeType(tag: DW_TAG_structure_type, name: "zeroSize", scope: !2, file: !2, line: 11, align: 64, flags: DIFlagPublic, elements: !14, identifier: "zeroSize")"#));
+    assert!(result.contains(r#"!DICompositeType(tag: DW_TAG_structure_type, name: "zeroSize", scope: !2, file: !2, line: 12, align: 64, flags: DIFlagPublic, elements: !14, identifier: "zeroSize")"#));
 }

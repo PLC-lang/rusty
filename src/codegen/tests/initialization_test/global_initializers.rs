@@ -167,7 +167,7 @@ fn external_pous_get_external_initializers() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %ext_fb = type {}
+    %ext_fb = type { i32* }
     %ext_prog = type {}
 
     @__ext_fb__init = external global %ext_fb

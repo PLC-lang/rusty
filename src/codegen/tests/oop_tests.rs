@@ -24,7 +24,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
+    %foo = type { i32*, i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
     %__vtable_foo_type = type { i32* }
     %__vtable_bar_type = type { i32*, %__vtable_foo_type }
@@ -39,9 +39,10 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @foo(%foo* %0) {
     entry:
-      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
       ret void
     }
 
@@ -139,8 +140,8 @@ fn write_to_parent_variable_qualified_access() {
     source_filename = "<internal>"
 
     %fb2 = type { %fb }
-    %fb = type { i16, i16 }
-    %foo = type { %fb2 }
+    %fb = type { i32*, i16, i16 }
+    %foo = type { i32*, %fb2 }
     %__vtable_fb_type = type { i32* }
     %__vtable_fb2_type = type { i32*, %__vtable_fb_type }
     %__vtable_foo_type = type { i32* }
@@ -158,8 +159,9 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @fb(%fb* %0) {
     entry:
-      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
+      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 2
       ret void
     }
 
@@ -171,9 +173,10 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @foo(%foo* %0) {
     entry:
-      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
-      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 0
+      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1
       store i16 1, i16* %x, align 2
       ret void
     }
@@ -224,7 +227,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__init_fb2(%fb2* %myFb)
       ret void
     }
@@ -251,7 +254,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__user_init_fb2(%fb2* %myFb)
       ret void
     }
@@ -298,7 +301,7 @@ fn write_to_parent_variable_in_instance() {
     source_filename = "<internal>"
 
     %bar = type { %foo }
-    %foo = type { [81 x i8] }
+    %foo = type { i32*, [81 x i8] }
     %__vtable_foo_type = type { i32*, i32* }
     %__vtable_bar_type = type { i32*, %__vtable_foo_type }
 
@@ -314,13 +317,15 @@ fn write_to_parent_variable_in_instance() {
 
     define void @foo(%foo* %0) {
     entry:
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
     define void @foo_baz(%foo* %0) {
     entry:
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
       ret void
@@ -329,7 +334,7 @@ fn write_to_parent_variable_in_instance() {
     define void @bar(%bar* %0) {
     entry:
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
       ret void
@@ -342,7 +347,7 @@ fn write_to_parent_variable_in_instance() {
       %0 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       %1 = bitcast %bar* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb)
       call void @__user_init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
@@ -465,7 +470,7 @@ fn array_in_parent_generated() {
 
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
-    %grandparent = type { [6 x i16], i16 }
+    %grandparent = type { i32*, [6 x i16], i16 }
     %__vtable_grandparent_type = type { i32* }
     %__vtable_parent_type = type { i32*, %__vtable_grandparent_type }
     %__vtable_child_type = type { i32*, %__vtable_parent_type }
@@ -483,8 +488,9 @@ fn array_in_parent_generated() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
       ret void
     }
 
@@ -511,12 +517,12 @@ fn array_in_parent_generated() {
       %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
       %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 2
       store i16 10, i16* %a, align 2
       %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
       %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0
       %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 1
       %tmpVar4 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0
       store i16 20, i16* %tmpVar4, align 2
       %tmpVar5 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1
@@ -663,7 +669,7 @@ fn complex_array_access_generated() {
     source_filename = "<internal>"
 
     %parent = type { %grandparent, [11 x i16], i16 }
-    %grandparent = type { [6 x i16], i16 }
+    %grandparent = type { i32*, [6 x i16], i16 }
     %child = type { %parent, [11 x i16] }
     %__vtable_grandparent_type = type { i32* }
     %__vtable_parent_type = type { i32*, %__vtable_grandparent_type }
@@ -682,8 +688,9 @@ fn complex_array_access_generated() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
       ret void
     }
 
@@ -700,7 +707,7 @@ fn complex_array_access_generated() {
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
       %load_b = load i16, i16* %b, align 2
       %1 = sext i16 %load_b to i32
@@ -715,7 +722,7 @@ fn complex_array_access_generated() {
       %3 = sext i16 %load_tmpVar to i32
       %tmpVar6 = add i32 %1, %3
       %__grandparent7 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 2
       %load_a = load i16, i16* %a, align 2
       %4 = sext i16 %load_a to i32
       %tmpVar8 = sub i32 %tmpVar6, %4
@@ -866,4 +873,18 @@ fn properties_are_methods() {
     );
 
     assert_eq!(property, method);
+}
+
+#[test]
+fn global_vtable_variables_are_generated() {
+    let result = codegen(
+        r"
+        FUNCTION_BLOCK fb
+          METHOD foo
+          END_METHOD
+        END_FUNCTION_BLOCK
+      ",
+    );
+
+    assert!(result.contains("@__vtable_fb = global %__vtable_fb_type zeroinitializer"))
 }

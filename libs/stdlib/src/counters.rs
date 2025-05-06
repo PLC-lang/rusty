@@ -5,12 +5,18 @@ use crate::utils::Signal;
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct CTUParams<T> {
+    __vtable: usize,
     cu: bool,
     r: bool,
     pv: T,
     q: bool,
     cv: T,
     internal: Signal,
+}
+
+#[repr(C)]
+pub struct VTableCTU<T> {
+    body: extern "C" fn(&mut CTUParams<T>),
 }
 
 impl<T> CTUParams<T>
@@ -46,6 +52,26 @@ where
     params.update_q();
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU: VTableCTU<i16> = VTableCTU {
+    body: CTU,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU__init: CTUParams<i16> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter up for INT
 ///
@@ -54,6 +80,26 @@ where
 pub extern "C" fn CTU(params: &mut CTUParams<i16>) {
     ctu(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU_INT: VTableCTU<i16> = VTableCTU {
+    body: CTU_INT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU_INT__init: CTUParams<i16> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter up for INT
@@ -64,6 +110,26 @@ pub extern "C" fn CTU_INT(params: &mut CTUParams<i16>) {
     ctu(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU_DINT: VTableCTU<i32> = VTableCTU {
+    body: CTU_DINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU_DINT__init: CTUParams<i32> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter up for DINT
 ///
@@ -72,6 +138,26 @@ pub extern "C" fn CTU_INT(params: &mut CTUParams<i16>) {
 pub extern "C" fn CTU_DINT(params: &mut CTUParams<i32>) {
     ctu(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU_UDINT: VTableCTU<u32> = VTableCTU {
+    body: CTU_UDINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU_UDINT__init: CTUParams<u32> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter up for DINT
@@ -82,6 +168,26 @@ pub extern "C" fn CTU_UDINT(params: &mut CTUParams<u32>) {
     ctu(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU_LINT: VTableCTU<i64> = VTableCTU {
+    body: CTU_LINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU_LINT__init: CTUParams<i64> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter up for LINT
 ///
@@ -90,6 +196,26 @@ pub extern "C" fn CTU_UDINT(params: &mut CTUParams<u32>) {
 pub extern "C" fn CTU_LINT(params: &mut CTUParams<i64>) {
     ctu(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTU_ULINT: VTableCTU<u64> = VTableCTU {
+    body: CTU_ULINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTU_ULINT__init: CTUParams<u64> = CTUParams {
+    __vtable: 0,
+    cu: false,
+    r: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter up for ULINT
@@ -103,12 +229,18 @@ pub extern "C" fn CTU_ULINT(params: &mut CTUParams<u64>) {
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct CTDParams<T> {
+    __vtable: usize,
     cd: bool,
     ld: bool,
     pv: T,
     q: bool,
     cv: T,
     internal: Signal,
+}
+
+#[repr(C)]
+pub struct VTableCTD<T> {
+    body: extern "C" fn(&mut CTDParams<T>),
 }
 
 impl<T> CTDParams<T>
@@ -144,6 +276,26 @@ where
     params.update_q();
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD: VTableCTD<i16> = VTableCTD {
+    body: CTD,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD__init: CTDParams<i16> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter down for INT
 ///
@@ -152,6 +304,26 @@ where
 pub extern "C" fn CTD(params: &mut CTDParams<i16>) {
     ctd(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD_INT: VTableCTD<i16> = VTableCTD {
+    body: CTD_INT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD_INT__init: CTDParams<i16> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter down for INT
@@ -162,6 +334,26 @@ pub extern "C" fn CTD_INT(params: &mut CTDParams<i16>) {
     ctd(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD_DINT: VTableCTD<i32> = VTableCTD {
+    body: CTD_DINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD_DINT__init: CTDParams<i32> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter down for DINT
 ///
@@ -170,6 +362,26 @@ pub extern "C" fn CTD_INT(params: &mut CTDParams<i16>) {
 pub extern "C" fn CTD_DINT(params: &mut CTDParams<i32>) {
     ctd(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD_UDINT: VTableCTD<u32> = VTableCTD {
+    body: CTD_UDINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD_UDINT__init: CTDParams<u32> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter down for UDINT
@@ -180,6 +392,26 @@ pub extern "C" fn CTD_UDINT(params: &mut CTDParams<u32>) {
     ctd(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD_LINT: VTableCTD<i64> = VTableCTD {
+    body: CTD_LINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD_LINT__init: CTDParams<i64> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
+
 ///.
 /// Counter down for LINT
 ///
@@ -188,6 +420,26 @@ pub extern "C" fn CTD_UDINT(params: &mut CTDParams<u32>) {
 pub extern "C" fn CTD_LINT(params: &mut CTDParams<i64>) {
     ctd(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTD_ULINT: VTableCTD<u64> = VTableCTD {
+    body: CTD_ULINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTD_ULINT__init: CTDParams<u64> = CTDParams {
+    __vtable: 0,
+    cd: false,
+    ld: false,
+    pv: 0,
+    q: false,
+    cv: 0,
+    internal: Signal { current_value: false },
+};
 
 ///.
 /// Counter down for ULINT
@@ -201,6 +453,7 @@ pub extern "C" fn CTD_ULINT(params: &mut CTDParams<u64>) {
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct CTUDParams<T> {
+    __vtable: usize,
     cu: bool,
     cd: bool,
     r: bool,
@@ -211,6 +464,11 @@ pub struct CTUDParams<T> {
     cv: T,
     internal_up: Signal,
     internal_down: Signal,
+}
+
+#[repr(C)]
+pub struct VTableCTUD<T> {
+    body: extern "C" fn(&mut CTUDParams<T>),
 }
 
 impl<T> CTUDParams<T>
@@ -273,6 +531,30 @@ where
     params.update_qd();
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD: VTableCTUD<i16> = VTableCTUD {
+    body: CTUD,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD__init: CTUDParams<i16> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
+
 ///.
 /// Counter up and down for INT
 ///
@@ -281,6 +563,30 @@ where
 pub extern "C" fn CTUD(params: &mut CTUDParams<i16>) {
     ctud(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD_INT: VTableCTUD<i16> = VTableCTUD {
+    body: CTUD_INT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD_INT__init: CTUDParams<i16> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
 
 ///.
 /// Counter up and down for INT
@@ -291,6 +597,30 @@ pub extern "C" fn CTUD_INT(params: &mut CTUDParams<i16>) {
     ctud(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD_DINT: VTableCTUD<i32> = VTableCTUD {
+    body: CTUD_DINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD_DINT__init: CTUDParams<i32> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
+
 ///.
 /// Counter up and down for DINT
 ///
@@ -299,6 +629,30 @@ pub extern "C" fn CTUD_INT(params: &mut CTUDParams<i16>) {
 pub extern "C" fn CTUD_DINT(params: &mut CTUDParams<i32>) {
     ctud(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD_UDINT: VTableCTUD<u32> = VTableCTUD {
+    body: CTUD_UDINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD_UDINT__init: CTUDParams<u32> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
 
 ///.
 /// Counter up and down for UDINT
@@ -309,6 +663,30 @@ pub extern "C" fn CTUD_UDINT(params: &mut CTUDParams<u32>) {
     ctud(params);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD_LINT: VTableCTUD<i64> = VTableCTUD {
+    body: CTUD_LINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD_LINT__init: CTUDParams<i64> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
+
 ///.
 /// Counter up and down for LINT
 ///
@@ -317,6 +695,30 @@ pub extern "C" fn CTUD_UDINT(params: &mut CTUDParams<u32>) {
 pub extern "C" fn CTUD_LINT(params: &mut CTUDParams<i64>) {
     ctud(params);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_CTUD_ULINT: VTableCTUD<u64> = VTableCTUD {
+    body: CTUD_ULINT,
+};
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __CTUD_ULINT__init: CTUDParams<u64> = CTUDParams {
+    __vtable: 0,
+    cu: false,
+    cd: false,
+    r: false,
+    ld: false,
+    pv: 0,
+    qu: false,
+    qd: false,
+    cv: 0,
+    internal_up: Signal { current_value: false },
+    internal_down: Signal { current_value: false },
+};
 
 ///.
 /// Counter up and down for ULINT

@@ -12,13 +12,14 @@ source_filename = "myEnum.st"
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
 
-%fb = type { i32 }
+%fb = type { i32*, i32 }
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
   ret void
 }
 
@@ -26,7 +27,7 @@ entry:
 source_filename = "myStruct.st"
 
 %myStruct = type { %fb.2 }
-%fb.2 = type { i32 }
+%fb.2 = type { i32*, i32 }
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 @__fb__init = external global %fb.2
@@ -36,9 +37,9 @@ declare void @fb(%fb.2*)
 ; ModuleID = 'fb2.st'
 source_filename = "fb2.st"
 
-%fb2 = type { %myStruct.4 }
+%fb2 = type { i32*, %myStruct.4 }
 %myStruct.4 = type { %fb.5 }
-%fb.5 = type { i32 }
+%fb.5 = type { i32*, i32 }
 
 @__fb2__init = unnamed_addr constant %fb2 zeroinitializer
 @__myStruct__init = external global %myStruct.4
@@ -46,7 +47,8 @@ source_filename = "fb2.st"
 
 define void @fb2(%fb2* %0) {
 entry:
-  %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 1
   ret void
 }
 
@@ -55,11 +57,12 @@ declare void @fb(%fb.5*)
 ; ModuleID = 'fb3.st'
 source_filename = "fb3.st"
 
-%fb3 = type {}
+%fb3 = type { i32* }
 
 @__fb3__init = unnamed_addr constant %fb3 zeroinitializer
 
 define void @fb3(%fb3* %0) {
 entry:
+  %__vtable = getelementptr inbounds %fb3, %fb3* %0, i32 0, i32 0
   ret void
 }

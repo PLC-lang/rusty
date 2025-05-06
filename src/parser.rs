@@ -28,7 +28,7 @@ use crate::{
         self, ParseSession,
         Token::{self, *},
     },
-    typesystem::DINT_TYPE,
+    typesystem::{DINT_TYPE, VOID_POINTER_INTERNAL_NAME},
 };
 
 use self::{
@@ -323,6 +323,30 @@ fn parse_pou(
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
+            // If we don't extend any other class, we should add a vtable reference as first
+            // variable
+            //TODO: Technically, this should be in a preprocessor, lowerer because it's not
+            //something the user wrote
+            if super_class.is_none() && matches!(kind, PouType::Class | PouType::FunctionBlock) {
+                variable_blocks.push(VariableBlock {
+                    kind: VariableBlockType::Local,
+                    variables: vec![Variable {
+                        name: "__vtable".into(),
+                        data_type_declaration: DataTypeDeclaration::Reference {
+                            referenced_type: VOID_POINTER_INTERNAL_NAME.into(),
+                            location: SourceLocation::internal(),
+                        },
+                        initializer: None,
+                        address: None,
+                        location: SourceLocation::internal(),
+                    }],
+                    linkage: LinkageType::Internal,
+                    access: AccessModifier::Protected,
+                    constant: false,
+                    retain: false,
+                    location: SourceLocation::internal(),
+                });
+            }
             let allowed_var_types = [
                 KeywordVar,
                 KeywordVarInput,

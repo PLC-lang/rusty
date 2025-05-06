@@ -566,8 +566,8 @@ fn generating_init_functions() {
     source_filename = "<internal>"
 
     %baz = type { %bar }
-    %bar = type { %foo }
-    %foo = type { %myStruct* }
+    %bar = type { i32*, %foo }
+    %foo = type { i32*, %myStruct* }
     %myStruct = type { i8, i8 }
     %__vtable_foo_type = type { i32* }
     %__vtable_bar_type = type { i32* }
@@ -585,13 +585,15 @@ fn generating_init_functions() {
 
     define void @foo(%foo* %0) {
     entry:
-      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
     define void @bar(%bar* %0) {
     entry:
-      %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
       ret void
     }
 
@@ -606,7 +608,7 @@ fn generating_init_functions() {
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
       %deref = load %bar*, %bar** %self, align 8
-      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
       call void @__init_foo(%foo* %fb)
       ret void
     }
@@ -616,7 +618,7 @@ fn generating_init_functions() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store %myStruct* @s, %myStruct** %ps, align 8
       ret void
     }
@@ -667,7 +669,7 @@ fn generating_init_functions() {
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
       %deref = load %bar*, %bar** %self, align 8
-      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
       call void @__user_init_foo(%foo* %fb)
       ret void
     }
@@ -736,7 +738,7 @@ fn intializing_temporary_variables() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { [81 x i8]* }
+    %foo = type { i32*, [81 x i8]* }
     %__vtable_foo_type = type { i32* }
 
     @ps2 = global [81 x i8] zeroinitializer
@@ -748,7 +750,8 @@ fn intializing_temporary_variables() {
 
     define void @foo(%foo* %0) {
     entry:
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %s2 = alloca [81 x i8]*, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
@@ -790,7 +793,7 @@ fn intializing_temporary_variables() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       ret void
     }
@@ -836,7 +839,7 @@ fn initializing_method_variables() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type {}
+    %foo = type { i32* }
     %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = constant %foo zeroinitializer
@@ -846,11 +849,13 @@ fn initializing_method_variables() {
 
     define void @foo(%foo* %0) {
     entry:
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
@@ -918,24 +923,26 @@ fn initializing_method_variables() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { i32 }
+    %foo = type { i32*, i32 }
     %__vtable_foo_type = type { i32*, i32*, i32* }
 
     @y = global i32 0
-    @__foo__init = constant %foo { i32 5 }
+    @__foo__init = constant %foo { i32* null, i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -944,7 +951,8 @@ fn initializing_method_variables() {
 
     define void @foo_baz(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %px = alloca i32*, align 8
       store i32* @y, i32** %px, align 8
       store i32* @y, i32** %px, align 8
@@ -1000,23 +1008,25 @@ fn initializing_method_variables() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { i32 }
+    %foo = type { i32*, i32 }
     %__vtable_foo_type = type { i32*, i32* }
 
-    @__foo__init = constant %foo { i32 5 }
+    @__foo__init = constant %foo { i32* null, i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %x1 = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x1, align 4

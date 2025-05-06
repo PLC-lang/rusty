@@ -7,7 +7,6 @@
                 <textDeclaration>
                     <content>
 FUNCTION_BLOCK select
-
 VAR_INPUT
     a, b : DINT;
 END_VAR

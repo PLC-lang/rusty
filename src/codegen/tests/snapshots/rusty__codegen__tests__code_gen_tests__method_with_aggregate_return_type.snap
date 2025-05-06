@@ -1,18 +1,18 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%fb_with_method = type {}
+%fb_with_method = type { i32* }
 
 @__fb_with_method__init = unnamed_addr constant %fb_with_method zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
 
 define void @fb_with_method(%fb_with_method* %0) {
 entry:
+  %__vtable = getelementptr inbounds %fb_with_method, %fb_with_method* %0, i32 0, i32 0
   %ret = alloca [81 x i8], align 1
   %1 = bitcast [81 x i8]* %ret to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
@@ -29,6 +29,7 @@ entry:
 
 define void @fb_with_method_method_with_aggregagte_return(%fb_with_method* %0, i8* %1, i8* %2) {
 entry:
+  %__vtable = getelementptr inbounds %fb_with_method, %fb_with_method* %0, i32 0, i32 0
   %ret = alloca [81 x i8], align 1
   %method_with_aggregagte_return = alloca i8*, align 8
   store i8* %1, i8** %method_with_aggregagte_return, align 8

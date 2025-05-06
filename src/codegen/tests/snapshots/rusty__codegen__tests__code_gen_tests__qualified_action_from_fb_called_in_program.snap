@@ -1,13 +1,12 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %bar = type { %fb }
-%fb = type { i32 }
+%fb = type { i32*, i32 }
 
 @bar_instance = global %bar zeroinitializer
 @__fb__init = unnamed_addr constant %fb zeroinitializer
@@ -21,13 +20,15 @@ entry:
 
 define void @fb(%fb* %0) {
 entry:
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
   ret void
 }
 
 define void @fb_foo(%fb* %0) {
 entry:
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
   store i32 2, i32* %x, align 4
   ret void
 }

@@ -1,18 +1,18 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%abcdef = type { i8 }
+%abcdef = type { i32*, i8 }
 
 @__abcdef__init = unnamed_addr constant %abcdef zeroinitializer
 
 define void @abcdef(%abcdef* %0) {
 entry:
-  %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
+  %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 1
   %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10

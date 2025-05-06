@@ -2,7 +2,7 @@
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 ---
-%conditional_return = type { i32 }
+%conditional_return = type { i32*, i32 }
 %__vtable_conditional_return_type = type { i32* }
 
 @__conditional_return__init = constant %conditional_return zeroinitializer
@@ -12,7 +12,8 @@ expression: output_file_content_without_headers
 
 define void @conditional_return(%conditional_return* %0) {
 entry:
-  %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
+  %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 1
   %load_val = load i32, i32* %val, align 4
   %tmpVar = icmp eq i32 %load_val, 5
   br i1 %tmpVar, label %then_block, label %else_block

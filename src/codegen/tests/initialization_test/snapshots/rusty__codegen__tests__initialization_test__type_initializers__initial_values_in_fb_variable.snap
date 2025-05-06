@@ -1,23 +1,23 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%TON = type { i16, i16 }
+%TON = type { i32*, i16, i16 }
 %main = type { i16, %TON, %TON }
 
 @__TON__init = unnamed_addr constant %TON zeroinitializer
-@main_instance = global %main { i16 10, %TON { i16 10, i16 17 }, %TON { i16 17, i16 10 } }
-@__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
-@__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
+@main_instance = global %main { i16 10, %TON { i32* null, i16 10, i16 17 }, %TON { i32* null, i16 17, i16 10 } }
+@__main.struct1__init = unnamed_addr constant %TON { i32* null, i16 10, i16 17 }
+@__main.struct2__init = unnamed_addr constant %TON { i32* null, i16 17, i16 10 }
 
 define void @TON(%TON* %0) {
 entry:
-  %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
-  %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
+  %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
+  %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 2
   ret void
 }
 

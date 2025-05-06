@@ -294,16 +294,17 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %main_fb = type { i16, i16*, i16, i16 }
+    %main_fb = type { i32*, i16, i16*, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i32* null, i16 6, i16* null, i16 0, i16 1 }
 
     define void @main_fb(%main_fb* %0) {
     entry:
-      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
+      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
+      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
+      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 4
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
       ret void
@@ -334,22 +335,22 @@ fn calling_a_function_block() {
     source_filename = "<internal>"
 
     %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
+    %main_fb = type { i32*, i16, i16*, i16, i16 }
 
-    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i32* null, i16 6, i16* null, i16 0, i16 1 } }
+    @__main_fb__init = unnamed_addr constant %main_fb { i32* null, i16 6, i16* null, i16 0, i16 1 }
 
     define void @foo(%foo* %0) {
     entry:
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %fb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      %1 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 0
+      %1 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
       store i16 1, i16* %1, align 2
-      %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
+      %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
       store i16* %y, i16** %2, align 8
       call void @main_fb(%main_fb* %fb)
-      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
+      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 3
       %4 = load i16, i16* %3, align 2
       store i16 %4, i16* %x, align 2
       ret void
@@ -357,10 +358,11 @@ fn calling_a_function_block() {
 
     define void @main_fb(%main_fb* %0) {
     entry:
-      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
+      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
+      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
+      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 4
       %vt = alloca i16, align 2
       store i16 2, i16* %vt, align 2
       ret void

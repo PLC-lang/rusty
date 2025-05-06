@@ -1,12 +1,11 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%fb_t = type { i32, i32 }
+%fb_t = type { i32*, i32, i32 }
 %main = type { %fb_t }
 
 @__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
@@ -14,15 +13,16 @@ source_filename = "<internal>"
 
 define void @fb_t(%fb_t* %0) {
 entry:
-  %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
-  %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
+  %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   ret void
 }
 
 define void @main(%main* %0) {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 0
+  %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 1
   store i32 1, i32* %1, align 4
   call void @fb_t(%fb_t* %fb)
   ret void
