@@ -218,13 +218,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the expression
         match expression.get_stmt() {
             AstStatement::This => {
-                // TODO: #THIS meaningful errors
-                // [ ] add tests
+                // TODO: #THIS how to test the errors here?
                 self.function_context.ok_or_else(|| {
                     Diagnostic::codegen_error("Cannot use 'this' without context", expression)
                 })?;
                 let Some(this_name) = self.annotations.get_call_name(expression) else {
-                    todo!("error handling")
+                    // TODO: is this correct?
+                    unreachable!("this should have a name");
                 };
                 let this_value =
                     self.llvm_index.find_loaded_associated_variable_value(this_name).ok_or_else(|| {

@@ -264,7 +264,6 @@ fn this_in_recursive_method_is_ok() {
 #[test]
 fn this_chained_with_super_is_not_ok() {
     let diagnostics = parse_and_validate_buffered(
-        // TODO: #THIS check with Michael (nested)
         r#"
         FUNCTION_BLOCK parent
             METHOD DoSomething : DINT
@@ -347,6 +346,7 @@ fn this_with_self_pointer_is_ok() {
             METHOD InitRef
                 refToSelf := ADR(THIS^);
                 refToSelf := REF(THIS^);
+                refToSelf := THIS;
             END_METHOD
         END_FUNCTION_BLOCK
     "#,

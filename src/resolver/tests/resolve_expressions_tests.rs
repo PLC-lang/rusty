@@ -6245,8 +6245,6 @@ fn this_should_not_be_in_programs() {
     };
     assert!(index.find_type("myProg.__THIS").is_none());
 
-    // TODO: #THIS: should we still have the annotations?
-    // Yes, this is the correct since it's the AST which is the result of the parser.
     let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
     else {
         unreachable!();
@@ -6320,71 +6318,59 @@ fn just_this() {
     dbg!(annotations.get_type_hint(statement, &index)); // => none
     dbg!(annotations.get_type(statement, &index)); // => none
     dbg!(&index.get_type("fb.__THIS"));
-    assert!(index.find_type("b.__THIS").is_some());
+    assert!(index.find_type("fb.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
 }
 
 #[test]
-#[ignore = "TODO: #THIS fixme"]
-fn this_assignment_is_ok() {
-    todo!();
-    // let id_provider = IdProvider::default();
-    // let (unit, mut index) = index_with_ids(
-    //     "
-    //     FUNCTION_BLOCK fb
-    //         VAR
-    //             x : REF_TO fb;
-    //         END_VAR
-    //         x := this;
-    //     END_FUNCTION_BLOCK
-    //     ",
-    //     id_provider.clone(),
-    // );
-
-    // let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    // let statement = &unit.implementations[0].statements[0];
-    // dbg!(&statement);
-    // assert!(index.find_type("fb.__THIS").is_some());
-    // // $crate::resolver::AnnotationMap::get_type_hint($annotations, $stmt, $index),
-    // dbg!(annotations.get_type_hint(statement, &index)); // => none
-    // dbg!(annotations.get_type(statement, &index)); // => none
-    // dbg!(&index.get_type("this"));
-    // //  DataType {
-    // //     name: "fb.__THIS",
-    // //     initial_value: None,
-    // //     information: Pointer {
-    // //         name: "fb.__THIS",
-    // //         inner_type_name: "fb",
-    // //         auto_deref: None,
-    // //     },
-    // //     nature: Any,
-    // //     location: SourceLocation {
-    // //         span: None,
-    // //     },
-    // // },
-    // let AstStatement::Assignment(Assignment { left, right }) = statement.get_stmt() else { todo!() };
-    // dbg!(&right);
-    // dbg!(annotations.get_type_hint(right, &index)); // => none
-    // dbg!(annotations.get_type(right, &index)); // => none
-    // assert_type_and_hint!(&annotations, &index, right, DINT_TYPE, None);
-}
-
-#[test]
-fn this_call() {
+fn this_assignment() {
     let id_provider = IdProvider::default();
-    let (unit, index) = index_with_ids(
+    let (unit, mut index) = index_with_ids(
         "
         FUNCTION_BLOCK fb
             VAR
+                x : REF_TO fb;
             END_VAR
-            this^();
+            x := this;
         END_FUNCTION_BLOCK
         ",
         id_provider.clone(),
     );
 
+    annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[0].statements[0];
-    dbg!(&statement);
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_debug_snapshot!(statement, @r#"
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        right: This,
+    }
+    "#);
+}
+
+#[test]
+fn this_call() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+x:int;
+            END_VAR
+            x :=this^.x;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    annotate_with_ids(&unit, &mut index, id_provider);
     assert!(index.find_type("fb.__THIS").is_some());
 }
 
