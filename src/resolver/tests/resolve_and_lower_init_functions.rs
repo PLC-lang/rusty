@@ -43,57 +43,98 @@ fn function_block_init_fn_created() {
 
     // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
-    assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r#"
-    Assignment {
-        left: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "ps",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements[0..=1], @r###"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "ps",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "self",
+                            name: "REF",
                         },
                     ),
                     base: None,
                 },
-            ),
-        },
-        right: CallStatement {
-            operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "REF",
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "s",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
                     },
                 ),
-                base: None,
             },
-            parameters: Some(
-                ReferenceExpr {
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__vtable",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "s",
+                            name: "REF",
                         },
                     ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "self",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
+                    base: None,
                 },
-            ),
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__vtable_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
         },
-    }
-    "#);
+    ]
+    "###);
 }
 
 #[test]

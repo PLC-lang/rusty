@@ -16,7 +16,7 @@ fn vtables_are_created_for_function_blocks() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r#"
+    assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -72,6 +72,9 @@ fn vtables_are_created_for_function_blocks() {
     entry:
       %self = alloca %Test*, align 8
       store %Test* %0, %Test** %self, align 8
+      %deref = load %Test*, %Test** %self, align 8
+      %__vtable = getelementptr inbounds %Test, %Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_Test_type* @__vtable_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -82,6 +85,10 @@ fn vtables_are_created_for_function_blocks() {
       %deref = load %Test2*, %Test2** %self, align 8
       %__Test = getelementptr inbounds %Test2, %Test2* %deref, i32 0, i32 0
       call void @__init_test(%Test* %__Test)
+      %deref1 = load %Test2*, %Test2** %self, align 8
+      %__Test2 = getelementptr inbounds %Test2, %Test2* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %Test, %Test* %__Test2, i32 0, i32 0
+      store i32* bitcast (%__vtable_Test2_type* @__vtable_Test2 to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -108,7 +115,7 @@ fn vtables_are_created_for_function_blocks() {
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -175,7 +182,7 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     );
     //Expecting a vtable type in the types for the interface vtable
     //Interfaces have no vtable global variables
-    assert_snapshot!(result, @r#"
+    assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -234,6 +241,9 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     entry:
       %self = alloca %Test*, align 8
       store %Test* %0, %Test** %self, align 8
+      %deref = load %Test*, %Test** %self, align 8
+      %__vtable = getelementptr inbounds %Test, %Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_Test_type* @__vtable_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -249,7 +259,7 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
       call void @__init___vtable_test_type(%__vtable_Test_type* @__vtable_Test)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -268,7 +278,7 @@ fn vtables_for_external_types_are_marked_as_external() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r#"
+    assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -316,6 +326,10 @@ fn vtables_for_external_types_are_marked_as_external() {
     entry:
       %self = alloca %Test2*, align 8
       store %Test2* %0, %Test2** %self, align 8
+      %deref = load %Test2*, %Test2** %self, align 8
+      %__Test = getelementptr inbounds %Test2, %Test2* %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds %Test, %Test* %__Test, i32 0, i32 0
+      store i32* bitcast (%__vtable_Test2_type* @__vtable_Test2 to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -342,5 +356,5 @@ fn vtables_for_external_types_are_marked_as_external() {
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "#);
+    "###);
 }

@@ -12,6 +12,16 @@ pub fn internal_type_name<T: AsRef<str> + Display>(prefix: T, original_type_name
     format!("__{prefix}{original_type_name}")
 }
 
+/// Returns the default vtable global variable name for a function block or class
+pub fn generate_vtable_name(name: &str) -> String {
+    format!("__vtable_{name}")
+}
+
+/// Returns the default vtable type name for a function block, class, or interface
+pub fn generate_vtable_type_name(name: &str) -> String {
+    format!("__vtable_{name}_type")
+}
+
 #[cfg(test)]
 mod tests {
     #[test]

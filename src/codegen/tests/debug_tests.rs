@@ -349,7 +349,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         ",
     );
 
-    assert_snapshot!(codegen, @r#"
+    assert_snapshot!(codegen, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -389,6 +389,9 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb_type* @__vtable_fb to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -439,7 +442,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !26 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !20, file: !2, line: 3, type: !21, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !18, retainedNodes: !23)
     !27 = !DILocalVariable(name: "fb", scope: !26, file: !2, line: 4, type: !3)
     !28 = !DILocation(line: 4, column: 8, scope: !26)
-    "#);
+    "###);
 }
 
 #[test]

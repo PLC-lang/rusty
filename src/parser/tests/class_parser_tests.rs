@@ -682,7 +682,7 @@ fn function_block_and_classes_have_vtable_var() {
 
     let unit = parse(src).0;
 
-    assert_debug_snapshot!(unit.pous[0].variable_blocks, @r#"
+    assert_debug_snapshot!(unit.pous[0].variable_blocks, @r###"
     [
         VariableBlock {
             variables: [
@@ -696,7 +696,7 @@ fn function_block_and_classes_have_vtable_var() {
             variable_block_type: Local,
         },
     ]
-    "#);
+    "###);
     assert_debug_snapshot!(unit.pous[1].variable_blocks, @r#"
     [
         VariableBlock {

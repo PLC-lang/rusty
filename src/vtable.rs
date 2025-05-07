@@ -6,6 +6,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
+use plc_util::convention::{generate_vtable_name, generate_vtable_type_name};
 
 use crate::{index::Index, typesystem::VOID_POINTER_INTERNAL_NAME};
 
@@ -16,14 +17,6 @@ pub struct VTableIndexer {
 impl VTableIndexer {
     pub fn new(id_provider: IdProvider) -> Self {
         Self { id_provider }
-    }
-
-    fn generate_vtable_name(name: &str) -> String {
-        format!("__vtable_{name}")
-    }
-
-    fn generate_vtable_type_name(name: &str) -> String {
-        format!("__vtable_{name}_type")
     }
 
     pub fn create_vtables_for_pous(index: &Index) -> Vec<UserTypeDeclaration> {
@@ -56,8 +49,8 @@ impl VTableIndexer {
         let mut internals = Vec::new();
         let mut externals = Vec::new();
         for pou in index.get_pous().values().filter(|pou| pou.is_function_block() || pou.is_class()) {
-            let name = VTableIndexer::generate_vtable_name(pou.get_name());
-            let type_name = VTableIndexer::generate_vtable_type_name(pou.get_name());
+            let name = generate_vtable_name(pou.get_name());
+            let type_name = generate_vtable_type_name(pou.get_name());
             let variable = Variable {
                 name: name.to_string(),
                 data_type_declaration: DataTypeDeclaration::Reference {
@@ -135,9 +128,9 @@ impl VTableIndexer {
 
     fn create_vtable_reference(name: &str) -> Variable {
         Variable {
-            name: VTableIndexer::generate_vtable_type_name(name),
+            name: generate_vtable_type_name(name),
             data_type_declaration: DataTypeDeclaration::Reference {
-                referenced_type: VTableIndexer::generate_vtable_type_name(name),
+                referenced_type: generate_vtable_type_name(name),
                 location: SourceLocation::internal(),
             },
             initializer: None,
@@ -149,7 +142,7 @@ impl VTableIndexer {
     /// Creates a vtable with the given member variables and a mangled name of the form `__vtable_<name>`
     fn create_vtable(name: &str, variables: Vec<Variable>) -> UserTypeDeclaration {
         UserTypeDeclaration {
-            data_type: DataType::StructType { name: Some(Self::generate_vtable_type_name(name)), variables },
+            data_type: DataType::StructType { name: Some(generate_vtable_type_name(name)), variables },
             initializer: None,
             location: SourceLocation::internal(),
             scope: Some(name.to_string()),

@@ -261,7 +261,7 @@ fn init_functions_generated_for_function_blocks() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -295,6 +295,9 @@ fn init_functions_generated_for_function_blocks() {
       %deref = load %foo*, %foo** %self, align 8
       %to_init = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store [81 x i8]* @s, [81 x i8]** %to_init, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -310,7 +313,7 @@ fn init_functions_generated_for_function_blocks() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -378,7 +381,7 @@ fn nested_initializer_pous() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -478,6 +481,9 @@ fn nested_initializer_pous() {
       %deref1 = load %foo*, %foo** %self, align 8
       %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
       call void @__init_bar(%bar* %b)
+      %deref2 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -488,6 +494,9 @@ fn nested_initializer_pous() {
       %deref = load %bar*, %bar** %self, align 8
       %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
       call void @__init_baz(%baz* %b)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -498,6 +507,9 @@ fn nested_initializer_pous() {
       %deref = load %baz*, %baz** %self, align 8
       %str_ref = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 1
       store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
+      %deref1 = load %baz*, %baz** %self, align 8
+      %__vtable = getelementptr inbounds %baz, %baz* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_baz_type* @__vtable_baz to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -606,7 +618,7 @@ fn nested_initializer_pous() {
       call void @__user_init_sideProg(%sideProg* @sideProg_instance)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -860,7 +872,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -941,6 +953,9 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -955,6 +970,9 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %self = alloca %cl*, align 8
       store %cl* %0, %cl** %self, align 8
+      %deref = load %cl*, %cl** %self, align 8
+      %__vtable = getelementptr inbounds %cl, %cl* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_cl_type* @__vtable_cl to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -987,7 +1005,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1015,7 +1033,7 @@ fn global_instance() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1051,6 +1069,9 @@ fn global_instance() {
       %deref = load %foo*, %foo** %self, align 8
       %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1091,7 +1112,7 @@ fn global_instance() {
       call void @__user_init_foo(%foo* @fb)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1124,7 +1145,7 @@ fn aliased_types() {
     )
     .unwrap();
 
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1161,6 +1182,9 @@ fn aliased_types() {
       %deref = load %foo*, %foo** %self, align 8
       %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1207,7 +1231,7 @@ fn aliased_types() {
       call void @__user_init_foo(%foo* @global_alias)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1425,7 +1449,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1461,6 +1485,9 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1477,7 +1504,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#)
+    "###)
 }
 
 #[test]
@@ -1498,7 +1525,7 @@ fn ref_to_local_member() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1546,6 +1573,9 @@ fn ref_to_local_member() {
       %deref6 = load %foo*, %foo** %self, align 8
       %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 1
       store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      %deref8 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref8, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1561,7 +1591,7 @@ fn ref_to_local_member() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#)
+    "###)
 }
 
 #[test]
@@ -1586,7 +1616,7 @@ fn ref_to_local_member_shadows_global() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1635,6 +1665,9 @@ fn ref_to_local_member_shadows_global() {
       %deref6 = load %foo*, %foo** %self, align 8
       %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 1
       store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      %deref8 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref8, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1650,7 +1683,7 @@ fn ref_to_local_member_shadows_global() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#)
+    "###)
 }
 
 #[test]
@@ -1673,7 +1706,7 @@ fn temporary_variable_ref_to_local_member() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1712,6 +1745,9 @@ fn temporary_variable_ref_to_local_member() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1727,7 +1763,7 @@ fn temporary_variable_ref_to_local_member() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#)
+    "###)
 }
 
 #[test]
@@ -1804,7 +1840,7 @@ fn initializing_method_variables_with_refs() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1844,6 +1880,9 @@ fn initializing_method_variables_with_refs() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1859,7 +1898,7 @@ fn initializing_method_variables_with_refs() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1883,7 +1922,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1923,6 +1962,9 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1938,7 +1980,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1962,7 +2004,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2001,6 +2043,9 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2016,7 +2061,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2041,7 +2086,7 @@ fn initializing_method_variables_with_refs_shadowing() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2082,6 +2127,9 @@ fn initializing_method_variables_with_refs_shadowing() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2097,7 +2145,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2118,7 +2166,7 @@ fn initializing_method_variables_with_alias() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2158,6 +2206,9 @@ fn initializing_method_variables_with_alias() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2173,7 +2224,7 @@ fn initializing_method_variables_with_alias() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2194,7 +2245,7 @@ fn initializing_method_variables_with_reference_to() {
         )],
     )
     .unwrap();
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2234,6 +2285,9 @@ fn initializing_method_variables_with_reference_to() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2249,7 +2303,7 @@ fn initializing_method_variables_with_reference_to() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2277,7 +2331,7 @@ fn methods_call_init_functions_for_their_members() {
     )
     .unwrap();
     // when compiling to ir, we expect `bar.baz` to call `__init_foo` with the local instance.
-    assert_snapshot!(res, @r#"
+    assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2331,6 +2385,9 @@ fn methods_call_init_functions_for_their_members() {
       %deref1 = load %foo*, %foo** %self, align 8
       %x = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store i32* %x, i32** %y, align 8
+      %deref2 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2352,6 +2409,9 @@ fn methods_call_init_functions_for_their_members() {
     entry:
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2377,7 +2437,7 @@ fn methods_call_init_functions_for_their_members() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2408,7 +2468,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     )
     .unwrap();
 
-    assert_snapshot!(res, @r#"
+    assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2458,6 +2518,9 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2497,7 +2560,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2538,7 +2601,7 @@ fn user_fb_init_in_global_struct() {
     )
     .unwrap();
 
-    assert_snapshot!(res, @r#"
+    assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2595,6 +2658,9 @@ fn user_fb_init_in_global_struct() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2653,7 +2719,7 @@ fn user_fb_init_in_global_struct() {
       call void @__user_init_bar(%bar* @str)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]

@@ -20,7 +20,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -73,6 +73,9 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -83,6 +86,10 @@ fn members_from_base_class_are_available_in_subclasses() {
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -109,7 +116,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -135,7 +142,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    insta::assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -212,6 +219,10 @@ fn write_to_parent_variable_qualified_access() {
       %deref = load %fb2*, %fb2** %self, align 8
       %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
       call void @__init_fb(%fb* %__fb)
+      %deref1 = load %fb2*, %fb2** %self, align 8
+      %__fb2 = getelementptr inbounds %fb2, %fb2* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %fb, %fb* %__fb2, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb2_type* @__vtable_fb2 to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -219,6 +230,9 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb_type* @__vtable_fb to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -229,6 +243,9 @@ fn write_to_parent_variable_qualified_access() {
       %deref = load %foo*, %foo** %self, align 8
       %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__init_fb2(%fb2* %myFb)
+      %deref1 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -266,7 +283,7 @@ fn write_to_parent_variable_qualified_access() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -296,7 +313,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -389,6 +406,10 @@ fn write_to_parent_variable_in_instance() {
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -396,6 +417,9 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -425,7 +449,7 @@ fn write_to_parent_variable_in_instance() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "#);
+    "###);
 }
 
 #[test]
@@ -464,7 +488,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -578,6 +602,11 @@ fn array_in_parent_generated() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -588,6 +617,10 @@ fn array_in_parent_generated() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -595,6 +628,9 @@ fn array_in_parent_generated() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -634,7 +670,7 @@ fn array_in_parent_generated() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "#);
+    "###);
 }
 
 #[test]
@@ -664,7 +700,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -767,6 +803,10 @@ fn complex_array_access_generated() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -774,6 +814,9 @@ fn complex_array_access_generated() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -784,6 +827,11 @@ fn complex_array_access_generated() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -821,7 +869,7 @@ fn complex_array_access_generated() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]

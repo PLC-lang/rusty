@@ -16,7 +16,7 @@ fn super_keyword_basic_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -69,6 +69,9 @@ fn super_keyword_basic_access() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -79,6 +82,10 @@ fn super_keyword_basic_access() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -105,7 +112,7 @@ fn super_keyword_basic_access() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -127,7 +134,7 @@ fn super_without_deref() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -180,6 +187,9 @@ fn super_without_deref() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -190,6 +200,10 @@ fn super_without_deref() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -216,7 +230,7 @@ fn super_without_deref() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -245,7 +259,7 @@ fn super_in_method_calls() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -337,6 +351,9 @@ fn super_in_method_calls() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -347,6 +364,10 @@ fn super_in_method_calls() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -373,7 +394,7 @@ fn super_in_method_calls() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -396,7 +417,7 @@ fn super_in_complex_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -459,6 +480,9 @@ fn super_in_complex_expressions() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -469,6 +493,10 @@ fn super_in_complex_expressions() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -495,7 +523,7 @@ fn super_in_complex_expressions() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -517,7 +545,7 @@ fn super_with_array_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -577,6 +605,9 @@ fn super_with_array_access() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -587,6 +618,10 @@ fn super_with_array_access() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -613,7 +648,7 @@ fn super_with_array_access() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -652,7 +687,7 @@ fn super_in_multi_level_inheritance() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -770,6 +805,10 @@ fn super_in_multi_level_inheritance() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -777,6 +816,9 @@ fn super_in_multi_level_inheritance() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -787,6 +829,11 @@ fn super_in_multi_level_inheritance() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -824,7 +871,7 @@ fn super_in_multi_level_inheritance() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -846,7 +893,7 @@ fn super_with_pointer_operations() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -909,6 +956,9 @@ fn super_with_pointer_operations() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -919,6 +969,10 @@ fn super_with_pointer_operations() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -945,7 +999,7 @@ fn super_with_pointer_operations() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -977,7 +1031,7 @@ fn super_in_conditionals() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1078,6 +1132,9 @@ fn super_in_conditionals() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1088,6 +1145,10 @@ fn super_in_conditionals() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1114,7 +1175,7 @@ fn super_in_conditionals() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1136,7 +1197,7 @@ fn super_with_const_variables() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1190,6 +1251,9 @@ fn super_with_const_variables() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1200,6 +1264,10 @@ fn super_with_const_variables() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1226,7 +1294,7 @@ fn super_with_const_variables() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1262,7 +1330,7 @@ fn super_as_function_parameter() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1351,6 +1419,9 @@ fn super_as_function_parameter() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1361,6 +1432,10 @@ fn super_as_function_parameter() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1389,7 +1464,7 @@ fn super_as_function_parameter() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1416,7 +1491,7 @@ fn super_with_deeply_nested_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1521,6 +1596,9 @@ fn super_with_deeply_nested_expressions() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1531,6 +1609,10 @@ fn super_with_deeply_nested_expressions() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1557,7 +1639,7 @@ fn super_with_deeply_nested_expressions() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1602,7 +1684,7 @@ fn super_in_loop_constructs() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1776,6 +1858,9 @@ fn super_in_loop_constructs() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1786,6 +1871,10 @@ fn super_in_loop_constructs() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1812,7 +1901,7 @@ fn super_in_loop_constructs() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1840,7 +1929,7 @@ fn super_with_method_overrides_in_three_levels() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1952,6 +2041,10 @@ fn super_with_method_overrides_in_three_levels() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1959,6 +2052,9 @@ fn super_with_method_overrides_in_three_levels() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1969,6 +2065,11 @@ fn super_with_method_overrides_in_three_levels() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2006,7 +2107,7 @@ fn super_with_method_overrides_in_three_levels() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2088,7 +2189,7 @@ fn super_with_structured_types() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2198,6 +2299,9 @@ fn super_with_structured_types() {
       %deref = load %parent*, %parent** %self, align 8
       %data = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 1
       call void @__init_complex_type(%Complex_Type* %data)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2208,6 +2312,10 @@ fn super_with_structured_types() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2246,7 +2354,7 @@ fn super_with_structured_types() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -2273,7 +2381,7 @@ fn super_in_action_blocks() {
         END_ACTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -2350,6 +2458,9 @@ fn super_in_action_blocks() {
     entry:
       %self = alloca %parent*, align 8
       store %parent* %0, %parent** %self, align 8
+      %deref = load %parent*, %parent** %self, align 8
+      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2360,6 +2471,10 @@ fn super_in_action_blocks() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2386,5 +2501,5 @@ fn super_in_action_blocks() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "#);
+    "###);
 }
