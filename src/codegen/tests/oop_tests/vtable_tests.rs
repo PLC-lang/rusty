@@ -23,7 +23,7 @@ fn vtables_are_created_for_function_blocks() {
     %Test = type { i32* }
     %Test2 = type { %Test }
     %__vtable_Test_type = type { i32*, i32* }
-    %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
+    %__vtable_Test2_type = type { %__vtable_Test_type, i32* }
 
     @__Test__init = constant %Test zeroinitializer
     @__Test2__init = constant %Test2 zeroinitializer
@@ -63,7 +63,7 @@ fn vtables_are_created_for_function_blocks() {
       %self = alloca %__vtable_Test2_type*, align 8
       store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
       %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 1
+      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
       call void @__init___vtable_test_type(%__vtable_Test_type* %__vtable_Test_type)
       ret void
     }
@@ -285,7 +285,7 @@ fn vtables_for_external_types_are_marked_as_external() {
     %Test2 = type { %Test }
     %Test = type { i32* }
     %__vtable_Test_type = type { i32*, i32* }
-    %__vtable_Test2_type = type { i32*, %__vtable_Test_type }
+    %__vtable_Test2_type = type { %__vtable_Test_type, i32* }
 
     @__Test2__init = constant %Test2 zeroinitializer
     @__Test__init = external global %Test
@@ -317,7 +317,7 @@ fn vtables_for_external_types_are_marked_as_external() {
       %self = alloca %__vtable_Test2_type*, align 8
       store %__vtable_Test2_type* %0, %__vtable_Test2_type** %self, align 8
       %deref = load %__vtable_Test2_type*, %__vtable_Test2_type** %self, align 8
-      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 1
+      %__vtable_Test_type = getelementptr inbounds %__vtable_Test2_type, %__vtable_Test2_type* %deref, i32 0, i32 0
       call void @__init___vtable_test_type(%__vtable_Test_type* %__vtable_Test_type)
       ret void
     }

@@ -24,11 +24,12 @@ impl VTableIndexer {
         for pou in index.get_pous().values().filter(|pou| pou.is_function_block() || pou.is_class()) {
             let mut variables = Vec::new();
 
-            if pou.is_function_block() {
-                variables.push(VTableIndexer::create_void_pointer("__body"));
-            }
             if let Some(parent) = pou.get_super_class() {
                 variables.push(VTableIndexer::create_vtable_reference(parent));
+            }
+
+            if pou.is_function_block() {
+                variables.push(VTableIndexer::create_void_pointer("__body"));
             }
 
             for interface in pou.get_interfaces() {
@@ -331,7 +332,7 @@ mod tests {
 
         let (_unit, index) = index(src);
         let vtables = VTableIndexer::create_vtables_for_pous(&index);
-        insta::assert_debug_snapshot!(vtables, @r#"
+        insta::assert_debug_snapshot!(vtables, @r###"
         [
             UserTypeDeclaration {
                 data_type: StructType {
@@ -365,15 +366,15 @@ mod tests {
                     ),
                     variables: [
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_Test_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_Test_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                     ],
@@ -384,7 +385,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -412,7 +413,7 @@ mod tests {
         let (_unit, index) = index(src);
         let mut vtables = VTableIndexer::create_vtables_for_pous(&index);
         vtables.extend(VTableIndexer::create_vtables_for_interfaces(&index));
-        insta::assert_debug_snapshot!(vtables, @r#"
+        insta::assert_debug_snapshot!(vtables, @r###"
         [
             UserTypeDeclaration {
                 data_type: StructType {
@@ -452,15 +453,15 @@ mod tests {
                     ),
                     variables: [
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_Test_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_Test_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                         Variable {
@@ -508,7 +509,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -534,7 +535,7 @@ mod tests {
         let (_unit, index) = index(src);
         let mut vtables = VTableIndexer::create_vtables_for_pous(&index);
         vtables.extend(VTableIndexer::create_vtables_for_interfaces(&index));
-        insta::assert_debug_snapshot!(vtables, @r#"
+        insta::assert_debug_snapshot!(vtables, @r###"
         [
             UserTypeDeclaration {
                 data_type: StructType {
@@ -574,15 +575,15 @@ mod tests {
                     ),
                     variables: [
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_Test_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_Test_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                         Variable {
@@ -636,7 +637,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]

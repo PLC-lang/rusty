@@ -23,7 +23,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     %foo = type { i32*, i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
     %__vtable_foo_type = type { i32* }
-    %__vtable_bar_type = type { i32*, %__vtable_foo_type }
+    %__vtable_bar_type = type { %__vtable_foo_type, i32* }
 
     @__foo__init = constant %foo zeroinitializer, !dbg !0
     @__bar__init = constant %bar zeroinitializer, !dbg !19
@@ -31,23 +31,23 @@ fn members_from_base_class_are_available_in_subclasses() {
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer, !dbg !24
     @__vtable_foo = global %__vtable_foo_type zeroinitializer, !dbg !29
     @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer, !dbg !31
-    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !36
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !37
 
-    define void @foo(%foo* %0) !dbg !42 {
+    define void @foo(%foo* %0) !dbg !43 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !46, metadata !DIExpression()), !dbg !47
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !47, metadata !DIExpression()), !dbg !48
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
-      ret void, !dbg !47
+      ret void, !dbg !48
     }
 
-    define void @bar(%bar* %0) !dbg !48 {
+    define void @bar(%bar* %0) !dbg !49 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !51, metadata !DIExpression()), !dbg !52
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !52, metadata !DIExpression()), !dbg !53
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      ret void, !dbg !52
+      ret void, !dbg !53
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -65,7 +65,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca %__vtable_bar_type*, align 8
       store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
       %deref = load %__vtable_bar_type*, %__vtable_bar_type** %self, align 8
-      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 1
+      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 0
       call void @__init___vtable_foo_type(%__vtable_foo_type* %__vtable_foo_type)
       ret void
     }
@@ -120,8 +120,8 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!38, !39}
-    !llvm.dbg.cu = !{!40}
+    !llvm.module.flags = !{!39, !40}
+    !llvm.dbg.cu = !{!41}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
@@ -157,25 +157,26 @@ fn members_from_base_class_are_available_in_subclasses() {
     !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
     !32 = distinct !DIGlobalVariable(name: "____vtable_bar_type__init", scope: !2, file: !2, type: !33, isLocal: false, isDefinition: true)
     !33 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_bar_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !34, identifier: "__vtable_bar_type")
-    !34 = !{!28, !35}
-    !35 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !26, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !36 = !DIGlobalVariableExpression(var: !37, expr: !DIExpression())
-    !37 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !33, isLocal: false, isDefinition: true)
-    !38 = !{i32 2, !"Dwarf Version", i32 5}
-    !39 = !{i32 2, !"Debug Info Version", i32 3}
-    !40 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !41, splitDebugInlining: false)
-    !41 = !{!29, !24, !36, !31, !0, !19}
-    !42 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !43, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !40, retainedNodes: !45)
-    !43 = !DISubroutineType(flags: DIFlagPublic, types: !44)
-    !44 = !{null, !3}
-    !45 = !{}
-    !46 = !DILocalVariable(name: "foo", scope: !42, file: !2, line: 8, type: !3)
-    !47 = !DILocation(line: 8, column: 8, scope: !42)
-    !48 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !49, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !40, retainedNodes: !45)
-    !49 = !DISubroutineType(flags: DIFlagPublic, types: !50)
-    !50 = !{null, !21}
-    !51 = !DILocalVariable(name: "bar", scope: !48, file: !2, line: 11, type: !21)
-    !52 = !DILocation(line: 11, column: 8, scope: !48)
+    !34 = !{!35, !36}
+    !35 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !26, size: 64, align: 64, flags: DIFlagPublic)
+    !36 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !6, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !37 = !DIGlobalVariableExpression(var: !38, expr: !DIExpression())
+    !38 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !33, isLocal: false, isDefinition: true)
+    !39 = !{i32 2, !"Dwarf Version", i32 5}
+    !40 = !{i32 2, !"Debug Info Version", i32 3}
+    !41 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !42, splitDebugInlining: false)
+    !42 = !{!29, !24, !37, !31, !0, !19}
+    !43 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !44, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !41, retainedNodes: !46)
+    !44 = !DISubroutineType(flags: DIFlagPublic, types: !45)
+    !45 = !{null, !3}
+    !46 = !{}
+    !47 = !DILocalVariable(name: "foo", scope: !43, file: !2, line: 8, type: !3)
+    !48 = !DILocation(line: 8, column: 8, scope: !43)
+    !49 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !50, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !41, retainedNodes: !46)
+    !50 = !DISubroutineType(flags: DIFlagPublic, types: !51)
+    !51 = !{null, !21}
+    !52 = !DILocalVariable(name: "bar", scope: !49, file: !2, line: 11, type: !21)
+    !53 = !DILocation(line: 11, column: 8, scope: !49)
     "###);
 }
 
@@ -210,7 +211,7 @@ fn write_to_parent_variable_qualified_access() {
     %fb = type { i32*, i16, i16 }
     %foo = type { i32*, %fb2 }
     %__vtable_fb_type = type { i32* }
-    %__vtable_fb2_type = type { i32*, %__vtable_fb_type }
+    %__vtable_fb2_type = type { %__vtable_fb_type, i32* }
     %__vtable_foo_type = type { i32* }
 
     @__fb2__init = constant %fb2 zeroinitializer, !dbg !0
@@ -220,35 +221,35 @@ fn write_to_parent_variable_qualified_access() {
     @____vtable_fb_type__init = constant %__vtable_fb_type zeroinitializer, !dbg !21
     @__vtable_fb = global %__vtable_fb_type zeroinitializer, !dbg !26
     @____vtable_fb2_type__init = constant %__vtable_fb2_type zeroinitializer, !dbg !28
-    @__vtable_fb2 = global %__vtable_fb2_type zeroinitializer, !dbg !33
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer, !dbg !35
-    @__vtable_foo = global %__vtable_foo_type zeroinitializer, !dbg !38
+    @__vtable_fb2 = global %__vtable_fb2_type zeroinitializer, !dbg !34
+    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer, !dbg !36
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer, !dbg !39
 
-    define void @fb(%fb* %0) !dbg !44 {
+    define void @fb(%fb* %0) !dbg !45 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !48, metadata !DIExpression()), !dbg !49
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !49, metadata !DIExpression()), !dbg !50
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
       %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 2
-      ret void, !dbg !49
+      ret void, !dbg !50
     }
 
-    define void @fb2(%fb2* %0) !dbg !50 {
+    define void @fb2(%fb2* %0) !dbg !51 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb2* %0, metadata !53, metadata !DIExpression()), !dbg !54
+      call void @llvm.dbg.declare(metadata %fb2* %0, metadata !54, metadata !DIExpression()), !dbg !55
       %__fb = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
-      ret void, !dbg !54
+      ret void, !dbg !55
     }
 
-    define void @foo(%foo* %0) !dbg !55 {
+    define void @foo(%foo* %0) !dbg !56 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !58, metadata !DIExpression()), !dbg !59
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !59, metadata !DIExpression()), !dbg !60
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !59
-      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1, !dbg !59
-      store i16 1, i16* %x, align 2, !dbg !59
-      ret void, !dbg !60
+      %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !60
+      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1, !dbg !60
+      store i16 1, i16* %x, align 2, !dbg !60
+      ret void, !dbg !61
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -266,7 +267,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %__vtable_fb2_type*, align 8
       store %__vtable_fb2_type* %0, %__vtable_fb2_type** %self, align 8
       %deref = load %__vtable_fb2_type*, %__vtable_fb2_type** %self, align 8
-      %__vtable_fb_type = getelementptr inbounds %__vtable_fb2_type, %__vtable_fb2_type* %deref, i32 0, i32 1
+      %__vtable_fb_type = getelementptr inbounds %__vtable_fb2_type, %__vtable_fb2_type* %deref, i32 0, i32 0
       call void @__init___vtable_fb_type(%__vtable_fb_type* %__vtable_fb_type)
       ret void
     }
@@ -352,8 +353,8 @@ fn write_to_parent_variable_qualified_access() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!40, !41}
-    !llvm.dbg.cu = !{!42}
+    !llvm.module.flags = !{!41, !42}
+    !llvm.dbg.cu = !{!43}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb2__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
@@ -386,36 +387,37 @@ fn write_to_parent_variable_qualified_access() {
     !28 = !DIGlobalVariableExpression(var: !29, expr: !DIExpression())
     !29 = distinct !DIGlobalVariable(name: "____vtable_fb2_type__init", scope: !2, file: !2, type: !30, isLocal: false, isDefinition: true)
     !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_fb2_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !31, identifier: "__vtable_fb2_type")
-    !31 = !{!25, !32}
-    !32 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_fb_type", scope: !2, file: !2, baseType: !23, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !33 = !DIGlobalVariableExpression(var: !34, expr: !DIExpression())
-    !34 = distinct !DIGlobalVariable(name: "__vtable_fb2", scope: !2, file: !2, type: !30, isLocal: false, isDefinition: true)
-    !35 = !DIGlobalVariableExpression(var: !36, expr: !DIExpression())
-    !36 = distinct !DIGlobalVariable(name: "____vtable_foo_type__init", scope: !2, file: !2, type: !37, isLocal: false, isDefinition: true)
-    !37 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_foo_type", scope: !2, file: !2, size: 64, align: 64, flags: DIFlagPublic, elements: !24, identifier: "__vtable_foo_type")
-    !38 = !DIGlobalVariableExpression(var: !39, expr: !DIExpression())
-    !39 = distinct !DIGlobalVariable(name: "__vtable_foo", scope: !2, file: !2, type: !37, isLocal: false, isDefinition: true)
-    !40 = !{i32 2, !"Dwarf Version", i32 5}
-    !41 = !{i32 2, !"Debug Info Version", i32 3}
-    !42 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !43, splitDebugInlining: false)
-    !43 = !{!26, !21, !33, !28, !38, !35, !14, !0, !16}
-    !44 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !45, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !42, retainedNodes: !47)
-    !45 = !DISubroutineType(flags: DIFlagPublic, types: !46)
-    !46 = !{null, !6}
-    !47 = !{}
-    !48 = !DILocalVariable(name: "fb", scope: !44, file: !2, line: 7, type: !6)
-    !49 = !DILocation(line: 7, column: 8, scope: !44)
-    !50 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !51, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !42, retainedNodes: !47)
-    !51 = !DISubroutineType(flags: DIFlagPublic, types: !52)
-    !52 = !{null, !3}
-    !53 = !DILocalVariable(name: "fb2", scope: !50, file: !2, line: 10, type: !3)
-    !54 = !DILocation(line: 10, column: 8, scope: !50)
-    !55 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !56, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !42, retainedNodes: !47)
-    !56 = !DISubroutineType(flags: DIFlagPublic, types: !57)
-    !57 = !{null, !18}
-    !58 = !DILocalVariable(name: "foo", scope: !55, file: !2, line: 16, type: !18)
-    !59 = !DILocation(line: 16, column: 12, scope: !55)
-    !60 = !DILocation(line: 17, column: 8, scope: !55)
+    !31 = !{!32, !33}
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_fb_type", scope: !2, file: !2, baseType: !23, size: 64, align: 64, flags: DIFlagPublic)
+    !33 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !9, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !34 = !DIGlobalVariableExpression(var: !35, expr: !DIExpression())
+    !35 = distinct !DIGlobalVariable(name: "__vtable_fb2", scope: !2, file: !2, type: !30, isLocal: false, isDefinition: true)
+    !36 = !DIGlobalVariableExpression(var: !37, expr: !DIExpression())
+    !37 = distinct !DIGlobalVariable(name: "____vtable_foo_type__init", scope: !2, file: !2, type: !38, isLocal: false, isDefinition: true)
+    !38 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_foo_type", scope: !2, file: !2, size: 64, align: 64, flags: DIFlagPublic, elements: !24, identifier: "__vtable_foo_type")
+    !39 = !DIGlobalVariableExpression(var: !40, expr: !DIExpression())
+    !40 = distinct !DIGlobalVariable(name: "__vtable_foo", scope: !2, file: !2, type: !38, isLocal: false, isDefinition: true)
+    !41 = !{i32 2, !"Dwarf Version", i32 5}
+    !42 = !{i32 2, !"Debug Info Version", i32 3}
+    !43 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !44, splitDebugInlining: false)
+    !44 = !{!26, !21, !34, !28, !39, !36, !14, !0, !16}
+    !45 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !46, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !43, retainedNodes: !48)
+    !46 = !DISubroutineType(flags: DIFlagPublic, types: !47)
+    !47 = !{null, !6}
+    !48 = !{}
+    !49 = !DILocalVariable(name: "fb", scope: !45, file: !2, line: 7, type: !6)
+    !50 = !DILocation(line: 7, column: 8, scope: !45)
+    !51 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !52, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !43, retainedNodes: !48)
+    !52 = !DISubroutineType(flags: DIFlagPublic, types: !53)
+    !53 = !{null, !3}
+    !54 = !DILocalVariable(name: "fb2", scope: !51, file: !2, line: 10, type: !3)
+    !55 = !DILocation(line: 10, column: 8, scope: !51)
+    !56 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !57, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !43, retainedNodes: !48)
+    !57 = !DISubroutineType(flags: DIFlagPublic, types: !58)
+    !58 = !{null, !18}
+    !59 = !DILocalVariable(name: "foo", scope: !56, file: !2, line: 16, type: !18)
+    !60 = !DILocation(line: 16, column: 12, scope: !56)
+    !61 = !DILocation(line: 17, column: 8, scope: !56)
     "###);
 }
 
@@ -453,7 +455,7 @@ fn write_to_parent_variable_in_instance() {
     %bar = type { %foo }
     %foo = type { i32*, [81 x i8] }
     %__vtable_foo_type = type { i32*, i32* }
-    %__vtable_bar_type = type { i32*, %__vtable_foo_type }
+    %__vtable_bar_type = type { %__vtable_foo_type, i32* }
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
@@ -463,52 +465,52 @@ fn write_to_parent_variable_in_instance() {
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer, !dbg !18
     @__vtable_foo = global %__vtable_foo_type zeroinitializer, !dbg !24
     @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer, !dbg !26
-    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !31
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !32
 
-    define void @foo(%foo* %0) !dbg !37 {
+    define void @foo(%foo* %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !41, metadata !DIExpression()), !dbg !42
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !42, metadata !DIExpression()), !dbg !43
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      ret void, !dbg !42
+      ret void, !dbg !43
     }
 
-    define void @foo_baz(%foo* %0) !dbg !43 {
+    define void @foo_baz(%foo* %0) !dbg !44 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !44, metadata !DIExpression()), !dbg !45
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !45, metadata !DIExpression()), !dbg !46
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %1 = bitcast [81 x i8]* %s to i8*, !dbg !45
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !45
-      ret void, !dbg !46
+      %1 = bitcast [81 x i8]* %s to i8*, !dbg !46
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !46
+      ret void, !dbg !47
     }
 
-    define void @bar(%bar* %0) !dbg !47 {
+    define void @bar(%bar* %0) !dbg !48 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !50, metadata !DIExpression()), !dbg !51
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !51, metadata !DIExpression()), !dbg !52
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1, !dbg !51
-      %1 = bitcast [81 x i8]* %s to i8*, !dbg !51
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !51
-      ret void, !dbg !52
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1, !dbg !52
+      %1 = bitcast [81 x i8]* %s to i8*, !dbg !52
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !52
+      ret void, !dbg !53
     }
 
-    define void @main() !dbg !53 {
+    define void @main() !dbg !54 {
     entry:
       %s = alloca [81 x i8], align 1
       %fb = alloca %bar, align 8
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !56, metadata !DIExpression()), !dbg !57
+      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !57, metadata !DIExpression()), !dbg !58
       %0 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !58, metadata !DIExpression()), !dbg !59
+      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !59, metadata !DIExpression()), !dbg !60
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
-      call void @__init_bar(%bar* %fb), !dbg !60
-      call void @__user_init_bar(%bar* %fb), !dbg !60
-      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !60
-      call void @foo_baz(%foo* %__foo), !dbg !61
-      call void @bar(%bar* %fb), !dbg !62
-      ret void, !dbg !63
+      call void @__init_bar(%bar* %fb), !dbg !61
+      call void @__user_init_bar(%bar* %fb), !dbg !61
+      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !61
+      call void @foo_baz(%foo* %__foo), !dbg !62
+      call void @bar(%bar* %fb), !dbg !63
+      ret void, !dbg !64
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -535,7 +537,7 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca %__vtable_bar_type*, align 8
       store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
       %deref = load %__vtable_bar_type*, %__vtable_bar_type** %self, align 8
-      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 1
+      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 0
       call void @__init___vtable_foo_type(%__vtable_foo_type* %__vtable_foo_type)
       ret void
     }
@@ -592,8 +594,8 @@ fn write_to_parent_variable_in_instance() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     attributes #2 = { argmemonly nofree nounwind willreturn writeonly }
 
-    !llvm.module.flags = !{!33, !34}
-    !llvm.dbg.cu = !{!35}
+    !llvm.module.flags = !{!34, !35}
+    !llvm.dbg.cu = !{!36}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
@@ -624,41 +626,42 @@ fn write_to_parent_variable_in_instance() {
     !26 = !DIGlobalVariableExpression(var: !27, expr: !DIExpression())
     !27 = distinct !DIGlobalVariable(name: "____vtable_bar_type__init", scope: !2, file: !2, type: !28, isLocal: false, isDefinition: true)
     !28 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_bar_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !29, identifier: "__vtable_bar_type")
-    !29 = !{!22, !30}
-    !30 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !20, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
-    !32 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !28, isLocal: false, isDefinition: true)
-    !33 = !{i32 2, !"Dwarf Version", i32 5}
-    !34 = !{i32 2, !"Debug Info Version", i32 3}
-    !35 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !36, splitDebugInlining: false)
-    !36 = !{!24, !18, !31, !26, !16, !0}
-    !37 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !38, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40)
-    !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
-    !39 = !{null, !6}
-    !40 = !{}
-    !41 = !DILocalVariable(name: "foo", scope: !37, file: !2, line: 9, type: !6)
-    !42 = !DILocation(line: 9, column: 8, scope: !37)
-    !43 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !37, file: !2, line: 6, type: !38, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40)
-    !44 = !DILocalVariable(name: "foo", scope: !43, file: !2, line: 7, type: !6)
-    !45 = !DILocation(line: 7, column: 12, scope: !43)
-    !46 = !DILocation(line: 8, column: 8, scope: !43)
-    !47 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !48, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40)
-    !48 = !DISubroutineType(flags: DIFlagPublic, types: !49)
-    !49 = !{null, !3}
-    !50 = !DILocalVariable(name: "bar", scope: !47, file: !2, line: 12, type: !3)
-    !51 = !DILocation(line: 12, column: 12, scope: !47)
-    !52 = !DILocation(line: 13, column: 8, scope: !47)
-    !53 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !54, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !35, retainedNodes: !40)
-    !54 = !DISubroutineType(flags: DIFlagPublic, types: !55)
-    !55 = !{null}
-    !56 = !DILocalVariable(name: "s", scope: !53, file: !2, line: 17, type: !12, align: 8)
-    !57 = !DILocation(line: 17, column: 12, scope: !53)
-    !58 = !DILocalVariable(name: "fb", scope: !53, file: !2, line: 18, type: !3, align: 64)
-    !59 = !DILocation(line: 18, column: 12, scope: !53)
-    !60 = !DILocation(line: 0, scope: !53)
-    !61 = !DILocation(line: 20, column: 12, scope: !53)
-    !62 = !DILocation(line: 21, column: 12, scope: !53)
-    !63 = !DILocation(line: 22, column: 8, scope: !53)
+    !29 = !{!30, !31}
+    !30 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !20, size: 128, align: 64, flags: DIFlagPublic)
+    !31 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !9, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
+    !32 = !DIGlobalVariableExpression(var: !33, expr: !DIExpression())
+    !33 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !28, isLocal: false, isDefinition: true)
+    !34 = !{i32 2, !"Dwarf Version", i32 5}
+    !35 = !{i32 2, !"Debug Info Version", i32 3}
+    !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
+    !37 = !{!24, !18, !32, !26, !16, !0}
+    !38 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !39, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
+    !40 = !{null, !6}
+    !41 = !{}
+    !42 = !DILocalVariable(name: "foo", scope: !38, file: !2, line: 9, type: !6)
+    !43 = !DILocation(line: 9, column: 8, scope: !38)
+    !44 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !38, file: !2, line: 6, type: !39, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !45 = !DILocalVariable(name: "foo", scope: !44, file: !2, line: 7, type: !6)
+    !46 = !DILocation(line: 7, column: 12, scope: !44)
+    !47 = !DILocation(line: 8, column: 8, scope: !44)
+    !48 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !49, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !49 = !DISubroutineType(flags: DIFlagPublic, types: !50)
+    !50 = !{null, !3}
+    !51 = !DILocalVariable(name: "bar", scope: !48, file: !2, line: 12, type: !3)
+    !52 = !DILocation(line: 12, column: 12, scope: !48)
+    !53 = !DILocation(line: 13, column: 8, scope: !48)
+    !54 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !55, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
+    !55 = !DISubroutineType(flags: DIFlagPublic, types: !56)
+    !56 = !{null}
+    !57 = !DILocalVariable(name: "s", scope: !54, file: !2, line: 17, type: !12, align: 8)
+    !58 = !DILocation(line: 17, column: 12, scope: !54)
+    !59 = !DILocalVariable(name: "fb", scope: !54, file: !2, line: 18, type: !3, align: 64)
+    !60 = !DILocation(line: 18, column: 12, scope: !54)
+    !61 = !DILocation(line: 0, scope: !54)
+    !62 = !DILocation(line: 20, column: 12, scope: !54)
+    !63 = !DILocation(line: 21, column: 12, scope: !54)
+    !64 = !DILocation(line: 22, column: 8, scope: !54)
     "###);
 }
 
@@ -706,8 +709,8 @@ fn array_in_parent_generated() {
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { i32*, [6 x i16], i16 }
     %__vtable_grandparent_type = type { i32* }
-    %__vtable_parent_type = type { i32*, %__vtable_grandparent_type }
-    %__vtable_child_type = type { i32*, %__vtable_parent_type }
+    %__vtable_parent_type = type { %__vtable_grandparent_type, i32* }
+    %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
     @__child__init = constant %child zeroinitializer, !dbg !0
     @__parent__init = constant %parent zeroinitializer, !dbg !26
@@ -716,67 +719,67 @@ fn array_in_parent_generated() {
     @____vtable_grandparent_type__init = constant %__vtable_grandparent_type zeroinitializer, !dbg !30
     @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer, !dbg !35
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer, !dbg !37
-    @__vtable_parent = global %__vtable_parent_type zeroinitializer, !dbg !42
-    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer, !dbg !44
-    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !49
+    @__vtable_parent = global %__vtable_parent_type zeroinitializer, !dbg !43
+    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer, !dbg !45
+    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !51
 
-    define void @grandparent(%grandparent* %0) !dbg !55 {
+    define void @grandparent(%grandparent* %0) !dbg !57 {
     entry:
-      call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !59, metadata !DIExpression()), !dbg !60
+      call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !61, metadata !DIExpression()), !dbg !62
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
-      ret void, !dbg !60
+      ret void, !dbg !62
     }
 
-    define void @parent(%parent* %0) !dbg !61 {
+    define void @parent(%parent* %0) !dbg !63 {
     entry:
-      call void @llvm.dbg.declare(metadata %parent* %0, metadata !64, metadata !DIExpression()), !dbg !65
+      call void @llvm.dbg.declare(metadata %parent* %0, metadata !66, metadata !DIExpression()), !dbg !67
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      ret void, !dbg !65
+      ret void, !dbg !67
     }
 
-    define void @child(%child* %0) !dbg !66 {
+    define void @child(%child* %0) !dbg !68 {
     entry:
-      call void @llvm.dbg.declare(metadata %child* %0, metadata !69, metadata !DIExpression()), !dbg !70
+      call void @llvm.dbg.declare(metadata %child* %0, metadata !71, metadata !DIExpression()), !dbg !72
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
-      ret void, !dbg !70
+      ret void, !dbg !72
     }
 
-    define void @main() !dbg !71 {
+    define void @main() !dbg !73 {
     entry:
       %arr = alloca [11 x %child], align 8
-      call void @llvm.dbg.declare(metadata [11 x %child]* %arr, metadata !74, metadata !DIExpression()), !dbg !76
+      call void @llvm.dbg.declare(metadata [11 x %child]* %arr, metadata !76, metadata !DIExpression()), !dbg !78
       %0 = bitcast [11 x %child]* %arr to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false)
-      %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !77
-      %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0, !dbg !77
-      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !77
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 2, !dbg !77
-      store i16 10, i16* %a, align 2, !dbg !77
-      %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !78
-      %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0, !dbg !78
-      %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0, !dbg !78
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 1, !dbg !78
-      %tmpVar4 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0, !dbg !78
-      store i16 20, i16* %tmpVar4, align 2, !dbg !78
-      %tmpVar5 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !79
-      %__parent6 = getelementptr inbounds %child, %child* %tmpVar5, i32 0, i32 0, !dbg !79
-      %b = getelementptr inbounds %parent, %parent* %__parent6, i32 0, i32 2, !dbg !79
-      store i16 30, i16* %b, align 2, !dbg !79
-      %tmpVar7 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !80
-      %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !80
-      %x = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !80
-      %tmpVar9 = getelementptr inbounds [11 x i16], [11 x i16]* %x, i32 0, i32 1, !dbg !80
-      store i16 40, i16* %tmpVar9, align 2, !dbg !80
-      %tmpVar10 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 2, !dbg !81
-      %z = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !81
-      %tmpVar11 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 2, !dbg !81
-      store i16 50, i16* %tmpVar11, align 2, !dbg !81
-      ret void, !dbg !82
+      %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !79
+      %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0, !dbg !79
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !79
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 2, !dbg !79
+      store i16 10, i16* %a, align 2, !dbg !79
+      %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !80
+      %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0, !dbg !80
+      %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0, !dbg !80
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 1, !dbg !80
+      %tmpVar4 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0, !dbg !80
+      store i16 20, i16* %tmpVar4, align 2, !dbg !80
+      %tmpVar5 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !81
+      %__parent6 = getelementptr inbounds %child, %child* %tmpVar5, i32 0, i32 0, !dbg !81
+      %b = getelementptr inbounds %parent, %parent* %__parent6, i32 0, i32 2, !dbg !81
+      store i16 30, i16* %b, align 2, !dbg !81
+      %tmpVar7 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !82
+      %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !82
+      %x = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !82
+      %tmpVar9 = getelementptr inbounds [11 x i16], [11 x i16]* %x, i32 0, i32 1, !dbg !82
+      store i16 40, i16* %tmpVar9, align 2, !dbg !82
+      %tmpVar10 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 2, !dbg !83
+      %z = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !83
+      %tmpVar11 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 2, !dbg !83
+      store i16 50, i16* %tmpVar11, align 2, !dbg !83
+      ret void, !dbg !84
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -797,7 +800,7 @@ fn array_in_parent_generated() {
       %self = alloca %__vtable_parent_type*, align 8
       store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
       %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
-      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 1
+      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
       call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
       ret void
     }
@@ -807,7 +810,7 @@ fn array_in_parent_generated() {
       %self = alloca %__vtable_child_type*, align 8
       store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
       %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 1
+      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
       call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
       ret void
     }
@@ -889,8 +892,8 @@ fn array_in_parent_generated() {
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
 
-    !llvm.module.flags = !{!51, !52}
-    !llvm.dbg.cu = !{!53}
+    !llvm.module.flags = !{!53, !54}
+    !llvm.dbg.cu = !{!55}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !3, isLocal: false, isDefinition: true)
@@ -932,49 +935,51 @@ fn array_in_parent_generated() {
     !37 = !DIGlobalVariableExpression(var: !38, expr: !DIExpression())
     !38 = distinct !DIGlobalVariable(name: "____vtable_parent_type__init", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
     !39 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_parent_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !40, identifier: "__vtable_parent_type")
-    !40 = !{!34, !41}
-    !41 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_grandparent_type", scope: !2, file: !2, baseType: !32, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !42 = !DIGlobalVariableExpression(var: !43, expr: !DIExpression())
-    !43 = distinct !DIGlobalVariable(name: "__vtable_parent", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
-    !44 = !DIGlobalVariableExpression(var: !45, expr: !DIExpression())
-    !45 = distinct !DIGlobalVariable(name: "____vtable_child_type__init", scope: !2, file: !2, type: !46, isLocal: false, isDefinition: true)
-    !46 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_child_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !47, identifier: "__vtable_child_type")
-    !47 = !{!34, !48}
-    !48 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !39, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !49 = !DIGlobalVariableExpression(var: !50, expr: !DIExpression())
-    !50 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !46, isLocal: false, isDefinition: true)
-    !51 = !{i32 2, !"Dwarf Version", i32 5}
-    !52 = !{i32 2, !"Debug Info Version", i32 3}
-    !53 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !54, splitDebugInlining: false)
-    !54 = !{!35, !30, !42, !37, !49, !44, !28, !26, !0}
-    !55 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !56, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !56 = !DISubroutineType(flags: DIFlagPublic, types: !57)
-    !57 = !{null, !9}
-    !58 = !{}
-    !59 = !DILocalVariable(name: "grandparent", scope: !55, file: !2, line: 7, type: !9)
-    !60 = !DILocation(line: 7, column: 8, scope: !55)
-    !61 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !62, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !62 = !DISubroutineType(flags: DIFlagPublic, types: !63)
-    !63 = !{null, !6}
-    !64 = !DILocalVariable(name: "parent", scope: !61, file: !2, line: 14, type: !6)
-    !65 = !DILocation(line: 14, column: 8, scope: !61)
-    !66 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !67, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !67 = !DISubroutineType(flags: DIFlagPublic, types: !68)
-    !68 = !{null, !3}
-    !69 = !DILocalVariable(name: "child", scope: !66, file: !2, line: 20, type: !3)
-    !70 = !DILocation(line: 20, column: 8, scope: !66)
-    !71 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !72, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !72 = !DISubroutineType(flags: DIFlagPublic, types: !73)
-    !73 = !{null}
-    !74 = !DILocalVariable(name: "arr", scope: !71, file: !2, line: 24, type: !75, align: 64)
-    !75 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 6336, align: 64, elements: !22)
-    !76 = !DILocation(line: 24, column: 12, scope: !71)
-    !77 = !DILocation(line: 26, column: 12, scope: !71)
-    !78 = !DILocation(line: 27, column: 12, scope: !71)
-    !79 = !DILocation(line: 28, column: 12, scope: !71)
-    !80 = !DILocation(line: 29, column: 12, scope: !71)
-    !81 = !DILocation(line: 30, column: 12, scope: !71)
-    !82 = !DILocation(line: 31, column: 8, scope: !71)
+    !40 = !{!41, !42}
+    !41 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_grandparent_type", scope: !2, file: !2, baseType: !32, size: 64, align: 64, flags: DIFlagPublic)
+    !42 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !12, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !43 = !DIGlobalVariableExpression(var: !44, expr: !DIExpression())
+    !44 = distinct !DIGlobalVariable(name: "__vtable_parent", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
+    !45 = !DIGlobalVariableExpression(var: !46, expr: !DIExpression())
+    !46 = distinct !DIGlobalVariable(name: "____vtable_child_type__init", scope: !2, file: !2, type: !47, isLocal: false, isDefinition: true)
+    !47 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_child_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !48, identifier: "__vtable_child_type")
+    !48 = !{!49, !50}
+    !49 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !39, size: 128, align: 64, flags: DIFlagPublic)
+    !50 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !12, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
+    !51 = !DIGlobalVariableExpression(var: !52, expr: !DIExpression())
+    !52 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !47, isLocal: false, isDefinition: true)
+    !53 = !{i32 2, !"Dwarf Version", i32 5}
+    !54 = !{i32 2, !"Debug Info Version", i32 3}
+    !55 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !56, splitDebugInlining: false)
+    !56 = !{!35, !30, !43, !37, !51, !45, !28, !26, !0}
+    !57 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !58, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !58 = !DISubroutineType(flags: DIFlagPublic, types: !59)
+    !59 = !{null, !9}
+    !60 = !{}
+    !61 = !DILocalVariable(name: "grandparent", scope: !57, file: !2, line: 7, type: !9)
+    !62 = !DILocation(line: 7, column: 8, scope: !57)
+    !63 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !64, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !64 = !DISubroutineType(flags: DIFlagPublic, types: !65)
+    !65 = !{null, !6}
+    !66 = !DILocalVariable(name: "parent", scope: !63, file: !2, line: 14, type: !6)
+    !67 = !DILocation(line: 14, column: 8, scope: !63)
+    !68 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !69, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !69 = !DISubroutineType(flags: DIFlagPublic, types: !70)
+    !70 = !{null, !3}
+    !71 = !DILocalVariable(name: "child", scope: !68, file: !2, line: 20, type: !3)
+    !72 = !DILocation(line: 20, column: 8, scope: !68)
+    !73 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 22, type: !74, scopeLine: 26, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !74 = !DISubroutineType(flags: DIFlagPublic, types: !75)
+    !75 = !{null}
+    !76 = !DILocalVariable(name: "arr", scope: !73, file: !2, line: 24, type: !77, align: 64)
+    !77 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 6336, align: 64, elements: !22)
+    !78 = !DILocation(line: 24, column: 12, scope: !73)
+    !79 = !DILocation(line: 26, column: 12, scope: !73)
+    !80 = !DILocation(line: 27, column: 12, scope: !73)
+    !81 = !DILocation(line: 28, column: 12, scope: !73)
+    !82 = !DILocation(line: 29, column: 12, scope: !73)
+    !83 = !DILocation(line: 30, column: 12, scope: !73)
+    !84 = !DILocation(line: 31, column: 8, scope: !73)
     "###);
 }
 
@@ -1013,8 +1018,8 @@ fn complex_array_access_generated() {
     %grandparent = type { i32*, [6 x i16], i16 }
     %child = type { %parent, [11 x i16] }
     %__vtable_grandparent_type = type { i32* }
-    %__vtable_parent_type = type { i32*, %__vtable_grandparent_type }
-    %__vtable_child_type = type { i32*, %__vtable_parent_type }
+    %__vtable_parent_type = type { %__vtable_grandparent_type, i32* }
+    %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
     @__parent__init = constant %parent zeroinitializer, !dbg !0
     @__grandparent__init = constant %grandparent zeroinitializer, !dbg !22
@@ -1023,58 +1028,58 @@ fn complex_array_access_generated() {
     @____vtable_grandparent_type__init = constant %__vtable_grandparent_type zeroinitializer, !dbg !30
     @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer, !dbg !35
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer, !dbg !37
-    @__vtable_parent = global %__vtable_parent_type zeroinitializer, !dbg !42
-    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer, !dbg !44
-    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !49
+    @__vtable_parent = global %__vtable_parent_type zeroinitializer, !dbg !43
+    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer, !dbg !45
+    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !51
 
-    define void @grandparent(%grandparent* %0) !dbg !55 {
+    define void @grandparent(%grandparent* %0) !dbg !57 {
     entry:
-      call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !59, metadata !DIExpression()), !dbg !60
+      call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !61, metadata !DIExpression()), !dbg !62
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
-      ret void, !dbg !60
+      ret void, !dbg !62
     }
 
-    define void @parent(%parent* %0) !dbg !61 {
+    define void @parent(%parent* %0) !dbg !63 {
     entry:
-      call void @llvm.dbg.declare(metadata %parent* %0, metadata !64, metadata !DIExpression()), !dbg !65
+      call void @llvm.dbg.declare(metadata %parent* %0, metadata !66, metadata !DIExpression()), !dbg !67
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      ret void, !dbg !65
+      ret void, !dbg !67
     }
 
-    define void @child(%child* %0) !dbg !66 {
+    define void @child(%child* %0) !dbg !68 {
     entry:
-      call void @llvm.dbg.declare(metadata %child* %0, metadata !69, metadata !DIExpression()), !dbg !70
+      call void @llvm.dbg.declare(metadata %child* %0, metadata !71, metadata !DIExpression()), !dbg !72
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
-      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !70
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1, !dbg !70
-      %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !70
-      %load_b = load i16, i16* %b, align 2, !dbg !70
-      %1 = sext i16 %load_b to i32, !dbg !70
-      %b1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !70
-      %load_b2 = load i16, i16* %b1, align 2, !dbg !70
-      %2 = sext i16 %load_b2 to i32, !dbg !70
-      %tmpVar = mul i32 %2, 2, !dbg !70
-      %tmpVar3 = mul i32 1, %tmpVar, !dbg !70
-      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !70
-      %tmpVar5 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 %tmpVar4, !dbg !70
-      %load_tmpVar = load i16, i16* %tmpVar5, align 2, !dbg !70
-      %3 = sext i16 %load_tmpVar to i32, !dbg !70
-      %tmpVar6 = add i32 %1, %3, !dbg !70
-      %__grandparent7 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !70
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 2, !dbg !70
-      %load_a = load i16, i16* %a, align 2, !dbg !70
-      %4 = sext i16 %load_a to i32, !dbg !70
-      %tmpVar8 = sub i32 %tmpVar6, %4, !dbg !70
-      %tmpVar9 = mul i32 1, %tmpVar8, !dbg !70
-      %tmpVar10 = add i32 %tmpVar9, 0, !dbg !70
-      %tmpVar11 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 %tmpVar10, !dbg !70
-      store i16 20, i16* %tmpVar11, align 2, !dbg !70
-      ret void, !dbg !71
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !72
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1, !dbg !72
+      %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !72
+      %load_b = load i16, i16* %b, align 2, !dbg !72
+      %1 = sext i16 %load_b to i32, !dbg !72
+      %b1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !72
+      %load_b2 = load i16, i16* %b1, align 2, !dbg !72
+      %2 = sext i16 %load_b2 to i32, !dbg !72
+      %tmpVar = mul i32 %2, 2, !dbg !72
+      %tmpVar3 = mul i32 1, %tmpVar, !dbg !72
+      %tmpVar4 = add i32 %tmpVar3, 0, !dbg !72
+      %tmpVar5 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 %tmpVar4, !dbg !72
+      %load_tmpVar = load i16, i16* %tmpVar5, align 2, !dbg !72
+      %3 = sext i16 %load_tmpVar to i32, !dbg !72
+      %tmpVar6 = add i32 %1, %3, !dbg !72
+      %__grandparent7 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !72
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 2, !dbg !72
+      %load_a = load i16, i16* %a, align 2, !dbg !72
+      %4 = sext i16 %load_a to i32, !dbg !72
+      %tmpVar8 = sub i32 %tmpVar6, %4, !dbg !72
+      %tmpVar9 = mul i32 1, %tmpVar8, !dbg !72
+      %tmpVar10 = add i32 %tmpVar9, 0, !dbg !72
+      %tmpVar11 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 %tmpVar10, !dbg !72
+      store i16 20, i16* %tmpVar11, align 2, !dbg !72
+      ret void, !dbg !73
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -1092,7 +1097,7 @@ fn complex_array_access_generated() {
       %self = alloca %__vtable_parent_type*, align 8
       store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
       %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
-      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 1
+      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
       call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
       ret void
     }
@@ -1102,7 +1107,7 @@ fn complex_array_access_generated() {
       %self = alloca %__vtable_child_type*, align 8
       store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
       %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 1
+      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
       call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
       ret void
     }
@@ -1183,8 +1188,8 @@ fn complex_array_access_generated() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!51, !52}
-    !llvm.dbg.cu = !{!53}
+    !llvm.module.flags = !{!53, !54}
+    !llvm.dbg.cu = !{!55}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
@@ -1226,38 +1231,40 @@ fn complex_array_access_generated() {
     !37 = !DIGlobalVariableExpression(var: !38, expr: !DIExpression())
     !38 = distinct !DIGlobalVariable(name: "____vtable_parent_type__init", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
     !39 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_parent_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !40, identifier: "__vtable_parent_type")
-    !40 = !{!34, !41}
-    !41 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_grandparent_type", scope: !2, file: !2, baseType: !32, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !42 = !DIGlobalVariableExpression(var: !43, expr: !DIExpression())
-    !43 = distinct !DIGlobalVariable(name: "__vtable_parent", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
-    !44 = !DIGlobalVariableExpression(var: !45, expr: !DIExpression())
-    !45 = distinct !DIGlobalVariable(name: "____vtable_child_type__init", scope: !2, file: !2, type: !46, isLocal: false, isDefinition: true)
-    !46 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_child_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !47, identifier: "__vtable_child_type")
-    !47 = !{!34, !48}
-    !48 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !39, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !49 = !DIGlobalVariableExpression(var: !50, expr: !DIExpression())
-    !50 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !46, isLocal: false, isDefinition: true)
-    !51 = !{i32 2, !"Dwarf Version", i32 5}
-    !52 = !{i32 2, !"Debug Info Version", i32 3}
-    !53 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !54, splitDebugInlining: false)
-    !54 = !{!35, !30, !42, !37, !49, !44, !22, !0, !24}
-    !55 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !56, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !56 = !DISubroutineType(flags: DIFlagPublic, types: !57)
-    !57 = !{null, !6}
-    !58 = !{}
-    !59 = !DILocalVariable(name: "grandparent", scope: !55, file: !2, line: 7, type: !6)
-    !60 = !DILocation(line: 7, column: 8, scope: !55)
-    !61 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !62, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !62 = !DISubroutineType(flags: DIFlagPublic, types: !63)
-    !63 = !{null, !3}
-    !64 = !DILocalVariable(name: "parent", scope: !61, file: !2, line: 14, type: !3)
-    !65 = !DILocation(line: 14, column: 8, scope: !61)
-    !66 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !67, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !53, retainedNodes: !58)
-    !67 = !DISubroutineType(flags: DIFlagPublic, types: !68)
-    !68 = !{null, !26}
-    !69 = !DILocalVariable(name: "child", scope: !66, file: !2, line: 20, type: !26)
-    !70 = !DILocation(line: 20, column: 12, scope: !66)
-    !71 = !DILocation(line: 21, column: 8, scope: !66)
+    !40 = !{!41, !42}
+    !41 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_grandparent_type", scope: !2, file: !2, baseType: !32, size: 64, align: 64, flags: DIFlagPublic)
+    !42 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !9, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !43 = !DIGlobalVariableExpression(var: !44, expr: !DIExpression())
+    !44 = distinct !DIGlobalVariable(name: "__vtable_parent", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
+    !45 = !DIGlobalVariableExpression(var: !46, expr: !DIExpression())
+    !46 = distinct !DIGlobalVariable(name: "____vtable_child_type__init", scope: !2, file: !2, type: !47, isLocal: false, isDefinition: true)
+    !47 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_child_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !48, identifier: "__vtable_child_type")
+    !48 = !{!49, !50}
+    !49 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !39, size: 128, align: 64, flags: DIFlagPublic)
+    !50 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !9, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
+    !51 = !DIGlobalVariableExpression(var: !52, expr: !DIExpression())
+    !52 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !47, isLocal: false, isDefinition: true)
+    !53 = !{i32 2, !"Dwarf Version", i32 5}
+    !54 = !{i32 2, !"Debug Info Version", i32 3}
+    !55 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !56, splitDebugInlining: false)
+    !56 = !{!35, !30, !43, !37, !51, !45, !22, !0, !24}
+    !57 = distinct !DISubprogram(name: "grandparent", linkageName: "grandparent", scope: !2, file: !2, line: 2, type: !58, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !58 = !DISubroutineType(flags: DIFlagPublic, types: !59)
+    !59 = !{null, !6}
+    !60 = !{}
+    !61 = !DILocalVariable(name: "grandparent", scope: !57, file: !2, line: 7, type: !6)
+    !62 = !DILocation(line: 7, column: 8, scope: !57)
+    !63 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 9, type: !64, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !64 = !DISubroutineType(flags: DIFlagPublic, types: !65)
+    !65 = !{null, !3}
+    !66 = !DILocalVariable(name: "parent", scope: !63, file: !2, line: 14, type: !3)
+    !67 = !DILocation(line: 14, column: 8, scope: !63)
+    !68 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 16, type: !69, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !55, retainedNodes: !60)
+    !69 = !DISubroutineType(flags: DIFlagPublic, types: !70)
+    !70 = !{null, !26}
+    !71 = !DILocalVariable(name: "child", scope: !68, file: !2, line: 20, type: !26)
+    !72 = !DILocation(line: 20, column: 12, scope: !68)
+    !73 = !DILocation(line: 21, column: 8, scope: !68)
     "###);
 }
 
@@ -1281,7 +1288,7 @@ fn function_block_method_debug_info() {
     %foo = type { i32* }
     %bar = type { %foo }
     %__vtable_foo_type = type { i32*, i32* }
-    %__vtable_bar_type = type { i32*, %__vtable_foo_type }
+    %__vtable_bar_type = type { %__vtable_foo_type, i32* }
 
     @__foo__init = constant %foo zeroinitializer, !dbg !0
     @__bar__init = constant %bar zeroinitializer, !dbg !8
@@ -1289,27 +1296,27 @@ fn function_block_method_debug_info() {
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer, !dbg !13
     @__vtable_foo = global %__vtable_foo_type zeroinitializer, !dbg !19
     @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer, !dbg !21
-    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !26
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer, !dbg !27
 
-    define void @foo(%foo* %0) !dbg !32 {
+    define void @foo(%foo* %0) !dbg !33 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !36, metadata !DIExpression()), !dbg !37
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !37, metadata !DIExpression()), !dbg !38
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      ret void, !dbg !37
+      ret void, !dbg !38
     }
 
-    define void @foo_baz(%foo* %0) !dbg !38 {
+    define void @foo_baz(%foo* %0) !dbg !39 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !39, metadata !DIExpression()), !dbg !40
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !40, metadata !DIExpression()), !dbg !41
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      ret void, !dbg !40
+      ret void, !dbg !41
     }
 
-    define void @bar(%bar* %0) !dbg !41 {
+    define void @bar(%bar* %0) !dbg !42 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !44, metadata !DIExpression()), !dbg !45
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !45, metadata !DIExpression()), !dbg !46
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      ret void, !dbg !45
+      ret void, !dbg !46
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -1327,7 +1334,7 @@ fn function_block_method_debug_info() {
       %self = alloca %__vtable_bar_type*, align 8
       store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
       %deref = load %__vtable_bar_type*, %__vtable_bar_type** %self, align 8
-      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 1
+      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 0
       call void @__init___vtable_foo_type(%__vtable_foo_type* %__vtable_foo_type)
       ret void
     }
@@ -1382,8 +1389,8 @@ fn function_block_method_debug_info() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!28, !29}
-    !llvm.dbg.cu = !{!30}
+    !llvm.module.flags = !{!29, !30}
+    !llvm.dbg.cu = !{!31}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
@@ -1409,28 +1416,29 @@ fn function_block_method_debug_info() {
     !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
     !22 = distinct !DIGlobalVariable(name: "____vtable_bar_type__init", scope: !2, file: !2, type: !23, isLocal: false, isDefinition: true)
     !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_bar_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !24, identifier: "__vtable_bar_type")
-    !24 = !{!17, !25}
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !15, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !26 = !DIGlobalVariableExpression(var: !27, expr: !DIExpression())
-    !27 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !23, isLocal: false, isDefinition: true)
-    !28 = !{i32 2, !"Dwarf Version", i32 5}
-    !29 = !{i32 2, !"Debug Info Version", i32 3}
-    !30 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
-    !31 = !{!19, !13, !26, !21, !0, !8}
-    !32 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !33, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
-    !33 = !DISubroutineType(flags: DIFlagPublic, types: !34)
-    !34 = !{null, !3}
-    !35 = !{}
-    !36 = !DILocalVariable(name: "foo", scope: !32, file: !2, line: 5, type: !3)
-    !37 = !DILocation(line: 5, column: 8, scope: !32)
-    !38 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !32, file: !2, line: 3, type: !33, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
-    !39 = !DILocalVariable(name: "foo", scope: !38, file: !2, line: 4, type: !3)
-    !40 = !DILocation(line: 4, column: 8, scope: !38)
-    !41 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 7, type: !42, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
-    !42 = !DISubroutineType(flags: DIFlagPublic, types: !43)
-    !43 = !{null, !10}
-    !44 = !DILocalVariable(name: "bar", scope: !41, file: !2, line: 8, type: !10)
-    !45 = !DILocation(line: 8, column: 8, scope: !41)
+    !24 = !{!25, !26}
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_foo_type", scope: !2, file: !2, baseType: !15, size: 128, align: 64, flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !6, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
+    !27 = !DIGlobalVariableExpression(var: !28, expr: !DIExpression())
+    !28 = distinct !DIGlobalVariable(name: "__vtable_bar", scope: !2, file: !2, type: !23, isLocal: false, isDefinition: true)
+    !29 = !{i32 2, !"Dwarf Version", i32 5}
+    !30 = !{i32 2, !"Debug Info Version", i32 3}
+    !31 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !32, splitDebugInlining: false)
+    !32 = !{!19, !13, !27, !21, !0, !8}
+    !33 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !34, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !31, retainedNodes: !36)
+    !34 = !DISubroutineType(flags: DIFlagPublic, types: !35)
+    !35 = !{null, !3}
+    !36 = !{}
+    !37 = !DILocalVariable(name: "foo", scope: !33, file: !2, line: 5, type: !3)
+    !38 = !DILocation(line: 5, column: 8, scope: !33)
+    !39 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !33, file: !2, line: 3, type: !34, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !31, retainedNodes: !36)
+    !40 = !DILocalVariable(name: "foo", scope: !39, file: !2, line: 4, type: !3)
+    !41 = !DILocation(line: 4, column: 8, scope: !39)
+    !42 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 7, type: !43, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !31, retainedNodes: !36)
+    !43 = !DISubroutineType(flags: DIFlagPublic, types: !44)
+    !44 = !{null, !10}
+    !45 = !DILocalVariable(name: "bar", scope: !42, file: !2, line: 8, type: !10)
+    !46 = !DILocation(line: 8, column: 8, scope: !42)
     "###);
 }
 
@@ -1504,8 +1512,8 @@ END_FUNCTION
     %child = type { %parent, i32 }
     %parent = type { i32*, i32 }
     %__vtable_parent_type = type { i32* }
-    %__vtable_child_type = type { i32*, %__vtable_parent_type }
-    %__vtable_grandchild_type = type { i32*, %__vtable_child_type }
+    %__vtable_child_type = type { %__vtable_parent_type, i32* }
+    %__vtable_grandchild_type = type { %__vtable_child_type, i32* }
 
     @__grandchild__init = constant %grandchild zeroinitializer, !dbg !0
     @__child__init = constant %child zeroinitializer, !dbg !18
@@ -1514,35 +1522,35 @@ END_FUNCTION
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer, !dbg !22
     @__vtable_parent = global %__vtable_parent_type zeroinitializer, !dbg !27
     @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer, !dbg !29
-    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !34
-    @____vtable_grandchild_type__init = constant %__vtable_grandchild_type zeroinitializer, !dbg !36
-    @__vtable_grandchild = global %__vtable_grandchild_type zeroinitializer, !dbg !41
+    @__vtable_child = global %__vtable_child_type zeroinitializer, !dbg !35
+    @____vtable_grandchild_type__init = constant %__vtable_grandchild_type zeroinitializer, !dbg !37
+    @__vtable_grandchild = global %__vtable_grandchild_type zeroinitializer, !dbg !43
 
-    define void @parent(%parent* %0) !dbg !47 {
+    define void @parent(%parent* %0) !dbg !49 {
     entry:
-      call void @llvm.dbg.declare(metadata %parent* %0, metadata !51, metadata !DIExpression()), !dbg !52
+      call void @llvm.dbg.declare(metadata %parent* %0, metadata !53, metadata !DIExpression()), !dbg !54
       %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      ret void, !dbg !52
+      ret void, !dbg !54
     }
 
-    define void @child(%child* %0) !dbg !53 {
+    define void @child(%child* %0) !dbg !55 {
     entry:
-      call void @llvm.dbg.declare(metadata %child* %0, metadata !56, metadata !DIExpression()), !dbg !57
+      call void @llvm.dbg.declare(metadata %child* %0, metadata !58, metadata !DIExpression()), !dbg !59
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %b = getelementptr inbounds %child, %child* %0, i32 0, i32 1
-      ret void, !dbg !57
+      ret void, !dbg !59
     }
 
-    define void @grandchild(%grandchild* %0) !dbg !58 {
+    define void @grandchild(%grandchild* %0) !dbg !60 {
     entry:
-      call void @llvm.dbg.declare(metadata %grandchild* %0, metadata !61, metadata !DIExpression()), !dbg !62
+      call void @llvm.dbg.declare(metadata %grandchild* %0, metadata !63, metadata !DIExpression()), !dbg !64
       %__child = getelementptr inbounds %grandchild, %grandchild* %0, i32 0, i32 0
       %c = getelementptr inbounds %grandchild, %grandchild* %0, i32 0, i32 1
-      ret void, !dbg !62
+      ret void, !dbg !64
     }
 
-    define i32 @main() !dbg !63 {
+    define i32 @main() !dbg !65 {
     entry:
       %main = alloca i32, align 4
       %array_of_parent = alloca [3 x %parent], align 8
@@ -1551,116 +1559,116 @@ END_FUNCTION
       %parent1 = alloca %parent, align 8
       %child1 = alloca %child, align 8
       %grandchild1 = alloca %grandchild, align 8
-      call void @llvm.dbg.declare(metadata [3 x %parent]* %array_of_parent, metadata !66, metadata !DIExpression()), !dbg !70
+      call void @llvm.dbg.declare(metadata [3 x %parent]* %array_of_parent, metadata !68, metadata !DIExpression()), !dbg !72
       %0 = bitcast [3 x %parent]* %array_of_parent to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([3 x %parent]* getelementptr ([3 x %parent], [3 x %parent]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata [3 x %child]* %array_of_child, metadata !71, metadata !DIExpression()), !dbg !73
+      call void @llvm.dbg.declare(metadata [3 x %child]* %array_of_child, metadata !73, metadata !DIExpression()), !dbg !75
       %1 = bitcast [3 x %child]* %array_of_child to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([3 x %child]* getelementptr ([3 x %child], [3 x %child]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata [3 x %grandchild]* %array_of_grandchild, metadata !74, metadata !DIExpression()), !dbg !76
+      call void @llvm.dbg.declare(metadata [3 x %grandchild]* %array_of_grandchild, metadata !76, metadata !DIExpression()), !dbg !78
       %2 = bitcast [3 x %grandchild]* %array_of_grandchild to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x %grandchild]* getelementptr ([3 x %grandchild], [3 x %grandchild]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %parent* %parent1, metadata !77, metadata !DIExpression()), !dbg !78
+      call void @llvm.dbg.declare(metadata %parent* %parent1, metadata !79, metadata !DIExpression()), !dbg !80
       %3 = bitcast %parent* %parent1 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%parent* @__parent__init to i8*), i64 ptrtoint (%parent* getelementptr (%parent, %parent* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %child* %child1, metadata !79, metadata !DIExpression()), !dbg !80
+      call void @llvm.dbg.declare(metadata %child* %child1, metadata !81, metadata !DIExpression()), !dbg !82
       %4 = bitcast %child* %child1 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %4, i8* align 1 bitcast (%child* @__child__init to i8*), i64 ptrtoint (%child* getelementptr (%child, %child* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %grandchild* %grandchild1, metadata !81, metadata !DIExpression()), !dbg !82
+      call void @llvm.dbg.declare(metadata %grandchild* %grandchild1, metadata !83, metadata !DIExpression()), !dbg !84
       %5 = bitcast %grandchild* %grandchild1 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %5, i8* align 1 bitcast (%grandchild* @__grandchild__init to i8*), i64 ptrtoint (%grandchild* getelementptr (%grandchild, %grandchild* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !83, metadata !DIExpression()), !dbg !84
+      call void @llvm.dbg.declare(metadata i32* %main, metadata !85, metadata !DIExpression()), !dbg !86
       store i32 0, i32* %main, align 4
-      call void @__init_parent(%parent* %parent1), !dbg !85
-      call void @__init_child(%child* %child1), !dbg !85
-      call void @__init_grandchild(%grandchild* %grandchild1), !dbg !85
-      call void @__user_init_parent(%parent* %parent1), !dbg !85
-      call void @__user_init_child(%child* %child1), !dbg !85
-      call void @__user_init_grandchild(%grandchild* %grandchild1), !dbg !85
-      %a = getelementptr inbounds %parent, %parent* %parent1, i32 0, i32 1, !dbg !86
-      store i32 1, i32* %a, align 4, !dbg !86
-      %__parent = getelementptr inbounds %child, %child* %child1, i32 0, i32 0, !dbg !87
-      %a1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1, !dbg !87
-      store i32 2, i32* %a1, align 4, !dbg !87
-      %b = getelementptr inbounds %child, %child* %child1, i32 0, i32 1, !dbg !88
-      store i32 3, i32* %b, align 4, !dbg !88
-      %__child = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !89
-      %__parent2 = getelementptr inbounds %child, %child* %__child, i32 0, i32 0, !dbg !89
-      %a3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 1, !dbg !89
-      store i32 4, i32* %a3, align 4, !dbg !89
-      %__child4 = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !90
-      %b5 = getelementptr inbounds %child, %child* %__child4, i32 0, i32 1, !dbg !90
-      store i32 5, i32* %b5, align 4, !dbg !90
-      %c = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 1, !dbg !91
-      store i32 6, i32* %c, align 4, !dbg !91
-      %tmpVar = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 0, !dbg !92
-      %a6 = getelementptr inbounds %parent, %parent* %tmpVar, i32 0, i32 1, !dbg !92
-      store i32 7, i32* %a6, align 4, !dbg !92
-      %tmpVar7 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !93
-      %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !93
-      %a9 = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !93
-      store i32 8, i32* %a9, align 4, !dbg !93
-      %tmpVar10 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !94
-      %b11 = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !94
-      store i32 9, i32* %b11, align 4, !dbg !94
-      %tmpVar12 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !95
-      %__child13 = getelementptr inbounds %grandchild, %grandchild* %tmpVar12, i32 0, i32 0, !dbg !95
-      %__parent14 = getelementptr inbounds %child, %child* %__child13, i32 0, i32 0, !dbg !95
-      %a15 = getelementptr inbounds %parent, %parent* %__parent14, i32 0, i32 1, !dbg !95
-      store i32 10, i32* %a15, align 4, !dbg !95
-      %tmpVar16 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !96
-      %__child17 = getelementptr inbounds %grandchild, %grandchild* %tmpVar16, i32 0, i32 0, !dbg !96
-      %b18 = getelementptr inbounds %child, %child* %__child17, i32 0, i32 1, !dbg !96
-      store i32 11, i32* %b18, align 4, !dbg !96
-      %tmpVar19 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !97
-      %c20 = getelementptr inbounds %grandchild, %grandchild* %tmpVar19, i32 0, i32 1, !dbg !97
-      store i32 12, i32* %c20, align 4, !dbg !97
-      %tmpVar21 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 1, !dbg !98
-      %a22 = getelementptr inbounds %parent, %parent* %tmpVar21, i32 0, i32 1, !dbg !98
-      store i32 13, i32* %a22, align 4, !dbg !98
-      %tmpVar23 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !99
-      %__parent24 = getelementptr inbounds %child, %child* %tmpVar23, i32 0, i32 0, !dbg !99
-      %a25 = getelementptr inbounds %parent, %parent* %__parent24, i32 0, i32 1, !dbg !99
-      store i32 14, i32* %a25, align 4, !dbg !99
-      %tmpVar26 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !100
-      %b27 = getelementptr inbounds %child, %child* %tmpVar26, i32 0, i32 1, !dbg !100
-      store i32 15, i32* %b27, align 4, !dbg !100
-      %tmpVar28 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !101
-      %__child29 = getelementptr inbounds %grandchild, %grandchild* %tmpVar28, i32 0, i32 0, !dbg !101
-      %__parent30 = getelementptr inbounds %child, %child* %__child29, i32 0, i32 0, !dbg !101
-      %a31 = getelementptr inbounds %parent, %parent* %__parent30, i32 0, i32 1, !dbg !101
-      store i32 16, i32* %a31, align 4, !dbg !101
-      %tmpVar32 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !102
-      %__child33 = getelementptr inbounds %grandchild, %grandchild* %tmpVar32, i32 0, i32 0, !dbg !102
-      %b34 = getelementptr inbounds %child, %child* %__child33, i32 0, i32 1, !dbg !102
-      store i32 17, i32* %b34, align 4, !dbg !102
-      %tmpVar35 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !103
-      %c36 = getelementptr inbounds %grandchild, %grandchild* %tmpVar35, i32 0, i32 1, !dbg !103
-      store i32 18, i32* %c36, align 4, !dbg !103
-      %tmpVar37 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 2, !dbg !104
-      %a38 = getelementptr inbounds %parent, %parent* %tmpVar37, i32 0, i32 1, !dbg !104
-      store i32 19, i32* %a38, align 4, !dbg !104
-      %tmpVar39 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !105
-      %__parent40 = getelementptr inbounds %child, %child* %tmpVar39, i32 0, i32 0, !dbg !105
-      %a41 = getelementptr inbounds %parent, %parent* %__parent40, i32 0, i32 1, !dbg !105
-      store i32 20, i32* %a41, align 4, !dbg !105
-      %tmpVar42 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !106
-      %b43 = getelementptr inbounds %child, %child* %tmpVar42, i32 0, i32 1, !dbg !106
-      store i32 21, i32* %b43, align 4, !dbg !106
-      %tmpVar44 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !107
-      %__child45 = getelementptr inbounds %grandchild, %grandchild* %tmpVar44, i32 0, i32 0, !dbg !107
-      %__parent46 = getelementptr inbounds %child, %child* %__child45, i32 0, i32 0, !dbg !107
-      %a47 = getelementptr inbounds %parent, %parent* %__parent46, i32 0, i32 1, !dbg !107
-      store i32 22, i32* %a47, align 4, !dbg !107
-      %tmpVar48 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !108
-      %__child49 = getelementptr inbounds %grandchild, %grandchild* %tmpVar48, i32 0, i32 0, !dbg !108
-      %b50 = getelementptr inbounds %child, %child* %__child49, i32 0, i32 1, !dbg !108
-      store i32 23, i32* %b50, align 4, !dbg !108
-      %tmpVar51 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !109
-      %c52 = getelementptr inbounds %grandchild, %grandchild* %tmpVar51, i32 0, i32 1, !dbg !109
-      store i32 24, i32* %c52, align 4, !dbg !109
-      %main_ret = load i32, i32* %main, align 4, !dbg !110
-      ret i32 %main_ret, !dbg !110
+      call void @__init_parent(%parent* %parent1), !dbg !87
+      call void @__init_child(%child* %child1), !dbg !87
+      call void @__init_grandchild(%grandchild* %grandchild1), !dbg !87
+      call void @__user_init_parent(%parent* %parent1), !dbg !87
+      call void @__user_init_child(%child* %child1), !dbg !87
+      call void @__user_init_grandchild(%grandchild* %grandchild1), !dbg !87
+      %a = getelementptr inbounds %parent, %parent* %parent1, i32 0, i32 1, !dbg !88
+      store i32 1, i32* %a, align 4, !dbg !88
+      %__parent = getelementptr inbounds %child, %child* %child1, i32 0, i32 0, !dbg !89
+      %a1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1, !dbg !89
+      store i32 2, i32* %a1, align 4, !dbg !89
+      %b = getelementptr inbounds %child, %child* %child1, i32 0, i32 1, !dbg !90
+      store i32 3, i32* %b, align 4, !dbg !90
+      %__child = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !91
+      %__parent2 = getelementptr inbounds %child, %child* %__child, i32 0, i32 0, !dbg !91
+      %a3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 1, !dbg !91
+      store i32 4, i32* %a3, align 4, !dbg !91
+      %__child4 = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !92
+      %b5 = getelementptr inbounds %child, %child* %__child4, i32 0, i32 1, !dbg !92
+      store i32 5, i32* %b5, align 4, !dbg !92
+      %c = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 1, !dbg !93
+      store i32 6, i32* %c, align 4, !dbg !93
+      %tmpVar = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 0, !dbg !94
+      %a6 = getelementptr inbounds %parent, %parent* %tmpVar, i32 0, i32 1, !dbg !94
+      store i32 7, i32* %a6, align 4, !dbg !94
+      %tmpVar7 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !95
+      %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !95
+      %a9 = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !95
+      store i32 8, i32* %a9, align 4, !dbg !95
+      %tmpVar10 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !96
+      %b11 = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !96
+      store i32 9, i32* %b11, align 4, !dbg !96
+      %tmpVar12 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !97
+      %__child13 = getelementptr inbounds %grandchild, %grandchild* %tmpVar12, i32 0, i32 0, !dbg !97
+      %__parent14 = getelementptr inbounds %child, %child* %__child13, i32 0, i32 0, !dbg !97
+      %a15 = getelementptr inbounds %parent, %parent* %__parent14, i32 0, i32 1, !dbg !97
+      store i32 10, i32* %a15, align 4, !dbg !97
+      %tmpVar16 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !98
+      %__child17 = getelementptr inbounds %grandchild, %grandchild* %tmpVar16, i32 0, i32 0, !dbg !98
+      %b18 = getelementptr inbounds %child, %child* %__child17, i32 0, i32 1, !dbg !98
+      store i32 11, i32* %b18, align 4, !dbg !98
+      %tmpVar19 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !99
+      %c20 = getelementptr inbounds %grandchild, %grandchild* %tmpVar19, i32 0, i32 1, !dbg !99
+      store i32 12, i32* %c20, align 4, !dbg !99
+      %tmpVar21 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 1, !dbg !100
+      %a22 = getelementptr inbounds %parent, %parent* %tmpVar21, i32 0, i32 1, !dbg !100
+      store i32 13, i32* %a22, align 4, !dbg !100
+      %tmpVar23 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !101
+      %__parent24 = getelementptr inbounds %child, %child* %tmpVar23, i32 0, i32 0, !dbg !101
+      %a25 = getelementptr inbounds %parent, %parent* %__parent24, i32 0, i32 1, !dbg !101
+      store i32 14, i32* %a25, align 4, !dbg !101
+      %tmpVar26 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !102
+      %b27 = getelementptr inbounds %child, %child* %tmpVar26, i32 0, i32 1, !dbg !102
+      store i32 15, i32* %b27, align 4, !dbg !102
+      %tmpVar28 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !103
+      %__child29 = getelementptr inbounds %grandchild, %grandchild* %tmpVar28, i32 0, i32 0, !dbg !103
+      %__parent30 = getelementptr inbounds %child, %child* %__child29, i32 0, i32 0, !dbg !103
+      %a31 = getelementptr inbounds %parent, %parent* %__parent30, i32 0, i32 1, !dbg !103
+      store i32 16, i32* %a31, align 4, !dbg !103
+      %tmpVar32 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !104
+      %__child33 = getelementptr inbounds %grandchild, %grandchild* %tmpVar32, i32 0, i32 0, !dbg !104
+      %b34 = getelementptr inbounds %child, %child* %__child33, i32 0, i32 1, !dbg !104
+      store i32 17, i32* %b34, align 4, !dbg !104
+      %tmpVar35 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !105
+      %c36 = getelementptr inbounds %grandchild, %grandchild* %tmpVar35, i32 0, i32 1, !dbg !105
+      store i32 18, i32* %c36, align 4, !dbg !105
+      %tmpVar37 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 2, !dbg !106
+      %a38 = getelementptr inbounds %parent, %parent* %tmpVar37, i32 0, i32 1, !dbg !106
+      store i32 19, i32* %a38, align 4, !dbg !106
+      %tmpVar39 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !107
+      %__parent40 = getelementptr inbounds %child, %child* %tmpVar39, i32 0, i32 0, !dbg !107
+      %a41 = getelementptr inbounds %parent, %parent* %__parent40, i32 0, i32 1, !dbg !107
+      store i32 20, i32* %a41, align 4, !dbg !107
+      %tmpVar42 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !108
+      %b43 = getelementptr inbounds %child, %child* %tmpVar42, i32 0, i32 1, !dbg !108
+      store i32 21, i32* %b43, align 4, !dbg !108
+      %tmpVar44 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !109
+      %__child45 = getelementptr inbounds %grandchild, %grandchild* %tmpVar44, i32 0, i32 0, !dbg !109
+      %__parent46 = getelementptr inbounds %child, %child* %__child45, i32 0, i32 0, !dbg !109
+      %a47 = getelementptr inbounds %parent, %parent* %__parent46, i32 0, i32 1, !dbg !109
+      store i32 22, i32* %a47, align 4, !dbg !109
+      %tmpVar48 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !110
+      %__child49 = getelementptr inbounds %grandchild, %grandchild* %tmpVar48, i32 0, i32 0, !dbg !110
+      %b50 = getelementptr inbounds %child, %child* %__child49, i32 0, i32 1, !dbg !110
+      store i32 23, i32* %b50, align 4, !dbg !110
+      %tmpVar51 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !111
+      %c52 = getelementptr inbounds %grandchild, %grandchild* %tmpVar51, i32 0, i32 1, !dbg !111
+      store i32 24, i32* %c52, align 4, !dbg !111
+      %main_ret = load i32, i32* %main, align 4, !dbg !112
+      ret i32 %main_ret, !dbg !112
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -1684,7 +1692,7 @@ END_FUNCTION
       %self = alloca %__vtable_child_type*, align 8
       store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
       %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 1
+      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
       call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
       ret void
     }
@@ -1694,7 +1702,7 @@ END_FUNCTION
       %self = alloca %__vtable_grandchild_type*, align 8
       store %__vtable_grandchild_type* %0, %__vtable_grandchild_type** %self, align 8
       %deref = load %__vtable_grandchild_type*, %__vtable_grandchild_type** %self, align 8
-      %__vtable_child_type = getelementptr inbounds %__vtable_grandchild_type, %__vtable_grandchild_type* %deref, i32 0, i32 1
+      %__vtable_child_type = getelementptr inbounds %__vtable_grandchild_type, %__vtable_grandchild_type* %deref, i32 0, i32 0
       call void @__init___vtable_child_type(%__vtable_child_type* %__vtable_child_type)
       ret void
     }
@@ -1777,8 +1785,8 @@ END_FUNCTION
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #2 = { argmemonly nofree nounwind willreturn }
 
-    !llvm.module.flags = !{!43, !44}
-    !llvm.dbg.cu = !{!45}
+    !llvm.module.flags = !{!45, !46}
+    !llvm.dbg.cu = !{!47}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__grandchild__init", scope: !2, file: !2, line: 14, type: !3, isLocal: false, isDefinition: true)
@@ -1812,84 +1820,86 @@ END_FUNCTION
     !29 = !DIGlobalVariableExpression(var: !30, expr: !DIExpression())
     !30 = distinct !DIGlobalVariable(name: "____vtable_child_type__init", scope: !2, file: !2, type: !31, isLocal: false, isDefinition: true)
     !31 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_child_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !32, identifier: "__vtable_child_type")
-    !32 = !{!26, !33}
-    !33 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !24, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
-    !34 = !DIGlobalVariableExpression(var: !35, expr: !DIExpression())
-    !35 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !31, isLocal: false, isDefinition: true)
-    !36 = !DIGlobalVariableExpression(var: !37, expr: !DIExpression())
-    !37 = distinct !DIGlobalVariable(name: "____vtable_grandchild_type__init", scope: !2, file: !2, type: !38, isLocal: false, isDefinition: true)
-    !38 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_grandchild_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !39, identifier: "__vtable_grandchild_type")
-    !39 = !{!26, !40}
-    !40 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_child_type", scope: !2, file: !2, baseType: !31, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !41 = !DIGlobalVariableExpression(var: !42, expr: !DIExpression())
-    !42 = distinct !DIGlobalVariable(name: "__vtable_grandchild", scope: !2, file: !2, type: !38, isLocal: false, isDefinition: true)
-    !43 = !{i32 2, !"Dwarf Version", i32 5}
-    !44 = !{i32 2, !"Debug Info Version", i32 3}
-    !45 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !46, splitDebugInlining: false)
-    !46 = !{!27, !22, !34, !29, !41, !36, !20, !18, !0}
-    !47 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 2, type: !48, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !45, retainedNodes: !50)
-    !48 = !DISubroutineType(flags: DIFlagPublic, types: !49)
-    !49 = !{null, !9}
-    !50 = !{}
-    !51 = !DILocalVariable(name: "parent", scope: !47, file: !2, line: 6, type: !9)
-    !52 = !DILocation(line: 6, scope: !47)
-    !53 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 8, type: !54, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !45, retainedNodes: !50)
-    !54 = !DISubroutineType(flags: DIFlagPublic, types: !55)
-    !55 = !{null, !6}
-    !56 = !DILocalVariable(name: "child", scope: !53, file: !2, line: 12, type: !6)
-    !57 = !DILocation(line: 12, scope: !53)
-    !58 = distinct !DISubprogram(name: "grandchild", linkageName: "grandchild", scope: !2, file: !2, line: 14, type: !59, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !45, retainedNodes: !50)
-    !59 = !DISubroutineType(flags: DIFlagPublic, types: !60)
-    !60 = !{null, !3}
-    !61 = !DILocalVariable(name: "grandchild", scope: !58, file: !2, line: 18, type: !3)
-    !62 = !DILocation(line: 18, scope: !58)
-    !63 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 20, type: !64, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !45, retainedNodes: !50)
-    !64 = !DISubroutineType(flags: DIFlagPublic, types: !65)
-    !65 = !{null}
-    !66 = !DILocalVariable(name: "array_of_parent", scope: !63, file: !2, line: 22, type: !67, align: 64)
-    !67 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 384, align: 64, elements: !68)
-    !68 = !{!69}
-    !69 = !DISubrange(count: 3, lowerBound: 0)
-    !70 = !DILocation(line: 22, column: 4, scope: !63)
-    !71 = !DILocalVariable(name: "array_of_child", scope: !63, file: !2, line: 23, type: !72, align: 64)
-    !72 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 576, align: 64, elements: !68)
-    !73 = !DILocation(line: 23, column: 4, scope: !63)
-    !74 = !DILocalVariable(name: "array_of_grandchild", scope: !63, file: !2, line: 24, type: !75, align: 64)
-    !75 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 768, align: 64, elements: !68)
-    !76 = !DILocation(line: 24, column: 4, scope: !63)
-    !77 = !DILocalVariable(name: "parent1", scope: !63, file: !2, line: 25, type: !9, align: 64)
-    !78 = !DILocation(line: 25, column: 4, scope: !63)
-    !79 = !DILocalVariable(name: "child1", scope: !63, file: !2, line: 26, type: !6, align: 64)
-    !80 = !DILocation(line: 26, column: 4, scope: !63)
-    !81 = !DILocalVariable(name: "grandchild1", scope: !63, file: !2, line: 27, type: !3, align: 64)
-    !82 = !DILocation(line: 27, column: 4, scope: !63)
-    !83 = !DILocalVariable(name: "main", scope: !63, file: !2, line: 20, type: !15, align: 32)
-    !84 = !DILocation(line: 20, column: 9, scope: !63)
-    !85 = !DILocation(line: 0, scope: !63)
-    !86 = !DILocation(line: 30, column: 4, scope: !63)
-    !87 = !DILocation(line: 31, column: 4, scope: !63)
-    !88 = !DILocation(line: 32, column: 4, scope: !63)
-    !89 = !DILocation(line: 33, column: 4, scope: !63)
-    !90 = !DILocation(line: 34, column: 4, scope: !63)
-    !91 = !DILocation(line: 35, column: 4, scope: !63)
-    !92 = !DILocation(line: 37, column: 4, scope: !63)
-    !93 = !DILocation(line: 38, column: 4, scope: !63)
-    !94 = !DILocation(line: 39, column: 4, scope: !63)
-    !95 = !DILocation(line: 40, column: 4, scope: !63)
-    !96 = !DILocation(line: 41, column: 4, scope: !63)
-    !97 = !DILocation(line: 42, column: 4, scope: !63)
-    !98 = !DILocation(line: 43, column: 4, scope: !63)
-    !99 = !DILocation(line: 44, column: 4, scope: !63)
-    !100 = !DILocation(line: 45, column: 4, scope: !63)
-    !101 = !DILocation(line: 46, column: 4, scope: !63)
-    !102 = !DILocation(line: 47, column: 4, scope: !63)
-    !103 = !DILocation(line: 48, column: 4, scope: !63)
-    !104 = !DILocation(line: 49, column: 4, scope: !63)
-    !105 = !DILocation(line: 50, column: 4, scope: !63)
-    !106 = !DILocation(line: 51, column: 4, scope: !63)
-    !107 = !DILocation(line: 52, column: 4, scope: !63)
-    !108 = !DILocation(line: 53, column: 4, scope: !63)
-    !109 = !DILocation(line: 54, column: 4, scope: !63)
-    !110 = !DILocation(line: 56, scope: !63)
+    !32 = !{!33, !34}
+    !33 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_parent_type", scope: !2, file: !2, baseType: !24, size: 64, align: 64, flags: DIFlagPublic)
+    !34 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !12, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !35 = !DIGlobalVariableExpression(var: !36, expr: !DIExpression())
+    !36 = distinct !DIGlobalVariable(name: "__vtable_child", scope: !2, file: !2, type: !31, isLocal: false, isDefinition: true)
+    !37 = !DIGlobalVariableExpression(var: !38, expr: !DIExpression())
+    !38 = distinct !DIGlobalVariable(name: "____vtable_grandchild_type__init", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
+    !39 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_grandchild_type", scope: !2, file: !2, size: 192, align: 64, flags: DIFlagPublic, elements: !40, identifier: "__vtable_grandchild_type")
+    !40 = !{!41, !42}
+    !41 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable_child_type", scope: !2, file: !2, baseType: !31, size: 128, align: 64, flags: DIFlagPublic)
+    !42 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !12, size: 64, align: 64, offset: 128, flags: DIFlagPublic)
+    !43 = !DIGlobalVariableExpression(var: !44, expr: !DIExpression())
+    !44 = distinct !DIGlobalVariable(name: "__vtable_grandchild", scope: !2, file: !2, type: !39, isLocal: false, isDefinition: true)
+    !45 = !{i32 2, !"Dwarf Version", i32 5}
+    !46 = !{i32 2, !"Debug Info Version", i32 3}
+    !47 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !48, splitDebugInlining: false)
+    !48 = !{!27, !22, !35, !29, !43, !37, !20, !18, !0}
+    !49 = distinct !DISubprogram(name: "parent", linkageName: "parent", scope: !2, file: !2, line: 2, type: !50, scopeLine: 6, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !47, retainedNodes: !52)
+    !50 = !DISubroutineType(flags: DIFlagPublic, types: !51)
+    !51 = !{null, !9}
+    !52 = !{}
+    !53 = !DILocalVariable(name: "parent", scope: !49, file: !2, line: 6, type: !9)
+    !54 = !DILocation(line: 6, scope: !49)
+    !55 = distinct !DISubprogram(name: "child", linkageName: "child", scope: !2, file: !2, line: 8, type: !56, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !47, retainedNodes: !52)
+    !56 = !DISubroutineType(flags: DIFlagPublic, types: !57)
+    !57 = !{null, !6}
+    !58 = !DILocalVariable(name: "child", scope: !55, file: !2, line: 12, type: !6)
+    !59 = !DILocation(line: 12, scope: !55)
+    !60 = distinct !DISubprogram(name: "grandchild", linkageName: "grandchild", scope: !2, file: !2, line: 14, type: !61, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !47, retainedNodes: !52)
+    !61 = !DISubroutineType(flags: DIFlagPublic, types: !62)
+    !62 = !{null, !3}
+    !63 = !DILocalVariable(name: "grandchild", scope: !60, file: !2, line: 18, type: !3)
+    !64 = !DILocation(line: 18, scope: !60)
+    !65 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 20, type: !66, scopeLine: 20, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !47, retainedNodes: !52)
+    !66 = !DISubroutineType(flags: DIFlagPublic, types: !67)
+    !67 = !{null}
+    !68 = !DILocalVariable(name: "array_of_parent", scope: !65, file: !2, line: 22, type: !69, align: 64)
+    !69 = !DICompositeType(tag: DW_TAG_array_type, baseType: !9, size: 384, align: 64, elements: !70)
+    !70 = !{!71}
+    !71 = !DISubrange(count: 3, lowerBound: 0)
+    !72 = !DILocation(line: 22, column: 4, scope: !65)
+    !73 = !DILocalVariable(name: "array_of_child", scope: !65, file: !2, line: 23, type: !74, align: 64)
+    !74 = !DICompositeType(tag: DW_TAG_array_type, baseType: !6, size: 576, align: 64, elements: !70)
+    !75 = !DILocation(line: 23, column: 4, scope: !65)
+    !76 = !DILocalVariable(name: "array_of_grandchild", scope: !65, file: !2, line: 24, type: !77, align: 64)
+    !77 = !DICompositeType(tag: DW_TAG_array_type, baseType: !3, size: 768, align: 64, elements: !70)
+    !78 = !DILocation(line: 24, column: 4, scope: !65)
+    !79 = !DILocalVariable(name: "parent1", scope: !65, file: !2, line: 25, type: !9, align: 64)
+    !80 = !DILocation(line: 25, column: 4, scope: !65)
+    !81 = !DILocalVariable(name: "child1", scope: !65, file: !2, line: 26, type: !6, align: 64)
+    !82 = !DILocation(line: 26, column: 4, scope: !65)
+    !83 = !DILocalVariable(name: "grandchild1", scope: !65, file: !2, line: 27, type: !3, align: 64)
+    !84 = !DILocation(line: 27, column: 4, scope: !65)
+    !85 = !DILocalVariable(name: "main", scope: !65, file: !2, line: 20, type: !15, align: 32)
+    !86 = !DILocation(line: 20, column: 9, scope: !65)
+    !87 = !DILocation(line: 0, scope: !65)
+    !88 = !DILocation(line: 30, column: 4, scope: !65)
+    !89 = !DILocation(line: 31, column: 4, scope: !65)
+    !90 = !DILocation(line: 32, column: 4, scope: !65)
+    !91 = !DILocation(line: 33, column: 4, scope: !65)
+    !92 = !DILocation(line: 34, column: 4, scope: !65)
+    !93 = !DILocation(line: 35, column: 4, scope: !65)
+    !94 = !DILocation(line: 37, column: 4, scope: !65)
+    !95 = !DILocation(line: 38, column: 4, scope: !65)
+    !96 = !DILocation(line: 39, column: 4, scope: !65)
+    !97 = !DILocation(line: 40, column: 4, scope: !65)
+    !98 = !DILocation(line: 41, column: 4, scope: !65)
+    !99 = !DILocation(line: 42, column: 4, scope: !65)
+    !100 = !DILocation(line: 43, column: 4, scope: !65)
+    !101 = !DILocation(line: 44, column: 4, scope: !65)
+    !102 = !DILocation(line: 45, column: 4, scope: !65)
+    !103 = !DILocation(line: 46, column: 4, scope: !65)
+    !104 = !DILocation(line: 47, column: 4, scope: !65)
+    !105 = !DILocation(line: 48, column: 4, scope: !65)
+    !106 = !DILocation(line: 49, column: 4, scope: !65)
+    !107 = !DILocation(line: 50, column: 4, scope: !65)
+    !108 = !DILocation(line: 51, column: 4, scope: !65)
+    !109 = !DILocation(line: 52, column: 4, scope: !65)
+    !110 = !DILocation(line: 53, column: 4, scope: !65)
+    !111 = !DILocation(line: 54, column: 4, scope: !65)
+    !112 = !DILocation(line: 56, scope: !65)
     "###);
 }
