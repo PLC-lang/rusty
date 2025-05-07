@@ -55,9 +55,7 @@ where
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU: VTableCTU<i16> = VTableCTU {
-    body: CTU,
-};
+pub static __vtable_CTU: VTableCTU<i16> = VTableCTU { body: CTU };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -84,9 +82,7 @@ pub extern "C" fn CTU(params: &mut CTUParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU_INT: VTableCTU<i16> = VTableCTU {
-    body: CTU_INT,
-};
+pub static __vtable_CTU_INT: VTableCTU<i16> = VTableCTU { body: CTU_INT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -113,9 +109,7 @@ pub extern "C" fn CTU_INT(params: &mut CTUParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU_DINT: VTableCTU<i32> = VTableCTU {
-    body: CTU_DINT,
-};
+pub static __vtable_CTU_DINT: VTableCTU<i32> = VTableCTU { body: CTU_DINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -142,9 +136,7 @@ pub extern "C" fn CTU_DINT(params: &mut CTUParams<i32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU_UDINT: VTableCTU<u32> = VTableCTU {
-    body: CTU_UDINT,
-};
+pub static __vtable_CTU_UDINT: VTableCTU<u32> = VTableCTU { body: CTU_UDINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -171,9 +163,7 @@ pub extern "C" fn CTU_UDINT(params: &mut CTUParams<u32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU_LINT: VTableCTU<i64> = VTableCTU {
-    body: CTU_LINT,
-};
+pub static __vtable_CTU_LINT: VTableCTU<i64> = VTableCTU { body: CTU_LINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -200,9 +190,7 @@ pub extern "C" fn CTU_LINT(params: &mut CTUParams<i64>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTU_ULINT: VTableCTU<u64> = VTableCTU {
-    body: CTU_ULINT,
-};
+pub static __vtable_CTU_ULINT: VTableCTU<u64> = VTableCTU { body: CTU_ULINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -279,9 +267,7 @@ where
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD: VTableCTD<i16> = VTableCTD {
-    body: CTD,
-};
+pub static __vtable_CTD: VTableCTD<i16> = VTableCTD { body: CTD };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -308,9 +294,7 @@ pub extern "C" fn CTD(params: &mut CTDParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD_INT: VTableCTD<i16> = VTableCTD {
-    body: CTD_INT,
-};
+pub static __vtable_CTD_INT: VTableCTD<i16> = VTableCTD { body: CTD_INT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -337,9 +321,7 @@ pub extern "C" fn CTD_INT(params: &mut CTDParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD_DINT: VTableCTD<i32> = VTableCTD {
-    body: CTD_DINT,
-};
+pub static __vtable_CTD_DINT: VTableCTD<i32> = VTableCTD { body: CTD_DINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -366,9 +348,7 @@ pub extern "C" fn CTD_DINT(params: &mut CTDParams<i32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD_UDINT: VTableCTD<u32> = VTableCTD {
-    body: CTD_UDINT,
-};
+pub static __vtable_CTD_UDINT: VTableCTD<u32> = VTableCTD { body: CTD_UDINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -395,9 +375,7 @@ pub extern "C" fn CTD_UDINT(params: &mut CTDParams<u32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD_LINT: VTableCTD<i64> = VTableCTD {
-    body: CTD_LINT,
-};
+pub static __vtable_CTD_LINT: VTableCTD<i64> = VTableCTD { body: CTD_LINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -424,9 +402,7 @@ pub extern "C" fn CTD_LINT(params: &mut CTDParams<i64>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTD_ULINT: VTableCTD<u64> = VTableCTD {
-    body: CTD_ULINT,
-};
+pub static __vtable_CTD_ULINT: VTableCTD<u64> = VTableCTD { body: CTD_ULINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -534,9 +510,7 @@ where
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD: VTableCTUD<i16> = VTableCTUD {
-    body: CTUD,
-};
+pub static __vtable_CTUD: VTableCTUD<i16> = VTableCTUD { body: CTUD };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -567,9 +541,7 @@ pub extern "C" fn CTUD(params: &mut CTUDParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD_INT: VTableCTUD<i16> = VTableCTUD {
-    body: CTUD_INT,
-};
+pub static __vtable_CTUD_INT: VTableCTUD<i16> = VTableCTUD { body: CTUD_INT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -600,9 +572,7 @@ pub extern "C" fn CTUD_INT(params: &mut CTUDParams<i16>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD_DINT: VTableCTUD<i32> = VTableCTUD {
-    body: CTUD_DINT,
-};
+pub static __vtable_CTUD_DINT: VTableCTUD<i32> = VTableCTUD { body: CTUD_DINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -633,9 +603,7 @@ pub extern "C" fn CTUD_DINT(params: &mut CTUDParams<i32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD_UDINT: VTableCTUD<u32> = VTableCTUD {
-    body: CTUD_UDINT,
-};
+pub static __vtable_CTUD_UDINT: VTableCTUD<u32> = VTableCTUD { body: CTUD_UDINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -666,9 +634,7 @@ pub extern "C" fn CTUD_UDINT(params: &mut CTUDParams<u32>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD_LINT: VTableCTUD<i64> = VTableCTUD {
-    body: CTUD_LINT,
-};
+pub static __vtable_CTUD_LINT: VTableCTUD<i64> = VTableCTUD { body: CTUD_LINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
@@ -699,9 +665,7 @@ pub extern "C" fn CTUD_LINT(params: &mut CTUDParams<i64>) {
 #[allow(non_upper_case_globals)]
 #[no_mangle]
 #[used]
-pub static __vtable_CTUD_ULINT: VTableCTUD<u64> = VTableCTUD {
-    body: CTUD_ULINT,
-};
+pub static __vtable_CTUD_ULINT: VTableCTUD<u64> = VTableCTUD { body: CTUD_ULINT };
 
 #[allow(non_upper_case_globals)]
 #[no_mangle]
