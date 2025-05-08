@@ -28,12 +28,12 @@ impl VTableIndexer {
                 variables.push(VTableIndexer::create_vtable_reference(parent));
             }
 
-            if pou.is_function_block() {
-                variables.push(VTableIndexer::create_void_pointer("__body"));
-            }
-
             for interface in pou.get_interfaces() {
                 variables.push(VTableIndexer::create_vtable_reference(interface));
+            }
+
+            if pou.is_function_block() {
+                variables.push(VTableIndexer::create_void_pointer("__body"));
             }
 
             for method in index.get_methods_local(pou.get_name()) {
@@ -422,15 +422,15 @@ mod tests {
                     ),
                     variables: [
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_TestInt_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_TestInt_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                         Variable {
@@ -459,15 +459,15 @@ mod tests {
                             },
                         },
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_TestInt2_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_TestInt2_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                     ],
@@ -544,15 +544,15 @@ mod tests {
                     ),
                     variables: [
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_TestInt_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_TestInt_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                         Variable {
@@ -581,15 +581,15 @@ mod tests {
                             },
                         },
                         Variable {
-                            name: "__body",
-                            data_type: DataTypeReference {
-                                referenced_type: "__VOID_POINTER",
-                            },
-                        },
-                        Variable {
                             name: "__vtable_TestInt2_type",
                             data_type: DataTypeReference {
                                 referenced_type: "__vtable_TestInt2_type",
+                            },
+                        },
+                        Variable {
+                            name: "__body",
+                            data_type: DataTypeReference {
+                                referenced_type: "__VOID_POINTER",
                             },
                         },
                         Variable {

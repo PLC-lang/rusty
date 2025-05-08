@@ -187,7 +187,7 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     source_filename = "<internal>"
 
     %Test = type { i32* }
-    %__vtable_Test_type = type { i32*, %__vtable_TestInt_type, %__vtable_TestInt2_type, i32* }
+    %__vtable_Test_type = type { %__vtable_TestInt_type, %__vtable_TestInt2_type, i32*, i32* }
     %__vtable_TestInt_type = type { i32* }
     %__vtable_TestInt2_type = type {}
 
@@ -215,10 +215,10 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
       %self = alloca %__vtable_Test_type*, align 8
       store %__vtable_Test_type* %0, %__vtable_Test_type** %self, align 8
       %deref = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref, i32 0, i32 1
+      %__vtable_TestInt_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref, i32 0, i32 0
       call void @__init___vtable_testint_type(%__vtable_TestInt_type* %__vtable_TestInt_type)
       %deref1 = load %__vtable_Test_type*, %__vtable_Test_type** %self, align 8
-      %__vtable_TestInt2_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref1, i32 0, i32 2
+      %__vtable_TestInt2_type = getelementptr inbounds %__vtable_Test_type, %__vtable_Test_type* %deref1, i32 0, i32 1
       call void @__init___vtable_testint2_type(%__vtable_TestInt2_type* %__vtable_TestInt2_type)
       ret void
     }
