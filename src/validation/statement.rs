@@ -156,20 +156,18 @@ pub fn visit_statement<T: AnnotationMap>(
                 context
                     .index
                     .find_pou(it)
-                    .and_then(|it| {
-                        if it.is_function_block() {
-                            Some(it)
-                        } else {
-                            context.index.find_pou(it.get_parent_pou_name().unwrap_or_default())
-                        }
+                    .and_then(|it| match it {
+                        PouIndexEntry::FunctionBlock { .. } => Some(it),
+                        PouIndexEntry::Method { parent_name, .. } => context.index.find_pou(parent_name),
+                        _ => None,
                     })
                     .is_some_and(|it| it.is_function_block())
             }) {
                 validator.push_diagnostic(
                     Diagnostic::new(
-                        "Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`",
+                        "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s",
                     )
-                    .with_error_code("E121")
+                    .with_error_code("E120")
                     .with_location(statement),
                 );
             }
@@ -1081,6 +1079,9 @@ fn validate_assignment<T: AnnotationMap>(
         if !left.can_be_assigned_to() {
             let expression = validator.context.slice(&left.get_location());
             validator.push_diagnostic(
+                // TODO: would be nice to have a more specific error message. For instance `THIS`
+                // might not assignable because its use is only allowed in FBs and their methods.
+                // Same goes for `SUPER`.
                 Diagnostic::new(format!("Expression {expression} is not assignable."))
                     .with_error_code("E050")
                     .with_location(left),

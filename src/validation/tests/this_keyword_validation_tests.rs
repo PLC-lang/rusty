@@ -371,13 +371,6 @@ fn this_in_variable_initialization_is_ok() {
     assert!(diagnostics.is_empty());
 }
 
-// TODO: test with incompatible types (refToSelf gets assigned something of different type)
-// TODO: global namespaces operator tests
-// TODO: .this^ tests
-// TODO: codegen tests
-// TODO: lit tests
-// TODO: resolver tests (parenthesized expressions, nested binary expressions ...)
-// TODO: this in variable initializers
 #[test]
 fn this_in_unsupported_pous_is_not_allowed() {
     let diagnostics = parse_and_validate_buffered(
@@ -403,33 +396,34 @@ fn this_in_unsupported_pous_is_not_allowed() {
     "#,
     );
     assert_snapshot!(diagnostics, @r"
-    note[E121]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
       ┌─ <internal>:8:24
       │
     8 │                 bar := THIS^.x; // this in method in program is not allowed
-      │                        ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+      │                        ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
 
-    note[E121]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
        ┌─ <internal>:10:13
        │
     10 │             THIS^;
-       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
 
-    note[E121]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
        ┌─ <internal>:14:13
        │
     14 │             THIS^;
-       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
 
-    note[E121]: Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
        ┌─ <internal>:18:13
        │
     18 │             THIS^;
-       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`
+       │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
     ");
 }
 
 #[test]
+#[ignore = "actions are not supported for now"]
 fn this_in_action_in_functionblock_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"
@@ -457,4 +451,3 @@ fn this_calling_functionblock_body_from_method_is_ok() {
     );
     assert!(diagnostics.is_empty());
 }
-

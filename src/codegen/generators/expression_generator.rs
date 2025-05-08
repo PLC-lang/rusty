@@ -218,7 +218,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the expression
         match expression.get_stmt() {
             AstStatement::This => {
-                // TODO: #THIS how to test the errors here?
+                // TODO: #THIS can we expect to have context here?
                 self.function_context.ok_or_else(|| {
                     Diagnostic::codegen_error("Cannot use 'this' without context", expression)
                 })?;

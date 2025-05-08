@@ -1888,7 +1888,6 @@ fn super_keyword_can_be_parsed_in_expressions() {
 
 #[test]
 fn this_keyword_can_be_parsed_in_expressions() {
-    // TODO: `this()` is not valid
     let src = "
     FUNCTION_BLOCK fb
         this.x;
@@ -2009,7 +2008,6 @@ fn this_keyword_can_be_parsed_in_expressions() {
 
 #[test]
 fn this_keyword_can_be_mixed_with_super() {
-    // TODO: `this()` is not valid
     let src = "
     FUNCTION_BLOCK fb
         this^.super^.foo(this^.x + this^.y);
@@ -2084,7 +2082,6 @@ fn this_keyword_can_be_mixed_with_super() {
 
 #[test]
 fn this_keyword_can_be_parsed_in_method() {
-    // TODO: `this()` is not valid
     let src = "
     FUNCTION_BLOCK fb
         METHOD doSomething : INT
