@@ -409,7 +409,7 @@ impl WalkerMut for AstNode {
             AstStatement::LabelStatement(_) => visitor.visit_label_statement(self),
             AstStatement::AllocationStatement(_) => visitor.visit_allocation(self),
             AstStatement::Super(_) => visitor.visit_super(self),
-            AstStatement::This => {}
+            AstStatement::This => visitor.visit_this(self),
         }
     }
 }
