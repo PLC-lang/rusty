@@ -218,12 +218,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // generate the expression
         match expression.get_stmt() {
             AstStatement::This => {
-                // TODO: #THIS can we expect to have context here?
                 self.function_context.ok_or_else(|| {
                     Diagnostic::codegen_error("Cannot use 'this' without context", expression)
                 })?;
                 let Some(this_name) = self.annotations.get_call_name(expression) else {
-                    // TODO: is this correct?
                     unreachable!("this should have a name");
                 };
                 let this_value =
