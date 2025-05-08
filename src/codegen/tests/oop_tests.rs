@@ -1401,7 +1401,50 @@ fn this_in_action_in_functionblock() {
         END_ACTION
     "#,
     );
-    insta::assert_snapshot!(code, @r#""#);
+    insta::assert_snapshot!(code, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+
+    %fb = type {}
+
+    @__fb__init = constant %fb zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @fb(%fb* %0) {
+    entry:
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
+      ret void
+    }
+
+    define void @fb_foo(%fb* %0) {
+    entry:
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
+      %deref = load %fb*, %fb** %this, align 8
+      call void @fb(%fb* %deref)
+      ret void
+    }
+
+    define void @__init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_fb(%fb* %0) {
+    entry:
+      %self = alloca %fb*, align 8
+      store %fb* %0, %fb** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+    "#);
 }
 
 #[test]
