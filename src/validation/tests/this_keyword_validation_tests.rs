@@ -458,11 +458,3 @@ fn this_calling_functionblock_body_from_method_is_ok() {
     assert!(diagnostics.is_empty());
 }
 
-#[test]
-fn dummy() {
-    let diagnostics = parse_and_validate_buffered(
-        r#"
-    "#,
-    );
-    assert_snapshot!(diagnostics, @r#""#);
-}
