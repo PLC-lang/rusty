@@ -138,7 +138,7 @@ lazy_static! {
         E034,   Error,      include_str!("./error_codes/E034.md"),
         E035,   Error,      include_str!("./error_codes/E035.md"),
         E036,   Error,      include_str!("./error_codes/E036.md"),
-        E037,   Error,      include_str!("./error_codes/E037.md"),
+        E037,   Warning,      include_str!("./error_codes/E037.md"),
         E038,   Error,      include_str!("./error_codes/E038.md"), // Missing type
         E039,   Warning,    include_str!("./error_codes/E039.md"),
         E040,   Error,      include_str!("./error_codes/E040.md"),

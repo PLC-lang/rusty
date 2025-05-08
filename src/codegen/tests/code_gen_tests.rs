@@ -1108,20 +1108,22 @@ fn fb_method_called_locally() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { i32 }
+    %foo = type { i32*, i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
+    @__foo__init = unnamed_addr constant %foo { i32* null, i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
     define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
@@ -1191,20 +1193,22 @@ fn fb_local_method_var_shadows_parent_var() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %foo = type { i32 }
+    %foo = type { i32*, i32 }
 
-    @__foo__init = unnamed_addr constant %foo { i32 42 }
+    @__foo__init = unnamed_addr constant %foo { i32* null, i32 42 }
 
     define void @foo(%foo* %0) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
     }
 
     define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
@@ -3953,9 +3957,9 @@ fn variables_in_var_external_block_are_not_generated() {
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
-    %bar = type {}
+    %bar = type { i32* }
     %baz = type {}
-    %qux = type {}
+    %qux = type { i32* }
 
     @arr = global [101 x i16] zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
@@ -3969,6 +3973,7 @@ fn variables_in_var_external_block_are_not_generated() {
 
     define void @bar(%bar* %0) {
     entry:
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
@@ -3979,6 +3984,7 @@ fn variables_in_var_external_block_are_not_generated() {
 
     define void @qux(%qux* %0) {
     entry:
+      %__vtable = getelementptr inbounds %qux, %qux* %0, i32 0, i32 0
       ret void
     }
     "#);

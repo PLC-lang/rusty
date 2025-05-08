@@ -1,13 +1,12 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %main = type { %file_t, %file_t* }
-%file_t = type { i8, i8 }
+%file_t = type { i32*, i8, i8 }
 
 @main_instance = global %main zeroinitializer
 @__file_t__init = unnamed_addr constant %file_t zeroinitializer
@@ -18,7 +17,7 @@ entry:
   %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   store %file_t* %file, %file_t** %FileOpen, align 8
   %deref = load %file_t*, %file_t** %FileOpen, align 8
-  %1 = getelementptr inbounds %file_t, %file_t* %deref, i32 0, i32 1
+  %1 = getelementptr inbounds %file_t, %file_t* %deref, i32 0, i32 2
   store i8 1, i8* %1, align 1
   call void @file_t(%file_t* %deref)
   ret void
@@ -26,7 +25,8 @@ entry:
 
 define void @file_t(%file_t* %0) {
 entry:
-  %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
+  %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1
+  %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 2
   ret void
 }

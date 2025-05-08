@@ -188,7 +188,9 @@ fn multiple_units_aggregate_resolved_recursive() {
     assert!(dependencies.contains(&Dependency::Datatype("__myStruct_z".into())));
     assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
-    assert_eq!(dependencies.len(), 6);
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID_POINTER".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID".into())));
+    assert_eq!(dependencies.len(), 8);
 }
 
 #[test]
@@ -477,7 +479,9 @@ fn function_block_params_dependency_resolution() {
     assert!(dependencies.contains(&Dependency::Datatype("__auto_pointer_to_REAL".into())));
     assert!(dependencies.contains(&Dependency::Datatype("LREAL".into())));
     assert!(dependencies.contains(&Dependency::Datatype("WORD".into())));
-    assert_eq!(dependencies.len(), 9);
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID_POINTER".into())));
+    assert_eq!(dependencies.len(), 11);
 }
 
 #[test]
@@ -571,7 +575,9 @@ fn action_dependency_resolution_with_function_block() {
     let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
     assert!(dependencies.contains(&Dependency::Datatype("fb".into())));
-    assert_eq!(dependencies.len(), 2);
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID_POINTER".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__VOID".into())));
+    assert_eq!(dependencies.len(), 4);
 }
 
 #[test]

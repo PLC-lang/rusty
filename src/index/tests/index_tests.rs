@@ -1477,12 +1477,13 @@ fn fb_parameters_variable_type() {
 
     // THEN the parameters should have the correct VariableType
     let members = index.get_container_members("fb");
-    assert_eq!(members.len(), 3);
+    assert_eq!(members.len(), 4);
 
     // INPUT => ByVal
     // OUTPUT => ByVal
     // IN_OUT => ByRef
-    insta::assert_debug_snapshot!(members);
+    // Skip the vtable
+    insta::assert_debug_snapshot!(members[1..]);
 }
 
 #[test]
@@ -2176,13 +2177,14 @@ fn pou_with_two_types_not_considered_recursive() {
             METHOD x : fb
             END_METHOD
         END_PROGRAM
-        
+
         ACTION p.y
         END_ACTION",
     );
 
     let pou_type = index.find_pou_type("p").unwrap();
-    assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 64);
+    // account for the vtable size (64 * 2 + 64) = 192
+    assert_eq!(pou_type.get_type_information().get_size(&index).unwrap().bits(), 192);
 
     assert!(index.find_local_member("p", "x").is_some());
     assert!(index.find_local_member("p", "y").is_some());

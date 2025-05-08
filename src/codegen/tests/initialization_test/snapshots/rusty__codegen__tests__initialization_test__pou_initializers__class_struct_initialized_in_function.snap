@@ -1,20 +1,20 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%fb = type { i16 }
+%fb = type { i32*, i16 }
 %main = type { %fb }
 
-@__fb__init = unnamed_addr constant %fb { i16 9 }
-@main_instance = global %main { %fb { i16 9 } }
+@__fb__init = unnamed_addr constant %fb { i32* null, i16 9 }
+@main_instance = global %main { %fb { i32* null, i16 9 } }
 
 define void @fb(%fb* %0) {
 entry:
-  %a = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %a = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
   ret void
 }
 

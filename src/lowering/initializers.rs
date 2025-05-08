@@ -1,6 +1,8 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
-    lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
+    lowering::{
+        create_assignment, create_assignment_if_necessary, create_call_statement, create_member_reference,
+    },
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -11,6 +13,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
+use plc_util::convention::generate_vtable_name;
 
 use super::InitVisitor;
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
@@ -75,6 +78,8 @@ impl<'lwr> Init<'lwr> for Initializers {
         var_name: Option<&str>,
         initializer: &Option<AstNode>,
     ) {
+        dbg!(container_name, var_name, initializer);
+        panic!("Name is none");
         let assignments = self.entry(container_name.to_string()).or_default();
         let Some(var_name) = var_name else {
             return;
@@ -157,11 +162,14 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
-    let (is_stateless, location) = lowerer
+    // __init_vtable-child
+    let (is_stateless, is_extensible, location) = lowerer
         .index
         .find_pou(container_name)
-        .map(|it| (it.is_function() || it.is_method(), it.get_location()))
-        .unwrap_or_else(|| (false, &lowerer.index.get_type_or_panic(container_name).location));
+        .map(|it| {
+            (it.is_function() || it.is_method(), it.is_class() || it.is_function_block(), it.get_location())
+        })
+        .unwrap_or_else(|| (false, false, &lowerer.index.get_type_or_panic(container_name).location));
 
     if is_stateless {
         // functions do not get their own init-functions -
@@ -191,7 +199,7 @@ fn create_init_unit(
 
     let mut statements = assignments
         .iter()
-        .filter_map(|(lhs_name, initializer)| {
+        .flat_map(|(lhs_name, initializer)| {
             create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
         })
         .collect::<Vec<_>>();
@@ -224,6 +232,17 @@ fn create_init_unit(
         .collect::<Vec<_>>();
 
     statements.extend(member_init_calls);
+    // Allocate the vtable
+    if is_extensible {
+        let fb_name = generate_vtable_name(container_name);
+        let vtable_init = create_assignment(
+            "__vtable",
+            Some("self"),
+            &create_call_statement("REF", &fb_name, None, id_provider.clone(), &location),
+            id_provider.clone(),
+        );
+        statements.push(vtable_init);
+    }
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -341,7 +360,7 @@ fn create_init_wrapper_function(
     let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
-            .filter_map(|(var_name, initializer)| {
+            .flat_map(|(var_name, initializer)| {
                 create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
             })
             .collect::<Vec<_>>()
@@ -493,4 +512,163 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
+}
+
+// TODO: Is this the correct location? Are there not any other initializer tests we can move this module to?
+#[cfg(test)]
+mod tests {
+    use test_utils::parse_and_validate_buffered_ast;
+
+    #[test]
+    fn struct_initializer_with_pointer_assignment() {
+        let source = r"
+            VAR_GLOBAL
+                foo : DINT := 1;
+                bar : DINT := 2;
+                baz : DINT := 3;
+            END_VAR
+
+            TYPE vtable_parent : STRUCT
+                foo : REF_TO DINT := REF(foo);
+                bar : REF_TO DINT := REF(bar);
+            END_STRUCT END_TYPE
+
+            TYPE vtable_child : STRUCT
+                __vtable_parent : vtable_parent := (foo := REF(foo));
+                bar : REF_TO DINT := REF(bar);
+                baz : REF_TO DINT := REF(baz);
+            END_STRUCT END_TYPE
+        ";
+
+        let units = parse_and_validate_buffered_ast(source);
+        insta::assert_debug_snapshot!(units[1].implementations[1], @r###"
+        Implementation {
+            name: "__init_vtable_child",
+            type_name: "__init_vtable_child",
+            linkage: Internal,
+            pou_type: Init,
+            statements: [
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "bar",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "REF",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "bar",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                },
+                Assignment {
+                    left: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "baz",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    right: CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "REF",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "baz",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__init_vtable_parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__vtable_parent",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(12:17 - 12:29),
+            },
+            name_location: SourceLocation {
+                span: Range(12:17 - 12:29),
+            },
+            end_location: SourceLocation {
+                span: Range(12:17 - 12:29),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "###);
+    }
 }

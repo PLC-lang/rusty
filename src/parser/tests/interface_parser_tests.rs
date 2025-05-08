@@ -242,7 +242,19 @@ fn pou_implementing_single_interface() {
     insta::assert_debug_snapshot!(unit.pous[0], @r###"
     POU {
         name: "foo",
-        variable_blocks: [],
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeReference {
+                            referenced_type: "__VOID_POINTER",
+                        },
+                    },
+                ],
+                variable_block_type: Local,
+            },
+        ],
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [
@@ -270,7 +282,19 @@ fn pou_implementing_multiple_interfaces() {
     insta::assert_debug_snapshot!(unit.pous[0], @r###"
     POU {
         name: "foo",
-        variable_blocks: [],
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeReference {
+                            referenced_type: "__VOID_POINTER",
+                        },
+                    },
+                ],
+                variable_block_type: Local,
+            },
+        ],
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [

@@ -20,7 +20,9 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry},
-    typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
+    typesystem::{
+        DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, VOID_INTERNAL_NAME, WCHAR_TYPE,
+    },
     DebugLevel, OptimizationLevel,
 };
 
@@ -455,7 +457,21 @@ impl<'ink> DebugBuilder<'ink> {
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         let inner_type = index.get_type(inner_type)?;
-        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
+        //Skip void pointers debug info
+        let inner_type = if inner_type.is_void() {
+            DebugType::Basic(
+                self.debug_info
+                    .create_basic_type(
+                        VOID_INTERNAL_NAME,
+                        0,
+                        DebugEncoding::DW_ATE_unsigned as u32,
+                        DIFlagsConstants::PUBLIC,
+                    )
+                    .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?,
+            )
+        } else {
+            self.get_or_create_debug_type(inner_type, index, types_index)?
+        };
         let llvm_type = types_index.get_associated_type(name)?;
         let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
         let pointer_type = self.debug_info.create_pointer_type(

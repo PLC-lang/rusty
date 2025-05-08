@@ -1,25 +1,25 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%FB = type { i16, i16, i8, i8, float, float }
+%FB = type { i32*, i16, i16, i8, i8, float, float }
 %main = type { %FB }
 
-@__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
-@main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
+@__FB__init = unnamed_addr constant %FB { i32* null, i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
+@main_instance = global %main { %FB { i32* null, i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
 define void @FB(%FB* %0) {
 entry:
-  %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-  %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-  %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
-  %yy = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
-  %z = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
-  %zz = getelementptr inbounds %FB, %FB* %0, i32 0, i32 5
+  %__vtable = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
+  %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
+  %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
+  %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
+  %yy = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+  %z = getelementptr inbounds %FB, %FB* %0, i32 0, i32 5
+  %zz = getelementptr inbounds %FB, %FB* %0, i32 0, i32 6
   ret void
 }
 

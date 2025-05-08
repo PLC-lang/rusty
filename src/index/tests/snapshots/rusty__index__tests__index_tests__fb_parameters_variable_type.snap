@@ -1,6 +1,6 @@
 ---
 source: src/index/tests/index_tests.rs
-expression: members
+expression: "members[1..]"
 ---
 [
     VariableIndexEntry {
@@ -13,7 +13,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "INT",
-        location_in_parent: 0,
+        location_in_parent: 1,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
@@ -34,7 +34,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "INT",
-        location_in_parent: 1,
+        location_in_parent: 2,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
@@ -55,7 +55,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "__auto_pointer_to_INT",
-        location_in_parent: 2,
+        location_in_parent: 3,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {

@@ -79,8 +79,10 @@ impl InitVisitor {
                 .insert(pou.name.to_owned(), self.index.find_method(&pou.name, "FB_INIT").is_some());
         }
 
-        for user_type in
-            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+        for user_type in unit
+            .user_types
+            .iter()
+            .filter(|it| !it.location.is_internal() && matches!(it.data_type, DataType::StructType { .. }))
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {
@@ -161,6 +163,7 @@ impl InitVisitor {
                             })
                         })
                     }),
+                AstStatement::ExpressionList(statements) => None,
                 _ => return,
             };
 
@@ -302,7 +305,12 @@ impl InitVisitor {
                         .and_then(|it| it.swap_remove(var.get_type_name()))
                         .map(|node| (var.get_name(), node))
                 })
+                // .map(|node| (node.get_name(), node))
                 .collect::<Vec<_>>();
+
+            if user_type.data_type.get_name().is_some_and(|opt| opt == "vtable_child") {
+                (&user_type, &member_inits);
+            }
 
             for (lhs, init) in member_inits {
                 // update struct member initializers
@@ -434,13 +442,16 @@ fn create_assignment_if_necessary(
     base_ident: Option<&str>,
     rhs: &Option<AstNode>,
     mut id_provider: IdProvider,
-) -> Option<AstNode> {
+) -> Vec<AstNode> {
     let lhs = create_member_reference(
         lhs_ident,
         id_provider.clone(),
         base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
-    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+    rhs.as_ref()
+        .map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+        .map(|node| vec![node])
+        .unwrap_or_else(|| vec![])
 }
 
 fn create_ref_assignment(

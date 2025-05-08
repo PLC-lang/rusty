@@ -120,7 +120,7 @@ pub fn visit_statement<T: AnnotationMap>(
         }
         AstStatement::JumpStatement(JumpStatement { condition, target }) => {
             visit_statement(validator, condition, context);
-            if context.annotations.get(statement).is_none() {
+            if context.annotations.get(statement).is_none() && !statement.get_location().is_internal() {
                 validator.push_diagnostic(Diagnostic::unresolved_reference(
                     target.get_flat_reference_name().unwrap_or_default(),
                     statement,
@@ -555,7 +555,9 @@ fn validate_reference<T: AnnotationMap>(
 
             _ => (),
         };
-        validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
+        if !location.is_internal() {
+            validator.push_diagnostic(Diagnostic::unresolved_reference(ref_name, location));
+        }
 
         // was this meant as a direct access?
         // TODO: find a way to solve this without re-resolving this name
@@ -913,6 +915,10 @@ pub fn validate_pointer_assignment<T>(
 ) where
     T: AnnotationMap,
 {
+    //Ignore generated pointer assinments like vtables
+    if assignment_location.is_internal() {
+        return;
+    }
     let type_info_lhs = context.index.get_intrinsic_type_information(
         context.index.find_elementary_pointer_type(type_lhs.get_type_information()),
     );
@@ -1012,6 +1018,10 @@ fn validate_assignment<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    if location.is_internal() {
+        // Ignore internal assignments
+        return;
+    }
     if let Some(left) = left {
         // Check if we are assigning to a...
         if let Some(StatementAnnotation::Variable { constant, qualified_name, argument_type, .. }) =
@@ -1203,6 +1213,9 @@ fn validate_variable_length_array_assignment<T: AnnotationMap>(
     left_type: &DataType,
     right_type: &DataType,
 ) {
+    if location.is_internal() {
+        return;
+    }
     let left_inner_type = left_type.get_type_information().get_vla_referenced_type().unwrap();
     let right_inner_type = right_type.get_type_information().get_inner_array_type_name().unwrap();
 

@@ -1,7 +1,7 @@
 #[derive(Default, Debug, PartialEq, Eq, Clone, Copy)]
 #[repr(transparent)]
 pub struct Signal {
-    current_value: bool,
+    pub current_value: bool,
 }
 
 /// A representation of a boolean signal

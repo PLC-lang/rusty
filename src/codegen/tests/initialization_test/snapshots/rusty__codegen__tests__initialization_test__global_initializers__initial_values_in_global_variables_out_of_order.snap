@@ -1,21 +1,21 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%MyFB = type { i16 }
+%MyFB = type { i32*, i16 }
 %prg = type { %MyFB }
 
-@x = global %MyFB { i16 77 }
-@__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
-@prg_instance = global %prg { %MyFB { i16 77 } }
+@x = global %MyFB { i32* null, i16 77 }
+@__MyFB__init = unnamed_addr constant %MyFB { i32* null, i16 77 }
+@prg_instance = global %prg { %MyFB { i32* null, i16 77 } }
 
 define void @MyFB(%MyFB* %0) {
 entry:
-  %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
+  %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 1
   ret void
 }
 

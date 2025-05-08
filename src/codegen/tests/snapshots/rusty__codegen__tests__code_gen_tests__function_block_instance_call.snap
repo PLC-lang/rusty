@@ -1,12 +1,11 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%foo = type { i16, i16 }
+%foo = type { i32*, i16, i16 }
 %prg = type { %foo }
 
 @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -14,8 +13,9 @@ source_filename = "<internal>"
 
 define void @foo(%foo* %0) {
 entry:
-  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+  %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
   ret void
 }
 

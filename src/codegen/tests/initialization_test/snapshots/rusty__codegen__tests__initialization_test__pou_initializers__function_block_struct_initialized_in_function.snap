@@ -1,12 +1,11 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%fb = type {}
+%fb = type { i32* }
 %main = type { %fb }
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
@@ -14,6 +13,7 @@ source_filename = "<internal>"
 
 define void @fb(%fb* %0) {
 entry:
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 

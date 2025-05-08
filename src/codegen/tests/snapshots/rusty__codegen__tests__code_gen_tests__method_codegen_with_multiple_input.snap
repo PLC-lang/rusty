@@ -1,17 +1,17 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
-%fb = type {}
+%fb = type { i32* }
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
 define void @fb(%fb* %0) {
 entry:
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   %call = call i32 @fb_meth(%fb* %0, i32 1, i32 2, i32 3)
   %call1 = call i32 @fb_meth(%fb* %0, i32 5, i32 7, i32 10)
   %call2 = call i32 @fb_meth(%fb* %0, i32 3, i32 4, i32 10)
@@ -21,6 +21,7 @@ entry:
 
 define i32 @fb_meth(%fb* %0, i32 %1, i32 %2, i32 %3) {
 entry:
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   %fb.meth = alloca i32, align 4
   %a = alloca i32, align 4
   store i32 %1, i32* %a, align 4

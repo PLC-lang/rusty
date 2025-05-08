@@ -1,13 +1,12 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 
 %mainProg = type { %fb_t, i8, i8 }
-%fb_t = type { i8, i8, i8*, i8, i8* }
+%fb_t = type { i32*, i8, i8, i8*, i8, i8* }
 
 @mainProg_instance = global %mainProg zeroinitializer
 @__fb_t__init = unnamed_addr constant %fb_t zeroinitializer
@@ -17,14 +16,14 @@ entry:
   %fb = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
   %out2 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 2
-  %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
+  %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 5
   store i8* %out1, i8** %1, align 8
-  %2 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
+  %2 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 3
   store i8* %out2, i8** %2, align 8
   call void @fb_t(%fb_t* %fb)
-  %3 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
+  %3 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 3
   store i8* %out1, i8** %3, align 8
-  %4 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
+  %4 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 5
   store i8* %out2, i8** %4, align 8
   call void @fb_t(%fb_t* %fb)
   %load_out2 = load i8, i8* %out2, align 1
@@ -38,21 +37,23 @@ entry:
 
 define void @fb_t(%fb_t* %0) {
 entry:
-  %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
-  %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
-  %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
-  %myOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
-  %myOtherInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 4
+  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
+  %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
+  %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
+  %myOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 4
+  %myOtherInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 5
   ret void
 }
 
 define void @fb_t_foo(%fb_t* %0) {
 entry:
-  %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
-  %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
-  %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
-  %myOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
-  %myOtherInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 4
+  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
+  %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
+  %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
+  %myOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 4
+  %myOtherInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 5
   %deref = load i8*, i8** %myInOut, align 8
   %deref1 = load i8*, i8** %myOtherInOut, align 8
   %load_myOtherInOut = load i8, i8* %deref1, align 1
