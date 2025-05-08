@@ -432,12 +432,16 @@ fn nested_initializer_pous() {
 
     define void @bar_print(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_print(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
@@ -445,6 +449,8 @@ fn nested_initializer_pous() {
 
     define void @baz_print(%baz* %0) {
     entry:
+      %this = alloca %baz*, align 8
+      store %baz* %0, %baz** %this, align 8
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
@@ -863,6 +869,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     define void @foo_act(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 

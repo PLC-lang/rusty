@@ -1390,7 +1390,6 @@ fn this_in_variable_initialization() {
 }
 
 #[test]
-#[ignore = "actions are not supported for now"]
 fn this_in_action_in_functionblock() {
     let code = codegen(
         r#"

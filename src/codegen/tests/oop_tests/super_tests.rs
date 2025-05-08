@@ -2010,6 +2010,8 @@ fn super_in_action_blocks() {
 
     define void @child_increase(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
       %value1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0

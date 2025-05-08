@@ -158,7 +158,8 @@ pub fn visit_statement<T: AnnotationMap>(
                     .find_pou(it)
                     .and_then(|it| match it {
                         PouIndexEntry::FunctionBlock { .. } => Some(it),
-                        PouIndexEntry::Method { parent_name, .. } => context.index.find_pou(parent_name),
+                        PouIndexEntry::Method { parent_name, .. }
+                        | PouIndexEntry::Action { parent_name, .. } => context.index.find_pou(parent_name),
                         _ => None,
                     })
                     .is_some_and(|it| it.is_function_block())

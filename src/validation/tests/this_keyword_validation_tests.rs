@@ -423,7 +423,6 @@ fn this_in_unsupported_pous_is_not_allowed() {
 }
 
 #[test]
-#[ignore = "actions are not supported for now"]
 fn this_in_action_in_functionblock_is_ok() {
     let diagnostics = parse_and_validate_buffered(
         r#"

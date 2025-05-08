@@ -49,6 +49,8 @@ entry:
 
 define void @fb_t_foo(%fb_t* %0) {
 entry:
+  %this = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %this, align 8
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2

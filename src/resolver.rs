@@ -1684,11 +1684,10 @@ impl<'i> TypeAnnotator<'i> {
             AstStatement::This => {
                 let name = match ctx.pou.and_then(|name| self.index.find_pou(name)) {
                     Some(PouIndexEntry::FunctionBlock { name, .. }) => name,
-                    Some(PouIndexEntry::Method { parent_name: name, .. })
-                        if self.index.find_pou(name).is_some_and(|it| it.is_function_block()) =>
-                    {
-                        name
-                    }
+                    Some(
+                        PouIndexEntry::Method { parent_name: name, .. }
+                        | PouIndexEntry::Action { parent_name: name, .. },
+                    ) if self.index.find_pou(name).is_some_and(|it| it.is_function_block()) => name,
                     _ => return,
                 };
                 let ptr_name = format!("{}.__THIS", name);
