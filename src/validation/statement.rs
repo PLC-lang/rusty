@@ -169,7 +169,7 @@ pub fn visit_statement<T: AnnotationMap>(
                     Diagnostic::new(
                         "Invalid use of `THIS`. Usage is only allowed within POU of type `FUNCTION_BLOCK`",
                     )
-                    .with_error_code("E120")
+                    .with_error_code("E121")
                     .with_location(statement),
                 );
             }
