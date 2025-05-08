@@ -346,10 +346,10 @@ fn this_is_a_reserved_keyword() {
     3 │     PROGRAM this
       │             ^^^^ Case condition used outside of case statement! Did you mean to use ';'?
 
-    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.
       ┌─ <internal>:3:13
       │
     3 │     PROGRAM this
-      │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s
+      │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.
     ");
 }

@@ -166,7 +166,7 @@ pub fn visit_statement<T: AnnotationMap>(
             }) {
                 validator.push_diagnostic(
                     Diagnostic::new(
-                        "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s",
+                        "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
                     )
                     .with_error_code("E120")
                     .with_location(statement),
