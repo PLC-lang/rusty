@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,6 +13,8 @@ source_filename = "<internal>"
 
 define void @foo(%foo* %0) {
 entry:
+  %this = alloca %foo*, align 8
+  store %foo* %0, %foo** %this, align 8
   %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void

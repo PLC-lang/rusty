@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,6 +11,8 @@ source_filename = "<internal>"
 
 define void @fb(%fb* %0) {
 entry:
+  %this = alloca %fb*, align 8
+  store %fb* %0, %fb** %this, align 8
   %call = call i32 @fb_meth(%fb* %0, i32 5)
   %call1 = call i32 @fb_meth(%fb* %0, i32 4)
   ret void
@@ -19,6 +20,8 @@ entry:
 
 define i32 @fb_meth(%fb* %0, i32 %1) {
 entry:
+  %this = alloca %fb*, align 8
+  store %fb* %0, %fb** %this, align 8
   %fb.meth = alloca i32, align 4
   %a = alloca i32, align 4
   store i32 %1, i32* %a, align 4

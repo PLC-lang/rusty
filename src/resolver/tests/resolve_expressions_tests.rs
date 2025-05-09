@@ -6021,7 +6021,7 @@ fn explicit_output_assignment_arguments_are_annotated() {
         END_STRUCT END_TYPE
 
         TYPE bar_struct : STRUCT
-            baz : DINT; 
+            baz : DINT;
         END_STRUCT END_TYPE
 
         FUNCTION_BLOCK QUUX
@@ -6118,7 +6118,7 @@ fn program_call_declared_as_variable_is_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get(&operator), @r###"
+    insta::assert_debug_snapshot!(annotations.get(operator), @r###"
     Some(
         Variable {
             resulting_type: "ridiculous_chaining",
@@ -6149,4 +6149,290 @@ fn program_call_declared_as_variable_is_annotated() {
         },
     )
     "###);
+}
+
+#[test]
+fn this_in_assignments_in_methods() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                myvar : INT;
+            END_VAR
+            METHOD foo : INT
+                this^.myvar := 8;
+                myvar := this^.myvar;
+            END_FUNCTION_BLOCK
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
+        unreachable!()
+    };
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert_type_and_hint!(&annotations, &index, this, "fb.__THIS", None);
+}
+
+#[test]
+fn this_in_assignments() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                myvar : INT;
+            END_VAR
+                this^.myvar := 8;
+                myvar := this^.myvar;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
+        unreachable!()
+    };
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert_type_and_hint!(&annotations, &index, this, "fb.__THIS", None);
+}
+
+#[test]
+fn this_should_not_be_in_programs() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        PROGRAM myProg
+            VAR
+                myvar : INT;
+            END_VAR
+                this^.myvar := 8;
+        END_PROGRAM
+        ",
+        id_provider.clone(),
+    );
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    assert!(index.find_type("myProg.__THIS").is_none());
+
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert!(annotations.get(this).is_none());
+}
+
+#[test]
+fn is_this_in_methods_of_function_blocks() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                myvar : INT;
+            END_VAR
+            METHOD foo : INT
+            VAR
+                myvar : INT;
+            END_VAR
+                this^.myvar := 8;
+                myvar := this^.myvar;
+            END_METHOD
+            myvar := this^.myvar;
+            foo();
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    dbg!(&unit);
+    let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
+        unreachable!()
+    };
+    let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
+        unreachable!()
+    };
+    dbg!(statement_2);
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
+    assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = statement_1.left.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(this), .. }) = deref.get_stmt() else {
+        unreachable!();
+    };
+    assert_type_and_hint!(&annotations, &index, this, "fb.__THIS", None);
+    // assert_eq!(1, 2);
+}
+
+#[test]
+fn just_this() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            this;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    dbg!(annotations.get_type_hint(statement, &index)); // => none
+    dbg!(annotations.get_type(statement, &index)); // => none
+    dbg!(&index.get_type("fb.__THIS"));
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
+}
+
+#[test]
+fn this_assignment() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+                x : REF_TO fb;
+            END_VAR
+            x := this;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    assert!(index.find_type("fb.__THIS").is_some());
+    assert_debug_snapshot!(statement, @r#"
+    Assignment {
+        left: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+        right: This,
+    }
+    "#);
+}
+
+#[test]
+fn this_call() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK fb
+            VAR
+x:int;
+            END_VAR
+            x :=this^.x;
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    annotate_with_ids(&unit, &mut index, id_provider);
+    assert!(index.find_type("fb.__THIS").is_some());
+}
+
+#[test]
+fn this_as_function_parameter() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK FB_Test
+            foo2(this);
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let statement = &unit.implementations[0].statements[0];
+    let AstStatement::CallStatement(CallStatement { parameters: Some(param), .. }) = statement.get_stmt()
+    else {
+        unreachable!();
+    };
+    let Some(StatementAnnotation::Value { resulting_type, .. }) = annotations.get(param) else {
+        unreachable!()
+    };
+    assert_eq!(resulting_type, "FB_Test.__THIS");
+    assert!(index.find_type("fb_test.__THIS").is_some());
+}
+
+#[test]
+fn this_in_conditionals() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK FB_Test
+            VAR
+                x : INT;
+                bo: BOOL;
+            END_VAR
+            IF this^.bo THEN
+                x := 1;
+            END_IF
+        END_FUNCTION_BLOCK
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let AstStatement::ControlStatement(AstControlStatement::If(IfStatement { blocks, .. })) =
+        unit.implementations[0].statements[0].get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(deref), .. }) = blocks[0].condition.get_stmt()
+    else {
+        unreachable!();
+    };
+    let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) = deref.get_stmt() else {
+        unreachable!()
+    };
+    let StatementAnnotation::Value { resulting_type, .. } = annotations.get(base).expect("damn") else {
+        unreachable!()
+    };
+    assert_eq!(resulting_type, "FB_Test.__THIS");
+    assert!(index.find_type("fb_test.__THIS").is_some());
 }
