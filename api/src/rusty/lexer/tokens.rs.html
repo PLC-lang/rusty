@@ -449,7 +449,10 @@
 <a href="#448" id="448">448</a>
 <a href="#449" id="449">449</a>
 <a href="#450" id="450">450</a>
-<a href="#451" id="451">451</a></pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
+<a href="#451" id="451">451</a>
+<a href="#452" id="452">452</a>
+<a href="#453" id="453">453</a>
+<a href="#454" id="454">454</a></pre></div><pre class="rust"><code><span class="kw">use </span>logos::Logos;
 
 <span class="kw">use </span>plc_ast::ast::{DirectAccessType, HardwareAccessType};
 
@@ -529,6 +532,9 @@
 
     <span class="attr">#[token(<span class="string">"SUPER"</span>, ignore(case))]
     </span>KeywordSuper,
+
+    <span class="attr">#[token(<span class="string">"THIS"</span>, ignore(case))]
+    </span>KeywordThis,
 
     <span class="attr">#[token(<span class="string">"PROPERTY"</span>, ignore(case))]
     </span>KeywordProperty,

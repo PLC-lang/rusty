@@ -1845,7 +1845,42 @@
 <a href="#1844" id="1844">1844</a>
 <a href="#1845" id="1845">1845</a>
 <a href="#1846" id="1846">1846</a>
-<a href="#1847" id="1847">1847</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1847" id="1847">1847</a>
+<a href="#1848" id="1848">1848</a>
+<a href="#1849" id="1849">1849</a>
+<a href="#1850" id="1850">1850</a>
+<a href="#1851" id="1851">1851</a>
+<a href="#1852" id="1852">1852</a>
+<a href="#1853" id="1853">1853</a>
+<a href="#1854" id="1854">1854</a>
+<a href="#1855" id="1855">1855</a>
+<a href="#1856" id="1856">1856</a>
+<a href="#1857" id="1857">1857</a>
+<a href="#1858" id="1858">1858</a>
+<a href="#1859" id="1859">1859</a>
+<a href="#1860" id="1860">1860</a>
+<a href="#1861" id="1861">1861</a>
+<a href="#1862" id="1862">1862</a>
+<a href="#1863" id="1863">1863</a>
+<a href="#1864" id="1864">1864</a>
+<a href="#1865" id="1865">1865</a>
+<a href="#1866" id="1866">1866</a>
+<a href="#1867" id="1867">1867</a>
+<a href="#1868" id="1868">1868</a>
+<a href="#1869" id="1869">1869</a>
+<a href="#1870" id="1870">1870</a>
+<a href="#1871" id="1871">1871</a>
+<a href="#1872" id="1872">1872</a>
+<a href="#1873" id="1873">1873</a>
+<a href="#1874" id="1874">1874</a>
+<a href="#1875" id="1875">1875</a>
+<a href="#1876" id="1876">1876</a>
+<a href="#1877" id="1877">1877</a>
+<a href="#1878" id="1878">1878</a>
+<a href="#1879" id="1879">1879</a>
+<a href="#1880" id="1880">1880</a>
+<a href="#1881" id="1881">1881</a>
+<a href="#1882" id="1882">1882</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -1998,6 +2033,28 @@
                         .with_location(statement.get_location()).with_error_code(<span class="string">"E119"</span>));
             }
         }
+        AstStatement::This =&gt; {
+            <span class="kw">if </span>!context.qualifier.is_some_and(|it| {
+                context
+                    .index
+                    .find_pou(it)
+                    .and_then(|it| <span class="kw">match </span>it {
+                        PouIndexEntry::FunctionBlock { .. } =&gt; <span class="prelude-val">Some</span>(it),
+                        PouIndexEntry::Method { parent_name, .. }
+                        | PouIndexEntry::Action { parent_name, .. } =&gt; context.index.find_pou(parent_name),
+                        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+                    })
+                    .is_some_and(|it| it.is_function_block())
+            }) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        <span class="string">"Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s."</span>,
+                    )
+                    .with_error_code(<span class="string">"E120"</span>)
+                    .with_location(statement),
+                );
+            }
+        }
         <span class="kw">_ </span>=&gt; {}
     }
     validate_type_nature(validator, statement, context);
@@ -2025,6 +2082,15 @@
         }
         ReferenceAccess::Member(m) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(base) = base {
+                <span class="kw">if </span>m.is_this() {
+                    <span class="comment">// this cannot be accessed as a member
+                    </span>validator.push_diagnostic(
+                        Diagnostic::new(<span class="string">"`THIS` is not allowed in member-access position."</span>)
+                            .with_location(m.get_location())
+                            .with_error_code(<span class="string">"E120"</span>),
+                    );
+                    <span class="kw">return</span>;
+                }
                 <span class="kw">if </span>m.is_super() || m.has_super_metadata() {
                     <span class="comment">// super cannot be accessed as a member
                     </span>validator.push_diagnostic(
@@ -2896,7 +2962,10 @@
         </span><span class="kw">if </span>!left.can_be_assigned_to() {
             <span class="kw">let </span>expression = validator.context.slice(<span class="kw-2">&amp;</span>left.get_location());
             validator.push_diagnostic(
-                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expression {expression} is not assignable."</span>))
+                <span class="comment">// TODO: would be nice to have a more specific error message. For instance `THIS`
+                // might not assignable because its use is only allowed in FBs and their methods.
+                // Same goes for `SUPER`.
+                </span>Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Expression {expression} is not assignable."</span>))
                     .with_error_code(<span class="string">"E050"</span>)
                     .with_location(left),
             );
@@ -2935,7 +3004,8 @@
         <span class="kw">if </span>!(left_type.is_compatible_with_type(right_type)
             &amp;&amp; is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
-            <span class="kw">if </span>left_type.is_pointer() &amp;&amp; right_type.is_pointer() {
+            <span class="comment">// TODO: #THIS &amp;&amp; !left_type.is_this()
+            </span><span class="kw">if </span>left_type.is_pointer() &amp;&amp; right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Pointers {} and {} have different types"</span>,

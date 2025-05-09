@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E119 - RuSTy User Documentation</title>
+        <title>E120 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -152,68 +152,104 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="invalid-use-of-the-super-keyword"><a class="header" href="#invalid-use-of-the-super-keyword">Invalid use of the <code>SUPER</code> keyword</a></h1>
-<p>The <code>SUPER</code> keyword provides access to members of a parent POU (Program Organization Unit) in an inheritance hierarchy. However, there are several rules governing its proper use:</p>
+                        <h1 id="invalid-use-of-the-this-keyword"><a class="header" href="#invalid-use-of-the-this-keyword">Invalid use of the <code>THIS</code> keyword</a></h1>
+<p>The <code>THIS</code> keyword provides access to the current instance of a <code>FUNCTION_BLOCK</code>. However, there are several rules governing its proper use:</p>
 <h2 id="common-errors"><a class="header" href="#common-errors">Common errors</a></h2>
 <ol>
 <li>
-<p><strong>Using <code>SUPER</code> in a POU that doesn't extend another POU</strong>:<br />
-The <code>SUPER</code> keyword can only be used inside a POU that directly extends another POU through the <code>EXTENDS</code> keyword.</p>
+<p><strong>Using <code>THIS</code> outside of a <code>FUNCTION_BLOCK</code> context</strong>:
+The <code>THIS</code> keyword can only be used inside a <code>FUNCTION_BLOCK</code> or its <code>METHOD</code>s or <code>ACTION</code>s. It cannot be used in <code>FUNCTION</code>s, <code>PROGRAM</code>s, or .</p>
 </li>
 <li>
-<p><strong>Not dereferencing <code>SUPER</code> to access members</strong>:<br />
-When accessing members of a superclass, <code>SUPER</code> must be dereferenced using the <code>^</code> operator: <code>SUPER^.member</code>.</p>
+<p><strong>Not dereferencing <code>THIS</code> to access members</strong>:
+When accessing members using <code>THIS</code>, it must be dereferenced using the <code>^</code> operator: <code>THIS^.member</code>.</p>
 </li>
 <li>
-<p><strong>Chaining <code>SUPER</code> references</strong>:<br />
-<code>SUPER</code> cannot be accessed as a member of another object. Expressions like <code>SUPER^.SUPER^</code> are invalid.</p>
+<p><strong>Member access position</strong>:
+<code>THIS</code> cannot be accessed as a member of another object. Expressions like <code>x.THIS^</code> are invalid.</p>
 </li>
 <li>
-<p><strong>Global access position</strong>:<br />
-<code>SUPER</code> cannot be used with the global access operator (<code>.SUPER^.member</code>).</p>
+<p><strong>Global access position</strong>:
+<code>THIS</code> cannot be used with the global access operator (<code>.THIS^.member</code>).</p>
 </li>
 <li>
-<p><strong>Using <code>SUPER</code> with type cast operators</strong>:<br />
-The type cast operator (<code>&lt;type&gt;#</code>) cannot be used with <code>SUPER</code>.</p>
+<p><strong>Using <code>THIS</code> with type cast operators</strong>:
+The type cast operator (<code>&lt;type&gt;#</code>) cannot be used with <code>THIS</code>.</p>
 </li>
 </ol>
 <h2 id="examples-of-invalid-use"><a class="header" href="#examples-of-invalid-use">Examples of invalid use</a></h2>
-<pre><code class="language-iecst">// Error: Using SUPER in a POU that doesn't extend another POU
+<pre><code class="language-iecst">// Error: Using THIS outside `FUNCTION_BLOCK` context
+FUNCTION func
+    THIS^.x := 2;  // Error: Invalid use of `THIS`
+END_FUNCTION
+
+// Error: Not dereferencing THIS when accessing members
 FUNCTION_BLOCK fb
-    SUPER^.x := 2;  // Error: Invalid use of `SUPER`
+    THIS.x := 20;  // Error: `THIS` must be dereferenced to access its members
 END_FUNCTION_BLOCK
 
-// Error: Not dereferencing SUPER when accessing members
-FUNCTION_BLOCK child EXTENDS parent
-    SUPER.x := 20;  // Error: `SUPER` must be dereferenced to access its members
-END_FUNCTION_BLOCK
-
-// Error: Chaining SUPER references/SUPER in member access
-FUNCTION_BLOCK child EXTENDS parent
-    x.SUPER^.y := 20;    
-    SUPER^.SUPER^.x := 20;  
-    // Error: `SUPER` is not allowed in member-access position
+// Error: THIS in member access position
+FUNCTION_BLOCK fb
+    x.THIS^.y := 20;  // Error: `THIS` is not allowed in member-access position
 END_FUNCTION_BLOCK
 
 // Error: Global access position
-FUNCTION_BLOCK child EXTENDS parent
-    .SUPER^.x := 20;  // Error: `SUPER` is not allowed in global-access position
+FUNCTION_BLOCK fb
+    .THIS^.x := 20;  // Error: `THIS` is not allowed in global-access position
 END_FUNCTION_BLOCK
 
-// Error: Using SUPER with type cast
-FUNCTION_BLOCK child EXTENDS parent
-    p := parent#SUPER;  // Error: The `&lt;type&gt;#` operator cannot be used with `SUPER`
-END_FUNCTION_BLOCK</code></pre>
+// Error: Using THIS with type cast
+FUNCTION_BLOCK fb
+    p := fb#THIS;  // Error: The `&lt;type&gt;#` operator cannot be used with `THIS`
+END_FUNCTION_BLOCK
+</code></pre>
+<h2 id="examples-of-valid-use"><a class="header" href="#examples-of-valid-use">Examples of valid use</a></h2>
+<pre><code class="language-iecst">FUNCTION_BLOCK Counter
+    VAR
+        count : INT;
+        enabled : BOOL;
+    END_VAR
+
+    // Valid: Direct use in FUNCTION_BLOCK implementation
+    METHOD increment
+        IF THIS^.enabled THEN
+            THIS^.count := THIS^.count + 1;
+        END_IF
+    END_METHOD
+
+    // Valid: Using THIS to pass the instance to another FB
+    METHOD send_to_logger : BOOL
+        VAR_IN_OUT
+            logger : Logger;
+        END_VAR
+        logger.log_counter(THIS);
+    END_METHOD
+
+    // Valid: Using THIS to compare with another instance
+    METHOD equals : BOOL
+        VAR_IN_OUT
+            other : Counter;
+        END_VAR
+        equals := THIS^.count = other.count;
+    END_METHOD
+
+    ACTION my_action
+        IF THIS^.enabled THEN
+            THIS^.count := THIS^.count + 1;
+        END_IF
+    END_ACTION
+END_FUNCTION_BLOCK
+</code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E118.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E119.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E120.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -223,11 +259,11 @@ END_FUNCTION_BLOCK</code></pre>
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E118.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E119.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E120.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>

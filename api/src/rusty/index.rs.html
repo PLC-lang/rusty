@@ -2202,7 +2202,11 @@
 <a href="#2201" id="2201">2201</a>
 <a href="#2202" id="2202">2202</a>
 <a href="#2203" id="2203">2203</a>
-<a href="#2204" id="2204">2204</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2204" id="2204">2204</a>
+<a href="#2205" id="2205">2205</a>
+<a href="#2206" id="2206">2206</a>
+<a href="#2207" id="2207">2207</a>
+<a href="#2208" id="2208">2208</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{collections::VecDeque, hash::BuildHasherDefault};
 
@@ -2671,6 +2675,10 @@
 
     <span class="kw">pub fn </span>is_method(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Method)
+    }
+
+    <span class="kw">pub fn </span>is_action(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.get_implementation_type(), ImplementationType::Action)
     }
 }
 

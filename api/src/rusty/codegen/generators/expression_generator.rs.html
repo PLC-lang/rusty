@@ -2878,7 +2878,21 @@
 <a href="#2877" id="2877">2877</a>
 <a href="#2878" id="2878">2878</a>
 <a href="#2879" id="2879">2879</a>
-<a href="#2880" id="2880">2880</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2880" id="2880">2880</a>
+<a href="#2881" id="2881">2881</a>
+<a href="#2882" id="2882">2882</a>
+<a href="#2883" id="2883">2883</a>
+<a href="#2884" id="2884">2884</a>
+<a href="#2885" id="2885">2885</a>
+<a href="#2886" id="2886">2886</a>
+<a href="#2887" id="2887">2887</a>
+<a href="#2888" id="2888">2888</a>
+<a href="#2889" id="2889">2889</a>
+<a href="#2890" id="2890">2890</a>
+<a href="#2891" id="2891">2891</a>
+<a href="#2892" id="2892">2892</a>
+<a href="#2893" id="2893">2893</a>
+<a href="#2894" id="2894">2894</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3097,6 +3111,20 @@
 
         <span class="comment">// generate the expression
         </span><span class="kw">match </span>expression.get_stmt() {
+            AstStatement::This =&gt; {
+                <span class="self">self</span>.function_context.ok_or_else(|| {
+                    Diagnostic::codegen_error(<span class="string">"Cannot use 'this' without context"</span>, expression)
+                })<span class="question-mark">?</span>;
+                <span class="kw">let </span><span class="prelude-val">Some</span>(this_name) = <span class="self">self</span>.annotations.get_call_name(expression) <span class="kw">else </span>{
+                    <span class="macro">unreachable!</span>(<span class="string">"this should have a name"</span>);
+                };
+                <span class="kw">let </span>this_value =
+                    <span class="self">self</span>.llvm_index.find_loaded_associated_variable_value(this_name).ok_or_else(|| {
+                        <span class="kw">let </span>message = <span class="macro">format!</span>(<span class="string">"Cannot find '{}' in associated variable values"</span>, this_name);
+                        Diagnostic::codegen_error(message, expression)
+                    })<span class="question-mark">?</span>;
+                <span class="prelude-val">Ok</span>(ExpressionValue::LValue(this_value))
+            }
             AstStatement::ReferenceExpr(data) =&gt; {
                 <span class="kw">let </span>res =
                     <span class="self">self</span>.generate_reference_expression(<span class="kw-2">&amp;</span>data.access, data.base.as_deref(), expression)<span class="question-mark">?</span>;

@@ -561,7 +561,11 @@
 <a href="#560" id="560">560</a>
 <a href="#561" id="561">561</a>
 <a href="#562" id="562">562</a>
-<a href="#563" id="563">563</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
+<a href="#563" id="563">563</a>
+<a href="#564" id="564">564</a>
+<a href="#565" id="565">565</a>
+<a href="#566" id="566">566</a>
+<a href="#567" id="567">567</a></pre></div><pre class="rust"><code><span class="doccomment">//! This module defines the `AstVisitorMut` trait and its associated macros.
 //! The `AstVisitorMut` trait provides a set of methods for mutably traversing and visiting ASTs
 
 </span><span class="kw">use </span>std::borrow::BorrowMut;
@@ -773,7 +777,10 @@
     <span class="kw">fn </span>visit_interface(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _interface: <span class="kw-2">&amp;mut </span>Interface) {}
 
     <span class="kw">fn </span>visit_property(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _property: <span class="kw-2">&amp;mut </span>PropertyBlock) {}
+
     <span class="kw">fn </span>visit_super(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
+
+    <span class="kw">fn </span>visit_this(<span class="kw-2">&amp;mut </span><span class="self">self</span>, _node: <span class="kw-2">&amp;mut </span>AstNode) {}
 }
 
 <span class="kw">impl </span>WalkerMut <span class="kw">for </span>AstLiteral {
@@ -969,6 +976,7 @@
             AstStatement::LabelStatement(<span class="kw">_</span>) =&gt; visitor.visit_label_statement(<span class="self">self</span>),
             AstStatement::AllocationStatement(<span class="kw">_</span>) =&gt; visitor.visit_allocation(<span class="self">self</span>),
             AstStatement::Super(<span class="kw">_</span>) =&gt; visitor.visit_super(<span class="self">self</span>),
+            AstStatement::This =&gt; visitor.visit_this(<span class="self">self</span>),
         }
     }
 }

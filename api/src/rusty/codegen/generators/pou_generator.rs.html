@@ -855,7 +855,18 @@
 <a href="#854" id="854">854</a>
 <a href="#855" id="855">855</a>
 <a href="#856" id="856">856</a>
-<a href="#857" id="857">857</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#857" id="857">857</a>
+<a href="#858" id="858">858</a>
+<a href="#859" id="859">859</a>
+<a href="#860" id="860">860</a>
+<a href="#861" id="861">861</a>
+<a href="#862" id="862">862</a>
+<a href="#863" id="863">863</a>
+<a href="#864" id="864">864</a>
+<a href="#865" id="865">865</a>
+<a href="#866" id="866">866</a>
+<a href="#867" id="867">867</a>
+<a href="#868" id="868">868</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use super</span>::{
     expression_generator::ExpressionCodeGenerator,
@@ -1556,6 +1567,17 @@
                 location.get_column(),
             );
         }
+
+        <span class="kw">if </span>((function_context.linking_context.is_method() || function_context.linking_context.is_action())
+            &amp;&amp; <span class="self">self</span>.index.find_pou(type_name).is_some_and(|it| it.is_function_block()))
+            || function_context.linking_context.get_implementation_type()
+                == <span class="kw-2">&amp;</span>ImplementationType::FunctionBlock
+        {
+            <span class="kw">let </span>alloca = <span class="self">self</span>.llvm.builder.build_alloca(param_pointer.get_type(), <span class="string">"this"</span>);
+            <span class="self">self</span>.llvm.builder.build_store(alloca, param_pointer);
+            index.associate_loaded_local_variable(type_name, <span class="string">"__THIS"</span>, alloca)<span class="question-mark">?</span>;
+        }
+
         <span class="comment">//Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         </span><span class="kw">let </span><span class="kw-2">mut </span>var_count = <span class="number">0</span>;

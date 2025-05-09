@@ -2028,7 +2028,23 @@
 <a href="#2027" id="2027">2027</a>
 <a href="#2028" id="2028">2028</a>
 <a href="#2029" id="2029">2029</a>
-<a href="#2030" id="2030">2030</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2030" id="2030">2030</a>
+<a href="#2031" id="2031">2031</a>
+<a href="#2032" id="2032">2032</a>
+<a href="#2033" id="2033">2033</a>
+<a href="#2034" id="2034">2034</a>
+<a href="#2035" id="2035">2035</a>
+<a href="#2036" id="2036">2036</a>
+<a href="#2037" id="2037">2037</a>
+<a href="#2038" id="2038">2038</a>
+<a href="#2039" id="2039">2039</a>
+<a href="#2040" id="2040">2040</a>
+<a href="#2041" id="2041">2041</a>
+<a href="#2042" id="2042">2042</a>
+<a href="#2043" id="2043">2043</a>
+<a href="#2044" id="2044">2044</a>
+<a href="#2045" id="2045">2045</a>
+<a href="#2046" id="2046">2046</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2891,6 +2907,7 @@
     </span>ReferenceExpr(ReferenceExpr),
     Identifier(String),
     Super(<span class="prelude-ty">Option</span>&lt;DerefMarker&gt;),
+    This,
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -2961,6 +2978,7 @@
             AstStatement::Identifier(name) =&gt; f.debug_struct(<span class="string">"Identifier"</span>).field(<span class="string">"name"</span>, name).finish(),
             AstStatement::Super(<span class="prelude-val">Some</span>(<span class="kw">_</span>)) =&gt; f.debug_struct(<span class="string">"Super(derefed)"</span>).finish(),
             AstStatement::Super(<span class="kw">_</span>) =&gt; f.debug_struct(<span class="string">"Super"</span>).finish(),
+            AstStatement::This =&gt; f.debug_struct(<span class="string">"This"</span>).finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) =&gt; f
                 .debug_struct(<span class="string">"BinaryExpression"</span>)
                 .field(<span class="string">"operator"</span>, operator)
@@ -3266,6 +3284,10 @@
         )
     }
 
+    <span class="kw">pub fn </span>is_this(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::This)
+    }
+
     <span class="kw">pub fn </span>is_paren(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ParenExpression { .. })
     }
@@ -3310,6 +3332,9 @@
 
     <span class="kw">pub fn </span>can_be_assigned_to(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="kw">if </span><span class="self">self</span>.has_super_metadata() {
+            <span class="kw">return </span><span class="bool-val">false</span>;
+        }
+        <span class="kw">if </span><span class="self">self</span>.is_this() {
             <span class="kw">return </span><span class="bool-val">false</span>;
         }
         <span class="self">self</span>.has_direct_access()
@@ -3668,6 +3693,13 @@
         </span>T: Into&lt;SourceLocation&gt;,
     {
         AstNode::new(AstStatement::Super(deref), id, location.into())
+    }
+
+    <span class="kw">pub fn </span>create_this_reference&lt;T&gt;(location: T, id: AstId) -&gt; AstNode
+    <span class="kw">where
+        </span>T: Into&lt;SourceLocation&gt;,
+    {
+        AstNode::new(AstStatement::This, id, location.into())
     }
 
     <span class="kw">pub fn </span>create_unary_expression(

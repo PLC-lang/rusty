@@ -2681,7 +2681,39 @@
 <a href="#2680" id="2680">2680</a>
 <a href="#2681" id="2681">2681</a>
 <a href="#2682" id="2682">2682</a>
-<a href="#2683" id="2683">2683</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2683" id="2683">2683</a>
+<a href="#2684" id="2684">2684</a>
+<a href="#2685" id="2685">2685</a>
+<a href="#2686" id="2686">2686</a>
+<a href="#2687" id="2687">2687</a>
+<a href="#2688" id="2688">2688</a>
+<a href="#2689" id="2689">2689</a>
+<a href="#2690" id="2690">2690</a>
+<a href="#2691" id="2691">2691</a>
+<a href="#2692" id="2692">2692</a>
+<a href="#2693" id="2693">2693</a>
+<a href="#2694" id="2694">2694</a>
+<a href="#2695" id="2695">2695</a>
+<a href="#2696" id="2696">2696</a>
+<a href="#2697" id="2697">2697</a>
+<a href="#2698" id="2698">2698</a>
+<a href="#2699" id="2699">2699</a>
+<a href="#2700" id="2700">2700</a>
+<a href="#2701" id="2701">2701</a>
+<a href="#2702" id="2702">2702</a>
+<a href="#2703" id="2703">2703</a>
+<a href="#2704" id="2704">2704</a>
+<a href="#2705" id="2705">2705</a>
+<a href="#2706" id="2706">2706</a>
+<a href="#2707" id="2707">2707</a>
+<a href="#2708" id="2708">2708</a>
+<a href="#2709" id="2709">2709</a>
+<a href="#2710" id="2710">2710</a>
+<a href="#2711" id="2711">2711</a>
+<a href="#2712" id="2712">2712</a>
+<a href="#2713" id="2713">2713</a>
+<a href="#2714" id="2714">2714</a>
+<a href="#2715" id="2715">2715</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -4364,6 +4396,38 @@
     <span class="doccomment">/// annotate an expression statement
     </span><span class="kw">fn </span>visit_statement_expression(<span class="kw-2">&amp;mut </span><span class="self">self</span>, ctx: <span class="kw-2">&amp;</span>VisitorContext, statement: <span class="kw-2">&amp;</span>AstNode) {
         <span class="kw">match </span>statement.get_stmt() {
+            AstStatement::This =&gt; {
+                <span class="kw">let </span>name = <span class="kw">match </span>ctx.pou.and_then(|name| <span class="self">self</span>.index.find_pou(name)) {
+                    <span class="prelude-val">Some</span>(PouIndexEntry::FunctionBlock { name, .. }) =&gt; name,
+                    <span class="prelude-val">Some</span>(
+                        PouIndexEntry::Method { parent_name: name, .. }
+                        | PouIndexEntry::Action { parent_name: name, .. },
+                    ) <span class="kw">if </span><span class="self">self</span>.index.find_pou(name).is_some_and(|it| it.is_function_block()) =&gt; name,
+                    <span class="kw">_ </span>=&gt; <span class="kw">return</span>,
+                };
+                <span class="kw">let </span>ptr_name = <span class="macro">format!</span>(<span class="string">"{}.__THIS"</span>, name);
+                <span class="kw">if </span><span class="self">self
+                    </span>.index
+                    .find_type(<span class="kw-2">&amp;</span>ptr_name)
+                    .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_type(<span class="kw-2">&amp;</span>ptr_name))
+                    .is_none()
+                {
+                    <span class="kw">let </span>information = DataTypeInformation::Pointer {
+                        name: ptr_name.clone(),
+                        inner_type_name: name.to_string(),
+                        auto_deref: <span class="prelude-val">None</span>,
+                    };
+                    <span class="kw">let </span>dt = <span class="kw">crate</span>::typesystem::DataType {
+                        name: ptr_name.clone(),
+                        initial_value: <span class="prelude-val">None</span>,
+                        information,
+                        nature: TypeNature::Any,
+                        location: SourceLocation::internal(),
+                    };
+                    <span class="self">self</span>.annotation_map.new_index.register_type(dt);
+                }
+                <span class="self">self</span>.annotate(statement, StatementAnnotation::value(ptr_name));
+            }
             AstStatement::DirectAccess(data, ..) =&gt; {
                 <span class="kw">let </span>ctx = VisitorContext { qualifier: <span class="prelude-val">None</span>, ..ctx.clone() };
                 <span class="macro">visit_all_statements!</span>(<span class="self">self</span>, <span class="kw-2">&amp;</span>ctx, <span class="kw-2">&amp;</span>data.index);
