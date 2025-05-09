@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+snapshot_kind: text
 ---
 ; ModuleID = 'func.st'
 source_filename = "func.st"

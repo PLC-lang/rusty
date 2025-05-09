@@ -54,7 +54,7 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
         ..Default::default()
     };
 
-    match project.generate_single_module(codegen_context, &compile_options) {
+    match project.generate_single_module(codegen_context, &compile_options, None) {
         Ok(res) => res.unwrap(),
         Err(e) => panic!("{e}"),
     }

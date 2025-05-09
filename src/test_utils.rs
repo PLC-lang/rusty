@@ -25,7 +25,7 @@ pub mod tests {
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, OnlineChange, Validator,
+        DebugLevel, OnlineChange, Target, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -254,6 +254,7 @@ pub mod tests {
             crate::OptimizationLevel::None,
             debug_level,
             online_change.clone(),
+            &Target::System,
         );
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
@@ -321,6 +322,7 @@ pub mod tests {
                     crate::OptimizationLevel::None,
                     debug_level,
                     crate::OnlineChange::Disabled,
+                    &Target::System,
                 );
                 let got_layout = Mutex::new(HashMap::default());
 

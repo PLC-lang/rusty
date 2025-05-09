@@ -303,60 +303,24 @@ impl<'ink> DebugBuilder<'ink> {
             .unwrap_or_else(|| self.compile_unit.get_file());
 
         let mut types = vec![];
-        let mut last_offset_bits = 0;
-        let mut last_size_bits = 0;
 
         for (element_index, (member_name, dt, location)) in index_types.iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
 
-            // Get the size and alignment
+            // Get the size and alignment from LLVM
             let llvm_type = types_index.find_associated_type(dt.get_name());
             let align_bits =
                 llvm_type.map(|ty| self.target_data.get_preferred_alignment(&ty) * 8).unwrap_or(0);
             let size_bits = llvm_type.map(|ty| self.target_data.get_bit_size(&ty)).unwrap_or(0);
 
             // Get LLVM's calculated offset
-            let llvm_offset_bits = self
+            let offset_bits = self
                 .target_data
                 .offset_of_element(&struct_type, element_index as u32)
                 .map(|offset| offset * 8)
                 .unwrap_or(0);
 
-            // Calculate the properly aligned offset based on the previous field
-            // and this field's alignment requirements
-            let offset_bits = if size_bits == 0 || (last_size_bits == 0 && element_index > 0) {
-                // For zero-sized types, always use LLVM's offset directly
-                // This ensures they don't contribute to the overall layout calculation
-                // If the previous field was zero-sized, use LLVM's offset
-                // for proper alignment of fields after zero-sized types
-                llvm_offset_bits
-            } else {
-                let next_offset_bits: u64 = last_offset_bits + last_size_bits;
-
-                // Special handling based on alignment requirements:
-                // - Fields with alignment of 64 bits need to be explicitly aligned
-                //   to their alignment boundary to prevent misaligned accesses
-                // - Fields with a lower alignment can use LLVM's natural layout
-                // This differentiation is crucial for correctly representing complex structures
-                // where some fields (like LWORD, LINT) need specific alignment while others (like BYTE, BOOL)
-                // can be packed more efficiently
-                if align_bits == 64 {
-                    // For fields requiring special alignment (64 bit types),
-                    // round up to the nearest alignment boundary
-                    next_offset_bits.div_ceil(align_bits as u64) * align_bits as u64
-                } else {
-                    // For smaller fields fields (BYTE, BOOL, DINT), we still ensure we don't
-                    // overlap with previous fields by using the maximum of our calculated offset
-                    // and LLVM's calculated offset
-                    std::cmp::max(next_offset_bits, llvm_offset_bits)
-                }
-            };
-
-            // Update tracking variables for next field
-            last_offset_bits = offset_bits;
-            last_size_bits = size_bits;
-
-            // Create the member type with calculated offset
+            // Create the member type with LLVM's calculated offset
             types.push(
                 self.debug_info
                     .create_member_type(
@@ -374,39 +338,17 @@ impl<'ink> DebugBuilder<'ink> {
             );
         }
 
-        // Calculate struct size based on the last field's offset + size, properly aligned
+        // Use LLVM's calculation for the struct size
         let llvm_size = self.target_data.get_bit_size(&struct_type);
-        // Calculate our manual size based on adjusted offsets
-        let calculated_size = {
-            // Get struct alignment requirement (usually 8 bytes/64 bits for 64-bit architectures)
-            let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
-
-            // Calculate total size based on last field offset + size, rounded up to alignment
-            let last_field_end_bits = last_offset_bits + last_size_bits;
-            let aligned_size_bits =
-                last_field_end_bits.div_ceil(struct_align_bits as u64) * struct_align_bits as u64;
-
-            // If our calculated size is larger than LLVM's, use ours
-            if aligned_size_bits > llvm_size {
-                log::trace!(
-                    "Struct {}: adjusted size from {} to {} bits due to field alignment",
-                    name,
-                    llvm_size,
-                    aligned_size_bits
-                );
-                aligned_size_bits
-            } else {
-                llvm_size
-            }
-        };
+        let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
 
         let struct_type = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() as u32,
-            calculated_size,
-            self.target_data.get_preferred_alignment(&struct_type) * 8,
+            llvm_size,
+            struct_align_bits,
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
