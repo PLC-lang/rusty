@@ -1310,7 +1310,7 @@ fn ref_initializer_is_marked_as_resolve_later() {
     let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
 
     assert_eq!(init.scope, Some("foo".into()));
-    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target, Some("ps".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps".to_string()));
 }
 
@@ -1337,7 +1337,7 @@ fn adr_initializer_is_marked_as_resolve_later() {
     let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
 
     assert_eq!(init.scope, Some("foo".into()));
-    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target, Some("ps".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps".to_string()));
 }
 
@@ -1367,13 +1367,13 @@ fn alias_initializer_is_marked_as_resolve_later() {
     let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
 
     assert_eq!(init.scope, Some("foo".into()));
-    assert_eq!(init.lhs, Some("ps1".into()));
+    assert_eq!(init.target, Some("ps1".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps1".to_string()));
 
     let Some(UnresolvableKind::Address(ref init)) = unresolvable[1].kind else { panic!() };
 
     assert_eq!(init.scope, Some("foo".into()));
-    assert_eq!(init.lhs, Some("ps2".into()));
+    assert_eq!(init.target, Some("ps2".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps2".to_string()));
 }
 
@@ -1400,6 +1400,6 @@ fn reference_to_initializer_is_marked_as_resolve_later() {
     let Some(UnresolvableKind::Address(ref init)) = unresolvable[0].kind else { panic!() };
 
     assert_eq!(init.scope, Some("foo".into()));
-    assert_eq!(init.lhs, Some("ps".into()));
+    assert_eq!(init.target, Some("ps".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps".to_string()));
 }

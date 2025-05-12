@@ -90,7 +90,11 @@ pub struct InitData {
     pub initializer: Option<AstNode>,
     pub target_type_name: Option<String>,
     pub scope: Option<String>,
-    pub lhs: Option<String>,
+
+    /// The direct target for assignemnts, e.g. `a` in `instance: foo := (a := b)`
+    pub target: Option<String>,
+    // /// The variable name within a user-defined type, e.g. `instance` in `instance : foo := ...`
+    // pub variable_name: Option<String>,
 }
 
 impl InitData {
@@ -104,7 +108,7 @@ impl InitData {
             initializer: initializer.cloned(),
             target_type_name: target_type.map(|it| it.into()),
             scope: scope.map(|it| it.into()),
-            lhs: target.map(|it| it.into()),
+            target: target.map(|it| it.into()),
         }
     }
 }
@@ -159,6 +163,7 @@ impl ConstExpressions {
         scope: Option<String>,
         lhs: Option<String>,
     ) -> ConstId {
+        // dbg!(&scope, &statement);
         self.expressions.insert(ConstWrapper {
             expr: ConstExpression::Unresolved { statement, scope, lhs },
             target_type_name,
