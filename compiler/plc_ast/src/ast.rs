@@ -22,6 +22,18 @@ use plc_source::source_location::*;
 
 pub type AstId = usize;
 
+impl Into<AstId> for AstNode {
+    fn into(self) -> AstId {
+        self.id
+    }
+}
+
+impl Into<AstId> for &AstNode {
+    fn into(self) -> AstId {
+        self.id
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct GenericBinding {
     pub name: String,

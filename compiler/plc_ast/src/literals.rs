@@ -263,15 +263,31 @@ impl AstLiteral {
     }
 
     pub fn is_numerical(&self) -> bool {
+        self.is_int_numerical() || matches!(self, AstLiteral::Real { .. })
+    }
+
+    pub fn is_int_numerical(&self) -> bool {
         matches!(
             self,
             AstLiteral::Integer { .. }
-                | AstLiteral::Real { .. }
                 | AstLiteral::Time { .. }
                 | AstLiteral::Date { .. }
                 | AstLiteral::TimeOfDay { .. }
                 | AstLiteral::DateAndTime { .. }
+                | AstLiteral::Bool { .. }
         )
+    }
+    
+    pub fn try_int_value(&self) -> Result<i128, String> {
+        match self {
+            AstLiteral::Integer(v) => Ok(*v),
+            AstLiteral::Date(date) => date.value().map(|v| v as i128),
+            AstLiteral::DateAndTime(date_and_time) => date_and_time.value().map(| v| v as i128),
+            AstLiteral::TimeOfDay(time_of_day) => time_of_day.value().map(| v| v as i128),
+            AstLiteral::Time(time) => Ok(time.value() as i128),
+            AstLiteral::Bool(v) => Ok(*v as i128),
+            _ => Err(format!("Cannot convert {self:#?} to int")),
+        }
     }
 
     pub fn is_zero(&self) -> bool {

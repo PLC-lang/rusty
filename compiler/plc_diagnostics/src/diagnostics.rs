@@ -207,6 +207,13 @@ impl Diagnostic {
         Diagnostic::new(message).with_location(location.into()).with_error_code("E071")
     }
 
+    pub fn unspecified_codegen_error<T, U>(message: T) -> Diagnostic
+    where
+        T: Into<String>,
+    {
+        Diagnostic::new(message).with_location(SourceLocation::undefined()).with_error_code("E071")
+    }
+
     pub fn llvm_error(file: &str, llvm_error: &str) -> Diagnostic {
         Diagnostic::new(format!("{file}: Internal llvm error: {:}", llvm_error)).with_error_code("E005")
     }
@@ -310,6 +317,22 @@ impl Diagnostic {
         T: Into<SourceLocation>,
     {
         Diagnostic::new("Unnamed control").with_error_code("E087").with_location(location)
+    }
+}
+
+/// Extension trait for Result<T, Diagnostic> to set the location on errors.
+pub trait ResultDiagnosticExt<T> {
+    fn with_location<E>(self, location: E) -> Self
+    where
+        E: Into<SourceLocation>;
+}
+
+impl<T> ResultDiagnosticExt<T> for Result<T, Diagnostic> {
+    fn with_location<E>(self, location: E) -> Self
+    where
+        E: Into<SourceLocation>,
+    {
+        self.map_err(|diag| diag.with_location(location))
     }
 }
 

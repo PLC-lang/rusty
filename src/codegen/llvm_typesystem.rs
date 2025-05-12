@@ -42,6 +42,17 @@ macro_rules! cast_if_needed {
             $annotation,
         )
     };
+    ($llvm:expr, $index:expr, $llvm_index:expr, $target_type:expr, $value_type:expr, $value:expr, $annotation:expr) => {
+        crate::codegen::llvm_typesystem::cast(
+            $llvm,
+            $index,
+            $llvm_index,
+            $target_type,
+            $value_type,
+            $value,
+            $annotation,
+        )
+    };
 }
 
 pub(crate) use cast_if_needed;

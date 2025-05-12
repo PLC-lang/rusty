@@ -826,8 +826,16 @@ pub trait AnnotationMap {
 
     /// returns the name of the callable that is refered by the given statemt
     /// or none if this thing may not be callable
-    fn get_call_name(&self, s: &AstNode) -> Option<&str> {
-        match self.get(s) {
+    fn get_call_name(&self, s: &AstNode) -> Option<&str>
+     {
+        self.get_call_name_from_id(s.get_id())
+    }
+
+    /// returns the name of the callable that is refered by the given statemt
+    /// or none if this thing may not be callable
+    fn get_call_name_from_id(&self, id: AstId) -> Option<&str>
+     {
+        match self.get_with_id(id) {
             Some(StatementAnnotation::Function { qualified_name, call_name, .. }) => {
                 call_name.as_ref().map(String::as_str).or(Some(qualified_name.as_str()))
             }
@@ -840,13 +848,35 @@ pub trait AnnotationMap {
     }
 
     fn get_qualified_name(&self, s: &AstNode) -> Option<&str> {
-        match self.get(s) {
+        self.get_qualified_name_from_id(s.get_id())
+    }
+
+    fn get_qualified_name_from_id(&self, id: AstId) -> Option<&str> {
+        match self.get_with_id(id) {
             Some(StatementAnnotation::Function { qualified_name, .. })
             | Some(StatementAnnotation::Variable { qualified_name, .. })
             | Some(StatementAnnotation::Program { qualified_name, .. }) => Some(qualified_name.as_str()),
 
-            _ => self.get_call_name(s),
+            _ => self.get_call_name_from_id(id),
         }
+    }
+
+    /// Same like `get_qualified_name` but only the last segment
+    /// 
+    /// e.g. "foo.baz" will return "baz", "foo" will return "foo"
+    fn get_identifier_name(&self, s: &AstNode) -> Option<&str> {
+        self.get_identifier_name_from_id(s.get_id())
+    }
+
+    /// Same like `get_qualified_name` but only the last segment
+    /// 
+    /// e.g. "foo.baz" will return "baz", "foo" will return "foo"
+    fn get_identifier_name_from_id(&self, id: AstId) -> Option<&str> {
+        let qname = self.get_qualified_name_from_id(id);
+        qname
+                    .and_then(|name| name.rsplit_once("."))
+                    .map(|(_qualifier, identifier)| identifier)
+                    .or(qname)
     }
 
     fn has_type_annotation(&self, s: &AstNode) -> bool;

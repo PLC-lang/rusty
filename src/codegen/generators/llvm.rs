@@ -198,11 +198,26 @@ impl<'a> Llvm<'a> {
     }
 
     /// create a null pointer
+    #[deprecated(
+        since = "0.2.0",
+        note = "Use create_null_ptr_direct instead, which returns the value directly"
+    )]
+    pub fn try_create_null(&self) -> Result<BasicValueEnum<'a>, Diagnostic> {
+        Ok(self.create_null())
+    }
+
+    pub fn create_null(&self) -> BasicValueEnum<'a> {
+        let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+        itype.const_null().into()
+    }
+
     pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, Diagnostic> {
         let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         let value = itype.const_null();
         Ok(value.into())
     }
+
+    
 
     /// create a constant utf8 string-value with the given value
     ///

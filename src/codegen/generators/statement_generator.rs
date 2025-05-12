@@ -1,7 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
+    expression_visitor::ExpressionVisitor,
     llvm::Llvm,
+    util::reference_builder::GeneratedValue,
 };
 use crate::{
     codegen::{
@@ -27,6 +29,7 @@ use plc_ast::{
     control_statements::{
         AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
     },
+    visitor::AstVisitor,
 };
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -239,7 +242,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 )?;
             }
             _ => {
-                self.create_expr_generator(&llvm_index).generate_expression(statement)?;
+                // self.create_expr_generator(&llvm_index).generate_expression(statement)?;
+                let mut expr =
+                    ExpressionVisitor::new(self.llvm, self.llvm_index, self.annotations, self.index);
+
+                if self.annotations.get_type_or_void(statement, self.index).is_void() {
+                    expr.generate_expression(statement)?;
+                }else{
+                    expr.generate_r_value(statement)?;
+                }
             }
         }
         Ok(llvm_index)
@@ -322,26 +333,43 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return self.generate_ref_assignment(llvm_index, left_statement, right_statement);
         };
 
-        let exp_gen = self.create_expr_generator(llvm_index);
-        let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
-            it.get_basic_value_enum()
-                .try_into()
-                .map_err(|err| Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement))
-        })?;
+        let mut exp_visitor = ExpressionVisitor::new(self.llvm, llvm_index, self.annotations, self.index);
+        let left = exp_visitor.generate_expression(left_statement)?.as_pointer_value()
+            .map_err(|_| Diagnostic::codegen_error(
+                "Left side of assignment must be an lvalue",
+                left_statement,
+            ))?;
+        // let left_value = exp_visitor.pop_value()?;
+        // let GeneratedValue::LValue(left) = left_value else {
+        //     return Err(Diagnostic::codegen_error(
+        //         "Left side of assignment must be an lvalue",
+        //         left_statement,
+        //     ));
+        // };
 
-        let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
+        let right_statement =  exp_visitor.generate_r_value(right_statement)?;
+
+        // let exp_gen = self.create_expr_generator(llvm_index);
+        // let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
+        //     it.get_basic_value_enum()
+        //         .try_into()
+        //         .map_err(|err| Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement))
+        // })?;
+
+        // let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
         // if the lhs-type is a subrange type we may need to generate a check-call
         // e.g. x := y,  ==> x := CheckSignedInt(y);
-        let range_checked_right_side = if let DataTypeInformation::SubRange { .. } = left_type {
-            // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
-            self.annotations.get_hidden_function_call(right_statement)
-        } else {
-            None
-        };
+        // let range_checked_right_side = if let DataTypeInformation::SubRange { .. } = left_type {
+        //     // there is a sub-range defined, so we need to wrap the right side into the check function if it exists
+        //     self.annotations.get_hidden_function_call(right_statement)
+        // } else {
+        //     None
+        // };
 
-        let right_statement = range_checked_right_side.unwrap_or(right_statement);
+        // let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
-        exp_gen.generate_store(left, left_type, right_statement)?;
+        // exp_gen.generate_store(left, left_type, right_statement)?;
+          self.llvm.builder.build_store(left, right_statement);
         Ok(())
     }
 

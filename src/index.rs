@@ -223,6 +223,10 @@ impl VariableIndexEntry {
         self.get_variable_type() == VariableType::InOut
     }
 
+    pub fn is_output(&self) -> bool {
+       self.get_variable_type() == VariableType::Output 
+    }
+
     pub fn is_constant(&self) -> bool {
         self.is_constant
     }
@@ -291,6 +295,8 @@ impl VariableIndexEntry {
     pub fn get_qualifier(&self) -> Option<&str> {
         self.qualified_name.rsplit_once('.').map(|(x, _)| x)
     }
+    
+    
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Hash)]

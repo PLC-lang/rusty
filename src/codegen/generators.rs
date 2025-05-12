@@ -5,6 +5,9 @@ pub mod pou_generator;
 pub mod section_names;
 pub mod statement_generator;
 pub mod variable_generator;
+pub mod expression_visitor;
+mod util;
+
 
 // See
 // - https://llvm.org/docs/LangRef.html#data-layout

@@ -3251,6 +3251,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "clap 3.2.25",
+ "derive_builder",
  "encoding_rs",
  "encoding_rs_io",
  "generational-arena",

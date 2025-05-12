@@ -33,6 +33,7 @@ shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = "140.0.0"
 which = "4.2.5"
+derive_builder = "0.20.2"
 log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
