@@ -151,6 +151,28 @@ pub fn visit_statement<T: AnnotationMap>(
                         .with_location(statement.get_location()).with_error_code("E119"));
             }
         }
+        AstStatement::This => {
+            if !context.qualifier.is_some_and(|it| {
+                context
+                    .index
+                    .find_pou(it)
+                    .and_then(|it| match it {
+                        PouIndexEntry::FunctionBlock { .. } => Some(it),
+                        PouIndexEntry::Method { parent_name, .. }
+                        | PouIndexEntry::Action { parent_name, .. } => context.index.find_pou(parent_name),
+                        _ => None,
+                    })
+                    .is_some_and(|it| it.is_function_block())
+            }) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
+                    )
+                    .with_error_code("E120")
+                    .with_location(statement),
+                );
+            }
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -178,6 +200,15 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Member(m) => {
             if let Some(base) = base {
+                if m.is_this() {
+                    // this cannot be accessed as a member
+                    validator.push_diagnostic(
+                        Diagnostic::new("`THIS` is not allowed in member-access position.")
+                            .with_location(m.get_location())
+                            .with_error_code("E120"),
+                    );
+                    return;
+                }
                 if m.is_super() || m.has_super_metadata() {
                     // super cannot be accessed as a member
                     validator.push_diagnostic(
@@ -1049,6 +1080,9 @@ fn validate_assignment<T: AnnotationMap>(
         if !left.can_be_assigned_to() {
             let expression = validator.context.slice(&left.get_location());
             validator.push_diagnostic(
+                // TODO: would be nice to have a more specific error message. For instance `THIS`
+                // might not assignable because its use is only allowed in FBs and their methods.
+                // Same goes for `SUPER`.
                 Diagnostic::new(format!("Expression {expression} is not assignable."))
                     .with_error_code("E050")
                     .with_location(left),
@@ -1088,6 +1122,7 @@ fn validate_assignment<T: AnnotationMap>(
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
+            // TODO: #THIS && !left_type.is_this()
             if left_type.is_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(

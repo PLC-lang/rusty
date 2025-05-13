@@ -1025,7 +1025,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1061,6 +1061,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     define void @FOO(%FOO* %0) {
     entry:
+      %this = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %this, align 8
       %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
@@ -1077,7 +1079,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
     attributes #1 = { argmemonly nofree nounwind willreturn }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1127,6 +1129,8 @@ fn var_output_aggregate_types_are_memcopied() {
 
     define void @FB(%FB* %0) {
     entry:
+      %this = alloca %FB*, align 8
+      store %FB* %0, %FB** %this, align 8
       %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
       %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -25,6 +24,8 @@ entry:
 define void @fb(%fb* %0) !dbg !24 {
 entry:
   call void @llvm.dbg.declare(metadata %fb* %0, metadata !27, metadata !DIExpression()), !dbg !28
+  %this = alloca %fb*, align 8
+  store %fb* %0, %fb** %this, align 8
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   %load_x = load i32, i32* %x, align 4, !dbg !28
   %tmpVar = add i32 %load_x, 2, !dbg !28

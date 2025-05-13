@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,6 +13,8 @@ source_filename = "<internal>"
 
 define void @MyClass(%MyClass* %0) {
 entry:
+  %this = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %this, align 8
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   ret void
@@ -21,6 +22,8 @@ entry:
 
 define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
 entry:
+  %this = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %this, align 8
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   %myMethodArg = alloca i16, align 2

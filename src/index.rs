@@ -468,6 +468,10 @@ impl ImplementationIndexEntry {
     pub fn is_method(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Method)
     }
+
+    pub fn is_action(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Action)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
