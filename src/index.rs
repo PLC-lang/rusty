@@ -434,7 +434,7 @@ impl ImplementationIndexEntry {
 
     pub fn get_call_name_for_ir(&self) -> String {
         match self.implementation_type {
-            ImplementationType::Method | ImplementationType::Action => self.call_name.replace(".", "_"),
+            ImplementationType::Method | ImplementationType::Action => self.call_name.replace(".", "__"),
             _ => self.call_name.clone(),
         }
     }

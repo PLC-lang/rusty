@@ -362,10 +362,10 @@ This global instance follows the naming scheme of `__<FunctionBlockName>__init`,
 myFunctionBlock __myFunctionBlock__init = { 0 };
 ```
 
-3. Optionally create an initialization function following the naming pattern `<FunctionBlockName>_FB_INIT`:
+3. Optionally create an initialization function following the naming pattern `<FunctionBlockName>__FB_INIT`:
 
 ```c
-void myFunctionBlock_FB_INIT(myFunctionBlock* fb_instance) {
+void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
     // Initialize members here
     fb_instance->a = 1;
     fb_instance->b = 2;
