@@ -1,4 +1,3 @@
-
 use anyhow::{anyhow, bail, Error, Result};
 use inkwell::{
     values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue, IntValue, PointerValue},
@@ -7,7 +6,8 @@ use inkwell::{
 use itertools::Itertools;
 use plc_ast::{
     ast::{
-        flatten_expression_list, AstId, AstNode, BinaryExpression, Operator, ReferenceAccess,
+        flatten_expression_list, Assignment, AstId, AstNode, AstStatement, BinaryExpression, Operator,
+        ReferenceAccess,
     },
     literals::AstLiteral,
     visitor::AstVisitor,
@@ -28,10 +28,7 @@ use crate::{
 
 use super::{
     llvm::Llvm,
-    util::{
-        array_access_generator,
-        reference_builder::GeneratedValue,
-    },
+    util::{array_access_generator, reference_builder::GeneratedValue},
 };
 
 pub struct ExpressionVisitor<'ink, 'a> {
@@ -72,7 +69,11 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 // Integer, Bool, Date, Time, DateAndTime
                 _ if stmt.is_int_numerical() => {
                     let value = stmt.try_int_value().expect("Parser should have checked this"); //parser should have checked this
-                    self.literals_generator.generate_const_int(type_hint, value)
+                    if type_hint.is_float() {
+                        self.literals_generator.generate_const_float(type_hint, value as f64)
+                    } else {
+                        self.literals_generator.generate_const_int(type_hint, value)
+                    }
                 }
                 AstLiteral::Null => Ok(self.llvm.create_null()),
                 AstLiteral::Real(v) => {
@@ -133,6 +134,67 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
         };
         let v =
             do_visit_reference().map_err(|e| Diagnostic::codegen_error(format!("{e}"), node.get_location()));
+        self.push_value(node, v);
+    }
+
+    fn visit_unary_expression(&mut self, stmt: &plc_ast::ast::UnaryExpression, node: &AstNode) {
+        let mut do_visit_unary_expression = || -> anyhow::Result<GeneratedValue<'ink>> {
+            match stmt.operator {
+                Operator::Plus => {
+                    // nothing to do
+                    self.generate_expression(&stmt.value)
+                        .map_err(|e| anyhow!("Cannot generate unary plus: {e}"))
+                }
+                Operator::Minus => {
+                    // generate a `0-expression`
+                    let exp = self.generate_r_value(&stmt.value)?;
+                    let negative_value = if exp.is_int_value() {
+                        self.llvm
+                            .builder
+                            .build_int_sub(
+                                exp.get_type().into_int_type().const_zero(),
+                                exp.into_int_value(),
+                                "tmpVar",
+                            )
+                            .as_basic_value_enum()
+                    } else if exp.is_float_value() {
+                        self.llvm
+                            .builder
+                            .build_float_sub(
+                                exp.get_type().into_float_type().const_zero(),
+                                exp.into_float_value(),
+                                "tmpVar",
+                            )
+                            .as_basic_value_enum()
+                    } else {
+                        anyhow::bail!("Unsupported type for unary minus: {:?}", exp.get_type());
+                    };
+                    Ok(GeneratedValue::RValue((negative_value, node.get_id())))
+                }
+                Operator::Not => {
+                    let operator = self.generate_r_value(&stmt.value)?.into_int_value();
+                    let operator = if self
+                        .get_type_hint_for(&stmt.value)
+                        .map(|it| it.get_type_information().is_bool())
+                        .unwrap_or_default()
+                    {
+                        self.make_bool_with_name(operator, "")?
+                    } else {
+                        operator
+                    };
+
+                    Ok(GeneratedValue::RValue((
+                        self.llvm.builder.build_not(operator, "tmpVar").as_basic_value_enum(),
+                        node.get_id(),
+                    )))
+                }
+                _ => {
+                    anyhow::bail!("Unsupported unary operator {:?}", stmt.operator);
+                }
+            }
+        };
+        let v = do_visit_unary_expression()
+            .map_err(|e| Diagnostic::codegen_error(format!("{e}"), node.get_location()));
         self.push_value(node, v);
     }
 
@@ -228,9 +290,17 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
             })
     }
 
-    fn make_bool(&mut self, v: IntValue<'ink>) -> Result<IntValue<'ink>> {
-        let zero = v.get_type().const_zero();
-        Ok(self.llvm.builder.build_int_compare(IntPredicate::NE, v, zero, ""))
+    fn make_bool(&self, v: IntValue<'ink>) -> Result<IntValue<'ink>> {
+        self.make_bool_with_name(v, "")
+    }
+
+    fn make_bool_with_name(&self, v: IntValue<'ink>, name: &str) -> Result<IntValue<'ink>> {
+        if v.get_type().get_bit_width() > 1 {
+            let zero = v.get_type().const_zero();
+            Ok(self.llvm.builder.build_int_compare(IntPredicate::NE, v, zero, name))
+        } else {
+            Ok(v)
+        }
     }
 }
 // Generation of Literals
@@ -259,6 +329,24 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             if e.operator == Operator::Or || e.operator == Operator::And {
                 // operators with short circuit evaluation so we must not eagerly evaluate the right side
                 self.generate_bool_short_circuit_expression(&e.operator, &e.left, &e.right)
+            } else if e.operator == Operator::Xor {
+                // this is only its own if-branch to keep compatible with test-snapshots (the order of loads and icmp!)
+                // todo: re-integrate into match below
+                Ok(self
+                    .llvm
+                    .builder
+                    .build_xor(
+                        {
+                            let l = self.generate_r_value(&e.left)?.into_int_value();
+                            self.make_bool(l)?
+                        },
+                        {
+                            let r = self.generate_r_value(&e.right)?.into_int_value();
+                            self.make_bool(r)?
+                        },
+                        "",
+                    )
+                    .as_basic_value_enum())
             } else {
                 let (l, r) = (
                     self.generate_r_value(&e.left)?.into_int_value(),
@@ -277,8 +365,8 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                     Operator::Greater => build_int_compare(IntPredicate::SGT, l, r),
                     Operator::LessOrEqual => build_int_compare(IntPredicate::SLE, l, r),
                     Operator::GreaterOrEqual => build_int_compare(IntPredicate::SGE, l, r),
-                    // binary
-                    Operator::Xor => self.llvm.builder.build_xor(self.make_bool(l)?, self.make_bool(r)?, ""),
+                    // others
+                    Operator::Modulo => self.llvm.builder.build_int_signed_rem(l, r, "tmpVar"),
                     _ => {
                         anyhow::bail!("Unsupported operator {:?} for int values", e.operator);
                     }
@@ -309,6 +397,8 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 Operator::Greater => build_float_compare(FloatPredicate::OGT, l, r),
                 Operator::LessOrEqual => build_float_compare(FloatPredicate::OLE, l, r),
                 Operator::GreaterOrEqual => build_float_compare(FloatPredicate::OGE, l, r),
+                // others
+                Operator::Modulo => self.llvm.builder.build_float_rem(l, r, "tmpVar").as_basic_value_enum(),
                 _ => {
                     anyhow::bail!("Unsupported operator {:?} for float values", e.operator);
                 }
@@ -410,19 +500,42 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
     ) -> Result<GeneratedValue<'ink>> {
         // collect formal and actual parameters
-        let formal_parameters = self.index.get_pou_members(prg.get_name());
+        let formal_parameters =
+            self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
         let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment()) {
             // explicit calls in random order: foo(formal := actual, formal := actual)
+            // TODO: for now we only support the case where the order of the parameters is the same and all are here
             assert_eq!(formal_parameters.len(), actual_parameters.len());
+            actual_parameters
+                .iter()
+                .map(|assignment| {
+                    if let AstStatement::Assignment(Assignment { left, right: actual, .. })
+                        | AstStatement::OutputAssignment(Assignment { left, right: actual, .. })
+                     =
+                        assignment.get_stmt()
+                    {
+                        if let Some(formal) = self
+                            .annotations
+                            .get(left)
+                            .and_then(|it| it.qualified_name())
+                            .and_then(|qname| self.index.find_fully_qualified_variable(qname))
+                        {
+                            return Ok(Argument::new(formal, actual));
+                        }
+                    }
+                    bail!("Cannot determine formal parameter for assignment {assignment:#?}");
+                })
+                .collect::<Result<Vec<_>>>()?
+        } else {
+            // implicit calls in order: foo(actual, actual, actual)
+            assert_eq!(formal_parameters.len(), actual_parameters.len());
+            // the order is the order of declaration
             formal_parameters
                 .iter()
                 .zip(actual_parameters.iter())
                 .map(|(formal, actual)| Argument::new(formal, actual))
                 .collect_vec()
-        } else {
-            // implicit calls in order: foo(actual, actual, actual)
-            todo!()
         };
 
         let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
@@ -500,12 +613,22 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             _ => return Err(anyhow!("Expected member_variable but got {:#?}", annotation)),
         };
 
-        access.ok_or_else(|| {
+        access.map(|it| self.auto_deref_if_necessary(it)).ok_or_else(|| {
             anyhow!(
                 "Cannot generate access for identifier {:#?}",
                 self.annotations.get_identifier_name(reference).unwrap_or("<unknown>")
             )
         })
+    }
+
+    fn auto_deref_if_necessary(&self, v: GeneratedValue<'ink>) -> GeneratedValue<'ink> {
+        if let GeneratedValue::LValue((_, id)) = v {
+            // check if we need to deref
+            if self.annotations.get_with_id(id).is_some_and(|opt| opt.is_auto_deref()) {
+                return GeneratedValue::LValue((self.as_r_value_with_name(v, Some("deref")).into_pointer_value(), id));
+            }
+        }
+        v
     }
 
     fn find_local_llvm_variable(&self, llvm_qualified_name: &str, id: AstId) -> Option<GeneratedValue<'ink>> {
@@ -524,14 +647,30 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             .map(|v| GeneratedValue::LValue((v.as_pointer_value(), id)))
     }
 
-    fn as_r_value(&self, v: GeneratedValue<'ink>) -> BasicValueEnum<'ink> {
+    pub fn as_r_value(&self, v: GeneratedValue<'ink>) -> BasicValueEnum<'ink> {
+        self.as_r_value_with_name(v, None)
+    }
+
+    pub fn as_r_value_with_name(&self, v: GeneratedValue<'ink>, name: Option<&str>) -> BasicValueEnum<'ink> {
         let (r_value, id) = match v {
             GeneratedValue::RValue((v, id)) => (v, id),
             GeneratedValue::LValue((v, id)) => {
-                let name = self.get_load_name(id);
-                // load the lvalue to turn it into an rvalue
-                let name = name.map(|name| format!("load_{}", name));
-                (self.llvm.builder.build_load(v, name.as_deref().unwrap_or("")), id)
+                if let Some(name) = name {
+                    // if we have a name, we can use it
+                    (self.llvm.builder.build_load(v, name), id)
+                } else {
+                    // if we don't have a name, we need to generate one
+                    (
+                        self.llvm.builder.build_load(
+                            v,
+                            self.get_load_name(id)
+                                .map(|name| format!("load_{}", name))
+                                .as_deref()
+                                .unwrap_or(""),
+                        ),
+                        id,
+                    )
+                }
             }
             GeneratedValue::NoValue => panic!("No value"),
         };

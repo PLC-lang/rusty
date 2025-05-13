@@ -36,10 +36,15 @@ impl <'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
         let input_assignments = self.arguments
             .iter().filter(|it| it.formal.is_input() || it.formal.is_inout() );
 
+        // let mut pending_output_assignments = Vec::new();
+
         // INPUTs
         for argument in input_assignments {
             // we assume explicit parameters only (formal := actual)
-            let actual_value = variable_visitor.generate_r_value(argument.actual)?;
+            let actual_value = variable_visitor.generate_r_value(dbg!(argument.actual))?;
+            // let actual_generated_value = variable_visitor.generate_expression(argument.actual)?;
+            // let actual_ptr_value = actual_generated_value.as_pointer_value()?;
+            // let actual_value = variable_visitor.as_r_value(actual_generated_value);
 
             let gep = self.llvm
                 .builder
@@ -50,27 +55,32 @@ impl <'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
                 )
                 .map_err(|_e| anyhow!("Failed to create GEP"))?;
             self.llvm.builder.build_store(gep, actual_value);
+
+            // if argument.formal.is_inout() {
+            //     pending_output_assignments.push(move ||{
+            //         self.llvm.builder.build_store(actual_ptr_value, 
+            //             self.llvm.builder.build_load(gep, "")
+            //         );
+            //     });
+            // }
         }
         self.llvm.builder.build_call(fv, &[instance.as_basic_value_enum().into()], "call"); //todo we should use the function's name here?
 
         // OUTPUTs
         for parameter in self.arguments.iter().filter(|it| it.formal.is_output()) {
-            let AstStatement::OutputAssignment(Assignment { right, .. }) = parameter.actual.get_stmt() else {
-                unreachable!("Expected output assignment");
-            };
-            
-            // gep the left side
-            let target_ptr = self.llvm
+             // gep the left side and load the value
+            let output_variable = self.llvm
                 .builder
                 .build_struct_gep(*instance, parameter.formal.get_location_in_parent(), "")
                 .map_err(|_e| anyhow!("Failed to create GEP"))?;
+            let value = self.llvm.builder.build_load(output_variable, "");
 
             // store into the right side
-            let right = variable_visitor.generate_r_value(right)?;
-
+            let target = variable_visitor.generate_expression(parameter.actual)?.as_pointer_value()?;
             self.llvm.builder.build_store(
-                target_ptr,
-                right);
+                target,
+                value);
+
         }
         Ok(GeneratedValue::NoValue)
     }
