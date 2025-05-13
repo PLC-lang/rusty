@@ -698,6 +698,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 location.get_line(),
                 location.get_column(),
             );
+            // assocate the this pointer
+            index.associate_loaded_local_variable(type_name, "__this", param_pointer)?;
         }
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep

@@ -222,16 +222,24 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                     )
                 }
                 Some((call_name, StatementAnnotation::Program { qualified_name, .. })) => {
-                    let instance = self
-                        .llvm_index
-                        .find_global_value(&qualified_name)
-                        .expect("global value not found")
-                        .as_pointer_value();
-
                     let prg = self.index.find_pou(qualified_name).expect("program not found");
 
+                    let instance = self
+                        .llvm_index
+                        .find_loaded_associated_variable_value(
+                            format!("{}.{}", prg.get_container(), "__this").as_str(), //todo: use constant for this, maybe call it just "this"?
+                        )
+                        .or_else(
+                            || {
+                                self.llvm_index
+                                    .find_global_value(prg.get_container())
+                                    .map(|it| it.as_pointer_value())
+                            }, // works for pou and action
+                        )
+                        .expect("global value not found");
+
                     // program call
-                    self.generate_program_call(
+                    self.generate_member_call(
                         self.llvm_index.find_associated_implementation(call_name).expect(""),
                         &instance,
                         prg,
@@ -241,9 +249,14 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 Some((call_name, StatementAnnotation::Variable { resulting_type: qualified_name, .. })) => {
                     // function block instance
                     let pou = self.index.find_pou(&qualified_name).expect("");
-                    let implementation = self.index.find_implementation_by_name(call_name);
 
-                    todo!()
+                    let instance = self.generate_expression(&stmt.operator)?.as_pointer_value()?;
+                    self.generate_member_call(
+                        self.llvm_index.find_associated_implementation(call_name).expect(""),
+                        &instance,
+                        pou,
+                        &actual_parameters,
+                    )
                 }
                 Some((impl_name, StatementAnnotation::Value { .. })) => {
                     todo!()
@@ -492,7 +505,8 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             .unwrap_or_else(|| GeneratedValue::NoValue))
     }
 
-    fn generate_program_call(
+    /// generates a call to a program or function block
+    fn generate_member_call(
         &mut self,
         fv: FunctionValue<'ink>,
         instance: &PointerValue<'ink>,
@@ -504,15 +518,12 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
         let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment()) {
-            // explicit calls in random order: foo(formal := actual, formal := actual)
-            // TODO: for now we only support the case where the order of the parameters is the same and all are here
-            assert_eq!(formal_parameters.len(), actual_parameters.len());
+            // explicit calls in random order: foo(formal := )actual, formal := actual)
             actual_parameters
                 .iter()
                 .map(|assignment| {
                     if let AstStatement::Assignment(Assignment { left, right: actual, .. })
-                        | AstStatement::OutputAssignment(Assignment { left, right: actual, .. })
-                     =
+                    | AstStatement::OutputAssignment(Assignment { left, right: actual, .. }) =
                         assignment.get_stmt()
                     {
                         if let Some(formal) = self
@@ -625,7 +636,10 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         if let GeneratedValue::LValue((_, id)) = v {
             // check if we need to deref
             if self.annotations.get_with_id(id).is_some_and(|opt| opt.is_auto_deref()) {
-                return GeneratedValue::LValue((self.as_r_value_with_name(v, Some("deref")).into_pointer_value(), id));
+                return GeneratedValue::LValue((
+                    self.as_r_value_with_name(v, Some("deref")).into_pointer_value(),
+                    id,
+                ));
             }
         }
         v

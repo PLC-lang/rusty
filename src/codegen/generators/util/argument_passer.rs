@@ -36,15 +36,16 @@ impl <'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
         let input_assignments = self.arguments
             .iter().filter(|it| it.formal.is_input() || it.formal.is_inout() );
 
-        // let mut pending_output_assignments = Vec::new();
-
         // INPUTs
         for argument in input_assignments {
-            // we assume explicit parameters only (formal := actual)
-            let actual_value = variable_visitor.generate_r_value(dbg!(argument.actual))?;
-            // let actual_generated_value = variable_visitor.generate_expression(argument.actual)?;
-            // let actual_ptr_value = actual_generated_value.as_pointer_value()?;
-            // let actual_value = variable_visitor.as_r_value(actual_generated_value);
+
+            let actual_value = if argument.formal.is_inout() {
+                // if this is an inout, we need to pass a pointer
+                variable_visitor.generate_expression(argument.actual)?.as_pointer_value()?.into()
+            } else {
+                // if this is an input we pass an rvalue
+                variable_visitor.generate_r_value(dbg!(argument.actual))?
+            };
 
             let gep = self.llvm
                 .builder
@@ -55,14 +56,6 @@ impl <'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
                 )
                 .map_err(|_e| anyhow!("Failed to create GEP"))?;
             self.llvm.builder.build_store(gep, actual_value);
-
-            // if argument.formal.is_inout() {
-            //     pending_output_assignments.push(move ||{
-            //         self.llvm.builder.build_store(actual_ptr_value, 
-            //             self.llvm.builder.build_load(gep, "")
-            //         );
-            //     });
-            // }
         }
         self.llvm.builder.build_call(fv, &[instance.as_basic_value_enum().into()], "call"); //todo we should use the function's name here?
 
