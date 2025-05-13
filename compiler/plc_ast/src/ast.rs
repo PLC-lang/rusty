@@ -1487,7 +1487,12 @@ impl Operator {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
+    use plc_source::source_location::SourceLocation;
+
+    use crate::{
+        ast::{ArgumentProperty, AstFactory, DeclarationKind, PouType, VariableBlockType},
+        provider::IdProvider,
+    };
 
     #[test]
     fn display_pou() {
@@ -1517,9 +1522,42 @@ mod tests {
         assert_eq!(VariableBlockType::Global.to_string(), "Global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
     }
+
+    #[test]
+    fn qualified_reference_from_str() {
+        let value = "grandparent.parent.child";
+        insta::assert_debug_snapshot!(AstFactory::create_qualified_reference_from_str(value, SourceLocation::internal(), IdProvider::default()), @r###"
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "child",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "parent",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "grandparent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            ),
+        }
+        "###);
+    }
 }
 
-pub struct AstFactory {}
+pub struct AstFactory;
 
 impl AstFactory {
     pub fn create_empty_statement(location: SourceLocation, id: AstId) -> AstNode {
@@ -1930,7 +1968,25 @@ impl AstFactory {
         let one = AstFactory::create_literal(AstLiteral::Integer(1), location.clone(), id);
         AstFactory::create_binary_expression(value, Operator::Plus, one, id)
     }
+
+    pub fn create_qualified_reference_from_str(
+        value: &str,
+        location: SourceLocation,
+        mut id_provider: IdProvider,
+    ) -> AstNode {
+        value
+            .split(".")
+            .fold(None, |base, next| {
+                Some(AstFactory::create_member_reference(
+                    AstFactory::create_identifier(next, location.clone(), id_provider.next_id()),
+                    base,
+                    id_provider.next_id(),
+                ))
+            })
+            .unwrap_or_else(|| AstFactory::create_empty_statement(location, id_provider.next_id()))
+    }
 }
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}
 

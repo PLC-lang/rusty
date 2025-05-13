@@ -191,7 +191,7 @@ fn create_init_unit(
 
     let mut statements = assignments
         .iter()
-        .filter_map(|(lhs_name, initializer)| {
+        .flat_map(|(lhs_name, initializer)| {
             create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
         })
         .collect::<Vec<_>>();
@@ -341,7 +341,7 @@ fn create_init_wrapper_function(
     let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
-            .filter_map(|(var_name, initializer)| {
+            .flat_map(|(var_name, initializer)| {
                 create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
             })
             .collect::<Vec<_>>()
@@ -493,4 +493,386 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
+}
+
+#[cfg(test)]
+mod tests {
+    use test_utils::parse_and_validate_buffered_ast;
+
+    #[test]
+    fn complex_initializers_assigned_in_init() {
+        let src = r#"
+        VAR_GLOBAL
+            a : INT := 1;
+            b : INT := 2;
+            c : INT := 3;
+            d : INT := 2;
+        END_VAR
+        TYPE Parent : STRUCT
+            a : REF_TO INT := REF(a);
+            b : INT;
+        END_STRUCT
+        END_TYPE
+        TYPE Child : STRUCT
+            parent: Parent := (a := REF(c));
+            parent2: Parent := (a := REF(c), b := 3);
+            c : INT;
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        insta::assert_debug_snapshot!(units[1], @r###"
+        CompilationUnit {
+            global_vars: [
+                VariableBlock {
+                    variables: [],
+                    variable_block_type: Global,
+                },
+            ],
+            var_config: [],
+            pous: [
+                POU {
+                    name: "__init_parent",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "self",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "Parent",
+                                    },
+                                },
+                            ],
+                            variable_block_type: InOut,
+                        },
+                    ],
+                    pou_type: Init,
+                    return_type: None,
+                    interfaces: [],
+                    properties: [],
+                },
+                POU {
+                    name: "__init_child",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "self",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "Child",
+                                    },
+                                },
+                            ],
+                            variable_block_type: InOut,
+                        },
+                    ],
+                    pou_type: Init,
+                    return_type: None,
+                    interfaces: [],
+                    properties: [],
+                },
+                POU {
+                    name: "__user_init_Parent",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "self",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "Parent",
+                                    },
+                                },
+                            ],
+                            variable_block_type: InOut,
+                        },
+                    ],
+                    pou_type: Init,
+                    return_type: None,
+                    interfaces: [],
+                    properties: [],
+                },
+                POU {
+                    name: "__user_init_Child",
+                    variable_blocks: [
+                        VariableBlock {
+                            variables: [
+                                Variable {
+                                    name: "self",
+                                    data_type: DataTypeReference {
+                                        referenced_type: "Child",
+                                    },
+                                },
+                            ],
+                            variable_block_type: InOut,
+                        },
+                    ],
+                    pou_type: Init,
+                    return_type: None,
+                    interfaces: [],
+                    properties: [],
+                },
+            ],
+            implementations: [
+                Implementation {
+                    name: "__init_parent",
+                    type_name: "__init_parent",
+                    linkage: Internal,
+                    pou_type: Init,
+                    statements: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "a",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "self",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                            right: CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "REF",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "a",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(7:13 - 7:19),
+                    },
+                    name_location: SourceLocation {
+                        span: Range(7:13 - 7:19),
+                    },
+                    end_location: SourceLocation {
+                        span: Range(7:13 - 7:19),
+                    },
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                },
+                Implementation {
+                    name: "__init_child",
+                    type_name: "__init_child",
+                    linkage: Internal,
+                    pou_type: Init,
+                    statements: [
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__init_parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__init_parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent2",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: Range(12:13 - 12:18),
+                    },
+                    name_location: SourceLocation {
+                        span: Range(12:13 - 12:18),
+                    },
+                    end_location: SourceLocation {
+                        span: Range(12:13 - 12:18),
+                    },
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                },
+                Implementation {
+                    name: "__user_init_Parent",
+                    type_name: "__user_init_Parent",
+                    linkage: Internal,
+                    pou_type: Init,
+                    statements: [],
+                    location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    name_location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    end_location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                },
+                Implementation {
+                    name: "__user_init_Child",
+                    type_name: "__user_init_Child",
+                    linkage: Internal,
+                    pou_type: Init,
+                    statements: [
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__user_init_Parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                        CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__user_init_Parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "parent2",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ],
+                    location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    name_location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    end_location: SourceLocation {
+                        span: None,
+                        file: Some(
+                            "__initializers",
+                        ),
+                    },
+                    overriding: false,
+                    generic: false,
+                    access: None,
+                },
+            ],
+            interfaces: [],
+            user_types: [],
+            file: Internal(
+                "__initializers",
+            ),
+        }
+        "###);
+    }
 }
