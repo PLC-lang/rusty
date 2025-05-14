@@ -1387,6 +1387,36 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    /*
+    [src/validation/statement.rs:558:5] &statement = ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "instance",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "self",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    [src/validation/statement.rs:558:5] context.annotations.get(statement) = Some(
+        Variable {
+            resulting_type: "Parent",
+            qualified_name: "Child.instance",
+            constant: false,
+            argument_type: ByVal(
+                Input,
+            ),
+            auto_deref: None,
+        },
+    )
+     */
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type_declaration);
         if let Some(initializer) = variable.initializer.as_ref() {
@@ -2053,6 +2083,9 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
+            /// TODO(volsa): This feels wrong?
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(expr), .. }) => self.resolve_reference_expression(expr, qualifier, ctx),
+
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()

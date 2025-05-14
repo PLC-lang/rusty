@@ -67,7 +67,9 @@
             },
             "args": [
                 "target/demo.st",
-                "tests/lit/util/printf.pli"
+                "tests/lit/util/printf.pli",
+                "-j",
+                "1",
             ],
             "cwd": "${workspaceFolder}",
             "env": {

@@ -578,7 +578,6 @@ fn evaluate_with_target_hint(
             Some(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) => {
-            dbg!(expr, target_type);
             match evaluate_with_target_hint(expr, scope, index, target_type, lhs) {
                 Ok(init) => Ok(init),
                 Err(UnresolvableKind::Address(mut init)) => {

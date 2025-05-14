@@ -875,4 +875,63 @@ mod tests {
         }
         "###);
     }
+
+    #[test]
+    fn demo() {
+        let source = r"
+            VAR_GLOBAL
+                globalVar : DINT;
+            END_VAR
+
+            TYPE Parent: 
+                STRUCT
+                    foo : REF_TO DINT;
+                END_STRUCT
+            END_TYPE
+
+            TYPE Child:
+                STRUCT
+                    instance : Parent := (foo := REF(globalVar));
+                END_STRUCT
+            END_TYPE
+        ";
+
+        let units = parse_and_validate_buffered_ast(source);
+
+        assert_eq!(units[1].implementations[1].name, "__init_child");
+        insta::assert_debug_snapshot!(units[1].implementations[1].statements, @r#"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instance",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        ]
+        "#);
+
+    }
 }
