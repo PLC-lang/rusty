@@ -7,7 +7,7 @@ use itertools::Itertools;
 use plc_ast::{
     ast::{
         flatten_expression_list, Assignment, AstId, AstNode, AstStatement, BinaryExpression, Operator,
-        ReferenceAccess,
+        ReferenceAccess, ReferenceExpr,
     },
     literals::AstLiteral,
     visitor::AstVisitor,
@@ -21,7 +21,7 @@ use crate::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::cast_if_needed,
     },
-    index::{Index, PouIndexEntry},
+    index::{indexer::pou_indexer::PouIndexer, Index, PouIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
 };
@@ -213,36 +213,49 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 stmt.parameters.as_deref().map(|p| flatten_expression_list(p)).unwrap_or_default();
 
             match self.annotations.get_call_name(&stmt.operator).zip(self.annotations.get(&stmt.operator)) {
-                Some((call_name, StatementAnnotation::Function { .. })) => {
-                    //function call
-                    self.generate_function_call(
-                        self.llvm_index.find_associated_implementation(call_name).expect(""),
-                        &actual_parameters,
-                        &node,
-                    )
+                Some((call_name, StatementAnnotation::Function { qualified_name, .. })) => {
+                    let function_to_call = self.llvm_index.find_associated_implementation(call_name).expect("");
+                    let pou = self.index.find_pou(&qualified_name);
+                    if let Some(method) = pou.filter(|it| it.is_method()) {
+                        //method call
+                        self.generate_method_call(method, function_to_call, &actual_parameters, &stmt.operator, &node)
+                    } else {
+                        //function call
+                        self.generate_function_call(function_to_call, &actual_parameters, &node)
+                    }
                 }
                 Some((call_name, StatementAnnotation::Program { qualified_name, .. })) => {
-                    let prg = self.index.find_pou(qualified_name).expect("program not found");
+                    let prg_or_action = dbg!(self.index.find_pou(qualified_name).expect("program not found"));
 
-                    let instance = self
-                        .llvm_index
-                        .find_loaded_associated_variable_value(
-                            format!("{}.{}", prg.get_container(), "__this").as_str(), //todo: use constant for this, maybe call it just "this"?
-                        )
-                        .or_else(
-                            || {
-                                self.llvm_index
-                                    .find_global_value(prg.get_container())
-                                    .map(|it| it.as_pointer_value())
-                            }, // works for pou and action
-                        )
-                        .expect("global value not found");
+                    // todo: move to helper method
+                    // find the instance pointer for this call to a prg or action
+                    // let container = self.index.find_pou(prg_or_action.get_container()).expect("Action without a container?");
+                    // the operator should be a qualifed expression
+                    let instance =
+                        if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) =
+                            &stmt.operator.get_stmt_peeled()
+                        {
+                            self.generate_expression(base)?.as_pointer_value()?
+                        } else {
+                            self.llvm_index
+                                .find_loaded_associated_variable_value(
+                                    format!("{}.{}", prg_or_action.get_container(), "__this").as_str(), //todo: use constant for this, maybe call it just "this"?
+                                )
+                                .or_else(
+                                    || {
+                                        self.llvm_index
+                                            .find_global_value(prg_or_action.get_container())
+                                            .map(|it| it.as_pointer_value())
+                                    }, // works for pou and action
+                                )
+                                .expect("global value not found")
+                        };
 
                     // program call
                     self.generate_member_call(
                         self.llvm_index.find_associated_implementation(call_name).expect(""),
                         &instance,
-                        prg,
+                        prg_or_action,
                         &actual_parameters,
                     )
                 }
@@ -488,13 +501,52 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
         ast_node: &AstNode,
     ) -> Result<GeneratedValue<'ink>> {
-        // let formal_parameters = formal_parameters
-        //     .iter()
-        //     .map(|e| (e.get_name(), e.get_location_in_parent()))
-        //     .collect::<HashMap<_, _>>();
-
         let args = self.generate_all(actual_parameters)?;
 
+        let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
+
+        // reutrn either the return value or a NoValue
+        Ok(function_result
+            .try_as_basic_value()
+            .left()
+            .map(|it| GeneratedValue::RValue((it, ast_node.get_id())))
+            .unwrap_or_else(|| GeneratedValue::NoValue))
+    }
+
+    fn generate_method_call(
+        &mut self,
+        method: &PouIndexEntry,
+        fv: FunctionValue<'ink>,
+        // formal_parameters: &[&VariableIndexEntry],
+        actual_parameters: &[&AstNode],
+        call_operator: &AstNode,
+        ast_node: &AstNode,
+    ) -> Result<GeneratedValue<'ink>> {
+
+        //todo: cleanup this handling, who is this from within a method?
+        //       unify implementatino for action method calling
+        let instance = if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) =
+            &call_operator.get_stmt_peeled()
+        {
+            self.generate_expression(base)?.as_pointer_value()?
+        } else {
+            self.llvm_index
+                .find_loaded_associated_variable_value(
+                    format!("{}.{}", method.get_container(), "__this").as_str(), //todo: use constant for this, maybe call it just "this"?
+                )
+                .or_else(
+                    || {
+                        self.llvm_index
+                            .find_global_value(method.get_container())
+                            .map(|it| it.as_pointer_value())
+                    }, // works for pou and action
+                )
+                .expect("global value not found")
+        };
+
+
+        let mut args = self.generate_all(actual_parameters)?;
+        args.insert(0, instance.into());
         let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
 
         // reutrn either the return value or a NoValue
@@ -514,10 +566,15 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
     ) -> Result<GeneratedValue<'ink>> {
         // collect formal and actual parameters
-        let formal_parameters =
-            self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
+        let formal_parameters = self
+            .index
+            .get_pou_members(dbg!(prg).get_name())
+            .iter()
+            .filter(|e| e.is_parameter())
+            .collect_vec();
 
-        let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment()) {
+        let mut arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment())
+        {
             // explicit calls in random order: foo(formal := )actual, formal := actual)
             actual_parameters
                 .iter()
@@ -548,6 +605,11 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 .map(|(formal, actual)| Argument::new(formal, actual))
                 .collect_vec()
         };
+
+        //if this is a method call we need to pass the instance pointer as first argument
+        // if prg.is_method() {
+        //     arguments.insert(0, Argument::new(formal, actual)); //todo: introduce this
+        // }
 
         let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
         let _ = call.generate_program_call(fv, instance, self)?;
