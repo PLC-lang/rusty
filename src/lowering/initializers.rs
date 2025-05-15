@@ -189,7 +189,7 @@ fn create_init_unit(
 
     let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, &location);
 
-    let mut statements = assignments
+    let statements = assignments
         .iter()
         .flat_map(|(lhs_name, initializer)| {
             create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
@@ -223,7 +223,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(member_init_calls);
+    let statements = [member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -525,6 +525,64 @@ mod tests {
         assert_eq!(units[1].implementations[1].name, "__init_child");
         insta::assert_debug_snapshot!(units[1].implementations[1].statements, @r###"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent2",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -667,64 +725,6 @@ mod tests {
                     value: 3,
                 },
             },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_parent",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "parent",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_parent",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "parent2",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
         ]
         "###);
     }
@@ -754,6 +754,35 @@ mod tests {
         assert_eq!(units[1].implementations[0].name, "__init_child");
         insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r###"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instance",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -806,35 +835,6 @@ mod tests {
                         },
                     ),
                 },
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_parent",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "instance",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
             },
         ]
         "###);
