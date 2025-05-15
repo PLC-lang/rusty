@@ -1,3 +1,5 @@
+use std::default;
+
 use anyhow::{anyhow, bail, Error, Result};
 use inkwell::{
     values::{BasicValue, BasicValueEnum, FloatValue, FunctionValue, IntValue, PointerValue},
@@ -21,7 +23,7 @@ use crate::{
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::cast_if_needed,
     },
-    index::{indexer::pou_indexer::PouIndexer, Index, PouIndexEntry},
+    index::{indexer::pou_indexer::PouIndexer, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{DataType, DataTypeInformation},
 };
@@ -214,14 +216,40 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
 
             match self.annotations.get_call_name(&stmt.operator).zip(self.annotations.get(&stmt.operator)) {
                 Some((call_name, StatementAnnotation::Function { qualified_name, .. })) => {
-                    let function_to_call = self.llvm_index.find_associated_implementation(call_name).expect("");
-                    let pou = self.index.find_pou(&qualified_name);
-                    if let Some(method) = pou.filter(|it| it.is_method()) {
-                        //method call
-                        self.generate_method_call(method, function_to_call, &actual_parameters, &stmt.operator, &node)
+                    let function_to_call =
+                        self.llvm_index.find_associated_implementation(call_name).expect("");
+                    let pou = self
+                        .index
+                        .find_pou(&qualified_name)
+                        .ok_or_else(|| anyhow!("Cannot find function {:#?}", qualified_name))?;
+
+                    let formal_parameters = self
+                        .index
+                        .get_pou_members(pou.get_name())
+                        .iter()
+                        .filter(|e| e.is_parameter())
+                        .collect_vec();
+
+                    if pou.is_method() {
+                        // method call
+                        //todo: harmonize parameters with function case
+                        self.generate_method_call(
+                            pou,
+                            function_to_call,
+                            &actual_parameters,
+                            &stmt.operator,
+                            &node,
+                        )
+                    } else if pou.is_function() {
+                        // function call
+                        self.generate_function_call(
+                            function_to_call,
+                            &formal_parameters,
+                            &actual_parameters,
+                            &node,
+                        )
                     } else {
-                        //function call
-                        self.generate_function_call(function_to_call, &actual_parameters, &node)
+                        bail!("Expected a function or method but got {:#?}", pou);
                     }
                 }
                 Some((call_name, StatementAnnotation::Program { qualified_name, .. })) => {
@@ -497,11 +525,15 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
     fn generate_function_call(
         &mut self,
         fv: FunctionValue<'ink>,
-        // formal_parameters: &[&VariableIndexEntry],
+        formal_parameters: &[&VariableIndexEntry],
         actual_parameters: &[&AstNode],
         ast_node: &AstNode,
     ) -> Result<GeneratedValue<'ink>> {
-        let args = self.generate_all(actual_parameters)?;
+        //todo: check if we can have defualt parameters in functions
+
+        let args = self.generate_all(
+            &actual_parameters.iter().cloned().zip(formal_parameters.iter().cloned()).collect_vec(),
+        )?;
 
         let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
 
@@ -522,7 +554,6 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         call_operator: &AstNode,
         ast_node: &AstNode,
     ) -> Result<GeneratedValue<'ink>> {
-
         //todo: cleanup this handling, who is this from within a method?
         //       unify implementatino for action method calling
         let instance = if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) =
@@ -544,8 +575,30 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 .expect("global value not found")
         };
 
+        // fill in default parameters at the end
+        let formal_parameters =
+            self.index.get_pou_members(method.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
-        let mut args = self.generate_all(actual_parameters)?;
+        let mut args = Vec::from(actual_parameters);
+        // let mut args = self.generate_all(actual_parameters)?;
+
+        if args.len() < formal_parameters.len() {
+            let default_parameters = formal_parameters
+                .iter()
+                .skip(args.len())
+                .flat_map(|e| {
+                    self.index.get_const_expressions().maybe_get_constant_statement(&e.initial_value)
+                })
+                .collect_vec();
+            args.extend(default_parameters);
+        }
+
+        assert_eq!(args.len(), formal_parameters.len());
+
+        let mut args =
+            self.generate_all(&args.into_iter().zip(formal_parameters.into_iter()).collect_vec())?;
+
+        // insert the instance pointer as first argument
         args.insert(0, instance.into());
         let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
 
@@ -619,13 +672,25 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
 
     fn generate_all(
         &mut self,
-        actual_parameters: &[&AstNode],
+        actual_parameters: &[(&AstNode, &VariableIndexEntry)],
     ) -> Result<Vec<inkwell::values::BasicMetadataValueEnum<'ink>>, Error> {
         let args = actual_parameters
             .iter()
-            .map(|value| {
+            .map(|(value, e)| {
                 self.visit(value);
-                self.pop_value(value).map(|v| self.as_r_value(v).into())
+                let v = self.pop_value(value);
+                if e.is_inout() {
+                    v.and_then(|it| {
+                        it.as_pointer_value().map(|it| it.into()).map_err(|e| {
+                            Diagnostic::codegen_error(
+                                format!("Cannot generate inout parameter: {e}"),
+                                value.get_location(),
+                            )
+                        })
+                    }) // TODO: use anyhow error
+                } else {
+                    v.map(|v| self.as_r_value(v).into())
+                }
             })
             .collect::<Result<Vec<_>, _>>()?;
         Ok(args)
