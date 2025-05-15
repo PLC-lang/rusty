@@ -291,8 +291,6 @@ fn validate_variable<T: AnnotationMap>(
                         };
 
                         let Some(rhs_ty) = context.annotations.get_type(node, context.index) else {
-                            let type_name = init.target_type_name.clone().unwrap_or_default();
-                            validator.push_diagnostic(Diagnostic::unknown_type(&type_name, node));
                             return;
                         };
 

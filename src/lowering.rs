@@ -433,14 +433,45 @@ fn create_assignment_if_necessary(
     lhs_ident: &str,
     base_ident: Option<&str>,
     rhs: &Option<AstNode>,
-    mut id_provider: IdProvider,
-) -> Option<AstNode> {
-    let lhs = create_member_reference(
-        lhs_ident,
+    id_provider: IdProvider,
+) -> Vec<AstNode> {
+    let Some(rhs) = rhs else {
+        return vec![];
+    };
+    let ident = base_ident.map(|it| format!("{it}.{lhs_ident}")).unwrap_or(lhs_ident.to_owned());
+    let lhs = AstFactory::create_qualified_reference_from_str(
+        &ident,
+        SourceLocation::internal(),
         id_provider.clone(),
-        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
-    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+    create_reference_assignments(lhs, rhs.to_owned(), id_provider)
+}
+fn create_reference_assignments(lhs: AstNode, rhs: AstNode, mut id_provider: IdProvider) -> Vec<AstNode> {
+    let mut assignments = vec![];
+    match rhs.stmt {
+        AstStatement::ExpressionList(ast_nodes) => {
+            for ast_node in ast_nodes {
+                assignments.extend(create_reference_assignments(lhs.clone(), ast_node, id_provider.clone()));
+            }
+        }
+        AstStatement::ParenExpression(ast_node) => {
+            assignments.extend(create_reference_assignments(lhs, *ast_node, id_provider));
+        }
+        AstStatement::Assignment(mut assignment) => {
+            // assignment.left = Box::new(lhs);
+            let left = std::mem::take(&mut assignment.left);
+            let lhs = AstFactory::create_member_reference(*left, Some(lhs), id_provider.next_id());
+            assignment.left = Box::new(lhs);
+            assignments.push(AstFactory::create_assignment(
+                *assignment.left,
+                *assignment.right,
+                id_provider.next_id(),
+            ));
+        }
+        _ => assignments.push(AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())),
+    };
+
+    assignments
 }
 
 fn create_ref_assignment(

@@ -189,9 +189,9 @@ fn create_init_unit(
 
     let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, &location);
 
-    let mut statements = assignments
+    let statements = assignments
         .iter()
-        .filter_map(|(lhs_name, initializer)| {
+        .flat_map(|(lhs_name, initializer)| {
             create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
         })
         .collect::<Vec<_>>();
@@ -223,7 +223,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(member_init_calls);
+    let statements = [member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -341,7 +341,7 @@ fn create_init_wrapper_function(
     let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
-            .filter_map(|(var_name, initializer)| {
+            .flat_map(|(var_name, initializer)| {
                 create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
             })
             .collect::<Vec<_>>()
@@ -493,4 +493,350 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
+}
+
+#[cfg(test)]
+mod tests {
+    use test_utils::parse_and_validate_buffered_ast;
+
+    #[test]
+    fn complex_initializers_assigned_in_init() {
+        let src = r#"
+        VAR_GLOBAL
+            a : INT := 1;
+            b : INT := 2;
+            c : INT := 3;
+            d : INT := 2;
+        END_VAR
+        TYPE Parent : STRUCT
+            a : REF_TO INT := REF(a);
+            b : INT;
+        END_STRUCT
+        END_TYPE
+        TYPE Child : STRUCT
+            parent: Parent := (a := REF(c));
+            parent2: Parent := (a := REF(c), b := 3);
+            c : INT;
+        END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[1].implementations[1].name, "__init_child");
+        insta::assert_debug_snapshot!(units[1].implementations[1].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent2",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "a",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "parent",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "c",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "a",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "parent2",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "c",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "b",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "parent2",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 3,
+                },
+            },
+        ]
+        "###);
+    }
+
+    #[test]
+    fn demo() {
+        let source = r"
+            VAR_GLOBAL
+                globalVar : DINT;
+            END_VAR
+
+            TYPE Parent: 
+                STRUCT
+                    foo : REF_TO DINT;
+                END_STRUCT
+            END_TYPE
+
+            TYPE Child:
+                STRUCT
+                    instance : Parent := (foo := REF(globalVar));
+                END_STRUCT
+            END_TYPE
+        ";
+
+        let units = parse_and_validate_buffered_ast(source);
+
+        assert_eq!(units[1].implementations[0].name, "__init_child");
+        insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_parent",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instance",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instance",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalVar",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+        ]
+        "###);
+    }
 }

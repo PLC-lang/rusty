@@ -1308,3 +1308,29 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
       │                                             ^^ Cannot assign address of temporary variable to a member-variable
     "###)
 }
+
+#[test]
+fn temp() {
+    let diagnostics = parse_and_validate_buffered(
+        r"
+        VAR_GLOBAL
+            a : MyType;
+            b : MyStruct;
+        END_VAR
+
+        TYPE MyType: 
+            INT := 'hello'; // Invalid type, <integer> := <string>
+        END_TYPE
+
+        TYPE MyStruct:
+            STRUCT
+                a: DINT := 'hello'; // Invalid type, <integer> := <string>
+                b: DINT := 8;
+            END_STRUCT
+        END_TYPE
+    ",
+    );
+
+    assert!(!diagnostics.is_empty());
+    assert_snapshot!(diagnostics, @r"");
+}

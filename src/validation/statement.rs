@@ -1565,7 +1565,7 @@ fn validate_case_statement<T: AnnotationMap>(
 
         // validate for duplicate conditions
         // first try to evaluate the conditions value
-        const_evaluator::evaluate(condition, context.qualifier, context.index)
+        const_evaluator::evaluate(condition, context.qualifier, context.index, None)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
                 validator.push_diagnostic(
