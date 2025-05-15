@@ -2083,8 +2083,10 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
-            /// TODO(volsa): This feels wrong?
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(expr), .. }) => self.resolve_reference_expression(expr, qualifier, ctx),
+            // TODO(volsa): This feels wrong?
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(expr), .. }) => {
+                self.resolve_reference_expression(expr, qualifier, ctx)
+            }
 
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy

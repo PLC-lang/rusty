@@ -6315,7 +6315,6 @@ fn just_this() {
     let statement = &unit.implementations[0].statements[0];
     annotations.get_type_hint(statement, &index); // => none
     annotations.get_type(statement, &index); // => none
-    &index.get_type("fb.__THIS");
     assert!(index.find_type("fb.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
 }

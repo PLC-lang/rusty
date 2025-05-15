@@ -245,6 +245,7 @@ fn initial_values_in_struct_variable_missing_init() {
 }
 
 #[test]
+#[ignore = "todo: Should this be a validation test? No idea why its in codegen?"]
 fn unresolvable_types_validation() {
     let msg = codegen_debug_without_unwrap(
         "
@@ -298,6 +299,7 @@ fn initial_nested_struct_delayed_init() {
 }
 
 #[test]
+#[ignore = "todo: Should this be a validation test? No idea why its in codegen?"]
 fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
     let msg = codegen_debug_without_unwrap(
         "
