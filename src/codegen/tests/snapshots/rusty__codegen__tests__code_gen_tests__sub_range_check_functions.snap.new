@@ -1,0 +1,96 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3767
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+%main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
+
+@main_instance = global %main zeroinitializer
+
+define i32 @CheckRangeSigned(i32 %0, i32 %1, i32 %2) {
+entry:
+  %CheckRangeSigned = alloca i32, align 4
+  %v = alloca i32, align 4
+  store i32 %0, i32* %v, align 4
+  %low = alloca i32, align 4
+  store i32 %1, i32* %low, align 4
+  %up = alloca i32, align 4
+  store i32 %2, i32* %up, align 4
+  store i32 0, i32* %CheckRangeSigned, align 4
+  store i32 -7, i32* %CheckRangeSigned, align 4
+  %CheckRangeSigned_ret = load i32, i32* %CheckRangeSigned, align 4
+  ret i32 %CheckRangeSigned_ret
+}
+
+define i32 @CheckRangeUnsigned(i32 %0, i32 %1, i32 %2) {
+entry:
+  %CheckRangeUnsigned = alloca i32, align 4
+  %v = alloca i32, align 4
+  store i32 %0, i32* %v, align 4
+  %low = alloca i32, align 4
+  store i32 %1, i32* %low, align 4
+  %up = alloca i32, align 4
+  store i32 %2, i32* %up, align 4
+  store i32 0, i32* %CheckRangeUnsigned, align 4
+  store i32 7, i32* %CheckRangeUnsigned, align 4
+  %CheckRangeUnsigned_ret = load i32, i32* %CheckRangeUnsigned, align 4
+  ret i32 %CheckRangeUnsigned_ret
+}
+
+define i64 @CheckLRangeSigned(i64 %0, i64 %1, i64 %2) {
+entry:
+  %CheckLRangeSigned = alloca i64, align 8
+  %v = alloca i64, align 8
+  store i64 %0, i64* %v, align 4
+  %low = alloca i64, align 8
+  store i64 %1, i64* %low, align 4
+  %up = alloca i64, align 8
+  store i64 %2, i64* %up, align 4
+  store i64 0, i64* %CheckLRangeSigned, align 4
+  store i64 -77, i64* %CheckLRangeSigned, align 4
+  %CheckLRangeSigned_ret = load i64, i64* %CheckLRangeSigned, align 4
+  ret i64 %CheckLRangeSigned_ret
+}
+
+define i64 @CheckLRangeUnsigned(i64 %0, i64 %1, i64 %2) {
+entry:
+  %CheckLRangeUnsigned = alloca i64, align 8
+  %v = alloca i64, align 8
+  store i64 %0, i64* %v, align 4
+  %low = alloca i64, align 8
+  store i64 %1, i64* %low, align 4
+  %up = alloca i64, align 8
+  store i64 %2, i64* %up, align 4
+  store i64 0, i64* %CheckLRangeUnsigned, align 4
+  store i64 77, i64* %CheckLRangeUnsigned, align 4
+  %CheckLRangeUnsigned_ret = load i64, i64* %CheckLRangeUnsigned, align 4
+  ret i64 %CheckLRangeUnsigned_ret
+}
+
+define void @main(%main* %0) {
+entry:
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %c = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %d = getelementptr inbounds %main, %main* %0, i32 0, i32 3
+  %e = getelementptr inbounds %main, %main* %0, i32 0, i32 4
+  %f = getelementptr inbounds %main, %main* %0, i32 0, i32 5
+  %g = getelementptr inbounds %main, %main* %0, i32 0, i32 6
+  %h = getelementptr inbounds %main, %main* %0, i32 0, i32 7
+  %i = getelementptr inbounds %main, %main* %0, i32 0, i32 8
+  %j = getelementptr inbounds %main, %main* %0, i32 0, i32 9
+  store i32 1, i8* %a, align 4
+  store i32 1, i8* %b, align 4
+  store i32 1, i8* %c, align 4
+  store i32 1, i16* %d, align 4
+  store i32 1, i16* %e, align 4
+  store i32 1, i16* %f, align 4
+  store i32 1, i32* %g, align 4
+  store i32 1, i32* %h, align 4
+  store i64 1, i64* %i, align 4
+  store i64 1, i64* %j, align 4
+  ret void
+}

@@ -65,39 +65,39 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
 
 impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
     fn visit_literal(&mut self, stmt: &AstLiteral, node: &plc_ast::ast::AstNode) {
-        let do_visit_literal = || -> Result<BasicValueEnum, Diagnostic> {
+        let do_visit_literal = || -> Result<GeneratedValue<'ink>, Diagnostic> {
             let type_hint = self.get_type_hint_for(node)?.get_type_information();
-            let value = match stmt {
+            match stmt {
                 // Integer, Bool, Date, Time, DateAndTime
                 _ if stmt.is_int_numerical() => {
                     let value = stmt.try_int_value().expect("Parser should have checked this"); //parser should have checked this
-                    if type_hint.is_float() {
+                    let v = if type_hint.is_float() {
                         self.literals_generator.generate_const_float(type_hint, value as f64)
                     } else {
                         self.literals_generator.generate_const_int(type_hint, value)
-                    }
+                    };
+                    v.map(|v| GeneratedValue::RValue((v, node.get_id())))
                 }
-                AstLiteral::Null => Ok(self.llvm.create_null()),
+                AstLiteral::Null => Ok(GeneratedValue::NoValue),
                 AstLiteral::Real(v) => {
                     let value = v.parse::<f64>().expect("Failed to parse float"); //parser should have checked this
-                    self.literals_generator.generate_const_float(type_hint, value)
+
+                    self.literals_generator
+                        .generate_const_float(type_hint, value)
+                        .map(|it| GeneratedValue::RValue((it, node.get_id())))
                 }
-                AstLiteral::String(string_value) => {
-                    self.literals_generator.generate_const_string(type_hint, string_value.value())
-                }
+                AstLiteral::String(string_value) => self
+                    .literals_generator
+                    .generate_const_string(type_hint, string_value.value())
+                    .map(|it| GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))),
                 AstLiteral::Array(_array) => todo!(),
                 _ => {
                     unreachable!("Unsupported literal type {stmt:?}");
                 }
-            };
-
-            Ok(self.as_r_value(GeneratedValue::RValue((value?, node.get_id()))))
+            }
         };
 
-        self.push_value(
-            node,
-            do_visit_literal().map(|v| GeneratedValue::RValue((v, node.get_id()))).with_location(node),
-        );
+        self.push_value(node, do_visit_literal().with_location(node));
     }
 
     fn visit_reference_expr(&mut self, stmt: &plc_ast::ast::ReferenceExpr, node: &AstNode) {

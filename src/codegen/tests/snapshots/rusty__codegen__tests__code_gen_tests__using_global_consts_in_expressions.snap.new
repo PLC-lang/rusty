@@ -1,0 +1,29 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3284
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+%prg = type { i32 }
+
+@cA = unnamed_addr constant i16 1
+@cB = unnamed_addr constant i16 2
+@cC = unnamed_addr constant i16 3
+@prg_instance = global %prg zeroinitializer
+
+define void @prg(%prg* %0) {
+entry:
+  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %load_cA = load i16, i16* @cA, align 2
+  %1 = sext i16 %load_cA to i32
+  %load_cB = load i16, i16* @cB, align 2
+  %2 = sext i16 %load_cB to i32
+  %tmpVar = add i32 %1, %2
+  %load_cC = load i16, i16* @cC, align 2
+  %3 = sext i16 %load_cC to i32
+  %tmpVar1 = add i32 %tmpVar, %3
+  store i32 %tmpVar1, i32* %z, align 4
+  ret void
+}

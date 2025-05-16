@@ -1,9 +1,8 @@
-// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     expression_visitor::ExpressionVisitor,
     llvm::Llvm,
-    util::reference_builder::GeneratedValue,
+    util::{assignment_generator, reference_builder::GeneratedValue},
 };
 use crate::{
     codegen::{
@@ -248,7 +247,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
                 if self.annotations.get_type_or_void(statement, self.index).is_void() {
                     expr.generate_expression(statement)?;
-                }else{
+                } else {
                     expr.generate_r_value(statement)?;
                 }
             }
@@ -334,11 +333,19 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         };
 
         let mut exp_visitor = ExpressionVisitor::new(self.llvm, llvm_index, self.annotations, self.index);
-        let left = exp_visitor.generate_expression(left_statement)?.as_pointer_value()
-            .map_err(|_| Diagnostic::codegen_error(
-                "Left side of assignment must be an lvalue",
-                left_statement,
-            ))?;
+        assignment_generator::generate_assignment(left_statement, right_statement, &mut exp_visitor)
+            .map_err(|err| {
+                Diagnostic::codegen_error(
+                    format!("{err:?}").as_str(),
+                    left_statement.location.span(&right_statement.location),
+                )
+            })?;
+
+        // let left = exp_visitor.generate_expression(left_statement)?.as_pointer_value()
+        //     .map_err(|_| Diagnostic::codegen_error(
+        //         "Left side of assignment must be an lvalue",
+        //         left_statement,
+        //     ))?;
         // let left_value = exp_visitor.pop_value()?;
         // let GeneratedValue::LValue(left) = left_value else {
         //     return Err(Diagnostic::codegen_error(
@@ -347,7 +354,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         //     ));
         // };
 
-        let right_statement =  exp_visitor.generate_r_value(right_statement)?;
+        // let right_statement =  exp_visitor.generate_r_value(right_statement)?;
 
         // let exp_gen = self.create_expr_generator(llvm_index);
         // let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
@@ -369,7 +376,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // let right_statement = range_checked_right_side.unwrap_or(right_statement);
 
         // exp_gen.generate_store(left, left_type, right_statement)?;
-          self.llvm.builder.build_store(left, right_statement);
+        //   self.llvm.builder.build_store(left, right_statement);
         Ok(())
     }
 

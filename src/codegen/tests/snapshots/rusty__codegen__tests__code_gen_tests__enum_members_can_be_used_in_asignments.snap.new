@@ -1,0 +1,26 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 2848
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+%main = type { i32 }
+
+@main_instance = global %main zeroinitializer
+@MyEnum.red = unnamed_addr constant i32 0
+@MyEnum.yellow = unnamed_addr constant i32 1
+@MyEnum.green = unnamed_addr constant i32 2
+
+define void @main(%main* %0) {
+entry:
+  %color = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %load_red = load i32, i32* @MyEnum.red, align 4
+  store i32 %load_red, i32* %color, align 4
+  %load_yellow = load i32, i32* @MyEnum.yellow, align 4
+  store i32 %load_yellow, i32* %color, align 4
+  %load_green = load i32, i32* @MyEnum.green, align 4
+  store i32 %load_green, i32* %color, align 4
+  ret void
+}

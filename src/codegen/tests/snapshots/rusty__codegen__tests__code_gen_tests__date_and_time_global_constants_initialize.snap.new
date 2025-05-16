@@ -1,0 +1,96 @@
+---
+source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 3692
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+
+%main = type {}
+
+@cT = unnamed_addr constant i64 1000000000
+@cT_SHORT = unnamed_addr constant i64 1000000000
+@cLT = unnamed_addr constant i64 1000000000000
+@cLT_SHORT = unnamed_addr constant i64 1000000000000
+@cD = unnamed_addr constant i64 0
+@cD_SHORT = unnamed_addr constant i64 161308800000000000
+@cLD = unnamed_addr constant i64 161308800000000000
+@cLD_SHORT = unnamed_addr constant i64 161308800000000000
+@cTOD = unnamed_addr constant i64 0
+@cTOD_SHORT = unnamed_addr constant i64 0
+@cLTOD = unnamed_addr constant i64 86399999999999
+@cLTOD_SHORT = unnamed_addr constant i64 86399999999999
+@cDT = unnamed_addr constant i64 172799000000000
+@cDT_SHORT = unnamed_addr constant i64 172799000000000
+@cLDT = unnamed_addr constant i64 172799123000000
+@cLDT_SHORT = unnamed_addr constant i64 172799123000000
+@main_instance = global %main zeroinitializer
+
+define void @main(%main* %0) {
+entry:
+  %t1 = alloca i64, align 8
+  %t2 = alloca i64, align 8
+  %lt1 = alloca i64, align 8
+  %lt2 = alloca i64, align 8
+  %d1 = alloca i64, align 8
+  %d2 = alloca i64, align 8
+  %ld1 = alloca i64, align 8
+  %ld2 = alloca i64, align 8
+  %tod1 = alloca i64, align 8
+  %tod2 = alloca i64, align 8
+  %ltod1 = alloca i64, align 8
+  %ltod2 = alloca i64, align 8
+  %dt1 = alloca i64, align 8
+  %dt2 = alloca i64, align 8
+  %ldt1 = alloca i64, align 8
+  %ldt2 = alloca i64, align 8
+  store i64 0, i64* %t1, align 4
+  store i64 0, i64* %t2, align 4
+  store i64 0, i64* %lt1, align 4
+  store i64 0, i64* %lt2, align 4
+  store i64 0, i64* %d1, align 4
+  store i64 0, i64* %d2, align 4
+  store i64 0, i64* %ld1, align 4
+  store i64 0, i64* %ld2, align 4
+  store i64 0, i64* %tod1, align 4
+  store i64 0, i64* %tod2, align 4
+  store i64 0, i64* %ltod1, align 4
+  store i64 0, i64* %ltod2, align 4
+  store i64 0, i64* %dt1, align 4
+  store i64 0, i64* %dt2, align 4
+  store i64 0, i64* %ldt1, align 4
+  store i64 0, i64* %ldt2, align 4
+  %load_cT = load i64, i64* @cT, align 4
+  store i64 %load_cT, i64* %t1, align 4
+  %load_cT_SHORT = load i64, i64* @cT_SHORT, align 4
+  store i64 %load_cT_SHORT, i64* %t2, align 4
+  %load_cLT = load i64, i64* @cLT, align 4
+  store i64 %load_cLT, i64* %lt1, align 4
+  %load_cLT_SHORT = load i64, i64* @cLT_SHORT, align 4
+  store i64 %load_cLT_SHORT, i64* %lt2, align 4
+  %load_cD = load i64, i64* @cD, align 4
+  store i64 %load_cD, i64* %d1, align 4
+  %load_cD_SHORT = load i64, i64* @cD_SHORT, align 4
+  store i64 %load_cD_SHORT, i64* %d2, align 4
+  %load_cLD = load i64, i64* @cLD, align 4
+  store i64 %load_cLD, i64* %ld1, align 4
+  %load_cLD_SHORT = load i64, i64* @cLD_SHORT, align 4
+  store i64 %load_cLD_SHORT, i64* %ld2, align 4
+  %load_cTOD = load i64, i64* @cTOD, align 4
+  store i64 %load_cTOD, i64* %tod1, align 4
+  %load_cTOD_SHORT = load i64, i64* @cTOD_SHORT, align 4
+  store i64 %load_cTOD_SHORT, i64* %tod2, align 4
+  %load_cLTOD = load i64, i64* @cLTOD, align 4
+  store i64 %load_cLTOD, i64* %ltod1, align 4
+  %load_cLTOD_SHORT = load i64, i64* @cLTOD_SHORT, align 4
+  store i64 %load_cLTOD_SHORT, i64* %ltod2, align 4
+  %load_cDT = load i64, i64* @cDT, align 4
+  store i64 %load_cDT, i64* %dt1, align 4
+  %load_cDT_SHORT = load i64, i64* @cDT_SHORT, align 4
+  store i64 %load_cDT_SHORT, i64* %dt2, align 4
+  %load_cLDT = load i64, i64* @cLDT, align 4
+  store i64 %load_cLDT, i64* %ldt1, align 4
+  %load_cLDT_SHORT = load i64, i64* @cLDT_SHORT, align 4
+  store i64 %load_cLDT_SHORT, i64* %ldt2, align 4
+  ret void
+}
