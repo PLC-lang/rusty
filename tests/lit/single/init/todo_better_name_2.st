@@ -1,7 +1,6 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 VAR_GLOBAL
-    // globalStructA: StructA := (value := - 5, instanceB := (value := - 10, instanceC := (value := - 15))); // FIXME: Currently not working
-    globalStructA: StructA := (value := - 5, instanceB := (value := - 10));
+    globalStructA: StructA := (value := 50, instanceB := (value := 100, instanceC := (value := 150))); // FIXME: Currently not working
 END_VAR
 
 TYPE StructA:
@@ -25,7 +24,7 @@ TYPE StructC:
 END_TYPE
 
 FUNCTION main
-    printf('%d$N', globalStructA.value); // CHECK: -5
-    printf('%d$N', globalStructA.instanceB.value); // CHECK: -10
-    printf('%d$N', globalStructA.instanceB.instanceC.value); // CHECK: 10
+    printf('%d$N', globalStructA.value); // CHECK: 50
+    printf('%d$N', globalStructA.instanceB.value); // CHECK: 100
+    printf('%d$N', globalStructA.instanceB.instanceC.value); // CHECK: 150
 END_FUNCTION

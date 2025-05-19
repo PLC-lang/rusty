@@ -6433,3 +6433,312 @@ fn this_in_conditionals() {
     assert_eq!(resulting_type, "FB_Test.__THIS");
     assert!(index.find_type("fb_test.__THIS").is_some());
 }
+
+#[test]
+fn nested_struct_initializer() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        r"
+        VAR_GLOBAL
+            globalStructA: StructA := (instanceB := (instanceC := (value := 15)));
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: DINT := 5;
+                instanceB: StructB;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructB:
+            STRUCT
+                value: DINT := 10;
+                instanceC: StructC;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructC:
+            STRUCT
+                value: DINT := 15;
+            END_STRUCT
+        END_TYPE
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let var = &unit.global_vars[0].variables[0];
+
+    // globalStructA: StructA := (instanceB := (instanceC := (value := 15)));
+    //                            ^^^^^^^^^
+    let AstStatement::ParenExpression(expr) = &var.initializer.as_ref().unwrap().stmt else { panic!() };
+    let AstStatement::Assignment(Assignment { left, right }) = &expr.stmt else { panic!() };
+    insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+    Variable {
+        resulting_type: "StructB",
+        qualified_name: "StructA.instanceB",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        auto_deref: None,
+    }
+    "###);
+    insta::assert_debug_snapshot!(annotations.get_hint_or_void(expr, &index), @r###"
+    DataType {
+        name: "StructA",
+        initial_value: None,
+        information: Struct {
+            name: "StructA",
+            members: [
+                VariableIndexEntry {
+                    name: "value",
+                    qualified_name: "StructA.value",
+                    initial_value: Some(
+                        Index {
+                            index: 1,
+                            generation: 0,
+                        },
+                    ),
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "DINT",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(7:16 - 7:21),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+                VariableIndexEntry {
+                    name: "instanceB",
+                    qualified_name: "StructA.instanceB",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "StructB",
+                    location_in_parent: 1,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(8:16 - 8:25),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+            ],
+            source: OriginalDeclaration,
+        },
+        nature: Derived,
+        location: SourceLocation {
+            span: Range(5:13 - 5:20),
+            file: Some(
+                "<internal>",
+            ),
+        },
+    }
+    "###);
+
+    // globalStructA: StructA := (instanceB := (instanceC := (value := 15)));
+    //                                          ^^^^^^^^^
+    let AstStatement::ParenExpression(expr) = &right.stmt else { panic!() };
+    let AstStatement::Assignment(Assignment { left, right }) = &expr.stmt else { panic!() };
+    insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+    Variable {
+        resulting_type: "StructC",
+        qualified_name: "StructB.instanceC",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        auto_deref: None,
+    }
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_type(left, &index).unwrap(), @r###"
+    DataType {
+        name: "StructC",
+        initial_value: None,
+        information: Struct {
+            name: "StructC",
+            members: [
+                VariableIndexEntry {
+                    name: "value",
+                    qualified_name: "StructC.value",
+                    initial_value: Some(
+                        Index {
+                            index: 3,
+                            generation: 0,
+                        },
+                    ),
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "DINT",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(21:16 - 21:21),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+            ],
+            source: OriginalDeclaration,
+        },
+        nature: Derived,
+        location: SourceLocation {
+            span: Range(19:13 - 19:20),
+            file: Some(
+                "<internal>",
+            ),
+        },
+    }
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint_or_void(expr, &index), @r###"
+    DataType {
+        name: "StructB",
+        initial_value: None,
+        information: Struct {
+            name: "StructB",
+            members: [
+                VariableIndexEntry {
+                    name: "value",
+                    qualified_name: "StructB.value",
+                    initial_value: Some(
+                        Index {
+                            index: 2,
+                            generation: 0,
+                        },
+                    ),
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "DINT",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(14:16 - 14:21),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+                VariableIndexEntry {
+                    name: "instanceC",
+                    qualified_name: "StructB.instanceC",
+                    initial_value: None,
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "StructC",
+                    location_in_parent: 1,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(15:16 - 15:25),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+            ],
+            source: OriginalDeclaration,
+        },
+        nature: Derived,
+        location: SourceLocation {
+            span: Range(12:13 - 12:20),
+            file: Some(
+                "<internal>",
+            ),
+        },
+    }
+    "###);
+
+    // globalStructA: StructA := (instanceB := (instanceC := (value := 15)));
+    //                                                        ^^^^^
+    let AstStatement::ParenExpression(expr) = &right.stmt else { panic!() };
+    let AstStatement::Assignment(Assignment { left, .. }) = &expr.stmt else { panic!() };
+    insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+    Variable {
+        resulting_type: "DINT",
+        qualified_name: "StructC.value",
+        constant: false,
+        argument_type: ByVal(
+            Input,
+        ),
+        auto_deref: None,
+    }
+    "###);
+
+    insta::assert_debug_snapshot!(annotations.get_hint_or_void(expr, &index), @r###"
+    DataType {
+        name: "StructC",
+        initial_value: None,
+        information: Struct {
+            name: "StructC",
+            members: [
+                VariableIndexEntry {
+                    name: "value",
+                    qualified_name: "StructC.value",
+                    initial_value: Some(
+                        Index {
+                            index: 3,
+                            generation: 0,
+                        },
+                    ),
+                    argument_type: ByVal(
+                        Input,
+                    ),
+                    is_constant: false,
+                    is_var_external: false,
+                    data_type_name: "DINT",
+                    location_in_parent: 0,
+                    linkage: Internal,
+                    binding: None,
+                    source_location: SourceLocation {
+                        span: Range(21:16 - 21:21),
+                        file: Some(
+                            "<internal>",
+                        ),
+                    },
+                    varargs: None,
+                },
+            ],
+            source: OriginalDeclaration,
+        },
+        nature: Derived,
+        location: SourceLocation {
+            span: Range(19:13 - 19:20),
+            file: Some(
+                "<internal>",
+            ),
+        },
+    }
+    "###);
+}
