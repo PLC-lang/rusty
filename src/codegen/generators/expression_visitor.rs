@@ -16,6 +16,7 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::{Diagnostic, ResultDiagnosticExt};
 use plc_source::source_location::SourceLocation;
+use section_mangler::StringEncoding;
 
 use crate::{
     codegen::{
@@ -86,10 +87,17 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                         .generate_const_float(type_hint, value)
                         .map(|it| GeneratedValue::RValue((it, node.get_id())))
                 }
-                AstLiteral::String(string_value) => self
-                    .literals_generator
-                    .generate_const_string(type_hint, string_value.value())
-                    .map(|it| GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))),
+                AstLiteral::String(string_value) => {
+                    self.literals_generator.generate_const_string(type_hint, string_value.value()).map(|it| {
+                        if it.is_pointer_value() {
+                            // a string literal is a pointer to the string
+                            GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))
+                        } else {
+                            // a char is an RValue
+                            GeneratedValue::RValue((it, node.get_id()))
+                        }
+                    })
+                }
                 AstLiteral::Array(_array) => todo!(),
                 _ => {
                     unreachable!("Unsupported literal type {stmt:?}");
@@ -134,6 +142,7 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 }
             }
         };
+
         let v =
             do_visit_reference().map_err(|e| Diagnostic::codegen_error(format!("{e}"), node.get_location()));
         self.push_value(node, v);
@@ -339,6 +348,7 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
         self.annotations
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
+            .and_then(|it| self.index.find_effective_type(it))
             .ok_or_else(|| {
                 Diagnostic::codegen_error(format!("no type hint available for {statement:#?}"), statement)
             })
@@ -700,7 +710,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
 impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
     /// Generates a reference to a global, unscoped variable
     pub fn generate_reference_access(
-        &self,
+        &mut self,
         reference: &AstNode,
         annotation: &StatementAnnotation,
         context: Option<PointerValue<'ink>>,
@@ -709,10 +719,19 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         let access = match (annotation, context) {
             // GLOBAL VARIABLE
             // a Variable without a context (could be a global or a member)
-            (StatementAnnotation::Variable { qualified_name, .. }, None) => self
+            (StatementAnnotation::Variable { qualified_name, constant: false, .. }, None) => self
                 .find_local_llvm_variable(&qualified_name.as_str(), ast_id)
                 .or_else(|| self.find_global_llvm_variable(qualified_name.as_str(), ast_id)),
 
+            (StatementAnnotation::Variable { qualified_name, constant: true, .. }, None) => {
+                let constant_expression = self
+                    .index
+                    .find_fully_qualified_variable(&qualified_name)
+                    .and_then(|it| it.initial_value)
+                    .and_then(|id| self.index.get_const_expressions().get_constant_statement(&id))
+                    .ok_or_else(|| anyhow!("Cannot find constant {:#?}", qualified_name))?;
+                Some(GeneratedValue::RValue((self.generate_r_value(constant_expression)?, ast_id)))
+            }
             // MEMBER VARIABLE
             // a Variable with a context (certainly a member of a struct, fb or program)
             (StatementAnnotation::Variable { qualified_name, .. }, Some(parent)) => {
@@ -861,27 +880,38 @@ impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
         t: &DataTypeInformation,
         v: i128,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if let DataTypeInformation::Integer { name, signed, size, .. } = t {
-            let llvm_type = match size {
-                1 => self.llvm.context.i8_type(),
-                8 => self.llvm.context.i8_type(),
-                16 => self.llvm.context.i16_type(),
-                32 => self.llvm.context.i32_type(),
-                64 => self.llvm.context.i64_type(),
-                _ => {
-                    return Err(Diagnostic::codegen_error(
-                        format!("Unsupported size {size} for type {name}"),
+        match t {
+            DataTypeInformation::Integer { name, signed, size, .. } => {
+                let llvm_type = match size {
+                    1 => self.llvm.context.i8_type(),
+                    8 => self.llvm.context.i8_type(),
+                    16 => self.llvm.context.i16_type(),
+                    32 => self.llvm.context.i32_type(),
+                    64 => self.llvm.context.i64_type(),
+                    _ => {
+                        return Err(Diagnostic::codegen_error(
+                            format!("Unsupported size {size} for type {name}"),
+                            SourceLocation::default(),
+                        ))
+                    }
+                };
+                let value = llvm_type.const_int(v as u64, false);
+                Ok(value.as_basic_value_enum())
+            }
+            DataTypeInformation::Enum { referenced_type, .. } => {
+                let ref_type = self.index.find_effective_type_info(&referenced_type).ok_or_else(|| {
+                    Diagnostic::codegen_error(
+                        format!("Cannot find enum type {referenced_type}"),
                         SourceLocation::default(),
-                    ))
-                }
-            };
-            let value = llvm_type.const_int(v as u64, false);
-            Ok(value.as_basic_value_enum())
-        } else {
-            Err(Diagnostic::codegen_error(
+                    )
+                })?;
+
+                self.generate_const_int(ref_type, v)
+            }
+            _ => Err(Diagnostic::codegen_error(
                 format!("Expected IntType but got: {t:?}"),
                 SourceLocation::default(),
-            ))
+            )),
         }
     }
 
@@ -921,17 +951,20 @@ impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
         value: &str,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
         match t {
-            DataTypeInformation::String { size, encoding } => {
-                let len = size
-                    .as_int_value(self.index)
-                    .map_err(|e| Diagnostic::codegen_error(e, SourceLocation::default()))?
-                    as usize;
-                match encoding {
-                    crate::typesystem::StringEncoding::Utf8 => self.llvm.create_const_utf8_string(value, len),
-                    crate::typesystem::StringEncoding::Utf16 => {
-                        self.llvm.create_const_utf16_string(value, len)
-                    }
+            DataTypeInformation::String { encoding, .. } => {
+                //todo: add documentation
+                if *encoding == crate::typesystem::StringEncoding::Utf8 {
+                    self.llvm_index.find_utf08_literal_string(value)
+                } else {
+                    self.llvm_index.find_utf16_literal_string(value)
                 }
+                .ok_or_else(|| {
+                    Diagnostic::codegen_error(
+                        format!("Cannot find string literal '{value}'"),
+                        SourceLocation::default(),
+                    )
+                })
+                .map(|it| it.as_basic_value_enum())
             }
             DataTypeInformation::Integer { size: 8, .. } if t.is_character() => {
                 self.llvm.create_llvm_const_i8_char(value, &SourceLocation::internal())
