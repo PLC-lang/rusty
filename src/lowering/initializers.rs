@@ -223,6 +223,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
+    // FIXME: User-init calls must happend after the statements have been called
     let statements = [member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
@@ -829,6 +830,181 @@ mod tests {
                             kind: Member(
                                 Identifier {
                                     name: "globalVar",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+        ]
+        "###);
+    }
+
+    #[test]
+    fn nested_struct_initializers() {
+        let source = r"
+            VAR_GLOBAL
+                globalFoo : DINT := 5;
+                globalBar : DINT := 5;
+                globalBar2 : DINT := 5;
+
+                globalStructA : StructA := (instanceB := (bar := REF(globalBar2)));
+            END_VAR
+
+            TYPE StructA: 
+                STRUCT
+                    instanceB: StructB := (foo := REF(globalFoo));
+                END_STRUCT
+            END_TYPE
+
+            TYPE StructB: 
+                STRUCT
+                    foo: REF_TO DINT;
+                    bar: REF_TO DINT := REF(globalBar);
+                END_STRUCT
+            END_TYPE
+        ";
+
+        let units = parse_and_validate_buffered_ast(source);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalStructA",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: ParenExpression {
+                    expression: Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "bar",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: CallStatement {
+                            operator: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "REF",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            parameters: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "globalBar2",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    },
+                },
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_StructA",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
+
+        assert_eq!(units[1].implementations[1].name, "__init_structb");
+        insta::assert_debug_snapshot!(units[1].implementations[1].statements, @r###"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalBar",
                                 },
                             ),
                             base: None,
