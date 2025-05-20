@@ -363,7 +363,7 @@ fn create_init_wrapper_function(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(calls);
+    let mut statements = vec![calls, statements].concat();
 
     if !skip_var_config {
         statements.push(AstFactory::create_call_statement(

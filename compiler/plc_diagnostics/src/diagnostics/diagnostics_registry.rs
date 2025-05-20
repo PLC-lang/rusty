@@ -149,7 +149,7 @@ lazy_static! {
         E045,   Error,      include_str!("./error_codes/E045.md"),
         E046,   Error,      include_str!("./error_codes/E046.md"),
         E047,   Warning,    include_str!("./error_codes/E047.md"), // VLAs are always by reference
-        E048,   Error,      include_str!("./error_codes/E048.md"),
+        E048,   Warning,      include_str!("./error_codes/E048.md"),
         E049,   Warning,    include_str!("./error_codes/E049.md"),
         E050,   Error,      include_str!("./error_codes/E050.md"),
         E051,   Error,      include_str!("./error_codes/E051.md"),
