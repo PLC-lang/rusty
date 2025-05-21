@@ -151,6 +151,8 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     define void @FOO(%FOO* %0) {
     entry:
+      %this = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %this, align 8
       %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
@@ -252,6 +254,8 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     define void @FOO(%FOO* %0) {
     entry:
+      %this = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %this, align 8
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
@@ -315,6 +319,8 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     define void @FOO(%FOO* %0) {
     entry:
+      %this = alloca %FOO*, align 8
+      store %FOO* %0, %FOO** %this, align 8
       %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
       ret void
     }
@@ -391,6 +397,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
 
     define void @QUUX(%QUUX* %0) {
     entry:
+      %this = alloca %QUUX*, align 8
+      store %QUUX* %0, %QUUX** %this, align 8
       %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
       ret void
     }

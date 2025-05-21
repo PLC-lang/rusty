@@ -300,6 +300,8 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
 
     define void @main_fb(%main_fb* %0) {
     entry:
+      %this = alloca %main_fb*, align 8
+      store %main_fb* %0, %main_fb** %this, align 8
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
       %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
@@ -357,6 +359,8 @@ fn calling_a_function_block() {
 
     define void @main_fb(%main_fb* %0) {
     entry:
+      %this = alloca %main_fb*, align 8
+      store %main_fb* %0, %main_fb** %this, align 8
       %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
       %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
       %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2

@@ -23,6 +23,8 @@ source_filename = "fb.st"
 
 define void @fb(%fb* %0) {
 entry:
+  %this = alloca %fb*, align 8
+  store %fb* %0, %fb** %this, align 8
   ret void
 }
 

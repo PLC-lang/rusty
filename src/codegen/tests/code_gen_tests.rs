@@ -1115,6 +1115,8 @@ fn fb_method_called_locally() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
@@ -1122,6 +1124,8 @@ fn fb_method_called_locally() {
 
     define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
@@ -1198,6 +1202,8 @@ fn fb_local_method_var_shadows_parent_var() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %call = call i32 @foo_addToBar(%foo* %0, i16 42)
       ret void
@@ -1205,6 +1211,8 @@ fn fb_local_method_var_shadows_parent_var() {
 
     define i32 @foo_addToBar(%foo* %0, i16 %1) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
@@ -3970,6 +3978,8 @@ fn variables_in_var_external_block_are_not_generated() {
 
     define void @bar(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       ret void
     }
 

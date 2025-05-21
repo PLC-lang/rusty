@@ -1,7 +1,6 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
-snapshot_kind: text
 ---
 target triple = "x86_64-pc-linux-gnu"
 
@@ -37,6 +36,8 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noa
 
 define void @conditional_return(%conditional_return* %0) {
 entry:
+  %this = alloca %conditional_return*, align 8
+  store %conditional_return* %0, %conditional_return** %this, align 8
   %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
   %load_val = load i32, i32* %val, align 4
   %tmpVar = icmp eq i32 %load_val, 5

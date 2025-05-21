@@ -257,3 +257,99 @@ fn super_is_a_reserved_keyword() {
       │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
     ");
 }
+
+#[test]
+fn this_is_a_reserved_keyword() {
+    let src = "
+    INTERFACE this END_INTERFACE
+    PROGRAM this
+        VAR
+            this : INT;
+        END_VAR
+        METHOD this END_METHOD
+    END_PROGRAM
+    ";
+
+    // TODO(mhasel):    the parser produces a lot of noise for keyword errors,
+    //                  we need to find a way to handle keywords as identifiers
+    let diagnostics = parse_and_validate_buffered(src);
+    assert_snapshot!(diagnostics, @r"
+    error[E006]: Expected a name for the interface definition but got nothing
+      ┌─ <internal>:2:5
+      │
+    2 │     INTERFACE this END_INTERFACE
+      │     ^^^^^^^^^ Expected a name for the interface definition but got nothing
+
+    error[E006]: Missing expected Token KeywordEndInterface
+      ┌─ <internal>:2:15
+      │
+    2 │     INTERFACE this END_INTERFACE
+      │               ^^^^ Missing expected Token KeywordEndInterface
+
+    error[E007]: Unexpected token: expected StartKeyword but found this
+      ┌─ <internal>:2:15
+      │
+    2 │     INTERFACE this END_INTERFACE
+      │               ^^^^ Unexpected token: expected StartKeyword but found this
+
+    error[E007]: Unexpected token: expected StartKeyword but found END_INTERFACE
+      ┌─ <internal>:2:20
+      │
+    2 │     INTERFACE this END_INTERFACE
+      │                    ^^^^^^^^^^^^^ Unexpected token: expected StartKeyword but found END_INTERFACE
+
+    error[E007]: Unexpected token: expected Identifier but found this
+      ┌─ <internal>:3:13
+      │
+    3 │     PROGRAM this
+      │             ^^^^ Unexpected token: expected Identifier but found this
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'VAR
+                this'
+      ┌─ <internal>:4:9
+      │  
+    4 │ ╭         VAR
+    5 │ │             this : INT;
+      │ ╰────────────────^ Unexpected token: expected KeywordSemicolon but found 'VAR
+                this'
+
+    error[E007]: Unexpected token: expected Literal but found END_VAR
+      ┌─ <internal>:6:9
+      │
+    6 │         END_VAR
+      │         ^^^^^^^ Unexpected token: expected Literal but found END_VAR
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_VAR
+            METHOD this END_METHOD'
+      ┌─ <internal>:6:9
+      │  
+    6 │ ╭         END_VAR
+    7 │ │         METHOD this END_METHOD
+      │ ╰──────────────────────────────^ Unexpected token: expected KeywordSemicolon but found 'END_VAR
+            METHOD this END_METHOD'
+
+    error[E006]: Missing expected Token [KeywordSemicolon, KeywordColon]
+      ┌─ <internal>:8:5
+      │
+    8 │     END_PROGRAM
+      │     ^^^^^^^^^^^ Missing expected Token [KeywordSemicolon, KeywordColon]
+
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+      ┌─ <internal>:8:5
+      │
+    8 │     END_PROGRAM
+      │     ^^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_PROGRAM'
+
+    error[E079]: Case condition used outside of case statement! Did you mean to use ';'?
+      ┌─ <internal>:3:13
+      │
+    3 │     PROGRAM this
+      │             ^^^^ Case condition used outside of case statement! Did you mean to use ';'?
+
+    error[E120]: Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.
+      ┌─ <internal>:3:13
+      │
+    3 │     PROGRAM this
+      │             ^^^^ Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.
+    ");
+}

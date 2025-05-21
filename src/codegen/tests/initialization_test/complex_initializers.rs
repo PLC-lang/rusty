@@ -283,6 +283,8 @@ fn init_functions_generated_for_function_blocks() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
@@ -398,6 +400,8 @@ fn nested_initializer_pous() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       call void @bar_print(%bar* %b)
@@ -407,6 +411,8 @@ fn nested_initializer_pous() {
 
     define void @bar(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       call void @baz_print(%baz* %b)
       ret void
@@ -414,6 +420,8 @@ fn nested_initializer_pous() {
 
     define void @baz(%baz* %0) {
     entry:
+      %this = alloca %baz*, align 8
+      store %baz* %0, %baz** %this, align 8
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
@@ -436,12 +444,16 @@ fn nested_initializer_pous() {
 
     define void @bar_print(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_print(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
@@ -449,6 +461,8 @@ fn nested_initializer_pous() {
 
     define void @baz_print(%baz* %0) {
     entry:
+      %this = alloca %baz*, align 8
+      store %baz* %0, %baz** %this, align 8
       %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
       ret void
     }
@@ -847,11 +861,15 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_m(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
@@ -867,6 +885,8 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     define void @foo_act(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
@@ -970,6 +990,8 @@ fn global_instance() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
@@ -1069,6 +1091,8 @@ fn aliased_types() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
@@ -1240,6 +1264,8 @@ fn var_config_aliased_variables_initialized() {
 
     define void @FB(%FB* %0) {
     entry:
+      %this = alloca %FB*, align 8
+      store %FB* %0, %FB** %this, align 8
       %foo = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
       ret void
     }
@@ -1349,6 +1375,8 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
@@ -1410,6 +1438,8 @@ fn ref_to_local_member() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
@@ -1489,6 +1519,8 @@ fn ref_to_local_member_shadows_global() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
@@ -1565,6 +1597,8 @@ fn temporary_variable_ref_to_local_member() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %ptr = alloca [81 x i8]*, align 8
       %alias = alloca [81 x i8]*, align 8
@@ -1688,11 +1722,15 @@ fn initializing_method_variables_with_refs() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
@@ -1756,12 +1794,16 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
@@ -1825,11 +1867,15 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
       store i32* @x, i32** %px, align 8
@@ -1893,11 +1939,15 @@ fn initializing_method_variables_with_refs_shadowing() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -1958,11 +2008,15 @@ fn initializing_method_variables_with_alias() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -2023,11 +2077,15 @@ fn initializing_method_variables_with_reference_to() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -2097,6 +2155,8 @@ fn methods_call_init_functions_for_their_members() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
@@ -2104,11 +2164,15 @@ fn methods_call_init_functions_for_their_members() {
 
     define void @bar(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       ret void
     }
 
     define void @bar_baz(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       %fb = alloca %foo, align 8
       %1 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
@@ -2205,6 +2269,8 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
@@ -2212,6 +2278,8 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
     define void @foo_FB_INIT(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       store i16 1, i16* %x, align 2
@@ -2327,6 +2395,8 @@ fn user_fb_init_in_global_struct() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
@@ -2334,6 +2404,8 @@ fn user_fb_init_in_global_struct() {
 
     define void @foo_FB_INIT(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       store i16 1, i16* %x, align 2

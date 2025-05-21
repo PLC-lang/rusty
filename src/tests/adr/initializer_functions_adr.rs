@@ -583,12 +583,16 @@ fn generating_init_functions() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @bar(%bar* %0) {
     entry:
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
       %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
@@ -729,6 +733,8 @@ fn intializing_temporary_variables() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s2 = alloca [81 x i8]*, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
@@ -818,11 +824,15 @@ fn initializing_method_variables() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
@@ -892,12 +902,16 @@ fn initializing_method_variables() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
@@ -907,6 +921,8 @@ fn initializing_method_variables() {
 
     define void @foo_baz(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* @y, i32** %px, align 8
@@ -964,12 +980,16 @@ fn initializing_method_variables() {
 
     define void @foo(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @foo_bar(%foo* %0) {
     entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x1 = alloca i32, align 4
       %px = alloca i32*, align 8
