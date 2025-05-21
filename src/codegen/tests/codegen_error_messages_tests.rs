@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen_without_unwrap;
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn unknown_reference_should_be_reported_with_line_number() {
@@ -15,7 +15,7 @@ fn unknown_reference_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -34,7 +34,7 @@ fn exit_not_in_loop() {
         ",
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -53,7 +53,7 @@ fn continue_not_in_loop() {
         ",
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -82,7 +82,7 @@ fn unknown_struct_field_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -103,7 +103,7 @@ fn invalid_array_access_should_be_reported_with_line_number() {
     if let Err(msg) = result {
         // that's not perfect yet, the error is reported for the region of the variable
         // but better than nothing
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -129,7 +129,7 @@ fn invalid_array_access_in_struct_should_be_reported_with_line_number() {
         ",
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -150,7 +150,7 @@ fn invalid_struct_access_in_array_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -172,7 +172,7 @@ fn invalid_struct_access_in_array_access_should_be_reported_with_line_number() {
     let result = codegen_without_unwrap(src);
     if let Err(msg) = result {
         // that's not perfect yet, we need display-names for generated datatypes
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -190,7 +190,7 @@ fn recursive_initial_constant_values() {
     )
     .unwrap_err();
 
-    assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -208,7 +208,7 @@ fn assigning_string_literal_to_int_variable_results_in_casting_error() {
     );
     // THEN result shoud be a casting error
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -229,7 +229,7 @@ fn assigning_empty_string_literal_to_char_results_in_error() {
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -250,7 +250,7 @@ fn assigning_empty_string_literal_to_wide_char_results_in_error() {
     );
     // THEN result shoud be an error
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -270,7 +270,7 @@ fn pointer_binary_expression_adding_two_pointers() {
     END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -290,7 +290,7 @@ fn pointer_binary_expression_multiplication() {
     END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -310,7 +310,7 @@ fn pointer_binary_expression_division() {
     END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -330,7 +330,7 @@ fn pointer_binary_expression_modulo() {
     END_PROGRAM"#,
     );
     if let Err(msg) = result {
-        assert_snapshot!(msg)
+        filtered_snapshot!(msg)
     } else {
         panic!("expected code-gen error but got none")
     }
@@ -354,5 +354,5 @@ fn assigning_to_rvalue() {
 
     let Err(msg) = result else { panic!("expected code-gen error but got none") };
 
-    assert_snapshot!(msg)
+    filtered_snapshot!(msg)
 }

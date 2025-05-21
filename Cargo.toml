@@ -46,7 +46,7 @@ rustc-hash.workspace = true
 
 [dev-dependencies]
 num = "0.4"
-insta = "1.31.0"
+insta = {version = "1.31.0", features = ["filters"] }
 pretty_assertions = "1.3.0"
 driver = { path = "./compiler/plc_driver/", package = "plc_driver" }
 project = { path = "./compiler/plc_project/", package = "plc_project", features = [
@@ -84,6 +84,7 @@ members = [
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
+insta = { version = "1.31.0", features = ["filters"] }
 inkwell = { version = "0.2", features = ["llvm14-0"] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"

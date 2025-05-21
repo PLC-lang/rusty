@@ -1,4 +1,5 @@
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn assigning_const_string_variable() {
@@ -18,7 +19,7 @@ fn assigning_const_string_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -39,7 +40,7 @@ fn assigning_const_array_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -66,5 +67,5 @@ fn assigning_const_struct_variable() {
     "#,
     );
     // THEN we expect a memcopy for the assignment
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }

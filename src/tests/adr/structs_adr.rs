@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_snapshot;
 /// # Architecture Design Record: Structs
 /// ST supports C-like structures.
 ///
@@ -18,7 +18,7 @@ fn declaring_a_struct() {
         "#;
 
     // ... just translates to a llvm struct type
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -48,7 +48,7 @@ fn default_values_of_a_struct() {
         "#;
 
     // ... instances of this struct-type will be initialized accordingly
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -89,7 +89,7 @@ fn initializing_a_struct() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -136,7 +136,7 @@ fn assigning_structs() {
         "#;
 
     // ... the assignment p1 := p2 will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -192,7 +192,7 @@ fn accessing_struct_members() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

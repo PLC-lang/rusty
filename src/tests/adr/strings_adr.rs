@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_snapshot;
 /// # Architecture Design Record: Strings
 /// ST supports two types of Strings: UTF8 and UTF16 Strings. Strings are fixed size and
 /// stored using i8-arrays for utf8 strings and i16-arrays for utf16 strings.
@@ -14,7 +14,7 @@ fn declaring_a_string() {
         "#;
 
     // ... are stored as i8/i16 arrays and get initialized to blank (0)
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -37,7 +37,7 @@ fn strings_are_terminated_with_0byte() {
 
     // ... get stored as c-like char arrays with 0-terminators
     // ... offer one extra entry (length 21 while only 20 were declared) for a terminator
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -62,7 +62,7 @@ fn assigning_strings() {
         "#;
 
     // ... the assignments will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -103,7 +103,7 @@ fn assigning_string_literals() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

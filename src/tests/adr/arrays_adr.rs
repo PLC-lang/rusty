@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_snapshot;
 /// # Architecture Design Record: Arrays
 /// ST supports C-like arrays
 #[test]
@@ -14,7 +14,7 @@ fn declaring_an_array() {
         "#;
 
     // ... just translates to a llvm array type
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -36,7 +36,7 @@ fn initializing_an_array() {
         "#;
 
     // ... Instances of this struct will be initialized accordingly
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -64,7 +64,7 @@ fn assigning_full_arrays() {
         "#;
 
     // ... the assignment a := b will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -116,7 +116,7 @@ fn accessing_array_elements() {
     // ... note that the b[4] access is generated as a gep-expression at index 1
     // .   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
     // .                                                                      ^^^^^
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

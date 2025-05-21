@@ -1,6 +1,6 @@
-use insta::assert_snapshot;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn bitaccess_assignment() {
@@ -17,7 +17,7 @@ fn bitaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn byteaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn wordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn dwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn lwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn chained_bit_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn qualified_reference_assignment() {
 
         ",
     );
-    insta::assert_snapshot!(prog);
+    filtered_snapshot!(prog);
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -242,7 +242,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -305,7 +305,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -377,7 +377,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

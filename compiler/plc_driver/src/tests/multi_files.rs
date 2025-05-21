@@ -2,6 +2,7 @@ use plc::DebugLevel;
 use source_code::SourceCode;
 
 use crate::tests::compile_with_root;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn multiple_source_files_generated() {
@@ -36,7 +37,7 @@ fn multiple_source_files_generated() {
     assert_eq!(results.len(), 4);
     //The datatypes do not conflics
     //The functions are defined correctly
-    insta::assert_snapshot!(results.join("\n"));
+    filtered_snapshot!(results.join("\n"));
 }
 
 #[test]
@@ -75,7 +76,7 @@ fn multiple_files_with_debug_info() {
     assert_eq!(results.len(), 4);
     //The datatypes do not conflics
     //The functions are defined correctly
-    insta::assert_snapshot!(results.join("\n"));
+    filtered_snapshot!(results.join("\n"));
 }
 
 #[test]
@@ -114,5 +115,5 @@ fn multiple_files_in_different_locations_with_debug_info() {
     assert_eq!(results.len(), 4);
     //The datatypes do not conflics
     //The functions are defined correctly
-    insta::assert_snapshot!(results.join("\n"));
+    filtered_snapshot!(results.join("\n"));
 }

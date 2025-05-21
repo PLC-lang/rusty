@@ -1,5 +1,5 @@
+use plc_util::filtered_snapshot;
 use test_utils::codegen;
-
 mod debug_tests;
 mod super_tests;
 
@@ -19,11 +19,11 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
@@ -110,11 +110,11 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb2 = type { %fb }
     %fb = type { i16, i16 }
@@ -235,11 +235,11 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %bar = type { %foo }
     %foo = type { [81 x i8] }
@@ -378,11 +378,11 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
@@ -540,11 +540,11 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }

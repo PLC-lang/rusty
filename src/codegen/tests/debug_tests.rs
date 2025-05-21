@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 mod expression_debugging;
 
@@ -22,7 +22,7 @@ fn test_global_var_int_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn test_global_var_byteseq_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn test_global_var_enum_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn test_global_var_float_added_to_debug_info() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -83,7 +83,7 @@ fn test_global_var_array_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -96,7 +96,7 @@ fn test_global_var_pointer_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -109,7 +109,7 @@ fn test_global_var_string_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -130,7 +130,7 @@ fn test_global_var_struct_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn test_global_var_nested_struct_added_to_debug_info() {
     END_VAR
     "#,
     );
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -169,7 +169,7 @@ fn test_global_alias_type() {
     "#,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -185,7 +185,7 @@ fn test_dwarf_version_override() {
         4,
     );
 
-    assert_snapshot!(codegen)
+    filtered_snapshot!(codegen)
 }
 
 #[test]
@@ -218,11 +218,11 @@ fn switch_case_debug_info() {
         "#,
     );
 
-    assert_snapshot!(codegen, @r#"
+    filtered_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
@@ -351,11 +351,11 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         ",
     );
 
-    assert_snapshot!(codegen, @r#"
+    filtered_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb = type {}
 
@@ -446,11 +446,11 @@ fn action_with_var_temp() {
         ",
     );
 
-    assert_snapshot!(codegen, @r#"
+    filtered_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %PLC_PRG = type {}
 
@@ -605,11 +605,11 @@ END_FUNCTION
     ",
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
-    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-    target triple = "x86_64-pc-linux-gnu"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %struct_ = type { %inner, [3 x %inner], [81 x i8], i8, float, [3 x [81 x i8]], i16 }
     %inner = type { [81 x i8], i8, float, [3 x [81 x i8]], i16 }

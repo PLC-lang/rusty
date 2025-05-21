@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn function_all_parameters_assigned() {
@@ -29,7 +29,7 @@ fn function_all_parameters_assigned() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn function_empty_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn function_empty_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -116,7 +116,7 @@ fn function_empty_output_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -145,7 +145,7 @@ fn function_empty_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -174,7 +174,7 @@ fn function_missing_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -203,7 +203,7 @@ fn function_missing_input_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn function_missing_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -261,7 +261,7 @@ fn function_missing_output_default_value_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -290,7 +290,7 @@ fn function_missing_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -322,7 +322,7 @@ fn function_default_value_parameter_type() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -352,7 +352,7 @@ fn program_all_parameters_assigned_explicit() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -381,7 +381,7 @@ fn program_all_parameters_assigned_implicit() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -410,7 +410,7 @@ fn program_empty_inout_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -439,7 +439,7 @@ fn program_missing_input_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -468,7 +468,7 @@ fn program_missing_output_assignment() {
         ",
     );
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -490,7 +490,7 @@ fn program_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -517,7 +517,7 @@ fn program_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -542,7 +542,7 @@ fn fb_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -568,7 +568,7 @@ fn fb_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -590,7 +590,7 @@ fn function_accepts_empty_statement_as_input_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -615,7 +615,7 @@ fn function_accepts_empty_statement_as_output_param() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -642,7 +642,7 @@ fn parameters_behind_function_block_pointer_are_assigned_to() {
     );
 
     // THEN
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -685,7 +685,7 @@ fn var_in_out_params_can_be_out_of_order() {
     END_ACTIONS",
     );
 
-    insta::assert_snapshot!(res);
+    filtered_snapshot!(res);
 }
 
 #[test]
@@ -707,7 +707,7 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -766,7 +766,7 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -825,7 +825,7 @@ fn by_value_function_arg_arrays_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -891,7 +891,7 @@ fn by_value_function_arg_structs_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -962,7 +962,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1025,7 +1025,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1113,7 +1113,7 @@ fn var_output_aggregate_types_are_memcopied() {
         "#,
     );
 
-    assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

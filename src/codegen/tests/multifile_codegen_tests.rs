@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 use crate::test_utils::tests::codegen_multi;
 use plc_source::SourceCodeFactory;
@@ -24,7 +24,7 @@ fn datatype_defined_in_external_file_in_module() {
         .create_source("prog.st"),
     ];
     //Expecting struct in prog module
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -48,7 +48,7 @@ fn datatype_defined_in_external_file_no_deps_in_module() {
         .create_source("prog.st"),
     ];
     //Expecting no reference to struct or its initializers in prog
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn datatype_initialized_in_external_file_in_module() {
         .create_source("prog.st"),
     ];
     //Expect the myInt initial value to be in prog
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -97,7 +97,7 @@ fn global_value_from_different_file() {
         .create_source("prog.st"),
     ];
     //Expect x,c and d in prog
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -130,7 +130,7 @@ fn struct_with_custom_init_in_different_file() {
         .create_source("prog.st"),
     ];
     //Expect the struct initializer in prog to have correct values
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn function_defined_in_external_file() {
         "
         .create_source("prog.st"),
     ];
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }
 
 #[test]
@@ -211,5 +211,5 @@ fn enum_referenced_in_fb_nested() {
         .create_source("fb3.st"),
     ];
     //Expecting fb3 to have no enum references, but fb1 and 2 to have enums
-    assert_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
+    filtered_snapshot!(codegen_multi(units, crate::DebugLevel::None).join("\n"));
 }

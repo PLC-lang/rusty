@@ -1,4 +1,5 @@
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_snapshot;
 
 #[test]
 fn initial_values_in_global_constant_variables() {
@@ -35,7 +36,7 @@ fn initial_values_in_global_constant_variables() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -50,7 +51,7 @@ fn initial_values_in_global_variables() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -76,7 +77,7 @@ fn initial_values_in_global_variables_out_of_order() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -89,7 +90,7 @@ fn uninitialized_global_array() {
          ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 // regression for #634
@@ -122,7 +123,7 @@ fn global_constant_without_initializer_gets_default_initializer() {
     );
 
     // should initialize cmd1 & cmd2 with zeroinitializer
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 // regression for #634
@@ -151,7 +152,7 @@ fn global_constant_without_initializer_gets_declared_initializer() {
     );
 
     //should initialize cmd1 and cmd2 with @__comamnds__init
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -163,7 +164,7 @@ fn external_pous_get_external_initializers() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -193,5 +194,5 @@ fn external_aggregate_types_get_external_initializers() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###""###);
+    filtered_snapshot!(result, @r###""###);
 }

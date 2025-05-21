@@ -1,7 +1,7 @@
 use plc_ast::provider::IdProvider;
 
 use crate::test_utils::tests::{annotate_with_ids, codegen, index_with_ids};
-
+use plc_util::filtered_snapshot;
 /// # Architecture Design Record: POUs
 ///
 /// POU = Program Organisation Unit
@@ -189,7 +189,7 @@ fn programs_state_is_stored_in_a_struct() {
 
 #[test]
 fn codegen_of_a_program_pou() {
-    insta::assert_snapshot!(codegen(DEFAULT_PRG),@r#"
+    filtered_snapshot!(codegen(DEFAULT_PRG),@r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -227,7 +227,7 @@ fn calling_a_program() {
         {DEFAULT_PRG}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
+    filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -290,7 +290,7 @@ const DEFAULT_FB: &str = r#"
 
 #[test]
 fn function_blocks_get_a_method_with_a_self_parameter() {
-    insta::assert_snapshot!(codegen(DEFAULT_FB), @r#"
+    filtered_snapshot!(codegen(DEFAULT_FB), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -329,7 +329,7 @@ fn calling_a_function_block() {
         {DEFAULT_FB}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
+    filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -387,7 +387,7 @@ const DEFAULT_FUNC: &str = r#"
 ///  ... a return variable is allocated on the stack and returned at the end of the function
 #[test]
 fn function_get_a_method_with_by_ref_parameters() {
-    insta::assert_snapshot!(codegen(DEFAULT_FUNC), @r#"
+    filtered_snapshot!(codegen(DEFAULT_FUNC), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -429,7 +429,7 @@ fn calling_a_function() {
         {DEFAULT_FUNC}
     "#
     );
-    insta::assert_snapshot!(codegen(calling_prg.as_str()), @r#"
+    filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -491,7 +491,7 @@ fn return_a_complex_type_from_function() {
             s := foo();
         END_FUNCTION
     "#;
-    insta::assert_snapshot!(codegen(returning_string), @r#"
+    filtered_snapshot!(codegen(returning_string), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -572,7 +572,7 @@ fn passing_aggregate_types_to_functions_by_value() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -658,7 +658,7 @@ fn passing_by_ref_to_functions() {
     "###;
 
     //internally we pass the two strings str1, and str2 as pointers to StrEqual because of the {ref}
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

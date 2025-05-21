@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 use crate::test_utils::tests::codegen;
 
@@ -12,7 +12,7 @@ fn aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -32,7 +32,7 @@ fn duplicate_aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -58,7 +58,7 @@ fn address_variable_used_with_symbolic_name() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -97,7 +97,7 @@ fn address_used_in_body() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 

@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::test_utils::tests::{codegen, generate_with_empty_program};
+use plc_util::filtered_snapshot;
 
 #[test]
 fn program_with_variables_and_references_generates_void_function_and_struct_and_body() {
@@ -15,7 +16,7 @@ y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -30,7 +31,7 @@ fn empty_statements_dont_generate_anything() {
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -46,32 +47,32 @@ fn external_program_global_var_is_external() {
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
 fn empty_global_variable_list_generates_nothing() {
     let result = generate_with_empty_program("VAR_GLOBAL END_VAR");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
 fn a_global_variables_generates_in_separate_global_variables() {
     let result = generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
 fn external_global_variable_generates_as_external() {
     let result = generate_with_empty_program("@EXTERNAL VAR_GLOBAL gX : INT; gY : BOOL; END_VAR");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
 fn two_global_variables_generates_in_separate_global_variables() {
     let result =
         generate_with_empty_program("VAR_GLOBAL gX : INT; gY : BOOL; END_VAR VAR_GLOBAL gA : INT; END_VAR");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -91,19 +92,19 @@ fn global_variable_reference_is_generated() {
     ",
     );
 
-    insta::assert_snapshot!(function);
+    filtered_snapshot!(function);
 }
 
 #[test]
 fn empty_program_with_name_generates_void_function() {
     let result = codegen("PROGRAM prg END_PROGRAM");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
 fn empty_function_with_name_generates_int_function() {
     let result = codegen("FUNCTION foo : INT END_FUNCTION");
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -117,7 +118,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -133,7 +134,7 @@ y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -148,7 +149,7 @@ x + y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -162,7 +163,7 @@ x + 7;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -183,7 +184,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -200,7 +201,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -218,7 +219,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -239,7 +240,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -260,7 +261,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -281,7 +282,7 @@ fn min_max_real_and_lreal_values_do_not_result_in_an_under_or_overflow() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -300,7 +301,7 @@ END_VAR
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -314,7 +315,7 @@ y := 7;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -330,7 +331,7 @@ y := 1e3;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -345,7 +346,7 @@ y := x;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -374,7 +375,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -399,7 +400,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -425,7 +426,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -449,7 +450,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -472,7 +473,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -491,7 +492,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -511,7 +512,7 @@ fn date_comparisons() {
           d > TOD#19:29:17;
         END_PROGRAM"#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -527,7 +528,7 @@ fn program_with_string_assignment() {
         END_PROGRAM"#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -550,7 +551,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -570,7 +571,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -588,7 +589,7 @@ z := x + y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -603,7 +604,7 @@ y := FALSE;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -622,7 +623,7 @@ y := x MOD 5;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -642,7 +643,7 @@ y := x <= 6;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -662,7 +663,7 @@ y := x <= 6;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -677,7 +678,7 @@ x AND y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -692,7 +693,7 @@ x OR y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -708,7 +709,7 @@ z := x XOR y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -725,7 +726,7 @@ END_PROGRAM
 "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -741,7 +742,7 @@ NOT (z <= 6) OR y;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -758,7 +759,7 @@ fn program_with_signed_combined_expressions() {
             END_PROGRAM
             "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -787,7 +788,7 @@ fn if_elsif_else_generator_test() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -805,7 +806,7 @@ fn if_generator_test() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -823,7 +824,7 @@ fn if_with_expression_generator_test() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -841,7 +842,7 @@ fn for_statement_with_steps_test() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -860,7 +861,7 @@ fn for_statement_with_continue() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -880,7 +881,7 @@ fn for_statement_with_exit() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -914,7 +915,7 @@ fn class_method_in_pou() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -948,7 +949,7 @@ fn fb_method_in_pou() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -975,7 +976,7 @@ fn fb_method_with_var_in_out() {
     END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(prg);
+    filtered_snapshot!(prg);
 }
 
 #[test]
@@ -1003,7 +1004,7 @@ fn fb_method_with_var_input_defaults() {
     END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(prg);
+    filtered_snapshot!(prg);
 }
 
 #[test]
@@ -1023,7 +1024,7 @@ fn method_codegen_with_initialized_input() {
         FUNCTION foo : DINT END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(prg);
+    filtered_snapshot!(prg);
 }
 
 #[test]
@@ -1045,7 +1046,7 @@ fn method_codegen_with_multiple_input() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(prg);
+    filtered_snapshot!(prg);
 }
 
 #[test]
@@ -1072,7 +1073,7 @@ fn fb_method_called_as_function() {
     END_FUNCTION_BLOCK",
     );
 
-    insta::assert_snapshot!(prg);
+    filtered_snapshot!(prg);
 }
 
 #[test]
@@ -1104,7 +1105,7 @@ fn fb_method_called_locally() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1187,7 +1188,7 @@ fn fb_local_method_var_shadows_parent_var() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1269,7 +1270,7 @@ fn prog_method_called_locally() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1343,7 +1344,7 @@ fn prog_local_method_var_shadows_parent_var() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1402,7 +1403,7 @@ fn method_codegen_return() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -1420,7 +1421,7 @@ fn method_codegen_void() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -1444,7 +1445,7 @@ fn class_member_access_from_method() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -1464,7 +1465,7 @@ fn while_loop_with_if_exit() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1482,7 +1483,7 @@ fn for_statement_without_steps_test() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1500,7 +1501,7 @@ fn for_statement_sint() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1518,7 +1519,7 @@ fn for_statement_int() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1536,7 +1537,7 @@ fn for_statement_lint() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1554,7 +1555,7 @@ fn for_statement_continue() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1575,7 +1576,7 @@ fn for_statement_with_references_steps_test() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1596,7 +1597,7 @@ fn for_statement_with_binary_expressions() {
         ",
     );
 
-    insta::assert_snapshot!(result,  @r#"
+    filtered_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1663,7 +1664,7 @@ fn for_statement_type_casting() {
             END_FOR
         END_FUNCTION",
     );
-    insta::assert_snapshot!(result,  @r#"
+    filtered_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1732,7 +1733,7 @@ fn while_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1749,7 +1750,7 @@ fn while_with_expression_statement() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1768,7 +1769,7 @@ fn repeat_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1791,7 +1792,7 @@ fn simple_case_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1814,7 +1815,7 @@ fn simple_case_i8_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1836,7 +1837,7 @@ fn case_with_multiple_labels_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1855,7 +1856,7 @@ fn case_with_ranges_statement() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1892,7 +1893,7 @@ END_FUNCTION
 
     // WHEN we compile, we want to see propagated constant in the switch statement
     // -> so no references to variables, but int-values (7, 14, 8 and 15)
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1933,7 +1934,7 @@ END_FUNCTION
 
     // WHEN we compile, we want to see propagated constant in the switch statement
     // -> so no references to variables, but int-values (7, 14, 8 and 28)
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1953,7 +1954,7 @@ fn function_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1973,7 +1974,7 @@ fn real_function_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -1989,7 +1990,7 @@ fn external_function_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2017,7 +2018,7 @@ fn nested_function_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2040,7 +2041,7 @@ fn function_with_parameters_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2064,7 +2065,7 @@ fn function_with_two_parameters_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2088,7 +2089,7 @@ fn function_with_local_var_initialization_and_call() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2113,7 +2114,7 @@ fn function_with_local_temp_var_initialization() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2135,7 +2136,7 @@ fn program_with_local_temp_var_initialization() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2151,7 +2152,7 @@ fn program_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2171,7 +2172,7 @@ fn action_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2191,7 +2192,7 @@ fn qualified_local_action_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2214,7 +2215,7 @@ fn qualified_foreign_action_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2241,7 +2242,7 @@ fn qualified_action_from_fb_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2261,7 +2262,7 @@ fn program_with_two_parameters_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2281,7 +2282,7 @@ fn program_with_two_explicit_parameters_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2306,7 +2307,7 @@ fn program_with_var_out_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2330,7 +2331,7 @@ fn program_with_var_inout_called_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2362,7 +2363,7 @@ fn pass_inout_to_inout() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2394,7 +2395,7 @@ fn pointers_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2426,7 +2427,7 @@ fn complex_pointers() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2447,7 +2448,7 @@ fn pointer_and_array_access_to_in_out() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2472,7 +2473,7 @@ fn program_with_var_out_called_mixed_in_program() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2524,7 +2525,7 @@ fn function_called_when_shadowed() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2546,7 +2547,7 @@ fn function_block_instance_call() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2571,7 +2572,7 @@ fn function_block_qualified_instance_call() {
       ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2601,7 +2602,7 @@ fn reference_qualified_name() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2624,7 +2625,7 @@ fn structs_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2640,7 +2641,7 @@ fn arrays_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2665,7 +2666,7 @@ fn arrays_with_global_const_size_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2687,7 +2688,7 @@ fn structs_members_can_be_referenced() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2703,7 +2704,7 @@ fn enums_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2727,7 +2728,7 @@ fn typed_enums_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2758,7 +2759,7 @@ fn typed_enums_are_used_properly() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2782,7 +2783,7 @@ fn typed_enums_with_initializers_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2805,7 +2806,7 @@ fn typed_enums_with_partly_initializers_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2824,7 +2825,7 @@ fn enums_custom_type_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2845,7 +2846,7 @@ fn enum_members_can_be_used_in_asignments() {
       ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -2862,7 +2863,7 @@ fn inline_structs_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2894,7 +2895,7 @@ fn accessing_nested_structs() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2907,7 +2908,7 @@ fn inline_enums_are_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2931,7 +2932,7 @@ fn basic_datatypes_generated() {
         END_VAR
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2946,7 +2947,7 @@ fn array_of_int_type_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2961,7 +2962,7 @@ fn array_of_cast_int_type_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2978,7 +2979,7 @@ fn array_of_int_type_used() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -2993,7 +2994,7 @@ fn array_of_int_non_zero_type_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3010,7 +3011,7 @@ fn array_of_int_type_with_non_zero_start_used() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3025,7 +3026,7 @@ fn array_of_int_non_zero_negative_type_generated() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3042,7 +3043,7 @@ fn array_of_int_type_with_non_zero_negative_start_used() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3057,7 +3058,7 @@ fn multidim_array_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3074,7 +3075,7 @@ fn multidim_array_access() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3089,7 +3090,7 @@ fn nested_array_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3106,7 +3107,7 @@ fn nested_array_access() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3126,7 +3127,7 @@ fn nested_array_cube_writes() {
             ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3146,7 +3147,7 @@ fn nested_array_cube_writes_negative_start() {
             ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3162,7 +3163,7 @@ fn returning_early_in_function() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3178,7 +3179,7 @@ fn returning_early_in_function_block() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3201,7 +3202,7 @@ fn accessing_nested_array_in_struct() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_snapshot!(result)
 }
 
 #[test]
@@ -3229,7 +3230,7 @@ fn sub_range_type_calls_check_function_missing() {
     let result = codegen(source);
 
     // we expect a normal assignemnt, no check-function call
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3257,7 +3258,7 @@ fn sub_range_type_calls_check_function_on_assigment() {
     let result = codegen(source);
 
     // we expect no simple assigment, but we expect somehting like x:= CheckRangeSigned(7);
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3281,7 +3282,7 @@ fn using_global_consts_in_expressions() {
     );
     //WHEN we compile
     // we expect the constants to be inlined
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3298,7 +3299,7 @@ fn using_cast_statement_as_const_expression() {
     );
 
     //THEN the array should be of size 14 (13 + 1 \0 byte)
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3328,7 +3329,7 @@ fn using_const_expression_in_range_type() {
         "#,
     );
     //assigning to x should call the range-function with 0 and 8 as parameters
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3360,7 +3361,7 @@ fn inlined_array_size_from_local_scoped_constants() {
 
     // THEN we expect arr to be of size 5, not size 3
     // AND we expect arr2 to be of size 3
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3382,7 +3383,7 @@ fn program_with_chars() {
         END_PROGRAM
         "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3399,7 +3400,7 @@ fn program_with_casted_chars_assignment() {
         END_PROGRAM
         "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3416,7 +3417,7 @@ fn function_call_with_same_name_as_return_type() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3436,7 +3437,7 @@ fn variable_with_same_name_as_data_type() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 /// THIS TEST IS MISLEADING!!!
@@ -3455,7 +3456,7 @@ fn variable_with_same_name_as_function() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3469,7 +3470,7 @@ fn expression_list_as_array_initilization() {
         END_VAR
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3486,7 +3487,7 @@ fn default_values_for_not_initialized_function_vars() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3505,7 +3506,7 @@ fn order_var_and_var_temp_block() {
         ",
     );
     // codegen should be successful
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3539,7 +3540,7 @@ fn constant_expressions_in_ranged_type_declaration_are_propagated() {
     // in a call to CheckRangedSigned where the upper bound is a literal i16 8 - NOT an
     // add-expression that really calculates the upper bound at runtime
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3563,7 +3564,7 @@ fn constant_expression_in_function_blocks_are_propagated() {
     // THEN we expect that the assignment to the variable (x := const) will be replaced
     // With x := 2
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3603,7 +3604,7 @@ fn constant_propagation_of_struct_fields_on_assignment() {
     // store i32 %load_value, 99, ...
     // ```
     // then you've probably fixed https://github.com/PLC-lang/rusty/issues/288
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3623,7 +3624,7 @@ fn date_and_time_addition_in_var_output() {
     );
 
     //Then the time variable is added to the date time variable
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3689,7 +3690,7 @@ fn date_and_time_global_constants_initialize() {
 
     let result = codegen(src);
     // THEN the variables are initialized correctly
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3715,7 +3716,7 @@ fn contants_in_case_statements_resolved() {
 
     // THEN the first case should be 32..60
     // AND the second case should be 62..70
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3764,7 +3765,7 @@ fn sub_range_check_functions() {
 
     // THEN for every assignment a check function should be called
     // with the correct type cast for parameters and return type
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3812,7 +3813,7 @@ fn reference_to_reference_assignments_in_function_arguments() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3830,7 +3831,7 @@ fn sizeof_works_in_binary_expression_with_different_size() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3850,7 +3851,7 @@ fn function_and_struct_with_same_names() {
         ",
     );
 
-    insta::assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -3879,7 +3880,7 @@ fn array_of_struct_as_member_of_another_struct_is_initialized() {
        ",
     );
 
-    insta::assert_snapshot!(res);
+    filtered_snapshot!(res);
 }
 
 #[test]
@@ -3911,7 +3912,7 @@ fn array_of_struct_as_member_of_another_struct_and_variable_declaration_is_initi
        ",
     );
 
-    insta::assert_snapshot!(res);
+    filtered_snapshot!(res);
 }
 
 #[test]
@@ -3949,7 +3950,7 @@ fn variables_in_var_external_block_are_not_generated() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -4000,7 +4001,7 @@ fn function_with_array_string_return() {
         ",
     );
 
-    insta::assert_snapshot!(res, @r###"
+    filtered_snapshot!(res, @r###"
         "###);
 }
 
@@ -4024,7 +4025,7 @@ fn method_with_aggregate_return_type() {
         ",
     );
 
-    insta::assert_snapshot!(res);
+    filtered_snapshot!(res);
 }
 
 #[test]
@@ -4051,5 +4052,5 @@ fn methods_var_output() {
         ",
     );
 
-    insta::assert_snapshot!(res);
+    filtered_snapshot!(res);
 }

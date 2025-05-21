@@ -5,8 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'file1.st'
 source_filename = "file1.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -57,8 +57,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 ; ModuleID = 'file2.st'
 source_filename = "file2.st"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -96,8 +96,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -121,8 +121,8 @@ entry:
 
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
-target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
-target triple = "x86_64-pc-linux-gnu"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 

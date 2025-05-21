@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_snapshot;
 
 use crate::test_utils::tests::codegen_with_debug;
 
@@ -17,7 +17,7 @@ fn implementation_added_as_subroutine() {
         ",
     );
     //The POUs has a subroutine entry in the debug info
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn external_impl_is_not_added_as_external_subroutine() {
         ",
     );
     //The POUs don't have a subroutine entry in the debug info
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -56,7 +56,7 @@ fn var_and_vartemp_variables_in_pous_added_as_local() {
         ",
     );
     //The POUs has a subroutine entry in the debug info
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -73,7 +73,7 @@ fn var_in_out_inout_in_function_added_as_params() {
         ",
     );
     //The asignment should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -97,7 +97,7 @@ fn non_function_pous_have_struct_as_param() {
         ",
     );
     //The asignment should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn assignment_statement_have_location() {
         ",
     );
     //The asignment should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn function_calls_have_location() {
         ",
     );
     //The asignment should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn function_calls_in_expressions_have_location() {
         ",
     );
     //The call should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn nested_function_calls_get_location() {
         ",
     );
     //The call should recieve a debug info entry
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -169,7 +169,7 @@ fn non_callable_expressions_have_no_location() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn return_statement_have_location() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn aggregate_return_value_variable_in_function() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -214,7 +214,7 @@ fn exit_statement_have_location() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -235,7 +235,7 @@ fn if_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -257,7 +257,7 @@ fn case_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -274,7 +274,7 @@ fn while_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn repeat_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -307,7 +307,7 @@ fn for_conditions_location_marked() {
         ",
     );
     // No line information should be added on the statements
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
@@ -325,7 +325,7 @@ fn array_size_correctly_set_in_dwarf_info() {
 
     // We expect the array to have a size of 64 in the debug info, specifically for this snapshot
     // we want to make sure the entry "!DISubrange(count: 64, lowerBound: 1)" has count equal 64
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 #[test]
 fn string_size_correctly_set_in_dwarf_info() {
@@ -342,7 +342,7 @@ fn string_size_correctly_set_in_dwarf_info() {
     // we want to make sure the entry "!DISubrange(count: 65, lowerBound: 1)" has count equal 65
     //
     // Note: 65 and not 64 because of the null terminator
-    assert_snapshot!(result);
+    filtered_snapshot!(result);
 }
 
 #[test]
