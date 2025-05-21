@@ -1,8 +1,9 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
+snapshot_kind: text
 ---
-target triple = "x86_64-pc-linux-gnu"
+target triple = "[filtered]"
 
 %conditional_return = type { i32 }
 
