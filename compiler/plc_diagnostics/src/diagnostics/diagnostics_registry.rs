@@ -137,7 +137,7 @@ lazy_static! {
         E033,   Error,      include_str!("./error_codes/E033.md"),
         E034,   Error,      include_str!("./error_codes/E034.md"),
         E035,   Error,      include_str!("./error_codes/E035.md"),
-        E036,   Error,      include_str!("./error_codes/E036.md"),
+        E036,   Warning,      include_str!("./error_codes/E036.md"),
         E037,   Error,      include_str!("./error_codes/E037.md"),
         E038,   Error,      include_str!("./error_codes/E038.md"), // Missing type
         E039,   Warning,    include_str!("./error_codes/E039.md"),
@@ -149,7 +149,7 @@ lazy_static! {
         E045,   Error,      include_str!("./error_codes/E045.md"),
         E046,   Error,      include_str!("./error_codes/E046.md"),
         E047,   Warning,    include_str!("./error_codes/E047.md"), // VLAs are always by reference
-        E048,   Warning,      include_str!("./error_codes/E048.md"),
+        E048,   Error,      include_str!("./error_codes/E048.md"),
         E049,   Warning,    include_str!("./error_codes/E049.md"),
         E050,   Error,      include_str!("./error_codes/E050.md"),
         E051,   Error,      include_str!("./error_codes/E051.md"),

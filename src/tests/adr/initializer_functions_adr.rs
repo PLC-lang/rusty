@@ -116,7 +116,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let AnnotatedProject { units, .. } = annotated_project;
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // the init-function for `foo` is expected to have a single assignment statement in its function body
-    let init_foo_impl = &units[1].implementations[0];
+    let init_foo_impl = &units[1].implementations[1];
     assert_eq!(&init_foo_impl.name, "__init_foo");
     let statements = &init_foo_impl.statements;
     assert_eq!(statements.len(), 1);
@@ -172,7 +172,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     "#);
 
     // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
-    let init_bar_impl = &units[1].implementations[1];
+    let init_bar_impl = &units[1].implementations[0];
     assert_eq!(&init_bar_impl.name, "__init_bar");
     let statements = &init_bar_impl.statements;
     assert_eq!(statements.len(), 1);
@@ -355,10 +355,73 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
     assert_eq!(init_impl.statements.len(), 7);
-    // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
-    // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
-    // instance.
     assert_debug_snapshot!(&init_impl.statements[0], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_baz",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "baz",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+    assert_debug_snapshot!(&init_impl.statements[1], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_bar",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "bar",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+    assert_debug_snapshot!(&init_impl.statements[2], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_qux",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "qux",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+    assert_debug_snapshot!(&init_impl.statements[3], @r###"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -388,72 +451,6 @@ fn global_initializers_are_wrapped_in_single_init_function() {
                 },
             ),
         },
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_baz",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "baz",
-                    },
-                ),
-                base: None,
-            },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[2], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_bar",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "bar",
-                    },
-                ),
-                base: None,
-            },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[3], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_qux",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "qux",
-                    },
-                ),
-                base: None,
-            },
-        ),
     }
     "###);
 }
@@ -561,7 +558,7 @@ fn generating_init_functions() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r#"
+    assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -599,6 +596,13 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__init_mystruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -616,13 +620,6 @@ fn generating_init_functions() {
       %deref = load %foo*, %foo** %self, align 8
       %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
       store %myStruct* @s, %myStruct** %ps, align 8
-      ret void
-    }
-
-    define void @__init_mystruct(%myStruct* %0) {
-    entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
 
@@ -678,7 +675,7 @@ fn generating_init_functions() {
       call void @__user_init_myStruct(%myStruct* @s)
       ret void
     }
-    "#);
+    "###);
 }
 
 /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),

@@ -455,6 +455,19 @@ fn nested_initializer_pous() {
       ret void
     }
 
+    define void @__init_mainprog(%mainProg* %0) {
+    entry:
+      %self = alloca %mainProg*, align 8
+      store %mainProg* %0, %mainProg** %self, align 8
+      %deref = load %mainProg*, %mainProg** %self, align 8
+      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
+      call void @__init_foo(%foo* %f)
+      %deref1 = load %mainProg*, %mainProg** %self, align 8
+      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 0
+      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
@@ -485,19 +498,6 @@ fn nested_initializer_pous() {
       %deref = load %baz*, %baz** %self, align 8
       %str_ref = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
       store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
-      ret void
-    }
-
-    define void @__init_mainprog(%mainProg* %0) {
-    entry:
-      %self = alloca %mainProg*, align 8
-      store %mainProg* %0, %mainProg** %self, align 8
-      %deref = load %mainProg*, %mainProg** %self, align 8
-      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
-      call void @__init_foo(%foo* %f)
-      %deref1 = load %mainProg*, %mainProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
       ret void
     }
 

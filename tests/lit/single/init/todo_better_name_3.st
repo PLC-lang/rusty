@@ -4,8 +4,8 @@ VAR_GLOBAL
     globalBar: DINT := 30;
     globalBar2: DINT := 45;
 
-    globalStructA: StructA := (instanceB := (bar := REF(globalBar2)));
-    globalStructB: StructA;
+    globalStructOne: StructA;
+    globalStructTwo: StructA := (instanceB := (bar := REF(globalBar2)));
 END_VAR
 
 TYPE StructA:
@@ -22,9 +22,9 @@ TYPE StructB:
 END_TYPE
 
 FUNCTION main
-    printf('%d$N', globalStructA.instanceB.foo^); // CHECK: 15
-    printf('%d$N', globalStructA.instanceB.bar^); // CHECK: 45
+    printf('%d$N', globalStructOne.instanceB.foo^); // CHECK: 15
+    printf('%d$N', globalStructOne.instanceB.bar^); // CHECK: 30
 
-    printf('%d$N', globalStructB.instanceB.foo^); // CHECK: 15
-    printf('%d$N', globalStructC.instanceB.bar^); // CHECK: 30
+    printf('%d$N', globalStructTwo.instanceB.foo^); // CHECK: 15
+    printf('%d$N', globalStructTwo.instanceB.bar^); // CHECK: 45
 END_FUNCTION

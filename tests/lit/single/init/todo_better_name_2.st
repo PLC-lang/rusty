@@ -1,30 +1,39 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
 VAR_GLOBAL
-    globalStructA: StructA := (value := 50, instanceB := (value := 100, instanceC := (value := 150))); // FIXME: Currently not working
+    globalValueA: DINT := 5;
+    globalValueB: DINT := 10;
+    globalValueC: DINT := 15;
+
+    globalStructOne: StructA;
+    globalStructTwo: StructA := (value := REF(globalValueA), instanceB := (value := REF(globalValueB), instanceC := (value := REF(globalValueC))));
 END_VAR
 
 TYPE StructA:
     STRUCT
-        value: DINT := 5;
-        instanceB: StructB := (value := 5);
+        value: REF_TO DINT := REF(globalValueC);
+        instanceB: StructB;
     END_STRUCT
 END_TYPE
 
 TYPE StructB:
     STRUCT
-        value: DINT := 10;
-        instanceC: StructC := (value := 10);
+        value: REF_TO DINT := REF(globalValueA);
+        instanceC: StructC;
     END_STRUCT
 END_TYPE
 
 TYPE StructC:
     STRUCT
-        value: DINT := 15;
+        value: REF_TO DINT := REF(globalValueB);
     END_STRUCT
 END_TYPE
 
 FUNCTION main
-    printf('%d$N', globalStructA.value); // CHECK: 50
-    printf('%d$N', globalStructA.instanceB.value); // CHECK: 100
-    printf('%d$N', globalStructA.instanceB.instanceC.value); // CHECK: 150
+    printf('%d$N', globalStructOne.value^); // CHECK: 15
+    printf('%d$N', globalStructOne.instanceB.value^); // CHECK: 5
+    printf('%d$N', globalStructOne.instanceB.instanceC.value^); // CHECK: 10
+
+    printf('%d$N', globalStructTwo.value^); // CHECK: 5
+    printf('%d$N', globalStructTwo.instanceB.value^); // CHECK: 10
+    printf('%d$N', globalStructTwo.instanceB.instanceC.value^); // CHECK: 15
 END_FUNCTION
