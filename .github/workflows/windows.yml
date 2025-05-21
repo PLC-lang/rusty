@@ -31,14 +31,14 @@ jobs:
           version: ${{ env.llvm-version }}
           directory: "./llvm"
 
-      # - name: Cargo test (Unit)
-      #   run: cargo test --lib -- --nocapture
+      - name: Cargo test (Unit)
+        run: cargo test --lib -- --nocapture
 
-      # - name: Cargo test (Correctness)
-      #   run: cargo test correctness -- --nocapture --test-threads=1
+      - name: Cargo test (Correctness)
+        run: cargo test correctness -- --nocapture --test-threads=1
 
-      # - name: Cargo test (Integration)
-      #   run: cargo test integration -- --nocapture --test-threads=1
+      - name: Cargo test (Integration)
+        run: cargo test integration -- --nocapture --test-threads=1
 
       - name: Release Build
         run: cargo build --release --workspace
