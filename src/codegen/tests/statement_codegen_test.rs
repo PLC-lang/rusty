@@ -204,6 +204,8 @@ fn ref_assignment() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -247,6 +249,8 @@ fn reference_to_assignment() {
     filtered_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -290,6 +294,8 @@ fn reference_to_string_assignment() {
     filtered_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
@@ -326,6 +332,8 @@ fn local_alias() {
     filtered_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -354,6 +362,8 @@ fn local_string_alias() {
     filtered_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:

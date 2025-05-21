@@ -17,6 +17,8 @@ fn generate_function_with_online_change() {
     filtered_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @__custom_got = weak_odr global [2 x i8*] zeroinitializer
 
@@ -47,6 +49,8 @@ fn generate_program_with_online_change() {
     filtered_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32 }
 
@@ -80,6 +84,8 @@ fn generate_program_and_var_with_online_change() {
     filtered_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32 }
 
@@ -117,6 +123,8 @@ fn generate_function_and_var_with_online_change() {
     filtered_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
     @__custom_got = weak_odr global [4 x i8*] zeroinitializer

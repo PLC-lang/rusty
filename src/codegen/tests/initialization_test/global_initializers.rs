@@ -167,6 +167,8 @@ fn external_pous_get_external_initializers() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %ext_fb = type {}
     %ext_prog = type {}

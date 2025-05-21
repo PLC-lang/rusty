@@ -21,6 +21,8 @@ fn enums_generate_a_global_constants_for_each_element() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @myColor = global i32 0
     @Color.red = unnamed_addr constant i32 0
@@ -51,6 +53,8 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @myColor = global i32 0
     @myState = global i8 0
@@ -79,6 +83,8 @@ fn inline_declaration_of_enum_types() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @frontColor = global i32 0
     @backColor = global i32 0
@@ -118,6 +124,8 @@ fn using_enums() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32, i32, i32 }
 

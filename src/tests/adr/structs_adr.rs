@@ -21,6 +21,8 @@ fn declaring_a_struct() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
@@ -51,6 +53,8 @@ fn default_values_of_a_struct() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
@@ -92,6 +96,8 @@ fn initializing_a_struct() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }
@@ -139,6 +145,8 @@ fn assigning_structs() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
@@ -195,6 +203,8 @@ fn accessing_struct_members() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }

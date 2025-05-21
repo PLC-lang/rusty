@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @__a_position.x = unnamed_addr constant i32 1
 @__aa_position.x = unnamed_addr constant i32 2

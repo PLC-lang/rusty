@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 define i32 @main() {
 entry:
@@ -25,7 +27,7 @@ define i32 @SMC_Read(i64 %0) {
 entry:
   %SMC_Read = alloca i32, align 4
   %ValAddr = alloca i64, align 8
-  store i64 %0, i64* %ValAddr, align 4
+  store i64 %0, i64* %ValAddr, align 8
   store i32 0, i32* %SMC_Read, align 4
   %SMC_Read_ret = load i32, i32* %SMC_Read, align 4
   ret i32 %SMC_Read_ret

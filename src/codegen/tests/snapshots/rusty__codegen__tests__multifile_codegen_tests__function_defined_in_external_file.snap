@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'func.st'
 source_filename = "func.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 define i32 @func() {
 entry:
@@ -16,6 +18,8 @@ entry:
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %fb = type {}
 
@@ -30,6 +34,8 @@ entry:
 
 ; ModuleID = 'prg.st'
 source_filename = "prg.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg = type { i32 }
 
@@ -43,6 +49,8 @@ entry:
 
 ; ModuleID = 'prg2.st'
 source_filename = "prg2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg2 = type { i32 }
 
@@ -56,6 +64,8 @@ entry:
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { %fb.4 }
 %fb.4 = type {}

@@ -772,6 +772,8 @@ fn global_namespace_operator() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %main = type { i32 }
 

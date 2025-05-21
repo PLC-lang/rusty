@@ -15,6 +15,8 @@ fn aliased_address_in_global_generated() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -35,6 +37,8 @@ fn duplicate_aliased_address_in_global_generated() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -61,6 +65,8 @@ fn address_variable_used_with_symbolic_name() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %mainProg = type {}
 
@@ -100,6 +106,8 @@ fn address_used_in_body() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %mainProg = type {}
 

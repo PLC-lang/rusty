@@ -1108,6 +1108,8 @@ fn fb_method_called_locally() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 
@@ -1195,6 +1197,8 @@ fn fb_local_method_var_shadows_parent_var() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 
@@ -1281,6 +1285,8 @@ fn prog_method_called_locally() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 
@@ -1355,6 +1361,8 @@ fn prog_local_method_var_shadows_parent_var() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 
@@ -1608,6 +1616,8 @@ fn for_statement_with_binary_expressions() {
     filtered_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32, i32, i32, i32 }
 
@@ -1675,6 +1685,8 @@ fn for_statement_type_casting() {
     filtered_snapshot!(result,  @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -3961,6 +3973,8 @@ fn variables_in_var_external_block_are_not_generated() {
     filtered_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %bar = type {}
     %baz = type {}

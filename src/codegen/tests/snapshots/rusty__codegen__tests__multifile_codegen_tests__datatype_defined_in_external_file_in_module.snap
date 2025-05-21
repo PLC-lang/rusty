@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct = type { i32, i16* }
 
@@ -12,6 +14,8 @@ source_filename = "myStruct.st"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { %myStruct.1 }
 %myStruct.1 = type { i32, i16* }

@@ -710,6 +710,8 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define i32 @main() {
     entry:
@@ -769,6 +771,8 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define i32 @main() {
     entry:
@@ -828,6 +832,8 @@ fn by_value_function_arg_arrays_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define i32 @main() {
     entry:
@@ -894,6 +900,8 @@ fn by_value_function_arg_structs_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %S_TY = type { i8, i8 }
 
@@ -965,6 +973,8 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %AGGREGATE_COLLECTOR_TY = type { [65537 x i32], [65537 x i8], %S_TY }
     %S_TY = type { i8, i8 }
@@ -1028,6 +1038,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FOO = type { [65537 x i8], [1024 x i32] }
 
@@ -1118,6 +1130,8 @@ fn var_output_aggregate_types_are_memcopied() {
     filtered_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
     %OUT_TYPE = type { i8 }

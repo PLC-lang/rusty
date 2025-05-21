@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'g1.st'
 source_filename = "g1.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @x = global i32 6
 @d = external global i32
@@ -13,6 +15,8 @@ source_filename = "g1.st"
 
 ; ModuleID = 'g2.st'
 source_filename = "g2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @c = unnamed_addr constant i32 5
 @d = unnamed_addr constant i32 6
@@ -20,6 +24,8 @@ source_filename = "g2.st"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type {}
 

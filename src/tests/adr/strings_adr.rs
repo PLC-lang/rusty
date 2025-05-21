@@ -17,6 +17,8 @@ fn declaring_a_string() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @myUtf8 = global [21 x i8] zeroinitializer
     @myUtf16 = global [21 x i16] zeroinitializer
@@ -40,6 +42,8 @@ fn strings_are_terminated_with_0byte() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @myUtf8 = global [6 x i8] c"Hello\00"
     @myUtf16 = global [6 x i16] [i16 87, i16 111, i16 114, i16 108, i16 100, i16 0]
@@ -65,6 +69,8 @@ fn assigning_strings() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { [11 x i8], [11 x i8] }
 
@@ -106,6 +112,8 @@ fn assigning_string_literals() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { [11 x i8], [11 x i8] }
 

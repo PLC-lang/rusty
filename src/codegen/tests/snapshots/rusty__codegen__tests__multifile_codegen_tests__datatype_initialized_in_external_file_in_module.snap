@@ -5,9 +5,13 @@ snapshot_kind: text
 ---
 ; ModuleID = 'MyInt.st'
 source_filename = "MyInt.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { i16 }
 

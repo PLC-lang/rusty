@@ -192,6 +192,8 @@ fn codegen_of_a_program_pou() {
     filtered_snapshot!(codegen(DEFAULT_PRG),@r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %main_prg = type { i16, i16*, i16, i16 }
 
@@ -230,6 +232,8 @@ fn calling_a_program() {
     filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %main_prg = type { i16, i16*, i16, i16 }
 
@@ -293,6 +297,8 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     filtered_snapshot!(codegen(DEFAULT_FB), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %main_fb = type { i16, i16*, i16, i16 }
 
@@ -334,6 +340,8 @@ fn calling_a_function_block() {
     filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i16, i16, %main_fb }
     %main_fb = type { i16, i16*, i16, i16 }
@@ -394,6 +402,8 @@ fn function_get_a_method_with_by_ref_parameters() {
     filtered_snapshot!(codegen(DEFAULT_FUNC), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
     entry:
@@ -436,6 +446,8 @@ fn calling_a_function() {
     filtered_snapshot!(codegen(calling_prg.as_str()), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i16, i8 }
 
@@ -498,6 +510,8 @@ fn return_a_complex_type_from_function() {
     filtered_snapshot!(codegen(returning_string), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { [81 x i8] }
 
@@ -579,6 +593,8 @@ fn passing_aggregate_types_to_functions_by_value() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %myStruct = type { i32, i32, i32, [81 x i8] }
     %main = type { [81 x i8], [81 x i16], [30000 x i32], %myStruct }
@@ -665,6 +681,8 @@ fn passing_by_ref_to_functions() {
     filtered_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %main = type { [81 x i8], [81 x i8] }
 

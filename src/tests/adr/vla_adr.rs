@@ -309,6 +309,8 @@ fn pass() {
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -375,6 +377,8 @@ fn access() {
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -433,6 +437,8 @@ fn multi_dimensional() {
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [4 x i32] }
 
