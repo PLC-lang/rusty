@@ -2,7 +2,7 @@ use plc_ast::ast::{AstFactory, AstNode, AstStatement};
 use plc_ast::literals::{Array, AstLiteral};
 use plc_ast::provider::IdProvider;
 use plc_source::source_location::SourceLocation;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 use crate::index::const_expressions::{ConstExpression, UnresolvableKind};
 use crate::index::Index;
@@ -108,7 +108,7 @@ fn const_variables_default_value_compile_time_evaluation() {
         END_VAR
         ",
     );
-    filtered_snapshot!(ir);
+    filtered_assert_snapshot!(ir);
 }
 
 #[test]
@@ -127,7 +127,7 @@ fn const_enum_variable_default_value_compile_time_evaluation() {
     );
 
     // me should be three
-    filtered_snapshot!(ir);
+    filtered_assert_snapshot!(ir);
 }
 
 #[test]
@@ -1243,7 +1243,7 @@ fn default_values_are_transitive_for_range_types() {
 
     // THEN we expect the default value to be considered transitively
     // a & b should be 7, cc should be 14
-    filtered_snapshot!(src);
+    filtered_assert_snapshot!(src);
 }
 
 #[test]

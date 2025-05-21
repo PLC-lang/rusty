@@ -1,4 +1,4 @@
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 use crate::test_utils::tests::codegen_with_online_change as codegen;
 
@@ -14,7 +14,7 @@ fn generate_function_with_online_change() {
         END_FUNCTION
         ",
     );
-    filtered_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -46,7 +46,7 @@ fn generate_program_with_online_change() {
         END_PROGRAM
         ",
     );
-    filtered_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -81,7 +81,7 @@ fn generate_program_and_var_with_online_change() {
         END_VAR
         ",
     );
-    filtered_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -120,7 +120,7 @@ fn generate_function_and_var_with_online_change() {
         END_VAR
         ",
     );
-    filtered_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

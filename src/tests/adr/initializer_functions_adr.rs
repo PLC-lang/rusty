@@ -5,7 +5,7 @@ use crate::{
 use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
 use insta::assert_debug_snapshot;
 use plc_source::SourceCode;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 /// # Architecture Design Records: Lowering of complex initializers to initializer functions
 ///
@@ -482,7 +482,7 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -563,7 +563,7 @@ fn generating_init_functions() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -718,7 +718,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -811,7 +811,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -888,7 +888,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -967,7 +967,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

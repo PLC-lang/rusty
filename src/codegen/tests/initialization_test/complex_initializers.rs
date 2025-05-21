@@ -1,6 +1,6 @@
 use driver::generate_to_string;
 use plc_source::SourceCode;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn simple_global() {
@@ -17,7 +17,7 @@ fn simple_global() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -50,7 +50,7 @@ fn global_alias() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -83,7 +83,7 @@ fn global_reference_to() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -121,7 +121,7 @@ fn init_functions_generated_for_programs() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -186,7 +186,7 @@ fn init_functions_work_with_adr() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -269,7 +269,7 @@ fn init_functions_generated_for_function_blocks() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -378,7 +378,7 @@ fn nested_initializer_pous() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -602,7 +602,7 @@ fn local_address() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r###""###);
+    filtered_assert_snapshot!(res, @r###""###);
 }
 
 #[test]
@@ -627,7 +627,7 @@ fn tmpo() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r###""###);
+    filtered_assert_snapshot!(result, @r###""###);
 }
 
 #[test]
@@ -657,7 +657,7 @@ fn stack_allocated_variables_are_initialized_in_pou_body() {
     )
     .unwrap();
 
-    filtered_snapshot!(result, @r###""###);
+    filtered_assert_snapshot!(result, @r###""###);
 }
 
 #[test]
@@ -680,7 +680,7 @@ fn ref_to_input_variable() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r###""###);
+    filtered_assert_snapshot!(res, @r###""###);
 }
 
 #[test]
@@ -703,7 +703,7 @@ fn ref_to_inout_variable() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r###""###);
+    filtered_assert_snapshot!(res, @r###""###);
 }
 
 #[test]
@@ -733,7 +733,7 @@ fn struct_types() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -837,7 +837,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -973,7 +973,7 @@ fn global_instance() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1074,7 +1074,7 @@ fn aliased_types() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1185,7 +1185,7 @@ fn array_of_instances() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r###""###);
+    filtered_assert_snapshot!(res, @r###""###);
 }
 
 #[test]
@@ -1216,7 +1216,7 @@ fn override_default_initializer() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r###""###);
+    filtered_assert_snapshot!(res, @r###""###);
 }
 
 #[test]
@@ -1247,7 +1247,7 @@ fn var_config_aliased_variables_initialized() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1360,7 +1360,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1425,7 +1425,7 @@ fn ref_to_local_member() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1505,7 +1505,7 @@ fn ref_to_local_member_shadows_global() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1584,7 +1584,7 @@ fn temporary_variable_ref_to_local_member() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1653,7 +1653,7 @@ fn temporary_variable_ref_to_temporary_variable() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1709,7 +1709,7 @@ fn initializing_method_variables_with_refs() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1781,7 +1781,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1853,7 +1853,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1925,7 +1925,7 @@ fn initializing_method_variables_with_refs_shadowing() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1995,7 +1995,7 @@ fn initializing_method_variables_with_alias() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2064,7 +2064,7 @@ fn initializing_method_variables_with_reference_to() {
         )],
     )
     .unwrap();
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2140,7 +2140,7 @@ fn methods_call_init_functions_for_their_members() {
     )
     .unwrap();
     // when compiling to ir, we expect `bar.baz` to call `__init_foo` with the local instance.
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2254,7 +2254,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2377,7 +2377,7 @@ fn user_fb_init_in_global_struct() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2515,7 +2515,7 @@ fn user_init_called_when_declared_as_external() {
     )
     .unwrap();
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

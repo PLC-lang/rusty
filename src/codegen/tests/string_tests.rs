@@ -1,4 +1,4 @@
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::{codegen, codegen_without_unwrap};
@@ -21,7 +21,7 @@ END_PROGRAM
     );
 
     // THEN we dont want that y := z will overwrite the last byte of the y-vector (null-terminator)
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn casted_string_assignment_uses_memcpy() {
     );
 
     // THEN we expect the assignments to use memcpy, no stores!
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -63,7 +63,7 @@ END_PROGRAM
     ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -77,7 +77,7 @@ END_VAR
     ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -96,7 +96,7 @@ z := WSTRING#'im a utf16 genius';
 END_PROGRAM
 "#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -111,7 +111,7 @@ END_PROGRAM
 "#,
     )
     .unwrap_err();
-    filtered_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 
 #[test]
@@ -134,7 +134,7 @@ END_PROGRAM
 "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -153,7 +153,7 @@ fn variable_length_strings_can_be_created() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn function_returns_a_literal_string() {
         "#,
     );
 
-    filtered_snapshot!(program);
+    filtered_assert_snapshot!(program);
 }
 
 #[test]
@@ -198,7 +198,7 @@ fn function_takes_string_paramter_and_returns_string() {
         "#,
     );
 
-    filtered_snapshot!(program);
+    filtered_assert_snapshot!(program);
 }
 
 #[test]
@@ -223,7 +223,7 @@ fn variable_length_strings_using_constants_can_be_created() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 //from OSCAT
@@ -257,7 +257,7 @@ fn nested_struct_initialization_of_multi_dim_string_arrays() {
         VAR_GLOBAL x : CONSTANTS_LANGUAGE; END_VAR
         "#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -288,7 +288,7 @@ fn string_function_parameters() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -316,7 +316,7 @@ fn program_string_output() {
     );
 
     // THEN
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -356,7 +356,7 @@ fn function_returning_generic_string_should_return_by_ref() {
     );
 
     // THEN
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -380,7 +380,7 @@ fn function_var_constant_strings_should_be_collected_as_literals() {
     );
 
     // THEN we should see global variables for * and #
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -411,7 +411,7 @@ fn using_a_constant_var_string_should_be_memcpyable_nonref() {
     );
 
     // THEN
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -442,7 +442,7 @@ fn using_a_constant_var_string_should_be_memcpyable() {
     );
 
     // THEN
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -460,5 +460,5 @@ fn assigning_utf8_literal_to_wstring() {
     );
 
     // THEN
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }

@@ -1,6 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn bitaccess_assignment() {
@@ -17,7 +17,7 @@ fn bitaccess_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn byteaccess_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn wordaccess_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn dwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn lwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn chained_bit_assignment() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn qualified_reference_assignment() {
 
         ",
     );
-    filtered_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    filtered_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -246,7 +246,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    filtered_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -313,7 +313,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    filtered_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -389,7 +389,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    filtered_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

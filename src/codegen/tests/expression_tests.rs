@@ -1,13 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 #[test]
 fn pointers_in_function_return() {
     let result = codegen(
         r#"FUNCTION func : REF_TO INT
         END_FUNCTION"#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -24,7 +24,7 @@ fn structs_in_function_return() {
             END_VAR
         END_FUNCTION"#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -40,7 +40,7 @@ fn strings_in_function_return() {
             myout^ := 'hello';
        END_FUNCTION"#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -60,7 +60,7 @@ fn calling_strings_in_function_return() {
        END_PROGRAM
        "#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn unary_expressions_can_be_real() {
             END_PROGRAM
         "#,
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -94,7 +94,7 @@ fn type_mix_in_call() {
     ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -113,7 +113,7 @@ fn cast_pointer_to_lword() {
     );
 
     //should result in normal number-comparisons
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn cast_lword_to_pointer() {
     );
 
     //should result in normal number-comparisons
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -151,7 +151,7 @@ fn cast_between_pointer_types() {
     );
 
     //should result in bitcast conversion when assigning to ptr_x
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -176,7 +176,7 @@ fn unnecessary_casts_between_pointer_types() {
     );
 
     //should not result in bitcast
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -199,7 +199,7 @@ fn access_string_via_byte_array() {
     );
 
     //should result in bitcasts
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -228,7 +228,7 @@ fn pointer_arithmetics() {
         END_PROGRAM
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -251,7 +251,7 @@ fn pointer_arithmetics_function_call() {
         END_PROGRAM
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -272,7 +272,7 @@ fn nested_call_statements() {
     );
     // WHEN compiled
     // WE expect a flat sequence of calls, no regions and branching
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -291,7 +291,7 @@ fn builtin_function_call_adr() {
     );
     // WHEN compiled
     // We expect the same behaviour as if REF was called, due to the assignee being a pointer
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -310,7 +310,7 @@ fn builtin_function_call_ref() {
     );
     // WHEN compiled
     // We expect a direct conversion and subsequent assignment to pointer(no call)
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -324,7 +324,7 @@ fn builtin_function_call_mux() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -338,7 +338,7 @@ fn builtin_function_call_mux_with_aggregate_type() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -352,7 +352,7 @@ fn builtin_function_call_sel() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -366,7 +366,7 @@ fn builtin_function_call_sel_as_expression() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -380,7 +380,7 @@ fn builtin_function_call_move() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -395,7 +395,7 @@ fn builtin_function_call_sizeof() {
         END_PROGRAM",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -419,7 +419,7 @@ fn builtin_function_call_lower_bound() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -443,7 +443,7 @@ fn builtin_function_call_upper_bound() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -472,7 +472,7 @@ fn builtin_function_call_upper_bound_expr() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -489,7 +489,7 @@ fn test_max_int() {
     END_FUNCTION",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -515,7 +515,7 @@ fn compare_date_time_literals() {
     ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -539,7 +539,7 @@ fn allowed_assignable_types() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -557,7 +557,7 @@ fn builtin_add_ints() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -574,7 +574,7 @@ fn builtin_add_float() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -591,7 +591,7 @@ fn builtin_add_mixed() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -609,7 +609,7 @@ fn builtin_mul_ints() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -626,7 +626,7 @@ fn builtin_mul_float() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -643,7 +643,7 @@ fn builtin_mul_mixed() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -660,7 +660,7 @@ fn builtin_sub_ints() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -677,7 +677,7 @@ fn builtin_sub_float() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -694,7 +694,7 @@ fn builtin_sub_mixed() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -711,7 +711,7 @@ fn builtin_div_ints() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -728,7 +728,7 @@ fn builtin_div_float() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -745,7 +745,7 @@ fn builtin_div_mixed() {
 
     let res = codegen(src);
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -769,7 +769,7 @@ fn global_namespace_operator() {
     "#;
 
     let res = codegen(src);
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

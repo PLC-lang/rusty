@@ -1,4 +1,4 @@
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 use test_utils::codegen;
 mod debug_tests;
 mod super_tests;
@@ -19,7 +19,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -114,7 +114,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    filtered_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -245,7 +245,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -394,7 +394,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -562,7 +562,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    filtered_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -755,7 +755,7 @@ fn this_in_method_call_chain() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -827,7 +827,7 @@ fn this_in_method_and_body_in_function_block() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -918,7 +918,7 @@ fn pass_this_to_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1039,7 +1039,7 @@ fn this_with_shadowed_variable() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1117,7 +1117,7 @@ fn this_calling_function_and_passing_this() {
         END_FUNCTION
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1197,7 +1197,7 @@ fn this_in_property_and_calling_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1304,7 +1304,7 @@ fn this_with_self_pointer() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1373,7 +1373,7 @@ fn this_in_variable_initialization() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1427,7 +1427,7 @@ fn this_in_action_in_functionblock() {
         END_ACTION
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1486,7 +1486,7 @@ fn this_calling_functionblock_body_from_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

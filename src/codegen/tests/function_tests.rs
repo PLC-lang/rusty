@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 #[test]
 fn var_output_in_function_call() {
     let result = codegen(
@@ -19,7 +19,7 @@ fn var_output_in_function_call() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn on_functions_var_in_out_should_be_passed_as_a_pointer() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn on_functions_var_output_should_be_passed_as_a_pointer() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn member_variables_in_body() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -88,7 +88,7 @@ fn simple_call() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -107,7 +107,7 @@ fn passing_a_string_to_a_function() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -126,7 +126,7 @@ fn passing_a_string_to_a_function_as_reference() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -150,7 +150,7 @@ fn passing_arguments_to_functions_by_ref_and_val() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -175,7 +175,7 @@ fn autocast_argument_literals_for_function_call() {
         "#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -246,7 +246,7 @@ fn bitcast_argument_references_for_function_call() {
         END_PROGRAM"#,
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -270,7 +270,7 @@ fn literal_string_argument_passed_by_ref() {
     ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -293,7 +293,7 @@ fn function_with_varargs_called_in_program() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -319,7 +319,7 @@ fn function_with_sized_varargs_called_in_program() {
     // The function definition contains a size and pointer for the parameters
     // The parameters are stored in a local vector (allocated in place)
     // Function call with 3 as first parameter (size) and the arguments array as pointer
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -345,7 +345,7 @@ fn function_with_ref_sized_string_varargs_called_in_program() {
     // The function definition contains a size and pointer for the parameters
     // The parameters are stored in a local vector (allocated in place)
     // Function call with 3 as first parameter (size) and the arguments array as pointer
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -368,7 +368,7 @@ fn return_variable_in_nested_call() {
           ";
 
     // we want a call passing the return-variable as apointer (actually the adress as a LWORD)
-    filtered_snapshot!(codegen(src));
+    filtered_assert_snapshot!(codegen(src));
 }
 
 #[test]
@@ -401,7 +401,7 @@ fn argument_fed_by_ref_then_by_val() {
     ",
     );
 
-    filtered_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 
 #[test]
@@ -422,5 +422,5 @@ fn function_call_with_array_access() {
     ",
     );
 
-    filtered_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }

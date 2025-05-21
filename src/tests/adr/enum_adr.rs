@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 /// # Architecture Design Record: Enums
 /// An Enum (or Enumeration) is a special datatype in ST. An Enum datatype represents a numeric datatype (default is i32)
 /// with a list of  well defined values with dedicated qualified names (e.g. `@qualifier.red`, `@qualifier.yellow`, `@qualifier.green`).
@@ -18,7 +18,7 @@ fn enums_generate_a_global_constants_for_each_element() {
         VAR_GLOBAL
             myColor : Color;
         END_VAR"#;
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -50,7 +50,7 @@ fn enums_constants_are_automatically_numbered_or_user_defined() {
             myState : State;
         END_VAR"#;
 
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -80,7 +80,7 @@ fn inline_declaration_of_enum_types() {
             backColor  : (red, green, yellow);
         END_VAR"#;
 
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -121,7 +121,7 @@ fn using_enums() {
         END_PROGRAM
     "#;
 
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"

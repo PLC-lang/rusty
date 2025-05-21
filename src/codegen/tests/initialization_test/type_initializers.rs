@@ -1,4 +1,4 @@
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 use crate::{
     test_utils::tests::{
@@ -26,7 +26,7 @@ fn initial_values_in_struct_types() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn struct_initial_values_different_data_types() {
         VAR_GLOBAL x : MyStruct; END_VAR
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -67,7 +67,7 @@ fn initial_values_in_type_alias() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn initial_values_in_sub_range_type() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -93,7 +93,7 @@ fn expression_list_as_array_initilization() {
         END_VAR
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -105,7 +105,7 @@ fn incomplete_array_initialization() {
         END_VAR
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -119,7 +119,7 @@ fn incomplete_array_initialization_with_custom_init_value() {
         END_VAR
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -139,7 +139,7 @@ fn alias_chain_with_lots_of_initializers() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn initial_values_in_single_dimension_array_variable() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -171,7 +171,7 @@ fn initial_values_in_single_dimension_array_type() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -184,7 +184,7 @@ fn initial_values_in_multi_dimension_array_variable() {
          ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -200,7 +200,7 @@ fn initial_values_in_array_variable_using_multiplied_statement() {
          ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -220,7 +220,7 @@ fn initial_values_in_struct_variable() {
          ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -241,7 +241,7 @@ fn initial_values_in_struct_variable_missing_init() {
          ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -268,7 +268,7 @@ fn unresolvable_types_validation() {
         DebugLevel::None,
     )
     .expect_err("should fail");
-    filtered_snapshot!(msg);
+    filtered_assert_snapshot!(msg);
 }
 
 #[test]
@@ -294,7 +294,7 @@ fn initial_nested_struct_delayed_init() {
      ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -318,7 +318,7 @@ fn struct_init_with_wrong_types_does_not_trigger_codegen_validation() {
     )
     .expect_err("Should fail");
 
-    filtered_snapshot!(msg);
+    filtered_assert_snapshot!(msg);
 }
 
 #[test]
@@ -343,7 +343,7 @@ fn initial_values_in_fb_variable() {
         END_PROGRAM
         ",
     );
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -373,7 +373,7 @@ fn complex_initial_values_in_struct_variable_using_multiplied_statement() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -391,7 +391,7 @@ fn struct_with_one_field_can_be_initialized() {
         ",
     );
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -408,7 +408,7 @@ fn struct_initializer_needs_assignments() {
             END_VAR
            ";
     let msg = codegen_without_unwrap(source).unwrap_err();
-    filtered_snapshot!(msg);
+    filtered_assert_snapshot!(msg);
 }
 
 #[test]
@@ -435,7 +435,7 @@ fn struct_initialization_uses_types_default_if_not_provided() {
     let result = codegen(source);
 
     //THEN we expect z to be 7
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -457,7 +457,7 @@ fn struct_initializer_uses_fallback_to_field_default() {
            ";
     let result = codegen(source);
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -486,7 +486,7 @@ fn array_of_struct_initialization() {
     ";
     let result = codegen(source);
 
-    filtered_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -511,7 +511,7 @@ fn type_defaults_are_used_for_uninitialized_constants() {
     // b := 7 + 14 = 21;
     // c := default(MyDINT) = Default(MyOtherDINT) = 2;
     // d := 7 + 21 + 2 = 30
-    filtered_snapshot!(result.unwrap());
+    filtered_assert_snapshot!(result.unwrap());
 }
 
 #[test]
@@ -535,7 +535,7 @@ fn partly_uninitialized_const_struct_will_get_default_values() {
         "#,
     );
 
-    filtered_snapshot!(result.unwrap());
+    filtered_assert_snapshot!(result.unwrap());
 }
 
 #[test]
@@ -607,7 +607,7 @@ fn enums_with_inline_initializer_are_initialized() {
         "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -636,5 +636,5 @@ fn skipped_field_members_for_array_of_structs_are_zero_initialized() {
         "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }

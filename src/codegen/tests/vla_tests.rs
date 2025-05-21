@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 #[test]
 fn internal_vla_struct_is_generated_for_call_statements() {
     let res = codegen(
@@ -19,7 +19,7 @@ fn internal_vla_struct_is_generated_for_call_statements() {
     "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -42,7 +42,7 @@ fn vla_read_access() {
     "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -66,7 +66,7 @@ fn global_variable_passed_to_function_as_vla() {
     "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -89,7 +89,7 @@ fn multi_dimensional_vla() {
     "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }
 
 #[test]
@@ -114,5 +114,5 @@ fn consecutive_calls_with_differently_sized_arrays() {
     "#,
     );
 
-    filtered_snapshot!(res);
+    filtered_assert_snapshot!(res);
 }

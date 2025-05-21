@@ -1,7 +1,7 @@
 pub mod convention;
 
 #[macro_export]
-macro_rules! filtered_snapshot {
+macro_rules! filtered_assert_snapshot {
     // Case for normal snapshot (no inline expected output)
     ($value:expr) => {{
         let mut settings = insta::Settings::clone_current();

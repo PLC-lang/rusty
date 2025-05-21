@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-use plc_util::filtered_snapshot;
+use plc_util::filtered_assert_snapshot;
 /// # Architecture Design Record: Structs
 /// ST supports C-like structures.
 ///
@@ -18,7 +18,7 @@ fn declaring_a_struct() {
         "#;
 
     // ... just translates to a llvm struct type
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -50,7 +50,7 @@ fn default_values_of_a_struct() {
         "#;
 
     // ... instances of this struct-type will be initialized accordingly
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -93,7 +93,7 @@ fn initializing_a_struct() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -142,7 +142,7 @@ fn assigning_structs() {
         "#;
 
     // ... the assignment p1 := p2 will be performed as a memcpy
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -200,7 +200,7 @@ fn accessing_struct_members() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    filtered_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
