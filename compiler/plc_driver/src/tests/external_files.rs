@@ -2,6 +2,7 @@ use plc::DebugLevel;
 use source_code::SourceCode;
 
 use crate::tests::compile_to_string;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn external_file_function_call() {
@@ -25,7 +26,7 @@ fn external_file_function_call() {
     //When they are generated
     let results = compile_to_string(vec![prog], vec![ext], None, DebugLevel::None).unwrap();
     //Expect external to only be declared in the result
-    insta::assert_snapshot!(results.join("\n"));
+    filtered_assert_snapshot!(results.join("\n"));
 }
 
 #[test]
@@ -58,7 +59,7 @@ fn external_file_global_var() {
     //When they are generated
     let results = compile_to_string(vec![prog], vec![ext], None, DebugLevel::None).unwrap();
     //x should be external
-    insta::assert_snapshot!(results.join("\n"));
+    filtered_assert_snapshot!(results.join("\n"));
 }
 
 #[test]
@@ -76,7 +77,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     let res = compile_to_string(vec![prog], vec![], None, DebugLevel::None);
 
     if let Err(msg) = res {
-        insta::assert_snapshot!(msg.to_string())
+        filtered_assert_snapshot!(msg.to_string())
     } else {
         panic!("expected code-gen error but got none")
     }

@@ -1,11 +1,11 @@
-use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
-use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_source::SourceCode;
-
 use crate::{
     index::const_expressions::UnresolvableKind, resolver::const_evaluator::evaluate_constants,
     test_utils::tests::index,
 };
+use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
+use insta::assert_debug_snapshot;
+use plc_source::SourceCode;
+use plc_util::filtered_assert_snapshot;
 
 /// # Architecture Design Records: Lowering of complex initializers to initializer functions
 ///
@@ -482,9 +482,11 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
@@ -561,9 +563,11 @@ fn generating_init_functions() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %baz = type { %bar }
     %bar = type { %foo }
@@ -714,9 +718,11 @@ fn intializing_temporary_variables() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { [81 x i8]* }
 
@@ -805,9 +811,11 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type {}
 
@@ -880,9 +888,11 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 
@@ -957,9 +967,11 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32 }
 

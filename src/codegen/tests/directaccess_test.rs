@@ -1,6 +1,6 @@
-use insta::assert_snapshot;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn bitaccess_assignment() {
@@ -17,7 +17,7 @@ fn bitaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn byteaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn wordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -62,7 +62,7 @@ fn dwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -77,7 +77,7 @@ fn lwordaccess_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -92,7 +92,7 @@ fn chained_bit_assignment() {
     END_FUNCTION",
     );
 
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn qualified_reference_assignment() {
 
         ",
     );
-    insta::assert_snapshot!(prog);
+    filtered_assert_snapshot!(prog);
 }
 
 #[test]
@@ -141,9 +141,11 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FOO = type { i8, i8 }
 
@@ -244,9 +246,11 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FOO = type { i8 }
 
@@ -309,9 +313,11 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FOO = type { i8 }
 
@@ -383,9 +389,11 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
         ",
     );
 
-    assert_snapshot!(ir, @r#"
+    filtered_assert_snapshot!(ir, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %QUUX = type { i8 }
     %foo_struct = type { %bar_struct }
@@ -417,24 +425,24 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %bar = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz = getelementptr inbounds %bar_struct, %bar_struct* %bar, i32 0, i32 0
       %2 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
-      %3 = load i64, i64* %baz, align 4
+      %3 = load i64, i64* %baz, align 8
       %4 = load i8, i8* %2, align 1
       %erase = and i64 %3, -281474976710657
       %5 = zext i8 %4 to i64
       %value = shl i64 %5, 48
       %or = or i64 %erase, %value
-      store i64 %or, i64* %baz, align 4
+      store i64 %or, i64* %baz, align 8
       call void @QUUX(%QUUX* %f)
       %bar1 = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz2 = getelementptr inbounds %bar_struct, %bar_struct* %bar1, i32 0, i32 0
       %6 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
-      %7 = load i64, i64* %baz2, align 4
+      %7 = load i64, i64* %baz2, align 8
       %8 = load i8, i8* %6, align 1
       %erase3 = and i64 %7, -1125899906842625
       %9 = zext i8 %8 to i64
       %value4 = shl i64 %9, 50
       %or5 = or i64 %erase3, %value4
-      store i64 %or5, i64* %baz2, align 4
+      store i64 %or5, i64* %baz2, align 8
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }

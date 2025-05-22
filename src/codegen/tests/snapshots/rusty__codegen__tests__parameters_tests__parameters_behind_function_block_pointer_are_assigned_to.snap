@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %main = type { %file_t, %file_t* }
 %file_t = type { i8, i8 }

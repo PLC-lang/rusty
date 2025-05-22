@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 use crate::test_utils::tests::codegen_with_online_change as codegen;
 
@@ -14,9 +14,11 @@ fn generate_function_with_online_change() {
         END_FUNCTION
         ",
     );
-    assert_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @__custom_got = weak_odr global [2 x i8*] zeroinitializer
 
@@ -44,9 +46,11 @@ fn generate_program_with_online_change() {
         END_PROGRAM
         ",
     );
-    assert_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32 }
 
@@ -77,9 +81,11 @@ fn generate_program_and_var_with_online_change() {
         END_VAR
         ",
     );
-    assert_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { i32 }
 
@@ -114,9 +120,11 @@ fn generate_function_and_var_with_online_change() {
         END_VAR
         ",
     );
-    assert_snapshot!(src, @r#"
+    filtered_assert_snapshot!(src, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
     @__custom_got = weak_odr global [4 x i8*] zeroinitializer

@@ -203,8 +203,8 @@ fn actions_called_correctly() {
 #[cfg(test)]
 mod ir {
     use driver::{compile, generate_to_string, generate_to_string_debug};
-    use insta::assert_snapshot;
     use plc_source::SourceCode;
+    use plc_util::filtered_assert_snapshot;
     use plc_xml::serializer::{
         SAction, SBlock, SConnector, SContinuation, SInVariable, SJump, SLabel, SOutVariable, SPou, SReturn,
     };
@@ -225,7 +225,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -238,7 +238,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -251,7 +251,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -263,7 +263,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -277,7 +277,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -289,7 +289,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -301,7 +301,7 @@ mod ir {
         // We truncate the first 3 lines of the snapshot file because they contain file-metadata that changes
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -326,7 +326,7 @@ mod ir {
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
 
         // We expect two different !dbg statements for the return statement and its condition
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -352,7 +352,7 @@ mod ir {
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
 
         // We expect four different !dbg statement for the condition, label, statement and the assignment
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -384,7 +384,7 @@ mod ir {
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
 
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 
     #[test]
@@ -405,6 +405,6 @@ mod ir {
         // with each run. This is due to working with temporary files (i.e. tempfile::NamedTempFile::new())
         let output_file_content_without_headers = res.lines().skip(3).collect::<Vec<&str>>().join(NEWLINE);
 
-        assert_snapshot!(output_file_content_without_headers);
+        filtered_assert_snapshot!(output_file_content_without_headers);
     }
 }

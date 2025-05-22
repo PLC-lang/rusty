@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg = type { i8, i64 }
 
@@ -14,7 +16,7 @@ define void @prg(%prg* %0) {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_b = load i64, i64* %b, align 4
+  %load_b = load i64, i64* %b, align 8
   %load_a = load i8, i8* %a, align 1
   %1 = zext i8 %load_a to i64
   %tmpVar = icmp slt i64 %load_b, %1

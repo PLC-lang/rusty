@@ -1,4 +1,5 @@
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn initial_constant_values_in_pou_variables() {
@@ -20,7 +21,7 @@ fn initial_constant_values_in_pou_variables() {
         "#,
     );
 
-    insta::assert_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 #[test]
 fn initial_values_in_program_pou() {
@@ -39,7 +40,7 @@ fn initial_values_in_program_pou() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 
 #[test]
@@ -65,7 +66,7 @@ fn initial_values_in_function_block_pou() {
         ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 
 #[test]
@@ -78,7 +79,7 @@ fn initial_values_in_array_of_array_variable() {
          ",
     );
 
-    insta::assert_snapshot!(result)
+    filtered_assert_snapshot!(result)
 }
 
 #[test]
@@ -95,7 +96,7 @@ fn default_values_for_not_initialized_function_vars() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -109,7 +110,7 @@ fn initialized_array_in_function() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -124,7 +125,7 @@ fn initialized_array_type_in_function() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -138,7 +139,7 @@ fn memcpy_for_struct_initialization_in_function() {
         END_FUNCTION
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -152,7 +153,7 @@ fn no_memcpy_for_struct_initialization_in_program() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -181,7 +182,7 @@ fn function_block_struct_initialized_in_function() {
         ",
     );
 
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -210,7 +211,7 @@ fn class_struct_initialized_in_function() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -237,7 +238,7 @@ fn function_return_value_is_initialized() {
         ",
     );
     //expect 0-initialization
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -261,7 +262,7 @@ fn function_return_value_is_initialized_with_type_initializer() {
         ",
     );
     //expect [1,2,3,4]-initialization of function's out pointer
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -293,7 +294,7 @@ fn function_return_value_with_initializers_is_initialized() {
     // memcpy from MyStr__init to foo_str
     // memcpy from MyArr__init to foo_arr
     // memcpy from MyStrct__init to foo_strct
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -325,7 +326,7 @@ fn function_return_value_without_initializers_is_initialized() {
     // memset 0 to foo_str
     // memset 0 to foo_arr
     // memcpy from zeroinitializer global to foo_strct
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -350,7 +351,7 @@ fn two_identical_enums_in_different_functions_are_referenced_correctly() {
     // Previously this was not the case, because the index wouldn't find the locally defined `x`
     // variant in `bar` and instead referenced the `x` in `foo`.
     // See also https://github.com/PLC-lang/rusty/pull/1092
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -377,7 +378,7 @@ fn two_identical_enums_in_different_functions_with_similar_names_are_referenced_
 
     // We want to ensure that each local `position` enum gets a correct `x` value assigned, i.e.
     // a.x == 1, aa.x == 2, bb.x == 3, b.x == 4
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }
 
 #[test]
@@ -404,5 +405,5 @@ fn enum_variants_have_precedence_over_global_variables_in_inline_assignment() {
 
     // We want to ensure that both the `position` assignment in `foo` and `bar` references
     // the enum variant `x` rather than the global variable `x`
-    insta::assert_snapshot!(function)
+    filtered_assert_snapshot!(function)
 }

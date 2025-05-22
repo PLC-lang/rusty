@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 define i32 @func(i16 %0, i8* %1, i64* %2) {
 entry:
@@ -28,7 +30,7 @@ entry:
   %tmpVar = mul i32 %3, %4
   %5 = sext i32 %tmpVar to i64
   %deref1 = load i64*, i64** %o, align 8
-  %load_o = load i64, i64* %deref1, align 4
+  %load_o = load i64, i64* %deref1, align 8
   %tmpVar2 = sub i64 %5, %load_o
   %load_v = load i16, i16* %v, align 2
   %6 = sext i16 %load_v to i32

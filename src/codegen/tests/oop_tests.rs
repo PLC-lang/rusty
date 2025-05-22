@@ -1,5 +1,5 @@
+use plc_util::filtered_assert_snapshot;
 use test_utils::codegen;
-
 mod debug_tests;
 mod super_tests;
 
@@ -19,9 +19,11 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
@@ -112,9 +114,11 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb2 = type { %fb }
     %fb = type { i16, i16 }
@@ -241,9 +245,11 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %bar = type { %foo }
     %foo = type { [81 x i8] }
@@ -388,9 +394,11 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
@@ -554,9 +562,11 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }
@@ -745,9 +755,11 @@ fn this_in_method_call_chain() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type {}
 
@@ -815,9 +827,11 @@ fn this_in_method_and_body_in_function_block() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { i16 }
 
@@ -904,9 +918,11 @@ fn pass_this_to_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { i16 }
     %FB_Test2 = type {}
@@ -1023,9 +1039,11 @@ fn this_with_shadowed_variable() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { i16 }
 
@@ -1099,9 +1117,11 @@ fn this_calling_function_and_passing_this() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { i16 }
 
@@ -1177,9 +1197,11 @@ fn this_in_property_and_calling_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { i16 }
 
@@ -1282,9 +1304,11 @@ fn this_with_self_pointer() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB_Test = type { %FB_Test* }
 
@@ -1349,9 +1373,11 @@ fn this_in_variable_initialization() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %FB = type { i16, %FB*, i16 }
 
@@ -1401,9 +1427,11 @@ fn this_in_action_in_functionblock() {
         END_ACTION
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb = type {}
 
@@ -1458,9 +1486,11 @@ fn this_calling_functionblock_body_from_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb = type {}
 

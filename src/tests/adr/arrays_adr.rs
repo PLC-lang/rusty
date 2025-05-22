@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_assert_snapshot;
 /// # Architecture Design Record: Arrays
 /// ST supports C-like arrays
 #[test]
@@ -14,9 +14,11 @@ fn declaring_an_array() {
         "#;
 
     // ... just translates to a llvm array type
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @d = global [10 x i32] zeroinitializer
     "#);
@@ -36,9 +38,11 @@ fn initializing_an_array() {
         "#;
 
     // ... Instances of this struct will be initialized accordingly
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @d = global [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
@@ -64,9 +68,11 @@ fn assigning_full_arrays() {
         "#;
 
     // ... the assignment a := b will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { [10 x i32], [10 x i32] }
 
@@ -116,9 +122,11 @@ fn accessing_array_elements() {
     // ... note that the b[4] access is generated as a gep-expression at index 1
     // .   %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
     // .                                                                      ^^^^^
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { [10 x i32], [3 x i32] }
 

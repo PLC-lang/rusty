@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'external_file1.st'
 source_filename = "external_file1.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -23,6 +25,8 @@ declare void @mainProg(%mainProg*)
 
 ; ModuleID = 'external_file2.st'
 source_filename = "external_file2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -35,6 +39,8 @@ entry:
 
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -58,6 +64,8 @@ entry:
 
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 

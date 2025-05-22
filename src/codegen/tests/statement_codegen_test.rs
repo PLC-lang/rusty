@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::test_utils::tests::codegen;
@@ -17,7 +17,7 @@ a := y.%X4;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -35,7 +35,7 @@ a := y.%B3;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -53,7 +53,7 @@ a := y.%W1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -71,7 +71,7 @@ a := y.%D1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -87,7 +87,7 @@ a := x.%D1.%W1.%B1.%X1;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -105,7 +105,7 @@ b := x.%By;
 END_PROGRAM
 "#,
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -128,7 +128,7 @@ fn function_result_assignment_on_string() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn function_result_assignment_on_aliased_string() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -184,7 +184,7 @@ fn floating_point_type_casting() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -201,9 +201,11 @@ fn ref_assignment() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -244,9 +246,11 @@ fn reference_to_assignment() {
     // We want to assert that `a := 5` and `a^ := 5` yield identical IR
     assert_eq!(auto_deref, manual_deref);
 
-    insta::assert_snapshot!(auto_deref, @r#"
+    filtered_assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -287,9 +291,11 @@ fn reference_to_string_assignment() {
     // We want to assert that `a := 'hello'` and `a^ := 'hello'` yield identical IR
     assert_eq!(auto_deref, manual_deref);
 
-    insta::assert_snapshot!(auto_deref, @r#"
+    filtered_assert_snapshot!(auto_deref, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
@@ -323,9 +329,11 @@ fn local_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r#"
+    filtered_assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -351,9 +359,11 @@ fn local_string_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r#"
+    filtered_assert_snapshot!(content, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     define void @main() {
     entry:
@@ -392,7 +402,7 @@ fn local_struct_alias() {
         "#,
     );
 
-    assert_snapshot!(content, @r"");
+    filtered_assert_snapshot!(content, @r"");
 }
 
 #[test]
@@ -409,5 +419,5 @@ fn stateful_local() {
         "#,
     );
 
-    assert_snapshot!(content, @r"");
+    filtered_assert_snapshot!(content, @r"");
 }

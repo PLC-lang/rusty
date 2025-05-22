@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @a = global [4 x i8] c"\07\07\07\07"
 @b = global [4 x i8] c"\02\07\07\03"

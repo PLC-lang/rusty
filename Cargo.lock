@@ -1840,6 +1840,7 @@ dependencies = [
  "console",
  "linked-hash-map",
  "once_cell",
+ "regex",
  "similar",
 ]
 
@@ -2814,6 +2815,7 @@ dependencies = [
  "plc_lowering",
  "plc_project",
  "plc_source",
+ "plc_util",
  "plc_xml",
  "pretty_assertions",
  "rayon",
