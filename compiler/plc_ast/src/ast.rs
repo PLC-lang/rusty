@@ -1487,7 +1487,12 @@ impl Operator {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
+    use plc_source::source_location::SourceLocation;
+
+    use crate::{
+        ast::{ArgumentProperty, AstFactory, DeclarationKind, PouType, VariableBlockType},
+        provider::IdProvider,
+    };
 
     #[test]
     fn display_pou() {
@@ -1517,9 +1522,96 @@ mod tests {
         assert_eq!(VariableBlockType::Global.to_string(), "Global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
     }
+
+    #[test]
+    fn qualified_reference_from_str() {
+        let value = "grandparent.parent.child";
+        insta::assert_debug_snapshot!(AstFactory::create_qualified_reference_from_str(value, SourceLocation::internal(), IdProvider::default()), @r###"
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "child",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "parent",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "grandparent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            ),
+        }
+        "###);
+    }
+
+    #[test]
+    fn deep_reference_sets_the_base_to_the_correct_location() {
+        let id_provider = IdProvider::default();
+        let member = AstFactory::create_qualified_reference_from_str(
+            "grandparent.parent.child",
+            SourceLocation::internal(),
+            id_provider.clone(),
+        );
+        let base = AstFactory::create_qualified_reference_from_str(
+            "greatgrandparent",
+            SourceLocation::internal(),
+            id_provider.clone(),
+        );
+        let deep_reference = AstFactory::create_deep_member_reference(member, Some(base), id_provider);
+
+        insta::assert_debug_snapshot!(deep_reference, @r###"
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "child",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "parent",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "grandparent",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "greatgrandparent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+            ),
+        }
+        "###);
+    }
 }
 
-pub struct AstFactory {}
+pub struct AstFactory;
 
 impl AstFactory {
     pub fn create_empty_statement(location: SourceLocation, id: AstId) -> AstNode {
@@ -1713,6 +1805,57 @@ impl AstFactory {
             id,
             location,
         )
+    }
+
+    /*
+             kind: Member(
+               Identifier {
+                   name: "instanceB",
+               },
+           ),
+           ReferenceExpr {
+               base: Some(
+                   ReferenceExpr {
+                       kind: Member(
+                           Identifier {
+                               name: "globalStructA",
+                           },
+                       ),
+                       base: None,
+                   },
+               ),
+           },
+    */
+    pub fn create_deep_member_reference(
+        member: AstNode,
+        base: Option<AstNode>,
+        mut id_provider: IdProvider,
+    ) -> AstNode {
+        let location = base
+            .as_ref()
+            .map(|it| it.get_location().span(&member.get_location()))
+            .unwrap_or_else(|| member.get_location());
+        match member.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr {
+                access: ReferenceAccess::Member(access),
+                base: inner_base,
+            }) => {
+                let base = if let Some(inner_base) = inner_base {
+                    Some(AstFactory::create_deep_member_reference(*inner_base, base, id_provider.clone()))
+                } else {
+                    base
+                };
+                AstNode::new(
+                    AstStatement::ReferenceExpr(ReferenceExpr {
+                        access: ReferenceAccess::Member(access),
+                        base: base.map(Box::new),
+                    }),
+                    id_provider.next_id(),
+                    location,
+                )
+            }
+            _ => AstFactory::create_member_reference(member, base, id_provider.next_id()),
+        }
     }
 
     pub fn create_global_reference(id: AstId, member: AstNode, location: SourceLocation) -> AstNode {
@@ -1930,7 +2073,37 @@ impl AstFactory {
         let one = AstFactory::create_literal(AstLiteral::Integer(1), location.clone(), id);
         AstFactory::create_binary_expression(value, Operator::Plus, one, id)
     }
+
+    pub fn create_qualified_reference_from_str(
+        value: &str,
+        location: SourceLocation,
+        mut id_provider: IdProvider,
+    ) -> AstNode {
+        value
+            .split(".")
+            .fold(None, |base, next| {
+                Some(AstFactory::create_member_reference(
+                    AstFactory::create_identifier(next, location.clone(), id_provider.next_id()),
+                    base,
+                    id_provider.next_id(),
+                ))
+            })
+            .unwrap_or_else(|| AstFactory::create_empty_statement(location, id_provider.next_id()))
+    }
+
+    pub fn create_qualified_reference_from_slice(
+        path: &[&AstNode],
+        location: SourceLocation,
+        mut id_provider: IdProvider,
+    ) -> AstNode {
+        path.iter()
+            .fold(None, |base, next| {
+                Some(AstFactory::create_member_reference((*next).to_owned(), base, id_provider.next_id()))
+            })
+            .unwrap_or_else(|| AstFactory::create_empty_statement(location, id_provider.next_id()))
+    }
 }
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct EmptyStatement {}
 

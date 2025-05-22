@@ -59,7 +59,7 @@ macro_rules! visit_all_statements {
 ///
 /// Helper methods `qualifier`, `current_pou` and `lhs_pou` copy the current context and
 /// change one field.
-#[derive(Clone, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct VisitorContext<'s> {
     pub id_provider: IdProvider,
 
@@ -734,7 +734,7 @@ impl StatementAnnotation {
     /// Returns the location of a parameter in some POU the argument is assigned to, for example
     /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
     /// blocks
-    /// ```norun
+    /// ```text
     /// VAR_INPUT
     ///     a, b : DINT;
     /// END_VAR
@@ -1387,6 +1387,36 @@ impl<'i> TypeAnnotator<'i> {
         }
     }
 
+    /*
+    [src/validation/statement.rs:558:5] &statement = ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "instance",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "self",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    [src/validation/statement.rs:558:5] context.annotations.get(statement) = Some(
+        Variable {
+            resulting_type: "Parent",
+            qualified_name: "Child.instance",
+            constant: false,
+            argument_type: ByVal(
+                Input,
+            ),
+            auto_deref: None,
+        },
+    )
+     */
     fn visit_variable(&mut self, ctx: &VisitorContext, variable: &Variable) {
         self.visit_data_type_declaration(ctx, &variable.data_type_declaration);
         if let Some(initializer) = variable.initializer.as_ref() {
@@ -1859,10 +1889,29 @@ impl<'i> TypeAnnotator<'i> {
                 visit_all_statements!(self, ctx, &data.start, &data.end);
             }
             AstStatement::Assignment(data, ..) | AstStatement::RefAssignment(data, ..) => {
-                self.visit_statement(&ctx.enter_control(), &data.right);
+                if let Some(lhs) = ctx.lhs {
+                    if data.left.is_reference() {
+                        let left_flat_name = data.left.get_flat_reference_name().unwrap_or_default();
 
-                // if the LHS of the assignment is a member access, we need to update the context - when trying to resolve
-                // a property, this means it must be a setter, not a getter
+                        // We need to update the (type) name of the left-hand side when dealing with nested
+                        // assignments such as `var : StructA := (instanceB := (instanceC := (value := 5)))`.
+                        // Specifically when visiting e.g. the assignment `value := 5` we want to have a
+                        // left-hand side context of `instanceC`, which would be `StructC`.
+                        if let Some(ty) = self.index.find_member(lhs, left_flat_name) {
+                            self.visit_statement(
+                                &ctx.enter_control().with_lhs(ty.get_type_name()),
+                                &data.right,
+                            );
+                        }
+                    }
+
+                    self.visit_statement(&ctx.enter_control(), &data.right);
+                } else {
+                    self.visit_statement(&ctx.enter_control(), &data.right);
+                }
+
+                // if the LHS of the assignment is a member access, we need to update the context;
+                // when trying to resolve a property, this means it must be a setter, not a getter
                 let ctx = ctx.with_property_set(data.left.is_member_access());
 
                 if let Some(lhs) = ctx.lhs {
@@ -2053,6 +2102,11 @@ impl<'i> TypeAnnotator<'i> {
         ctx: &VisitorContext<'_>,
     ) -> Option<StatementAnnotation> {
         match reference.get_stmt() {
+            // TODO(volsa): This feels wrong?
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(expr), .. }) => {
+                self.resolve_reference_expression(expr, qualifier, ctx)
+            }
+
             AstStatement::Identifier(name, ..) => ctx
                 .resolve_strategy
                 .iter()
@@ -2499,7 +2553,7 @@ impl Scope {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum ResolvingStrategy {
     /// try to resolve a variable
     Variable,

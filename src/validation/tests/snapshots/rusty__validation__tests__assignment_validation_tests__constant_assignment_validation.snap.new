@@ -1,0 +1,10 @@
+---
+source: src/validation/tests/assignment_validation_tests.rs
+assertion_line: 20
+expression: diagnostics
+---
+warning[E036]: Cannot assign to CONSTANT 'v_global'
+  ┌─ <internal>:8:5
+  │
+8 │     v_global := TRUE; // INVALID
+  │     ^^^^^^^^ Cannot assign to CONSTANT 'v_global'

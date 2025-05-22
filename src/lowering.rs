@@ -5,8 +5,8 @@ use crate::{
 use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
-        LinkageType, PouType,
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable,
+        DataType, LinkageType, PouType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -54,7 +54,7 @@ impl InitVisitor {
     ) -> Self {
         Self {
             index,
-            unresolved_initializers: Initializers::new(&unresolved_initializers),
+            unresolved_initializers: Initializers::new(&unresolved_initializers, id_provider.clone()),
             var_config_initializers: vec![],
             user_inits: FxHashMap::default(),
             ctxt: Context::new(id_provider),
@@ -124,51 +124,142 @@ impl InitVisitor {
             let type_name =
                 variable.data_type_declaration.get_name().expect("Must have a type at this point");
             let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
-            if !data_type.is_pointer() {
-                return;
-            }
-
-            let updated_initializer = match &initializer.get_stmt() {
-                // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
-                AstStatement::ReferenceExpr(_) => {
-                    initializer.get_flat_reference_name().and_then(|flat_ref| {
-                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
-                            q.then_some("self")
-                                .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
-                                .and_then(|base| {
-                                    initializer.get_flat_reference_name().map(|it| {
-                                        create_member_reference(it, self.ctxt.get_id_provider(), Some(base))
+            if data_type.is_pointer() {
+                let updated_initializer = match &initializer.get_stmt() {
+                    // no call-statement in the initializer, so something like `a AT b` or `a : REFERENCE TO ... REF= b`
+                    AstStatement::ReferenceExpr(_) => {
+                        initializer.get_flat_reference_name().and_then(|flat_ref| {
+                            needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                                q.then_some("self")
+                                    .map(|it| create_member_reference(it, self.ctxt.get_id_provider(), None))
+                                    .and_then(|base| {
+                                        initializer.get_flat_reference_name().map(|it| {
+                                            create_member_reference(
+                                                it,
+                                                self.ctxt.get_id_provider(),
+                                                Some(base),
+                                            )
+                                        })
                                     })
-                                })
-                        })
-                    })
-                }
-                // we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
-                AstStatement::CallStatement(CallStatement { operator, parameters }) => parameters
-                    .as_ref()
-                    .and_then(|it| it.as_ref().get_flat_reference_name())
-                    .and_then(|flat_ref| {
-                        let op = operator.as_ref().get_flat_reference_name()?;
-                        needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
-                            q.then(|| {
-                                create_call_statement(
-                                    op,
-                                    flat_ref,
-                                    Some("self"),
-                                    self.ctxt.id_provider.clone(),
-                                    &initializer.location,
-                                )
                             })
                         })
-                    }),
-                _ => return,
-            };
+                    }
+                    // we found a call-statement, must be `a : REF_TO ... := REF(b) | ADR(b)`
+                    AstStatement::CallStatement(CallStatement { operator, parameters }) => parameters
+                        .as_ref()
+                        .and_then(|it| it.as_ref().get_flat_reference_name())
+                        .and_then(|flat_ref| {
+                            let op = operator.as_ref().get_flat_reference_name()?;
+                            needs_qualifier(flat_ref).map_or_else(Option::Some, |q| {
+                                q.then(|| {
+                                    create_call_statement(
+                                        op,
+                                        flat_ref,
+                                        Some("self"),
+                                        self.ctxt.id_provider.clone(),
+                                        &initializer.location,
+                                    )
+                                })
+                            })
+                        }),
+                    _ => return,
+                };
 
-            self.unresolved_initializers.insert_initializer(
-                scope,
-                Some(&variable.name),
-                &updated_initializer.or(Some(initializer.clone())),
-            );
+                self.unresolved_initializers.insert_initializer(
+                    scope,
+                    Some(&variable.name),
+                    &updated_initializer.or(Some(initializer.clone())),
+                );
+            } else {
+                let type_name =
+                    variable.data_type_declaration.get_name().expect("Must have a type at this point");
+                let data_type =
+                    self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
+
+                // Global struct initializer
+                if data_type.is_struct() && initializer.is_paren() {
+                    Self::create_qualified_reference_from_struct_init(
+                        initializer,
+                        self.ctxt.id_provider.clone(),
+                    )
+                    .into_iter()
+                    .filter_map(|mut path| {
+                        dbg!(&path);
+                        if path.is_empty() {
+                            return None;
+                        }
+                        let right = path.pop().expect("Not empty");
+
+                        // var_name := right
+                        if path.is_empty() {
+                            return Some(right.clone());
+                        }
+                        let left = AstFactory::create_qualified_reference_from_slice(
+                            &path,
+                            SourceLocation::internal(),
+                            self.ctxt.id_provider.clone(),
+                        );
+                        Some(AstFactory::create_assignment(
+                            left,
+                            right.clone(),
+                            self.ctxt.id_provider.clone().next_id(),
+                        ))
+                    })
+                    .for_each(|it| {
+                        // TODO: We currently also insert const-evaluated initializers here, which is not correct
+                        //TODO: this is re cloning the inizilizer
+                        dbg!(&it);
+                        self.unresolved_initializers.insert_initializer(
+                            scope,
+                            Some(&variable.name),
+                            &Some(it),
+                        );
+                    });
+
+                    //
+                    if self.index.find_pou(scope).is_some_and(|opt| !opt.is_stateful()) {
+                        variable.initializer = None;
+                    }
+                }
+            }
+        }
+    }
+
+    //      globalVar : StructA := (foo := 5, instanceB := (bar := 10, baz : 20));
+    //                       globalVar
+    //                        /   \
+    //                   foo     instanceB
+    //                    /        /  \
+    //                   5       bar  baz
+    //                            /    \
+    //                          10      20
+    // 0
+    // [[foo, 5], [instanceB, bar, 10], [instance, baz, 20]]
+    fn create_qualified_reference_from_struct_init(
+        node: &AstNode,
+        id_provider: IdProvider,
+    ) -> Vec<Vec<&AstNode>> {
+        match node.get_stmt() {
+            AstStatement::Assignment(Assignment { left, right }) => {
+                let mut result =
+                    Self::create_qualified_reference_from_struct_init(right, id_provider.clone());
+                for inner in result.iter_mut() {
+                    inner.insert(0, left.as_ref()); // left = instanceB, result = vec![vec![instanceB, [bar, 10], [bar, 20]]]
+                }
+                result
+            }
+            AstStatement::ExpressionList(nodes) => {
+                let mut result = vec![];
+                for node in nodes {
+                    let inner = Self::create_qualified_reference_from_struct_init(node, id_provider.clone());
+                    result.extend(inner);
+                }
+                result
+            }
+            AstStatement::ParenExpression(node) => {
+                Self::create_qualified_reference_from_struct_init(node, id_provider)
+            }
+            _ => vec![vec![node]],
         }
     }
 
@@ -208,9 +299,9 @@ impl InitVisitor {
         // re-enter the remaining initializers
         self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
 
-        // collect simple assignments
-        let assignments = temps.into_iter().filter_map(|(lhs, init)| {
-            init.as_ref().map(|it| {
+        let mut assignments = Vec::new();
+        for (lhs, inits) in temps {
+            for init in inits {
                 let lhs_ty = self
                     .index
                     .find_member(&implementation.name, &lhs)
@@ -220,24 +311,27 @@ impl InitVisitor {
                             .get_type_information()
                     })
                     .unwrap();
-                if lhs_ty.is_reference_to() || lhs_ty.is_alias() {
+                let res = if lhs_ty.is_reference_to() || lhs_ty.is_alias() {
                     // XXX: ignore REF_TO for temp variables since they can be generated regularly
                     let rhs = if let AstStatement::CallStatement(CallStatement {
                         parameters: Some(parameter),
                         ..
-                    }) = it.get_stmt()
+                    }) = init.get_stmt()
                     {
-                        parameter
+                        parameter.as_ref().clone()
                     } else {
-                        it
+                        init
                     };
                     // `REFERENCE TO` assignments in a POU body are automatically dereferenced and require the `REF=` operator to assign a pointer instead.
-                    create_ref_assignment(&lhs, None, rhs, self.ctxt.get_id_provider())
+                    create_ref_assignment(&lhs, None, &rhs, self.ctxt.get_id_provider())
                 } else {
-                    create_assignment(&lhs, None, it, self.ctxt.get_id_provider())
-                }
-            })
-        });
+                    dbg!(&init);
+                    create_assignment(&lhs, None, &init, self.ctxt.get_id_provider())
+                };
+
+                assignments.push(res);
+            }
+        }
 
         // collect necessary call statements to init-functions and user-defined init-functions
         let mut implicit_calls = Vec::new();
@@ -271,11 +365,13 @@ impl InitVisitor {
             },
         );
 
-        let stmts = assignments
-            .chain(implicit_calls)
-            .chain(user_init_calls)
-            .chain(std::mem::take(&mut implementation.statements))
-            .collect::<Vec<_>>();
+        let stmts = vec![
+            assignments,
+            implicit_calls,
+            user_init_calls,
+            std::mem::take(&mut implementation.statements),
+        ]
+        .concat();
         implementation.statements = stmts;
     }
 
@@ -304,9 +400,11 @@ impl InitVisitor {
                 })
                 .collect::<Vec<_>>();
 
-            for (lhs, init) in member_inits {
-                // update struct member initializers
-                self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
+            for (lhs, inits) in member_inits {
+                for init in inits {
+                    // update struct member initializers
+                    self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &Some(init));
+                }
             }
             // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
@@ -348,6 +446,7 @@ impl AstVisitorMut for InitVisitor {
     }
 
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
+        dbg!(&implementation);
         self.add_init_statements(implementation);
         implementation.walk(self);
     }
@@ -433,14 +532,45 @@ fn create_assignment_if_necessary(
     lhs_ident: &str,
     base_ident: Option<&str>,
     rhs: &Option<AstNode>,
-    mut id_provider: IdProvider,
-) -> Option<AstNode> {
-    let lhs = create_member_reference(
-        lhs_ident,
+    id_provider: IdProvider,
+) -> Vec<AstNode> {
+    let Some(rhs) = rhs else {
+        return vec![];
+    };
+    let ident = base_ident.map(|it| format!("{it}.{lhs_ident}")).unwrap_or(lhs_ident.to_owned());
+    let lhs = AstFactory::create_qualified_reference_from_str(
+        &ident,
+        SourceLocation::internal(),
         id_provider.clone(),
-        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
     );
-    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+    create_reference_assignments(lhs, rhs.to_owned(), id_provider)
+}
+fn create_reference_assignments(lhs: AstNode, rhs: AstNode, mut id_provider: IdProvider) -> Vec<AstNode> {
+    let mut assignments = vec![];
+    match rhs.stmt {
+        AstStatement::ExpressionList(ast_nodes) => {
+            for ast_node in ast_nodes {
+                assignments.extend(create_reference_assignments(lhs.clone(), ast_node, id_provider.clone()));
+            }
+        }
+        AstStatement::ParenExpression(ast_node) => {
+            assignments.extend(create_reference_assignments(lhs, *ast_node, id_provider));
+        }
+        AstStatement::Assignment(mut assignment) => {
+            //assignment.left = Box::new(lhs);
+            let left = std::mem::take(&mut assignment.left);
+            let lhs = AstFactory::create_deep_member_reference(*left, Some(lhs), id_provider.clone());
+            assignment.left = Box::new(lhs);
+            assignments.push(AstFactory::create_assignment(
+                *assignment.left,
+                *assignment.right,
+                id_provider.next_id(),
+            ));
+        }
+        _ => assignments.push(AstFactory::create_assignment(lhs, rhs.to_owned(), id_provider.next_id())),
+    };
+
+    assignments
 }
 
 fn create_ref_assignment(
@@ -485,4 +615,343 @@ pub fn create_call_statement(
         base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
     );
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
+}
+
+#[cfg(test)]
+mod tests {
+    use plc_ast::provider::IdProvider;
+
+    use crate::lowering::InitVisitor;
+    use crate::test_utils::tests::parse_buffered;
+
+    #[test]
+    fn literal() {
+        let (unit, diagnostics) = parse_buffered(
+            r"
+                VAR_GLOBAL
+                    globalVar : DINT := 5;
+                END_VAR
+                ",
+        );
+        assert_eq!(diagnostics, "");
+
+        let nodes = InitVisitor::create_qualified_reference_from_struct_init(
+            unit.global_vars[0].variables[0].initializer.as_ref().unwrap(),
+            IdProvider::default(),
+        );
+
+        insta::assert_debug_snapshot!(nodes, @r###"
+        [
+            [
+                LiteralInteger {
+                    value: 5,
+                },
+            ],
+        ]
+        "###);
+    }
+
+    #[test]
+    fn single_assignment_with_literal() {
+        let (unit, diagnostics) = parse_buffered(
+            r"
+                VAR_GLOBAL
+                    globalVar : StructA := (foo := 5);
+                END_VAR
+                ",
+        );
+        assert_eq!(diagnostics, "");
+
+        let nodes = InitVisitor::create_qualified_reference_from_struct_init(
+            unit.global_vars[0].variables[0].initializer.as_ref().unwrap(),
+            IdProvider::default(),
+        );
+
+        insta::assert_debug_snapshot!(nodes, @r###"
+        [
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 5,
+                },
+            ],
+        ]
+        "###);
+    }
+
+    #[test]
+    fn two_assignments_with_literals() {
+        let (unit, diagnostics) = parse_buffered(
+            r"
+                VAR_GLOBAL
+                    globalVar : StructA := (foo := 5, bar := 10);
+                END_VAR
+            ",
+        );
+        assert_eq!(diagnostics, "");
+
+        let nodes = InitVisitor::create_qualified_reference_from_struct_init(
+            unit.global_vars[0].variables[0].initializer.as_ref().unwrap(),
+            IdProvider::default(),
+        );
+
+        insta::assert_debug_snapshot!(nodes, @r###"
+        [
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 5,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 10,
+                },
+            ],
+        ]
+        "###);
+    }
+
+    #[test]
+    fn nested_assignments() {
+        let (unit, diagnostics) = parse_buffered(
+            r"
+            VAR_GLOBAL
+                globalVar : StructA := (foo := 5, instanceB := (bar := 10, baz := 20));
+            END_VAR
+            ",
+        );
+        assert_eq!(diagnostics, "");
+
+        let nodes = InitVisitor::create_qualified_reference_from_struct_init(
+            unit.global_vars[0].variables[0].initializer.as_ref().unwrap(),
+            IdProvider::default(),
+        );
+
+        //                       globalVar
+        //                        /   \
+        //                   foo     instanceB
+        //                    /        /  \
+        //                   5       bar  baz
+        //                            /    \
+        //                          10      20
+        // 0
+        // [[foo, 5], [instanceB, bar, 10], [instance, baz, 20]]
+        insta::assert_debug_snapshot!(nodes, @r###"
+        [
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 5,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 10,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "baz",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 20,
+                },
+            ],
+        ]
+        "###);
+    }
+
+    #[test]
+    fn deep_nested_assignements() {
+        let (unit, diagnostics) = parse_buffered(
+            r"
+            VAR_GLOBAL
+                globalVar : StructA := (foo := 5, instanceB := (instanceC := (bar := 30, baz := 40), qux := 10, quux := 20));
+            END_VAR
+            ",
+        );
+        assert_eq!(diagnostics, "");
+
+        let nodes = InitVisitor::create_qualified_reference_from_struct_init(
+            unit.global_vars[0].variables[0].initializer.as_ref().unwrap(),
+            IdProvider::default(),
+        );
+
+        insta::assert_debug_snapshot!(nodes, @r###"
+        [
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 5,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceC",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 30,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceC",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "baz",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 40,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 10,
+                },
+            ],
+            [
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "instanceB",
+                        },
+                    ),
+                    base: None,
+                },
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "quux",
+                        },
+                    ),
+                    base: None,
+                },
+                LiteralInteger {
+                    value: 20,
+                },
+            ],
+        ]
+        "###);
+    }
 }

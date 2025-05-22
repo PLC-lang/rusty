@@ -1803,7 +1803,7 @@ fn super_with_structured_types() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    insta::assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
 
@@ -1895,6 +1895,18 @@ fn super_with_structured_types() {
       %deref = load %parent*, %parent** %self, align 8
       %data = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_complex_type(%Complex_Type* %data)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %data2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %load_x = getelementptr inbounds %Complex_Type, %Complex_Type* %data2, i32 0, i32 0
+      store i16 10, i16* %load_x, align 2
+      %deref3 = load %parent*, %parent** %self, align 8
+      %data4 = getelementptr inbounds %parent, %parent* %deref3, i32 0, i32 0
+      %load_y = getelementptr inbounds %Complex_Type, %Complex_Type* %data4, i32 0, i32 1
+      store i16 20, i16* %load_y, align 2
+      %deref5 = load %parent*, %parent** %self, align 8
+      %data6 = getelementptr inbounds %parent, %parent* %deref5, i32 0, i32 0
+      %load_z = getelementptr inbounds %Complex_Type, %Complex_Type* %data6, i32 0, i32 2
+      store float 3.050000e+01, float* %load_z, align 4
       ret void
     }
 
@@ -1941,7 +1953,7 @@ fn super_with_structured_types() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]

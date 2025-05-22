@@ -238,9 +238,30 @@ fn init_wrapper_function_created() {
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 3);
 
-    // we expect the first statement in the function-body to assign `REF(s)` to `gs`, since
-    // global variables are to be initialized first
     assert_debug_snapshot!(statements[0], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_foo",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+        ),
+    }
+    "###);
+
+    assert_debug_snapshot!(statements[1], @r###"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -273,31 +294,6 @@ fn init_wrapper_function_created() {
     }
     "###);
 
-    // we expect the second statement to call `__init_foo`, passing its global instance
-    assert_debug_snapshot!(statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_foo",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "foo",
-                    },
-                ),
-                base: None,
-            },
-        ),
-    }
-    "###);
-
-    // we expect the third statement to call `__user_init_foo`, which checks for user-defined init functions and calls them
     assert_debug_snapshot!(statements[2], @r#"
     CallStatement {
         operator: ReferenceExpr {

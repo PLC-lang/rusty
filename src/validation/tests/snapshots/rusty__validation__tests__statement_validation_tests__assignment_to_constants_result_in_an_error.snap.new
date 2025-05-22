@@ -1,0 +1,16 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+assertion_line: 103
+expression: "&diagnostics"
+---
+warning[E036]: Cannot assign to CONSTANT 'prg.cl'
+   ┌─ <internal>:20:13
+   │
+20 │             cl  := 4;
+   │             ^^ Cannot assign to CONSTANT 'prg.cl'
+
+warning[E036]: Cannot assign to CONSTANT 'ci'
+   ┌─ <internal>:22:13
+   │
+22 │             ci  := 4;
+   │             ^^ Cannot assign to CONSTANT 'ci'
