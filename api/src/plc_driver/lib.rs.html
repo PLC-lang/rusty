@@ -592,7 +592,7 @@ Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
     </span>project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician)<span class="question-mark">?</span>;
     <span class="kw">let </span>context = CodegenContext::create();
     <span class="kw">let </span>module =
-        project.generate_single_module(<span class="kw-2">&amp;</span>context, pipeline.get_compile_options().as_ref().unwrap())<span class="question-mark">?</span>;
+        project.generate_single_module(<span class="kw-2">&amp;</span>context, pipeline.get_compile_options().as_ref().unwrap(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
 
     <span class="comment">// Generate
     </span>module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">"Cannot generate module"</span>))

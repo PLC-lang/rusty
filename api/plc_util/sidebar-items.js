@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["convention"]};
+window.SIDEBAR_ITEMS = {"macro":["filtered_assert_snapshot"],"mod":["convention"]};

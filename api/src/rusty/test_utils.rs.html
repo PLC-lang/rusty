@@ -355,7 +355,9 @@
 <a href="#354" id="354">354</a>
 <a href="#355" id="355">355</a>
 <a href="#356" id="356">356</a>
-<a href="#357" id="357">357</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
+<a href="#357" id="357">357</a>
+<a href="#358" id="358">358</a>
+<a href="#359" id="359">359</a></pre></div><pre class="rust"><code><span class="attr">#[cfg(test)]
 </span><span class="kw">pub mod </span>tests {
 
     <span class="kw">use </span>std::{collections::HashMap, path::PathBuf, str::FromStr, sync::Mutex};
@@ -382,7 +384,7 @@
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, OnlineChange, Validator,
+        DebugLevel, OnlineChange, Target, Validator,
     };
 
     <span class="kw">pub fn </span>parse(src: <span class="kw-2">&amp;</span>str) -&gt; (CompilationUnit, Vec&lt;Diagnostic&gt;) {
@@ -611,6 +613,7 @@
             <span class="kw">crate</span>::OptimizationLevel::None,
             debug_level,
             online_change.clone(),
+            <span class="kw-2">&amp;</span>Target::System,
         );
         <span class="kw">let </span>llvm_index = code_generator
             .generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>got_layout)
@@ -678,6 +681,7 @@
                     <span class="kw">crate</span>::OptimizationLevel::None,
                     debug_level,
                     <span class="kw">crate</span>::OnlineChange::Disabled,
+                    <span class="kw-2">&amp;</span>Target::System,
                 );
                 <span class="kw">let </span>got_layout = Mutex::new(HashMap::default());
 
