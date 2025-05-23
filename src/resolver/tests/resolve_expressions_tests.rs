@@ -6279,14 +6279,12 @@ fn is_this_in_methods_of_function_blocks() {
     );
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
-    dbg!(&unit);
     let AstStatement::Assignment(statement_1) = unit.implementations[0].statements[0].get_stmt() else {
         unreachable!()
     };
     let AstStatement::Assignment(statement_2) = unit.implementations[0].statements[1].get_stmt() else {
         unreachable!()
     };
-    dbg!(statement_2);
     assert!(index.find_type("fb.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, &statement_1.left, "INT", None);
     assert_type_and_hint!(&annotations, &index, &statement_2.right, "INT", Some("INT"));
@@ -6315,9 +6313,6 @@ fn just_this() {
 
     let annotations = annotate_with_ids(&unit, &mut index, id_provider);
     let statement = &unit.implementations[0].statements[0];
-    dbg!(annotations.get_type_hint(statement, &index)); // => none
-    dbg!(annotations.get_type(statement, &index)); // => none
-    dbg!(&index.get_type("fb.__THIS"));
     assert!(index.find_type("fb.__THIS").is_some());
     assert_type_and_hint!(&annotations, &index, statement, "fb.__THIS", None);
 }

@@ -22,7 +22,7 @@ const VAR_CONFIG_INIT: &str = "__init___var_config";
 /// The value corresponds to the assignment data, with the key being the assigned variable name
 /// and value being the initializer `AstNode`.
 pub(crate) type Initializers = FxIndexMap<String, InitAssignments>;
-pub(crate) type InitAssignments = FxIndexMap<String, Option<AstNode>>;
+pub(crate) type InitAssignments = FxIndexMap<String, Vec<AstNode>>;
 
 pub(crate) trait Init<'lwr>
 where
@@ -47,26 +47,27 @@ where
 
 impl<'lwr> Init<'lwr> for Initializers {
     fn new(candidates: &'lwr [UnresolvableConstant]) -> Self {
-        let mut assignments = Self::default();
-        candidates
-            .iter()
-            .filter_map(|it| {
-                if let Some(UnresolvableKind::Address(init)) = &it.kind {
-                    // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
-                    Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
-                } else {
-                    None
-                }
-            })
-            .for_each(|(scope, data)| {
-                assignments.maybe_insert_initializer(
-                    &scope,
-                    data.lhs.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
-                    &data.initializer,
-                );
-            });
+        // let mut assignments = Self::default();
+        // candidates
+        //     .iter()
+        //     .filter_map(|it| {
+        //         if let Some(UnresolvableKind::Address(init)) = &it.kind {
+        //             // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
+        //             Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
+        //         } else {
+        //             None
+        //         }
+        //     })
+        //     .for_each(|(scope, data)| {
+        //         assignments.maybe_insert_initializer(
+        //             &scope,
+        //             data.lhs.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
+        //             &data.initializer,
+        //         );
+        //     });
 
-        assignments
+        // assignments
+        Initializers::default()
     }
 
     fn maybe_insert_initializer(
@@ -85,7 +86,10 @@ impl<'lwr> Init<'lwr> for Initializers {
             return;
         }
 
-        assignments.insert(var_name.to_string(), initializer.clone());
+        let bucket = assignments.entry(var_name.to_string()).or_default();
+        if let Some(initializer) = initializer {
+            bucket.push(initializer.clone());
+        }
     }
 
     fn insert_initializer(
@@ -98,7 +102,11 @@ impl<'lwr> Init<'lwr> for Initializers {
         let Some(var_name) = var_name else {
             return;
         };
-        assignments.insert(var_name.to_string(), initializer.clone());
+
+        let bucket = assignments.entry(var_name.to_string()).or_default();
+        if let Some(initializer) = initializer {
+            bucket.push(initializer.clone());
+        }
     }
 }
 
@@ -189,12 +197,27 @@ fn create_init_unit(
 
     let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, &location);
 
-    let mut statements = assignments
-        .iter()
-        .filter_map(|(lhs_name, initializer)| {
-            create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
-        })
-        .collect::<Vec<_>>();
+    // let mut statements = assignments
+    //     .iter()
+    //     .filter_map(|(lhs_name, initializer)| {
+    //         create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
+    //     })
+    //     .collect::<Vec<_>>();
+    let mut statements = Vec::new();
+    for (lhs_ident, initializers) in assignments {
+        for initialzer in initializers {
+            let assignment = create_assignment_if_necessary(
+                lhs_ident,
+                Some(&ident),
+                &Some(initialzer.clone()),
+                id_provider.clone(),
+            );
+
+            if let Some(assignment) = assignment {
+                statements.push(assignment)
+            }
+        }
+    }
 
     let member_init_calls = lowerer
         .index
@@ -223,7 +246,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(member_init_calls);
+    let statements = vec![statements, member_init_calls].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -339,12 +362,23 @@ fn create_init_wrapper_function(
     });
 
     let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
-        stmts
-            .iter()
-            .filter_map(|(var_name, initializer)| {
-                create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
-            })
-            .collect::<Vec<_>>()
+        let mut statements = Vec::new();
+        for (lhs_ident, initializers) in stmts {
+            for initializer in initializers {
+                let assignment = create_assignment_if_necessary(
+                    lhs_ident,
+                    None,
+                    &Some(initializer.clone()),
+                    id_provider.clone(),
+                );
+
+                if let Some(assignment) = assignment {
+                    statements.push(assignment)
+                }
+            }
+        }
+
+        statements
     } else {
         vec![]
     };

@@ -209,8 +209,9 @@ impl InitVisitor {
         self.unresolved_initializers.insert(implementation.name.to_owned(), inits);
 
         // collect simple assignments
-        let assignments = temps.into_iter().filter_map(|(lhs, init)| {
-            init.as_ref().map(|it| {
+        let mut assignments = Vec::new();
+        for (lhs, initializers) in temps {
+            for initializer in initializers {
                 let lhs_ty = self
                     .index
                     .find_member(&implementation.name, &lhs)
@@ -220,24 +221,26 @@ impl InitVisitor {
                             .get_type_information()
                     })
                     .unwrap();
-                if lhs_ty.is_reference_to() || lhs_ty.is_alias() {
+                let res = if lhs_ty.is_reference_to() || lhs_ty.is_alias() {
                     // XXX: ignore REF_TO for temp variables since they can be generated regularly
                     let rhs = if let AstStatement::CallStatement(CallStatement {
                         parameters: Some(parameter),
                         ..
-                    }) = it.get_stmt()
+                    }) = initializer.get_stmt()
                     {
-                        parameter
+                        parameter.as_ref().clone()
                     } else {
-                        it
+                        initializer
                     };
                     // `REFERENCE TO` assignments in a POU body are automatically dereferenced and require the `REF=` operator to assign a pointer instead.
-                    create_ref_assignment(&lhs, None, rhs, self.ctxt.get_id_provider())
+                    create_ref_assignment(&lhs, None, &rhs, self.ctxt.get_id_provider())
                 } else {
-                    create_assignment(&lhs, None, it, self.ctxt.get_id_provider())
-                }
-            })
-        });
+                    create_assignment(&lhs, None, &initializer, self.ctxt.get_id_provider())
+                };
+
+                assignments.push(res);
+            }
+        }
 
         // collect necessary call statements to init-functions and user-defined init-functions
         let mut implicit_calls = Vec::new();
@@ -271,11 +274,13 @@ impl InitVisitor {
             },
         );
 
-        let stmts = assignments
-            .chain(implicit_calls)
-            .chain(user_init_calls)
-            .chain(std::mem::take(&mut implementation.statements))
-            .collect::<Vec<_>>();
+        let stmts = vec![
+            assignments,
+            implicit_calls,
+            user_init_calls,
+            std::mem::take(&mut implementation.statements),
+        ]
+        .concat();
         implementation.statements = stmts;
     }
 
@@ -304,9 +309,15 @@ impl InitVisitor {
                 })
                 .collect::<Vec<_>>();
 
-            for (lhs, init) in member_inits {
-                // update struct member initializers
-                self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
+            for (lhs, initializers) in member_inits {
+                for initializer in initializers {
+                    // update struct member initializers
+                    self.unresolved_initializers.maybe_insert_initializer(
+                        name,
+                        Some(lhs),
+                        &Some(initializer.clone()),
+                    );
+                }
             }
             // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
