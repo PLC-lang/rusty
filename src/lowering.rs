@@ -6,7 +6,7 @@ use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, G
 use plc_ast::{
     ast::{
         AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
-        LinkageType, PouType,
+        LinkageType, PouType, VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,

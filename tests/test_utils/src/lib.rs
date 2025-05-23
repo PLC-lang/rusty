@@ -2,7 +2,8 @@ use std::io::Read;
 
 use driver::{cli, pipelines::BuildPipeline};
 use plc::{linker::LinkerType, DebugLevel};
-use plc_diagnostics::diagnostician::Diagnostician;
+use plc_ast::ast::CompilationUnit;
+use plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
 use plc_index::GlobalContext;
 use plc_source::SourceCode;
 use project::project::Project;
