@@ -1,5 +1,6 @@
 use crate::codegen::generators::data_type_generator::get_default_for;
 use crate::codegen::llvm_index::LlvmTypedIndex;
+use crate::codegen::CodegenError;
 use crate::index::Index;
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::typesystem::{CHAR_TYPE, WCHAR_TYPE};
@@ -89,8 +90,8 @@ impl<'a> Llvm<'a> {
     ///
     /// - `name` the name of the local variable
     /// - `data_type` the variable's datatype
-    pub fn create_local_variable(&self, name: &str, data_type: &BasicTypeEnum<'a>) -> PointerValue<'a> {
-        self.builder.build_alloca(*data_type, name)
+    pub fn create_local_variable(&self, name: &str, data_type: &BasicTypeEnum<'a>) -> Result<PointerValue<'a>, CodegenError> {
+        self.builder.build_alloca(*data_type, name).map_err(Into::into)
     }
 
     /// sets a const-zero initializer for the given global_value according to the given type
@@ -120,8 +121,8 @@ impl<'a> Llvm<'a> {
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
         name: &str,
-    ) -> Result<PointerValue<'a>, Diagnostic> {
-        unsafe { Ok(self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)) }
+    ) -> Result<PointerValue<'a>, CodegenError> {
+        unsafe { self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name).map_err(Into::into) }
     }
 
     /// creates a pointervalue that points to a member of a struct
@@ -135,19 +136,16 @@ impl<'a> Llvm<'a> {
         pointer_to_struct_instance: PointerValue<'a>,
         member_index: u32,
         name: &str,
-        offset: &SourceLocation,
-    ) -> Result<PointerValue<'a>, Diagnostic> {
-        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(|_| {
-            Diagnostic::codegen_error(format!("Cannot generate qualified reference for {name:}"), offset)
-        })
+    ) -> Result<PointerValue<'a>, CodegenError> {
+        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(Into::into)
     }
 
     /// loads the value behind the given pointer
     ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> BasicValueEnum<'a> {
-        self.builder.build_load(lvalue.to_owned(), name)
+    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> Result<BasicValueEnum<'a>, CodegenError> {
+        self.builder.build_load(lvalue.to_owned(), name).map_err(Into::into)
     }
 
     /// creates a placeholder datatype for a struct with the given name
@@ -171,7 +169,7 @@ impl<'a> Llvm<'a> {
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL
     /// - `value` the value of the constant bool value
-    pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_const_bool(&self, value: bool) -> Result<BasicValueEnum<'a>, CodegenError> {
         let itype = self.context.bool_type();
 
         let value = if value { itype.const_all_ones() } else { itype.const_zero() };
@@ -188,22 +186,22 @@ impl<'a> Llvm<'a> {
         target_type: &BasicTypeEnum<'a>,
         value: &str,
         location: SourceLocation,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => int_type
                 .const_int_from_string(value, StringRadix::Decimal)
-                .ok_or_else(|| Diagnostic::codegen_error(format!("Cannot parse {value} as int"), location))
+                .ok_or_else(|| CodegenError::new(format!("Cannot parse {value} as int"), location))
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
-                let value = float_type.const_float_from_string(value);
+                let value = unsafe { float_type.const_float_from_string(value) };
                 Ok(BasicValueEnum::FloatValue(value))
             }
-            _ => Err(Diagnostic::codegen_error("expected numeric type", location)),
+            _ => Err(CodegenError::new("expected numeric type", location)),
         }
     }
 
     /// create a null pointer
-    pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, CodegenError> {
         let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         let value = itype.const_null();
         Ok(value.into())
@@ -216,7 +214,7 @@ impl<'a> Llvm<'a> {
         &self,
         value: &str,
         len: usize,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         let mut utf8_chars = value.as_bytes()[..std::cmp::min(value.len(), len - 1)].to_vec();
         //fill the 0 terminators
         while utf8_chars.len() < len {
@@ -233,7 +231,7 @@ impl<'a> Llvm<'a> {
         &self,
         value: &str,
         len: usize,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         let mut utf16_chars: Vec<u16> = value.encode_utf16().collect();
         //fill the 0 terminators
         while utf16_chars.len() < len {
@@ -248,7 +246,7 @@ impl<'a> Llvm<'a> {
     pub fn create_llvm_const_utf16_vec_string(
         &self,
         value: &[u16],
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         let values: Vec<IntValue> =
             value.iter().map(|it| self.context.i16_type().const_int(*it as u64, false)).collect();
         let vector = self.context.i16_type().const_array(&values);
@@ -257,7 +255,7 @@ impl<'a> Llvm<'a> {
     /// create a constant utf8 string-value with the given value
     ///
     /// - `value` the value of the constant string value
-    pub fn create_llvm_const_vec_string(&self, value: &[u8]) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    pub fn create_llvm_const_vec_string(&self, value: &[u8]) -> Result<BasicValueEnum<'a>, CodegenError> {
         let values: Vec<IntValue> =
             value.iter().map(|it| self.context.i8_type().const_int(*it as u64, false)).collect();
         let vector = self.context.i8_type().const_array(&values);
@@ -271,13 +269,13 @@ impl<'a> Llvm<'a> {
         &self,
         value: &str,
         location: &SourceLocation,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         let arr = value.as_bytes();
         if let [first, ..] = arr {
             let value = self.context.i8_type().const_int(*first as u64, false);
             Ok(BasicValueEnum::IntValue(value))
         } else {
-            Err(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location))
+            Err(Diagnostic::cannot_generate_from_empty_literal(CHAR_TYPE, location).into())
         }
     }
 
@@ -288,25 +286,25 @@ impl<'a> Llvm<'a> {
         &self,
         value: &str,
         location: &SourceLocation,
-    ) -> Result<BasicValueEnum<'a>, Diagnostic> {
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         match value.encode_utf16().next() {
             Some(first) => {
                 let value = self.context.i16_type().const_int(first as u64, false);
                 Ok(BasicValueEnum::IntValue(value))
             }
-            None => Err(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location)),
+            None => Err(Diagnostic::cannot_generate_from_empty_literal(WCHAR_TYPE, location).into()),
         }
     }
 
     pub fn get_array_type(llvm_type: BasicTypeEnum, size: u32) -> ArrayType {
         match llvm_type {
-            //Add all arguments to the pointer
             BasicTypeEnum::ArrayType(_) => llvm_type.into_array_type().array_type(size),
             BasicTypeEnum::FloatType(_) => llvm_type.into_float_type().array_type(size),
             BasicTypeEnum::IntType(_) => llvm_type.into_int_type().array_type(size),
             BasicTypeEnum::PointerType(_) => llvm_type.into_pointer_type().array_type(size),
             BasicTypeEnum::StructType(_) => llvm_type.into_struct_type().array_type(size),
             BasicTypeEnum::VectorType(_) => llvm_type.into_vector_type().array_type(size),
+            BasicTypeEnum::ScalableVectorType(_) => llvm_type.into_scalable_vector_type().array_type(size),
         }
     }
 
@@ -321,14 +319,13 @@ impl<'a> Llvm<'a> {
         variable_to_initialize: PointerValue,
         initializer_statement: Option<&AstNode>,
         exp_gen: &ExpressionCodeGenerator,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let (qualified_name, type_name, location) = variable;
-        let variable_llvm_type =
-            llvm_index.get_associated_type(type_name).map_err(|err| err.with_location(location))?;
+        let variable_llvm_type = llvm_index.get_associated_type(type_name)?;
 
         let type_size = variable_llvm_type
             .size_of()
-            .ok_or_else(|| Diagnostic::codegen_error("Couldn't determine type size", location.clone()));
+            .ok_or_else(|| CodegenError::new("Couldn't determine type size", location.clone()));
 
         // initialize the variable with the initial_value
         let variable_data_type = index.get_effective_type_or_void_by_name(type_name);
@@ -362,7 +359,7 @@ impl<'a> Llvm<'a> {
         if is_aggregate_type {
             // for arrays/structs, we prefere a memcpy, not a store operation
             // we assume that we got a global variable with the initial value that we can copy from
-            let init_result: Result<(), &str> = if value.is_pointer_value() {
+            if value.is_pointer_value() {
                 // mem-copy from an global constant variable
                 self.builder
                     .build_memcpy(
@@ -371,8 +368,7 @@ impl<'a> Llvm<'a> {
                         value.into_pointer_value(),
                         std::cmp::max(1, alignment),
                         type_size?,
-                    )
-                    .map(|_| ())
+                    )?;
             } else if value.is_int_value() {
                 // mem-set the value (usually 0) over the whole memory-area
                 self.builder
@@ -381,14 +377,12 @@ impl<'a> Llvm<'a> {
                         std::cmp::max(1, alignment),
                         value.into_int_value(),
                         type_size?,
-                    )
-                    .map(|_| ())
+                    )?;
             } else {
-                unreachable!("initializing an array should be memcpy-able or memset-able");
+                CodegenError::new("initializing an array should be memcpy-able or memset-able", location);
             };
-            init_result.map_err(|msg| Diagnostic::codegen_error(msg, location.clone()))?;
         } else {
-            self.builder.build_store(variable_to_initialize, value);
+            self.builder.build_store(variable_to_initialize, value)?;
         }
         Ok(())
     }

@@ -4,6 +4,7 @@ use inkwell::{
     types::{FloatType, IntType},
     values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
 };
+use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::Index,
@@ -11,7 +12,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation, InternalType, StructSource},
 };
 
-use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex};
+use super::{generators::llvm::Llvm, llvm_index::LlvmTypedIndex, CodegenError};
 
 /// A convenience macro to call the `cast` function with fewer parameters.
 ///
@@ -88,7 +89,7 @@ pub fn cast<'ctx>(
     value_type: &DataType,
     value: BasicValueEnum<'ctx>,
     annotation: Option<&StatementAnnotation>,
-) -> BasicValueEnum<'ctx> {
+) -> Result<BasicValueEnum<'ctx>, CodegenError> {
     value.cast(&CastInstructionData::new(llvm, index, llvm_type_index, value_type, target_type, annotation))
 }
 
@@ -126,32 +127,32 @@ impl<'ctx, 'cast> CastInstructionData<'ctx, 'cast> {
 }
 
 trait Castable<'ctx, 'cast> {
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError>;
 }
 
 trait Promotable<'ctx, 'cast> {
-    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError>;
 }
 
 trait Truncatable<'ctx, 'cast> {
-    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx>;
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError>;
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for BasicValueEnum<'ctx> {
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        match self {
-            BasicValueEnum::IntValue(val) => val.cast(cast_data),
-            BasicValueEnum::FloatValue(val) => val.cast(cast_data),
-            BasicValueEnum::PointerValue(val) => val.cast(cast_data),
-            BasicValueEnum::ArrayValue(val) => val.cast(cast_data),
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
+        Ok(match self {
+            BasicValueEnum::IntValue(val) => val.cast(cast_data)?,
+            BasicValueEnum::FloatValue(val) => val.cast(cast_data)?,
+            BasicValueEnum::PointerValue(val) => val.cast(cast_data)?,
+            BasicValueEnum::ArrayValue(val) => val.cast(cast_data)?,
             _ => self,
-        }
+        })
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index).unwrap();
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
+        let lsize = cast_data.target_type.get_size_in_bits(cast_data.index).map_err(|it| CodegenError::new(it.to_string(), SourceLocation::undefined()))?;
         match cast_data.target_type {
             DataTypeInformation::Integer { .. } => {
                 //its important to use the real type's size here, because we may have an i1 which is annotated as BOOL (8 bit)
@@ -167,30 +168,23 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
             DataTypeInformation::Float { .. } => {
                 let float_type = get_llvm_float_type(cast_data.llvm.context, lsize, "Float");
                 if cast_data.value_type.is_signed_int() {
-                    cast_data.llvm.builder.build_signed_int_to_float(self, float_type, "").into()
+                    cast_data.llvm.builder.build_signed_int_to_float(self, float_type, "").map(Into::into).map_err(Into::into)
                 } else {
-                    cast_data.llvm.builder.build_unsigned_int_to_float(self, float_type, "").into()
+                    cast_data.llvm.builder.build_unsigned_int_to_float(self, float_type, "").map(Into::into).map_err(Into::into)
                 }
             }
             DataTypeInformation::Pointer { .. } => {
-                let Ok(associated_type) =
-                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
-                else {
-                    unreachable!(
-                        "Target type of cast instruction does not exist: {}",
-                        cast_data.target_type.get_name()
-                    )
-                };
-
-                cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").into()
+                let associated_type =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
+                cast_data.llvm.builder.build_int_to_ptr(self, associated_type.into_pointer_type(), "").map(Into::into).map_err(Into::into)
             }
-            _ => unreachable!("Cannot cast integer value to {}", cast_data.target_type.get_name()),
+            _ => Err(CodegenError::new(format!("Cannot cast integer value to {}", cast_data.target_type.get_name()), SourceLocation::undefined())),
         }
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
         let rsize = &cast_data.value_type.get_size_in_bits(cast_data.index).unwrap();
         match cast_data.target_type {
             DataTypeInformation::Float { size: lsize, .. } => {
@@ -203,39 +197,33 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for FloatValue<'ctx> {
             DataTypeInformation::Integer { signed, size: lsize, .. } => {
                 let int_type = get_llvm_int_type(cast_data.llvm.context, *lsize, "Integer");
                 if *signed {
-                    cast_data.llvm.builder.build_float_to_signed_int(self, int_type, "").into()
+                    cast_data.llvm.builder.build_float_to_signed_int(self, int_type, "").map(Into::into).map_err(Into::into)
                 } else {
-                    cast_data.llvm.builder.build_float_to_unsigned_int(self, int_type, "").into()
+                    cast_data.llvm.builder.build_float_to_unsigned_int(self, int_type, "").map(Into::into).map_err(Into::into)
                 }
             }
-            _ => unreachable!("Cannot cast floating-point value to {}", cast_data.target_type.get_name()),
+            _ => Err(CodegenError::new(format!("Cannot cast float value to {}", cast_data.target_type.get_name()), SourceLocation::undefined())),
         }
     }
 }
 
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
         match &cast_data.target_type {
-            DataTypeInformation::Integer { size: lsize, .. } => cast_data
-                .llvm
-                .builder
-                .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")
-                .into(),
+            DataTypeInformation::Integer { size: lsize, .. } => Ok(cast_data
+                            .llvm
+                            .builder
+                            .build_ptr_to_int(self, get_llvm_int_type(cast_data.llvm.context, *lsize, ""), "")?
+                            .into()),
             DataTypeInformation::Pointer { .. } => {
-                let Ok(target_ptr_type) =
-                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
-                else {
-                    unreachable!(
-                        "Target type of cast instruction does not exist: {}",
-                        cast_data.target_type.get_name()
-                    )
-                };
+                let target_ptr_type =
+                    cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
                 if BasicValueEnum::from(self).get_type() != target_ptr_type {
                     // bit-cast necessary
-                    cast_data.llvm.builder.build_bitcast(self, target_ptr_type, "")
+                    cast_data.llvm.builder.build_bit_cast(self, target_ptr_type, "").map_err(Into::into)
                 } else {
                     //this is ok, no cast required
-                    self.into()
+                    Ok(self.into())
                 }
             }
             DataTypeInformation::Struct {
@@ -243,14 +231,14 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref").cast(cast_data);
+                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref")?.cast(cast_data)?;
 
                 // create a pointer to the generated StructValue
-                let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr");
-                cast_data.llvm.builder.build_store(struct_ptr, struct_val);
-                struct_ptr.into()
+                let struct_ptr = cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr")?;
+                cast_data.llvm.builder.build_store(struct_ptr, struct_val)?;
+                Ok(struct_ptr.into())
             }
-            _ => unreachable!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
+            _ => Err(CodegenError::new(format!("Cannot cast pointer value to {}", cast_data.target_type.get_name()), SourceLocation::undefined())),
         }
     }
 }
@@ -258,45 +246,40 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
 impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
     /// Generates a fat pointer struct for an array if the target type is a VLA,
     /// otherwise returns the value as is.
-    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn cast(self, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
         if !cast_data.target_type.is_vla() {
-            return self.into();
+            return Ok(self.into());
         }
         let builder = &cast_data.llvm.builder;
         let zero = cast_data.llvm.i32_type().const_zero();
 
-        let Ok(associated_type) =
-            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())
-        else {
-            unreachable!(
-                "Target type of cast instruction does not exist: {}",
-                cast_data.target_type.get_name()
-            )
-        };
+        let associated_type =
+            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
 
         // Get array annotation from parent POU and get pointer to array
         let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation else {
-            unreachable!("Undefined reference: {}", cast_data.value_type.get_name())
+            return Err(CodegenError::new(format!("Undefined reference: {}", cast_data.value_type.get_name()), SourceLocation::undefined()));
         };
         let array_pointer = cast_data
             .llvm_type_index
             .find_loaded_associated_variable_value(qualified_name.as_str())
-            .unwrap_or_else(|| unreachable!("passed array must be in the llvm index"));
+            .ok_or_else(|| {
+                CodegenError::new(
+                    format!("Cannot find array pointer for {}", cast_data.value_type.get_name()),
+                    SourceLocation::undefined(),
+                )
+            })?;
 
         // gep into the original array. the resulting address will be stored in the VLA struct
-        let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep") };
+        let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep")? };
 
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();
-        let vla_struct = builder.build_alloca(ty, "vla_struct");
+        let vla_struct = builder.build_alloca(ty, "vla_struct")?;
 
-        let Ok(vla_arr_ptr) = builder.build_struct_gep(vla_struct, 0, "vla_array_gep") else {
-            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
-        };
+        let vla_arr_ptr = builder.build_struct_gep(vla_struct, 0, "vla_array_gep")?;
 
-        let Ok(vla_dimensions_ptr) = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep") else {
-            unreachable!("Must have a valid, GEP-able fat-pointer struct at this stage")
-        };
+        let vla_dimensions_ptr = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep")?;
 
         // -- Generate dimensions --
         let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
@@ -311,56 +294,56 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
         let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
         // FIXME: should be memcopied, but is an rvalue. can only initialize global variables with value types. any other way for alloca'd variables than using store?
-        builder.build_store(vla_dimensions_ptr, array_value);
+        builder.build_store(vla_dimensions_ptr, array_value)?;
 
-        builder.build_store(vla_arr_ptr, arr_gep);
+        builder.build_store(vla_arr_ptr, arr_gep)?;
 
-        builder.build_load(vla_struct, "")
+        builder.build_load(vla_struct, "").map_err(Into::into)
     }
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for IntValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
         let llvm_int_type = get_llvm_int_type(cast_data.llvm.context, lsize, "Integer");
-        if cast_data.value_type.is_signed_int() {
-            cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")
-        } else {
-            cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")
-        }
-        .into()
+        Ok(if cast_data.value_type.is_signed_int() {
+                    cast_data.llvm.builder.build_int_s_extend_or_bit_cast(self, llvm_int_type, "")?
+                } else {
+                    cast_data.llvm.builder.build_int_z_extend_or_bit_cast(self, llvm_int_type, "")?
+                }
+                .into())
     }
 }
 
 impl<'ctx, 'cast> Promotable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
-            .llvm
-            .builder
-            .build_float_ext(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float"), "")
-            .into()
+    fn promote(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
+        Ok(cast_data
+                    .llvm
+                    .builder
+                    .build_float_ext(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float"), "")?
+                    .into())
     }
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for IntValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
-            .llvm
-            .builder
-            .build_int_truncate_or_bit_cast(
-                self,
-                get_llvm_int_type(cast_data.llvm.context, lsize, "Integer"),
-                "",
-            )
-            .into()
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
+        Ok(cast_data
+                    .llvm
+                    .builder
+                    .build_int_truncate_or_bit_cast(
+                        self,
+                        get_llvm_int_type(cast_data.llvm.context, lsize, "Integer"),
+                        "",
+                    )?
+                    .into())
     }
 }
 
 impl<'ctx, 'cast> Truncatable<'ctx, 'cast> for FloatValue<'ctx> {
-    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> BasicValueEnum<'ctx> {
-        cast_data
-            .llvm
-            .builder
-            .build_float_trunc(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float"), "")
-            .into()
+    fn truncate(self, lsize: u32, cast_data: &CastInstructionData<'ctx, 'cast>) -> Result<BasicValueEnum<'ctx>, CodegenError> {
+        Ok(cast_data
+                    .llvm
+                    .builder
+                    .build_float_trunc(self, get_llvm_float_type(cast_data.llvm.context, lsize, "Float"), "")?
+                    .into())
     }
 }

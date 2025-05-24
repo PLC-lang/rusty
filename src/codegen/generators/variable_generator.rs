@@ -160,7 +160,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                     let value = expr_generator.generate_expression(initializer)?;
                     let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
                     let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
-                    Some(cast_if_needed!(expr_generator, target_type, value_type, value, None))
+                    Some(cast_if_needed!(expr_generator, target_type, value_type, value, None)?)
                 }
             } else {
                 None

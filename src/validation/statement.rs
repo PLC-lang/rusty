@@ -1495,7 +1495,7 @@ fn validate_call<T: AnnotationMap>(
                     Diagnostic::new("Invalid call parameters")
                         .with_error_code("E089")
                         .with_location(*argument)
-                        .with_sub_diagnostic(err),
+                        .with_sub_diagnostic(err.into()),
                 );
                 break;
             }

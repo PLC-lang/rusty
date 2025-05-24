@@ -7,6 +7,8 @@ use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
 use rustc_hash::FxHashMap;
 
+use super::CodegenError;
+
 /// Index view containing declared values for the current context
 /// Parent Index is the a fallback lookup index for values not declared locally
 #[derive(Debug, Clone, Default)]
@@ -39,6 +41,7 @@ impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
             AnyTypeEnum::PointerType(value) => Some(value.as_basic_type_enum()),
             AnyTypeEnum::StructType(value) => Some(value.as_basic_type_enum()),
             AnyTypeEnum::VectorType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::ScalableVectorType(value) => Some(value.as_basic_type_enum()),
             AnyTypeEnum::VoidType(_) => None,
             AnyTypeEnum::FunctionType(_) => None,
         }
@@ -52,6 +55,7 @@ impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
             AnyTypeEnum::PointerType(value) => value.ptr_type(address_space),
             AnyTypeEnum::StructType(value) => value.ptr_type(address_space),
             AnyTypeEnum::VectorType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::ScalableVectorType(value) => value.ptr_type(address_space),
             AnyTypeEnum::FunctionType(value) => value.ptr_type(address_space),
             AnyTypeEnum::VoidType(_) => unreachable!("Void type cannot be converted to pointer"),
         }
@@ -109,7 +113,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         target_type: AnyTypeEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = type_name.to_lowercase();
 
         log::trace!("registered `{name}` as type `{}`", target_type.print_to_string());
@@ -121,7 +125,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         target_type: AnyTypeEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = type_name.to_lowercase();
 
         log::trace!("registered `{name}` as POU type `{}`", target_type.print_to_string());
@@ -133,7 +137,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         type_name: &str,
         initial_value: BasicValueEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = type_name.to_lowercase();
 
         log::trace!("registered `{name}` as initial value type `{}`", initial_value.print_to_string());
@@ -146,7 +150,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         container_name: &str,
         variable_name: &str,
         target_value: PointerValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = qualified_name(container_name, variable_name).to_lowercase();
 
         log::trace!("registered `{name}` as loaded local type `{}`", target_value.print_to_string());
@@ -158,7 +162,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         variable_name: &str,
         global_variable: GlobalValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = variable_name.to_lowercase();
 
         log::trace!("registered `{name}` as global variable type `{}`", global_variable.print_to_string());
@@ -173,7 +177,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         &mut self,
         callable_name: &str,
         function_value: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let name = callable_name.to_lowercase();
 
         log::trace!("registered `{name}` as implementation type `{}`", function_value.print_to_string());
@@ -192,16 +196,9 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
-    pub fn associate_got_index(&mut self, variable_name: &str, index: u64) -> Result<(), Diagnostic> {
+    pub fn associate_got_index(&mut self, variable_name: &str, index: u64) -> Result<(), CodegenError> {
         let name = variable_name.to_lowercase();
         self.got_indices.insert(name, index);
-
-        Ok(())
-    }
-
-    pub fn insert_new_got_index(&mut self, variable_name: &str) -> Result<(), Diagnostic> {
-        let idx = self.got_indices.values().max().copied().unwrap_or(0);
-        self.got_indices.insert(variable_name.to_lowercase(), idx);
 
         Ok(())
     }
@@ -237,14 +234,14 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_pou_type(type_name)))
     }
 
-    pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+    pub fn get_associated_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, CodegenError> {
         self.find_associated_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()).into())
     }
 
-    pub fn get_associated_pou_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+    pub fn get_associated_pou_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, CodegenError> {
         self.find_associated_pou_type(type_name)
-            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
+            .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()).into())
     }
 
     pub fn find_associated_initial_value(&self, type_name: &str) -> Option<BasicValueEnum<'ink>> {
@@ -252,6 +249,14 @@ impl<'ink> LlvmTypedIndex<'ink> {
             .get(&type_name.to_lowercase())
             .copied()
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_initial_value(type_name)))
+    }
+
+    pub fn insert_new_got_index(&mut self, variable_name: &str) -> Result<(), CodegenError> {
+        let idx = self.got_indices.values().max().copied().unwrap_or(0);
+
+        self.got_indices.insert(variable_name.to_lowercase(), idx);
+
+        Ok(())
     }
 
     pub fn find_associated_implementation(&self, callable_name: &str) -> Option<FunctionValue<'ink>> {

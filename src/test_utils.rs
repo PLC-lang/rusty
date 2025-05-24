@@ -263,7 +263,7 @@ pub mod tests {
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
             .map_err(|err| {
-                reporter.handle(&[err]);
+                reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
             })?;
 
@@ -271,7 +271,7 @@ pub mod tests {
             .generate(&context, &unit, &annotations, &index, llvm_index)
             .map(|module| module.persist_to_string())
             .map_err(|err| {
-                reporter.handle(&[err]);
+                reporter.handle(&[err.into()]);
                 reporter.buffer().unwrap()
             })
     }
@@ -339,7 +339,7 @@ pub mod tests {
                     &got_layout,
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, llvm_index)
+                code_generator.generate(context, &unit, &annotations, &index, llvm_index).map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }

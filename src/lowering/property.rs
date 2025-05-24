@@ -968,7 +968,7 @@ mod tests {
                 VAR
                     instance : fb;
                 END_VAR
-                
+
                 func(instance.foo, instance.foo, instance.foo);
                 func(a := instance.foo, b => instance.foo, c := instance.foo);
             END_FUNCTION
@@ -981,9 +981,9 @@ mod tests {
             let CallStatement { parameters, .. } = try_from!(reference, CallStatement).unwrap();
             let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
 
-            for idx in 0..=2 {
+            for param in parameters.iter().take(3) {
                 assert_eq!(
-                    annotations.get(&parameters[idx]).unwrap(),
+                    annotations.get(param).unwrap(),
                     &StatementAnnotation::Property { name: "__get_foo".to_string() }
                 );
             }
@@ -992,8 +992,8 @@ mod tests {
             let CallStatement { parameters, .. } = try_from!(reference, CallStatement).unwrap();
             let parameters = try_from!(parameters.as_ref().unwrap(), Vec<AstNode>).unwrap();
 
-            for idx in 0..=2 {
-                let Assignment { right, .. } = try_from!(parameters[idx], Assignment).unwrap();
+            for param in parameters.iter().take(3) {
+                let Assignment { right, .. } = try_from!(param, Assignment).unwrap();
                 assert_eq!(
                     annotations.get(right).unwrap(),
                     &StatementAnnotation::Property { name: "__get_foo".to_string() }
@@ -1024,7 +1024,7 @@ mod tests {
                 VAR
                     instance : fb;
                 END_VAR
-                
+
                 printf('%d$N', instance.foo);
             END_FUNCTION
             ";
@@ -1056,7 +1056,7 @@ mod tests {
                     instance : fb;
                     arr : ARRAY[1..5] OF DINT;
                 END_VAR
-                
+
                 arr[instance.foo];
                 arr[instance.foo + 1] := arr[instance.foo];
             END_FUNCTION
