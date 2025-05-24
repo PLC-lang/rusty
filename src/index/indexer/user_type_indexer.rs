@@ -432,7 +432,7 @@ impl UserTypeIndexer<'_, '_> {
     }
 
     fn index_struct_type(&mut self, name: &str, variables: &[Variable], source: StructSource) {
-        let scope = self.current_scope();
+        let scope = Some(name.to_string());
         let members = variables
             .iter()
             .enumerate()
@@ -445,7 +445,7 @@ impl UserTypeIndexer<'_, '_> {
                     var.initializer.clone(),
                     member_type,
                     scope.clone(),
-                    None,
+                    Some(var.name.clone()),
                 );
 
                 let binding = var
