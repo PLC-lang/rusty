@@ -7,7 +7,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_typesystem::cast_if_needed,
-        LlvmTypedIndex,
+        CodegenError, LlvmTypedIndex,
     },
     index::{ImplementationIndexEntry, Index},
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
@@ -28,7 +28,7 @@ use plc_ast::{
         AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
     },
 };
-use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
+use plc_diagnostics::diagnostics::INTERNAL_LLVM_ERROR;
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
@@ -101,7 +101,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     }
 
     /// generates a list of statements
-    pub fn generate_body(&self, statements: &[AstNode]) -> Result<(), Diagnostic> {
+    pub fn generate_body(&self, statements: &[AstNode]) -> Result<(), CodegenError> {
         let mut child_index = LlvmTypedIndex::create_child(self.llvm_index);
         for s in statements {
             child_index = self.generate_statement(child_index, s)?;
@@ -127,7 +127,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         mut llvm_index: LlvmTypedIndex<'b>,
         statement: &AstNode,
-    ) -> Result<LlvmTypedIndex<'b>, Diagnostic> {
+    ) -> Result<LlvmTypedIndex<'b>, CodegenError> {
         match statement.get_stmt() {
             AstStatement::EmptyStatement(..) => {
                 //nothing to generate
@@ -169,10 +169,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         None
                     }
                 }) else {
-                    return Err(Diagnostic::codegen_error(
-                        "Could not find label for {statement:?}",
-                        statement,
-                    ));
+                    return Err(CodegenError::new("Could not find label for {statement:?}", statement));
                 };
                 //Set current location as else block
                 let current_block = self.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
@@ -197,7 +194,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*exit_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(Diagnostic::codegen_error(
+                    return Err(CodegenError::new(
                         "Cannot break out of loop when not inside a loop",
                         statement,
                     ));
@@ -208,10 +205,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*cont_block);
                     self.generate_buffer_block();
                 } else {
-                    return Err(Diagnostic::codegen_error(
-                        "Cannot continue loop when not inside a loop",
-                        statement,
-                    ));
+                    return Err(CodegenError::new("Cannot continue loop when not inside a loop", statement));
                 }
             }
             AstStatement::ExpressionList(statements) => {
@@ -223,7 +217,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             AstStatement::AllocationStatement(Allocation { name, reference_type }) => {
                 let ty =
                     llvm_index.find_associated_type(reference_type).expect("Type must exist at this point");
-                let value = self.llvm.builder.build_alloca(ty, name);
+                let value = self.llvm.builder.build_alloca(ty, name)?;
                 self.llvm.generate_variable_initializer(
                     &llvm_index,
                     self.index,
@@ -252,7 +246,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         statement: &AstControlStatement,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         match statement {
             AstControlStatement::If(ifstmt) => self.generate_if_statement(llvm_index, ifstmt),
             AstControlStatement::ForLoop(for_stmt) => self.generate_for_statement(llvm_index, for_stmt),
@@ -275,7 +269,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'a LlvmTypedIndex<'b>,
         left: &AstNode,
         right: &AstNode,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let exp = self.create_expr_generator(llvm_index);
         let ref_builtin = self.index.get_builtin_function("REF").expect("REF must exist");
 
@@ -302,7 +296,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'a LlvmTypedIndex<'b>,
         left_statement: &AstNode,
         right_statement: &AstNode,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         //Register any debug info for the store
         self.register_debug_location(left_statement);
         //TODO: Looks hacky, the strings will be similar so we should look into making the assignment a bit nicer.
@@ -326,7 +320,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let left: PointerValue = exp_gen.generate_expression_value(left_statement).and_then(|it| {
             it.get_basic_value_enum()
                 .try_into()
-                .map_err(|err| Diagnostic::codegen_error(format!("{err:?}").as_str(), left_statement))
+                .map_err(|err| CodegenError::new(format!("{err:?}").as_str(), left_statement))
         })?;
 
         let left_type = exp_gen.get_type_hint_info_for(left_statement)?;
@@ -356,7 +350,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'a LlvmTypedIndex<'b>,
         left_statement: &AstNode,
         right_statement: &AstNode,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let exp_gen = self.create_expr_generator(llvm_index);
 
         // Left pointer
@@ -364,7 +358,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             unreachable!("Invalid direct-access expression: {left_statement:#?}")
         };
         let left_expr_value = exp_gen.generate_expression_value(base)?;
-        let left_value = left_expr_value.as_r_value(self.llvm, None).into_int_value();
+        let left_value = left_expr_value.as_r_value(self.llvm, None)?.into_int_value();
         let left_pointer = left_expr_value.get_basic_value_enum().into_pointer_value();
 
         // Generate an expression for the right size
@@ -393,7 +387,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         stmt: &ForLoopStatement,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let exp_gen = self.create_expr_generator(llvm_index);
 
@@ -412,7 +406,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 || self.llvm.create_const_numeric(&cast_target_llty, "1", SourceLocation::internal()),
                 |step_ty| {
                     let step = exp_gen.generate_expression(stmt.by_step.as_ref().unwrap())?;
-                    Ok(cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None))
+                    cast_if_needed!(exp_gen, cast_target_ty, step_ty, step, None)
                 },
             )
         };
@@ -437,7 +431,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 .create_const_numeric(&cast_target_llty, "0", SourceLocation::internal())?
                 .into_int_value(),
             "is_incrementing",
-        );
+        )?;
         builder.build_conditional_branch(is_incrementing, predicate_incrementing, predicate_decrementing);
         // generate predicates for incrementing and decrementing counters
         let generate_predicate = |predicate| {
@@ -449,20 +443,21 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, ""),
+                ExpressionValue::LValue(ptr) => builder.build_load(ptr, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "");
+            let counter_value = builder.build_load(counter, "")?;
             let cmp = builder.build_int_compare(
                 predicate,
-                cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
-                cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None).into_int_value(),
+                cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
+                cast_if_needed!(exp_gen, cast_target_ty, end_ty, end_value, None)?.into_int_value(),
                 "condition",
-            );
-            builder.build_conditional_branch(cmp, loop_body, afterloop);
+            )?;
+            builder.build_conditional_branch(cmp, loop_body, afterloop)?;
+            Ok::<(), CodegenError>(())
         };
-        generate_predicate(inkwell::IntPredicate::SLE);
-        generate_predicate(inkwell::IntPredicate::SGE);
+        generate_predicate(inkwell::IntPredicate::SLE)?;
+        generate_predicate(inkwell::IntPredicate::SGE)?;
 
         // generate loop body
         builder.position_at_end(loop_body);
@@ -485,15 +480,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // increment counter
         builder.build_unconditional_branch(increment);
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "");
+        let counter_value = builder.build_load(counter, "")?;
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
-            cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None).into_int_value(),
+            cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
             "next",
-        ));
+        )?);
         builder.build_store(
             counter,
-            cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None).into_int_value(),
+            cast_if_needed!(exp_gen, counter_ty, cast_target_ty, inc, None)?.into_int_value(),
         );
 
         // check condition
@@ -517,7 +512,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         stmt: &CaseStatement,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let (builder, current_function, context) = self.get_llvm_deps();
         //Continue
         let continue_block = context.append_basic_block(current_function, "continue");
@@ -602,7 +597,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         start: &AstNode,
         end: &AstNode,
         match_block: BasicBlock,
-    ) -> Result<BasicBlock, Diagnostic> {
+    ) -> Result<BasicBlock, CodegenError> {
         let (builder, _, context) = self.get_llvm_deps();
 
         let range_then = context
@@ -614,12 +609,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let start_val = exp_gen.generate_expression(start)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::GreaterOrEqual, selector_val, start_val)
+            exp_gen.create_llvm_int_binary_expression(&Operator::GreaterOrEqual, selector_val, start_val)?
         };
 
         //jmp to continue if the value is smaller than start
         builder.build_conditional_branch(
-            to_i1(lower_bound.into_int_value(), builder),
+            to_i1(lower_bound.into_int_value(), builder)?,
             range_then,
             range_else,
         );
@@ -629,10 +624,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let end_val = exp_gen.generate_expression(end)?;
             self.register_debug_location(selector);
             let selector_val = exp_gen.generate_expression(selector)?;
-            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)
+            exp_gen.create_llvm_int_binary_expression(&Operator::LessOrEqual, selector_val, end_val)?
         };
         builder.build_conditional_branch(
-            to_i1(upper_bound.into_int_value(), builder),
+            to_i1(upper_bound.into_int_value(), builder)?,
             match_block,
             range_else,
         );
@@ -651,7 +646,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         stmt: &LoopStatement,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let builder = &self.llvm.builder;
         let basic_block = builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);
         let (condition_block, _) =
@@ -673,7 +668,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         condition: &AstNode,
         body: &[AstNode],
         end_location: &SourceLocation,
-    ) -> Result<(BasicBlock, BasicBlock), Diagnostic> {
+    ) -> Result<(BasicBlock, BasicBlock), CodegenError> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
         let while_body = context.append_basic_block(current_function, "while_body");
@@ -684,7 +679,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         self.register_debug_location(condition);
         let condition_value = self.create_expr_generator(llvm_index).generate_expression(condition)?;
         builder.build_conditional_branch(
-            to_i1(condition_value.into_int_value(), builder),
+            to_i1(condition_value.into_int_value(), builder)?,
             while_body,
             continue_block,
         );
@@ -722,7 +717,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         &self,
         llvm_index: &'a LlvmTypedIndex<'b>,
         stmt: &IfStatement,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let mut blocks = vec![builder.get_insert_block().expect(INTERNAL_LLVM_ERROR)];
         for _ in 1..stmt.blocks.len() {
@@ -752,7 +747,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             //Generate if statement condition
             builder.build_conditional_branch(
-                to_i1(condition.into_int_value(), builder),
+                to_i1(condition.into_int_value(), builder)?,
                 conditional_block,
                 else_block,
             );
@@ -792,7 +787,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
     /// generates the function's return statement only if the given pou_type is a `PouType::Function`
     ///
     /// a function returns the value of the local variable that has the function's name
-    pub fn generate_return_statement(&self) -> Result<(), Diagnostic> {
+    pub fn generate_return_statement(&self) -> Result<(), CodegenError> {
         if let Some(ret_v) =
             self.index.find_return_variable(self.function_context.linking_context.get_type_name())
         {
@@ -811,16 +806,16 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 let ret_name = ret_v.get_qualified_name();
                 let value_ptr =
                     self.llvm_index.find_loaded_associated_variable_value(ret_name).ok_or_else(|| {
-                        Diagnostic::codegen_error(
+                        CodegenError::new(
                             format!("Cannot generate return variable for {call_name:}"),
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str());
-                self.llvm.builder.build_return(Some(&loaded_value));
+                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+                self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {
-            self.llvm.builder.build_return(None);
+            self.llvm.builder.build_return(None)?;
         }
         Ok(())
     }
@@ -832,7 +827,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         llvm_index: &'a LlvmTypedIndex<'b>,
         statement: &AstNode,
         condition: &AstNode,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let expression_generator = self.create_expr_generator(llvm_index);
 
         self.register_debug_location(condition);
@@ -842,7 +837,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         let else_block = self.llvm.context.append_basic_block(self.function_context.function, "else_block");
 
         self.llvm.builder.build_conditional_branch(
-            to_i1(condition.into_int_value(), &self.llvm.builder),
+            to_i1(condition.into_int_value(), &self.llvm.builder)?,
             then_block,
             else_block,
         );
