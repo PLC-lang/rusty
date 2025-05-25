@@ -2379,6 +2379,7 @@ fn pointers_generated() {
         //Assign address
         pX := NULL;
         rX := NULL;
+        
         pX := REF(X);
         rX := REF(X);
 

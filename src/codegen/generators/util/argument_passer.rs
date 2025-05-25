@@ -4,12 +4,12 @@ use itertools::Itertools;
 use plc_ast::ast::AstNode;
 
 use crate::{
-    codegen::generators::{expression_visitor::ExpressionVisitor, llvm::Llvm},
+    codegen::generators::{expression_visitor::{ExpressionVisitor, GeneratedValue}, llvm::Llvm},
     index::{Index, VariableIndexEntry},
     resolver::AstAnnotations,
 };
 
-use super::reference_builder::GeneratedValue;
+
 
 pub struct Argument<'idx, 'ast> {
     formal: &'idx VariableIndexEntry,
@@ -84,7 +84,7 @@ impl<'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
                 variable_visitor.generate_expression(argument.actual)?.as_pointer_value()?.into()
             } else {
                 // if this is an input we pass an rvalue
-                variable_visitor.generate_r_value(dbg!(argument.actual))?
+                variable_visitor.generate_r_value(argument.actual)?
             };
 
             let gep = self

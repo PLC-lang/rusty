@@ -123,7 +123,12 @@ fn generate_access_for_dimension<'ink>(
     let start_offset = dimension.start_offset.as_int_value(gen.index).map_err(|e| anyhow!(e))?;
     // .map_err(|it| Diagnostic::codegen_error(it, access_expression))?;
 
+    // let access_value = {
+    //     let expr = gen.generate_expression(access_expression)?;
+    //     gen.as_r_value_with_name(expr, Some("tmpVar"))
+    // };
     let access_value = gen.generate_r_value(access_expression)?;
+    
     //If start offset is not 0, adjust the current statement with an add operation
     let result = if start_offset != 0 {
         let access_int_value = access_value.into_int_value();

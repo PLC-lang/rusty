@@ -2,7 +2,7 @@ use super::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     expression_visitor::ExpressionVisitor,
     llvm::Llvm,
-    util::{assignment_generator, reference_builder::GeneratedValue},
+    util::{assignment_generator},
 };
 use crate::{
     codegen::{
@@ -243,7 +243,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             _ => {
                 // self.create_expr_generator(&llvm_index).generate_expression(statement)?;
                 let mut expr =
-                    ExpressionVisitor::new(self.llvm, self.llvm_index, self.annotations, self.index);
+                    ExpressionVisitor::new(self.llvm, self.llvm_index, self.annotations, self.index, Some(&self.function_context));
 
                 if self.annotations.get_type_or_void(statement, self.index).is_void() {
                     expr.generate_expression(statement)?;
@@ -297,9 +297,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
             expr.get_basic_value_enum().into_pointer_value()
         };
-        let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
+        // let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
 
-        self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
+        // self.llvm.builder.build_store(left_ptr_val, right_expr_val);
         Ok(())
     }
 
@@ -332,7 +332,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             return self.generate_ref_assignment(llvm_index, left_statement, right_statement);
         };
 
-        let mut exp_visitor = ExpressionVisitor::new(self.llvm, llvm_index, self.annotations, self.index);
+        let mut exp_visitor = ExpressionVisitor::new(self.llvm, llvm_index, self.annotations, self.index, Some(&self.function_context));
         assignment_generator::generate_assignment(left_statement, right_statement, &mut exp_visitor)
             .map_err(|err| {
                 Diagnostic::codegen_error(

@@ -501,7 +501,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the function is builtin, generate a basic value enum for it
         if let Some(builtin) = self.index.get_builtin_function(implementation_name) {
             // adr, ref, etc.
-            return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
+            // return builtin.codegen(self, parameters_list.as_slice(), operator.get_location());
         }
 
         let arguments_list = self.generate_pou_call_arguments_list(
