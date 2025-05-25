@@ -216,6 +216,38 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let statements = &init_baz_impl.statements;
     assert_eq!(statements.len(), 2);
     assert_debug_snapshot!(statements[0], @r#"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_bar",
+                },
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "fb",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    }
+    "#);
+
+    assert_debug_snapshot!(statements[1], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -253,38 +285,6 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
         },
     }
     "#);
-
-    assert_debug_snapshot!(statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_bar",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "fb",
-                    },
-                ),
-                base: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "self",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        ),
-    }
-    "###);
 }
 
 /// Finally, after lowering each individual init function, all global initializers are

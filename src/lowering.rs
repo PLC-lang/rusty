@@ -5,8 +5,8 @@ use crate::{
 use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
-        LinkageType, PouType, VariableBlockType,
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable,
+        DataType, LinkageType, PouType, ReferenceExpr,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -284,30 +284,25 @@ impl InitVisitor {
     fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
         let effective_type =
             user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
-        if let DataType::StructType { .. } = &user_type.data_type {
+        if let DataType::StructType { ref mut variables, .. } = &mut user_type.data_type {
             let Some(ty) = effective_type else {
                 return user_type.walk(self);
             };
             let name = ty.get_name();
 
-            let member_inits = self
-                .index
-                .get_container_members(name)
-                .iter()
-                .filter_map(|var| {
-                    // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name;
-                    // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
-                    self.unresolved_initializers
-                        .get_mut(GLOBAL_SCOPE)
-                        .and_then(|it| it.swap_remove(var.get_type_name()))
-                        .map(|node| (var.get_name(), node))
-                })
-                .collect::<Vec<_>>();
+            // TODO: Might break some things
+            for variable in variables {
+                self.unresolved_initializers.maybe_insert_initializer(
+                    name,
+                    Some(&variable.name),
+                    &variable.initializer,
+                );
 
-            for (lhs, init) in member_inits {
-                // update struct member initializers
-                self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
+                // XXX: It would be nice to remove the initializer given we will insert them in the `__init`
+                //      functions. However, doing so results in failing correctness tests :/
+                // variable.initializer = None;
             }
+
             // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
@@ -427,6 +422,154 @@ pub fn create_member_reference_with_location(
 
 fn create_member_reference(ident: &str, id_provider: IdProvider, base: Option<AstNode>) -> AstNode {
     create_member_reference_with_location(ident, id_provider, base, SourceLocation::internal())
+}
+
+fn todo_rename_me__path(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<AstNode>> {
+    match node.get_stmt() {
+        AstStatement::Assignment(Assignment { left, right }) => {
+            let mut result = todo_rename_me__path(right, id_provider.clone());
+            for inner in result.iter_mut() {
+                inner.insert(0, left.as_ref().clone());
+            }
+            result
+        }
+        AstStatement::ExpressionList(nodes) => {
+            let mut result = vec![];
+            for node in nodes {
+                let inner = todo_rename_me__path(node, id_provider.clone());
+                result.extend(inner);
+            }
+            result
+        }
+        AstStatement::ParenExpression(node) => todo_rename_me__path(node, id_provider),
+        _ => vec![vec![node.clone()]],
+    }
+}
+
+/*
+// Assignment {
+//     left: ReferenceExpr {
+//         kind: Member(
+//             Identifier {
+//                 name: "b_foo",
+//             },
+//         ),
+//         base: Some(
+//             ReferenceExpr {
+//                 kind: Member(
+//                     Identifier {
+//                         name: "instanceB",
+//                     },
+//                 ),
+//                 base: Some(
+//                     ReferenceExpr {
+//                         kind: Member(
+//                             Identifier {
+//                                 name: "self",
+//                             },
+//                         ),
+//                         base: None,
+//                     },
+//                 ),
+//             },
+//         ),
+//     },
+ */
+fn todo_rename_me(
+    var_ident: &str,
+    self_ident: Option<&str>,
+    rhs: &Option<AstNode>,
+    mut id_provider: IdProvider,
+) -> Vec<AstNode> {
+    let Some(initializer) = rhs else {
+        return Vec::new();
+    };
+
+    // [foo, bar, baz];
+    // { ref: foo, base: none }
+    // { ref: bar, base: Some(foo) }
+    // { ref: baz, base: {ref: }}
+    let mut result = vec![];
+    for mut path in todo_rename_me__path(initializer, id_provider.clone()) {
+        path.insert(0, create_member_reference(var_ident, id_provider.clone(), None));
+        if self_ident.is_some() {
+            path.insert(0, create_member_reference("self", id_provider.clone(), None));
+        }
+
+        // [foo, bar, baz, REF(globalFoo)] -- init --> [self, varname, foo, bar, baz, REF(globalFoo)]
+        // Pop -> REF(globalFoo)
+        // Pop -> baz
+        let right = path.pop().expect("must have at least one node in the path");
+        let mut left = path.pop().expect("must have at least one node in the path");
+
+        for node in path.into_iter().rev() {
+            todo_rename_me_deep_reference(&mut left, node);
+        }
+
+        result.push(AstFactory::create_assignment(left, right, id_provider.next_id()));
+    }
+
+    result
+}
+
+// [foo, bar, baz] -- reverse --> [baz, bar, foo]
+// 0: MemberRef { ref: baz, base: None }
+// 1: MemberRef { ref: baz, base: MemberRef { ref: bar, base: None } }
+// 2: MemberRef { ref: baz, base: MemberRef { ref: bar, base: MemberRef { ref: foo, base: None } } }
+fn todo_rename_me_deep_reference(member: &mut AstNode, new_base: AstNode) {
+    match &mut member.stmt {
+        AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => match base {
+            Some(inner) => todo_rename_me_deep_reference(inner, new_base),
+            None => {
+                base.replace(Box::new(new_base));
+            }
+        },
+        _ => todo!(),
+    }
+}
+
+#[test]
+fn demo() {
+    let id_provider = IdProvider::default();
+    let mut nodes = vec![
+        create_member_reference("a", id_provider.clone(), None),
+        create_member_reference("b", id_provider.clone(), None),
+        create_member_reference("c", id_provider.clone(), None),
+    ];
+
+    let mut base = nodes.pop().unwrap();
+    for node in nodes.into_iter().rev() {
+        todo_rename_me_deep_reference(&mut base, node);
+    }
+
+    insta::assert_debug_snapshot!(base, @r#"
+    ReferenceExpr {
+        kind: Member(
+            Identifier {
+                name: "c",
+            },
+        ),
+        base: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "b",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "a",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ),
+    }
+    "#);
 }
 
 fn create_assignment_if_necessary(

@@ -28,6 +28,19 @@ pub fn parse_and_validate_buffered(src: &str) -> String {
     driver::parse_and_validate("TestProject", vec![source])
 }
 
+pub fn parse_and_validate_buffered_ast(src: &str) -> Vec<CompilationUnit> {
+    let source: SourceCode = src.into();
+
+    match driver::parse_and_annotate_with_diagnostics("TestProject", vec![source], Diagnostician::buffered())
+    {
+        Ok((mut pipeline, project)) => {
+            project.validate(&pipeline.context, &mut pipeline.diagnostician).unwrap();
+            project.units.into_iter().map(CompilationUnit::from).collect()
+        }
+        Err(diagnostician) => panic!("{}", diagnostician.buffer().unwrap()),
+    }
+}
+
 fn get_debug_param(debug_level: DebugLevel) -> Option<String> {
     match debug_level {
         DebugLevel::None => None,
