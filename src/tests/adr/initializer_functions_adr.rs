@@ -355,24 +355,13 @@ fn global_initializers_are_wrapped_in_single_init_function() {
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
     assert_eq!(init_impl.statements.len(), 7);
-    // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
-    // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
-    // instance.
-    assert_debug_snapshot!(&init_impl.statements[0], @r###"
-    Assignment {
-        left: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "gs",
-                },
-            ),
-            base: None,
-        },
-        right: CallStatement {
+    assert_debug_snapshot!(&init_impl.statements, @r###"
+    [
+        CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "REF",
+                        name: "__init_baz",
                     },
                 ),
                 base: None,
@@ -381,80 +370,144 @@ fn global_initializers_are_wrapped_in_single_init_function() {
                 ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "s",
+                            name: "baz",
                         },
                     ),
                     base: None,
                 },
             ),
         },
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_baz",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
+        CallStatement {
+            operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "baz",
+                        name: "__init_bar",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[2], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_bar",
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
                 },
             ),
-            base: None,
         },
-        parameters: Some(
-            ReferenceExpr {
+        CallStatement {
+            operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "bar",
+                        name: "__init_qux",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[3], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_qux",
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: None,
                 },
             ),
-            base: None,
         },
-        parameters: Some(
-            ReferenceExpr {
+        Assignment {
+            left: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "qux",
+                        name: "gs",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "s",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_baz",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "baz",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_bar",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_qux",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    ]
     "###);
 }
 

@@ -195,8 +195,6 @@ fn create_init_unit(
         statements.extend(initializers);
     }
 
-    dbg!(&statements);
-
     let member_init_calls = lowerer
         .index
         .get_container_members(container_name)
@@ -374,8 +372,6 @@ fn create_init_wrapper_function(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(calls);
-
     if !skip_var_config {
         statements.push(AstFactory::create_call_statement(
             create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), None),
@@ -386,7 +382,7 @@ fn create_init_wrapper_function(
     };
 
     let user_init_calls = get_global_user_init_statements(lowerer);
-    statements.extend(user_init_calls);
+    let statements = vec![calls, statements, user_init_calls].concat();
     let implementation =
         new_implementation(init_symbol_name, statements, PouType::ProjectInit, SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
@@ -944,8 +940,28 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -989,26 +1005,6 @@ mod tests {
                 operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "__init_structa",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "globalStructA",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
                             name: "__user_init_StructA",
                         },
                     ),
@@ -1026,7 +1022,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -1054,8 +1050,28 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -1161,26 +1177,6 @@ mod tests {
                 operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "__init_structa",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "globalStructA",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
                             name: "__user_init_StructA",
                         },
                     ),
@@ -1198,7 +1194,7 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
     }
 
     #[test]
@@ -1233,8 +1229,28 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -1389,26 +1405,6 @@ mod tests {
                 operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "__init_structa",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "globalStructA",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
                             name: "__user_init_StructA",
                         },
                     ),
@@ -1426,6 +1422,115 @@ mod tests {
                 ),
             },
         ]
-        "#);
+        "###);
+    }
+
+    #[test]
+    #[ignore = "Does not work yet, because `a := b := 1` is not flagged as `Unresolvable::Address`"]
+    fn global_todo_better_name_03() {
+        let src = r#"
+        VAR_GLOBAL
+            globalA: MyStruct2 := (a := (b := 1));
+        END_VAR
+
+        TYPE MyStruct2:
+            STRUCT
+                a: MyStruct;
+            END_STRUCT
+        END_TYPE
+
+        TYPE MyStruct:
+            STRUCT
+                b: DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_mystruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_mystruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalB",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_MyStruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_MyStruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalB",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
     }
 }

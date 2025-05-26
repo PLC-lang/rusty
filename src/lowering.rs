@@ -120,7 +120,7 @@ impl InitVisitor {
                     })
         };
 
-        if let Some(initializer) = variable.initializer.as_ref() {
+        if let Some(initializer) = variable.initializer.as_ref().take() {
             let type_name =
                 variable.data_type_declaration.get_name().expect("Must have a type at this point");
             let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
