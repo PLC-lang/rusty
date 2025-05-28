@@ -829,7 +829,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
@@ -908,7 +908,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
@@ -919,7 +919,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_baz(%foo* %0) {
+    define void @foo__baz(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
@@ -986,7 +986,7 @@ fn initializing_method_variables() {
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8

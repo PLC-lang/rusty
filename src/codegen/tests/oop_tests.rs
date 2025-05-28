@@ -268,7 +268,7 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    define void @foo_baz(%foo* %0) {
+    define void @foo__baz(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
@@ -300,7 +300,7 @@ fn write_to_parent_variable_in_instance() {
       call void @__init_bar(%bar* %fb)
       call void @__user_init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
-      call void @foo_baz(%foo* %__foo)
+      call void @foo__baz(%foo* %__foo)
       call void @bar(%bar* %fb)
       ret void
     }
@@ -773,16 +773,16 @@ fn this_in_method_call_chain() {
       ret void
     }
 
-    define void @FB_Test_Step(%FB_Test* %0) {
+    define void @FB_Test__Step(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      call void @FB_Test_Increment(%FB_Test* %deref)
+      call void @FB_Test__Increment(%FB_Test* %deref)
       ret void
     }
 
-    define void @FB_Test_Increment(%FB_Test* %0) {
+    define void @FB_Test__Increment(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -854,7 +854,7 @@ fn this_in_method_and_body_in_function_block() {
       ret void
     }
 
-    define i16 @FB_Test_GetVal(%FB_Test* %0) {
+    define i16 @FB_Test__GetVal(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -865,8 +865,8 @@ fn this_in_method_and_body_in_function_block() {
       %val1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
       %load_val = load i16, i16* %val1, align 2
       store i16 %load_val, i16* %FB_Test.GetVal, align 2
-      %FB_Test_GetVal_ret = load i16, i16* %FB_Test.GetVal, align 2
-      ret i16 %FB_Test_GetVal_ret
+      %FB_Test__GetVal_ret = load i16, i16* %FB_Test.GetVal, align 2
+      ret i16 %FB_Test__GetVal_ret
     }
 
     define void @__init_fb_test(%FB_Test* %0) {
@@ -939,7 +939,7 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define void @FB_Test_foo(%FB_Test* %0) {
+    define void @FB_Test__foo(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -952,7 +952,7 @@ fn pass_this_to_method() {
       call void @__init_fb_test2(%FB_Test2* %test)
       call void @__user_init_FB_Test2(%FB_Test2* %test)
       %2 = load %FB_Test*, %FB_Test** %this, align 8
-      %call = call i16 @FB_Test2_bar(%FB_Test2* %test, %FB_Test* %2)
+      %call = call i16 @FB_Test2__bar(%FB_Test2* %test, %FB_Test* %2)
       ret void
     }
 
@@ -963,7 +963,7 @@ fn pass_this_to_method() {
       ret void
     }
 
-    define i16 @FB_Test2_bar(%FB_Test2* %0, %FB_Test* %1) {
+    define i16 @FB_Test2__bar(%FB_Test2* %0, %FB_Test* %1) {
     entry:
       %this = alloca %FB_Test2*, align 8
       store %FB_Test2* %0, %FB_Test2** %this, align 8
@@ -975,8 +975,8 @@ fn pass_this_to_method() {
       %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
       %load_x = load i16, i16* %x, align 2
       store i16 %load_x, i16* %FB_Test2.bar, align 2
-      %FB_Test2_bar_ret = load i16, i16* %FB_Test2.bar, align 2
-      ret i16 %FB_Test2_bar_ret
+      %FB_Test2__bar_ret = load i16, i16* %FB_Test2.bar, align 2
+      ret i16 %FB_Test2__bar_ret
     }
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
@@ -1058,7 +1058,7 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
-    define void @FB_Test_shadow_val(%FB_Test* %0) {
+    define void @FB_Test__shadow_val(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -1216,7 +1216,7 @@ fn this_in_property_and_calling_method() {
       ret void
     }
 
-    define i16 @FB_Test_DoubleX(%FB_Test* %0) {
+    define i16 @FB_Test__DoubleX(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -1230,11 +1230,11 @@ fn this_in_property_and_calling_method() {
       %tmpVar = mul i32 2, %1
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %FB_Test.DoubleX, align 2
-      %FB_Test_DoubleX_ret = load i16, i16* %FB_Test.DoubleX, align 2
-      ret i16 %FB_Test_DoubleX_ret
+      %FB_Test__DoubleX_ret = load i16, i16* %FB_Test.DoubleX, align 2
+      ret i16 %FB_Test__DoubleX_ret
     }
 
-    define i16 @FB_Test___get_Value(%FB_Test* %0) {
+    define i16 @FB_Test____get_Value(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -1244,15 +1244,15 @@ fn this_in_property_and_calling_method() {
       store i16 0, i16* %Value, align 2
       store i16 0, i16* %FB_Test.__get_Value, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %call = call i16 @FB_Test_DoubleX(%FB_Test* %deref)
+      %call = call i16 @FB_Test__DoubleX(%FB_Test* %deref)
       store i16 %call, i16* %Value, align 2
       %load_Value = load i16, i16* %Value, align 2
       store i16 %load_Value, i16* %FB_Test.__get_Value, align 2
-      %FB_Test___get_Value_ret = load i16, i16* %FB_Test.__get_Value, align 2
-      ret i16 %FB_Test___get_Value_ret
+      %FB_Test____get_Value_ret = load i16, i16* %FB_Test.__get_Value, align 2
+      ret i16 %FB_Test____get_Value_ret
     }
 
-    define void @FB_Test___set_Value(%FB_Test* %0, i16 %1) {
+    define void @FB_Test____set_Value(%FB_Test* %0, i16 %1) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -1323,7 +1323,7 @@ fn this_with_self_pointer() {
       ret void
     }
 
-    define void @FB_Test_InitRef(%FB_Test* %0) {
+    define void @FB_Test__InitRef(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
@@ -1445,7 +1445,7 @@ fn this_in_action_in_functionblock() {
       ret void
     }
 
-    define void @fb_foo(%fb* %0) {
+    define void @fb__foo(%fb* %0) {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
@@ -1504,7 +1504,7 @@ fn this_calling_functionblock_body_from_method() {
       ret void
     }
 
-    define i16 @fb_foo(%fb* %0) {
+    define i16 @fb__foo(%fb* %0) {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
@@ -1512,8 +1512,8 @@ fn this_calling_functionblock_body_from_method() {
       store i16 0, i16* %fb.foo, align 2
       %deref = load %fb*, %fb** %this, align 8
       call void @fb(%fb* %deref)
-      %fb_foo_ret = load i16, i16* %fb.foo, align 2
-      ret i16 %fb_foo_ret
+      %fb__foo_ret = load i16, i16* %fb.foo, align 2
+      ret i16 %fb__foo_ret
     }
 
     define void @__init_fb(%fb* %0) {

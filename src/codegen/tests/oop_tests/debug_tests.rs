@@ -365,7 +365,7 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !24
     }
 
-    define void @foo_baz(%foo* %0) !dbg !25 {
+    define void @foo__baz(%foo* %0) !dbg !25 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !26, metadata !DIExpression()), !dbg !27
       %this = alloca %foo*, align 8
@@ -401,7 +401,7 @@ fn write_to_parent_variable_in_instance() {
       call void @__init_bar(%bar* %fb), !dbg !42
       call void @__user_init_bar(%bar* %fb), !dbg !42
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !42
-      call void @foo_baz(%foo* %__foo), !dbg !43
+      call void @foo__baz(%foo* %__foo), !dbg !43
       call void @bar(%bar* %fb), !dbg !44
       ret void, !dbg !45
     }
@@ -1010,7 +1010,7 @@ fn function_block_method_debug_info() {
       ret void, !dbg !18
     }
 
-    define void @foo_baz(%foo* %0) !dbg !19 {
+    define void @foo__baz(%foo* %0) !dbg !19 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !20, metadata !DIExpression()), !dbg !21
       %this = alloca %foo*, align 8

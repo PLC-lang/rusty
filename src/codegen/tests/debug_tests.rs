@@ -370,7 +370,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !13
     }
 
-    define void @fb_foo(%fb* %0) !dbg !14 {
+    define void @fb__foo(%fb* %0) !dbg !14 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !15, metadata !DIExpression()), !dbg !16
       %this = alloca %fb*, align 8
@@ -467,7 +467,7 @@ fn action_with_var_temp() {
       call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !14
       store i32 0, i32* %main, align 4
       call void @PLC_PRG(%PLC_PRG* @PLC_PRG_instance), !dbg !15
-      call void @PLC_PRG_act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
+      call void @PLC_PRG__act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
       %main_ret = load i32, i32* %main, align 4, !dbg !17
       ret i32 %main_ret, !dbg !17
     }
@@ -482,7 +482,7 @@ fn action_with_var_temp() {
       ret void, !dbg !25
     }
 
-    define void @PLC_PRG_act(%PLC_PRG* %0) !dbg !26 {
+    define void @PLC_PRG__act(%PLC_PRG* %0) !dbg !26 {
     entry:
       call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !27, metadata !DIExpression()), !dbg !28
       %x = alloca i32, align 4
