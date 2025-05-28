@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_assert_snapshot;
 //Same size operations remain the same
 // Different types smaller than int converted to int (expanded according to sign)
 // Different types with one element bigger than int converts all elements to its size
@@ -42,7 +42,7 @@ fn even_all_sint_expressions_fallback_to_dint() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn datatypes_smaller_than_dint_promoted_to_dint() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -84,7 +84,7 @@ fn aliased_datatypes_respect_conversion_rules() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -103,7 +103,7 @@ fn unsingned_datatypes_smaller_than_dint_promoted_to_dint() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn datatypes_larger_than_int_promote_the_second_operand() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn float_and_double_mix_converted_to_double() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn float_assinged_to_double_to_double() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -178,7 +178,7 @@ fn int_assigned_to_float_is_cast() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn float_assigned_to_int_is_cast() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -216,7 +216,7 @@ fn int_smaller_or_equal_to_float_converted_to_float() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -234,7 +234,7 @@ fn int_bigger_than_float_converted_to_double() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -252,7 +252,7 @@ fn int_bigger_than_byte_promoted_on_compare_statement() {
         "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -280,7 +280,7 @@ fn numerical_promotion_for_variadic_functions_without_declaration() {
     "#;
 
     let result = codegen(src);
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -309,5 +309,5 @@ fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
     "#;
 
     let result = codegen(src);
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }

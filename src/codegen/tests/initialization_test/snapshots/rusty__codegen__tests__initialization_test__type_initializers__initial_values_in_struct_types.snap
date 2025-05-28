@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %MyStruct = type { i16, i16, i8, i8, float, float }
 

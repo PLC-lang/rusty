@@ -274,7 +274,7 @@ fn generate_to_string_internal<T: SourceContainer>(
     project.validate(&pipeline.context, &mut pipeline.diagnostician)?;
     let context = CodegenContext::create();
     let module =
-        project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap())?;
+        project.generate_single_module(&context, pipeline.get_compile_options().as_ref().unwrap(), None)?;
 
     // Generate
     module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new("Cannot generate module"))

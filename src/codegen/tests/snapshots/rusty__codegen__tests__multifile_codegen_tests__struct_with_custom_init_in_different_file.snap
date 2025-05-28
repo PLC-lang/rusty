@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+snapshot_kind: text
 ---
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct = type { i32, i16 }
 
@@ -11,6 +14,8 @@ source_filename = "myStruct.st"
 
 ; ModuleID = 'myStruct2.st'
 source_filename = "myStruct2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct2 = type { i32, i16 }
 
@@ -18,6 +23,8 @@ source_filename = "myStruct2.st"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { %myStruct.2, %myStruct2.3 }
 %myStruct.2 = type { i32, i16 }

@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @twenty = unnamed_addr constant i16 20
 @x = global i8 0
