@@ -2642,7 +2642,7 @@
 
     <span class="kw">pub fn </span>get_call_name_for_ir(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; String {
         <span class="kw">match </span><span class="self">self</span>.implementation_type {
-            ImplementationType::Method | ImplementationType::Action =&gt; <span class="self">self</span>.call_name.replace(<span class="string">"."</span>, <span class="string">"_"</span>),
+            ImplementationType::Method | ImplementationType::Action =&gt; <span class="self">self</span>.call_name.replace(<span class="string">"."</span>, <span class="string">"__"</span>),
             <span class="kw">_ </span>=&gt; <span class="self">self</span>.call_name.clone(),
         }
     }

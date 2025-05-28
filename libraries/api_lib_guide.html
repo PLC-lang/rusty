@@ -437,9 +437,9 @@ pub struct myStruct {
 <pre><code class="language-c">myFunctionBlock __myFunctionBlock__init = { 0 };
 </code></pre>
 <ol start="3">
-<li>Optionally create an initialization function following the naming pattern <code>&lt;FunctionBlockName&gt;_FB_INIT</code>:</li>
+<li>Optionally create an initialization function following the naming pattern <code>&lt;FunctionBlockName&gt;__FB_INIT</code>:</li>
 </ol>
-<pre><code class="language-c">void myFunctionBlock_FB_INIT(myFunctionBlock* fb_instance) {
+<pre><code class="language-c">void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
     // Initialize members here
     fb_instance-&gt;a = 1;
     fb_instance-&gt;b = 2;
