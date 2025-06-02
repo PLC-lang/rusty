@@ -1135,7 +1135,7 @@ impl PouIndexEntry {
     }
     /// Returns the POU's identifier without the qualifier
     pub fn get_flat_reference_name(&self) -> &str {
-        self.get_qualified_name().into_iter().last().unwrap_or_default()
+        self.get_qualified_name().into_iter().next_back().unwrap_or_default()
     }
 }
 

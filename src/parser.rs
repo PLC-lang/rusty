@@ -122,7 +122,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                             PouType::Program | PouType::Function | PouType::FunctionBlock | PouType::Class
                         )
                     })
-                    .last()
+                    .next_back()
                     .map(|it| it.name.as_str())
                     .unwrap_or("__unknown__");
                 let mut actions = parse_actions(&mut lexer, linkage, last_pou);
@@ -1193,7 +1193,7 @@ fn parse_array_type_definition(
         let is_variable_length = match &range.get_stmt() {
             // Single dimensions, i.e. ARRAY[0..5] or ARRAY[*]
             AstStatement::RangeStatement { .. } => Some(false),
-            AstStatement::VlaRangeStatement { .. } => Some(true),
+            AstStatement::VlaRangeStatement => Some(true),
 
             // Multi dimensions, i.e. ARRAY [0..5, 5..10] or ARRAY [*, *]
             AstStatement::ExpressionList(expressions) => match expressions[0].get_stmt() {

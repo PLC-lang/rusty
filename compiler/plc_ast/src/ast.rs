@@ -1467,7 +1467,7 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
-            std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
+            std::iter::repeat_n(flatten_expression_list(element), *multiplier as usize).flatten().collect()
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],

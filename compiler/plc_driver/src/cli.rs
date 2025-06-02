@@ -355,7 +355,7 @@ fn get_parallel_threads(thread_count: &str) -> Result<Threads, ParseIntError> {
 }
 
 pub fn get_config_format(name: &str) -> Option<ConfigFormat> {
-    let ext = name.split('.').last();
+    let ext = name.split('.').next_back();
     match ext {
         Some("json") => Some(ConfigFormat::JSON),
         Some("toml") => Some(ConfigFormat::TOML),

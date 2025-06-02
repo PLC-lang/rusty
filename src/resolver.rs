@@ -2558,7 +2558,7 @@ impl ResolvingStrategy {
     /// tries to resolve the given name using the reprsented scope
     /// - `name` the name to resolve
     /// - `qualifier` an optional qualifier to prefix to the name,
-    ///     if the qualifier is present, this method only resolves to targets with this qualifier
+    ///   if the qualifier is present, this method only resolves to targets with this qualifier
     /// - `index` the index to perform the lookups on
     fn resolve_name(
         &self,
