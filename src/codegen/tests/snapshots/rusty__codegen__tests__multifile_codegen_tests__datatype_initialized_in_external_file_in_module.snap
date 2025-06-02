@@ -1,12 +1,17 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+snapshot_kind: text
 ---
 ; ModuleID = 'MyInt.st'
 source_filename = "MyInt.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { i16 }
 

@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @__FSTRING_TO_DT.ignore__init = unnamed_addr constant [2 x i8] c"*\00"
 @__FSTRING_TO_DT.fchar__init = unnamed_addr constant [2 x i8] c"#\00"
@@ -33,7 +35,7 @@ entry:
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @__FSTRING_TO_DT.fchar__init, i32 0, i32 0), i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
   %2 = bitcast [2 x i8]* %c to i8*
   call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
-  store i64 0, i64* %FSTRING_TO_DT, align 4
+  store i64 0, i64* %FSTRING_TO_DT, align 8
   %3 = bitcast [2 x i8]* %c to i8*
   %4 = bitcast [2 x i8]* %ignore to i8*
   %call = call i8 @STRING_EQUAL(i8* %3, i8* %4)
@@ -44,7 +46,7 @@ condition_body:                                   ; preds = %entry
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
-  %FSTRING_TO_DT_ret = load i64, i64* %FSTRING_TO_DT, align 4
+  %FSTRING_TO_DT_ret = load i64, i64* %FSTRING_TO_DT, align 8
   ret i64 %FSTRING_TO_DT_ret
 }
 

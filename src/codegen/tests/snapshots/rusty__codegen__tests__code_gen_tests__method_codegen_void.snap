@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %MyClass = type {}
 
@@ -15,7 +17,7 @@ entry:
   ret void
 }
 
-define void @MyClass_testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
 entry:
   %myMethodArg = alloca i16, align 2
   store i16 %1, i16* %myMethodArg, align 2

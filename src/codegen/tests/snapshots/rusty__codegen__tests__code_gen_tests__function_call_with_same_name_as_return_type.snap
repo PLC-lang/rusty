@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg = type {}
 
@@ -13,8 +15,8 @@ source_filename = "<internal>"
 define i64 @TIME() {
 entry:
   %TIME = alloca i64, align 8
-  store i64 0, i64* %TIME, align 4
-  %TIME_ret = load i64, i64* %TIME, align 4
+  store i64 0, i64* %TIME, align 8
+  %TIME_ret = load i64, i64* %TIME, align 8
   ret i64 %TIME_ret
 }
 

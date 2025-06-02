@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @a = global i8 0, !dbg !0
 @b = global i8 0, !dbg !4

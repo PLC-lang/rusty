@@ -1,3 +1,4 @@
+use plc_util::filtered_assert_snapshot;
 use test_utils::codegen_with_debug as codegen;
 
 #[test]
@@ -16,9 +17,11 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
@@ -97,7 +100,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7808, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7792, align: 64, flags: DIFlagPublic, elements: !4, identifier: "foo")
     !4 = !{!5, !7, !12}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !6, size: 16, align: 16, flags: DIFlagPublic)
     !6 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -112,7 +115,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     !15 = !DISubrange(count: 11, lowerBound: 0)
     !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
     !17 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 10, type: !18, isLocal: false, isDefinition: true)
-    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7808, align: 64, flags: DIFlagPublic, elements: !19, identifier: "bar")
+    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7792, align: 64, flags: DIFlagPublic, elements: !19, identifier: "bar")
     !19 = !{!20}
     !20 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !3, size: 7792, align: 64, flags: DIFlagPublic)
     !21 = !{i32 2, !"Dwarf Version", i32 5}
@@ -156,9 +159,11 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    insta::assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %fb2 = type { %fb }
     %fb = type { i16, i16 }
@@ -270,10 +275,10 @@ fn write_to_parent_variable_qualified_access() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb2__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb2")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "fb2")
     !4 = !{!5}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__fb", scope: !2, file: !2, baseType: !6, size: 32, align: 64, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !7, identifier: "fb")
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !7, identifier: "fb")
     !7 = !{!8, !10}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !9, size: 16, align: 16, flags: DIFlagPublic)
     !9 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -282,7 +287,7 @@ fn write_to_parent_variable_qualified_access() {
     !12 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !6, isLocal: false, isDefinition: true)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
     !14 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 64, align: 64, flags: DIFlagPublic, elements: !16, identifier: "foo")
+    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 32, align: 64, flags: DIFlagPublic, elements: !16, identifier: "foo")
     !16 = !{!17}
     !17 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !3, size: 32, align: 64, flags: DIFlagPublic)
     !18 = !{i32 2, !"Dwarf Version", i32 5}
@@ -336,9 +341,11 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %bar = type { %foo }
     %foo = type { [81 x i8] }
@@ -358,7 +365,7 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !24
     }
 
-    define void @foo_baz(%foo* %0) !dbg !25 {
+    define void @foo__baz(%foo* %0) !dbg !25 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !26, metadata !DIExpression()), !dbg !27
       %this = alloca %foo*, align 8
@@ -394,7 +401,7 @@ fn write_to_parent_variable_in_instance() {
       call void @__init_bar(%bar* %fb), !dbg !42
       call void @__user_init_bar(%bar* %fb), !dbg !42
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !42
-      call void @foo_baz(%foo* %__foo), !dbg !43
+      call void @foo__baz(%foo* %__foo), !dbg !43
       call void @bar(%bar* %fb), !dbg !44
       ret void, !dbg !45
     }
@@ -460,10 +467,10 @@ fn write_to_parent_variable_in_instance() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 704, align: 64, flags: DIFlagPublic, elements: !4, identifier: "bar")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 648, align: 64, flags: DIFlagPublic, elements: !4, identifier: "bar")
     !4 = !{!5}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !6, size: 648, align: 64, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 704, align: 64, flags: DIFlagPublic, elements: !7, identifier: "foo")
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 648, align: 64, flags: DIFlagPublic, elements: !7, identifier: "foo")
     !7 = !{!8}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !9, size: 648, align: 8, flags: DIFlagPublic)
     !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align: 8, elements: !11)
@@ -542,9 +549,11 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
@@ -693,13 +702,13 @@ fn array_in_parent_generated() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 512, align: 64, flags: DIFlagPublic, elements: !4, identifier: "child")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 480, align: 64, flags: DIFlagPublic, elements: !4, identifier: "child")
     !4 = !{!5, !22}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !6, size: 304, align: 64, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 320, align: 64, flags: DIFlagPublic, elements: !7, identifier: "parent")
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 304, align: 64, flags: DIFlagPublic, elements: !7, identifier: "parent")
     !7 = !{!8, !17, !21}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !9, size: 112, align: 64, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !10, identifier: "grandparent")
+    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 112, align: 64, flags: DIFlagPublic, elements: !10, identifier: "grandparent")
     !10 = !{!11, !16}
     !11 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !12, size: 96, align: 16, flags: DIFlagPublic)
     !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 96, align: 16, elements: !14)
@@ -779,9 +788,11 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }
@@ -917,10 +928,10 @@ fn complex_array_access_generated() {
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__parent__init", scope: !2, file: !2, line: 9, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 320, align: 64, flags: DIFlagPublic, elements: !4, identifier: "parent")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 304, align: 64, flags: DIFlagPublic, elements: !4, identifier: "parent")
     !4 = !{!5, !14, !18}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !6, size: 112, align: 64, flags: DIFlagPublic)
-    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !7, identifier: "grandparent")
+    !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 112, align: 64, flags: DIFlagPublic, elements: !7, identifier: "grandparent")
     !7 = !{!8, !13}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !9, size: 96, align: 16, flags: DIFlagPublic)
     !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 96, align: 16, elements: !11)
@@ -937,7 +948,7 @@ fn complex_array_access_generated() {
     !20 = distinct !DIGlobalVariable(name: "__grandparent__init", scope: !2, file: !2, line: 2, type: !6, isLocal: false, isDefinition: true)
     !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
     !22 = distinct !DIGlobalVariable(name: "__child__init", scope: !2, file: !2, line: 16, type: !23, isLocal: false, isDefinition: true)
-    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 512, align: 64, flags: DIFlagPublic, elements: !24, identifier: "child")
+    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 480, align: 64, flags: DIFlagPublic, elements: !24, identifier: "child")
     !24 = !{!25, !26}
     !25 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !3, size: 304, align: 64, flags: DIFlagPublic)
     !26 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !15, size: 176, align: 16, offset: 304, flags: DIFlagPublic)
@@ -978,9 +989,11 @@ fn function_block_method_debug_info() {
         END_FUNCTION_BLOCK
     "#,
     );
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type {}
     %bar = type { %foo }
@@ -997,7 +1010,7 @@ fn function_block_method_debug_info() {
       ret void, !dbg !18
     }
 
-    define void @foo_baz(%foo* %0) !dbg !19 {
+    define void @foo__baz(%foo* %0) !dbg !19 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !20, metadata !DIExpression()), !dbg !21
       %this = alloca %foo*, align 8
@@ -1153,9 +1166,11 @@ END_FUNCTION
 ",
     );
 
-    insta::assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %grandchild = type { %child, i32 }
     %child = type { %parent, i32 }
@@ -1394,13 +1409,13 @@ END_FUNCTION
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__grandchild__init", scope: !2, file: !2, line: 14, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 128, align: 64, flags: DIFlagPublic, elements: !4, identifier: "grandchild")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 96, align: 64, flags: DIFlagPublic, elements: !4, identifier: "grandchild")
     !4 = !{!5, !14}
     !5 = !DIDerivedType(tag: DW_TAG_member, name: "__child", scope: !2, file: !2, baseType: !6, size: 64, align: 64, flags: DIFlagPublic)
     !6 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 64, align: 64, flags: DIFlagPublic, elements: !7, identifier: "child")
     !7 = !{!8, !13}
     !8 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !9, size: 32, align: 64, flags: DIFlagPublic)
-    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !10, identifier: "parent")
+    !9 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 32, align: 64, flags: DIFlagPublic, elements: !10, identifier: "parent")
     !10 = !{!11}
     !11 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !12, size: 32, align: 32, flags: DIFlagPublic)
     !12 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)

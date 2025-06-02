@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myPrg = type {}
 %myFb = type {}

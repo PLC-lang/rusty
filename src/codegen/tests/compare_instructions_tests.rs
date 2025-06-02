@@ -1,4 +1,5 @@
 use crate::test_utils::tests::codegen;
+use plc_util::filtered_assert_snapshot;
 
 #[test]
 fn string_comparison_test() {
@@ -19,7 +20,7 @@ fn string_comparison_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -40,7 +41,7 @@ fn string_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -60,7 +61,7 @@ fn string_less_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -80,7 +81,7 @@ fn string_greater_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -100,7 +101,7 @@ fn string_not_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -123,7 +124,7 @@ fn string_smaller_or_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -146,7 +147,7 @@ fn string_greater_or_equal_with_constant_test() {
     "#,
     );
 
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -164,7 +165,7 @@ fn ranged_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -183,7 +184,7 @@ fn aliased_ranged_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -203,7 +204,7 @@ fn aliased_number_type_comparing_test() {
     );
 
     //should result in normal number-comparisons
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -230,7 +231,7 @@ fn pointer_compare_instructions() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -259,7 +260,7 @@ fn pointer_function_call_compare_instructions() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -317,7 +318,7 @@ fn compare_instructions_with_different_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -378,7 +379,7 @@ fn compare_instruction_functions_with_different_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }
 
 #[test]
@@ -396,5 +397,5 @@ fn compare_datetime_types() {
         END_PROGRAM
         ",
     );
-    insta::assert_snapshot!(result);
+    filtered_assert_snapshot!(result);
 }

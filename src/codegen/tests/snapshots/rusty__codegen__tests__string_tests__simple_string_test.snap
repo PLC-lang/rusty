@@ -1,9 +1,12 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @str = global [21 x i8] zeroinitializer
 @wstr = global [21 x i16] zeroinitializer

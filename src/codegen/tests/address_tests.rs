@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use plc_util::filtered_assert_snapshot;
 
 use crate::test_utils::tests::codegen;
 
@@ -12,9 +12,11 @@ fn aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -32,9 +34,11 @@ fn duplicate_aliased_address_in_global_generated() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     @foo = global i8* null
     @__PI_1_2_3_4 = global i8 0
@@ -58,9 +62,11 @@ fn address_variable_used_with_symbolic_name() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %mainProg = type {}
 
@@ -97,9 +103,11 @@ fn address_used_in_body() {
         ",
     );
 
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %mainProg = type {}
 

@@ -23,7 +23,7 @@ fn ir_generation_full_pass() {
     //We only need to test that an IR got generated, not which IR really
     let content: String = content.lines().skip(2).collect();
 
-    assert_snapshot!(content);
+    plc_util::filtered_assert_snapshot!(content);
 }
 
 #[test]

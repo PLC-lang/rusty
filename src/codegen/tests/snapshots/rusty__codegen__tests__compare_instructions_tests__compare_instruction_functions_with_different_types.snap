@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %main = type { float*, i16, i32, float, double, i8, i16, i32, i64, i8, i16, i32, i64 }
 
@@ -51,7 +53,7 @@ entry:
   %6 = zext i16 %load_var_uint to i32
   %tmpVar3 = icmp sle i32 %6, 40
   %7 = zext i1 %tmpVar3 to i8
-  %load_var_ulint = load i64, i64* %var_ulint, align 4
+  %load_var_ulint = load i64, i64* %var_ulint, align 8
   %tmpVar4 = icmp sge i64 10, %load_var_ulint
   %8 = zext i1 %tmpVar4 to i8
   %load_var_sint5 = load i8, i8* %var_sint, align 1
@@ -62,15 +64,15 @@ entry:
   %11 = zext i1 %tmpVar7 to i8
   %load_var_uint8 = load i16, i16* %var_uint, align 2
   %12 = zext i16 %load_var_uint8 to i64
-  %load_var_lint = load i64, i64* %var_lint, align 4
+  %load_var_lint = load i64, i64* %var_lint, align 8
   %tmpVar9 = icmp sle i64 %12, %load_var_lint
   %13 = zext i1 %tmpVar9 to i8
   %load_var_dint10 = load i32, i32* %var_dint, align 4
   %14 = sext i32 %load_var_dint10 to i64
-  %load_var_ulint11 = load i64, i64* %var_ulint, align 4
+  %load_var_ulint11 = load i64, i64* %var_ulint, align 8
   %tmpVar12 = icmp sge i64 %14, %load_var_ulint11
   %15 = zext i1 %tmpVar12 to i8
-  %load_var_lint13 = load i64, i64* %var_lint, align 4
+  %load_var_lint13 = load i64, i64* %var_lint, align 8
   %load_a = load i16, i16* %a, align 2
   %16 = sext i16 %load_a to i64
   %tmpVar14 = icmp slt i64 %load_var_lint13, %16
@@ -83,7 +85,7 @@ entry:
   %20 = zext i1 %tmpVar17 to i8
   %load_b = load i32, i32* %b, align 4
   %21 = sext i32 %load_b to i64
-  %load_var_lint18 = load i64, i64* %var_lint, align 4
+  %load_var_lint18 = load i64, i64* %var_lint, align 8
   %tmpVar19 = icmp slt i64 %21, %load_var_lint18
   %22 = zext i1 %tmpVar19 to i8
   %load_b20 = load i32, i32* %b, align 4
@@ -120,7 +122,7 @@ entry:
   %35 = zext i1 %tmpVar32 to i8
   %call33 = call float @foo()
   %36 = fpext float %call33 to double
-  %load_var_lint34 = load i64, i64* %var_lint, align 4
+  %load_var_lint34 = load i64, i64* %var_lint, align 8
   %37 = sitofp i64 %load_var_lint34 to double
   %tmpVar35 = fcmp oeq double %36, %37
   %38 = zext i1 %tmpVar35 to i8

@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg = type { i64 }
 
@@ -13,9 +15,9 @@ source_filename = "<internal>"
 define void @prg(%prg* %0) {
 entry:
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i64 1000000, i64* %y, align 4
-  store i64 1000, i64* %y, align 4
-  store i64 100, i64* %y, align 4
-  store i64 8640000001125000, i64* %y, align 4
+  store i64 1000000, i64* %y, align 8
+  store i64 1000, i64* %y, align 8
+  store i64 100, i64* %y, align 8
+  store i64 8640000001125000, i64* %y, align 8
   ret void
 }

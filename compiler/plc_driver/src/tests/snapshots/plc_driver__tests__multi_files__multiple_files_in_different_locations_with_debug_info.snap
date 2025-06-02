@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = 'app/file1.st'
 source_filename = "app/file1.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -55,6 +57,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 ; ModuleID = 'lib/file2.st'
 source_filename = "lib/file2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -92,6 +96,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 ; ModuleID = '__initializers'
 source_filename = "__initializers"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 
@@ -115,6 +121,8 @@ entry:
 
 ; ModuleID = '__init___TestProject'
 source_filename = "__init___TestProject"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type {}
 

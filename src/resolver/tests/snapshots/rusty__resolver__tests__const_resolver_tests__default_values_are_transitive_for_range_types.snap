@@ -1,9 +1,12 @@
 ---
 source: src/resolver/tests/const_resolver_tests.rs
 expression: src
+snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @a = global i16 7
 @b = global i16 7
