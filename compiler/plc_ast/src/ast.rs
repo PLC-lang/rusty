@@ -647,6 +647,13 @@ impl DataTypeDeclaration {
         }
     }
 
+    pub fn is_type_safe_pointer(&self) -> bool {
+        match self {
+            DataTypeDeclaration::Definition { data_type, .. } => data_type.is_type_safe_pointer(),
+            _ => false,
+        }
+    }
+
     pub fn is_aggregate(&self) -> bool {
         matches!(self, DataTypeDeclaration::Aggregate { .. })
     }
@@ -697,6 +704,11 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
         auto_deref: Option<AutoDerefType>,
+
+        /// Indicates whether to perform type validation. When false, pointer type mismatches are allowed,
+        /// e.g., `foo : POINTER TO DINT := ADR(stringValue)`. When true, the type of the pointer must match
+        /// the referenced type exactly.
+        type_safe: bool,
     },
     StringType {
         name: Option<String>,
@@ -767,6 +779,14 @@ impl DataType {
             }
             _ => None,
         }
+    }
+
+    pub fn is_pointer(&self) -> bool {
+        matches!(self, DataType::PointerType { .. })
+    }
+
+    pub fn is_type_safe_pointer(&self) -> bool {
+        matches!(self, DataType::PointerType { type_safe: true, .. })
     }
 }
 

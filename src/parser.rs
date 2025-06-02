@@ -955,9 +955,10 @@ fn parse_data_type_definition(
         if expect_keyword_to(lexer).is_some() {
             lexer.advance();
         }
-        parse_pointer_definition(lexer, name, start_pos, None)
+
+        parse_pointer_definition(lexer, name, start_pos, None, false)
     } else if lexer.try_consume(KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start, None)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, None, true)
     } else if lexer.try_consume(KeywordParensOpen) {
         //enum without datatype
         parse_enum_type_definition(lexer, name)
@@ -981,11 +982,17 @@ fn parse_pointer_definition(
     name: Option<String>,
     start_pos: usize,
     auto_deref: Option<AutoDerefType>,
+    type_safe: bool,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::Definition {
-                data_type: DataType::PointerType { name, referenced_type: Box::new(decl), auto_deref },
+                data_type: DataType::PointerType {
+                    name,
+                    referenced_type: Box::new(decl),
+                    auto_deref,
+                    type_safe,
+                },
                 // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
@@ -1413,7 +1420,7 @@ fn parse_aliasing(lexer: &mut ParseSession, names: &(String, Range<usize>)) -> O
     }
 
     let start = &lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
-    let datatype = parse_pointer_definition(lexer, None, *start, Some(AutoDerefType::Alias));
+    let datatype = parse_pointer_definition(lexer, None, *start, Some(AutoDerefType::Alias), true);
     if !lexer.try_consume(KeywordSemicolon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             format!("{KeywordSemicolon:?}").as_str(),
@@ -1491,9 +1498,9 @@ fn parse_variable_line(lexer: &mut ParseSession) -> Vec<Variable> {
     let mut variables = vec![];
 
     let parse_definition_opt = if lexer.try_consume(KeywordReferenceTo) {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Reference))
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Reference), true)
     } else if address.is_some() {
-        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Alias))
+        parse_pointer_definition(lexer, None, lexer.last_range.start, Some(AutoDerefType::Alias), true)
     } else {
         parse_full_data_type_definition(lexer, None)
     };

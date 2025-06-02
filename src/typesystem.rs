@@ -182,6 +182,10 @@ impl DataType {
         self.get_type_information().is_pointer()
     }
 
+    pub fn is_type_safe_pointer(&self) -> bool {
+        self.get_type_information().is_type_safe_pointer()
+    }
+
     /// returns true if this type is an array, struct or string
     pub fn is_aggregate_type(&self) -> bool {
         self.get_type_information().is_aggregate()
@@ -403,6 +407,7 @@ pub enum DataTypeInformation {
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: Option<AutoDerefType>,
+        type_safe: bool,
     },
     Integer {
         name: TypeId,
@@ -496,6 +501,10 @@ impl DataTypeInformation {
 
     pub fn is_pointer(&self) -> bool {
         matches!(self, DataTypeInformation::Pointer { .. })
+    }
+
+    pub fn is_type_safe_pointer(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { type_safe: true, .. })
     }
 
     pub fn is_unsigned_int(&self) -> bool {

@@ -87,7 +87,7 @@ lazy_static! {
 
                     let ptr_type = resolver::add_pointer_type(
                         &mut annotator.annotation_map.new_index,
-                        input_type
+                        input_type,true
                     );
 
                     annotator.annotate(
