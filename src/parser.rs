@@ -944,7 +944,7 @@ fn parse_data_type_definition(
         let start_pos = lexer.last_range.start;
         //Report wrong keyword
         lexer.accept_diagnostic(
-            Diagnostic::new("`POINTER TO` is not a standard keyword, use `REF_TO` instead")
+            Diagnostic::new("`POINTER TO` is type-unsafe, consider using `REF_TO` instead")
                 .with_location(lexer.last_location())
                 .with_error_code("E015"),
         );
