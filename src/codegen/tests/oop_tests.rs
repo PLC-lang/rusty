@@ -92,6 +92,38 @@ fn members_from_base_class_are_available_in_subclasses() {
 }
 
 #[test]
+fn calling_fb_passing_inherited_input_parameter() {
+    let result = codegen(
+        r#"
+        FUNCTION_BLOCK foo
+          VAR_INPUT
+              inherited : INT;
+          END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK bar EXTENDS foo
+          VAR_INPUT
+              declared : INT;
+          END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION Main
+          VAR
+              b : bar;
+              x : INT;
+          END_VAR
+
+          b.inherited := 10;  // OK
+          b(declared:=20);   // OK
+          b(inherited:=10);   // Could not resolve reference to 'inherited'
+
+        END_FUNCTION
+        "#,
+    );
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn write_to_parent_variable_qualified_access() {
     let res = codegen(
         "
@@ -103,6 +135,7 @@ fn write_to_parent_variable_qualified_access() {
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK fb2 EXTENDS fb
+
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK foo
