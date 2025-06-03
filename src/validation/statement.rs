@@ -935,7 +935,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-pub fn validate_pointer_assignment<T>(
+pub fn validate_assignment_mismatch<T>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
     type_lhs: &DataType,
@@ -950,6 +950,13 @@ pub fn validate_pointer_assignment<T>(
     let type_info_rhs = context.index.get_intrinsic_type_information(
         context.index.find_elementary_pointer_type(type_rhs.get_type_information()),
     );
+
+    // We might be dealing with an `ADR` or `REF` call on a `POINTER TO` variable
+    if (type_lhs.is_pointer() && !type_lhs.is_type_safe_pointer())
+        && (type_rhs.is_pointer() || type_info_rhs.is_int())
+    {
+        return;
+    }
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -1009,7 +1016,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+    validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
 }
 
 /// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
@@ -1123,7 +1130,7 @@ fn validate_assignment<T: AnnotationMap>(
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             // TODO: #THIS && !left_type.is_this()
-            if left_type.is_pointer() && right_type.is_pointer() {
+            if left_type.is_pointer() && left_type.is_type_safe_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
@@ -1134,7 +1141,7 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(location),
                 );
             } else {
-                validate_pointer_assignment(context, validator, left_type, right_type, location);
+                validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
