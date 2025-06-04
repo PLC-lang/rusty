@@ -90,7 +90,8 @@ fn pointer_to_ignores_type_checks_in_initializer() {
     "#;
 
     let diagnostics = parse_and_validate(source);
-    let filtered_diagnostics = diagnostics.into_iter().filter(|diagnostic| diagnostic.error_code != "E015").collect::<Vec<_>>();
+    let filtered_diagnostics =
+        diagnostics.into_iter().filter(|diagnostic| diagnostic.error_code != "E015").collect::<Vec<_>>();
     assert_eq!(filtered_diagnostics, Vec::new());
 }
 
@@ -186,7 +187,7 @@ fn pointer_to_ignores_type_checks_in_body() {
     "#;
 
     let diagnostics = parse_and_validate(source);
-    let filtered_diagnostics = diagnostics.into_iter().filter(|diagnostic| diagnostic.error_code != "E015").collect::<Vec<_>>();
+    let filtered_diagnostics =
+        diagnostics.into_iter().filter(|diagnostic| diagnostic.error_code != "E015").collect::<Vec<_>>();
     assert_eq!(filtered_diagnostics, Vec::new());
 }
-
