@@ -219,7 +219,7 @@ impl<'i> PouIndexer<'i> {
                 let block_type = get_declaration_type_for(block, &pou.kind);
                 let type_name = if block_type.is_by_ref() {
                     let type_safe = match self.index.find_effective_type_by_name(var_type_name) {
-                        Some(value) if value.is_pointer() => value.is_type_safe_pointer(),
+                        Some(value) => value.is_type_safe_pointer(),
 
                         // Implicit pointers (from e.g. VAR_INPUT) are type-safe by default, unless explicitly
                         // declared as unsafe pointers with the `POINTER TO` keyword

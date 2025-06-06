@@ -154,7 +154,7 @@ impl UserTypeIndexer<'_, '_> {
                                 location: SourceLocation::internal(),
                             }),
                             auto_deref: None,
-                            type_safe: true, // TODO: Is this correct?
+                            type_safe: true,
                         },
                         location: SourceLocation::internal(),
                         scope: None,

@@ -1130,7 +1130,7 @@ fn validate_assignment<T: AnnotationMap>(
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             // TODO: #THIS && !left_type.is_this()
-            if left_type.is_pointer() && left_type.is_type_safe_pointer() && right_type.is_pointer() {
+            if left_type.is_type_safe_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
