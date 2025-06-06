@@ -574,3 +574,258 @@ fn pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_body(
     ]
     "###);
 }
+
+#[test]
+fn pointer_to_validates_assignment_of_non_pointer_sized_integers_in_initializer() {
+    let source = r#"
+    FUNCTION main
+        VAR
+            // 8 bit
+            var_sint    : SINT := SINT#5;
+            var_usint   : USINT := USINT#5;
+            var_byte    : BYTE := BYTE#5;
+
+            ptr_sint    : POINTER TO SINT := var_sint;
+            ptr_usint   : POINTER TO USINT := var_usint;
+            ptr_byte    : POINTER TO BYTE := var_byte;
+
+            // 16 bit
+            var_int     : INT := INT#5;
+            var_uint    : UINT := UINT#5;
+            var_word    : WORD := WORD#5;
+
+            ptr_int     : POINTER TO INT := var_int;
+            ptr_uint    : POINTER TO UINT := var_uint;
+            ptr_word    : POINTER TO WORD := var_word;
+
+            // 32 bit
+            var_dint    : DINT := DINT#5;
+            var_udint   : UDINT := UDINT#5;
+            var_dword   : DWORD := DWORD#5;
+            var_real    : REAL := REAL#5;
+
+            ptr_dint    : POINTER TO DINT := var_dint;
+            ptr_udint   : POINTER TO UDINT := var_udint;
+            ptr_dword   : POINTER TO DWORD := var_dword;
+            ptr_real    : POINTER TO REAL := var_real;
+
+            // 64 bit
+            var_lint    : LINT := LINT#5;
+            var_ulint   : ULINT := ULINT#5;
+            var_lword   : LWORD := LWORD#5;
+
+            ptr_lint    : POINTER TO LINT := var_lint;
+            ptr_ulint   : POINTER TO ULINT := var_ulint;
+            ptr_lword   : POINTER TO LWORD := var_lword;
+        END_VAR
+
+    END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate(source);
+    let filtered_diagnostics = diagnostics
+        .into_iter()
+        .filter(|diagnostic| !matches!(diagnostic.error_code, "E015"))
+        .collect::<Vec<_>>();
+
+    // TODO: Validation between variable initialization / assignment in the variable block versus body are handled differently, these
+    //       must be unified at some point. Once done, this assertion MUST fail and be identical to the test
+    //       `pointer_to_validates_assignment_of_non_pointer_sized_integers`. Furthermore, we should unify these tests by
+    //       having two source code strings, one for the variable block and one for the implementation, run validation on both of them and
+    //       assert that the diagnostics (with exception of the location) are identical with regards to their assignment validation.
+    assert_eq!(
+        filtered_diagnostics,
+        Vec::new(),
+        "these are empty for now, but eventually should be the same as the test below"
+    );
+}
+
+#[test]
+fn pointer_to_validates_assignment_of_non_pointer_sized_integers() {
+    let source = r#"
+    FUNCTION main
+        VAR
+            // 8 bit
+            var_sint    : SINT;
+            var_usint   : USINT;
+            var_byte    : BYTE;
+
+            // 16 bit
+            var_int     : INT;
+            var_uint    : UINT;
+            var_word    : WORD;
+
+            // 32 bit
+            var_dint    : DINT;
+            var_udint   : UDINT;
+            var_dword   : DWORD;
+            var_real    : REAL;
+
+            // 64 bit
+            var_lint    : LINT;
+            var_ulint   : ULINT;
+            var_lword   : LWORD;
+
+            ptr : POINTER TO STRING;
+        END_VAR
+
+        // We except only the 64 bit values to work, specifically the unsigned versions (var_ulint, var_lword)
+        ptr := var_sint;
+        ptr := var_usint;
+        ptr := var_byte;
+        ptr := var_int;
+        ptr := var_uint;
+        ptr := var_word;
+        ptr := var_dint;
+        ptr := var_udint;
+        ptr := var_dword;
+        ptr := var_lint;
+        ptr := var_real;
+
+        // These sould work
+        ptr := var_ulint;
+        ptr := var_lword;
+    END_FUNCTION
+    "#;
+
+    let diagnostics = parse_and_validate(source);
+    let filtered_diagnostics = diagnostics
+        .into_iter()
+        .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
+        .collect::<Vec<_>>();
+
+    insta::assert_debug_snapshot!(filtered_diagnostics, @r###"
+    [
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'SINT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(28:8 - 28:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'USINT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(29:8 - 29:24),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'BYTE' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(30:8 - 30:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'INT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(31:8 - 31:22),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'UINT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(32:8 - 32:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'WORD' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(33:8 - 33:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'DINT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(34:8 - 34:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'UDINT' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(35:8 - 35:24),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'DWORD' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(36:8 - 36:24),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+        Diagnostic {
+            message: "Invalid assignment: cannot assign 'REAL' to 'POINTER TO STRING'",
+            primary_location: SourceLocation {
+                span: Range(38:8 - 38:23),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E037",
+            sub_diagnostics: [],
+            internal_error: None,
+        },
+    ]
+    "###);
+}
