@@ -953,7 +953,7 @@ pub fn validate_assignment_mismatch<T>(
 
     // We might be dealing with an `ADR` or `REF` call on a `POINTER TO` variable
     if (type_lhs.is_pointer() && !type_lhs.is_type_safe_pointer())
-        && (type_rhs.is_pointer() || type_info_rhs.is_int())
+        && (type_rhs.is_pointer() || type_info_rhs.is_ptr_sized_int())
     {
         return;
     }

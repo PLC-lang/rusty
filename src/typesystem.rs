@@ -182,6 +182,10 @@ impl DataType {
         self.get_type_information().is_pointer()
     }
 
+    pub fn is_ptr_sized_int(&self) -> bool {
+        self.get_type_information().is_ptr_sized_int()
+    }
+
     pub fn is_type_safe_pointer(&self) -> bool {
         self.get_type_information().is_type_safe_pointer()
     }
@@ -493,6 +497,10 @@ impl DataTypeInformation {
     pub fn is_int(&self) -> bool {
         // internally an enum is represented as a DINT
         matches!(self, DataTypeInformation::Integer { .. } | DataTypeInformation::Enum { .. })
+    }
+
+    pub fn is_ptr_sized_int(&self) -> bool {
+        matches!(self, DataTypeInformation::Integer { size: 64, .. })
     }
 
     pub fn is_bool(&self) -> bool {
