@@ -162,6 +162,10 @@ pub mod tests {
         (all_annotations, full_index, (unit, dependencies, literals))
     }
 
+    pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
+        parse_and_validate_abort_on_parse_errors(src, false)
+    }
+
     pub fn parse_and_validate_buffered(src: &str) -> String {
         parse_and_validate_abort_on_parse_error_buffered(src, false)
     }

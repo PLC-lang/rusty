@@ -500,8 +500,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     pub fn persist_as_static_obj(
         &self,
         output: PathBuf,
@@ -517,8 +516,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     pub fn persist_to_shared_pic_object(
         &self,
         output: PathBuf,

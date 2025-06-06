@@ -2,11 +2,11 @@
 source: src/parser/tests/parse_errors/parse_error_statements_tests.rs
 expression: diagnostics
 ---
-warning[E015]: `POINTER TO` is not a standard keyword, use `REF_TO` instead
+warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
   ┌─ <internal>:3:13
   │
 3 │             POINTER tu INT;
-  │             ^^^^^^^ `POINTER TO` is not a standard keyword, use `REF_TO` instead
+  │             ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
 
 error[E007]: Unexpected token: expected KeywordTo but found tu
   ┌─ <internal>:3:21
@@ -19,5 +19,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'INT'
   │
 3 │             POINTER tu INT;
   │                        ^^^ Unexpected token: expected KeywordSemicolon but found 'INT'
-
-

@@ -548,7 +548,7 @@ fn parse_literal_number_with_modifier(
     // been matched using regular expressions
     let location = lexer.location();
     let token = lexer.slice_and_advance();
-    let number_str = token.split('#').last().expect("token with '#'");
+    let number_str = token.split('#').next_back().expect("token with '#'");
     let number_str = number_str.replace('_', "");
 
     // again, the parsed number can be safely unwrapped.

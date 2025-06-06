@@ -9,6 +9,7 @@ mod generic_validation_tests;
 mod interface_validation_tests;
 mod literals_validation_tests;
 mod naming_validation_test;
+mod pointer_validation_tests;
 mod pou_validation_tests;
 mod property_validation_tests;
 mod recursive_validation_tests;

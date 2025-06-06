@@ -33,7 +33,12 @@ impl<'idx> InstanceIterator<'idx> {
             index,
             current_prefix: ExpressionPath::default(),
             iterator: (Box::new(index.get_globals().values().chain(index.get_program_instances()).map(
-                |it| (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it),
+                |it| {
+                    (
+                        it.get_qualified_name().split('.').next_back().expect("Variable needs a name").into(),
+                        it,
+                    )
+                },
             ))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
             inner: None,
             filter: |_, _| true,
@@ -48,7 +53,12 @@ impl<'idx> InstanceIterator<'idx> {
             index,
             current_prefix: ExpressionPath::default(),
             iterator: (Box::new(index.get_globals().values().chain(index.get_program_instances()).map(
-                |it| (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it),
+                |it| {
+                    (
+                        it.get_qualified_name().split('.').next_back().expect("Variable needs a name").into(),
+                        it,
+                    )
+                },
             ))) as Box<dyn Iterator<Item = InstanceEntry<'idx>>>,
 
             inner: None,
@@ -70,10 +80,9 @@ impl<'idx> InstanceIterator<'idx> {
             } else {
                 (container, current_prefix.clone())
             };
-        let result = index
-            .get_container_members(container)
-            .iter()
-            .map(|it| (it.get_qualified_name().split('.').last().expect("Variable needs a name").into(), it));
+        let result = index.get_container_members(container).iter().map(|it| {
+            (it.get_qualified_name().split('.').next_back().expect("Variable needs a name").into(), it)
+        });
 
         Some(InstanceIterator {
             index,

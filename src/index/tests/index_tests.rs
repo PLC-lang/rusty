@@ -1255,6 +1255,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: None,
+            type_safe: true,
         }
     );
 
@@ -1266,6 +1267,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: Some(AutoDerefType::Default),
+            type_safe: true,
         }
     );
 }
@@ -1305,6 +1307,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             name: "__main_x".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: None,
+            type_safe: true,
         }
     );
 
@@ -1316,6 +1319,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             name: "__auto_pointer_to_INT".to_string(),
             inner_type_name: "INT".to_string(),
             auto_deref: Some(AutoDerefType::Default),
+            type_safe: true,
         }
     );
 }
@@ -1813,6 +1817,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                 auto_deref: Some(
                     Alias,
                 ),
+                type_safe: true,
             },
             nature: Any,
             location: SourceLocation {
@@ -1881,6 +1886,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                 auto_deref: Some(
                     Alias,
                 ),
+                type_safe: true,
             },
             nature: Any,
             location: SourceLocation {

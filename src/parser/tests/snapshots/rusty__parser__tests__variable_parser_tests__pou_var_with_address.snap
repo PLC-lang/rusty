@@ -22,6 +22,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -46,6 +47,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -70,6 +72,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -94,6 +97,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -118,6 +122,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -146,6 +151,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -177,6 +183,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(
@@ -211,6 +218,7 @@ CompilationUnit {
                                     auto_deref: Some(
                                         Alias,
                                     ),
+                                    type_safe: true,
                                 },
                             },
                             address: Some(

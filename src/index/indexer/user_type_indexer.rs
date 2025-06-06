@@ -73,8 +73,8 @@ impl AstVisitor for UserTypeIndexer<'_, '_> {
             DataType::ArrayType { name: Some(name), bounds, referenced_type, is_variable_length: true } => {
                 self.index_vla_array(name, bounds, referenced_type)
             }
-            DataType::PointerType { name, referenced_type, auto_deref } => {
-                self.index_pointer_type(name, referenced_type, *auto_deref)
+            DataType::PointerType { name, referenced_type, auto_deref, type_safe } => {
+                self.index_pointer_type(name, referenced_type, *auto_deref, *type_safe)
             }
             DataType::StringType { name: Some(name), is_wide, size } => {
                 self.index_string_type(name.as_ref(), *is_wide, size.as_ref())
@@ -154,6 +154,7 @@ impl UserTypeIndexer<'_, '_> {
                                 location: SourceLocation::internal(),
                             }),
                             auto_deref: None,
+                            type_safe: true,
                         },
                         location: SourceLocation::internal(),
                         scope: None,
@@ -413,6 +414,7 @@ impl UserTypeIndexer<'_, '_> {
         name: &Option<String>,
         referenced_type: &DataTypeDeclaration,
         auto_deref: Option<AutoDerefType>,
+        type_safe: bool,
     ) {
         let inner_type_name = referenced_type.get_name().expect("named datatype");
         let name = name.as_deref().unwrap();
@@ -420,6 +422,7 @@ impl UserTypeIndexer<'_, '_> {
             name: name.to_string(),
             inner_type_name: inner_type_name.into(),
             auto_deref,
+            type_safe,
         };
 
         self.index.register_type(typesystem::DataType {

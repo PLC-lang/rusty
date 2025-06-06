@@ -218,8 +218,16 @@ impl<'i> PouIndexer<'i> {
                 let var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
                 let block_type = get_declaration_type_for(block, &pou.kind);
                 let type_name = if block_type.is_by_ref() {
+                    let type_safe = match self.index.find_effective_type_by_name(var_type_name) {
+                        Some(value) => value.is_type_safe_pointer(),
+
+                        // Implicit pointers (from e.g. VAR_INPUT) are type-safe by default, unless explicitly
+                        // declared as unsafe pointers with the `POINTER TO` keyword
+                        _ => true,
+                    };
+
                     //register a pointer type for argument
-                    register_byref_pointer_type_for(self.index, var_type_name)
+                    register_byref_pointer_type_for(self.index, var_type_name, type_safe)
                 } else {
                     var_type_name.to_string()
                 };
@@ -288,7 +296,7 @@ fn get_variable_type_from_block(block: &VariableBlock) -> VariableType {
 }
 
 /// registers an auto-deref pointer type for the inner_type_name if it does not already exist
-pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str) -> String {
+pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str, type_safe: bool) -> String {
     //get unique name
     let type_name = internal_type_name("auto_pointer_to_", inner_type_name);
 
@@ -302,6 +310,7 @@ pub fn register_byref_pointer_type_for(index: &mut Index, inner_type_name: &str)
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
                 auto_deref: Some(ast::AutoDerefType::Default),
+                type_safe,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

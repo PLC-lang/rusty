@@ -1942,7 +1942,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Array(arr) => self
                     .generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)?)
                     .map(ExpressionValue::RValue),
-                AstLiteral::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
+                AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
             AstStatement::MultipliedStatement { .. } => {

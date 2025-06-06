@@ -325,6 +325,7 @@ fn reference_to_dint_declaration() {
                         auto_deref: Some(
                             Reference,
                         ),
+                        type_safe: true,
                     },
                 },
             },
@@ -367,6 +368,7 @@ fn reference_to_string_declaration() {
                         auto_deref: Some(
                             Reference,
                         ),
+                        type_safe: true,
                     },
                 },
             },
@@ -403,6 +405,7 @@ fn aliasing_dint_variable() {
                         auto_deref: Some(
                             Alias,
                         ),
+                        type_safe: true,
                     },
                 },
                 initializer: Some(
