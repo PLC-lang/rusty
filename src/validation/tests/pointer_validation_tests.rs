@@ -242,15 +242,21 @@ fn pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_initi
     "#;
 
     let diagnostics = parse_and_validate(source);
-    let filtered_diagnostics =
-        diagnostics.into_iter().filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065")).collect::<Vec<_>>();
+    let filtered_diagnostics = diagnostics
+        .into_iter()
+        .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
+        .collect::<Vec<_>>();
 
     // TODO: Validation between variable initialization / assignment in the variable block versus body are handled differently, these
-    //       must be unified at some point. Once done, this assertion MUST fail and be identical to the test 
+    //       must be unified at some point. Once done, this assertion MUST fail and be identical to the test
     //       `pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_body`. Furthermore, we should unify these tests by
     //       having two source code strings, one for the variable block and one for the implementation, run validation on both of them and
     //       assert that the diagnostics (with exception of the location) are identical with regards to their assignment validation.
-    assert_eq!(filtered_diagnostics, Vec::new(), "these are empty for now, but eventually should be the same as the test below");
+    assert_eq!(
+        filtered_diagnostics,
+        Vec::new(),
+        "these are empty for now, but eventually should be the same as the test below"
+    );
 }
 
 #[test]
@@ -324,8 +330,10 @@ fn pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_body(
     "#;
 
     let diagnostics = parse_and_validate(source);
-    let filtered_diagnostics =
-        diagnostics.into_iter().filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065")).collect::<Vec<_>>();
+    let filtered_diagnostics = diagnostics
+        .into_iter()
+        .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
+        .collect::<Vec<_>>();
 
     insta::assert_debug_snapshot!(filtered_diagnostics, @r###"
     [
