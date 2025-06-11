@@ -535,7 +535,7 @@
 
 <span class="kw">use super</span>::{
     array::validate_array_assignment,
-    statement::{validate_pointer_assignment, visit_statement},
+    statement::{validate_assignment_mismatch, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -833,7 +833,7 @@
 
                         report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
 
-                        validate_pointer_assignment(
+                        validate_assignment_mismatch(
                             context,
                             validator,
                             context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
@@ -1013,7 +1013,7 @@
         <span class="kw">let </span><span class="prelude-val">Some</span>(type_lhs) = context.annotations.get_type_hint(initializer, context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
         <span class="kw">let </span><span class="prelude-val">Some</span>(type_rhs) = context.annotations.get_type(initializer, context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
 
-        validate_pointer_assignment(context, validator, type_lhs, type_rhs, <span class="kw-2">&amp;</span>initializer.location);
+        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, <span class="kw-2">&amp;</span>initializer.location);
     }
 }
 

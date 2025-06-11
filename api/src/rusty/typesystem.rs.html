@@ -1434,7 +1434,24 @@
 <a href="#1433" id="1433">1433</a>
 <a href="#1434" id="1434">1434</a>
 <a href="#1435" id="1435">1435</a>
-<a href="#1436" id="1436">1436</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1436" id="1436">1436</a>
+<a href="#1437" id="1437">1437</a>
+<a href="#1438" id="1438">1438</a>
+<a href="#1439" id="1439">1439</a>
+<a href="#1440" id="1440">1440</a>
+<a href="#1441" id="1441">1441</a>
+<a href="#1442" id="1442">1442</a>
+<a href="#1443" id="1443">1443</a>
+<a href="#1444" id="1444">1444</a>
+<a href="#1445" id="1445">1445</a>
+<a href="#1446" id="1446">1446</a>
+<a href="#1447" id="1447">1447</a>
+<a href="#1448" id="1448">1448</a>
+<a href="#1449" id="1449">1449</a>
+<a href="#1450" id="1450">1450</a>
+<a href="#1451" id="1451">1451</a>
+<a href="#1452" id="1452">1452</a>
+<a href="#1453" id="1453">1453</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -1616,6 +1633,14 @@
 
     <span class="kw">pub fn </span>is_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="self">self</span>.get_type_information().is_pointer()
+    }
+
+    <span class="kw">pub fn </span>is_ptr_sized_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_type_information().is_ptr_sized_int()
+    }
+
+    <span class="kw">pub fn </span>is_type_safe_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="self">self</span>.get_type_information().is_type_safe_pointer()
     }
 
     <span class="doccomment">/// returns true if this type is an array, struct or string
@@ -1839,6 +1864,7 @@
         name: TypeId,
         inner_type_name: TypeId,
         auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
+        type_safe: bool,
     },
     Integer {
         name: TypeId,
@@ -1926,12 +1952,20 @@
         </span><span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Integer { .. } | DataTypeInformation::Enum { .. })
     }
 
+    <span class="kw">pub fn </span>is_ptr_sized_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Integer { size: <span class="number">64</span>, .. })
+    }
+
     <span class="kw">pub fn </span>is_bool(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Integer { semantic_size: <span class="prelude-val">Some</span>(<span class="number">1</span>), .. })
     }
 
     <span class="kw">pub fn </span>is_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { .. })
+    }
+
+    <span class="kw">pub fn </span>is_type_safe_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { type_safe: <span class="bool-val">true</span>, .. })
     }
 
     <span class="kw">pub fn </span>is_unsigned_int(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {

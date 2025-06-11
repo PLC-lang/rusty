@@ -673,9 +673,7 @@
 <a href="#672" id="672">672</a>
 <a href="#673" id="673">673</a>
 <a href="#674" id="674">674</a>
-<a href="#675" id="675">675</a>
-<a href="#676" id="676">676</a>
-<a href="#677" id="677">677</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#675" id="675">675</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     cell::RefCell,
     collections::HashMap,
@@ -1177,8 +1175,7 @@
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     </span><span class="kw">pub fn </span>persist_as_static_obj(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         output: PathBuf,
@@ -1194,8 +1191,7 @@
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     </span><span class="kw">pub fn </span>persist_to_shared_pic_object(
         <span class="kw-2">&amp;</span><span class="self">self</span>,
         output: PathBuf,

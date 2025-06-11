@@ -4836,7 +4836,7 @@
                 AstLiteral::Array(arr) =&gt; <span class="self">self
                     </span>.generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)<span class="question-mark">?</span>)
                     .map(ExpressionValue::RValue),
-                AstLiteral::Null { .. } =&gt; <span class="self">self</span>.llvm.create_null_ptr().map(ExpressionValue::RValue),
+                AstLiteral::Null =&gt; <span class="self">self</span>.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
             AstStatement::MultipliedStatement { .. } =&gt; {

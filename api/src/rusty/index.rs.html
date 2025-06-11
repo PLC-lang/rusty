@@ -3343,7 +3343,7 @@
     }
     <span class="doccomment">/// Returns the POU's identifier without the qualifier
     </span><span class="kw">pub fn </span>get_flat_reference_name(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span>str {
-        <span class="self">self</span>.get_qualified_name().into_iter().last().unwrap_or_default()
+        <span class="self">self</span>.get_qualified_name().into_iter().next_back().unwrap_or_default()
     }
 }
 

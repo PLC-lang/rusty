@@ -1342,7 +1342,7 @@
 }
 
 <span class="kw">pub fn </span>get_config_format(name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;ConfigFormat&gt; {
-    <span class="kw">let </span>ext = name.split(<span class="string">'.'</span>).last();
+    <span class="kw">let </span>ext = name.split(<span class="string">'.'</span>).next_back();
     <span class="kw">match </span>ext {
         <span class="prelude-val">Some</span>(<span class="string">"json"</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::JSON),
         <span class="prelude-val">Some</span>(<span class="string">"toml"</span>) =&gt; <span class="prelude-val">Some</span>(ConfigFormat::TOML),

@@ -2713,7 +2713,9 @@
 <a href="#2712" id="2712">2712</a>
 <a href="#2713" id="2713">2713</a>
 <a href="#2714" id="2714">2714</a>
-<a href="#2715" id="2715">2715</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2715" id="2715">2715</a>
+<a href="#2716" id="2716">2716</a>
+<a href="#2717" id="2717">2717</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -4416,6 +4418,7 @@
                         name: ptr_name.clone(),
                         inner_type_name: name.to_string(),
                         auto_deref: <span class="prelude-val">None</span>,
+                        type_safe: <span class="bool-val">true</span>,
                     };
                     <span class="kw">let </span>dt = <span class="kw">crate</span>::typesystem::DataType {
                         name: ptr_name.clone(),
@@ -4742,7 +4745,7 @@
                 <span class="kw">if let </span><span class="prelude-val">Some</span>(inner_type) = base
                     .map(|base| <span class="self">self</span>.annotation_map.get_type_or_void(base, <span class="self">self</span>.index).get_name().to_string())
                 {
-                    <span class="kw">let </span>ptr_type = add_pointer_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>.annotation_map.new_index, inner_type);
+                    <span class="kw">let </span>ptr_type = add_pointer_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>.annotation_map.new_index, inner_type, <span class="bool-val">true</span>);
                     <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
@@ -5056,7 +5059,7 @@
 }
 
 <span class="doccomment">/// adds a pointer to the given inner_type to the given index and return's its name
-</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_pointer_type(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: String) -&gt; String {
+</span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_pointer_type(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: String, type_safe: bool) -&gt; String {
     <span class="kw">let </span>new_type_name = internal_type_name(<span class="string">"POINTER_TO_"</span>, inner_type_name.as_str());
 
     <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
@@ -5068,6 +5071,7 @@
                 name: new_type_name.clone(),
                 inner_type_name,
                 auto_deref: <span class="prelude-val">None</span>,
+                type_safe,
             },
             location: SourceLocation::internal(),
         });
@@ -5115,7 +5119,7 @@
                 v_type.get_type_information().get_auto_deref_type().map(|it| it.into()).unwrap_or_default();
             (v_type.get_name().to_string(), <span class="prelude-val">Some</span>(kind))
         }
-        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(deref), name }, <span class="kw">_</span>) =&gt; {
+        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(deref), name, .. }, <span class="kw">_</span>) =&gt; {
             <span class="comment">// real auto-deref pointer
             </span><span class="kw">let </span>kind = <span class="kw">match </span>deref {
                 ast::AutoDerefType::Default =&gt; AutoDerefType::Default,
@@ -5271,7 +5275,7 @@
     <span class="doccomment">/// tries to resolve the given name using the reprsented scope
     /// - `name` the name to resolve
     /// - `qualifier` an optional qualifier to prefix to the name,
-    ///     if the qualifier is present, this method only resolves to targets with this qualifier
+    ///   if the qualifier is present, this method only resolves to targets with this qualifier
     /// - `index` the index to perform the lookups on
     </span><span class="kw">fn </span>resolve_name(
         <span class="kw-2">&amp;</span><span class="self">self</span>,

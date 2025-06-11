@@ -955,7 +955,8 @@
 <a href="#954" id="954">954</a>
 <a href="#955" id="955">955</a>
 <a href="#956" id="956">956</a>
-<a href="#957" id="957">957</a></pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
+<a href="#957" id="957">957</a>
+<a href="#958" id="958">958</a></pre></div><pre class="rust"><code><span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
     types::BasicType,
     values::{BasicValue, IntValue},
@@ -1044,8 +1045,9 @@
 
                     <span class="kw">let </span>ptr_type = resolver::add_pointer_type(
                         <span class="kw-2">&amp;mut </span>annotator.annotation_map.new_index,
-                        input_type
-                    );
+                        input_type,
+                        <span class="bool-val">true
+                    </span>);
 
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {

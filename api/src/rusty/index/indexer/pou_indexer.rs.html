@@ -310,7 +310,16 @@
 <a href="#309" id="309">309</a>
 <a href="#310" id="310">310</a>
 <a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#312" id="312">312</a>
+<a href="#313" id="313">313</a>
+<a href="#314" id="314">314</a>
+<a href="#315" id="315">315</a>
+<a href="#316" id="316">316</a>
+<a href="#317" id="317">317</a>
+<a href="#318" id="318">318</a>
+<a href="#319" id="319">319</a>
+<a href="#320" id="320">320</a>
+<a href="#321" id="321">321</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     <span class="self">self</span>, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, PropertyKind, TypeNature,
     VariableBlock, VariableBlockType,
 };
@@ -530,8 +539,16 @@
                 <span class="kw">let </span>var_type_name = var.data_type_declaration.get_name().unwrap_or(VOID_TYPE);
                 <span class="kw">let </span>block_type = get_declaration_type_for(block, <span class="kw-2">&amp;</span>pou.kind);
                 <span class="kw">let </span>type_name = <span class="kw">if </span>block_type.is_by_ref() {
+                    <span class="kw">let </span>type_safe = <span class="kw">match </span><span class="self">self</span>.index.find_effective_type_by_name(var_type_name) {
+                        <span class="prelude-val">Some</span>(value) =&gt; value.is_type_safe_pointer(),
+
+                        <span class="comment">// Implicit pointers (from e.g. VAR_INPUT) are type-safe by default, unless explicitly
+                        // declared as unsafe pointers with the `POINTER TO` keyword
+                        </span><span class="kw">_ </span>=&gt; <span class="bool-val">true</span>,
+                    };
+
                     <span class="comment">//register a pointer type for argument
-                    </span>register_byref_pointer_type_for(<span class="self">self</span>.index, var_type_name)
+                    </span>register_byref_pointer_type_for(<span class="self">self</span>.index, var_type_name, type_safe)
                 } <span class="kw">else </span>{
                     var_type_name.to_string()
                 };
@@ -600,7 +617,7 @@
 }
 
 <span class="doccomment">/// registers an auto-deref pointer type for the inner_type_name if it does not already exist
-</span><span class="kw">pub fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str) -&gt; String {
+</span><span class="kw">pub fn </span>register_byref_pointer_type_for(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: <span class="kw-2">&amp;</span>str, type_safe: bool) -&gt; String {
     <span class="comment">//get unique name
     </span><span class="kw">let </span>type_name = internal_type_name(<span class="string">"auto_pointer_to_"</span>, inner_type_name);
 
@@ -614,6 +631,7 @@
                 name: type_name.clone(),
                 inner_type_name: inner_type_name.to_string(),
                 auto_deref: <span class="prelude-val">Some</span>(ast::AutoDerefType::Default),
+                type_safe,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

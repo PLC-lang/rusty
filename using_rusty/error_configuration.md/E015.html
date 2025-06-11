@@ -152,7 +152,18 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="pointer_to-is-no-standard-keyword"><a class="header" href="#pointer_to-is-no-standard-keyword">POINTER_TO is no standard keyword</a></h1>
+                        <h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
+<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that no validation will
+trigger when assigning incorrect types. For example the following code, while incorrect, will not return any
+diagnostics when compiling:</p>
+<pre><code>VAR
+    stringVar : STRING;
+    unsafePtrA : POINTER TO DINT := ADR(stringVar);
+    unsafePtrB : POINTER TO DINT := REF(stringVar);
+END_VAR
+</code></pre>
+<p><strong>For best practices, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe alternative and <em>should</em> catch
+type-mismatches early on</strong></p>
 
                     </main>
 

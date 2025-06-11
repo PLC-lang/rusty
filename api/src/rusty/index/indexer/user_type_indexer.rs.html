@@ -490,7 +490,10 @@
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
 <a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::{
     ast::{
         flatten_expression_list, get_enum_element_name, Assignment, AstFactory, AstNode, AstStatement,
         AutoDerefType, DataType, DataTypeDeclaration, RangeStatement, TypeNature, UserTypeDeclaration,
@@ -565,8 +568,8 @@
             DataType::ArrayType { name: <span class="prelude-val">Some</span>(name), bounds, referenced_type, is_variable_length: <span class="bool-val">true </span>} =&gt; {
                 <span class="self">self</span>.index_vla_array(name, bounds, referenced_type)
             }
-            DataType::PointerType { name, referenced_type, auto_deref } =&gt; {
-                <span class="self">self</span>.index_pointer_type(name, referenced_type, <span class="kw-2">*</span>auto_deref)
+            DataType::PointerType { name, referenced_type, auto_deref, type_safe } =&gt; {
+                <span class="self">self</span>.index_pointer_type(name, referenced_type, <span class="kw-2">*</span>auto_deref, <span class="kw-2">*</span>type_safe)
             }
             DataType::StringType { name: <span class="prelude-val">Some</span>(name), is_wide, size } =&gt; {
                 <span class="self">self</span>.index_string_type(name.as_ref(), <span class="kw-2">*</span>is_wide, size.as_ref())
@@ -646,6 +649,7 @@
                                 location: SourceLocation::internal(),
                             }),
                             auto_deref: <span class="prelude-val">None</span>,
+                            type_safe: <span class="bool-val">true</span>,
                         },
                         location: SourceLocation::internal(),
                         scope: <span class="prelude-val">None</span>,
@@ -905,6 +909,7 @@
         name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
         referenced_type: <span class="kw-2">&amp;</span>DataTypeDeclaration,
         auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
+        type_safe: bool,
     ) {
         <span class="kw">let </span>inner_type_name = referenced_type.get_name().expect(<span class="string">"named datatype"</span>);
         <span class="kw">let </span>name = name.as_deref().unwrap();
@@ -912,6 +917,7 @@
             name: name.to_string(),
             inner_type_name: inner_type_name.into(),
             auto_deref,
+            type_safe,
         };
 
         <span class="self">self</span>.index.register_type(typesystem::DataType {

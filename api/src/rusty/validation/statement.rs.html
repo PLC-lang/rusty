@@ -1880,7 +1880,14 @@
 <a href="#1879" id="1879">1879</a>
 <a href="#1880" id="1880">1880</a>
 <a href="#1881" id="1881">1881</a>
-<a href="#1882" id="1882">1882</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1882" id="1882">1882</a>
+<a href="#1883" id="1883">1883</a>
+<a href="#1884" id="1884">1884</a>
+<a href="#1885" id="1885">1885</a>
+<a href="#1886" id="1886">1886</a>
+<a href="#1887" id="1887">1887</a>
+<a href="#1888" id="1888">1888</a>
+<a href="#1889" id="1889">1889</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2817,7 +2824,7 @@
     }
 }
 
-<span class="kw">pub fn </span>validate_pointer_assignment&lt;T&gt;(
+<span class="kw">pub fn </span>validate_assignment_mismatch&lt;T&gt;(
     context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
     validator: <span class="kw-2">&amp;mut </span>Validator,
     type_lhs: <span class="kw-2">&amp;</span>DataType,
@@ -2832,6 +2839,13 @@
     <span class="kw">let </span>type_info_rhs = context.index.get_intrinsic_type_information(
         context.index.find_elementary_pointer_type(type_rhs.get_type_information()),
     );
+
+    <span class="comment">// We might be dealing with an `ADR` or `REF` call on a `POINTER TO` variable
+    </span><span class="kw">if </span>(type_lhs.is_pointer() &amp;&amp; !type_lhs.is_type_safe_pointer())
+        &amp;&amp; (type_rhs.is_pointer() || type_info_rhs.is_ptr_sized_int())
+    {
+        <span class="kw">return</span>;
+    }
 
     <span class="kw">if </span>type_info_lhs.is_array() &amp;&amp; type_info_rhs.is_array() {
         <span class="kw">let </span>len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -2891,7 +2905,7 @@
         )
     }
 
-    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+    validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
 }
 
 <span class="doccomment">/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
@@ -3005,7 +3019,7 @@
             &amp;&amp; is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
             <span class="comment">// TODO: #THIS &amp;&amp; !left_type.is_this()
-            </span><span class="kw">if </span>left_type.is_pointer() &amp;&amp; right_type.is_pointer() {
+            </span><span class="kw">if </span>left_type.is_type_safe_pointer() &amp;&amp; right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(<span class="macro">format!</span>(
                         <span class="string">"Pointers {} and {} have different types"</span>,
@@ -3016,7 +3030,7 @@
                     .with_location(location),
                 );
             } <span class="kw">else </span>{
-                validate_pointer_assignment(context, validator, left_type, right_type, location);
+                validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
         } <span class="kw">else </span>{
             validate_assignment_type_sizes(validator, left_type, right, context)

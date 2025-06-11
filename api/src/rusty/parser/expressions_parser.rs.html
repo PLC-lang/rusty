@@ -1533,7 +1533,7 @@
     // been matched using regular expressions
     </span><span class="kw">let </span>location = lexer.location();
     <span class="kw">let </span>token = lexer.slice_and_advance();
-    <span class="kw">let </span>number_str = token.split(<span class="string">'#'</span>).last().expect(<span class="string">"token with '#'"</span>);
+    <span class="kw">let </span>number_str = token.split(<span class="string">'#'</span>).next_back().expect(<span class="string">"token with '#'"</span>);
     <span class="kw">let </span>number_str = number_str.replace(<span class="string">'_'</span>, <span class="string">""</span>);
 
     <span class="comment">// again, the parsed number can be safely unwrapped.

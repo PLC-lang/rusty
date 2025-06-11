@@ -575,7 +575,18 @@ END_PROGRAM
 <div style="break-before: page; page-break-before: always;"></div><h1 id="missing-case-contition"><a class="header" href="#missing-case-contition">Missing Case Contition</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="keywords-should-contain-underscores"><a class="header" href="#keywords-should-contain-underscores">Keywords should contain Underscores</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="wrong-paranthese-for-string-delimiter"><a class="header" href="#wrong-paranthese-for-string-delimiter">Wrong paranthese for String delimiter</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="pointer_to-is-no-standard-keyword"><a class="header" href="#pointer_to-is-no-standard-keyword">POINTER_TO is no standard keyword</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
+<p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that no validation will
+trigger when assigning incorrect types. For example the following code, while incorrect, will not return any
+diagnostics when compiling:</p>
+<pre><code>VAR
+    stringVar : STRING;
+    unsafePtrA : POINTER TO DINT := ADR(stringVar);
+    unsafePtrB : POINTER TO DINT := REF(stringVar);
+END_VAR
+</code></pre>
+<p><strong>For best practices, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe alternative and <em>should</em> catch
+type-mismatches early on</strong></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="return-types-cannot-have-a-default-value"><a class="header" href="#return-types-cannot-have-a-default-value">Return types cannot have a default value</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-implementation"><a class="header" href="#classes-cannot-contain-implementation">Classes cannot contain implementation</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-label"><a class="header" href="#duplicate-label">Duplicate Label</a></h1>

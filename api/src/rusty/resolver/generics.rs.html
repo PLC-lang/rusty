@@ -490,7 +490,14 @@
 <a href="#489" id="489">489</a>
 <a href="#490" id="490">490</a>
 <a href="#491" id="491">491</a>
-<a href="#492" id="492">492</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<a href="#492" id="492">492</a>
+<a href="#493" id="493">493</a>
+<a href="#494" id="494">494</a>
+<a href="#495" id="495">495</a>
+<a href="#496" id="496">496</a>
+<a href="#497" id="497">497</a>
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -673,7 +680,8 @@
                                 <span class="kw">crate</span>::index::indexer::pou_indexer::register_byref_pointer_type_for(
                                     <span class="kw-2">&amp;mut </span><span class="self">self</span>.annotation_map.new_index,
                                     entry.get_type_name(),
-                                );
+                                    <span class="bool-val">true</span>, <span class="comment">// TODO(vosa): Is this correct? Why are generating a pointer type here
+                                </span>);
                             entry = member.into_typed(new_name, <span class="kw-2">&amp;</span>data_type_name);
                             entry.location_in_parent = <span class="number">0</span>;
                             entry.argument_type = ArgumentType::ByRef(VariableType::InOut);
@@ -716,7 +724,12 @@
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: <span class="prelude-val">Some</span>(kind), .. }) =&gt; {
+            <span class="prelude-val">Some</span>(DataTypeInformation::Pointer {
+                name,
+                inner_type_name,
+                auto_deref: <span class="prelude-val">Some</span>(kind),
+                type_safe,
+            }) =&gt; {
                 <span class="comment">// This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
@@ -726,6 +739,7 @@
                     name: name.clone(),
                     inner_type_name,
                     auto_deref: <span class="prelude-val">Some</span>(<span class="kw-2">*</span>kind),
+                    type_safe: <span class="kw-2">*</span>type_safe,
                 };
 
                 <span class="comment">// Registers a new pointer type to the index
