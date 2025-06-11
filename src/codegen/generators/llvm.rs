@@ -113,7 +113,7 @@ impl<'a> Llvm<'a> {
     ///
     /// - `pointer_to_array_instance` a pointer to an array to load the value from
     /// - `access_sequence` a sequence of IntValue's used to access the array. For multi-dimensional arrays
-    ///    you may provide multiple accessors
+    ///   you may provide multiple accessors
     /// - `name` the name of the resulting variable
     pub fn load_array_element(
         &self,
