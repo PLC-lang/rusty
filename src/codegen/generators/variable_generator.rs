@@ -134,6 +134,9 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
+            if global_variable.is_constant() {
+                global_ir_variable = global_ir_variable.make_constant();
+            };
         } else {
             let initial_value = if let Some(ConstExpression::Unresolvable {
                 reason: UnresolvableKind::Address { .. },

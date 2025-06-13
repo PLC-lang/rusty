@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'g1.st'
 source_filename = "g1.st"
@@ -9,9 +8,9 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @x = global i32 6
-@d = external global i32
+@d = external unnamed_addr constant i32
 @y = global i32 7
-@e = external global i32
+@e = external unnamed_addr constant i32
 
 ; ModuleID = 'g2.st'
 source_filename = "g2.st"
@@ -30,7 +29,7 @@ target triple = "[filtered]"
 %prog = type {}
 
 @prog_instance = global %prog zeroinitializer
-@c = external global i32
+@c = external unnamed_addr constant i32
 @x = external global i32
 
 define void @prog(%prog* %0) {
