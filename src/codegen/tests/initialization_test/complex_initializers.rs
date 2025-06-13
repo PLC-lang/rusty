@@ -472,11 +472,11 @@ fn nested_initializer_pous() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
-      %deref1 = load %foo*, %foo** %self, align 8
-      %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
+      %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__init_bar(%bar* %b)
+      %deref1 = load %foo*, %foo** %self, align 8
+      %str_ref = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
       ret void
     }
 
@@ -505,11 +505,11 @@ fn nested_initializer_pous() {
       %self = alloca %mainProg*, align 8
       store %mainProg* %0, %mainProg** %self, align 8
       %deref = load %mainProg*, %mainProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
-      %deref1 = load %mainProg*, %mainProg** %self, align 8
-      %f = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 1
+      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
       call void @__init_foo(%foo* %f)
+      %deref1 = load %mainProg*, %mainProg** %self, align 8
+      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 0
+      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
       ret void
     }
 
@@ -518,11 +518,11 @@ fn nested_initializer_pous() {
       %self = alloca %sideProg*, align 8
       store %sideProg* %0, %sideProg** %self, align 8
       %deref = load %sideProg*, %sideProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
-      %deref1 = load %sideProg*, %sideProg** %self, align 8
-      %f = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 1
+      %f = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 1
       call void @__init_foo(%foo* %f)
+      %deref1 = load %sideProg*, %sideProg** %self, align 8
+      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 0
+      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
       ret void
     }
 
