@@ -19,7 +19,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -28,8 +28,8 @@ fn members_from_base_class_are_available_in_subclasses() {
     %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
 
-    @__foo__init = constant %foo zeroinitializer
-    @__bar__init = constant %bar zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
@@ -88,7 +88,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -114,7 +114,7 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -124,9 +124,9 @@ fn write_to_parent_variable_qualified_access() {
     %fb = type { i16, i16 }
     %foo = type { %fb2 }
 
-    @__fb2__init = constant %fb2 zeroinitializer
-    @__fb__init = constant %fb zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
+    @__fb2__init = unnamed_addr constant %fb2 zeroinitializer
+    @__fb__init = unnamed_addr constant %fb zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @fb(%fb* %0) {
@@ -215,7 +215,7 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -245,7 +245,7 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -256,8 +256,8 @@ fn write_to_parent_variable_in_instance() {
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
-    @__bar__init = constant %bar zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
@@ -355,7 +355,7 @@ fn write_to_parent_variable_in_instance() {
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "#);
+    "###);
 }
 
 #[test]
@@ -394,7 +394,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -404,9 +404,9 @@ fn array_in_parent_generated() {
     %parent = type { %grandparent, [11 x i16], i16 }
     %grandparent = type { [6 x i16], i16 }
 
-    @__child__init = constant %child zeroinitializer
-    @__parent__init = constant %parent zeroinitializer
-    @__grandparent__init = constant %grandparent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @grandparent(%grandparent* %0) {
@@ -532,7 +532,7 @@ fn array_in_parent_generated() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "#);
+    "###);
 }
 
 #[test]
@@ -562,7 +562,7 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -572,9 +572,9 @@ fn complex_array_access_generated() {
     %grandparent = type { [6 x i16], i16 }
     %child = type { %parent, [11 x i16] }
 
-    @__parent__init = constant %parent zeroinitializer
-    @__grandparent__init = constant %grandparent zeroinitializer
-    @__child__init = constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @grandparent(%grandparent* %0) {
@@ -687,7 +687,7 @@ fn complex_array_access_generated() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -755,7 +755,7 @@ fn this_in_method_call_chain() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -763,7 +763,7 @@ fn this_in_method_call_chain() {
 
     %FB_Test = type {}
 
-    @__FB_Test__init = constant %FB_Test zeroinitializer
+    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -807,7 +807,7 @@ fn this_in_method_call_chain() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -827,7 +827,7 @@ fn this_in_method_and_body_in_function_block() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -835,7 +835,7 @@ fn this_in_method_and_body_in_function_block() {
 
     %FB_Test = type { i16 }
 
-    @__FB_Test__init = constant %FB_Test { i16 5 }
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -887,7 +887,7 @@ fn this_in_method_and_body_in_function_block() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -918,7 +918,7 @@ fn pass_this_to_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -927,8 +927,8 @@ fn pass_this_to_method() {
     %FB_Test = type { i16 }
     %FB_Test2 = type {}
 
-    @__FB_Test__init = constant %FB_Test { i16 5 }
-    @__FB_Test2__init = constant %FB_Test2 zeroinitializer
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
+    @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -1016,7 +1016,7 @@ fn pass_this_to_method() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1039,7 +1039,7 @@ fn this_with_shadowed_variable() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1047,7 +1047,7 @@ fn this_with_shadowed_variable() {
 
     %FB_Test = type { i16 }
 
-    @__FB_Test__init = constant %FB_Test { i16 5 }
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -1096,7 +1096,7 @@ fn this_with_shadowed_variable() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1117,7 +1117,7 @@ fn this_calling_function_and_passing_this() {
         END_FUNCTION
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1125,7 +1125,7 @@ fn this_calling_function_and_passing_this() {
 
     %FB_Test = type { i16 }
 
-    @__FB_Test__init = constant %FB_Test zeroinitializer
+    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -1170,7 +1170,7 @@ fn this_calling_function_and_passing_this() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1197,7 +1197,7 @@ fn this_in_property_and_calling_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1205,7 +1205,7 @@ fn this_in_property_and_calling_method() {
 
     %FB_Test = type { i16 }
 
-    @__FB_Test__init = constant %FB_Test zeroinitializer
+    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -1284,7 +1284,7 @@ fn this_in_property_and_calling_method() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1304,7 +1304,7 @@ fn this_with_self_pointer() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1312,7 +1312,7 @@ fn this_with_self_pointer() {
 
     %FB_Test = type { %FB_Test* }
 
-    @__FB_Test__init = constant %FB_Test zeroinitializer
+    @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB_Test(%FB_Test* %0) {
@@ -1355,7 +1355,7 @@ fn this_with_self_pointer() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1373,7 +1373,7 @@ fn this_in_variable_initialization() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1381,7 +1381,7 @@ fn this_in_variable_initialization() {
 
     %FB = type { i16, %FB*, i16 }
 
-    @__FB__init = constant %FB { i16 5, %FB* null, i16 5 }
+    @__FB__init = unnamed_addr constant %FB { i16 5, %FB* null, i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @FB(%FB* %0) {
@@ -1412,7 +1412,7 @@ fn this_in_variable_initialization() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1427,7 +1427,7 @@ fn this_in_action_in_functionblock() {
         END_ACTION
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1435,7 +1435,7 @@ fn this_in_action_in_functionblock() {
 
     %fb = type {}
 
-    @__fb__init = constant %fb zeroinitializer
+    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @fb(%fb* %0) {
@@ -1472,7 +1472,7 @@ fn this_in_action_in_functionblock() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1486,7 +1486,7 @@ fn this_calling_functionblock_body_from_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r#"
+    filtered_assert_snapshot!(code, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1494,7 +1494,7 @@ fn this_calling_functionblock_body_from_method() {
 
     %fb = type {}
 
-    @__fb__init = constant %fb zeroinitializer
+    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @fb(%fb* %0) {
@@ -1534,5 +1534,5 @@ fn this_calling_functionblock_body_from_method() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }

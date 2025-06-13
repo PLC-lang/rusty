@@ -263,6 +263,17 @@ impl<'ink> DebugBuilder<'ink> {
         self.types.insert(name.to_lowercase(), di_type);
     }
 
+    // Apply `DW_TAG_const_type` wrapper for constant variables
+    fn apply_const_type_if_needed(&self, debug_type: DIType<'ink>, is_constant: bool) -> DIType<'ink> {
+        if is_constant {
+            let const_type =
+                self.debug_info.create_reference_type(debug_type, 38 /* DW_TAG_const_type */);
+            const_type.as_type()
+        } else {
+            debug_type
+        }
+    }
+
     fn create_basic_type(
         &mut self,
         name: &str,
@@ -290,9 +301,9 @@ impl<'ink> DebugBuilder<'ink> {
         let index_types = members
             .iter()
             .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
-            .map(|it| (it.get_name(), it.get_type_name(), &it.source_location))
-            .map(|(name, type_name, location)| {
-                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
+            .map(|it| (it.get_name(), it.get_type_name(), &it.source_location, it.is_constant()))
+            .map(|(name, type_name, location, is_constant)| {
+                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location, is_constant))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         let struct_type = types_index.get_associated_type(name).map(|it| it.into_struct_type())?;
@@ -304,8 +315,9 @@ impl<'ink> DebugBuilder<'ink> {
 
         let mut types = vec![];
 
-        for (element_index, (member_name, dt, location)) in index_types.iter().enumerate() {
+        for (element_index, (member_name, dt, location, is_constant)) in index_types.iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
+            let di_type = self.apply_const_type_if_needed(di_type.into(), *is_constant);
 
             // Get the size and alignment from LLVM
             let llvm_type = types_index.find_associated_type(dt.get_name());
@@ -332,7 +344,7 @@ impl<'ink> DebugBuilder<'ink> {
                         align_bits,
                         offset_bits,
                         DIFlags::PUBLIC,
-                        di_type.into(),
+                        di_type,
                     )
                     .as_type(),
             );
@@ -725,7 +737,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         location: &SourceLocation,
     ) {
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
-            let debug_type = *debug_type;
+            let debug_type =
+                self.apply_const_type_if_needed((*debug_type).into(), global_variable.is_constant());
+
             let file = location
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
@@ -736,7 +750,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 "",
                 file,
                 location.get_line_plus_one() as u32,
-                debug_type.into(),
+                debug_type,
                 false,
                 None,
                 None,
@@ -769,12 +783,14 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| file.as_debug_info_scope());
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_type = self.apply_const_type_if_needed((*debug_type).into(), variable.is_constant());
+
             let debug_variable = self.debug_info.create_auto_variable(
                 scope,
                 variable.get_name(),
                 file,
                 line,
-                (*debug_type).into(),
+                debug_type,
                 false,
                 DIFlagsConstants::ZERO,
                 alignment,
@@ -808,13 +824,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .unwrap_or_else(|| file.as_debug_info_scope());
 
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_type = self.apply_const_type_if_needed((*debug_type).into(), variable.is_constant());
+
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 variable.get_name(),
                 arg_no as u32,
                 file,
                 line,
-                (*debug_type).into(),
+                debug_type,
                 false,
                 DIFlagsConstants::ZERO,
             );

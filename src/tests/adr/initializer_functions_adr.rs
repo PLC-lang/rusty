@@ -482,7 +482,7 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -491,8 +491,8 @@ fn generating_init_functions() {
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = constant %myStruct zeroinitializer
-    @__myRefStruct__init = constant %myRefStruct zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @__init_mystruct(%myStruct* %0) {
@@ -527,7 +527,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -563,7 +563,7 @@ fn generating_init_functions() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -576,9 +576,9 @@ fn generating_init_functions() {
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @baz_instance = global %baz zeroinitializer
-    @__bar__init = constant %bar zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
-    @__myStruct__init = constant %myStruct zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @s = global %myStruct zeroinitializer
 
     define void @foo(%foo* %0) {
@@ -682,7 +682,7 @@ fn generating_init_functions() {
       call void @__user_init_myStruct(%myStruct* @s)
       ret void
     }
-    "#);
+    "###);
 }
 
 /// When dealing with local stack-allocated variables (`VAR_TEMP`-blocks (in addition to `VAR` for functions)),
@@ -718,7 +718,7 @@ fn intializing_temporary_variables() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -727,7 +727,7 @@ fn intializing_temporary_variables() {
     %foo = type { [81 x i8]* }
 
     @ps2 = global [81 x i8] zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
@@ -788,7 +788,7 @@ fn intializing_temporary_variables() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#)
+    "###)
 }
 
 /// Initializing method variables behaves very similar to stack local variables from the previous example.
@@ -811,7 +811,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -819,7 +819,7 @@ fn initializing_method_variables() {
 
     %foo = type {}
 
-    @__foo__init = constant %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
@@ -859,7 +859,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // When no local reference is found, the parent variable is used if present. Otherwise we look for a
     // global variable.
@@ -888,7 +888,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -897,7 +897,7 @@ fn initializing_method_variables() {
     %foo = type { i32 }
 
     @y = global i32 0
-    @__foo__init = constant %foo { i32 5 }
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
@@ -948,7 +948,7 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // When both a local and a parent variable are present, the local variable takes precedence.
     let src = r"
@@ -967,7 +967,7 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -975,7 +975,7 @@ fn initializing_method_variables() {
 
     %foo = type { i32 }
 
-    @__foo__init = constant %foo { i32 5 }
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @foo(%foo* %0) {
@@ -1017,5 +1017,5 @@ fn initializing_method_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }

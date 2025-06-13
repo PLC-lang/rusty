@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'func.st'
 source_filename = "func.st"
@@ -73,7 +72,7 @@ target triple = "[filtered]"
 %prg2.6 = type { i32 }
 
 @prog_instance = global %prog zeroinitializer
-@__fb__init = external global %fb.4
+@__fb__init = external unnamed_addr constant %fb.4
 @prg_instance = external global %prg.5
 @prg2_instance = external global %prg2.6
 
