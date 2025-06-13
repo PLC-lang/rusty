@@ -134,9 +134,6 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
-            if global_variable.is_constant() {
-                global_ir_variable = global_ir_variable.make_constant();
-            };
         } else {
             let initial_value = if let Some(ConstExpression::Unresolvable {
                 reason: UnresolvableKind::Address { .. },
@@ -178,16 +175,17 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 // 3rd try: get the compiler's default for the given type (zero-initializer)
                 .or_else(|| self.types_index.find_associated_type(type_name).map(get_default_for));
             global_ir_variable.set_initial_value(initial_value, variable_type);
-            if global_variable.is_constant() {
-                global_ir_variable = global_ir_variable.make_constant();
-                if initial_value.is_none() {
-                    return Err(Diagnostic::codegen_error(
-                        "Cannot generate uninitialized constant",
-                        &global_variable.source_location,
-                    ));
-                }
+            if global_variable.is_constant() && initial_value.is_none() {
+                return Err(Diagnostic::codegen_error(
+                    "Cannot generate uninitialized constant",
+                    &global_variable.source_location,
+                ));
             }
         }
+
+        if global_variable.is_constant() {
+            global_ir_variable = global_ir_variable.make_constant();
+        };
 
         let global_name = if global_variable.get_name().ends_with("instance") {
             global_variable.get_name()
