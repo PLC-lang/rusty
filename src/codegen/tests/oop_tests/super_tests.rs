@@ -17,7 +17,7 @@ fn super_keyword_basic_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -26,8 +26,8 @@ fn super_keyword_basic_access() {
     %parent = type { i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 10 }
-    @__child__init = constant %child { %parent { i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -86,7 +86,7 @@ fn super_keyword_basic_access() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -108,7 +108,7 @@ fn super_without_deref() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -117,8 +117,8 @@ fn super_without_deref() {
     %parent = type { i16 }
     %child = type { %parent, %parent* }
 
-    @__parent__init = constant %parent { i16 10 }
-    @__child__init = constant %child { %parent { i16 10 }, %parent* null }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 }, %parent* null }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -177,7 +177,7 @@ fn super_without_deref() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -206,7 +206,7 @@ fn super_in_method_calls() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -215,8 +215,8 @@ fn super_in_method_calls() {
     %parent = type { i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 10 }
-    @__child__init = constant %child { %parent { i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -319,7 +319,7 @@ fn super_in_method_calls() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -342,7 +342,7 @@ fn super_in_complex_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -351,8 +351,8 @@ fn super_in_complex_expressions() {
     %parent = type { i16, i16 }
     %child = type { %parent, i16 }
 
-    @__parent__init = constant %parent { i16 10, i16 20 }
-    @__child__init = constant %child { %parent { i16 10, i16 20 }, i16 30 }
+    @__parent__init = unnamed_addr constant %parent { i16 10, i16 20 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10, i16 20 }, i16 30 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -421,7 +421,7 @@ fn super_in_complex_expressions() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -443,7 +443,7 @@ fn super_with_array_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -453,8 +453,8 @@ fn super_with_array_access() {
     %child = type { %parent, i16 }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @__parent__init = constant %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
-    @__child__init = constant %child { %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }, i16 3 }
+    @__parent__init = unnamed_addr constant %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
+    @__child__init = unnamed_addr constant %child { %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }, i16 3 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -519,7 +519,7 @@ fn super_with_array_access() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -558,7 +558,7 @@ fn super_in_multi_level_inheritance() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -568,9 +568,9 @@ fn super_in_multi_level_inheritance() {
     %grandparent = type { i16 }
     %child = type { %parent, i16 }
 
-    @__parent__init = constant %parent { %grandparent { i16 10 }, i16 20 }
-    @__grandparent__init = constant %grandparent { i16 10 }
-    @__child__init = constant %child { %parent { %grandparent { i16 10 }, i16 20 }, i16 30 }
+    @__parent__init = unnamed_addr constant %parent { %grandparent { i16 10 }, i16 20 }
+    @__grandparent__init = unnamed_addr constant %grandparent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { %grandparent { i16 10 }, i16 20 }, i16 30 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @grandparent(%grandparent* %0) {
@@ -703,7 +703,7 @@ fn super_in_multi_level_inheritance() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -725,7 +725,7 @@ fn super_with_pointer_operations() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -734,8 +734,8 @@ fn super_with_pointer_operations() {
     %parent = type { i16, i16* }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 10, i16* null }
-    @__child__init = constant %child { %parent { i16 10, i16* null } }
+    @__parent__init = unnamed_addr constant %parent { i16 10, i16* null }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10, i16* null } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -804,7 +804,7 @@ fn super_with_pointer_operations() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -836,7 +836,7 @@ fn super_in_conditionals() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -845,8 +845,8 @@ fn super_in_conditionals() {
     %parent = type { i16, i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 50, i16 10 }
-    @__child__init = constant %child { %parent { i16 50, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 50, i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 50, i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -955,7 +955,7 @@ fn super_in_conditionals() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -977,7 +977,7 @@ fn super_with_const_variables() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -986,8 +986,8 @@ fn super_with_const_variables() {
     %parent = type { i16, i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 100, i16 50 }
-    @__child__init = constant %child { %parent { i16 100, i16 50 } }
+    @__parent__init = unnamed_addr constant %parent { i16 100, i16 50 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 100, i16 50 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -1047,7 +1047,7 @@ fn super_with_const_variables() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1083,7 +1083,7 @@ fn super_as_function_parameter() {
         END_FUNCTION
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1092,8 +1092,8 @@ fn super_as_function_parameter() {
     %parent = type { i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 10 }
-    @__child__init = constant %child { %parent { i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -1192,7 +1192,7 @@ fn super_as_function_parameter() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1219,7 +1219,7 @@ fn super_with_deeply_nested_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1228,8 +1228,8 @@ fn super_with_deeply_nested_expressions() {
     %parent = type { i16, i16, i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 1, i16 2, i16 3 }
-    @__child__init = constant %child { %parent { i16 1, i16 2, i16 3 } }
+    @__parent__init = unnamed_addr constant %parent { i16 1, i16 2, i16 3 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 1, i16 2, i16 3 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -1343,7 +1343,7 @@ fn super_with_deeply_nested_expressions() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1388,7 +1388,7 @@ fn super_in_loop_constructs() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1398,8 +1398,8 @@ fn super_in_loop_constructs() {
     %child = type { %parent }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @__parent__init = constant %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
-    @__child__init = constant %child { %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
+    @__parent__init = unnamed_addr constant %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
+    @__child__init = unnamed_addr constant %child { %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -1581,7 +1581,7 @@ fn super_in_loop_constructs() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1609,7 +1609,7 @@ fn super_with_method_overrides_in_three_levels() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1619,9 +1619,9 @@ fn super_with_method_overrides_in_three_levels() {
     %grandparent = type {}
     %child = type { %parent }
 
-    @__parent__init = constant %parent zeroinitializer
-    @__grandparent__init = constant %grandparent zeroinitializer
-    @__child__init = constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @grandparent(%grandparent* %0) {
@@ -1748,7 +1748,7 @@ fn super_with_method_overrides_in_three_levels() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1830,7 +1830,7 @@ fn super_with_structured_types() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1842,9 +1842,9 @@ fn super_with_structured_types() {
 
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
     @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
-    @__Complex_Type__init = constant %Complex_Type zeroinitializer
-    @__parent__init = constant %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
-    @__child__init = constant %child { %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] } }
+    @__Complex_Type__init = unnamed_addr constant %Complex_Type zeroinitializer
+    @__parent__init = unnamed_addr constant %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
+    @__child__init = unnamed_addr constant %child { %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -1970,7 +1970,7 @@ fn super_with_structured_types() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "#);
+    "###);
 }
 
 #[test]
@@ -1997,7 +1997,7 @@ fn super_in_action_blocks() {
         END_ACTION
         "#,
     );
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2006,8 +2006,8 @@ fn super_in_action_blocks() {
     %parent = type { i16 }
     %child = type { %parent }
 
-    @__parent__init = constant %parent { i16 10 }
-    @__child__init = constant %child { %parent { i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @parent(%parent* %0) {
@@ -2093,5 +2093,5 @@ fn super_in_action_blocks() {
     entry:
       ret void
     }
-    "#);
+    "###);
 }
