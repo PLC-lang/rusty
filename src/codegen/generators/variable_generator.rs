@@ -99,13 +99,16 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 }
             })?;
             index.associate_global(name, global_variable)?;
-            //generate debug info
-            self.debug.create_global_variable(
-                variable.get_qualified_name(),
-                &variable.data_type_name,
-                global_variable,
-                &variable.source_location,
-            );
+
+            if !matches!(linkage, LinkageType::External) {
+                // generate debug info for non-external variables
+                self.debug.create_global_variable(
+                    variable.get_qualified_name(),
+                    &variable.data_type_name,
+                    global_variable,
+                    &variable.source_location,
+                );
+            }
         }
 
         Ok(index)

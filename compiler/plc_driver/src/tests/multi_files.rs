@@ -168,35 +168,35 @@ fn forward_declared_constant_is_also_marked_constant() {
     %foo = type { i16 }
     %mainProg = type { i16 }
 
-    @__foo__init = external unnamed_addr constant %foo, !dbg !0
-    @mainProg_instance = external global %mainProg, !dbg !8
+    @__foo__init = external unnamed_addr constant %foo
+    @mainProg_instance = external global %mainProg
 
-    define i16 @main() !dbg !18 {
+    define i16 @main() !dbg !4 {
     entry:
       %main = alloca i16, align 2
       %f = alloca %foo, align 8
-      call void @llvm.dbg.declare(metadata %foo* %f, metadata !23, metadata !DIExpression()), !dbg !24
+      call void @llvm.dbg.declare(metadata %foo* %f, metadata !9, metadata !DIExpression()), !dbg !15
       %0 = bitcast %foo* %f to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i16* %main, metadata !25, metadata !DIExpression()), !dbg !26
+      call void @llvm.dbg.declare(metadata i16* %main, metadata !16, metadata !DIExpression()), !dbg !17
       store i16 0, i16* %main, align 2
-      call void @__init_foo(%foo* %f), !dbg !27
-      call void @__user_init_foo(%foo* %f), !dbg !27
-      %something_to_initialize = getelementptr inbounds %foo, %foo* %f, i32 0, i32 0, !dbg !27
-      %load_something_to_initialize = load i16, i16* %something_to_initialize, align 2, !dbg !27
-      store i16 %load_something_to_initialize, i16* getelementptr inbounds (%mainProg, %mainProg* @mainProg_instance, i32 0, i32 0), align 2, !dbg !27
-      call void @mainProg(%mainProg* @mainProg_instance), !dbg !28
-      %main_ret = load i16, i16* %main, align 2, !dbg !29
-      ret i16 %main_ret, !dbg !29
+      call void @__init_foo(%foo* %f), !dbg !18
+      call void @__user_init_foo(%foo* %f), !dbg !18
+      %something_to_initialize = getelementptr inbounds %foo, %foo* %f, i32 0, i32 0, !dbg !18
+      %load_something_to_initialize = load i16, i16* %something_to_initialize, align 2, !dbg !18
+      store i16 %load_something_to_initialize, i16* getelementptr inbounds (%mainProg, %mainProg* @mainProg_instance, i32 0, i32 0), align 2, !dbg !18
+      call void @mainProg(%mainProg* @mainProg_instance), !dbg !19
+      %main_ret = load i16, i16* %main, align 2, !dbg !20
+      ret i16 %main_ret, !dbg !20
     }
 
-    declare !dbg !30 void @foo(%foo*)
+    declare !dbg !21 void @foo(%foo*)
 
     declare void @__init_foo(%foo*)
 
-    declare !dbg !33 void @__user_init_foo(%foo*)
+    declare !dbg !24 void @__user_init_foo(%foo*)
 
-    declare !dbg !38 void @mainProg(%mainProg*)
+    declare !dbg !29 void @mainProg(%mainProg*)
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -207,50 +207,44 @@ fn forward_declared_constant_is_also_marked_constant() {
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn }
 
-    !llvm.module.flags = !{!13, !14}
-    !llvm.dbg.cu = !{!15}
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
 
-    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !3, isLocal: false, isDefinition: true)
-    !2 = !DIFile(filename: "external_file2.st", directory: "")
-    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 16, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
-    !5 = !{!6}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "something_to_initialize", scope: !2, file: !2, line: 14, baseType: !7, size: 16, align: 16, flags: DIFlagPublic)
-    !7 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIGlobalVariableExpression(var: !9, expr: !DIExpression())
-    !9 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 6, type: !10, isLocal: false, isDefinition: true)
-    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !11, identifier: "mainProg")
-    !11 = !{!12}
-    !12 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 8, baseType: !7, size: 16, align: 16, flags: DIFlagPublic)
-    !13 = !{i32 2, !"Dwarf Version", i32 5}
-    !14 = !{i32 2, !"Debug Info Version", i32 3}
-    !15 = distinct !DICompileUnit(language: DW_LANG_C, file: !16, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !17, splitDebugInlining: false)
-    !16 = !DIFile(filename: "external_file1.st", directory: "root")
-    !17 = !{!0, !8}
-    !18 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !19, file: !19, line: 2, type: !20, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !15, retainedNodes: !22)
-    !19 = !DIFile(filename: "external_file1.st", directory: "")
-    !20 = !DISubroutineType(flags: DIFlagPublic, types: !21)
-    !21 = !{null}
-    !22 = !{}
-    !23 = !DILocalVariable(name: "f", scope: !18, file: !19, line: 4, type: !4, align: 64)
-    !24 = !DILocation(line: 4, column: 8, scope: !18)
-    !25 = !DILocalVariable(name: "main", scope: !18, file: !19, line: 2, type: !7, align: 16)
-    !26 = !DILocation(line: 2, column: 13, scope: !18)
-    !27 = !DILocation(line: 0, scope: !18)
-    !28 = !DILocation(line: 6, column: 8, scope: !18)
-    !29 = !DILocation(line: 7, column: 4, scope: !18)
-    !30 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !31, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !15, retainedNodes: !22)
-    !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
-    !32 = !{null, !4}
-    !33 = distinct !DISubprogram(name: "__user_init_foo", linkageName: "__user_init_foo", scope: !34, file: !34, type: !35, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !15, retainedNodes: !22)
-    !34 = !DIFile(filename: "__initializers", directory: "")
-    !35 = !DISubroutineType(flags: DIFlagPublic, types: !36)
-    !36 = !{null, !37}
-    !37 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_foo", baseType: !4, size: 64, align: 64, dwarfAddressSpace: 1)
-    !38 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !2, file: !2, line: 6, type: !39, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !15, retainedNodes: !22)
-    !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
-    !40 = !{null, !10, !7}
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "external_file1.st", directory: "root")
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !5, file: !5, line: 2, type: !6, scopeLine: 2, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !5 = !DIFile(filename: "external_file1.st", directory: "")
+    !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+    !7 = !{null}
+    !8 = !{}
+    !9 = !DILocalVariable(name: "f", scope: !4, file: !5, line: 4, type: !10, align: 64)
+    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !11, file: !11, line: 12, size: 16, align: 64, flags: DIFlagPublic, elements: !12, identifier: "foo")
+    !11 = !DIFile(filename: "external_file2.st", directory: "")
+    !12 = !{!13}
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "something_to_initialize", scope: !11, file: !11, line: 14, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
+    !14 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !15 = !DILocation(line: 4, column: 8, scope: !4)
+    !16 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !14, align: 16)
+    !17 = !DILocation(line: 2, column: 13, scope: !4)
+    !18 = !DILocation(line: 0, scope: !4)
+    !19 = !DILocation(line: 6, column: 8, scope: !4)
+    !20 = !DILocation(line: 7, column: 4, scope: !4)
+    !21 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !11, file: !11, line: 12, type: !22, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !22 = !DISubroutineType(flags: DIFlagPublic, types: !23)
+    !23 = !{null, !10}
+    !24 = distinct !DISubprogram(name: "__user_init_foo", linkageName: "__user_init_foo", scope: !25, file: !25, type: !26, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !25 = !DIFile(filename: "__initializers", directory: "")
+    !26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
+    !27 = !{null, !28}
+    !28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_foo", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
+    !29 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !11, file: !11, line: 6, type: !30, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
+    !31 = !{null, !32, !14}
+    !32 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !11, file: !11, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !33, identifier: "mainProg")
+    !33 = !{!34}
+    !34 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !11, file: !11, line: 8, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
 
     ; ModuleID = 'external_file2.st'
     source_filename = "external_file2.st"

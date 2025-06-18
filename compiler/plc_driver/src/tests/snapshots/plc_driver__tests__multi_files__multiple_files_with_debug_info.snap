@@ -1,7 +1,6 @@
 ---
-source: compiler/plc_driver/./src/tests/multi_files.rs
+source: compiler/plc_driver/src/tests/multi_files.rs
 expression: "results.join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'file1.st'
 source_filename = "file1.st"
@@ -10,50 +9,47 @@ target triple = "[filtered]"
 
 %mainProg = type {}
 
-@mainProg_instance = external global %mainProg, !dbg !0
+@mainProg_instance = external global %mainProg
 
-define i16 @main() !dbg !10 {
+define i16 @main() !dbg !4 {
 entry:
   %main = alloca i16, align 2
-  call void @llvm.dbg.declare(metadata i16* %main, metadata !14, metadata !DIExpression()), !dbg !16
+  call void @llvm.dbg.declare(metadata i16* %main, metadata !9, metadata !DIExpression()), !dbg !11
   store i16 0, i16* %main, align 2
-  call void @mainProg(%mainProg* @mainProg_instance), !dbg !17
-  %main_ret = load i16, i16* %main, align 2, !dbg !18
-  ret i16 %main_ret, !dbg !18
+  call void @mainProg(%mainProg* @mainProg_instance), !dbg !12
+  %main_ret = load i16, i16* %main, align 2, !dbg !13
+  ret i16 %main_ret, !dbg !13
 }
 
-declare !dbg !19 void @mainProg(%mainProg*)
+declare !dbg !14 void @mainProg(%mainProg*)
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-!llvm.module.flags = !{!5, !6}
-!llvm.dbg.cu = !{!7}
+!llvm.module.flags = !{!0, !1}
+!llvm.dbg.cu = !{!2}
 
-!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "mainProg", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "file2.st", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !4, identifier: "mainProg")
-!4 = !{}
-!5 = !{i32 2, !"Dwarf Version", i32 5}
-!6 = !{i32 2, !"Debug Info Version", i32 3}
-!7 = distinct !DICompileUnit(language: DW_LANG_C, file: !8, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
-!8 = !DIFile(filename: "file1.st", directory: "root")
-!9 = !{!0}
-!10 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !11, file: !11, line: 2, type: !12, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-!11 = !DIFile(filename: "file1.st", directory: "")
-!12 = !DISubroutineType(flags: DIFlagPublic, types: !13)
-!13 = !{null}
-!14 = !DILocalVariable(name: "main", scope: !10, file: !11, line: 2, type: !15, align: 16)
-!15 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
-!16 = !DILocation(line: 2, column: 13, scope: !10)
-!17 = !DILocation(line: 10, column: 4, scope: !10)
-!18 = !DILocation(line: 11, column: 4, scope: !10)
-!19 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !2, file: !2, line: 2, type: !20, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-!20 = !DISubroutineType(flags: DIFlagPublic, types: !21)
-!21 = !{null, !3}
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = !{i32 2, !"Debug Info Version", i32 3}
+!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!3 = !DIFile(filename: "file1.st", directory: "root")
+!4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !5, file: !5, line: 2, type: !6, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+!5 = !DIFile(filename: "file1.st", directory: "")
+!6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
+!7 = !{null}
+!8 = !{}
+!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align: 16)
+!10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!11 = !DILocation(line: 2, column: 13, scope: !4)
+!12 = !DILocation(line: 10, column: 4, scope: !4)
+!13 = !DILocation(line: 11, column: 4, scope: !4)
+!14 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !15, file: !15, line: 2, type: !16, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+!15 = !DIFile(filename: "file2.st", directory: "")
+!16 = !DISubroutineType(flags: DIFlagPublic, types: !17)
+!17 = !{null, !18}
+!18 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !15, file: !15, line: 2, align: 64, flags: DIFlagPublic, elements: !8, identifier: "mainProg")
 
 ; ModuleID = 'file2.st'
 source_filename = "file2.st"
