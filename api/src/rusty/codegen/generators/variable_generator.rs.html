@@ -209,7 +209,10 @@
 <a href="#208" id="208">208</a>
 <a href="#209" id="209">209</a>
 <a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#211" id="211">211</a>
+<a href="#212" id="212">212</a>
+<a href="#213" id="213">213</a>
+<a href="#214" id="214">214</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="doccomment">/// offers operations to generate global variables
 </span><span class="kw">use crate</span>::{
@@ -310,13 +313,16 @@
                 }
             })<span class="question-mark">?</span>;
             index.associate_global(name, global_variable)<span class="question-mark">?</span>;
-            <span class="comment">//generate debug info
-            </span><span class="self">self</span>.debug.create_global_variable(
-                variable.get_qualified_name(),
-                <span class="kw-2">&amp;</span>variable.data_type_name,
-                global_variable,
-                <span class="kw-2">&amp;</span>variable.source_location,
-            );
+
+            <span class="kw">if </span>!<span class="macro">matches!</span>(linkage, LinkageType::External) {
+                <span class="comment">// generate debug info for non-external variables
+                </span><span class="self">self</span>.debug.create_global_variable(
+                    variable.get_qualified_name(),
+                    <span class="kw-2">&amp;</span>variable.data_type_name,
+                    global_variable,
+                    <span class="kw-2">&amp;</span>variable.source_location,
+                );
+            }
         }
 
         <span class="prelude-val">Ok</span>(index)
