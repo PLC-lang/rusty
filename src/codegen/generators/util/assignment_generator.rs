@@ -1,5 +1,6 @@
 use anyhow::{anyhow, Result};
 use inkwell::{types::BasicType, values::PointerValue};
+use itertools::all;
 use plc_ast::ast::AstNode;
 
 use crate::{
@@ -22,6 +23,11 @@ pub fn generate_assignment(left: &AstNode, right: &AstNode, gen: &mut Expression
     if left_type.is_aggregate() && right_type.is_aggregate() {
         let right = gen.generate_expression(right)?.as_pointer_value()?;
         build_memcpy(left, left_type, right, right_type, gen)?;
+    } else if let Some(right) =
+        left_type.is_sub_range().then_some(right).and_then(|n| gen.annotations.get_hidden_function_call(n))
+    {
+        let expression = gen.generate_r_value(right)?;
+        gen.llvm.builder.build_store(left, expression);
     } else {
         let expression = gen.generate_r_value(right)?;
         gen.llvm.builder.build_store(left, expression);

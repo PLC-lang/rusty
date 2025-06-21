@@ -608,6 +608,10 @@ impl DataTypeInformation {
         )
     }
 
+    pub(crate) fn is_sub_range(&self) -> bool {
+        matches!(self, DataTypeInformation::SubRange { .. })
+    }
+
     pub fn get_auto_deref_type(&self) -> Option<AutoDerefType> {
         if let DataTypeInformation::Pointer { auto_deref: kind, .. } = self {
             return *kind;
@@ -772,6 +776,8 @@ impl DataTypeInformation {
 
         None
     }
+    
+    
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

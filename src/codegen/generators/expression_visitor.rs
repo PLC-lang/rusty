@@ -958,6 +958,7 @@ impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
         t: &DataTypeInformation,
         v: i128,
     ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
+        let t = self.index.get_intrinsic_type_information(t);
         match t {
             DataTypeInformation::Integer { name, signed, size, .. } => {
                 let llvm_type = match size {

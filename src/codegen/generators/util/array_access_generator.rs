@@ -59,23 +59,23 @@ pub fn generate_element_pointer_for_array<'ink>(
 
         let accessors_and_portions = statements
             .iter()
-            .zip(dimensions)
-            .map(|(statement, dimension)|
-                            // generate array-accessors
-                            generate_access_for_dimension(dimension, statement, gen))
-            .zip(dimension_portions)
-            .collect::<Vec<_>>(); //collect here so the borrow of gen is released
+            .zip(dimensions);
 
+        // TODO rewrite this loop, way to complicated!
         // accessing [ 1, 2, 2] means to access [ 1*6 + 2*2 + 2*1 ] = 12
-        let (index_access, _) = accessors_and_portions.into_iter().fold(
+        let (index_access, _) = accessors_and_portions.into_iter()
+        
+            .zip(dimension_portions)
+            .fold(
             (Ok(gen.llvm.i32_type().const_zero()), 1),
-            |(accumulated_value, _), (current_v, current_portion)| {
+            |(accumulated_value, _), ((statement, dimension), current_portion)| {
+                let current_v = generate_access_for_dimension(dimension, statement, gen);
                 let result = accumulated_value.and_then(|last_v| {
                     current_v.map(|v| {
                         let current_portion_value =
                             gen.llvm.i32_type().const_int(current_portion as u64, false);
                         // multiply the accessor with the dimension's portion
-                        let m_v = gen.llvm.builder.build_int_mul(current_portion_value, v, "");
+                        let m_v = gen.llvm.builder.build_int_mul(current_portion_value, v, "tmpVar"); //TODO name
                         // let m_v = self.create_llvm_int_binary_expression(
                         //     &Operator::Multiplication,
                         //     current_portion_value,
@@ -84,7 +84,7 @@ pub fn generate_element_pointer_for_array<'ink>(
 
                         // take the sum of the mulitlication and the previous accumulated_value
                         // this now becomes the new accumulated value
-                        gen.llvm.builder.build_int_add(m_v, last_v, "")
+                        gen.llvm.builder.build_int_add(m_v, last_v, "tmpVar")
                         // self.create_llvm_int_binary_expression(&Operator::Plus, m_v, last_v)
                     })
                 });
@@ -147,7 +147,7 @@ fn generate_access_for_dimension<'ink>(
         gen.index,
         gen.llvm_index,
         gen.index.get_type(DINT_TYPE)?,
-        gen.annotations.get_hint_or_void(access_expression, gen.index),
+        gen.get_type_hint_for(access_expression).unwrap_or_else(|_| gen.index.get_void_type()), //TODO build better helper for fetching hint
         result.as_basic_value_enum(),
         None
     )
