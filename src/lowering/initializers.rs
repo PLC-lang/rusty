@@ -12,7 +12,7 @@ use plc_ast::{
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
 
-use super::{transform_initializer_to_assignments, InitVisitor};
+use super::{create_assignments_from_initializer, InitVisitor};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
@@ -191,13 +191,15 @@ fn create_init_unit(
 
     let mut statements = Vec::new();
     for (var_name, initializer) in assignments {
-        let initializers = transform_initializer_to_assignments(
-            &var_name,
-            Some(&self_ident),
-            initializer,
-            id_provider.clone(),
-        );
-        statements.extend(initializers);
+        if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
+            let initializers = create_assignments_from_initializer(
+                &var_name,
+                Some(&self_ident),
+                initializer,
+                id_provider.clone(),
+            );
+            statements.extend(initializers);
+        }
     }
 
     let member_init_calls = lowerer
@@ -345,8 +347,12 @@ fn create_init_wrapper_function(
     let mut statements = Vec::new();
     if let Some(statement) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         for (var_name, initializer) in statement {
-            let res = transform_initializer_to_assignments(&var_name, None, initializer, id_provider.clone());
-            statements.extend(res);
+            // TODO: See if theres another way?
+            if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
+                let res =
+                    create_assignments_from_initializer(&var_name, None, initializer, id_provider.clone());
+                statements.extend(res);
+            }
         }
     }
 

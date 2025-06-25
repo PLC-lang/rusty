@@ -450,7 +450,7 @@ fn create_assignment_paths(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<A
 
 /// Takes some expression such as `foo : FooStruct := (bar := (baz := (qux := ADR(val)), baz2 := (qux := ADR(val))));`
 /// and returns assignments of form [`foo.bar.baz.qux := ADR(val)`, `foo.bar.baz2.qux := ADR(val)`].
-fn transform_initializer_to_assignments(
+fn create_assignments_from_initializer(
     var_ident: &str,
     self_ident: Option<&str>,
     rhs: &Option<AstNode>,
