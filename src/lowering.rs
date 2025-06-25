@@ -424,10 +424,12 @@ fn create_member_reference(ident: &str, id_provider: IdProvider, base: Option<As
     create_member_reference_with_location(ident, id_provider, base, SourceLocation::internal())
 }
 
-fn todo_rename_me__path(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<AstNode>> {
+/// Takes some expression such as `bar := (baz := (qux := ADR(val)), baz2 := (qux := ADR(val)))` returning all final
+/// assignment paths such as [`bar.baz.qux := ADR(val)`, `bar.baz2.qux := ADR(val)`].
+fn create_assignment_paths(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<AstNode>> {
     match node.get_stmt() {
         AstStatement::Assignment(Assignment { left, right }) => {
-            let mut result = todo_rename_me__path(right, id_provider.clone());
+            let mut result = create_assignment_paths(right, id_provider.clone());
             for inner in result.iter_mut() {
                 inner.insert(0, left.as_ref().clone());
             }
@@ -436,46 +438,19 @@ fn todo_rename_me__path(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<AstN
         AstStatement::ExpressionList(nodes) => {
             let mut result = vec![];
             for node in nodes {
-                let inner = todo_rename_me__path(node, id_provider.clone());
+                let inner = create_assignment_paths(node, id_provider.clone());
                 result.extend(inner);
             }
             result
         }
-        AstStatement::ParenExpression(node) => todo_rename_me__path(node, id_provider),
+        AstStatement::ParenExpression(node) => create_assignment_paths(node, id_provider),
         _ => vec![vec![node.clone()]],
     }
 }
 
-/*
-// Assignment {
-//     left: ReferenceExpr {
-//         kind: Member(
-//             Identifier {
-//                 name: "b_foo",
-//             },
-//         ),
-//         base: Some(
-//             ReferenceExpr {
-//                 kind: Member(
-//                     Identifier {
-//                         name: "instanceB",
-//                     },
-//                 ),
-//                 base: Some(
-//                     ReferenceExpr {
-//                         kind: Member(
-//                             Identifier {
-//                                 name: "self",
-//                             },
-//                         ),
-//                         base: None,
-//                     },
-//                 ),
-//             },
-//         ),
-//     },
- */
-fn todo_rename_me(
+/// Takes some expression such as `foo : FooStruct := (bar := (baz := (qux := ADR(val)), baz2 := (qux := ADR(val))));`
+/// and returns assignments of form [`foo.bar.baz.qux := ADR(val)`, `foo.bar.baz2.qux := ADR(val)`].
+fn transform_initializer_to_assignments(
     var_ident: &str,
     self_ident: Option<&str>,
     rhs: &Option<AstNode>,
@@ -490,7 +465,7 @@ fn todo_rename_me(
     // { ref: bar, base: Some(foo) }
     // { ref: baz, base: {ref: }}
     let mut result = vec![];
-    for mut path in todo_rename_me__path(initializer, id_provider.clone()) {
+    for mut path in create_assignment_paths(initializer, id_provider.clone()) {
         path.insert(0, create_member_reference(var_ident, id_provider.clone(), None));
         if self_ident.is_some() {
             path.insert(0, create_member_reference("self", id_provider.clone(), None));
@@ -503,7 +478,7 @@ fn todo_rename_me(
         let mut left = path.pop().expect("must have at least one node in the path");
 
         for node in path.into_iter().rev() {
-            todo_rename_me_deep_reference(&mut left, node);
+            insert_base_node(&mut left, node);
         }
 
         result.push(AstFactory::create_assignment(left, right, id_provider.next_id()));
@@ -512,78 +487,21 @@ fn todo_rename_me(
     result
 }
 
-// [foo, bar, baz] -- reverse --> [baz, bar, foo]
-// 0: MemberRef { ref: baz, base: None }
-// 1: MemberRef { ref: baz, base: MemberRef { ref: bar, base: None } }
-// 2: MemberRef { ref: baz, base: MemberRef { ref: bar, base: MemberRef { ref: foo, base: None } } }
-fn todo_rename_me_deep_reference(member: &mut AstNode, new_base: AstNode) {
+/// Inserts a new base node into the member reference chain. For example a call such as `insert_base_node("b.c", a")`
+/// will yield `a.b.c`.
+fn insert_base_node(member: &mut AstNode, new_base: AstNode) {
     match &mut member.stmt {
         AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => match base {
-            Some(inner) => todo_rename_me_deep_reference(inner, new_base),
+            Some(inner) => insert_base_node(inner, new_base),
             None => {
+                // We hit the end of the chain, simply replace the base (which must be None) with the new one
                 base.replace(Box::new(new_base));
             }
         },
-        _ => todo!(),
+
+        // TODO: Are there any cases where we unintentionally hit this?
+        _ => panic!("invalid function call, expected a member reference"),
     }
-}
-
-#[test]
-fn demo() {
-    let id_provider = IdProvider::default();
-    let mut nodes = vec![
-        create_member_reference("a", id_provider.clone(), None),
-        create_member_reference("b", id_provider.clone(), None),
-        create_member_reference("c", id_provider.clone(), None),
-    ];
-
-    let mut base = nodes.pop().unwrap();
-    for node in nodes.into_iter().rev() {
-        todo_rename_me_deep_reference(&mut base, node);
-    }
-
-    insta::assert_debug_snapshot!(base, @r#"
-    ReferenceExpr {
-        kind: Member(
-            Identifier {
-                name: "c",
-            },
-        ),
-        base: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "b",
-                    },
-                ),
-                base: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "a",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        ),
-    }
-    "#);
-}
-
-fn create_assignment_if_necessary(
-    lhs_ident: &str,
-    base_ident: Option<&str>,
-    rhs: &Option<AstNode>,
-    mut id_provider: IdProvider,
-) -> Option<AstNode> {
-    let lhs = create_member_reference(
-        lhs_ident,
-        id_provider.clone(),
-        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
-    );
-    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
 }
 
 fn create_ref_assignment(
@@ -628,4 +546,55 @@ pub fn create_call_statement(
         base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
     );
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
+}
+
+#[cfg(test)]
+mod tests {
+    use plc_ast::provider::IdProvider;
+
+    use crate::lowering::{create_member_reference, insert_base_node};
+
+    #[test]
+    fn demo() {
+        let id_provider = IdProvider::default();
+        let mut nodes = vec![
+            create_member_reference("a", id_provider.clone(), None),
+            create_member_reference("b", id_provider.clone(), None),
+            create_member_reference("c", id_provider.clone(), None),
+        ];
+
+        let mut base = nodes.pop().unwrap();
+        for node in nodes.into_iter().rev() {
+            insert_base_node(&mut base, node);
+        }
+
+        insta::assert_debug_snapshot!(base, @r#"
+        ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "c",
+                },
+            ),
+            base: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "b",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "a",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            ),
+        }
+        "#);
+    }
 }

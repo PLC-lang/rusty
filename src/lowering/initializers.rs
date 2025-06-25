@@ -1,6 +1,6 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
-    lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
+    lowering::{create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -12,7 +12,7 @@ use plc_ast::{
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
 
-use super::{todo_rename_me, InitVisitor};
+use super::{transform_initializer_to_assignments, InitVisitor};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
@@ -191,7 +191,12 @@ fn create_init_unit(
 
     let mut statements = Vec::new();
     for (var_name, initializer) in assignments {
-        let initializers = todo_rename_me(&var_name, Some(&self_ident), initializer, id_provider.clone());
+        let initializers = transform_initializer_to_assignments(
+            &var_name,
+            Some(&self_ident),
+            initializer,
+            id_provider.clone(),
+        );
         statements.extend(initializers);
     }
 
@@ -222,7 +227,6 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    // statements.extend(member_init_calls);
     let statements = vec![member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
@@ -338,22 +342,10 @@ fn create_init_wrapper_function(
         }
     });
 
-    // let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
-    //     stmts
-    //         .iter()
-    //         .filter_map(|(var_name, initializer)| {
-    //             dbg!(&initializer);
-    //             create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
-    //         })
-    //         .collect::<Vec<_>>()
-    // } else {
-    //     vec![]
-    // };
     let mut statements = Vec::new();
-    for statement in lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
+    if let Some(statement) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         for (var_name, initializer) in statement {
-            // let res = create_assignment_if_necessary(&var_name, None, initializer, id_provider.clone());
-            let res = todo_rename_me(&var_name, None, initializer, id_provider.clone());
+            let res = transform_initializer_to_assignments(&var_name, None, initializer, id_provider.clone());
             statements.extend(res);
         }
     }
