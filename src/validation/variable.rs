@@ -6,7 +6,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 
 use super::{
     array::validate_array_assignment,
-    statement::{validate_pointer_assignment, visit_statement},
+    statement::{validate_assignment_mismatch, visit_statement},
     types::{data_type_is_fb_or_class_instance, visit_data_type_declaration},
     ValidationContext, Validator, Validators,
 };
@@ -302,7 +302,7 @@ fn validate_variable<T: AnnotationMap>(
 
                         report_temporary_address_in_pointer_initializer(validator, context, v_entry, node);
 
-                        validate_pointer_assignment(
+                        validate_assignment_mismatch(
                             context,
                             validator,
                             context.index.get_effective_type_or_void_by_name(v_entry.get_type_name()),
@@ -482,7 +482,7 @@ fn validate_reference_to_declaration<T: AnnotationMap>(
         let Some(type_lhs) = context.annotations.get_type_hint(initializer, context.index) else { return };
         let Some(type_rhs) = context.annotations.get_type(initializer, context.index) else { return };
 
-        validate_pointer_assignment(context, validator, type_lhs, type_rhs, &initializer.location);
+        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, &initializer.location);
     }
 }
 

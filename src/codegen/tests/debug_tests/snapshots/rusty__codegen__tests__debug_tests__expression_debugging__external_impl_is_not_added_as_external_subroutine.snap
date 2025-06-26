@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -11,8 +10,8 @@ target triple = "[filtered]"
 %myPrg = type {}
 %myFb = type {}
 
-@myPrg_instance = external global %myPrg, !dbg !0
-@__myFb__init = external global %myFb, !dbg !5
+@myPrg_instance = external global %myPrg
+@__myFb__init = external unnamed_addr constant %myFb
 
 declare i32 @myFunc()
 
@@ -20,19 +19,10 @@ declare void @myPrg(%myPrg*)
 
 declare void @myFb(%myFb*)
 
-!llvm.module.flags = !{!8, !9}
-!llvm.dbg.cu = !{!10}
+!llvm.module.flags = !{!0, !1}
+!llvm.dbg.cu = !{!2}
 
-!0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-!1 = distinct !DIGlobalVariable(name: "myPrg", scope: !2, file: !2, line: 4, type: !3, isLocal: false, isDefinition: true)
-!2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "myPrg", scope: !2, file: !2, line: 4, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myPrg")
-!4 = !{}
-!5 = !DIGlobalVariableExpression(var: !6, expr: !DIExpression())
-!6 = distinct !DIGlobalVariable(name: "__myFb__init", scope: !2, file: !2, line: 6, type: !7, isLocal: false, isDefinition: true)
-!7 = !DICompositeType(tag: DW_TAG_structure_type, name: "myFb", scope: !2, file: !2, line: 6, align: 64, flags: DIFlagPublic, elements: !4, identifier: "myFb")
-!8 = !{i32 2, !"Dwarf Version", i32 5}
-!9 = !{i32 2, !"Debug Info Version", i32 3}
-!10 = distinct !DICompileUnit(language: DW_LANG_C, file: !11, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !12, splitDebugInlining: false)
-!11 = !DIFile(filename: "<internal>", directory: "src")
-!12 = !{!0, !5}
+!0 = !{i32 2, !"Dwarf Version", i32 5}
+!1 = !{i32 2, !"Debug Info Version", i32 3}
+!2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+!3 = !DIFile(filename: "<internal>", directory: "src")

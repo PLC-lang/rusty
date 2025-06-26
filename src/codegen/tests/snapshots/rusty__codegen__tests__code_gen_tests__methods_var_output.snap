@@ -20,7 +20,7 @@ entry:
   ret void
 }
 
-define void @foo_baz(%foo* %0, [81 x i8]* %1) {
+define void @foo__baz(%foo* %0, [81 x i8]* %1) {
 entry:
   %this = alloca %foo*, align 8
   store %foo* %0, %foo** %this, align 8
@@ -41,9 +41,9 @@ entry:
   %1 = bitcast %foo* %fb to i8*
   call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
   %2 = bitcast [81 x i8]* %s to i8*
-  call void @foo_baz(%foo* %fb, i8* %2)
+  call void @foo__baz(%foo* %fb, i8* %2)
   %3 = bitcast [81 x i8]* %s to i8*
-  call void @foo_baz(%foo* %fb, i8* %3)
+  call void @foo__baz(%foo* %fb, i8* %3)
   ret void
 }
 

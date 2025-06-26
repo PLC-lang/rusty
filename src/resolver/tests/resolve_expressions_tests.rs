@@ -3392,6 +3392,7 @@ fn address_of_is_annotated_correctly() {
                 inner_type_name: "INT".to_string(),
                 name: "__POINTER_TO_INT".to_string(),
                 auto_deref: None,
+                type_safe: true,
             }),
             index.find_effective_type_info(resulting_type),
         );
