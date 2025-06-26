@@ -193,7 +193,7 @@ fn create_init_unit(
     for (var_name, initializer) in assignments {
         if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
             let initializers = create_assignments_from_initializer(
-                &var_name,
+                var_name,
                 Some(&self_ident),
                 initializer,
                 id_provider.clone(),
@@ -229,7 +229,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    let statements = vec![member_init_calls, statements].concat();
+    let statements = [member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -349,7 +349,7 @@ fn create_init_wrapper_function(
         for (var_name, initializer) in statement {
             if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
                 let res =
-                    create_assignments_from_initializer(&var_name, None, initializer, id_provider.clone());
+                    create_assignments_from_initializer(var_name, None, initializer, id_provider.clone());
                 statements.extend(res);
             }
         }
@@ -379,7 +379,7 @@ fn create_init_wrapper_function(
     };
 
     let user_init_calls = get_global_user_init_statements(lowerer);
-    let statements = vec![calls, statements, user_init_calls].concat();
+    let statements = [calls, statements, user_init_calls].concat();
     let implementation =
         new_implementation(init_symbol_name, statements, PouType::ProjectInit, SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);

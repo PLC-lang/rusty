@@ -36,8 +36,8 @@ impl InitVisitor {
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
         // before visiting, we need to collect all candidates for user-defined init functions
-        units.iter_mut().for_each(|mut unit| {
-            visitor.collect_user_init_candidates(&mut unit);
+        units.iter_mut().for_each(|unit| {
+            visitor.collect_user_init_candidates(unit);
         });
         // visit all units
         units.iter_mut().for_each(|unit| {
@@ -120,7 +120,7 @@ impl InitVisitor {
                     })
         };
 
-        if let Some(initializer) = variable.initializer.as_ref().take() {
+        if let Some(initializer) = variable.initializer.as_ref() {
             let type_name =
                 variable.data_type_declaration.get_name().expect("Must have a type at this point");
             let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
