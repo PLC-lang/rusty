@@ -164,7 +164,7 @@ fn external_pous_get_external_initializers() {
         ",
     );
 
-    filtered_assert_snapshot!(result, @r#"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -173,13 +173,13 @@ fn external_pous_get_external_initializers() {
     %ext_fb = type {}
     %ext_prog = type {}
 
-    @__ext_fb__init = external global %ext_fb
+    @__ext_fb__init = external unnamed_addr constant %ext_fb
     @ext_prog_instance = external global %ext_prog
 
     declare void @ext_fb(%ext_fb*)
 
     declare void @ext_prog(%ext_prog*)
-    "#);
+    "###);
 }
 
 #[test]

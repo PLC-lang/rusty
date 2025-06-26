@@ -99,6 +99,7 @@ fn representation() {
             name: "__ptr_to___arr_vla_1_dint",
             inner_type_name: "__arr_vla_1_dint",
             auto_deref: None,
+            type_safe: true,
         },
         nature: Any,
         location: SourceLocation {

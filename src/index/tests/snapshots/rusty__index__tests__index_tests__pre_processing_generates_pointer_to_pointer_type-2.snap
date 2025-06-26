@@ -11,6 +11,7 @@ UserTypeDeclaration {
             referenced_type: "__pointer_to_pointer",
         },
         auto_deref: None,
+        type_safe: true,
     },
     initializer: None,
     scope: None,

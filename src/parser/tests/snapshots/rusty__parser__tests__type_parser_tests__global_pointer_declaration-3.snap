@@ -2,10 +2,8 @@
 source: src/parser/tests/type_parser_tests.rs
 expression: diagnostics
 ---
-warning[E015]: `POINTER TO` is not a standard keyword, use `REF_TO` instead
+warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
   ┌─ <internal>:4:29
   │
 4 │             SamplePointer : POINTER TO INT;
-  │                             ^^^^^^^ `POINTER TO` is not a standard keyword, use `REF_TO` instead
-
-
+  │                             ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
