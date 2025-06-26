@@ -496,8 +496,7 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a>
-<a href="#499" id="499">499</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<a href="#498" id="498">498</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -642,8 +641,7 @@
                 generic_implementation.get_location().to_owned(),
             );
 
-            <span class="kw">let </span>return_type =
-                <span class="self">self</span>.index.find_type(return_type_name).expect(<span class="string">"Return type must be in the index"</span>);
+            <span class="kw">let </span>return_type = <span class="self">self</span>.index.find_type(return_type_name).unwrap_or(<span class="self">self</span>.index.get_void_type());
             <span class="comment">//register a copy of the pou under the new name
             </span><span class="self">self</span>.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
                 new_name,
