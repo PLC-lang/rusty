@@ -36,8 +36,8 @@ impl InitVisitor {
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
         // before visiting, we need to collect all candidates for user-defined init functions
-        units.iter().for_each(|unit| {
-            visitor.collect_user_init_candidates(unit);
+        units.iter_mut().for_each(|mut unit| {
+            visitor.collect_user_init_candidates(&mut unit);
         });
         // visit all units
         units.iter_mut().for_each(|unit| {
@@ -70,7 +70,7 @@ impl InitVisitor {
         self.ctxt.scope(old);
     }
 
-    fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
+    fn collect_user_init_candidates(&mut self, unit: &mut CompilationUnit) {
         // collect all candidates for user-defined init functions
         for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
         {
@@ -80,12 +80,34 @@ impl InitVisitor {
         }
 
         for user_type in
-            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+            unit.user_types.iter_mut().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {
                 self.user_inits.insert(name.to_string(), false);
             };
+
+            match user_type.data_type {
+                DataType::StructType { ref mut variables, .. } => {
+                    // Remove initializers from the struct definition as they'll be added to the `__init_*` function
+                    // later on. However, constant initializers (references and literals) are not touched here because
+                    // they are resolvable by the codegen as constants and do not need assignments in the `__init_*`
+                    for variable in variables.iter_mut() {
+                        if variable
+                            .initializer
+                            .as_ref()
+                            // XXX: Very duct-tapey but essentially we don't want to remove const-evaluated literals or
+                            // references. Since we're in a pre-annotate stage however there is no way to check if a
+                            // reference is a const reference (think of VAR_GLOBAL CONST x : DINT := 5; END_VAR) thus
+                            // we ignore all references and literals here.
+                            .is_some_and(|it| !it.is_literal() && !it.is_reference())
+                        {
+                            variable.initializer = None;
+                        }
+                    }
+                }
+                _ => {}
+            }
         }
     }
 
