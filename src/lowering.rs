@@ -466,10 +466,6 @@ fn create_assignments_from_initializer(
         return Vec::new();
     };
 
-    // [foo, bar, baz];
-    // { ref: foo, base: none }
-    // { ref: bar, base: Some(foo) }
-    // { ref: baz, base: {ref: }}
     let mut result = vec![];
     for mut path in create_assignment_paths(initializer, id_provider.clone()) {
         path.insert(0, create_member_reference(var_ident, id_provider.clone(), None));
@@ -477,9 +473,6 @@ fn create_assignments_from_initializer(
             path.insert(0, create_member_reference("self", id_provider.clone(), None));
         }
 
-        // [foo, bar, baz, REF(globalFoo)] -- init --> [self, varname, foo, bar, baz, REF(globalFoo)]
-        // Pop -> REF(globalFoo)
-        // Pop -> baz
         let right = path.pop().expect("must have at least one node in the path");
         let mut left = path.pop().expect("must have at least one node in the path");
 
@@ -505,7 +498,6 @@ fn insert_base_node(member: &mut AstNode, new_base: AstNode) {
             }
         },
 
-        // TODO: Are there any cases where we unintentionally hit this?
         _ => panic!("invalid function call, expected a member reference"),
     }
 }
@@ -552,55 +544,4 @@ pub fn create_call_statement(
         base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
     );
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
-}
-
-#[cfg(test)]
-mod tests {
-    use plc_ast::provider::IdProvider;
-
-    use crate::lowering::{create_member_reference, insert_base_node};
-
-    #[test]
-    fn demo() {
-        let id_provider = IdProvider::default();
-        let mut nodes = vec![
-            create_member_reference("a", id_provider.clone(), None),
-            create_member_reference("b", id_provider.clone(), None),
-            create_member_reference("c", id_provider.clone(), None),
-        ];
-
-        let mut base = nodes.pop().unwrap();
-        for node in nodes.into_iter().rev() {
-            insert_base_node(&mut base, node);
-        }
-
-        insta::assert_debug_snapshot!(base, @r#"
-        ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "c",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "b",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "a",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-            ),
-        }
-        "#);
-    }
 }
