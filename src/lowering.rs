@@ -5,8 +5,8 @@ use crate::{
 use initializers::{get_user_init_fn_name, Init, InitAssignments, Initializers, GLOBAL_SCOPE};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable, DataType,
-        LinkageType, PouType,
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, ConfigVariable,
+        DataType, LinkageType, PouType, ReferenceExpr,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -36,7 +36,7 @@ impl InitVisitor {
     ) -> Vec<CompilationUnit> {
         let mut visitor = Self::new(index, unresolvables, id_provider);
         // before visiting, we need to collect all candidates for user-defined init functions
-        units.iter().for_each(|unit| {
+        units.iter_mut().for_each(|unit| {
             visitor.collect_user_init_candidates(unit);
         });
         // visit all units
@@ -70,7 +70,7 @@ impl InitVisitor {
         self.ctxt.scope(old);
     }
 
-    fn collect_user_init_candidates(&mut self, unit: &CompilationUnit) {
+    fn collect_user_init_candidates(&mut self, unit: &mut CompilationUnit) {
         // collect all candidates for user-defined init functions
         for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
         {
@@ -80,7 +80,7 @@ impl InitVisitor {
         }
 
         for user_type in
-            unit.user_types.iter().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+            unit.user_types.iter_mut().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {
@@ -284,30 +284,31 @@ impl InitVisitor {
     fn update_struct_initializers(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
         let effective_type =
             user_type.data_type.get_name().and_then(|it| self.index.find_effective_type_by_name(it));
-        if let DataType::StructType { .. } = &user_type.data_type {
+        if let DataType::StructType { ref mut variables, .. } = &mut user_type.data_type {
             let Some(ty) = effective_type else {
                 return user_type.walk(self);
             };
             let name = ty.get_name();
 
-            let member_inits = self
-                .index
-                .get_container_members(name)
-                .iter()
-                .filter_map(|var| {
-                    // struct member initializers don't have a qualifier/scope while evaluated in `const_evaluator.rs` and are registered as globals under their data-type name;
-                    // look for member initializers for this struct in the global initializers, remove them and add new entries with the correct qualifier and left-hand-side
-                    self.unresolved_initializers
-                        .get_mut(GLOBAL_SCOPE)
-                        .and_then(|it| it.swap_remove(var.get_type_name()))
-                        .map(|node| (var.get_name(), node))
-                })
-                .collect::<Vec<_>>();
+            for variable in variables {
+                self.unresolved_initializers.maybe_insert_initializer(
+                    name,
+                    Some(&variable.name),
+                    &variable.initializer,
+                );
 
-            for (lhs, init) in member_inits {
-                // update struct member initializers
-                self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
+                // XXX: Very duct-tapey but essentially we now have two initializers, one in the struct datatype
+                // definition itself (`DataType::StructType { initializer: Some(<arena id>), ... }`) and one in the
+                // `__init_*` function now. The former is unresolvable because it has the raw initializer, e.g.
+                // `foo := (a := (b := (c := REF(...))))` whereas the latter is resolvable because it yields something
+                // like `foo.a.b.c := REF(...)`. Thus we remove the initializer from the struct datatype definition
+                // as the codegen would otherwise fail at generating them and result in a `Cannot generate values for..`
+                // Literals and references are ignored however, since they are resolvable and / or constant.
+                if variable.initializer.as_ref().is_some_and(|opt| !opt.is_literal() && !opt.is_reference()) {
+                    variable.initializer = None;
+                }
             }
+
             // add container to keys if not already present
             self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
@@ -429,18 +430,76 @@ fn create_member_reference(ident: &str, id_provider: IdProvider, base: Option<As
     create_member_reference_with_location(ident, id_provider, base, SourceLocation::internal())
 }
 
-fn create_assignment_if_necessary(
-    lhs_ident: &str,
-    base_ident: Option<&str>,
+/// Takes some expression such as `bar := (baz := (qux := ADR(val)), baz2 := (qux := ADR(val)))` returning all final
+/// assignment paths such as [`bar.baz.qux := ADR(val)`, `bar.baz2.qux := ADR(val)`].
+fn create_assignment_paths(node: &AstNode, id_provider: IdProvider) -> Vec<Vec<AstNode>> {
+    match node.get_stmt() {
+        AstStatement::Assignment(Assignment { left, right }) => {
+            let mut result = create_assignment_paths(right, id_provider.clone());
+            for inner in result.iter_mut() {
+                inner.insert(0, left.as_ref().clone());
+            }
+            result
+        }
+        AstStatement::ExpressionList(nodes) => {
+            let mut result = vec![];
+            for node in nodes {
+                let inner = create_assignment_paths(node, id_provider.clone());
+                result.extend(inner);
+            }
+            result
+        }
+        AstStatement::ParenExpression(node) => create_assignment_paths(node, id_provider),
+        _ => vec![vec![node.clone()]],
+    }
+}
+
+/// Takes some expression such as `foo : FooStruct := (bar := (baz := (qux := ADR(val)), baz2 := (qux := ADR(val))));`
+/// and returns assignments of form [`foo.bar.baz.qux := ADR(val)`, `foo.bar.baz2.qux := ADR(val)`].
+fn create_assignments_from_initializer(
+    var_ident: &str,
+    self_ident: Option<&str>,
     rhs: &Option<AstNode>,
     mut id_provider: IdProvider,
-) -> Option<AstNode> {
-    let lhs = create_member_reference(
-        lhs_ident,
-        id_provider.clone(),
-        base_ident.map(|id| create_member_reference(id, id_provider.clone(), None)),
-    );
-    rhs.as_ref().map(|node| AstFactory::create_assignment(lhs, node.to_owned(), id_provider.next_id()))
+) -> Vec<AstNode> {
+    let Some(initializer) = rhs else {
+        return Vec::new();
+    };
+
+    let mut result = vec![];
+    for mut path in create_assignment_paths(initializer, id_provider.clone()) {
+        path.insert(0, create_member_reference(var_ident, id_provider.clone(), None));
+        if self_ident.is_some() {
+            path.insert(0, create_member_reference("self", id_provider.clone(), None));
+        }
+
+        let right = path.pop().expect("must have at least one node in the path");
+        let mut left = path.pop().expect("must have at least one node in the path");
+
+        for node in path.into_iter().rev() {
+            insert_base_node(&mut left, node);
+        }
+
+        result.push(AstFactory::create_assignment(left, right, id_provider.next_id()));
+    }
+
+    result
+}
+
+/// Inserts a new base node into the member reference chain. For example a call such as `insert_base_node("b.c", a")`
+/// will yield `a.b.c`.
+fn insert_base_node(member: &mut AstNode, new_base: AstNode) {
+    match &mut member.stmt {
+        AstStatement::ReferenceExpr(ReferenceExpr { base, .. }) => match base {
+            Some(inner) => insert_base_node(inner, new_base),
+            None => {
+                // We hit the end of the chain, simply replace the base (which must be None) with the new one
+                base.replace(Box::new(new_base));
+            }
+        },
+
+        _ => panic!("invalid function call, expected a member reference"),
+    }
 }
 
 fn create_ref_assignment(

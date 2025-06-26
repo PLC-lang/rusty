@@ -1,8 +1,12 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
+VAR_GLOBAL CONSTANT
+    constantDintValue : DINT := 12345;
+END_VAR
 TYPE myStruct : STRUCT
         member : REF_TO STRING := REF(s);
         member2 AT s2 : ARRAY[0..1] OF STRING;
         member3: DINT := 367;
+        member4: DINT := 12345;
     END_STRUCT
 END_TYPE
 
@@ -27,6 +31,8 @@ END_VAR
     printf(' %s$N', REF(tmp));
     // CHECK: 367
     printf('%d$N', str.member3);
+    // CHECK: 12345
+    printf('%d$N', str.member4);
 END_PROGRAM
 
 FUNCTION main: DINT

@@ -734,7 +734,7 @@ impl StatementAnnotation {
     /// Returns the location of a parameter in some POU the argument is assigned to, for example
     /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
     /// blocks
-    /// ```norun
+    /// ```text
     /// VAR_INPUT
     ///     a, b : DINT;
     /// END_VAR
