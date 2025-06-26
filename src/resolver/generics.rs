@@ -143,8 +143,7 @@ impl TypeAnnotator<'_> {
                 generic_implementation.get_location().to_owned(),
             );
 
-            let return_type =
-                self.index.find_type(return_type_name).expect("Return type must be in the index");
+            let return_type = self.index.find_type(return_type_name).unwrap_or(self.index.get_void_type());
             //register a copy of the pou under the new name
             self.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
                 new_name,
