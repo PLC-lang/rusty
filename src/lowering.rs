@@ -86,28 +86,6 @@ impl InitVisitor {
             if let Some(name) = user_type.data_type.get_name() {
                 self.user_inits.insert(name.to_string(), false);
             };
-
-            match user_type.data_type {
-                DataType::StructType { ref mut variables, .. } => {
-                    // Remove initializers from the struct definition as they'll be added to the `__init_*` function
-                    // later on. However, constant initializers (references and literals) are not touched here because
-                    // they are resolvable by the codegen as constants and do not need assignments in the `__init_*`
-                    for variable in variables.iter_mut() {
-                        if variable
-                            .initializer
-                            .as_ref()
-                            // XXX: Very duct-tapey but essentially we don't want to remove const-evaluated literals or
-                            // references. Since we're in a pre-annotate stage however there is no way to check if a
-                            // reference is a const reference (think of VAR_GLOBAL CONST x : DINT := 5; END_VAR) thus
-                            // we ignore all references and literals here.
-                            .is_some_and(|it| !it.is_literal() && !it.is_reference())
-                        {
-                            variable.initializer = None;
-                        }
-                    }
-                }
-                _ => {}
-            }
         }
     }
 
@@ -312,7 +290,6 @@ impl InitVisitor {
             };
             let name = ty.get_name();
 
-            // TODO: Might break some things
             for variable in variables {
                 self.unresolved_initializers.maybe_insert_initializer(
                     name,
@@ -320,9 +297,16 @@ impl InitVisitor {
                     &variable.initializer,
                 );
 
-                // XXX: It would be nice to remove the initializer given we will insert them in the `__init`
-                //      functions. However, doing so results in failing correctness tests :/
-                // variable.initializer = None;
+                // XXX: Very duct-tapey but essentially we now have two initializers, one in the struct datatype
+                // definition itself (`DataType::StructType { initializer: Some(<arena id>), ... }`) and one in the
+                // `__init_*` function now. The former is unresolvable because it has the raw initializer, e.g.
+                // `foo := (a := (b := (c := REF(...))))` whereas the latter is resolvable because it yields something
+                // like `foo.a.b.c := REF(...)`. Thus we remove the initializer from the struct datatype definition
+                // as the codegen would otherwise fail at generating them and result in a `Cannot generate values for..`
+                // Literals and references are ignored however, since they are resolvable and / or constant.
+                if variable.initializer.as_ref().is_some_and(|opt| !opt.is_literal() && !opt.is_reference()) {
+                    variable.initializer = None;
+                }
             }
 
             // add container to keys if not already present
