@@ -29,9 +29,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-use super::{
-    llvm::Llvm, statement_generator::FunctionContext, util::array_access_generator
-};
+use super::{llvm::Llvm, statement_generator::FunctionContext, util::array_access_generator};
 
 #[derive(Debug)]
 pub enum GeneratedValue<'ink> {
@@ -41,11 +39,10 @@ pub enum GeneratedValue<'ink> {
     NoValue,
 }
 
-impl <'ink> GeneratedValue<'ink> {
-
+impl<'ink> GeneratedValue<'ink> {
     pub fn as_pointer_value(&self) -> Result<PointerValue<'ink>> {
         match self {
-            GeneratedValue::LValue((pv, ..)) => Ok(*pv) ,
+            GeneratedValue::LValue((pv, ..)) => Ok(*pv),
             _ => bail!("Expected LValue but got {:#?}", self),
         }
     }
@@ -61,8 +58,15 @@ impl <'ink> GeneratedValue<'ink> {
             GeneratedValue::NoValue => Ok(GeneratedValue::NoValue),
         }
     }
-}
 
+    pub fn is_r_value(&self) -> bool {
+        matches!(self, GeneratedValue::RValue(_))
+    }
+
+    pub fn is_l_value(&self) -> bool {
+        matches!(self, GeneratedValue::LValue(_))
+    }
+}
 
 pub struct ExpressionVisitor<'ink, 'a> {
     pub llvm: &'a Llvm<'ink>,
@@ -83,10 +87,17 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
         annotations: &'a AstAnnotations,
         index: &'a Index,
         function_context: Option<&'a FunctionContext<'ink, 'a>>,
-
     ) -> Self {
         let literals_generator = LlvmLiteralsGenerator::new(llvm, llvm_index, index);
-        Self { llvm, llvm_index, annotations, index, literals_generator, result_stack: Vec::new(), function_context }
+        Self {
+            llvm,
+            llvm_index,
+            annotations,
+            index,
+            literals_generator,
+            result_stack: Vec::new(),
+            function_context,
+        }
     }
 
     fn get_load_name(&self, id: usize) -> Option<&str> {
@@ -98,19 +109,17 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
     }
 
     pub fn get_function_context(&self) -> Result<&'a FunctionContext<'ink, 'a>> {
-        self.function_context.ok_or_else(|| {
-            anyhow!("Cannot generate expression outside of a function context.")
-        })
+        self.function_context
+            .ok_or_else(|| anyhow!("Cannot generate expression outside of a function context."))
     }
 
-/// returns the data type associated to the given statement using the following strategy:
+    /// returns the data type associated to the given statement using the following strategy:
     /// - 1st try: fetch the type associated via the `self.annotations`
     /// - 2nd try: fetch the type associated with the given `default_type_name`
     /// - else return an `Err`
     pub fn get_type_hint_info_for(&self, statement: &AstNode) -> Result<&DataTypeInformation, Diagnostic> {
         self.get_type_hint_for(statement).map(DataType::get_type_information)
     }
-
 }
 
 impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
@@ -135,25 +144,32 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                     if !t.is_pointer_type() {
                         bail!("Cannot generate null literal for non-pointer type: {type_hint:?}");
                     }
-                    Ok( GeneratedValue::RValue((t.into_pointer_type().const_null().as_basic_value_enum(), node.get_id())))
+                    Ok(GeneratedValue::RValue((
+                        t.into_pointer_type().const_null().as_basic_value_enum(),
+                        node.get_id(),
+                    )))
                 }
                 AstLiteral::Real(v) => {
                     let value = v.parse::<f64>().expect("Failed to parse float"); //parser should have checked this
 
-                    Ok(self.literals_generator
-                                            .generate_const_float(type_hint, value)
-                                            .map(|it| GeneratedValue::RValue((it, node.get_id())))?)
+                    Ok(self
+                        .literals_generator
+                        .generate_const_float(type_hint, value)
+                        .map(|it| GeneratedValue::RValue((it, node.get_id())))?)
                 }
                 AstLiteral::String(string_value) => {
-                    let r = self.literals_generator.generate_const_string(type_hint, string_value.value()).map(|it| {
-                        if it.is_pointer_value() {
-                            // a string literal is a pointer to the string
-                            GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))
-                        } else {
-                            // a char is an RValue
-                            GeneratedValue::RValue((it, node.get_id()))
-                        }
-                    });
+                    let r = self
+                        .literals_generator
+                        .generate_const_string(type_hint, string_value.value())
+                        .map(|it| {
+                            if it.is_pointer_value() {
+                                // a string literal is a pointer to the string
+                                GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))
+                            } else {
+                                // a char is an RValue
+                                GeneratedValue::RValue((it, node.get_id()))
+                            }
+                        });
                     Ok(r?)
                 }
                 AstLiteral::Array(_array) => todo!(),
@@ -163,9 +179,10 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
             }
         };
 
-
-        self.push_value(node, do_visit_literal()
-            .map_err(|e| Diagnostic::codegen_error(format!("{e}"), node.get_location())));
+        self.push_value(
+            node,
+            do_visit_literal().map_err(|e| Diagnostic::codegen_error(format!("{e}"), node.get_location())),
+        );
     }
 
     fn visit_reference_expr(&mut self, stmt: &plc_ast::ast::ReferenceExpr, node: &AstNode) {
@@ -179,19 +196,27 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                     self.generate_reference_access(node, &annotation, None)
                 }
                 (ReferenceAccess::Member(member_node), Some(base)) => {
-                    let base_value = self.generate_expression(base)?.as_pointer_value()?;
-                    let annotation = self
+                    let base_value = self.generate_expression(base)?;
+                    let member_annotation = self
                         .annotations
                         .get(&member_node)
                         .ok_or_else(|| anyhow!("Cannot find annotation for {member_node:?}"))?;
-                    self.generate_reference_access(&member_node, annotation, Some(base_value))
+
+                    self.generate_reference_access(
+                        &member_node,
+                        member_annotation,
+                        Some(base_value.as_pointer_value()?),
+                    )
                 }
                 (ReferenceAccess::Cast(inner_node), _) => {
                     if inner_node.is_literal() {
                         Ok(GeneratedValue::RValue((self.generate_r_value(inner_node)?, node.get_id())))
-                    }else{
-                        let annotation = self.annotations.get_hint(inner_node)
-                            .or_else(|| self.annotations.get(inner_node)).expect("no annotation found");
+                    } else {
+                        let annotation = self
+                            .annotations
+                            .get_hint(inner_node)
+                            .or_else(|| self.annotations.get(inner_node))
+                            .expect("no annotation found");
                         self.generate_reference_access(&inner_node, annotation, None)
                     }
                 }
@@ -297,46 +322,46 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
 
             match self.annotations.get_call_name(&stmt.operator).zip(self.annotations.get(&stmt.operator)) {
                 Some((call_name, StatementAnnotation::Function { qualified_name, .. })) => {
-                    if let Some(builtin) = self.index.get_builtin_function(call_name){
+                    if let Some(builtin) = self.index.get_builtin_function(call_name) {
                         // this is a builtin function, we can generate it directly
                         return Ok(builtin.codegen(self, &actual_parameters, node.get_location())?);
-                    }else {
-                    let function_to_call =
-                        self.llvm_index.find_associated_implementation(call_name).expect("");
-
-                    let pou = self
-                        .index
-                        .find_pou(&qualified_name)
-                        .ok_or_else(|| anyhow!("Cannot find function {:#?}", qualified_name))?;
-
-                    let formal_parameters = self
-                        .index
-                        .get_pou_members(pou.get_name())
-                        .iter()
-                        .filter(|e| e.is_parameter())
-                        .collect_vec();
-
-                    if pou.is_method() {
-                        // method call
-                        //todo: harmonize parameters with function case
-                        self.generate_method_call(
-                            pou,
-                            function_to_call,
-                            &actual_parameters,
-                            &stmt.operator,
-                            &node,
-                        )
-                    } else if pou.is_function() {
-                        // function call
-                        self.generate_function_call(
-                            function_to_call,
-                            &formal_parameters,
-                            &actual_parameters,
-                            &node,
-                        )
                     } else {
-                        bail!("Expected a function or method but got {:#?}", pou);
-                    }
+                        let function_to_call =
+                            self.llvm_index.find_associated_implementation(call_name).expect("");
+
+                        let pou = self
+                            .index
+                            .find_pou(&qualified_name)
+                            .ok_or_else(|| anyhow!("Cannot find function {:#?}", qualified_name))?;
+
+                        let formal_parameters = self
+                            .index
+                            .get_pou_members(pou.get_name())
+                            .iter()
+                            .filter(|e| e.is_parameter())
+                            .collect_vec();
+
+                        if pou.is_method() {
+                            // method call
+                            //todo: harmonize parameters with function case
+                            self.generate_method_call(
+                                pou,
+                                function_to_call,
+                                &actual_parameters,
+                                &stmt.operator,
+                                &node,
+                            )
+                        } else if pou.is_function() {
+                            // function call
+                            self.generate_function_call(
+                                function_to_call,
+                                &formal_parameters,
+                                &actual_parameters,
+                                &node,
+                            )
+                        } else {
+                            bail!("Expected a function or method but got {:#?}", pou);
+                        }
                     }
                 }
                 Some((call_name, StatementAnnotation::Program { qualified_name, .. })) => {
@@ -707,12 +732,8 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
     ) -> Result<GeneratedValue<'ink>> {
         // collect formal and actual parameters
-        let formal_parameters = self
-            .index
-            .get_pou_members(prg.get_name())
-            .iter()
-            .filter(|e| e.is_parameter())
-            .collect_vec();
+        let formal_parameters =
+            self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
         let mut arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment())
         {
@@ -805,7 +826,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 let constant_expression = self
                     .index
                     .find_fully_qualified_variable(&qualified_name)
-                    .and_then(|it| it.initial_value)
+                    .and_then(|it: &VariableIndexEntry| it.initial_value)
                     .and_then(|id| self.index.get_const_expressions().get_constant_statement(&id))
                     .ok_or_else(|| anyhow!("Cannot find constant {:#?}", qualified_name))?;
                 Some(GeneratedValue::RValue((self.generate_r_value(constant_expression)?, ast_id)))
@@ -861,7 +882,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             // check if we need to deref
             if self.annotations.get_with_id(id).is_some_and(|opt| opt.is_auto_deref()) {
                 return GeneratedValue::LValue((
-                    self.as_r_value_with_name(v, Some("deref")).into_pointer_value(),
+                    self.load_value_with_identifier(v, Some("deref")).0.into_pointer_value(),
                     id,
                 ));
             }
@@ -890,6 +911,41 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
     }
 
     pub fn as_r_value_with_name(&self, v: GeneratedValue<'ink>, name: Option<&str>) -> BasicValueEnum<'ink> {
+        let (r_value, id) = self.load_value_with_identifier(v, name);
+
+        //see if we need to cast here
+        let Some(target_type) = self
+            .annotations
+            .get_hint_with_id(id)
+            .and_then(|hint| self.annotations.get_type_for_annotation(self.index, hint))
+        else {
+            // no type-hint -> we can return the value as is
+            return r_value.as_basic_value_enum();
+        };
+        let actual_type = self
+            .annotations
+            .get_with_id(id)
+            .and_then(|hint| self.annotations.get_type_for_annotation(self.index, hint))
+            .unwrap_or_else(|| self.index.get_void_type());
+
+        crate::codegen::llvm_typesystem::cast(
+            self.llvm,
+            self.index,
+            self.llvm_index,
+            target_type,
+            actual_type,
+            r_value.as_basic_value_enum(),
+            self.annotations.get_with_id(id),
+        )
+    }
+
+    //TODO: clean up mess with load_value_with_identifier vs. as_r_value_with_name
+    // this function only loads but does not cast the value if necessary
+    fn load_value_with_identifier(
+        &self,
+        v: GeneratedValue<'ink>,
+        name: Option<&str>,
+    ) -> (BasicValueEnum<'ink>, usize) {
         let (r_value, id) = match v {
             GeneratedValue::RValue((v, id)) => (v, id),
             GeneratedValue::LValue((v, id)) => {
@@ -912,30 +968,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
             }
             GeneratedValue::NoValue => panic!("No value"),
         };
-
-        //see if we need to cast here
-        let Some(target_type) = self
-            .annotations
-            .get_hint_with_id(id)
-            .and_then(|hint| self.annotations.get_type_for_annotation(self.index, hint))
-        else {
-            // no type-hint -> we can return the value as is
-            return r_value.as_basic_value_enum();
-        };
-        let actual_type = self
-            .annotations
-            .get_with_id(id)
-            .and_then(|hint| self.annotations.get_type_for_annotation(self.index, hint))
-            .unwrap_or_else(|| self.index.get_void_type());
-        cast_if_needed!(
-            self.llvm,
-            self.index,
-            self.llvm_index,
-            target_type,
-            actual_type,
-            r_value.as_basic_value_enum(),
-            self.annotations.get_with_id(id)
-        )
+        (r_value, id)
     }
 }
 
