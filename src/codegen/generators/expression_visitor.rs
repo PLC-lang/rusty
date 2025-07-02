@@ -1,4 +1,4 @@
-use std::default;
+use std::{collections::HashMap, default};
 
 use anyhow::{anyhow, bail, Error, Result};
 use inkwell::{
@@ -324,7 +324,14 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 Some((call_name, StatementAnnotation::Function { qualified_name, .. })) => {
                     if let Some(builtin) = self.index.get_builtin_function(call_name) {
                         // this is a builtin function, we can generate it directly
-                        return Ok(builtin.codegen(self, &actual_parameters, node.get_location())?);
+                        //relabel the result to the call's id
+                        // TODO: find a better solution for the result relabeling
+                        let result = match builtin.codegen(self, &actual_parameters, node.get_location())? {
+                            GeneratedValue::RValue((v, _)) => GeneratedValue::RValue((v, node.get_id())),
+                            GeneratedValue::LValue((v, _)) => GeneratedValue::LValue((v, node.get_id())),
+                            GeneratedValue::NoValue => todo!(),
+                        };
+                        Ok(result)
                     } else {
                         let function_to_call =
                             self.llvm_index.find_associated_implementation(call_name).expect("");
@@ -642,20 +649,30 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
         ast_node: &AstNode,
     ) -> Result<GeneratedValue<'ink>> {
+
+        let arguments = formal_parameters.iter().zip(actual_parameters.iter())
+            .map(|(formal,actual) |
+                Argument::new(formal, actual)
+            ).collect::<Vec<_>>();
+
+        let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
+        call.generate_function_call(fv, self, ast_node)
+
+        
         //todo: check if we can have defualt parameters in functions
 
-        let args = self.generate_all(
-            &actual_parameters.iter().cloned().zip(formal_parameters.iter().cloned()).collect_vec(),
-        )?;
+        // let args = self.generate_all(
+        //     &actual_parameters.iter().cloned().zip(formal_parameters.iter().cloned()).collect_vec(),
+        // )?;
 
-        let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
+        // let function_result = self.llvm.builder.build_call(fv, args.as_slice(), "call"); //todo we should use the function's name here?
 
-        // reutrn either the return value or a NoValue
-        Ok(function_result
-            .try_as_basic_value()
-            .left()
-            .map(|it| GeneratedValue::RValue((it, ast_node.get_id())))
-            .unwrap_or_else(|| GeneratedValue::NoValue))
+        // // reutrn either the return value or a NoValue
+        // Ok(function_result
+        //     .try_as_basic_value()
+        //     .left()
+        //     .map(|it| GeneratedValue::RValue((it, ast_node.get_id())))
+        //     .unwrap_or_else(|| GeneratedValue::NoValue))
     }
 
     fn generate_method_call(
@@ -688,25 +705,63 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 .expect("global value not found")
         };
 
-        // fill in default parameters at the end
-        let formal_parameters =
-            self.index.get_pou_members(method.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
-
-        let mut args = Vec::from(actual_parameters);
-        // let mut args = self.generate_all(actual_parameters)?;
-
-        if args.len() < formal_parameters.len() {
-            let default_parameters = formal_parameters
+            // fill in default parameters at the end
+            let formal_parameters = self
+                .index
+                .get_pou_members(method.get_name())
                 .iter()
-                .skip(args.len())
-                .flat_map(|e| {
-                    self.index.get_const_expressions().maybe_get_constant_statement(&e.initial_value)
-                })
+                .filter(|e| e.is_parameter())
+                .sorted_by_key(|p| p.get_location_in_parent())  //TODO: is this necessary
                 .collect_vec();
-            args.extend(default_parameters);
-        }
 
-        assert_eq!(args.len(), formal_parameters.len());
+        // see if we have explicit parameters
+        let args = if actual_parameters.iter().any(|it| it.is_assignment() || it.is_output_assignment()) {
+            let mut parameter_by_name = actual_parameters
+                .iter()
+                .map(|p| {
+                    if let AstStatement::Assignment(Assignment { left, right: actual, .. })
+                    | AstStatement::OutputAssignment(Assignment { left, right: actual, .. }) = p.get_stmt()
+                    {
+                        if let Some(AstStatement::Identifier(name)) = left.as_ref().get_identifier().map(|n| n.get_stmt()) {
+                            return Ok((name.as_str(), actual));
+                        }
+                    }
+                    Err(anyhow!(format!("Expected assignment for {p:#?}"),))
+                })
+                .collect::<Result<HashMap<_, _>>>()?;
+
+                // now we should either find this parameter, or a default value
+                let parameters = formal_parameters.iter()
+                    .map(|ap| {
+                        if let Some(actual) = parameter_by_name.remove(ap.get_name()) {
+                            return Ok(actual.as_ref());
+                        }else{
+                            self.index.get_const_expressions().maybe_get_constant_statement(&ap.initial_value)
+                                .ok_or_else(|| anyhow!("No default value for parameter {}", ap.get_name()))   
+                        }
+                    }).collect::<Result<Vec<_>, _>>()?;
+                parameters
+        } else {
+
+
+            let mut args = Vec::from(actual_parameters);
+            // let mut args = self.generate_all(actual_parameters)?;
+
+            if args.len() < formal_parameters.len() {
+                let default_parameters = formal_parameters
+                    .iter()
+                    .skip(args.len())
+                    .flat_map(|e| {
+                        self.index.get_const_expressions().maybe_get_constant_statement(&e.initial_value)
+                    })
+                    .collect_vec();
+                args.extend(default_parameters);
+            }
+
+            // assert_eq!(args.len(), formal_parameters.len());
+
+            args
+        };
 
         let mut args =
             self.generate_all(&args.into_iter().zip(formal_parameters.into_iter()).collect_vec())?;
@@ -735,7 +790,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         let formal_parameters =
             self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
-        let mut arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment())
+        let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment())
         {
             // explicit calls in random order: foo(formal := )actual, formal := actual)
             actual_parameters
@@ -782,13 +837,16 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
     fn generate_all(
         &mut self,
         actual_parameters: &[(&AstNode, &VariableIndexEntry)],
-    ) -> Result<Vec<inkwell::values::BasicMetadataValueEnum<'ink>>, Error> {
+    ) -> Result<Vec<inkwell::values::BasicMetadataValueEnum<'ink>>> {
         let args = actual_parameters
             .iter()
             .map(|(value, e)| {
+                dbg!(self.annotations.get(value));
+                dbg!(self.annotations.get_hint(value));
+
                 self.visit(value);
                 let v = self.pop_value(value);
-                if e.is_inout() {
+                if e.is_inout() || e.is_output() {
                     v.and_then(|it| {
                         it.as_pointer_value().map(|it| it.into()).map_err(|e| {
                             Diagnostic::codegen_error(

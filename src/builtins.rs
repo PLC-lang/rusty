@@ -244,43 +244,43 @@ lazy_static! {
         //         }
         //     }
         // ),
-        // (
-        //     "SIZEOF",
-        //     BuiltIn {
-        //         decl : "FUNCTION SIZEOF<U: ANY> : ULINT
-        //         VAR_INPUT
-        //             in : U;
-        //         END_VAR
-        //         END_FUNCTION",
-        //         annotation: None,
-        //         validation: None,
-        //         generic_name_resolver: no_generic_name_resolver,
-        //         code : |generator, params, location| {
-        //             if let [reference] = params {
-        //                 // get name of datatype behind reference
-        //                 let type_name = generator.annotations
-        //                     .get_type(reference, generator.index)
-        //                     .map(|it| generator.index.get_effective_type_or_void_by_name(it.get_name()))
-        //                     .unwrap()
-        //                     .get_name();
+        (
+            "SIZEOF",
+            BuiltIn {
+                decl : "FUNCTION SIZEOF<U: ANY> : ULINT
+                VAR_INPUT
+                    in : U;
+                END_VAR
+                END_FUNCTION",
+                annotation: None,
+                validation: None,
+                generic_name_resolver: no_generic_name_resolver,
+                code : |generator, params, location| {
+                    if let [reference] = params {
+                        // get name of datatype behind reference
+                        let type_name = generator.annotations
+                            .get_type(reference, generator.index)
+                            .map(|it| generator.index.get_effective_type_or_void_by_name(it.get_name()))
+                            .unwrap()
+                            .get_name();
 
-        //                 // return size of llvm type
-        //                 let size = generator.llvm_index
-        //                     .get_associated_type(type_name)
-        //                     .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), &location)
-        //                     )?.size_of()
-        //                     .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", &location))?
-        //                     .as_basic_value_enum();
-        //                     Ok(ExpressionValue::RValue(size))
-        //             } else {
-        //                 Err(Diagnostic::codegen_error(
-        //                     "Expected exactly one parameter for SIZEOF",
-        //                     location,
-        //                 ))
-        //             }
-        //         }
-        //     }
-        // ),
+                        // return size of llvm type
+                        let size = generator.llvm_index
+                            .get_associated_type(type_name)
+                            .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), &location)
+                            )?.size_of()
+                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", &location))?
+                            .as_basic_value_enum();
+                            Ok(GeneratedValue::RValue((size, reference.get_id())))
+                    } else {
+                        Err(Diagnostic::codegen_error(
+                            "Expected exactly one parameter for SIZEOF",
+                            location,
+                        ))
+                    }
+                }
+            }
+        ),
         // (
         //     "LOWER_BOUND",
         //     BuiltIn {
