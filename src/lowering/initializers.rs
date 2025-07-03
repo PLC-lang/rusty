@@ -921,7 +921,7 @@ mod tests {
     }
 
     #[test]
-    fn global_todo_better_name_00() {
+    fn global_struct_with_simple_ref_initializer() {
         let src = r#"
         VAR_GLOBAL
             globalValue: DINT := 10;
@@ -1023,7 +1023,7 @@ mod tests {
     }
 
     #[test]
-    fn global_todo_better_name_01() {
+    fn global_struct_with_nested_struct_initializer() {
         let src = r#"
         VAR_GLOBAL
             globalValue: DINT := 30;
@@ -1195,7 +1195,7 @@ mod tests {
     }
 
     #[test]
-    fn global_todo_better_name_02() {
+    fn global_struct_with_deeply_nested_struct_initializer() {
         let src = r#"
         VAR_GLOBAL
             globalValue: DINT := 30;
@@ -1424,7 +1424,7 @@ mod tests {
 
     #[test]
     #[ignore = "Does not work yet, because `a := b := 1` is not flagged as `Unresolvable::Address`"]
-    fn global_todo_better_name_03() {
+    fn global_struct_with_integer_assignment_initializer() {
         let src = r#"
         VAR_GLOBAL
             globalA: MyStruct2 := (a := (b := 1));

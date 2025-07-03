@@ -567,7 +567,6 @@ fn evaluate_with_target_hint(
                 Ok(Some(value)) => Ok(Some(AstFactory::create_assignment(*data.left.clone(), value, id))),
                 Ok(None) => Ok(Some(initial.clone())),
                 Err(UnresolvableKind::Address(mut init)) => {
-                    init.lhs = None;
                     init.initializer.replace(initial.clone());
                     Err(UnresolvableKind::Address(init))
                 }
