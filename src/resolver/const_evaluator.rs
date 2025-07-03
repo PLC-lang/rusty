@@ -200,7 +200,7 @@ fn get_default_initializer(
     location: &SourceLocation,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
     if let Some(init) = index.get_initial_value_for_type(target_type) {
-        evaluate(init, None, index) //TODO do we ave a scope here?
+        evaluate(init, None, index, None) //TODO do we ave a scope here?
     } else {
         let dt = index.get_type_information_or_void(target_type);
         let init = match dt {
@@ -322,8 +322,9 @@ pub fn evaluate(
     initial: &AstNode,
     scope: Option<&str>,
     index: &Index,
+    lhs: Option<&str>,
 ) -> Result<Option<AstNode>, UnresolvableKind> {
-    evaluate_with_target_hint(initial, scope, index, None, None)
+    evaluate_with_target_hint(initial, scope, index, None, lhs)
 }
 
 /// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
@@ -442,8 +443,9 @@ fn evaluate_with_target_hint(
             }
         }
         AstStatement::BinaryExpression(BinaryExpression { left, right, operator }) => {
-            let eval_left = evaluate(left, scope, index)?;
-            let eval_right = evaluate(right, scope, index)?;
+            let eval_left = evaluate(left, scope, index, lhs)?;
+            let eval_right = evaluate(right, scope, index, lhs)?;
+
             if let Some((left, right)) = eval_left.zip(eval_right).as_ref() {
                 let evalualted = match operator {
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", id)?,
@@ -484,7 +486,8 @@ fn evaluate_with_target_hint(
 
         // NOT x
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) => {
-            let eval = evaluate(value, scope, index)?;
+            let eval = evaluate(value, scope, index, lhs)?;
+
             match eval.as_ref() {
                 Some(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) => {
                     Some(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), *id))
@@ -503,7 +506,7 @@ fn evaluate_with_target_hint(
         }
         // - x
         AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) => {
-            match evaluate(value, scope, index)? {
+            match evaluate(value, scope, index, lhs)? {
                 Some(AstNode {
                     stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
                 }) => Some(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
@@ -528,7 +531,7 @@ fn evaluate_with_target_hint(
         AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions
                 .iter()
-                .map(|e| evaluate(e, scope, index))
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstNode>>>();
@@ -539,7 +542,7 @@ fn evaluate_with_target_hint(
         AstStatement::MultipliedStatement(MultipliedStatement { element, multiplier }) => {
             let inner_elements = AstNode::get_as_list(element.as_ref())
                 .iter()
-                .map(|e| evaluate(e, scope, index))
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
                 .into_iter()
                 .collect::<Option<Vec<AstNode>>>();
@@ -560,19 +563,32 @@ fn evaluate_with_target_hint(
         }
         AstStatement::Assignment(data) => {
             //Right needs evaluation
-            if let Some(right) = evaluate(&data.right, scope, index)? {
-                Some(AstFactory::create_assignment(*data.left.clone(), right, id))
-            } else {
-                Some(initial.clone())
-            }
+            match evaluate(&data.right, scope, index, lhs) {
+                Ok(Some(value)) => Ok(Some(AstFactory::create_assignment(*data.left.clone(), value, id))),
+                Ok(None) => Ok(Some(initial.clone())),
+                Err(UnresolvableKind::Address(mut init)) => {
+                    init.initializer.replace(initial.clone());
+                    Err(UnresolvableKind::Address(init))
+                }
+                Err(why) => Err(why),
+            }?
         }
         AstStatement::RangeStatement(data) => {
-            let start = evaluate(&data.start, scope, index)?.unwrap_or_else(|| *data.start.to_owned());
-            let end = evaluate(&data.end, scope, index)?.unwrap_or_else(|| *data.end.to_owned());
+            let start = evaluate(&data.start, scope, index, lhs)?.unwrap_or_else(|| *data.start.to_owned());
+            let end = evaluate(&data.end, scope, index, lhs)?.unwrap_or_else(|| *data.end.to_owned());
+
             Some(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) => {
-            evaluate_with_target_hint(expr, scope, index, target_type, lhs)?
+            match evaluate_with_target_hint(expr, scope, index, target_type, lhs) {
+                Ok(init) => Ok(init),
+                Err(UnresolvableKind::Address(mut init)) => {
+                    init.lhs = lhs.map(str::to_string);
+                    init.initializer.replace(initial.clone());
+                    Err(UnresolvableKind::Address(init))
+                }
+                Err(why) => Err(why),
+            }?
         }
         AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, .. }) => {
             if let Some(pou) = operator.as_ref().get_flat_reference_name().and_then(|it| index.find_pou(it)) {
@@ -661,7 +677,7 @@ fn get_cast_statement_literal(
         }
 
         Some(DataTypeInformation::Float { .. }) => {
-            let evaluated = evaluate(cast_statement, scope, index)?;
+            let evaluated = evaluate(cast_statement, scope, index, lhs)?;
             let value = match evaluated.as_ref().map(|it| it.get_stmt()) {
                 Some(AstStatement::Literal(AstLiteral::Integer(value))) => Some(*value as f64),
                 Some(AstStatement::Literal(AstLiteral::Real(value))) => value.parse::<f64>().ok(),

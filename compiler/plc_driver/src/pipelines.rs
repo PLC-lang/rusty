@@ -639,6 +639,12 @@ impl AnnotatedUnit {
     }
 }
 
+impl From<AnnotatedUnit> for CompilationUnit {
+    fn from(value: AnnotatedUnit) -> Self {
+        value.unit
+    }
+}
+
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,

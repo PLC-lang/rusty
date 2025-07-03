@@ -1,6 +1,6 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
-    lowering::{create_assignment_if_necessary, create_call_statement, create_member_reference},
+    lowering::{create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -12,7 +12,7 @@ use plc_ast::{
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
 
-use super::InitVisitor;
+use super::{create_assignments_from_initializer, InitVisitor};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
@@ -171,7 +171,7 @@ fn create_init_unit(
 
     let location = location.clone().into_internal();
 
-    let (param, ident) = (
+    let (self_param, self_ident) = (
         vec![VariableBlock::default().with_block_type(VariableBlockType::InOut).with_variables(vec![
             Variable {
                 name: "self".into(),
@@ -187,14 +187,20 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), param, PouType::Init, &location);
+    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), self_param, PouType::Init, &location);
 
-    let mut statements = assignments
-        .iter()
-        .filter_map(|(lhs_name, initializer)| {
-            create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
-        })
-        .collect::<Vec<_>>();
+    let mut statements = Vec::new();
+    for (var_name, initializer) in assignments {
+        if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
+            let initializers = create_assignments_from_initializer(
+                var_name,
+                Some(&self_ident),
+                initializer,
+                id_provider.clone(),
+            );
+            statements.extend(initializers);
+        }
+    }
 
     let member_init_calls = lowerer
         .index
@@ -223,7 +229,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(member_init_calls);
+    let statements = [member_init_calls, statements].concat();
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))
@@ -338,16 +344,17 @@ fn create_init_wrapper_function(
         }
     });
 
-    let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
-        stmts
-            .iter()
-            .filter_map(|(var_name, initializer)| {
-                create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
-            })
-            .collect::<Vec<_>>()
-    } else {
-        vec![]
-    };
+    let mut statements = Vec::new();
+    if let Some(statement) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
+        for (var_name, initializer) in statement {
+            if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
+                let res =
+                    create_assignments_from_initializer(var_name, None, initializer, id_provider.clone());
+                statements.extend(res);
+            }
+        }
+    }
+
     let calls = programs
         .chain(global_instances)
         .map(|(fn_name, param)| {
@@ -362,8 +369,6 @@ fn create_init_wrapper_function(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(calls);
-
     if !skip_var_config {
         statements.push(AstFactory::create_call_statement(
             create_member_reference(VAR_CONFIG_INIT, id_provider.clone(), None),
@@ -374,7 +379,7 @@ fn create_init_wrapper_function(
     };
 
     let user_init_calls = get_global_user_init_statements(lowerer);
-    statements.extend(user_init_calls);
+    let statements = [calls, statements, user_init_calls].concat();
     let implementation =
         new_implementation(init_symbol_name, statements, PouType::ProjectInit, SourceLocation::internal());
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
@@ -493,4 +498,1036 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
+}
+
+#[cfg(test)]
+mod tests {
+    use test_utils::parse_and_validate_buffered_ast;
+
+    #[test]
+    fn usertype_todo_better_name_00() {
+        let src = r#"
+        TYPE StructA:
+            STRUCT
+                value: DINT := 10;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[1].implementations[0].name, "__init_structa");
+        insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
+        [
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 10,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn usertype_todo_better_name_01() {
+        let src = r#"
+        VAR_GLOBAL
+            globalValue: DINT := 30;
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: DINT := 10;
+                instanceB: structB := (value := 20, valueRef := REF(globalValue));
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructB:
+            STRUCT
+                value: DINT;
+                valueRef: REF_TO DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[1].implementations[0].name, "__init_structa");
+        insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 20,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "valueRef",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalValue",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 10,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn usertype_todo_better_name_02() {
+        let src = r#"
+        VAR_GLOBAL
+            globalValue: DINT := 40;
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: DINT := 10;
+                instanceB: StructB := (value := 20, instanceC := (value := 30, valueRef := REF(globalValue)));
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructB:
+            STRUCT
+                value: DINT;
+                instanceC: StructC;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructC:
+            STRUCT
+                value: DINT;
+                valueRef: REF_TO DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[1].implementations[0].name, "__init_structa");
+        insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "self",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 20,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceC",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instanceB",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 30,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "valueRef",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceC",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instanceB",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "self",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalValue",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "self",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 10,
+                },
+            },
+        ]
+        "#);
+    }
+
+    #[test]
+    fn global_struct_with_simple_ref_initializer() {
+        let src = r#"
+        VAR_GLOBAL
+            globalValue: DINT := 10;
+            globalStructA: StructA := (value := REF(globalValue));
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: REF_TO DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalStructA",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalValue",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_StructA",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
+    }
+
+    #[test]
+    fn global_struct_with_nested_struct_initializer() {
+        let src = r#"
+        VAR_GLOBAL
+            globalValue: DINT := 30;
+            globalStructA: StructA := (value := 10, instanceB := (value := 20, valueRef := REF(globalValue)));
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: DINT;
+                instanceB: structB;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructB:
+            STRUCT
+                value: DINT;
+                valueRef: REF_TO DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalStructA",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 10,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "globalStructA",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 20,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "valueRef",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "globalStructA",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalValue",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_StructA",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
+    }
+
+    #[test]
+    fn global_struct_with_deeply_nested_struct_initializer() {
+        let src = r#"
+        VAR_GLOBAL
+            globalValue: DINT := 30;
+            globalStructA: StructA := (value := 10, instanceB := (value := 20, instanceC := (value := 30, valueRef := REF(globalValue))));
+        END_VAR
+
+        TYPE StructA:
+            STRUCT
+                value: DINT;
+                instanceB: StructB;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructB:
+            STRUCT
+                value: DINT;
+                instanceC: StructC;
+            END_STRUCT
+        END_TYPE
+
+        TYPE StructC:
+            STRUCT
+                value: DINT;
+                valueRef: REF_TO DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structa",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalStructA",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 10,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceB",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "globalStructA",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 20,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "value",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceC",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instanceB",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "globalStructA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 30,
+                },
+            },
+            Assignment {
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "valueRef",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceC",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "instanceB",
+                                        },
+                                    ),
+                                    base: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "globalStructA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "REF",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "globalValue",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_StructA",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalStructA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
+    }
+
+    #[test]
+    #[ignore = "Does not work yet, because `a := b := 1` is not flagged as `Unresolvable::Address`"]
+    fn global_struct_with_integer_assignment_initializer() {
+        let src = r#"
+        VAR_GLOBAL
+            globalA: MyStruct2 := (a := (b := 1));
+        END_VAR
+
+        TYPE MyStruct2:
+            STRUCT
+                a: MyStruct;
+            END_STRUCT
+        END_TYPE
+
+        TYPE MyStruct:
+            STRUCT
+                b: DINT;
+            END_STRUCT
+        END_TYPE
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        assert_eq!(units[2].implementations[0].name, "__init___TestProject");
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_mystruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_mystruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalB",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_MyStruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalA",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__user_init_MyStruct2",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "globalB",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        ]
+        "###);
+    }
 }
