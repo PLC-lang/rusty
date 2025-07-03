@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["codegen","codegen_debug_without_unwrap","codegen_with_debug","codegen_with_debug_version","codegen_without_unwrap","parse_and_validate_buffered"]};
+window.SIDEBAR_ITEMS = {"fn":["codegen","codegen_debug_without_unwrap","codegen_with_debug","codegen_with_debug_version","codegen_without_unwrap","parse_and_validate_buffered","parse_and_validate_buffered_ast"]};

@@ -71,11 +71,26 @@
 <a href="#70" id="70">70</a>
 <a href="#71" id="71">71</a>
 <a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::io::Read;
+<a href="#73" id="73">73</a>
+<a href="#74" id="74">74</a>
+<a href="#75" id="75">75</a>
+<a href="#76" id="76">76</a>
+<a href="#77" id="77">77</a>
+<a href="#78" id="78">78</a>
+<a href="#79" id="79">79</a>
+<a href="#80" id="80">80</a>
+<a href="#81" id="81">81</a>
+<a href="#82" id="82">82</a>
+<a href="#83" id="83">83</a>
+<a href="#84" id="84">84</a>
+<a href="#85" id="85">85</a>
+<a href="#86" id="86">86</a>
+<a href="#87" id="87">87</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::io::Read;
 
 <span class="kw">use </span>driver::{cli, pipelines::BuildPipeline};
 <span class="kw">use </span>plc::{linker::LinkerType, DebugLevel};
-<span class="kw">use </span>plc_diagnostics::diagnostician::Diagnostician;
+<span class="kw">use </span>plc_ast::ast::CompilationUnit;
+<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
 <span class="kw">use </span>plc_index::GlobalContext;
 <span class="kw">use </span>plc_source::SourceCode;
 <span class="kw">use </span>project::project::Project;
@@ -98,6 +113,19 @@
 <span class="kw">pub fn </span>parse_and_validate_buffered(src: <span class="kw-2">&amp;</span>str) -&gt; String {
     <span class="kw">let </span>source: SourceCode = src.into();
     driver::parse_and_validate(<span class="string">"TestProject"</span>, <span class="macro">vec!</span>[source])
+}
+
+<span class="kw">pub fn </span>parse_and_validate_buffered_ast(src: <span class="kw-2">&amp;</span>str) -&gt; Vec&lt;CompilationUnit&gt; {
+    <span class="kw">let </span>source: SourceCode = src.into();
+
+    <span class="kw">match </span>driver::parse_and_annotate_with_diagnostics(<span class="string">"TestProject"</span>, <span class="macro">vec!</span>[source], Diagnostician::buffered())
+    {
+        <span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>pipeline, project)) =&gt; {
+            project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician).unwrap();
+            project.units.into_iter().map(CompilationUnit::from).collect()
+        }
+        <span class="prelude-val">Err</span>(diagnostician) =&gt; <span class="macro">panic!</span>(<span class="string">"{}"</span>, diagnostician.buffer().unwrap()),
+    }
 }
 
 <span class="kw">fn </span>get_debug_param(debug_level: DebugLevel) -&gt; <span class="prelude-ty">Option</span>&lt;String&gt; {

@@ -782,7 +782,23 @@
 <a href="#781" id="781">781</a>
 <a href="#782" id="782">782</a>
 <a href="#783" id="783">783</a>
-<a href="#784" id="784">784</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
+<a href="#784" id="784">784</a>
+<a href="#785" id="785">785</a>
+<a href="#786" id="786">786</a>
+<a href="#787" id="787">787</a>
+<a href="#788" id="788">788</a>
+<a href="#789" id="789">789</a>
+<a href="#790" id="790">790</a>
+<a href="#791" id="791">791</a>
+<a href="#792" id="792">792</a>
+<a href="#793" id="793">793</a>
+<a href="#794" id="794">794</a>
+<a href="#795" id="795">795</a>
+<a href="#796" id="796">796</a>
+<a href="#797" id="797">797</a>
+<a href="#798" id="798">798</a>
+<a href="#799" id="799">799</a>
+<a href="#800" id="800">800</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::collections::VecDeque;
 
 <span class="kw">use </span>plc_ast::{
     ast::{
@@ -984,7 +1000,7 @@
     location: <span class="kw-2">&amp;</span>SourceLocation,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
     <span class="kw">if let </span><span class="prelude-val">Some</span>(init) = index.get_initial_value_for_type(target_type) {
-        evaluate(init, <span class="prelude-val">None</span>, index) <span class="comment">//TODO do we ave a scope here?
+        evaluate(init, <span class="prelude-val">None</span>, index, <span class="prelude-val">None</span>) <span class="comment">//TODO do we ave a scope here?
     </span>} <span class="kw">else </span>{
         <span class="kw">let </span>dt = index.get_type_information_or_void(target_type);
         <span class="kw">let </span>init = <span class="kw">match </span>dt {
@@ -1106,8 +1122,9 @@
     initial: <span class="kw-2">&amp;</span>AstNode,
     scope: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
     index: <span class="kw-2">&amp;</span>Index,
+    lhs: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
 ) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;, UnresolvableKind&gt; {
-    evaluate_with_target_hint(initial, scope, index, <span class="prelude-val">None</span>, <span class="prelude-val">None</span>)
+    evaluate_with_target_hint(initial, scope, index, <span class="prelude-val">None</span>, lhs)
 }
 
 <span class="doccomment">/// evaluates the given Syntax-Tree `initial` to a `LiteralValue` if possible
@@ -1226,8 +1243,9 @@
             </span>}
         }
         AstStatement::BinaryExpression(BinaryExpression { left, right, operator }) =&gt; {
-            <span class="kw">let </span>eval_left = evaluate(left, scope, index)<span class="question-mark">?</span>;
-            <span class="kw">let </span>eval_right = evaluate(right, scope, index)<span class="question-mark">?</span>;
+            <span class="kw">let </span>eval_left = evaluate(left, scope, index, lhs)<span class="question-mark">?</span>;
+            <span class="kw">let </span>eval_right = evaluate(right, scope, index, lhs)<span class="question-mark">?</span>;
+
             <span class="kw">if let </span><span class="prelude-val">Some</span>((left, right)) = eval_left.zip(eval_right).as_ref() {
                 <span class="kw">let </span>evalualted = <span class="kw">match </span>operator {
                     Operator::Plus =&gt; <span class="macro">arithmetic_expression!</span>(left, +, right, <span class="string">"+"</span>, id)<span class="question-mark">?</span>,
@@ -1268,7 +1286,8 @@
 
         <span class="comment">// NOT x
         </span>AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Not, value }) =&gt; {
-            <span class="kw">let </span>eval = evaluate(value, scope, index)<span class="question-mark">?</span>;
+            <span class="kw">let </span>eval = evaluate(value, scope, index, lhs)<span class="question-mark">?</span>;
+
             <span class="kw">match </span>eval.as_ref() {
                 <span class="prelude-val">Some</span>(AstNode { stmt: AstStatement::Literal(AstLiteral::Bool(v)), id, location, .. }) =&gt; {
                     <span class="prelude-val">Some</span>(AstFactory::create_literal(AstLiteral::Bool(!v), location.clone(), <span class="kw-2">*</span>id))
@@ -1287,7 +1306,7 @@
         }
         <span class="comment">// - x
         </span>AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Minus, value }) =&gt; {
-            <span class="kw">match </span>evaluate(value, scope, index)<span class="question-mark">? </span>{
+            <span class="kw">match </span>evaluate(value, scope, index, lhs)<span class="question-mark">? </span>{
                 <span class="prelude-val">Some</span>(AstNode {
                     stmt: AstStatement::Literal(AstLiteral::Integer(v)), id, location, ..
                 }) =&gt; <span class="prelude-val">Some</span>(AstNode::new(AstStatement::Literal(AstLiteral::Integer(-v)), id, location)),
@@ -1312,7 +1331,7 @@
         AstStatement::ExpressionList(expressions) =&gt; {
             <span class="kw">let </span>inner_elements = expressions
                 .iter()
-                .map(|e| evaluate(e, scope, index))
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;&gt;, UnresolvableKind&gt;&gt;()<span class="question-mark">?
                 </span>.into_iter()
                 .collect::&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;AstNode&gt;&gt;&gt;();
@@ -1323,7 +1342,7 @@
         AstStatement::MultipliedStatement(MultipliedStatement { element, multiplier }) =&gt; {
             <span class="kw">let </span>inner_elements = AstNode::get_as_list(element.as_ref())
                 .iter()
-                .map(|e| evaluate(e, scope, index))
+                .map(|e| evaluate(e, scope, index, lhs))
                 .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="prelude-ty">Option</span>&lt;AstNode&gt;&gt;, UnresolvableKind&gt;&gt;()<span class="question-mark">?
                 </span>.into_iter()
                 .collect::&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;AstNode&gt;&gt;&gt;();
@@ -1344,19 +1363,32 @@
         }
         AstStatement::Assignment(data) =&gt; {
             <span class="comment">//Right needs evaluation
-            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(right) = evaluate(<span class="kw-2">&amp;</span>data.right, scope, index)<span class="question-mark">? </span>{
-                <span class="prelude-val">Some</span>(AstFactory::create_assignment(<span class="kw-2">*</span>data.left.clone(), right, id))
-            } <span class="kw">else </span>{
-                <span class="prelude-val">Some</span>(initial.clone())
-            }
-        }
+            </span><span class="kw">match </span>evaluate(<span class="kw-2">&amp;</span>data.right, scope, index, lhs) {
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(value)) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(AstFactory::create_assignment(<span class="kw-2">*</span>data.left.clone(), value, id))),
+                <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>) =&gt; <span class="prelude-val">Ok</span>(<span class="prelude-val">Some</span>(initial.clone())),
+                <span class="prelude-val">Err</span>(UnresolvableKind::Address(<span class="kw-2">mut </span>init)) =&gt; {
+                    init.initializer.replace(initial.clone());
+                    <span class="prelude-val">Err</span>(UnresolvableKind::Address(init))
+                }
+                <span class="prelude-val">Err</span>(why) =&gt; <span class="prelude-val">Err</span>(why),
+            }<span class="question-mark">?
+        </span>}
         AstStatement::RangeStatement(data) =&gt; {
-            <span class="kw">let </span>start = evaluate(<span class="kw-2">&amp;</span>data.start, scope, index)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="kw-2">*</span>data.start.to_owned());
-            <span class="kw">let </span>end = evaluate(<span class="kw-2">&amp;</span>data.end, scope, index)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="kw-2">*</span>data.end.to_owned());
+            <span class="kw">let </span>start = evaluate(<span class="kw-2">&amp;</span>data.start, scope, index, lhs)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="kw-2">*</span>data.start.to_owned());
+            <span class="kw">let </span>end = evaluate(<span class="kw-2">&amp;</span>data.end, scope, index, lhs)<span class="question-mark">?</span>.unwrap_or_else(|| <span class="kw-2">*</span>data.end.to_owned());
+
             <span class="prelude-val">Some</span>(AstFactory::create_range_statement(start, end, id))
         }
         AstStatement::ParenExpression(expr) =&gt; {
-            evaluate_with_target_hint(expr, scope, index, target_type, lhs)<span class="question-mark">?
+            <span class="kw">match </span>evaluate_with_target_hint(expr, scope, index, target_type, lhs) {
+                <span class="prelude-val">Ok</span>(init) =&gt; <span class="prelude-val">Ok</span>(init),
+                <span class="prelude-val">Err</span>(UnresolvableKind::Address(<span class="kw-2">mut </span>init)) =&gt; {
+                    init.lhs = lhs.map(str::to_string);
+                    init.initializer.replace(initial.clone());
+                    <span class="prelude-val">Err</span>(UnresolvableKind::Address(init))
+                }
+                <span class="prelude-val">Err</span>(why) =&gt; <span class="prelude-val">Err</span>(why),
+            }<span class="question-mark">?
         </span>}
         AstStatement::CallStatement(plc_ast::ast::CallStatement { operator, .. }) =&gt; {
             <span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = operator.as_ref().get_flat_reference_name().and_then(|it| index.find_pou(it)) {
@@ -1445,7 +1477,7 @@
         }
 
         <span class="prelude-val">Some</span>(DataTypeInformation::Float { .. }) =&gt; {
-            <span class="kw">let </span>evaluated = evaluate(cast_statement, scope, index)<span class="question-mark">?</span>;
+            <span class="kw">let </span>evaluated = evaluate(cast_statement, scope, index, lhs)<span class="question-mark">?</span>;
             <span class="kw">let </span>value = <span class="kw">match </span>evaluated.as_ref().map(|it| it.get_stmt()) {
                 <span class="prelude-val">Some</span>(AstStatement::Literal(AstLiteral::Integer(value))) =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>value <span class="kw">as </span>f64),
                 <span class="prelude-val">Some</span>(AstStatement::Literal(AstLiteral::Real(value))) =&gt; value.parse::&lt;f64&gt;().ok(),

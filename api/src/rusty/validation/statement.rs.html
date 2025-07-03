@@ -3461,7 +3461,7 @@
 
         <span class="comment">// validate for duplicate conditions
         // first try to evaluate the conditions value
-        </span>const_evaluator::evaluate(condition, context.qualifier, context.index)
+        </span>const_evaluator::evaluate(condition, context.qualifier, context.index, <span class="prelude-val">None</span>)
             .map_err(|err| {
                 <span class="comment">// value evaluation and validation not possible with non constants
                 </span>validator.push_diagnostic(

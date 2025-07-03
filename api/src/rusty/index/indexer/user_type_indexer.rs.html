@@ -930,7 +930,7 @@
     }
 
     <span class="kw">fn </span>index_struct_type(<span class="kw-2">&amp;mut </span><span class="self">self</span>, name: <span class="kw-2">&amp;</span>str, variables: <span class="kw-2">&amp;</span>[Variable], source: StructSource) {
-        <span class="kw">let </span>scope = <span class="self">self</span>.current_scope();
+        <span class="kw">let </span>scope = <span class="prelude-val">Some</span>(name.to_string());
         <span class="kw">let </span>members = variables
             .iter()
             .enumerate()
@@ -943,7 +943,7 @@
                     var.initializer.clone(),
                     member_type,
                     scope.clone(),
-                    <span class="prelude-val">None</span>,
+                    <span class="prelude-val">Some</span>(var.name.clone()),
                 );
 
                 <span class="kw">let </span>binding = var

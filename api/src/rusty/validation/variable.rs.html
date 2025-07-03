@@ -525,9 +525,7 @@
 <a href="#524" id="524">524</a>
 <a href="#525" id="525">525</a>
 <a href="#526" id="526">526</a>
-<a href="#527" id="527">527</a>
-<a href="#528" id="528">528</a>
-<a href="#529" id="529">529</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#527" id="527">527</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     ArgumentProperty, AstNode, AstStatement, CallStatement, ConfigVariable, Pou, PouType, Variable,
     VariableBlock, VariableBlockType,
 };
@@ -820,8 +818,6 @@
                         };
 
                         <span class="kw">let </span><span class="prelude-val">Some</span>(rhs_ty) = context.annotations.get_type(node, context.index) <span class="kw">else </span>{
-                            <span class="kw">let </span>type_name = init.target_type_name.clone().unwrap_or_default();
-                            validator.push_diagnostic(Diagnostic::unknown_type(<span class="kw-2">&amp;</span>type_name, node));
                             <span class="kw">return</span>;
                         };
 
