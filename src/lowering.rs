@@ -54,7 +54,7 @@ impl InitVisitor {
     ) -> Self {
         Self {
             index,
-            unresolved_initializers: Initializers::new(&unresolved_initializers, &id_provider),
+            unresolved_initializers: Initializers::new(&unresolved_initializers),
             var_config_initializers: vec![],
             user_inits: FxHashMap::default(),
             ctxt: Context::new(id_provider),
@@ -123,7 +123,6 @@ impl InitVisitor {
         };
 
         if let Some(initializer) = variable.initializer.as_ref() {
-            dbg!(&variable);
             let type_name =
                 variable.data_type_declaration.get_name().expect("Must have a type at this point");
             let data_type = self.index.get_effective_type_or_void_by_name(type_name).get_type_information();
@@ -164,11 +163,7 @@ impl InitVisitor {
                             })
                         })
                     }),
-                AstStatement::Assignment(data) => {
-                    dbg!(data);
-                    None
-                }
-                AstStatement::ExpressionList(_) => None,
+                AstStatement::Assignment(_) | AstStatement::ExpressionList(_) => None,
                 _ => return,
             };
 
@@ -319,20 +314,10 @@ impl InitVisitor {
 
             for (lhs, init) in member_inits {
                 // update struct member initializers
-                self.unresolved_initializers.maybe_insert_initializer(
-                    name,
-                    Some(lhs),
-                    &init,
-                    &self.ctxt.id_provider,
-                );
+                self.unresolved_initializers.maybe_insert_initializer(name, Some(lhs), &init);
             }
             // add container to keys if not already present
-            self.unresolved_initializers.maybe_insert_initializer(
-                name,
-                None,
-                &user_type.initializer,
-                &self.ctxt.id_provider,
-            );
+            self.unresolved_initializers.maybe_insert_initializer(name, None, &user_type.initializer);
         }
     }
 
@@ -353,12 +338,7 @@ impl InitVisitor {
             return;
         }
 
-        self.unresolved_initializers.maybe_insert_initializer(
-            GLOBAL_SCOPE,
-            Some(variable.get_name()),
-            &None,
-            &self.ctxt.id_provider,
-        );
+        self.unresolved_initializers.maybe_insert_initializer(GLOBAL_SCOPE, Some(variable.get_name()), &None);
     }
 
     fn collect_var_config_assignments(&mut self, var_config: &[ConfigVariable]) {
@@ -401,12 +381,7 @@ impl AstVisitorMut for InitVisitor {
 
     fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
         if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
-            self.unresolved_initializers.maybe_insert_initializer(
-                &pou.name,
-                None,
-                &None,
-                &self.ctxt.id_provider,
-            );
+            self.unresolved_initializers.maybe_insert_initializer(&pou.name, None, &None);
         }
 
         self.walk_with_scope(pou, Some(&pou.name.to_owned()));

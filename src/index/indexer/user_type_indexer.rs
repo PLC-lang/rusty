@@ -43,15 +43,6 @@ impl<'i, 't> UserTypeIndexer<'i, 't> {
 
 impl AstVisitor for UserTypeIndexer<'_, '_> {
     fn visit_user_type_declaration(&mut self, user_type: &UserTypeDeclaration) {
-        // vosa:
-        //       1: We have enough information here, we could add some metadata to the ConstExpression::Unresolved struct perhaps?
-        //           Something like `InitializerKind::Struct { variable_name, (?type, ...) }` and then just pack it into the `InitData` field?
-        //       2: Alternatively we could make use of the `Metadata` field in the AST node and patch each expression in the initializer with a name when dealing with structs?
-        //       3: Init the VTable by defining an internal function that takes a VAR_IN_OUT vtable struct, initializes it and gets called in init function
-        if user_type.data_type.get_name().is_some_and(|opt| opt.contains("child")) {
-            // dbg!(&user_type);
-        }
-
         //handle inner types & initializers
         user_type.data_type.walk(self);
         if let Some(init_index) = user_type.initializer.clone().map(|i| {
@@ -454,7 +445,7 @@ impl UserTypeIndexer<'_, '_> {
                     var.initializer.clone(),
                     member_type,
                     scope.clone(),
-                    Some(var.name.clone()),
+                    None,
                 );
 
                 let binding = var

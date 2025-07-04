@@ -31,14 +31,13 @@ pub(crate) trait Init<'lwr>
 where
     Self: Sized + Default,
 {
-    fn new(candidates: &'lwr [UnresolvableConstant], id_provider: &IdProvider) -> Self;
+    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self;
     /// Inserts an initializer only if no entry exists for the given variable
     fn maybe_insert_initializer(
         &mut self,
         container_name: &str,
         var_name: Option<&str>,
         initializer: &Option<AstNode>,
-        id_provider: &IdProvider,
     );
     /// Inserts an initializer for the given variable. Will update existing values.
     fn insert_initializer(
@@ -50,13 +49,12 @@ where
 }
 
 impl<'lwr> Init<'lwr> for Initializers {
-    fn new(candidates: &'lwr [UnresolvableConstant], id_provider: &IdProvider) -> Self {
+    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self {
         let mut assignments = Self::default();
-        candidates
+        dbg!(candidates)
             .iter()
             .filter_map(|it| {
                 if let Some(UnresolvableKind::Address(init)) = &it.kind {
-                    // dbg!(&init);
                     // assume all initializers without scope/not in a container are global variables for now. type-defs are separated later
                     Some((init.scope.clone().unwrap_or(GLOBAL_SCOPE.to_string()), init))
                 } else {
@@ -66,9 +64,8 @@ impl<'lwr> Init<'lwr> for Initializers {
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
                     &scope,
-                    data.target.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
+                    data.lhs.as_ref().or(data.target_type_name.as_ref()).map(|it| it.as_str()),
                     &data.initializer,
-                    id_provider,
                 );
             });
 
@@ -80,7 +77,6 @@ impl<'lwr> Init<'lwr> for Initializers {
         container_name: &str,
         var_name: Option<&str>,
         initializer: &Option<AstNode>,
-        id_provider: &IdProvider,
     ) {
         let assignments = self.entry(container_name.to_string()).or_default();
         let Some(var_name) = var_name else {
@@ -95,21 +91,7 @@ impl<'lwr> Init<'lwr> for Initializers {
         if let Some(init) = initializer {
             match init.get_stmt() {
                 AstStatement::ExpressionList(statements) => {}
-                AstStatement::Assignment(Assignment { left, right }) => {
-                    // foo := .. => self.<Var-name>.foo
-                    // let base = {
-                    //     let base_self = create_member_reference("self", id_provider.clone(), None);
-                    //     create_member_reference(var_name, id_provider.clone(), Some(base_self))
-                    // };
-
-                    // let var_name = format!(
-                    //     "self.{}.{}",
-                    //     // "{}.{}",
-                    //     var_name,
-                    //     left.get_flat_reference_name().expect("must exist in an assignment")
-                    // );
-                    // assignments.insert(dbg!(var_name), dbg!(Some(right.as_ref().clone())));
-                }
+                AstStatement::Assignment(Assignment { left, right }) => {}
                 _ => {
                     assignments.insert(var_name.to_string(), initializer.clone());
                 }
