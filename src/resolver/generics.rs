@@ -143,8 +143,7 @@ impl TypeAnnotator<'_> {
                 generic_implementation.get_location().to_owned(),
             );
 
-            let return_type =
-                self.index.find_type(return_type_name).expect("Return type must be in the index");
+            let return_type = self.index.find_type(return_type_name).unwrap_or(self.index.get_void_type());
             //register a copy of the pou under the new name
             self.annotation_map.new_index.register_pou(PouIndexEntry::create_generated_function_entry(
                 new_name,
@@ -181,6 +180,7 @@ impl TypeAnnotator<'_> {
                                 crate::index::indexer::pou_indexer::register_byref_pointer_type_for(
                                     &mut self.annotation_map.new_index,
                                     entry.get_type_name(),
+                                    true, // TODO(vosa): Is this correct? Why are generating a pointer type here
                                 );
                             entry = member.into_typed(new_name, &data_type_name);
                             entry.location_in_parent = 0;
@@ -224,7 +224,12 @@ impl TypeAnnotator<'_> {
                     .unwrap_or_else(|| member_name)
                     .to_string()
             }
-            Some(DataTypeInformation::Pointer { name, inner_type_name, auto_deref: Some(kind), .. }) => {
+            Some(DataTypeInformation::Pointer {
+                name,
+                inner_type_name,
+                auto_deref: Some(kind),
+                type_safe,
+            }) => {
                 // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
                 // the combination
@@ -234,6 +239,7 @@ impl TypeAnnotator<'_> {
                     name: name.clone(),
                     inner_type_name,
                     auto_deref: Some(*kind),
+                    type_safe: *type_safe,
                 };
 
                 // Registers a new pointer type to the index

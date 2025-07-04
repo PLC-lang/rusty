@@ -265,6 +265,17 @@ impl<'ink> DebugBuilder<'ink> {
         self.types.insert(name.to_lowercase(), di_type);
     }
 
+    // Apply `DW_TAG_const_type` wrapper for constant variables
+    fn apply_const_type_if_needed(&self, debug_type: DIType<'ink>, is_constant: bool) -> DIType<'ink> {
+        if is_constant {
+            let const_type =
+                self.debug_info.create_reference_type(debug_type, 38 /* DW_TAG_const_type */);
+            const_type.as_type()
+        } else {
+            debug_type
+        }
+    }
+
     fn create_basic_type(
         &mut self,
         name: &str,
@@ -292,9 +303,9 @@ impl<'ink> DebugBuilder<'ink> {
         let index_types = members
             .iter()
             .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
-            .map(|it| (it.get_name(), it.get_type_name(), &it.source_location))
-            .map(|(name, type_name, location)| {
-                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location))
+            .map(|it| (it.get_name(), it.get_type_name(), &it.source_location, it.is_constant()))
+            .map(|(name, type_name, location, is_constant)| {
+                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location, is_constant))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
         let struct_type = types_index.get_associated_type(name).map(|it| it.into_struct_type())?;
@@ -305,60 +316,25 @@ impl<'ink> DebugBuilder<'ink> {
             .unwrap_or_else(|| self.compile_unit.get_file());
 
         let mut types = vec![];
-        let mut last_offset_bits = 0;
-        let mut last_size_bits = 0;
 
-        for (element_index, (member_name, dt, location)) in index_types.iter().enumerate() {
+        for (element_index, (member_name, dt, location, is_constant)) in index_types.iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
+            let di_type = self.apply_const_type_if_needed(di_type.into(), *is_constant);
 
-            // Get the size and alignment
+            // Get the size and alignment from LLVM
             let llvm_type = types_index.find_associated_type(dt.get_name());
             let align_bits =
                 llvm_type.map(|ty| self.target_data.get_preferred_alignment(&ty) * 8).unwrap_or(0);
             let size_bits = llvm_type.map(|ty| self.target_data.get_bit_size(&ty)).unwrap_or(0);
 
             // Get LLVM's calculated offset
-            let llvm_offset_bits = self
+            let offset_bits = self
                 .target_data
                 .offset_of_element(&struct_type, element_index as u32)
                 .map(|offset| offset * 8)
                 .unwrap_or(0);
 
-            // Calculate the properly aligned offset based on the previous field
-            // and this field's alignment requirements
-            let offset_bits = if size_bits == 0 || (last_size_bits == 0 && element_index > 0) {
-                // For zero-sized types, always use LLVM's offset directly
-                // This ensures they don't contribute to the overall layout calculation
-                // If the previous field was zero-sized, use LLVM's offset
-                // for proper alignment of fields after zero-sized types
-                llvm_offset_bits
-            } else {
-                let next_offset_bits: u64 = last_offset_bits + last_size_bits;
-
-                // Special handling based on alignment requirements:
-                // - Fields with alignment of 64 bits need to be explicitly aligned
-                //   to their alignment boundary to prevent misaligned accesses
-                // - Fields with a lower alignment can use LLVM's natural layout
-                // This differentiation is crucial for correctly representing complex structures
-                // where some fields (like LWORD, LINT) need specific alignment while others (like BYTE, BOOL)
-                // can be packed more efficiently
-                if align_bits == 64 {
-                    // For fields requiring special alignment (64 bit types),
-                    // round up to the nearest alignment boundary
-                    next_offset_bits.div_ceil(align_bits as u64) * align_bits as u64
-                } else {
-                    // For smaller fields fields (BYTE, BOOL, DINT), we still ensure we don't
-                    // overlap with previous fields by using the maximum of our calculated offset
-                    // and LLVM's calculated offset
-                    std::cmp::max(next_offset_bits, llvm_offset_bits)
-                }
-            };
-
-            // Update tracking variables for next field
-            last_offset_bits = offset_bits;
-            last_size_bits = size_bits;
-
-            // Create the member type with calculated offset
+            // Create the member type with LLVM's calculated offset
             types.push(
                 self.debug_info
                     .create_member_type(
@@ -370,45 +346,23 @@ impl<'ink> DebugBuilder<'ink> {
                         align_bits,
                         offset_bits,
                         DIFlags::PUBLIC,
-                        di_type.into(),
+                        di_type,
                     )
                     .as_type(),
             );
         }
 
-        // Calculate struct size based on the last field's offset + size, properly aligned
+        // Use LLVM's calculation for the struct size
         let llvm_size = self.target_data.get_bit_size(&struct_type);
-        // Calculate our manual size based on adjusted offsets
-        let calculated_size = {
-            // Get struct alignment requirement (usually 8 bytes/64 bits for 64-bit architectures)
-            let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
-
-            // Calculate total size based on last field offset + size, rounded up to alignment
-            let last_field_end_bits = last_offset_bits + last_size_bits;
-            let aligned_size_bits =
-                last_field_end_bits.div_ceil(struct_align_bits as u64) * struct_align_bits as u64;
-
-            // If our calculated size is larger than LLVM's, use ours
-            if aligned_size_bits > llvm_size {
-                log::trace!(
-                    "Struct {}: adjusted size from {} to {} bits due to field alignment",
-                    name,
-                    llvm_size,
-                    aligned_size_bits
-                );
-                aligned_size_bits
-            } else {
-                llvm_size
-            }
-        };
+        let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
 
         let struct_type = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
             location.get_line_plus_one() as u32,
-            calculated_size,
-            self.target_data.get_preferred_alignment(&struct_type) * 8,
+            llvm_size,
+            struct_align_bits,
             DIFlags::PUBLIC,
             None,
             types.as_slice(),
@@ -799,7 +753,9 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         location: &SourceLocation,
     ) {
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
-            let debug_type = *debug_type;
+            let debug_type =
+                self.apply_const_type_if_needed((*debug_type).into(), global_variable.is_constant());
+
             let file = location
                 .get_file_name()
                 .map(|it| self.get_or_create_debug_file(it))
@@ -810,7 +766,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 "",
                 file,
                 location.get_line_plus_one() as u32,
-                debug_type.into(),
+                debug_type,
                 false,
                 None,
                 None,
@@ -843,12 +799,14 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .map(|it| it.as_debug_info_scope())
             .unwrap_or_else(|| file.as_debug_info_scope());
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_type = self.apply_const_type_if_needed((*debug_type).into(), variable.is_constant());
+
             let debug_variable = self.debug_info.create_auto_variable(
                 scope,
                 variable.get_name(),
                 file,
                 line,
-                (*debug_type).into(),
+                debug_type,
                 false,
                 DIFlagsConstants::ZERO,
                 alignment,
@@ -882,13 +840,15 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             .unwrap_or_else(|| file.as_debug_info_scope());
 
         if let Some(debug_type) = self.types.get(&type_name.to_lowercase()) {
+            let debug_type = self.apply_const_type_if_needed((*debug_type).into(), variable.is_constant());
+
             let debug_variable = self.debug_info.create_parameter_variable(
                 scope,
                 variable.get_name(),
                 arg_no as u32,
                 file,
                 line,
-                (*debug_type).into(),
+                debug_type,
                 false,
                 DIFlagsConstants::ZERO,
             );

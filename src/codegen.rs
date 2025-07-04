@@ -99,10 +99,38 @@ impl<'ink> CodeGen<'ink> {
         optimization_level: OptimizationLevel,
         debug_level: DebugLevel,
         online_change: OnlineChange,
+        target: &Target,
     ) -> CodeGen<'ink> {
         let module_location = file_marker.get_name().unwrap_or_default();
         let module = context.create_module(module_location);
         module.set_source_file_name(module_location);
+
+        // Initialize all targets
+        let initialization_config = &InitializationConfig::default();
+        inkwell::targets::Target::initialize_all(initialization_config);
+        let triple = target.get_target_triple();
+
+        // Create target from triple
+        let target_obj =
+            inkwell::targets::Target::from_triple(&triple).expect("Failed to create target from triple");
+
+        // Create a target machine with default options
+        let target_machine = target_obj
+            .create_target_machine(
+                &triple,
+                "generic", // CPU features - generic for portability
+                "",        // CPU features - empty string for default
+                optimization_level.into(),
+                inkwell::targets::RelocMode::Default,
+                inkwell::targets::CodeModel::Default,
+            )
+            .expect("Failed to create target machine");
+
+        // Get the data layout from the target machine and set the module's data layout and triple
+        let target_data = target_machine.get_target_data();
+        module.set_data_layout(&target_data.get_data_layout());
+        module.set_triple(&triple);
+
         let debug_level = if file_marker.is_internal() { DebugLevel::None } else { debug_level };
         let debug = debug::DebugBuilderEnum::new(context, &module, root, optimization_level, debug_level);
         CodeGen { module, debug, module_location: module_location.to_string(), online_change }
@@ -472,8 +500,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     pub fn persist_as_static_obj(
         &self,
         output: PathBuf,
@@ -489,8 +516,7 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - The generated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    /// * `target` - an optional llvm target triple
-    ///     If not provided, the machine's triple will be used.
+    /// * `target` - an optional llvm target triple; if not provided, the machine's triple will be used.
     pub fn persist_to_shared_pic_object(
         &self,
         output: PathBuf,

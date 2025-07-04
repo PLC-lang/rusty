@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %main = type { i16*, i16 }
 
@@ -13,8 +15,8 @@ source_filename = "<internal>"
 define i64 @foo() {
 entry:
   %foo = alloca i64, align 8
-  store i64 0, i64* %foo, align 4
-  %foo_ret = load i64, i64* %foo, align 4
+  store i64 0, i64* %foo, align 8
+  %foo_ret = load i64, i64* %foo, align 8
   ret i64 %foo_ret
 }
 

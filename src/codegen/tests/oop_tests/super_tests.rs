@@ -1,3 +1,4 @@
+use plc_util::filtered_assert_snapshot;
 use test_utils::codegen;
 
 #[test]
@@ -16,17 +17,19 @@ fn super_keyword_basic_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -35,13 +38,16 @@ fn super_keyword_basic_access() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
       store i16 20, i16* %x, align 2
@@ -134,17 +140,19 @@ fn super_without_deref() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16 }
     %child = type { %parent, %parent* }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 10 }, %parent* null }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 }, %parent* null }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -153,13 +161,16 @@ fn super_without_deref() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %p = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       store %parent* %__parent, %parent** %p, align 8
@@ -259,17 +270,19 @@ fn super_in_method_calls() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32*, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -278,15 +291,17 @@ fn super_in_method_calls() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @parent_process(%parent* %0) {
+    define i16 @parent__process(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.process = alloca i16, align 2
       store i16 0, i16* %parent.process, align 2
       %load_value = load i16, i16* %value, align 2
@@ -294,18 +309,22 @@ fn super_in_method_calls() {
       %tmpVar = mul i32 %1, 2
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %parent.process, align 2
-      %parent_process_ret = load i16, i16* %parent.process, align 2
-      ret i16 %parent_process_ret
+      %parent__process_ret = load i16, i16* %parent.process, align 2
+      ret i16 %parent__process_ret
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @child_process(%child* %0) {
+    define i16 @child__process(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.process = alloca i16, align 2
       store i16 0, i16* %child.process, align 2
@@ -315,36 +334,21 @@ fn super_in_method_calls() {
       %tmpVar = add i32 %1, 5
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %child.process, align 2
-      %child_process_ret = load i16, i16* %child.process, align 2
-      ret i16 %child_process_ret
+      %child__process_ret = load i16, i16* %child.process, align 2
+      ret i16 %child__process_ret
     }
 
-    define i16 @child_test(%child* %0) {
+    define i16 @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
-      %call = call i16 @parent_process(%parent* %__parent)
+      %call = call i16 @parent__process(%parent* %__parent)
       store i16 %call, i16* %child.test, align 2
-      %child_test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child_test_ret
-    }
-
-    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
-    entry:
-      %self = alloca %__vtable_parent_type*, align 8
-      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
-    entry:
-      %self = alloca %__vtable_child_type*, align 8
-      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
-      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
-      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
-      ret void
+      %child__test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child__test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -417,17 +421,19 @@ fn super_in_complex_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, i16 }
     %child = type { %parent, i16 }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10, i16 20 }
-    @__child__init = constant %child { %parent { i32* null, i16 10, i16 20 }, i16 30 }
+    @__parent__init = unnamed_addr constant %parent { i16 10, i16 20 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10, i16 20 }, i16 30 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -436,14 +442,17 @@ fn super_in_complex_expressions() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %y = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %y = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %x = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -545,9 +554,11 @@ fn super_with_array_access() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, [6 x i16] }
     %child = type { %parent, i16 }
@@ -555,8 +566,8 @@ fn super_with_array_access() {
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @__parent__init = constant %parent { i32* null, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
-    @__child__init = constant %child { %parent { i32* null, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }, i16 3 }
+    @__parent__init = unnamed_addr constant %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
+    @__child__init = unnamed_addr constant %child { %parent { [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }, i16 3 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -565,13 +576,16 @@ fn super_with_array_access() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %index = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %arr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -687,9 +701,11 @@ fn super_in_multi_level_inheritance() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { %grandparent, i16 }
     %grandparent = type { i32*, i16 }
@@ -698,9 +714,9 @@ fn super_in_multi_level_inheritance() {
     %__vtable_parent_type = type { %__vtable_grandparent_type, i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent { %grandparent { i32* null, i16 10 }, i16 20 }
-    @__grandparent__init = constant %grandparent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { %grandparent { i32* null, i16 10 }, i16 20 }, i16 30 }
+    @__parent__init = unnamed_addr constant %parent { %grandparent { i16 10 }, i16 20 }
+    @__grandparent__init = unnamed_addr constant %grandparent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { %grandparent { i16 10 }, i16 20 }, i16 30 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent_type__init = constant %__vtable_grandparent_type zeroinitializer
     @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer
@@ -711,91 +727,74 @@ fn super_in_multi_level_inheritance() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
+      %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @grandparent_gp_method(%grandparent* %0) {
+    define i16 @grandparent__gp_method(%grandparent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
+      %g_val = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %grandparent.gp_method = alloca i16, align 2
       store i16 0, i16* %grandparent.gp_method, align 2
       %load_g_val = load i16, i16* %g_val, align 2
       store i16 %load_g_val, i16* %grandparent.gp_method, align 2
-      %grandparent_gp_method_ret = load i16, i16* %grandparent.gp_method, align 2
-      ret i16 %grandparent_gp_method_ret
+      %grandparent__gp_method_ret = load i16, i16* %grandparent.gp_method, align 2
+      ret i16 %grandparent__gp_method_ret
     }
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %p_val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
-    define i16 @parent_p_method(%parent* %0) {
+    define i16 @parent__p_method(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %p_val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %parent.p_method = alloca i16, align 2
       store i16 0, i16* %parent.p_method, align 2
       %load_p_val = load i16, i16* %p_val, align 2
       %1 = sext i16 %load_p_val to i32
-      %call = call i16 @grandparent_gp_method(%grandparent* %__grandparent)
+      %call = call i16 @grandparent__gp_method(%grandparent* %__grandparent)
       %2 = sext i16 %call to i32
       %tmpVar = add i32 %1, %2
       %3 = trunc i32 %tmpVar to i16
       store i16 %3, i16* %parent.p_method, align 2
-      %parent_p_method_ret = load i16, i16* %parent.p_method, align 2
-      ret i16 %parent_p_method_ret
+      %parent__p_method_ret = load i16, i16* %parent.p_method, align 2
+      ret i16 %parent__p_method_ret
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %c_val = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void
     }
 
-    define i16 @child_test(%child* %0) {
+    define i16 @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %c_val = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
-      %call = call i16 @parent_p_method(%parent* %__parent)
+      %call = call i16 @parent__p_method(%parent* %__parent)
       store i16 %call, i16* %child.test, align 2
-      %child_test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child_test_ret
-    }
-
-    define void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %0) {
-    entry:
-      %self = alloca %__vtable_grandparent_type*, align 8
-      store %__vtable_grandparent_type* %0, %__vtable_grandparent_type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
-    entry:
-      %self = alloca %__vtable_parent_type*, align 8
-      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
-      %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
-      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
-      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
-      ret void
-    }
-
-    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
-    entry:
-      %self = alloca %__vtable_child_type*, align 8
-      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
-      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
-      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
-      ret void
+      %child__test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child__test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -893,17 +892,19 @@ fn super_with_pointer_operations() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, i16* }
     %child = type { %parent }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10, i16* null }
-    @__child__init = constant %child { %parent { i32* null, i16 10, i16* null } }
+    @__parent__init = unnamed_addr constant %parent { i16 10, i16* null }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10, i16* null } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -912,14 +913,17 @@ fn super_with_pointer_operations() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %ptr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %ptr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %ptr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
       %val = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -1031,17 +1035,19 @@ fn super_in_conditionals() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 50, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 50, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 50, i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 50, i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -1050,20 +1056,25 @@ fn super_in_conditionals() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %threshold = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %threshold = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_test(%child* %0) {
+    define void @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
       %load_value = load i16, i16* %value, align 2
@@ -1197,17 +1208,19 @@ fn super_with_const_variables() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 100, i16 50 }
-    @__child__init = constant %child { %parent { i32* null, i16 100, i16 50 } }
+    @__parent__init = unnamed_addr constant %parent { i16 100, i16 50 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 100, i16 50 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -1216,14 +1229,17 @@ fn super_with_const_variables() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %MAX_VALUE = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %current = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %MAX_VALUE = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %current = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %current = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
       store i16 50, i16* %current, align 2
@@ -1330,17 +1346,19 @@ fn super_as_function_parameter() {
         END_FUNCTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -1349,19 +1367,24 @@ fn super_as_function_parameter() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_test(%child* %0) {
+    define void @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %call = call i16 @process_ref(%parent* %__parent)
       %call1 = call i16 @process_val(%parent* %__parent)
@@ -1491,17 +1514,19 @@ fn super_with_deeply_nested_expressions() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, i16, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 1, i16 2, i16 3 }
-    @__child__init = constant %child { %parent { i32* null, i16 1, i16 2, i16 3 } }
+    @__parent__init = unnamed_addr constant %parent { i16 1, i16 2, i16 3 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 1, i16 2, i16 3 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -1510,19 +1535,21 @@ fn super_with_deeply_nested_expressions() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 3
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       ret void
     }
 
-    define i16 @parent_calc(%parent* %0) {
+    define i16 @parent__calc(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 3
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %c = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
       %parent.calc = alloca i16, align 2
       store i16 0, i16* %parent.calc, align 2
       %load_a = load i16, i16* %a, align 2
@@ -1535,18 +1562,22 @@ fn super_with_deeply_nested_expressions() {
       %tmpVar1 = add i32 %1, %tmpVar
       %4 = trunc i32 %tmpVar1 to i16
       store i16 %4, i16* %parent.calc, align 2
-      %parent_calc_ret = load i16, i16* %parent.calc, align 2
-      ret i16 %parent_calc_ret
+      %parent__calc_ret = load i16, i16* %parent.calc, align 2
+      ret i16 %parent__calc_ret
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @child_test(%child* %0) {
+    define i16 @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.test = alloca i16, align 2
       store i16 0, i16* %child.test, align 2
@@ -1561,7 +1592,7 @@ fn super_with_deeply_nested_expressions() {
       %load_c = load i16, i16* %c, align 2
       %3 = sext i16 %load_c to i32
       %tmpVar1 = mul i32 %tmpVar, %3
-      %call = call i16 @parent_calc(%parent* %__parent)
+      %call = call i16 @parent__calc(%parent* %__parent)
       %4 = sext i16 %call to i32
       %tmpVar2 = add i32 %tmpVar1, %4
       %a3 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -1571,25 +1602,8 @@ fn super_with_deeply_nested_expressions() {
       %tmpVar6 = sdiv i32 %tmpVar2, %tmpVar5
       %6 = trunc i32 %tmpVar6 to i16
       store i16 %6, i16* %child.test, align 2
-      %child_test_ret = load i16, i16* %child.test, align 2
-      ret i16 %child_test_ret
-    }
-
-    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
-    entry:
-      %self = alloca %__vtable_parent_type*, align 8
-      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
-    entry:
-      %self = alloca %__vtable_child_type*, align 8
-      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
-      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
-      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
-      ret void
+      %child__test_ret = load i16, i16* %child.test, align 2
+      ret i16 %child__test_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -1684,9 +1698,11 @@ fn super_in_loop_constructs() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16, [6 x i16] }
     %child = type { %parent }
@@ -1694,8 +1710,8 @@ fn super_in_loop_constructs() {
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @__parent__init = constant %parent { i32* null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
-    @__child__init = constant %child { %parent { i32* null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
+    @__parent__init = unnamed_addr constant %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
+    @__child__init = unnamed_addr constant %child { %parent { i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -1704,17 +1720,19 @@ fn super_in_loop_constructs() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
-    define void @parent_increment(%parent* %0) {
+    define void @parent__increment(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %load_counter = load i16, i16* %counter, align 2
       %1 = sext i16 %load_counter to i32
       %tmpVar = add i32 %1, 1
@@ -1725,12 +1743,16 @@ fn super_in_loop_constructs() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_process(%child* %0) {
+    define void @child__process(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %i = alloca i16, align 2
       %sum = alloca i16, align 2
@@ -1765,7 +1787,7 @@ fn super_in_loop_constructs() {
       %tmpVar4 = add i32 %5, %7
       %8 = trunc i32 %tmpVar4 to i16
       store i16 %8, i16* %sum, align 2
-      call void @parent_increment(%parent* %__parent)
+      call void @parent__increment(%parent* %__parent)
       br label %increment
 
     increment:                                        ; preds = %loop
@@ -1802,7 +1824,7 @@ fn super_in_loop_constructs() {
       br label %continue6
 
     continue6:                                        ; preds = %buffer_block, %while_body
-      call void @parent_increment(%parent* %__parent)
+      call void @parent__increment(%parent* %__parent)
       br label %condition_check
 
     condition_check9:                                 ; preds = %continue16, %continue5
@@ -1929,9 +1951,11 @@ fn super_with_method_overrides_in_three_levels() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { %grandparent }
     %grandparent = type { i32* }
@@ -1940,9 +1964,9 @@ fn super_with_method_overrides_in_three_levels() {
     %__vtable_parent_type = type { %__vtable_grandparent_type, i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent zeroinitializer
-    @__grandparent__init = constant %grandparent zeroinitializer
-    @__child__init = constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent_type__init = constant %__vtable_grandparent_type zeroinitializer
     @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer
@@ -1953,85 +1977,68 @@ fn super_with_method_overrides_in_three_levels() {
 
     define void @grandparent(%grandparent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       ret void
     }
 
-    define i16 @grandparent_calculate(%grandparent* %0) {
+    define i16 @grandparent__calculate(%grandparent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %grandparent.calculate = alloca i16, align 2
       store i16 0, i16* %grandparent.calculate, align 2
       store i16 100, i16* %grandparent.calculate, align 2
-      %grandparent_calculate_ret = load i16, i16* %grandparent.calculate, align 2
-      ret i16 %grandparent_calculate_ret
+      %grandparent__calculate_ret = load i16, i16* %grandparent.calculate, align 2
+      ret i16 %grandparent__calculate_ret
     }
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @parent_calculate(%parent* %0) {
+    define i16 @parent__calculate(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %parent.calculate = alloca i16, align 2
       store i16 0, i16* %parent.calculate, align 2
-      %call = call i16 @grandparent_calculate(%grandparent* %__grandparent)
+      %call = call i16 @grandparent__calculate(%grandparent* %__grandparent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 50
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %parent.calculate, align 2
-      %parent_calculate_ret = load i16, i16* %parent.calculate, align 2
-      ret i16 %parent_calculate_ret
+      %parent__calculate_ret = load i16, i16* %parent.calculate, align 2
+      ret i16 %parent__calculate_ret
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define i16 @child_calculate(%child* %0) {
+    define i16 @child__calculate(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %child.calculate = alloca i16, align 2
       store i16 0, i16* %child.calculate, align 2
-      %call = call i16 @parent_calculate(%parent* %__parent)
+      %call = call i16 @parent__calculate(%parent* %__parent)
       %1 = sext i16 %call to i32
       %tmpVar = add i32 %1, 25
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %child.calculate, align 2
-      %child_calculate_ret = load i16, i16* %child.calculate, align 2
-      ret i16 %child_calculate_ret
-    }
-
-    define void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %0) {
-    entry:
-      %self = alloca %__vtable_grandparent_type*, align 8
-      store %__vtable_grandparent_type* %0, %__vtable_grandparent_type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
-    entry:
-      %self = alloca %__vtable_parent_type*, align 8
-      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
-      %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
-      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
-      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
-      ret void
-    }
-
-    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
-    entry:
-      %self = alloca %__vtable_child_type*, align 8
-      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
-      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
-      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
-      ret void
+      %child__calculate_ret = load i16, i16* %child.calculate, align 2
+      ret i16 %child__calculate_ret
     }
 
     define void @__init_parent(%parent* %0) {
@@ -2147,7 +2154,7 @@ fn super_with_return_value_in_multiple_contexts() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r#""#);
+    filtered_assert_snapshot!(result, @r#""#);
 }
 
 #[test]
@@ -2189,9 +2196,11 @@ fn super_with_structured_types() {
         END_FUNCTION_BLOCK
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %Complex_Type = type { i16, i16, float }
     %parent = type { i32*, %Complex_Type, [2 x %Complex_Type] }
@@ -2201,9 +2210,9 @@ fn super_with_structured_types() {
 
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
     @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
-    @__Complex_Type__init = constant %Complex_Type zeroinitializer
-    @__parent__init = constant %parent { i32* null, %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
-    @__child__init = constant %child { %parent { i32* null, %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] } }
+    @__Complex_Type__init = unnamed_addr constant %Complex_Type zeroinitializer
+    @__parent__init = unnamed_addr constant %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
+    @__child__init = unnamed_addr constant %child { %parent { %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -2212,20 +2221,25 @@ fn super_with_structured_types() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %arr_data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
+      %arr_data = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_test(%child* %0) {
+    define void @child__test(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %local_data = alloca %Complex_Type, align 8
       %1 = bitcast %Complex_Type* %local_data to i8*
@@ -2381,17 +2395,19 @@ fn super_in_action_blocks() {
         END_ACTION
         "#,
     );
-    insta::assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %parent = type { i32*, i16 }
     %child = type { %parent }
     %__vtable_parent_type = type { i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
-    @__parent__init = constant %parent { i32* null, i16 10 }
-    @__child__init = constant %child { %parent { i32* null, i16 10 } }
+    @__parent__init = unnamed_addr constant %parent { i16 10 }
+    @__child__init = unnamed_addr constant %child { %parent { i16 10 } }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
@@ -2400,15 +2416,17 @@ fn super_in_action_blocks() {
 
     define void @parent(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
-    define void @parent_increment(%parent* %0) {
+    define void @parent__increment(%parent* %0) {
     entry:
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
+      %value = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %load_value = load i16, i16* %value, align 2
       %1 = sext i16 %load_value to i32
       %tmpVar = add i32 %1, 1
@@ -2419,12 +2437,16 @@ fn super_in_action_blocks() {
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_increase(%child* %0) {
+    define void @child__increase(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %value = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
       %value1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
@@ -2433,24 +2455,7 @@ fn super_in_action_blocks() {
       %tmpVar = add i32 %1, 5
       %2 = trunc i32 %tmpVar to i16
       store i16 %2, i16* %value, align 2
-      call void @parent_increment(%parent* %__parent)
-      ret void
-    }
-
-    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
-    entry:
-      %self = alloca %__vtable_parent_type*, align 8
-      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
-    entry:
-      %self = alloca %__vtable_child_type*, align 8
-      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
-      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
-      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
-      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
+      call void @parent__increment(%parent* %__parent)
       ret void
     }
 

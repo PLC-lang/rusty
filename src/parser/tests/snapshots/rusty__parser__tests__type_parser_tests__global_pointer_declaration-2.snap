@@ -11,6 +11,7 @@ Variable {
                 referenced_type: "INT",
             },
             auto_deref: None,
+            type_safe: false,
         },
     },
 }

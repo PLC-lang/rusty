@@ -4,6 +4,8 @@ expression: prg
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %MyClass = type { i32*, i16, i16 }
 
@@ -11,16 +13,20 @@ source_filename = "<internal>"
 
 define void @MyClass(%MyClass* %0) {
 entry:
+  %this = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %this, align 8
   %__vtable = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 2
-  %call = call i16 @MyClass_testMethod(%MyClass* %0, i16 1)
-  %call1 = call i16 @MyClass_testMethod(%MyClass* %0, i16 3)
+  %call = call i16 @MyClass__testMethod(%MyClass* %0, i16 1)
+  %call1 = call i16 @MyClass__testMethod(%MyClass* %0, i16 3)
   ret void
 }
 
-define i16 @MyClass_testMethod(%MyClass* %0, i16 %1) {
+define i16 @MyClass__testMethod(%MyClass* %0, i16 %1) {
 entry:
+  %this = alloca %MyClass*, align 8
+  store %MyClass* %0, %MyClass** %this, align 8
   %__vtable = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
   %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 2
@@ -47,6 +53,6 @@ entry:
   %tmpVar2 = add i32 %6, 1
   %7 = trunc i32 %tmpVar2 to i16
   store i16 %7, i16* %MyClass.testMethod, align 2
-  %MyClass_testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
-  ret i16 %MyClass_testMethod_ret
+  %MyClass__testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  ret i16 %MyClass__testMethod_ret
 }

@@ -4,6 +4,8 @@ expression: result
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %abcdef = type { i32*, i8 }
 
@@ -11,8 +13,9 @@ source_filename = "<internal>"
 
 define void @abcdef(%abcdef* %0) {
 entry:
-  %__vtable = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
-  %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 1
+  %this = alloca %abcdef*, align 8
+  store %abcdef* %0, %abcdef** %this, align 8
+  %n = getelementptr inbounds %abcdef, %abcdef* %0, i32 0, i32 0
   %load_n = load i8, i8* %n, align 1
   %1 = sext i8 %load_n to i32
   %tmpVar = icmp slt i32 %1, 10

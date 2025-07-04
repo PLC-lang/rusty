@@ -25,7 +25,7 @@ pub mod tests {
             StringLiterals, TypeAnnotator,
         },
         typesystem::get_builtin_types,
-        DebugLevel, OnlineChange, Validator,
+        DebugLevel, OnlineChange, Target, Validator,
     };
 
     pub fn parse(src: &str) -> (CompilationUnit, Vec<Diagnostic>) {
@@ -162,6 +162,10 @@ pub mod tests {
         (all_annotations, full_index, (unit, dependencies, literals))
     }
 
+    pub fn parse_and_validate(src: &str) -> Vec<Diagnostic> {
+        parse_and_validate_abort_on_parse_errors(src, false)
+    }
+
     pub fn parse_and_validate_buffered(src: &str) -> String {
         parse_and_validate_abort_on_parse_error_buffered(src, false)
     }
@@ -254,6 +258,7 @@ pub mod tests {
             crate::OptimizationLevel::None,
             debug_level,
             online_change.clone(),
+            &Target::System,
         );
         let llvm_index = code_generator
             .generate_llvm_index(&context, &annotations, &literals, &dependencies, &index, &got_layout)
@@ -321,6 +326,7 @@ pub mod tests {
                     crate::OptimizationLevel::None,
                     debug_level,
                     crate::OnlineChange::Disabled,
+                    &Target::System,
                 );
                 let got_layout = Mutex::new(HashMap::default());
 

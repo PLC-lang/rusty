@@ -4,6 +4,8 @@ expression: result
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %MyClass = type { i32*, i16, i16 }
 
@@ -17,7 +19,7 @@ entry:
   ret void
 }
 
-define void @MyClass_testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
 entry:
   %__vtable = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
   %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1

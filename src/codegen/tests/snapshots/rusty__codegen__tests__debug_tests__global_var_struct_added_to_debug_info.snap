@@ -1,17 +1,18 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct = type { i32, double, [11 x i32] }
 
 @b = global [11 x %myStruct] zeroinitializer, !dbg !0
 @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-@__myStruct__init = constant %myStruct zeroinitializer, !dbg !14
-@gStruct = global %myStruct zeroinitializer, !dbg !16
+@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !14
+@gStruct = global %myStruct zeroinitializer, !dbg !17
 
 define void @__init_mystruct(%myStruct* %0) {
 entry:
@@ -34,8 +35,8 @@ entry:
   ret void
 }
 
-!llvm.module.flags = !{!18, !19}
-!llvm.dbg.cu = !{!20}
+!llvm.module.flags = !{!19, !20}
+!llvm.dbg.cu = !{!21}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 12, type: !3, isLocal: false, isDefinition: true)
@@ -52,10 +53,11 @@ entry:
 !12 = !{!13}
 !13 = !DISubrange(count: 11, lowerBound: 0)
 !14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
-!15 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !4, isLocal: false, isDefinition: true)
-!16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
-!17 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 11, type: !4, isLocal: false, isDefinition: true)
-!18 = !{i32 2, !"Dwarf Version", i32 5}
-!19 = !{i32 2, !"Debug Info Version", i32 3}
-!20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
-!21 = !{!16, !14, !0}
+!15 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 2, type: !16, isLocal: false, isDefinition: true)
+!16 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
+!17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
+!18 = distinct !DIGlobalVariable(name: "gStruct", scope: !2, file: !2, line: 11, type: !4, isLocal: false, isDefinition: true)
+!19 = !{i32 2, !"Dwarf Version", i32 5}
+!20 = !{i32 2, !"Debug Info Version", i32 3}
+!21 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !22, splitDebugInlining: false)
+!22 = !{!17, !14, !0}

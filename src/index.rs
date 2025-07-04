@@ -434,7 +434,7 @@ impl ImplementationIndexEntry {
 
     pub fn get_call_name_for_ir(&self) -> String {
         match self.implementation_type {
-            ImplementationType::Method | ImplementationType::Action => self.call_name.replace(".", "_"),
+            ImplementationType::Method | ImplementationType::Action => self.call_name.replace(".", "__"),
             _ => self.call_name.clone(),
         }
     }
@@ -467,6 +467,10 @@ impl ImplementationIndexEntry {
 
     pub fn is_method(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Method)
+    }
+
+    pub fn is_action(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::Action)
     }
 }
 
@@ -1131,7 +1135,7 @@ impl PouIndexEntry {
     }
     /// Returns the POU's identifier without the qualifier
     pub fn get_flat_reference_name(&self) -> &str {
-        self.get_qualified_name().into_iter().last().unwrap_or_default()
+        self.get_qualified_name().into_iter().next_back().unwrap_or_default()
     }
 }
 

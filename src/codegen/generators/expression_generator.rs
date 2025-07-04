@@ -217,6 +217,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // generate the expression
         match expression.get_stmt() {
+            AstStatement::This => {
+                self.function_context.ok_or_else(|| {
+                    Diagnostic::codegen_error("Cannot use 'this' without context", expression)
+                })?;
+                let Some(this_name) = self.annotations.get_call_name(expression) else {
+                    unreachable!("this should have a name");
+                };
+                let this_value =
+                    self.llvm_index.find_loaded_associated_variable_value(this_name).ok_or_else(|| {
+                        let message = format!("Cannot find '{}' in associated variable values", this_name);
+                        Diagnostic::codegen_error(message, expression)
+                    })?;
+                Ok(ExpressionValue::LValue(this_value))
+            }
             AstStatement::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
@@ -1928,7 +1942,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 AstLiteral::Array(arr) => self
                     .generate_literal_array(arr.elements().ok_or_else(cannot_generate_literal)?)
                     .map(ExpressionValue::RValue),
-                AstLiteral::Null { .. } => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
+                AstLiteral::Null => self.llvm.create_null_ptr().map(ExpressionValue::RValue),
             },
 
             AstStatement::MultipliedStatement { .. } => {

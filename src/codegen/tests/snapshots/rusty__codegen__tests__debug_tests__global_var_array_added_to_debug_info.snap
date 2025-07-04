@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 @a = global [11 x i32] zeroinitializer, !dbg !0
 @b = global [110 x i32] zeroinitializer, !dbg !7

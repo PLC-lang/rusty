@@ -4,6 +4,8 @@ expression: result
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %MyFB = type { i32*, i16 }
 %prg = type { %MyFB }
@@ -15,6 +17,8 @@ source_filename = "<internal>"
 define void @MyFB(%MyFB* %0) {
 entry:
   %__vtable = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
+  %this = alloca %MyFB*, align 8
+  store %MyFB* %0, %MyFB** %this, align 8
   %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 1
   ret void
 }

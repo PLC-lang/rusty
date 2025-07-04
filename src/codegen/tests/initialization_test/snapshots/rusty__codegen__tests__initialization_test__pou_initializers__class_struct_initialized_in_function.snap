@@ -4,6 +4,8 @@ expression: function
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %fb = type { i32*, i16 }
 %main = type { %fb }

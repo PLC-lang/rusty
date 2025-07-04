@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_assert_snapshot;
 /// # Architecture Design Record: Structs
 /// ST supports C-like structures.
 ///
@@ -18,9 +18,11 @@ fn declaring_a_struct() {
         "#;
 
     // ... just translates to a llvm struct type
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %Person = type { [81 x i8], [81 x i8], i16, i8 }
 
@@ -48,9 +50,11 @@ fn default_values_of_a_struct() {
         "#;
 
     // ... instances of this struct-type will be initialized accordingly
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %Person = type { [6 x i8], [6 x i8], i16, i8 }
 
@@ -89,9 +93,11 @@ fn initializing_a_struct() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }
@@ -136,9 +142,11 @@ fn assigning_structs() {
         "#;
 
     // ... the assignment p1 := p2 will be performed as a memcpy
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Point, %Point }
     %Point = type { i16, i16 }
@@ -192,9 +200,11 @@ fn accessing_struct_members() {
         "#;
 
     // ... will be initialized directly in the variable's definition
-    insta::assert_snapshot!(codegen(src), @r#"
+    filtered_assert_snapshot!(codegen(src), @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %prg = type { %Rect, %Rect }
     %Rect = type { %Point, %Point }

@@ -387,11 +387,12 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             HashMap::default()
         };
         let got_layout = Mutex::new(got_layout);
+        let target = self.compile_parameters.as_ref().and_then(|it| it.target.as_ref());
         if compile_options.single_module || matches!(compile_options.output_format, FormatOption::Object) {
             log::info!("Using single module mode");
             let context = CodegenContext::create();
             project
-                .generate_single_module(&context, &compile_options)?
+                .generate_single_module(&context, &compile_options, target)?
                 .map(|module| {
                     self.participants.iter_mut().try_fold((), |_, participant| participant.generate(&module))
                 })
@@ -409,6 +410,7 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
                         dependencies,
                         literals,
                         &got_layout,
+                        target,
                     )?;
                     self.participants.iter().try_fold((), |_, participant| participant.generate(&module))
                 })
@@ -636,6 +638,12 @@ impl AnnotatedUnit {
     }
 }
 
+impl From<AnnotatedUnit> for CompilationUnit {
+    fn from(value: AnnotatedUnit) -> Self {
+        value.unit
+    }
+}
+
 /// A project that has been annotated with information about different types and used units
 pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
@@ -683,8 +691,16 @@ impl AnnotatedProject {
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
                 let context = CodegenContext::create();
-                self.generate_module(&context, compile_options, unit, dependencies, literals, &got_layout)
-                    .map(|it| it.persist_to_string())
+                self.generate_module(
+                    &context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    None,
+                )
+                .map(|it| it.persist_to_string())
             })
             .collect()
     }
@@ -693,6 +709,7 @@ impl AnnotatedProject {
         &self,
         context: &'ctx CodegenContext,
         compile_options: &CompileOptions,
+        target: Option<&Target>,
     ) -> Result<Option<GeneratedModule<'ctx>>, Diagnostic> {
         let got_layout = if let OnlineChange::Enabled { file_name, format } = &compile_options.online_change {
             read_got_layout(file_name, *format)?
@@ -706,7 +723,15 @@ impl AnnotatedProject {
             .iter()
             // TODO: this can be parallelized
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
+                self.generate_module(
+                    context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    target,
+                )
             })
             .reduce(|a, b| {
                 let a = a?;
@@ -719,6 +744,7 @@ impl AnnotatedProject {
         module.map(Some)
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn generate_module<'ctx>(
         &self,
         context: &'ctx CodegenContext,
@@ -727,7 +753,11 @@ impl AnnotatedProject {
         dependencies: &FxIndexSet<Dependency>,
         literals: &StringLiterals,
         got_layout: &Mutex<HashMap<String, u64>>,
+        target: Option<&Target>,
     ) -> Result<GeneratedModule<'ctx>, Diagnostic> {
+        // Determine target from compile_options or use default
+        let target = target.unwrap_or(&Target::System);
+
         let mut code_generator = plc::codegen::CodeGen::new(
             context,
             compile_options.root.as_deref(),
@@ -736,6 +766,7 @@ impl AnnotatedProject {
             compile_options.debug_level,
             //FIXME don't clone here
             compile_options.online_change.clone(),
+            target,
         );
         //Create a types codegen, this contains all the type declarations
         //Associate the index type with LLVM types
@@ -762,10 +793,12 @@ impl AnnotatedProject {
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
         let targets = if targets.is_empty() { &[Target::System] } else { targets };
-        let module = self.generate_single_module(&context, compile_options)?.unwrap();
+        let modules =
+            targets.iter().map(|target| self.generate_single_module(&context, compile_options, Some(target)));
         let mut result = vec![];
-        for target in targets {
-            let obj: Object = module
+        for (target, module) in targets.iter().zip(modules) {
+            let obj: Object = module?
+                .unwrap()
                 .persist(
                     Some(&compile_directory),
                     &compile_options.output,
@@ -795,7 +828,15 @@ impl AnnotatedProject {
         self.units
             .iter()
             .map(|AnnotatedUnit { unit, dependencies, literals }| {
-                self.generate_module(context, compile_options, unit, dependencies, literals, &got_layout)
+                self.generate_module(
+                    context,
+                    compile_options,
+                    unit,
+                    dependencies,
+                    literals,
+                    &got_layout,
+                    None,
+                )
             })
             .collect()
     }

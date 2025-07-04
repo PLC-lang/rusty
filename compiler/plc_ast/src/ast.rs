@@ -647,6 +647,13 @@ impl DataTypeDeclaration {
         }
     }
 
+    pub fn is_type_safe_pointer(&self) -> bool {
+        match self {
+            DataTypeDeclaration::Definition { data_type, .. } => data_type.is_type_safe_pointer(),
+            _ => false,
+        }
+    }
+
     pub fn is_aggregate(&self) -> bool {
         matches!(self, DataTypeDeclaration::Aggregate { .. })
     }
@@ -697,6 +704,11 @@ pub enum DataType {
         name: Option<String>,
         referenced_type: Box<DataTypeDeclaration>,
         auto_deref: Option<AutoDerefType>,
+
+        /// Indicates whether to perform type validation. When false, pointer type mismatches are allowed,
+        /// e.g., `foo : POINTER TO DINT := ADR(stringValue)`. When true, the type of the pointer must match
+        /// the referenced type exactly.
+        type_safe: bool,
     },
     StringType {
         name: Option<String>,
@@ -767,6 +779,14 @@ impl DataType {
             }
             _ => None,
         }
+    }
+
+    pub fn is_pointer(&self) -> bool {
+        matches!(self, DataType::PointerType { .. })
+    }
+
+    pub fn is_type_safe_pointer(&self) -> bool {
+        matches!(self, DataType::PointerType { type_safe: true, .. })
     }
 }
 
@@ -861,6 +881,7 @@ pub enum AstStatement {
     ReferenceExpr(ReferenceExpr),
     Identifier(String),
     Super(Option<DerefMarker>),
+    This,
     DirectAccess(DirectAccess),
     HardwareAccess(HardwareAccess),
     BinaryExpression(BinaryExpression),
@@ -931,6 +952,7 @@ impl Debug for AstNode {
             AstStatement::Identifier(name) => f.debug_struct("Identifier").field("name", name).finish(),
             AstStatement::Super(Some(_)) => f.debug_struct("Super(derefed)").finish(),
             AstStatement::Super(_) => f.debug_struct("Super").finish(),
+            AstStatement::This => f.debug_struct("This").finish(),
             AstStatement::BinaryExpression(BinaryExpression { operator, left, right }) => f
                 .debug_struct("BinaryExpression")
                 .field("operator", operator)
@@ -1236,6 +1258,10 @@ impl AstNode {
         )
     }
 
+    pub fn is_this(&self) -> bool {
+        matches!(self.stmt, AstStatement::This)
+    }
+
     pub fn is_paren(&self) -> bool {
         matches!(self.stmt, AstStatement::ParenExpression { .. })
     }
@@ -1280,6 +1306,9 @@ impl AstNode {
 
     pub fn can_be_assigned_to(&self) -> bool {
         if self.has_super_metadata() {
+            return false;
+        }
+        if self.is_this() {
             return false;
         }
         self.has_direct_access()
@@ -1438,7 +1467,7 @@ pub fn flatten_expression_list(list: &AstNode) -> Vec<&AstNode> {
             expressions.iter().by_ref().flat_map(flatten_expression_list).collect()
         }
         AstStatement::MultipliedStatement(MultipliedStatement { multiplier, element }, ..) => {
-            std::iter::repeat(flatten_expression_list(element)).take(*multiplier as usize).flatten().collect()
+            std::iter::repeat_n(flatten_expression_list(element), *multiplier as usize).flatten().collect()
         }
         AstStatement::ParenExpression(expression) => flatten_expression_list(expression),
         _ => vec![list],
@@ -1638,6 +1667,13 @@ impl AstFactory {
         T: Into<SourceLocation>,
     {
         AstNode::new(AstStatement::Super(deref), id, location.into())
+    }
+
+    pub fn create_this_reference<T>(location: T, id: AstId) -> AstNode
+    where
+        T: Into<SourceLocation>,
+    {
+        AstNode::new(AstStatement::This, id, location.into())
     }
 
     pub fn create_unary_expression(

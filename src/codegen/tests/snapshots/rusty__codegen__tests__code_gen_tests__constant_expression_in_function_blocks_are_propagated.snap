@@ -4,6 +4,8 @@ expression: result
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %fbWithConstant = type { i32*, i16, i16 }
 
@@ -11,6 +13,8 @@ source_filename = "<internal>"
 
 define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
+  %this = alloca %fbWithConstant*, align 8
+  store %fbWithConstant* %0, %fbWithConstant** %this, align 8
   %__vtable = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
   %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1
   %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 2

@@ -151,6 +151,28 @@ pub fn visit_statement<T: AnnotationMap>(
                         .with_location(statement.get_location()).with_error_code("E119"));
             }
         }
+        AstStatement::This => {
+            if !context.qualifier.is_some_and(|it| {
+                context
+                    .index
+                    .find_pou(it)
+                    .and_then(|it| match it {
+                        PouIndexEntry::FunctionBlock { .. } => Some(it),
+                        PouIndexEntry::Method { parent_name, .. }
+                        | PouIndexEntry::Action { parent_name, .. } => context.index.find_pou(parent_name),
+                        _ => None,
+                    })
+                    .is_some_and(|it| it.is_function_block())
+            }) {
+                validator.push_diagnostic(
+                    Diagnostic::new(
+                        "Invalid use of `THIS`. Usage is only allowed within `FUNCTION_BLOCK` and its `METHOD`s and `ACTION`s.",
+                    )
+                    .with_error_code("E120")
+                    .with_location(statement),
+                );
+            }
+        }
         _ => {}
     }
     validate_type_nature(validator, statement, context);
@@ -178,6 +200,15 @@ fn validate_reference_expression<T: AnnotationMap>(
         }
         ReferenceAccess::Member(m) => {
             if let Some(base) = base {
+                if m.is_this() {
+                    // this cannot be accessed as a member
+                    validator.push_diagnostic(
+                        Diagnostic::new("`THIS` is not allowed in member-access position.")
+                            .with_location(m.get_location())
+                            .with_error_code("E120"),
+                    );
+                    return;
+                }
                 if m.is_super() || m.has_super_metadata() {
                     // super cannot be accessed as a member
                     validator.push_diagnostic(
@@ -906,7 +937,7 @@ fn validate_call_by_ref(validator: &mut Validator, param: &VariableIndexEntry, a
     }
 }
 
-pub fn validate_pointer_assignment<T>(
+pub fn validate_assignment_mismatch<T>(
     context: &ValidationContext<T>,
     validator: &mut Validator,
     type_lhs: &DataType,
@@ -925,6 +956,13 @@ pub fn validate_pointer_assignment<T>(
     let type_info_rhs = context.index.get_intrinsic_type_information(
         context.index.find_elementary_pointer_type(type_rhs.get_type_information()),
     );
+
+    // We might be dealing with an `ADR` or `REF` call on a `POINTER TO` variable
+    if (type_lhs.is_pointer() && !type_lhs.is_type_safe_pointer())
+        && (type_rhs.is_pointer() || type_info_rhs.is_ptr_sized_int())
+    {
+        return;
+    }
 
     if type_info_lhs.is_array() && type_info_rhs.is_array() {
         let len_lhs = type_info_lhs.get_array_length(context.index).unwrap_or_default();
@@ -984,7 +1022,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    validate_pointer_assignment(context, validator, type_lhs, type_rhs, assignment_location);
+    validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
 }
 
 /// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
@@ -1059,6 +1097,9 @@ fn validate_assignment<T: AnnotationMap>(
         if !left.can_be_assigned_to() {
             let expression = validator.context.slice(&left.get_location());
             validator.push_diagnostic(
+                // TODO: would be nice to have a more specific error message. For instance `THIS`
+                // might not assignable because its use is only allowed in FBs and their methods.
+                // Same goes for `SUPER`.
                 Diagnostic::new(format!("Expression {expression} is not assignable."))
                     .with_error_code("E050")
                     .with_location(left),
@@ -1098,7 +1139,8 @@ fn validate_assignment<T: AnnotationMap>(
         if !(left_type.is_compatible_with_type(right_type)
             && is_valid_assignment(left_type, right_type, right, context.index, location, validator))
         {
-            if left_type.is_pointer() && right_type.is_pointer() {
+            // TODO: #THIS && !left_type.is_this()
+            if left_type.is_type_safe_pointer() && right_type.is_pointer() {
                 validator.push_diagnostic(
                     Diagnostic::new(format!(
                         "Pointers {} and {} have different types",
@@ -1109,7 +1151,7 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(location),
                 );
             } else {
-                validate_pointer_assignment(context, validator, left_type, right_type, location);
+                validate_assignment_mismatch(context, validator, left_type, right_type, location);
             }
         } else {
             validate_assignment_type_sizes(validator, left_type, right, context)
@@ -1543,7 +1585,7 @@ fn validate_case_statement<T: AnnotationMap>(
 
         // validate for duplicate conditions
         // first try to evaluate the conditions value
-        const_evaluator::evaluate(condition, context.qualifier, context.index)
+        const_evaluator::evaluate(condition, context.qualifier, context.index, None)
             .map_err(|err| {
                 // value evaluation and validation not possible with non constants
                 validator.push_diagnostic(

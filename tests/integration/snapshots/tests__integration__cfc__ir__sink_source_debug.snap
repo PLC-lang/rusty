@@ -3,6 +3,8 @@ source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
 snapshot_kind: text
 ---
+target triple = "[filtered]"
+
 %main = type { i32 }
 
 @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
@@ -48,7 +50,7 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "main", scope: !2, file: !2, line: 1, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>.cfc", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "main")
+!3 = !DICompositeType(tag: DW_TAG_structure_type, name: "main", scope: !2, file: !2, line: 1, size: 32, align: 64, flags: DIFlagPublic, elements: !4, identifier: "main")
 !4 = !{!5}
 !5 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 1, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
 !6 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)

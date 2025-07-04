@@ -79,6 +79,9 @@ pub enum Token {
     #[token("SUPER", ignore(case))]
     KeywordSuper,
 
+    #[token("THIS", ignore(case))]
+    KeywordThis,
+
     #[token("PROPERTY", ignore(case))]
     KeywordProperty,
 

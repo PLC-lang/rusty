@@ -4,6 +4,8 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ---
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct = type { i32, i16 }
 
@@ -11,6 +13,8 @@ source_filename = "myStruct.st"
 
 ; ModuleID = 'myStruct2.st'
 source_filename = "myStruct2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %myStruct2 = type { i32, i16 }
 
@@ -18,14 +22,16 @@ source_filename = "myStruct2.st"
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { %myStruct.2, %myStruct2.3 }
 %myStruct.2 = type { i32, i16 }
 %myStruct2.3 = type { i32, i16 }
 
 @prog_instance = global %prog { %myStruct.2 { i32 5, i16 2 }, %myStruct2.3 { i32 6, i16 2 } }
-@__myStruct__init = external global %myStruct.2
-@__myStruct2__init = external global %myStruct2.3
+@__myStruct__init = external unnamed_addr constant %myStruct.2
+@__myStruct2__init = external unnamed_addr constant %myStruct2.3
 @__prog.x__init = unnamed_addr constant %myStruct.2 { i32 5, i16 2 }
 
 define void @prog(%prog* %0) {

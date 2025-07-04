@@ -8,7 +8,7 @@ use crate::{
     test_utils::tests::{annotate_with_ids, codegen, index_with_ids},
     tests::adr::util_macros::{annotate, deconstruct_call_statement},
 };
-
+use plc_util::filtered_assert_snapshot;
 /// While declared as an array, VLAs are internally expanded into so called fat-pointer structs. These structs
 /// carry two metadata fields, namely (1) a pointer to an array and (2) an array with information about the
 /// pointed array's dimensions and sizes. These fields and how they're populated will be explained in the
@@ -99,6 +99,7 @@ fn representation() {
             name: "__ptr_to___arr_vla_1_dint",
             inner_type_name: "__arr_vla_1_dint",
             auto_deref: None,
+            type_safe: true,
         },
         nature: Any,
         location: SourceLocation {
@@ -305,10 +306,12 @@ fn pass() {
     // 1. Stack-allocate a struct
     // 2. GEP the structs array and dimension field
     // 3. Populate them based on the information we have on `local`, i.e. 1D and (start, end)-offset = (0, 5)
-    insta::assert_snapshot!(codegen(src),
+    filtered_assert_snapshot!(codegen(src),
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -371,10 +374,12 @@ fn access() {
         END_FUNCTION
     ";
 
-    insta::assert_snapshot!(codegen(src),
+    filtered_assert_snapshot!(codegen(src),
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [2 x i32] }
 
@@ -429,10 +434,12 @@ fn multi_dimensional() {
     // To increase readability of the generated IR, most values are named according to their purpose.
     // When dealing with a higher dimension-count or multiple access statements, the IR gets bloated really fast and
     // is borderline incomprehensible as a result, if not given readable names.
-    insta::assert_snapshot!(codegen(src),
+    filtered_assert_snapshot!(codegen(src),
     @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %__foo_arr = type { i32*, [4 x i32] }
 

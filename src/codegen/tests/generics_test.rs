@@ -1,5 +1,5 @@
 use crate::test_utils::tests::codegen;
-
+use plc_util::filtered_assert_snapshot;
 #[test]
 fn generic_function_has_no_declaration() {
     let prg = codegen(
@@ -8,7 +8,7 @@ fn generic_function_has_no_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(prg);
+    filtered_assert_snapshot!(prg);
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn generic_function_call_generates_real_type_call() {
         ",
     );
 
-    insta::assert_snapshot!(prg);
+    filtered_assert_snapshot!(prg);
 }
 
 #[test]
@@ -73,7 +73,7 @@ fn generic_codegen_with_aggregate_return() {
 
         ",
     );
-    insta::assert_snapshot!(prg);
+    filtered_assert_snapshot!(prg);
 }
 
 #[test]
@@ -105,7 +105,7 @@ fn generic_output_parameter() {
         ";
 
     // THEN we expect a first call to foo__INT with out1 passed as a pointer
-    insta::assert_snapshot!(codegen(src));
+    filtered_assert_snapshot!(codegen(src));
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn generic_call_gets_cast_to_biggest_type() {
     END_FUNCTION";
 
     //Expecting all values to be LREAL
-    insta::assert_snapshot!(codegen(src));
+    filtered_assert_snapshot!(codegen(src));
 }
 
 #[test]
@@ -163,7 +163,7 @@ fn any_real_function_called_with_ints() {
             res_ulint := foo(ULINT#1);
         END_PROGRAM";
     //Expecting to REAL/LREAL conversion for every call
-    insta::assert_snapshot!(codegen(src));
+    filtered_assert_snapshot!(codegen(src));
 }
 
 #[test]
@@ -187,5 +187,5 @@ fn generic_function_with_aggregate_return() {
     END_FUNCTION
 
     "#;
-    insta::assert_snapshot!(codegen(src));
+    filtered_assert_snapshot!(codegen(src));
 }

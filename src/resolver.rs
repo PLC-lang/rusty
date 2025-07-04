@@ -734,7 +734,7 @@ impl StatementAnnotation {
     /// Returns the location of a parameter in some POU the argument is assigned to, for example
     /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
     /// blocks
-    /// ```nocompile
+    /// ```text
     /// VAR_INPUT
     ///     a, b : DINT;
     /// END_VAR
@@ -1700,6 +1700,39 @@ impl<'i> TypeAnnotator<'i> {
     /// annotate an expression statement
     fn visit_statement_expression(&mut self, ctx: &VisitorContext, statement: &AstNode) {
         match statement.get_stmt() {
+            AstStatement::This => {
+                let name = match ctx.pou.and_then(|name| self.index.find_pou(name)) {
+                    Some(PouIndexEntry::FunctionBlock { name, .. }) => name,
+                    Some(
+                        PouIndexEntry::Method { parent_name: name, .. }
+                        | PouIndexEntry::Action { parent_name: name, .. },
+                    ) if self.index.find_pou(name).is_some_and(|it| it.is_function_block()) => name,
+                    _ => return,
+                };
+                let ptr_name = format!("{}.__THIS", name);
+                if self
+                    .index
+                    .find_type(&ptr_name)
+                    .or_else(|| self.annotation_map.new_index.find_type(&ptr_name))
+                    .is_none()
+                {
+                    let information = DataTypeInformation::Pointer {
+                        name: ptr_name.clone(),
+                        inner_type_name: name.to_string(),
+                        auto_deref: None,
+                        type_safe: true,
+                    };
+                    let dt = crate::typesystem::DataType {
+                        name: ptr_name.clone(),
+                        initial_value: None,
+                        information,
+                        nature: TypeNature::Any,
+                        location: SourceLocation::internal(),
+                    };
+                    self.annotation_map.new_index.register_type(dt);
+                }
+                self.annotate(statement, StatementAnnotation::value(ptr_name));
+            }
             AstStatement::DirectAccess(data, ..) => {
                 let ctx = VisitorContext { qualifier: None, ..ctx.clone() };
                 visit_all_statements!(self, &ctx, &data.index);
@@ -2014,7 +2047,7 @@ impl<'i> TypeAnnotator<'i> {
                 if let Some(inner_type) = base
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index).get_name().to_string())
                 {
-                    let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type);
+                    let ptr_type = add_pointer_type(&mut self.annotation_map.new_index, inner_type, true);
                     self.annotate(stmt, StatementAnnotation::value(ptr_type))
                 }
             }
@@ -2328,7 +2361,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
 }
 
 /// adds a pointer to the given inner_type to the given index and return's its name
-pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> String {
+pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String, type_safe: bool) -> String {
     let new_type_name = internal_type_name("POINTER_TO_", inner_type_name.as_str());
 
     if index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
@@ -2340,6 +2373,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String) -> St
                 name: new_type_name.clone(),
                 inner_type_name,
                 auto_deref: None,
+                type_safe,
             },
             location: SourceLocation::internal(),
         });
@@ -2387,7 +2421,7 @@ fn to_variable_annotation(
                 v_type.get_type_information().get_auto_deref_type().map(|it| it.into()).unwrap_or_default();
             (v_type.get_name().to_string(), Some(kind))
         }
-        (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(deref), name }, _) => {
+        (DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(deref), name, .. }, _) => {
             // real auto-deref pointer
             let kind = match deref {
                 ast::AutoDerefType::Default => AutoDerefType::Default,
@@ -2543,7 +2577,7 @@ impl ResolvingStrategy {
     /// tries to resolve the given name using the reprsented scope
     /// - `name` the name to resolve
     /// - `qualifier` an optional qualifier to prefix to the name,
-    ///     if the qualifier is present, this method only resolves to targets with this qualifier
+    ///   if the qualifier is present, this method only resolves to targets with this qualifier
     /// - `index` the index to perform the lookups on
     fn resolve_name(
         &self,

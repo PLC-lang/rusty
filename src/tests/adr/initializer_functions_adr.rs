@@ -1,11 +1,11 @@
-use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
-use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_source::SourceCode;
-
 use crate::{
     index::const_expressions::UnresolvableKind, resolver::const_evaluator::evaluate_constants,
     test_utils::tests::index,
 };
+use driver::{generate_to_string, parse_and_annotate, pipelines::AnnotatedProject};
+use insta::assert_debug_snapshot;
+use plc_source::SourceCode;
+use plc_util::filtered_assert_snapshot;
 
 /// # Architecture Design Records: Lowering of complex initializers to initializer functions
 ///
@@ -216,43 +216,22 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let init_bar_impl = &units[1].implementations[1];
     assert_eq!(&init_bar_impl.name, "__init_bar");
     let statements = &init_bar_impl.statements;
-    assert_eq!(statements.len(), 2);
-    assert_debug_snapshot!(statements[0..=1], @r###"
-    [
-        CallStatement {
-            operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "__init_foo",
-                    },
-                ),
-                base: None,
-            },
-            parameters: Some(
-                ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "fb",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "self",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
+    assert_eq!(statements.len(), 1);
+    assert_debug_snapshot!(statements[0], @r###"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_foo",
                 },
             ),
+            base: None,
         },
-        Assignment {
-            left: ReferenceExpr {
+        parameters: Some(
+            ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "__vtable",
+                        name: "fb",
                     },
                 ),
                 base: Some(
@@ -266,38 +245,50 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                     },
                 ),
             },
-            right: CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "REF",
-                        },
-                    ),
-                    base: None,
+        ),
+    }
+    "###);
+
+    // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
+    // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
+    // passing the member-instance `self.fb`
+    let init_baz_impl = &units[1].implementations[2];
+    assert_eq!(&init_baz_impl.name, "__init_baz");
+    let statements = &init_baz_impl.statements;
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements[0], @r#"
+    CallStatement {
+        operator: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "__init_bar",
                 },
-                parameters: Some(
+            ),
+            base: None,
+        },
+        parameters: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "fb",
+                    },
+                ),
+                base: Some(
                     ReferenceExpr {
                         kind: Member(
                             Identifier {
-                                name: "__vtable_bar",
+                                name: "self",
                             },
                         ),
                         base: None,
                     },
                 ),
             },
-        },
-    ]
-    "###);
+        ),
+    }
+    "#);
 
-    // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
-    // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
-    // passing the member-instance `self.fb`
-    let init_baz_impl = &units[1].implementations[4];
-    assert_eq!(&init_baz_impl.name, "__init_baz");
-    let statements = &init_baz_impl.statements;
-    assert_eq!(statements.len(), 2);
-    assert_debug_snapshot!(statements[0], @r#"
+    assert_debug_snapshot!(statements[1], @r#"
     Assignment {
         left: ReferenceExpr {
             kind: Member(
@@ -335,38 +326,6 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
         },
     }
     "#);
-
-    assert_debug_snapshot!(statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_bar",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "fb",
-                    },
-                ),
-                base: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "self",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        ),
-    }
-    "###);
 }
 
 /// Finally, after lowering each individual init function, all global initializers are
@@ -436,25 +395,14 @@ fn global_initializers_are_wrapped_in_single_init_function() {
 
     let init_impl = &units[2].implementations[0];
     assert_eq!(&init_impl.name, "__init___Test");
-    assert_eq!(init_impl.statements.len(), 8);
-    // global variable blocks are initialized first, hence we expect the first statement in the `__init` body to be an
-    // `Assignment`, assigning `REF(s)` to `gs`. This is followed by three `CallStatements`, one for each global `PROGRAM`
-    // instance.
-    assert_debug_snapshot!(&init_impl.statements[0], @r###"
-    Assignment {
-        left: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "gs",
-                },
-            ),
-            base: None,
-        },
-        right: CallStatement {
+    assert_eq!(init_impl.statements.len(), 7);
+    assert_debug_snapshot!(&init_impl.statements, @r###"
+    [
+        CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "REF",
+                        name: "__init_baz",
                     },
                 ),
                 base: None,
@@ -463,80 +411,144 @@ fn global_initializers_are_wrapped_in_single_init_function() {
                 ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "s",
+                            name: "baz",
                         },
                     ),
                     base: None,
                 },
             ),
         },
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[1], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_baz",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
+        CallStatement {
+            operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "baz",
+                        name: "__init_bar",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[2], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_bar",
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
                 },
             ),
-            base: None,
         },
-        parameters: Some(
-            ReferenceExpr {
+        CallStatement {
+            operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "bar",
+                        name: "__init_qux",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
-    "###);
-    assert_debug_snapshot!(&init_impl.statements[3], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_qux",
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: None,
                 },
             ),
-            base: None,
         },
-        parameters: Some(
-            ReferenceExpr {
+        Assignment {
+            left: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "qux",
+                        name: "gs",
                     },
                 ),
                 base: None,
             },
-        ),
-    }
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "s",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_baz",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "baz",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_bar",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "bar",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init_qux",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "qux",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+    ]
     "###);
 }
 
@@ -564,15 +576,17 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r#"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %myStruct = type { i8, i8 }
     %myRefStruct = type { %myStruct* }
 
-    @__myStruct__init = constant %myStruct zeroinitializer
-    @__myRefStruct__init = constant %myRefStruct zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+    @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @__init_mystruct(%myStruct* %0) {
@@ -607,7 +621,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "#);
+    "###);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -643,9 +657,11 @@ fn generating_init_functions() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %baz = type { %bar }
     %bar = type { i32*, %foo }
@@ -656,9 +672,9 @@ fn generating_init_functions() {
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @baz_instance = global %baz zeroinitializer
-    @__bar__init = constant %bar zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
-    @__myStruct__init = constant %myStruct zeroinitializer
+    @__bar__init = unnamed_addr constant %bar zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @s = global %myStruct zeroinitializer
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
@@ -667,15 +683,17 @@ fn generating_init_functions() {
 
     define void @foo(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %ps = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
     define void @bar(%bar* %0) {
     entry:
-      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
+      %this = alloca %bar*, align 8
+      store %bar* %0, %bar** %this, align 8
+      %fb = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
@@ -822,15 +840,17 @@ fn intializing_temporary_variables() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32*, [81 x i8]* }
     %__vtable_foo_type = type { i32* }
 
     @ps2 = global [81 x i8] zeroinitializer
-    @__foo__init = constant %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
@@ -838,8 +858,9 @@ fn intializing_temporary_variables() {
 
     define void @foo(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s2 = alloca [81 x i8]*, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
       store [81 x i8]* @ps2, [81 x i8]** %s2, align 8
@@ -926,27 +947,31 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32* }
     %__vtable_foo_type = type { i32*, i32* }
 
-    @__foo__init = constant %foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
@@ -1013,40 +1038,45 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32*, i32 }
     %__vtable_foo_type = type { i32*, i32*, i32* }
 
     @y = global i32 0
-    @__foo__init = constant %foo { i32* null, i32 5 }
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
       ret void
     }
 
-    define void @foo_baz(%foo* %0) {
+    define void @foo__baz(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* @y, i32** %px, align 8
       store i32* @y, i32** %px, align 8
@@ -1101,29 +1131,33 @@ fn initializing_method_variables() {
     ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    insta::assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r###"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
     %foo = type { i32*, i32 }
     %__vtable_foo_type = type { i32*, i32* }
 
-    @__foo__init = constant %foo { i32* null, i32 5 }
+    @__foo__init = unnamed_addr constant %foo { i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
-    define void @foo_bar(%foo* %0) {
+    define void @foo__bar(%foo* %0) {
     entry:
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x1 = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x1, align 4

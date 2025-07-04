@@ -4,6 +4,8 @@ expression: res
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %mainProg = type { %fb_t, i8, i8 }
 %fb_t = type { i32*, i8, i8, i8*, i8, i8* }
@@ -28,16 +30,18 @@ entry:
   call void @fb_t(%fb_t* %fb)
   %load_out2 = load i8, i8* %out2, align 1
   %load_out1 = load i8, i8* %out1, align 1
-  call void @fb_t_foo(%fb_t* %fb)
+  call void @fb_t__foo(%fb_t* %fb)
   %load_out21 = load i8, i8* %out2, align 1
   %load_out12 = load i8, i8* %out1, align 1
-  call void @fb_t_foo(%fb_t* %fb)
+  call void @fb_t__foo(%fb_t* %fb)
   ret void
 }
 
 define void @fb_t(%fb_t* %0) {
 entry:
   %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %this = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %this, align 8
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
@@ -46,9 +50,11 @@ entry:
   ret void
 }
 
-define void @fb_t_foo(%fb_t* %0) {
+define void @fb_t__foo(%fb_t* %0) {
 entry:
   %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
+  %this = alloca %fb_t*, align 8
+  store %fb_t* %0, %fb_t** %this, align 8
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3

@@ -4,6 +4,8 @@ expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
 ---
 ; ModuleID = 'func.st'
 source_filename = "func.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 define i32 @func() {
 entry:
@@ -15,6 +17,8 @@ entry:
 
 ; ModuleID = 'fb.st'
 source_filename = "fb.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %fb = type { i32* }
 
@@ -23,11 +27,15 @@ source_filename = "fb.st"
 define void @fb(%fb* %0) {
 entry:
   %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %this = alloca %fb*, align 8
+  store %fb* %0, %fb** %this, align 8
   ret void
 }
 
 ; ModuleID = 'prg.st'
 source_filename = "prg.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg = type { i32 }
 
@@ -41,6 +49,8 @@ entry:
 
 ; ModuleID = 'prg2.st'
 source_filename = "prg2.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prg2 = type { i32 }
 
@@ -54,6 +64,8 @@ entry:
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %prog = type { %fb.4 }
 %fb.4 = type { i32* }
@@ -61,7 +73,7 @@ source_filename = "prog.st"
 %prg2.6 = type { i32 }
 
 @prog_instance = global %prog zeroinitializer
-@__fb__init = external global %fb.4
+@__fb__init = external unnamed_addr constant %fb.4
 @prg_instance = external global %prg.5
 @prg2_instance = external global %prg2.6
 

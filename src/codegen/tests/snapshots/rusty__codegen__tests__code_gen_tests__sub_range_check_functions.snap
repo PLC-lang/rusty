@@ -5,6 +5,8 @@ snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
 
 %main = type { i8, i8, i8, i16, i16, i16, i32, i32, i64, i64 }
 
@@ -44,14 +46,14 @@ define i64 @CheckLRangeSigned(i64 %0, i64 %1, i64 %2) {
 entry:
   %CheckLRangeSigned = alloca i64, align 8
   %v = alloca i64, align 8
-  store i64 %0, i64* %v, align 4
+  store i64 %0, i64* %v, align 8
   %low = alloca i64, align 8
-  store i64 %1, i64* %low, align 4
+  store i64 %1, i64* %low, align 8
   %up = alloca i64, align 8
-  store i64 %2, i64* %up, align 4
-  store i64 0, i64* %CheckLRangeSigned, align 4
-  store i64 -77, i64* %CheckLRangeSigned, align 4
-  %CheckLRangeSigned_ret = load i64, i64* %CheckLRangeSigned, align 4
+  store i64 %2, i64* %up, align 8
+  store i64 0, i64* %CheckLRangeSigned, align 8
+  store i64 -77, i64* %CheckLRangeSigned, align 8
+  %CheckLRangeSigned_ret = load i64, i64* %CheckLRangeSigned, align 8
   ret i64 %CheckLRangeSigned_ret
 }
 
@@ -59,14 +61,14 @@ define i64 @CheckLRangeUnsigned(i64 %0, i64 %1, i64 %2) {
 entry:
   %CheckLRangeUnsigned = alloca i64, align 8
   %v = alloca i64, align 8
-  store i64 %0, i64* %v, align 4
+  store i64 %0, i64* %v, align 8
   %low = alloca i64, align 8
-  store i64 %1, i64* %low, align 4
+  store i64 %1, i64* %low, align 8
   %up = alloca i64, align 8
-  store i64 %2, i64* %up, align 4
-  store i64 0, i64* %CheckLRangeUnsigned, align 4
-  store i64 77, i64* %CheckLRangeUnsigned, align 4
-  %CheckLRangeUnsigned_ret = load i64, i64* %CheckLRangeUnsigned, align 4
+  store i64 %2, i64* %up, align 8
+  store i64 0, i64* %CheckLRangeUnsigned, align 8
+  store i64 77, i64* %CheckLRangeUnsigned, align 8
+  %CheckLRangeUnsigned_ret = load i64, i64* %CheckLRangeUnsigned, align 8
   ret i64 %CheckLRangeUnsigned_ret
 }
 
@@ -105,8 +107,8 @@ entry:
   %call7 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
   store i32 %call7, i32* %h, align 4
   %call8 = call i64 @CheckLRangeSigned(i64 1, i64 -100, i64 100)
-  store i64 %call8, i64* %i, align 4
+  store i64 %call8, i64* %i, align 8
   %call9 = call i64 @CheckLRangeUnsigned(i64 1, i64 0, i64 100)
-  store i64 %call9, i64* %j, align 4
+  store i64 %call9, i64* %j, align 8
   ret void
 }

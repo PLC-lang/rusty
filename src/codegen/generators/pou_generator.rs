@@ -699,6 +699,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 location.get_column(),
             );
         }
+
+        if ((function_context.linking_context.is_method() || function_context.linking_context.is_action())
+            && self.index.find_pou(type_name).is_some_and(|it| it.is_function_block()))
+            || function_context.linking_context.get_implementation_type()
+                == &ImplementationType::FunctionBlock
+        {
+            let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
+            self.llvm.builder.build_store(alloca, param_pointer);
+            index.associate_loaded_local_variable(type_name, "__THIS", alloca)?;
+        }
+
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
         let mut var_count = 0;
