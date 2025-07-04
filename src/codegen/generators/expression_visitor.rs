@@ -16,17 +16,16 @@ use plc_ast::{
 };
 use plc_diagnostics::diagnostics::{Diagnostic, ResultDiagnosticExt};
 use plc_source::source_location::SourceLocation;
-use section_mangler::StringEncoding;
 
 use crate::{
     codegen::{
-        generators::util::argument_passer::{Argument, CallArguments},
+        generators::{literals_generator::LlvmLiteralsGenerator, util::argument_passer::{Argument, CallArguments}},
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::cast_if_needed,
     },
     index::{indexer::pou_indexer::PouIndexer, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AnnotationMapImpl, AstAnnotations, StatementAnnotation},
-    typesystem::{DataType, DataTypeInformation},
+    typesystem::{DataType, DataTypeInformation, StringEncoding},
 };
 
 use super::{llvm::Llvm, statement_generator::FunctionContext, util::array_access_generator};
@@ -130,12 +129,11 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 // Integer, Bool, Date, Time, DateAndTime
                 _ if stmt.is_int_numerical() => {
                     let value = stmt.try_int_value().expect("Parser should have checked this"); //parser should have checked this
-                    let v = if type_hint.is_float() {
-                        self.literals_generator.generate_const_float(type_hint, value as f64)
+                    if type_hint.is_float() {
+                        self.literals_generator.generate_const_float(type_hint, value as f64, node)
                     } else {
-                        self.literals_generator.generate_const_int(type_hint, value)
-                    };
-                    Ok(v.map(|v| GeneratedValue::RValue((v, node.get_id())))?)
+                        self.literals_generator.generate_const_int(type_hint, value, node)
+                    }
                 }
                 AstLiteral::Null => {
                     let Some(t) = self.llvm_index.find_associated_type(type_hint.get_name()) else {
@@ -151,26 +149,16 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                 }
                 AstLiteral::Real(v) => {
                     let value = v.parse::<f64>().expect("Failed to parse float"); //parser should have checked this
-
-                    Ok(self
+                    self
                         .literals_generator
-                        .generate_const_float(type_hint, value)
-                        .map(|it| GeneratedValue::RValue((it, node.get_id())))?)
+                        .generate_const_float(type_hint, value, node)
                 }
                 AstLiteral::String(string_value) => {
-                    let r = self
+                    //don't look at the hint here, we probably need to cast a string
+                    let t = self.annotations.get_type_or_void(node, self.index).get_type_information();
+                    self
                         .literals_generator
-                        .generate_const_string(type_hint, string_value.value())
-                        .map(|it| {
-                            if it.is_pointer_value() {
-                                // a string literal is a pointer to the string
-                                GeneratedValue::LValue((it.into_pointer_value(), node.get_id()))
-                            } else {
-                                // a char is an RValue
-                                GeneratedValue::RValue((it, node.get_id()))
-                            }
-                        });
-                    Ok(r?)
+                        .generate_const_string(t, string_value.value(), node)
                 }
                 AstLiteral::Array(_array) => todo!(),
                 _ => {
@@ -649,16 +637,15 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         actual_parameters: &[&AstNode],
         ast_node: &AstNode,
     ) -> Result<GeneratedValue<'ink>> {
-
-        let arguments = formal_parameters.iter().zip(actual_parameters.iter())
-            .map(|(formal,actual) |
-                Argument::new(formal, actual)
-            ).collect::<Vec<_>>();
+        let arguments = formal_parameters
+            .iter()
+            .zip(actual_parameters.iter())
+            .map(|(formal, actual)| Argument::new(formal, actual))
+            .collect::<Vec<_>>();
 
         let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
         call.generate_function_call(fv, self, ast_node)
 
-        
         //todo: check if we can have defualt parameters in functions
 
         // let args = self.generate_all(
@@ -705,14 +692,14 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 .expect("global value not found")
         };
 
-            // fill in default parameters at the end
-            let formal_parameters = self
-                .index
-                .get_pou_members(method.get_name())
-                .iter()
-                .filter(|e| e.is_parameter())
-                .sorted_by_key(|p| p.get_location_in_parent())  //TODO: is this necessary
-                .collect_vec();
+        // fill in default parameters at the end
+        let formal_parameters = self
+            .index
+            .get_pou_members(method.get_name())
+            .iter()
+            .filter(|e| e.is_parameter())
+            .sorted_by_key(|p| p.get_location_in_parent()) //TODO: is this necessary
+            .collect_vec();
 
         // see if we have explicit parameters
         let args = if actual_parameters.iter().any(|it| it.is_assignment() || it.is_output_assignment()) {
@@ -722,7 +709,9 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                     if let AstStatement::Assignment(Assignment { left, right: actual, .. })
                     | AstStatement::OutputAssignment(Assignment { left, right: actual, .. }) = p.get_stmt()
                     {
-                        if let Some(AstStatement::Identifier(name)) = left.as_ref().get_identifier().map(|n| n.get_stmt()) {
+                        if let Some(AstStatement::Identifier(name)) =
+                            left.as_ref().get_identifier().map(|n| n.get_stmt())
+                        {
                             return Ok((name.as_str(), actual));
                         }
                     }
@@ -730,20 +719,22 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
                 })
                 .collect::<Result<HashMap<_, _>>>()?;
 
-                // now we should either find this parameter, or a default value
-                let parameters = formal_parameters.iter()
-                    .map(|ap| {
-                        if let Some(actual) = parameter_by_name.remove(ap.get_name()) {
-                            return Ok(actual.as_ref());
-                        }else{
-                            self.index.get_const_expressions().maybe_get_constant_statement(&ap.initial_value)
-                                .ok_or_else(|| anyhow!("No default value for parameter {}", ap.get_name()))   
-                        }
-                    }).collect::<Result<Vec<_>, _>>()?;
-                parameters
+            // now we should either find this parameter, or a default value
+            let parameters = formal_parameters
+                .iter()
+                .map(|ap| {
+                    if let Some(actual) = parameter_by_name.remove(ap.get_name()) {
+                        return Ok(actual.as_ref());
+                    } else {
+                        self.index
+                            .get_const_expressions()
+                            .maybe_get_constant_statement(&ap.initial_value)
+                            .ok_or_else(|| anyhow!("No default value for parameter {}", ap.get_name()))
+                    }
+                })
+                .collect::<Result<Vec<_>, _>>()?;
+            parameters
         } else {
-
-
             let mut args = Vec::from(actual_parameters);
             // let mut args = self.generate_all(actual_parameters)?;
 
@@ -790,8 +781,7 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         let formal_parameters =
             self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
 
-        let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment())
-        {
+        let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment()) {
             // explicit calls in random order: foo(formal := )actual, formal := actual)
             actual_parameters
                 .iter()
@@ -1030,122 +1020,3 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
     }
 }
 
-struct LlvmLiteralsGenerator<'ink, 'idx> {
-    llvm: &'ink Llvm<'ink>,
-    llvm_index: &'ink LlvmTypedIndex<'ink>,
-    index: &'idx Index,
-}
-
-impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
-    /// Creates a new `LlvmLiteralsGenerator` instance.
-    fn new(llvm: &'ink Llvm<'ink>, llvm_index: &'ink LlvmTypedIndex<'ink>, index: &'idx Index) -> Self {
-        Self { llvm, llvm_index, index }
-    }
-
-    /// Generates a constant integer value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant integer value.
-    fn generate_const_int(
-        &self,
-        t: &DataTypeInformation,
-        v: i128,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        let t = self.index.get_intrinsic_type_information(t);
-        match t {
-            DataTypeInformation::Integer { name, signed, size, .. } => {
-                let llvm_type = match size {
-                    1 => self.llvm.context.i8_type(),
-                    8 => self.llvm.context.i8_type(),
-                    16 => self.llvm.context.i16_type(),
-                    32 => self.llvm.context.i32_type(),
-                    64 => self.llvm.context.i64_type(),
-                    _ => {
-                        return Err(Diagnostic::codegen_error(
-                            format!("Unsupported size {size} for type {name}"),
-                            SourceLocation::default(),
-                        ))
-                    }
-                };
-                let value = llvm_type.const_int(v as u64, false);
-                Ok(value.as_basic_value_enum())
-            }
-            DataTypeInformation::Enum { referenced_type, .. } => {
-                let ref_type = self.index.find_effective_type_info(&referenced_type).ok_or_else(|| {
-                    Diagnostic::codegen_error(
-                        format!("Cannot find enum type {referenced_type}"),
-                        SourceLocation::default(),
-                    )
-                })?;
-
-                self.generate_const_int(ref_type, v)
-            }
-            _ => Err(Diagnostic::codegen_error(
-                format!("Expected IntType but got: {t:?}"),
-                SourceLocation::default(),
-            )),
-        }
-    }
-
-    /// Generates a constant float value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant float value.
-    fn generate_const_float(
-        &self,
-        t: &DataTypeInformation,
-        v: f64,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        if let DataTypeInformation::Float { name, size, .. } = t {
-            let llvm_type = match size {
-                32 => self.llvm.context.f32_type(),
-                64 => self.llvm.context.f64_type(),
-                _ => {
-                    return Err(Diagnostic::codegen_error(
-                        format!("Unsupported size {size} for type {name}"),
-                        SourceLocation::default(),
-                    ))
-                }
-            };
-            let value = llvm_type.const_float(v);
-            Ok(value.as_basic_value_enum())
-        } else {
-            Err(Diagnostic::codegen_error(
-                format!("Expected FloatType but got: {t:?}"),
-                SourceLocation::default(),
-            ))
-        }
-    }
-
-    /// Generates a constant string value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant string value.
-    fn generate_const_string(
-        &self,
-        t: &DataTypeInformation,
-        value: &str,
-    ) -> Result<BasicValueEnum<'ink>, Diagnostic> {
-        match t {
-            DataTypeInformation::String { encoding, .. } => {
-                //todo: add documentation
-                if *encoding == crate::typesystem::StringEncoding::Utf8 {
-                    self.llvm_index.find_utf08_literal_string(value)
-                } else {
-                    self.llvm_index.find_utf16_literal_string(value)
-                }
-                .ok_or_else(|| {
-                    Diagnostic::codegen_error(
-                        format!("Cannot find string literal '{value}'"),
-                        SourceLocation::default(),
-                    )
-                })
-                .map(|it| it.as_basic_value_enum())
-            }
-            DataTypeInformation::Integer { size: 8, .. } if t.is_character() => {
-                self.llvm.create_llvm_const_i8_char(value, &SourceLocation::internal())
-            }
-            DataTypeInformation::Integer { size: 16, .. } if t.is_character() => {
-                self.llvm.create_llvm_const_i16_char(value, &SourceLocation::internal())
-            }
-            _ => Err(Diagnostic::codegen_error(
-                format!("Expected StringType but got: {t:?}"),
-                SourceLocation::default(),
-            )),
-        }
-    }
-}

@@ -124,7 +124,8 @@ impl<'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
             .arguments
             .iter()
             .map(|Argument { actual, formal }| {
-
+                dbg!(&actual);
+                dbg!(&formal);
                 let actual_hint = self.annotations.get_hint_or_void(&actual, &self.index);
 
                 if actual_hint.is_string() {
@@ -153,7 +154,8 @@ impl<'idx, 'ast, 'ink> CallArguments<'idx, 'ast, 'ink> {
                         .and_then(|it| it.as_pointer_value())
                         .map(|it| it.into())
                 } else {
-                    generator.generate_r_value(actual)
+                    generator.generate_expression(actual)
+                        .map(|it| generator.as_r_value(it))
                         .map(|it| it.into())
                         .map_err(|e| anyhow!("Failed to generate expression for argument: {}", e)) //TODO  get rid of diagnostic error
                 }
