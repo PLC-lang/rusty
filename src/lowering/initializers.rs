@@ -232,7 +232,7 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    statements.extend(member_init_calls);
+    let mut statements = [member_init_calls, statements].concat();
     // Allocate the vtable
     if is_extensible {
         let fb_name = generate_vtable_name(container_name);
@@ -584,6 +584,35 @@ mod tests {
         assert_eq!(units[1].implementations[0].name, "__init_structa");
         insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -685,35 +714,6 @@ mod tests {
                     value: 10,
                 },
             },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_structb",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "instanceB",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
         ]
         "#);
     }
@@ -751,6 +751,35 @@ mod tests {
         assert_eq!(units[1].implementations[0].name, "__init_structa");
         insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
         [
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -900,35 +929,6 @@ mod tests {
                 right: LiteralInteger {
                     value: 10,
                 },
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_structb",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "instanceB",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
             },
         ]
         "#);

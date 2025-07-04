@@ -747,21 +747,21 @@ END_FUNCTION
       %self = alloca %struct_*, align 8
       store %struct_* %0, %struct_** %self, align 8
       %deref = load %struct_*, %struct_** %self, align 8
-      %s = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 2
+      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
+      call void @__init_inner(%inner* %inner)
+      %deref1 = load %struct_*, %struct_** %self, align 8
+      %s = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 2
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load %struct_*, %struct_** %self, align 8
-      %b = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 3
-      store i8 1, i8* %b, align 1
       %deref2 = load %struct_*, %struct_** %self, align 8
-      %r = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 4
-      store float 0x400921CAC0000000, float* %r, align 4
+      %b = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 3
+      store i8 1, i8* %b, align 1
       %deref3 = load %struct_*, %struct_** %self, align 8
-      %i = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 6
-      store i16 42, i16* %i, align 2
+      %r = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 4
+      store float 0x400921CAC0000000, float* %r, align 4
       %deref4 = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 0
-      call void @__init_inner(%inner* %inner)
+      %i = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 6
+      store i16 42, i16* %i, align 2
       ret void
     }
 
