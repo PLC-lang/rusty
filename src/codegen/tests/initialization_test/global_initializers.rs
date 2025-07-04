@@ -170,7 +170,7 @@ fn external_pous_get_external_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %ext_fb = type {}
+    %ext_fb = type { i32* }
     %ext_prog = type {}
 
     @__ext_fb__init = external unnamed_addr constant %ext_fb

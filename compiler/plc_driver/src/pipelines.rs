@@ -24,10 +24,7 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{
-        property::PropertyLowerer,
-        {calls::AggregateTypeLowerer, InitVisitor},
-    },
+    lowering::{calls::AggregateTypeLowerer, property::PropertyLowerer, InitVisitor},
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -35,6 +32,7 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
+    vtable::VTableIndexer,
     ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{
@@ -263,6 +261,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(VTableIndexer::new(self.context.provider())),
         ];
 
         for participant in mut_participants {

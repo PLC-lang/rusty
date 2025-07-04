@@ -230,7 +230,7 @@ impl<'a> Validator<'a> {
 
         // collect all template-instances
         let instances = index
-            .filter_instances(|entry, _| !entry.is_constant())
+            .filter_instances(|entry, _| !entry.is_constant() && !entry.source_location.is_internal())
             .filter(|(_, entry)| {
                 entry.get_hardware_binding().is_some_and(|opt| opt.access == DirectAccessType::Template)
             })

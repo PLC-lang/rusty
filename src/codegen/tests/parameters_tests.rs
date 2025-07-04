@@ -881,7 +881,7 @@ fn by_value_function_arg_structs_are_memcopied() {
             v2 : BOOL;
             END_STRUCT
         END_TYPE
-        
+
         FUNCTION foo : DINT
             VAR_INPUT
                 val : S_TY;
@@ -954,7 +954,7 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
             v3 : S_TY;
             END_STRUCT
         END_TYPE
-        
+
         FUNCTION foo : DINT
             VAR_INPUT
                 val : AGGREGATE_COLLECTOR_TY;
@@ -1041,7 +1041,7 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FOO = type { [65537 x i8], [1024 x i32] }
+    %FOO = type { i32*, [65537 x i8], [1024 x i32] }
 
     @__FOO__init = unnamed_addr constant %FOO zeroinitializer
 
@@ -1056,13 +1056,13 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       %1 = bitcast [1024 x i32]* %arr to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([1024 x i32]* getelementptr ([1024 x i32], [1024 x i32]* null, i32 1) to i64), i1 false)
       %2 = bitcast %FOO* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 bitcast (%FOO* @__FOO__init to i8*), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
-      %3 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 0
+      %3 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 1
       %4 = bitcast [65537 x i8]* %3 to i8*
       %5 = bitcast [65537 x i8]* %str to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 65536, i1 false)
-      %6 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 1
+      %6 = getelementptr inbounds %FOO, %FOO* %fb, i32 0, i32 2
       %7 = bitcast [1024 x i32]* %6 to i8*
       %8 = bitcast [1024 x i32]* %arr to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([1024 x i32]* getelementptr ([1024 x i32], [1024 x i32]* null, i32 1) to i64), i1 false)
@@ -1075,8 +1075,9 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       %this = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %this, align 8
-      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 2
       ret void
     }
 
@@ -1098,19 +1099,19 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
 fn var_output_aggregate_types_are_memcopied() {
     let result = codegen(
         r#"
-        TYPE OUT_TYPE : STRUCT 
+        TYPE OUT_TYPE : STRUCT
             a : BYTE;
         END_STRUCT;
         END_TYPE
 
         FUNCTION_BLOCK FB
-        VAR_OUTPUT 
+        VAR_OUTPUT
             output : OUT_TYPE;
             output2 : ARRAY[0..10] OF DINT;
             output3 : ARRAY[0..10] OF OUT_TYPE;
             output4 : STRING;
             output5 : WSTRING;
-        END_VAR    
+        END_VAR
         END_FUNCTION_BLOCK
 
         PROGRAM PRG
@@ -1133,7 +1134,7 @@ fn var_output_aggregate_types_are_memcopied() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
+    %FB = type { i32*, %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16] }
     %OUT_TYPE = type { i8 }
     %PRG = type { %OUT_TYPE, [11 x i32], [11 x %OUT_TYPE], [81 x i8], [81 x i16], %FB }
 
@@ -1145,11 +1146,12 @@ fn var_output_aggregate_types_are_memcopied() {
     entry:
       %this = alloca %FB*, align 8
       store %FB* %0, %FB** %this, align 8
-      %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-      %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-      %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
-      %output4 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
-      %output5 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+      %__vtable = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
+      %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
+      %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
+      %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
+      %output4 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+      %output5 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 5
       ret void
     }
 
@@ -1162,23 +1164,23 @@ fn var_output_aggregate_types_are_memcopied() {
       %out5 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 4
       %station = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 5
       call void @FB(%FB* %station)
-      %1 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 0
+      %1 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 1
       %2 = bitcast %OUT_TYPE* %out to i8*
       %3 = bitcast %OUT_TYPE* %1 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 %3, i64 ptrtoint (%OUT_TYPE* getelementptr (%OUT_TYPE, %OUT_TYPE* null, i32 1) to i64), i1 false)
-      %4 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 1
+      %4 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 2
       %5 = bitcast [11 x i32]* %out2 to i8*
       %6 = bitcast [11 x i32]* %4 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %5, i8* align 1 %6, i64 ptrtoint ([11 x i32]* getelementptr ([11 x i32], [11 x i32]* null, i32 1) to i64), i1 false)
-      %7 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 2
+      %7 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 3
       %8 = bitcast [11 x %OUT_TYPE]* %out3 to i8*
       %9 = bitcast [11 x %OUT_TYPE]* %7 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %8, i8* align 1 %9, i64 ptrtoint ([11 x %OUT_TYPE]* getelementptr ([11 x %OUT_TYPE], [11 x %OUT_TYPE]* null, i32 1) to i64), i1 false)
-      %10 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 3
+      %10 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 4
       %11 = bitcast [81 x i8]* %out4 to i8*
       %12 = bitcast [81 x i8]* %10 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false)
-      %13 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 4
+      %13 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 5
       %14 = bitcast [81 x i16]* %out5 to i8*
       %15 = bitcast [81 x i16]* %13 to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %14, i8* align 2 %15, i32 160, i1 false)

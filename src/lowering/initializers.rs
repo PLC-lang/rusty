@@ -1,6 +1,6 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
-    lowering::{create_call_statement, create_member_reference},
+    lowering::{create_assignment, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -11,6 +11,7 @@ use plc_ast::{
     provider::IdProvider,
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
+use plc_util::convention::generate_vtable_name;
 
 use super::{create_assignments_from_initializer, InitVisitor};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
@@ -157,11 +158,13 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
-    let (is_stateless, location) = lowerer
+    let (is_stateless, is_extensible, location) = lowerer
         .index
         .find_pou(container_name)
-        .map(|it| (it.is_function() || it.is_method(), it.get_location()))
-        .unwrap_or_else(|| (false, &lowerer.index.get_type_or_panic(container_name).location));
+        .map(|it| {
+            (it.is_function() || it.is_method(), it.is_class() || it.is_function_block(), it.get_location())
+        })
+        .unwrap_or_else(|| (false, false, &lowerer.index.get_type_or_panic(container_name).location));
 
     if is_stateless {
         // functions do not get their own init-functions -
@@ -229,7 +232,18 @@ fn create_init_unit(
         })
         .collect::<Vec<_>>();
 
-    let statements = [member_init_calls, statements].concat();
+    let mut statements = [member_init_calls, statements].concat();
+    // Allocate the vtable
+    if is_extensible {
+        let fb_name = generate_vtable_name(container_name);
+        let vtable_init = create_assignment(
+            "__vtable",
+            Some("self"),
+            &create_call_statement("REF", &fb_name, None, id_provider.clone(), &location),
+            id_provider.clone(),
+        );
+        statements.push(vtable_init);
+    }
     let implementation = new_implementation(&init_fn_name, statements, PouType::Init, location);
 
     Some(new_unit(init_pou, implementation, INIT_COMPILATION_UNIT))

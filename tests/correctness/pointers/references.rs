@@ -6,6 +6,7 @@ use crate::compile_and_run;
 #[repr(C)]
 #[derive(Default)]
 struct FbTest {
+    __vtable: usize,
     reference: usize,
     p: usize,
     in_out1: usize,
@@ -151,6 +152,7 @@ END_PROGRAM
 #[repr(C)]
 #[derive(Default)]
 struct FbTestStruct {
+    __vtable: usize,
     reference: usize,
     p: usize,
     in_out1: usize,
@@ -295,6 +297,7 @@ END_PROGRAM
 #[repr(C)]
 #[derive(Default)]
 struct FbTestArray {
+    __vtable: usize,
     reference: usize,
     p: usize,
     in_out1: usize,

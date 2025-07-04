@@ -2,6 +2,7 @@ use plc_util::filtered_assert_snapshot;
 use test_utils::codegen;
 mod debug_tests;
 mod super_tests;
+mod vtable_tests;
 
 #[test]
 fn members_from_base_class_are_available_in_subclasses() {
@@ -19,26 +20,33 @@ fn members_from_base_class_are_available_in_subclasses() {
         END_FUNCTION_BLOCK
         "#,
     );
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %foo = type { i16, [81 x i8], [11 x [81 x i8]] }
+    %foo = type { i32*, i16, [81 x i8], [11 x [81 x i8]] }
     %bar = type { %foo }
+    %__vtable_foo_type = type { i32* }
+    %__vtable_bar_type = type { %__vtable_foo_type, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_bar_type__init = unnamed_addr constant %__vtable_bar_type zeroinitializer
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
       ret void
     }
 
@@ -50,10 +58,30 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
+      %deref = load %__vtable_bar_type*, %__vtable_bar_type** %self, align 8
+      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 0
+      call void @__init___vtable_foo_type(%__vtable_foo_type* %__vtable_foo_type)
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -64,6 +92,10 @@ fn members_from_base_class_are_available_in_subclasses() {
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -86,9 +118,11 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -114,27 +148,37 @@ fn write_to_parent_variable_qualified_access() {
        ",
     );
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
     %fb2 = type { %fb }
-    %fb = type { i16, i16 }
-    %foo = type { %fb2 }
+    %fb = type { i32*, i16, i16 }
+    %foo = type { i32*, %fb2 }
+    %__vtable_fb_type = type { i32* }
+    %__vtable_fb2_type = type { %__vtable_fb_type, i32* }
+    %__vtable_foo_type = type { i32* }
 
     @__fb2__init = unnamed_addr constant %fb2 zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_fb_type__init = unnamed_addr constant %__vtable_fb_type zeroinitializer
+    @__vtable_fb = global %__vtable_fb_type zeroinitializer
+    @____vtable_fb2_type__init = unnamed_addr constant %__vtable_fb2_type zeroinitializer
+    @__vtable_fb2 = global %__vtable_fb2_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @fb(%fb* %0) {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
-      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
+      %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 2
       ret void
     }
 
@@ -150,10 +194,35 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0
-      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 0
+      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1
       store i16 1, i16* %x, align 2
+      ret void
+    }
+
+    define void @__init___vtable_fb_type(%__vtable_fb_type* %0) {
+    entry:
+      %self = alloca %__vtable_fb_type*, align 8
+      store %__vtable_fb_type* %0, %__vtable_fb_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_fb2_type(%__vtable_fb2_type* %0) {
+    entry:
+      %self = alloca %__vtable_fb2_type*, align 8
+      store %__vtable_fb2_type* %0, %__vtable_fb2_type** %self, align 8
+      %deref = load %__vtable_fb2_type*, %__vtable_fb2_type** %self, align 8
+      %__vtable_fb_type = getelementptr inbounds %__vtable_fb2_type, %__vtable_fb2_type* %deref, i32 0, i32 0
+      call void @__init___vtable_fb_type(%__vtable_fb_type* %__vtable_fb_type)
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -164,6 +233,10 @@ fn write_to_parent_variable_qualified_access() {
       %deref = load %fb2*, %fb2** %self, align 8
       %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
       call void @__init_fb(%fb* %__fb)
+      %deref1 = load %fb2*, %fb2** %self, align 8
+      %__fb2 = getelementptr inbounds %fb2, %fb2* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %fb, %fb* %__fb2, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb2_type* @__vtable_fb2 to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -171,6 +244,9 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb_type* @__vtable_fb to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -179,8 +255,11 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__init_fb2(%fb2* %myFb)
+      %deref1 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -206,16 +285,19 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__user_init_fb2(%fb2* %myFb)
       ret void
     }
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_type(%__vtable_fb_type* @__vtable_fb)
+      call void @__init___vtable_fb2_type(%__vtable_fb2_type* @__vtable_fb2)
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -245,26 +327,33 @@ fn write_to_parent_variable_in_instance() {
         END_FUNCTION
     "#,
     );
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
     %bar = type { %foo }
-    %foo = type { [81 x i8] }
+    %foo = type { i32*, [81 x i8] }
+    %__vtable_foo_type = type { i32*, i32* }
+    %__vtable_bar_type = type { %__vtable_foo_type, i32* }
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
+    @____vtable_bar_type__init = unnamed_addr constant %__vtable_bar_type zeroinitializer
+    @__vtable_bar = global %__vtable_bar_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
@@ -272,7 +361,8 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
       ret void
@@ -283,7 +373,7 @@ fn write_to_parent_variable_in_instance() {
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
       ret void
@@ -296,7 +386,7 @@ fn write_to_parent_variable_in_instance() {
       %0 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       %1 = bitcast %bar* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%bar, %bar* @__bar__init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb)
       call void @__user_init_bar(%bar* %fb)
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0
@@ -314,6 +404,23 @@ fn write_to_parent_variable_in_instance() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
+      %deref = load %__vtable_bar_type*, %__vtable_bar_type** %self, align 8
+      %__vtable_foo_type = getelementptr inbounds %__vtable_bar_type, %__vtable_bar_type* %deref, i32 0, i32 0
+      call void @__init___vtable_foo_type(%__vtable_foo_type* %__vtable_foo_type)
+      ret void
+    }
+
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -321,6 +428,10 @@ fn write_to_parent_variable_in_instance() {
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar_type* @__vtable_bar to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -328,6 +439,9 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -350,12 +464,14 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      call void @__init___vtable_bar_type(%__vtable_bar_type* @__vtable_bar)
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
     attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -394,7 +510,7 @@ fn array_in_parent_generated() {
         END_FUNCTION
         "#,
     );
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -402,19 +518,29 @@ fn array_in_parent_generated() {
 
     %child = type { %parent, [11 x i16] }
     %parent = type { %grandparent, [11 x i16], i16 }
-    %grandparent = type { [6 x i16], i16 }
+    %grandparent = type { i32*, [6 x i16], i16 }
+    %__vtable_grandparent_type = type { i32* }
+    %__vtable_parent_type = type { %__vtable_grandparent_type, i32* }
+    %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
     @__child__init = unnamed_addr constant %child zeroinitializer
     @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_grandparent_type__init = unnamed_addr constant %__vtable_grandparent_type zeroinitializer
+    @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer
+    @____vtable_parent_type__init = unnamed_addr constant %__vtable_parent_type zeroinitializer
+    @__vtable_parent = global %__vtable_parent_type zeroinitializer
+    @____vtable_child_type__init = unnamed_addr constant %__vtable_child_type zeroinitializer
+    @__vtable_child = global %__vtable_child_type zeroinitializer
 
     define void @grandparent(%grandparent* %0) {
     entry:
       %this = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %this, align 8
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
       ret void
     }
 
@@ -445,12 +571,12 @@ fn array_in_parent_generated() {
       %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
       %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 2
       store i16 10, i16* %a, align 2
       %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0
       %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0
       %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 1
       %tmpVar4 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0
       store i16 20, i16* %tmpVar4, align 2
       %tmpVar5 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1
@@ -472,6 +598,33 @@ fn array_in_parent_generated() {
     ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
     declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
 
+    define void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %0) {
+    entry:
+      %self = alloca %__vtable_grandparent_type*, align 8
+      store %__vtable_grandparent_type* %0, %__vtable_grandparent_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
+    entry:
+      %self = alloca %__vtable_parent_type*, align 8
+      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
+      %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
+      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
+      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
+      ret void
+    }
+
+    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
+    entry:
+      %self = alloca %__vtable_child_type*, align 8
+      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
+      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
+      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
+      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
+      ret void
+    }
+
     define void @__init_child(%child* %0) {
     entry:
       %self = alloca %child*, align 8
@@ -479,6 +632,11 @@ fn array_in_parent_generated() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -489,6 +647,10 @@ fn array_in_parent_generated() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -496,6 +658,9 @@ fn array_in_parent_generated() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -528,11 +693,14 @@ fn array_in_parent_generated() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* @__vtable_grandparent)
+      call void @__init___vtable_parent_type(%__vtable_parent_type* @__vtable_parent)
+      call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    "###);
+    "#);
 }
 
 #[test]
@@ -562,27 +730,37 @@ fn complex_array_access_generated() {
         "#,
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
     %parent = type { %grandparent, [11 x i16], i16 }
-    %grandparent = type { [6 x i16], i16 }
+    %grandparent = type { i32*, [6 x i16], i16 }
     %child = type { %parent, [11 x i16] }
+    %__vtable_grandparent_type = type { i32* }
+    %__vtable_parent_type = type { %__vtable_grandparent_type, i32* }
+    %__vtable_child_type = type { %__vtable_parent_type, i32* }
 
     @__parent__init = unnamed_addr constant %parent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_grandparent_type__init = unnamed_addr constant %__vtable_grandparent_type zeroinitializer
+    @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer
+    @____vtable_parent_type__init = unnamed_addr constant %__vtable_parent_type zeroinitializer
+    @__vtable_parent = global %__vtable_parent_type zeroinitializer
+    @____vtable_child_type__init = unnamed_addr constant %__vtable_child_type zeroinitializer
+    @__vtable_child = global %__vtable_child_type zeroinitializer
 
     define void @grandparent(%grandparent* %0) {
     entry:
       %this = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %this, align 8
-      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
       ret void
     }
 
@@ -603,7 +781,7 @@ fn complex_array_access_generated() {
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
       %load_b = load i16, i16* %b, align 2
       %1 = sext i16 %load_b to i32
@@ -618,7 +796,7 @@ fn complex_array_access_generated() {
       %3 = sext i16 %load_tmpVar to i32
       %tmpVar6 = add i32 %1, %3
       %__grandparent7 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 1
+      %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 2
       %load_a = load i16, i16* %a, align 2
       %4 = sext i16 %load_a to i32
       %tmpVar8 = sub i32 %tmpVar6, %4
@@ -629,6 +807,33 @@ fn complex_array_access_generated() {
       ret void
     }
 
+    define void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %0) {
+    entry:
+      %self = alloca %__vtable_grandparent_type*, align 8
+      store %__vtable_grandparent_type* %0, %__vtable_grandparent_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_parent_type(%__vtable_parent_type* %0) {
+    entry:
+      %self = alloca %__vtable_parent_type*, align 8
+      store %__vtable_parent_type* %0, %__vtable_parent_type** %self, align 8
+      %deref = load %__vtable_parent_type*, %__vtable_parent_type** %self, align 8
+      %__vtable_grandparent_type = getelementptr inbounds %__vtable_parent_type, %__vtable_parent_type* %deref, i32 0, i32 0
+      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* %__vtable_grandparent_type)
+      ret void
+    }
+
+    define void @__init___vtable_child_type(%__vtable_child_type* %0) {
+    entry:
+      %self = alloca %__vtable_child_type*, align 8
+      store %__vtable_child_type* %0, %__vtable_child_type** %self, align 8
+      %deref = load %__vtable_child_type*, %__vtable_child_type** %self, align 8
+      %__vtable_parent_type = getelementptr inbounds %__vtable_child_type, %__vtable_child_type* %deref, i32 0, i32 0
+      call void @__init___vtable_parent_type(%__vtable_parent_type* %__vtable_parent_type)
+      ret void
+    }
+
     define void @__init_parent(%parent* %0) {
     entry:
       %self = alloca %parent*, align 8
@@ -636,6 +841,10 @@ fn complex_array_access_generated() {
       %deref = load %parent*, %parent** %self, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
+      %deref1 = load %parent*, %parent** %self, align 8
+      %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
+      store i32* bitcast (%__vtable_parent_type* @__vtable_parent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -643,6 +852,9 @@ fn complex_array_access_generated() {
     entry:
       %self = alloca %grandparent*, align 8
       store %grandparent* %0, %grandparent** %self, align 8
+      %deref = load %grandparent*, %grandparent** %self, align 8
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_grandparent_type* @__vtable_grandparent to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -653,6 +865,11 @@ fn complex_array_access_generated() {
       %deref = load %child*, %child** %self, align 8
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
+      %deref1 = load %child*, %child** %self, align 8
+      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
+      store i32* bitcast (%__vtable_child_type* @__vtable_child to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -685,9 +902,12 @@ fn complex_array_access_generated() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_grandparent_type(%__vtable_grandparent_type* @__vtable_grandparent)
+      call void @__init___vtable_parent_type(%__vtable_parent_type* @__vtable_parent)
+      call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -742,6 +962,20 @@ fn properties_are_methods() {
 }
 
 #[test]
+fn global_vtable_variables_are_generated() {
+    let result = codegen(
+        r"
+        FUNCTION_BLOCK fb
+          METHOD foo
+          END_METHOD
+        END_FUNCTION_BLOCK
+      ",
+    );
+
+    assert!(result.contains("@__vtable_fb = global %__vtable_fb_type zeroinitializer"))
+}
+
+#[test]
 fn this_in_method_call_chain() {
     let code = codegen(
         r#"
@@ -755,21 +989,25 @@ fn this_in_method_call_chain() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type {}
+    %FB_Test = type { i32* }
+    %__vtable_FB_Test_type = type { i32*, i32*, i32* }
 
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
       ret void
     }
 
@@ -777,6 +1015,7 @@ fn this_in_method_call_chain() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
       %deref = load %FB_Test*, %FB_Test** %this, align 8
       call void @FB_Test__Increment(%FB_Test* %deref)
       ret void
@@ -786,6 +1025,14 @@ fn this_in_method_call_chain() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
       ret void
     }
 
@@ -793,6 +1040,9 @@ fn this_in_method_call_chain() {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -805,9 +1055,10 @@ fn this_in_method_call_chain() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -827,28 +1078,32 @@ fn this_in_method_and_body_in_function_block() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { i16 }
+    %FB_Test = type { i32*, i16 }
+    %__vtable_FB_Test_type = type { i32*, i32* }
 
-    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %val1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %val1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_val = load i16, i16* %val1, align 2
       store i16 %load_val, i16* %val, align 2
       %deref2 = load %FB_Test*, %FB_Test** %this, align 8
-      %val3 = getelementptr inbounds %FB_Test, %FB_Test* %deref2, i32 0, i32 0
+      %val3 = getelementptr inbounds %FB_Test, %FB_Test* %deref2, i32 0, i32 1
       %load_val4 = load i16, i16* %val, align 2
       store i16 %load_val4, i16* %val3, align 2
       ret void
@@ -858,21 +1113,32 @@ fn this_in_method_and_body_in_function_block() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %FB_Test.GetVal = alloca i16, align 2
       store i16 0, i16* %FB_Test.GetVal, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %val1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %val1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_val = load i16, i16* %val1, align 2
       store i16 %load_val, i16* %FB_Test.GetVal, align 2
       %FB_Test__GetVal_ret = load i16, i16* %FB_Test.GetVal, align 2
       ret i16 %FB_Test__GetVal_ret
     }
 
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb_test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -885,9 +1151,10 @@ fn this_in_method_and_body_in_function_block() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -918,24 +1185,31 @@ fn pass_this_to_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { i16 }
-    %FB_Test2 = type {}
+    %FB_Test = type { i32*, i16 }
+    %FB_Test2 = type { i32* }
+    %__vtable_FB_Test_type = type { i32*, i32* }
+    %__vtable_FB_Test2_type = type { i32*, i32* }
 
-    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
+    @____vtable_FB_Test2_type__init = unnamed_addr constant %__vtable_FB_Test2_type zeroinitializer
+    @__vtable_FB_Test2 = global %__vtable_FB_Test2_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       ret void
     }
 
@@ -943,7 +1217,8 @@ fn pass_this_to_method() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %test = alloca %FB_Test2, align 8
       %x1 = alloca i16, align 2
       %1 = bitcast %FB_Test2* %test to i8*
@@ -960,6 +1235,7 @@ fn pass_this_to_method() {
     entry:
       %this = alloca %FB_Test2*, align 8
       store %FB_Test2* %0, %FB_Test2** %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test2, %FB_Test2* %0, i32 0, i32 0
       ret void
     }
 
@@ -967,12 +1243,13 @@ fn pass_this_to_method() {
     entry:
       %this = alloca %FB_Test2*, align 8
       store %FB_Test2* %0, %FB_Test2** %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test2, %FB_Test2* %0, i32 0, i32 0
       %FB_Test2.bar = alloca i16, align 2
       %test = alloca %FB_Test*, align 8
       store %FB_Test* %1, %FB_Test** %test, align 8
       store i16 0, i16* %FB_Test2.bar, align 2
       %deref = load %FB_Test*, %FB_Test** %test, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_x = load i16, i16* %x, align 2
       store i16 %load_x, i16* %FB_Test2.bar, align 2
       %FB_Test2__bar_ret = load i16, i16* %FB_Test2.bar, align 2
@@ -982,10 +1259,27 @@ fn pass_this_to_method() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_fb_test2_type(%__vtable_FB_Test2_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test2_type*, align 8
+      store %__vtable_FB_Test2_type* %0, %__vtable_FB_Test2_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb_test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -993,6 +1287,9 @@ fn pass_this_to_method() {
     entry:
       %self = alloca %FB_Test2*, align 8
       store %FB_Test2* %0, %FB_Test2** %self, align 8
+      %deref = load %FB_Test2*, %FB_Test2** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test2, %FB_Test2* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test2_type* @__vtable_FB_Test2 to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1012,11 +1309,13 @@ fn pass_this_to_method() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
+      call void @__init___vtable_fb_test2_type(%__vtable_FB_Test2_type* @__vtable_FB_Test2)
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1039,22 +1338,26 @@ fn this_with_shadowed_variable() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { i16 }
+    %FB_Test = type { i32*, i16 }
+    %__vtable_FB_Test_type = type { i32*, i32* }
 
-    @__FB_Test__init = unnamed_addr constant %FB_Test { i16 5 }
+    @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       ret void
     }
 
@@ -1062,7 +1365,8 @@ fn this_with_shadowed_variable() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %val1 = alloca i16, align 2
       %local_val = alloca i16, align 2
       %shadow_val = alloca i16, align 2
@@ -1070,7 +1374,7 @@ fn this_with_shadowed_variable() {
       store i16 0, i16* %local_val, align 2
       store i16 0, i16* %shadow_val, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %val2 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %val2 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_val = load i16, i16* %val2, align 2
       store i16 %load_val, i16* %local_val, align 2
       %load_val3 = load i16, i16* %val1, align 2
@@ -1078,10 +1382,20 @@ fn this_with_shadowed_variable() {
       ret void
     }
 
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb_test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1094,9 +1408,10 @@ fn this_with_shadowed_variable() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1117,22 +1432,26 @@ fn this_calling_function_and_passing_this() {
         END_FUNCTION
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { i16 }
+    %FB_Test = type { i32*, i16 }
+    %__vtable_FB_Test_type = type { i32* }
 
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %1 = load %FB_Test*, %FB_Test** %this, align 8
       %call = call i16 @foo(%FB_Test* %1)
       ret void
@@ -1145,17 +1464,27 @@ fn this_calling_function_and_passing_this() {
       store %FB_Test* %0, %FB_Test** %pfb, align 8
       store i16 0, i16* %foo, align 2
       %deref = load %FB_Test*, %FB_Test** %pfb, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_x = load i16, i16* %x, align 2
       store i16 %load_x, i16* %foo, align 2
       %foo_ret = load i16, i16* %foo, align 2
       ret i16 %foo_ret
     }
 
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb_test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1168,9 +1497,10 @@ fn this_calling_function_and_passing_this() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1197,22 +1527,26 @@ fn this_in_property_and_calling_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { i16 }
+    %FB_Test = type { i32*, i16 }
+    %__vtable_FB_Test_type = type { i32*, i32*, i32*, i32* }
 
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       ret void
     }
 
@@ -1220,11 +1554,12 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %FB_Test.DoubleX = alloca i16, align 2
       store i16 0, i16* %FB_Test.DoubleX, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %x1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %x1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_x = load i16, i16* %x1, align 2
       %1 = sext i16 %load_x to i32
       %tmpVar = mul i32 2, %1
@@ -1238,7 +1573,8 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %FB_Test.__get_Value = alloca i16, align 2
       %Value = alloca i16, align 2
       store i16 0, i16* %Value, align 2
@@ -1256,13 +1592,21 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %Value = alloca i16, align 2
       store i16 %1, i16* %Value, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %x1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      %x1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 1
       %load_Value = load i16, i16* %Value, align 2
       store i16 %load_Value, i16* %x1, align 2
+      ret void
+    }
+
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
       ret void
     }
 
@@ -1270,6 +1614,9 @@ fn this_in_property_and_calling_method() {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1282,9 +1629,10 @@ fn this_in_property_and_calling_method() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1304,22 +1652,26 @@ fn this_with_self_pointer() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB_Test = type { %FB_Test* }
+    %FB_Test = type { i32*, %FB_Test* }
+    %__vtable_FB_Test_type = type { i32*, i32* }
 
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_Test_type__init = unnamed_addr constant %__vtable_FB_Test_type zeroinitializer
+    @__vtable_FB_Test = global %__vtable_FB_Test_type zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %refToSelf = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %refToSelf = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       ret void
     }
 
@@ -1327,7 +1679,8 @@ fn this_with_self_pointer() {
     entry:
       %this = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %this, align 8
-      %refToSelf = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
+      %refToSelf = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
       %deref = load %FB_Test*, %FB_Test** %this, align 8
       store %FB_Test* %deref, %FB_Test** %refToSelf, align 8
       %deref1 = load %FB_Test*, %FB_Test** %this, align 8
@@ -1337,10 +1690,20 @@ fn this_with_self_pointer() {
       ret void
     }
 
+    define void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_Test_type*, align 8
+      store %__vtable_FB_Test_type* %0, %__vtable_FB_Test_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb_test(%FB_Test* %0) {
     entry:
       %self = alloca %FB_Test*, align 8
       store %FB_Test* %0, %FB_Test** %self, align 8
+      %deref = load %FB_Test*, %FB_Test** %self, align 8
+      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_Test_type* @__vtable_FB_Test to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1353,9 +1716,10 @@ fn this_with_self_pointer() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_test_type(%__vtable_FB_Test_type* @__vtable_FB_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1373,24 +1737,35 @@ fn this_in_variable_initialization() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FB = type { i16, %FB*, i16 }
+    %FB = type { i32*, i16, %FB*, i16 }
+    %__vtable_FB_type = type { i32* }
 
-    @__FB__init = unnamed_addr constant %FB { i16 5, %FB* null, i16 5 }
+    @__FB__init = unnamed_addr constant %FB { i32* null, i16 5, %FB* null, i16 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_FB_type__init = unnamed_addr constant %__vtable_FB_type zeroinitializer
+    @__vtable_FB = global %__vtable_FB_type zeroinitializer
 
     define void @FB(%FB* %0) {
     entry:
       %this = alloca %FB*, align 8
       store %FB* %0, %FB** %this, align 8
-      %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-      %self = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-      %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
+      %self = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
+      %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
+      ret void
+    }
+
+    define void @__init___vtable_fb_type(%__vtable_FB_type* %0) {
+    entry:
+      %self = alloca %__vtable_FB_type*, align 8
+      store %__vtable_FB_type* %0, %__vtable_FB_type** %self, align 8
       ret void
     }
 
@@ -1398,6 +1773,9 @@ fn this_in_variable_initialization() {
     entry:
       %self = alloca %FB*, align 8
       store %FB* %0, %FB** %self, align 8
+      %deref = load %FB*, %FB** %self, align 8
+      %__vtable = getelementptr inbounds %FB, %FB* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB_type* @__vtable_FB to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1410,9 +1788,10 @@ fn this_in_variable_initialization() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_type(%__vtable_FB_type* @__vtable_FB)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1427,21 +1806,25 @@ fn this_in_action_in_functionblock() {
         END_ACTION
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %fb = type {}
+    %fb = type { i32* }
+    %__vtable_fb_type = type { i32* }
 
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_fb_type__init = unnamed_addr constant %__vtable_fb_type zeroinitializer
+    @__vtable_fb = global %__vtable_fb_type zeroinitializer
 
     define void @fb(%fb* %0) {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void
     }
 
@@ -1449,8 +1832,16 @@ fn this_in_action_in_functionblock() {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       %deref = load %fb*, %fb** %this, align 8
       call void @fb(%fb* %deref)
+      ret void
+    }
+
+    define void @__init___vtable_fb_type(%__vtable_fb_type* %0) {
+    entry:
+      %self = alloca %__vtable_fb_type*, align 8
+      store %__vtable_fb_type* %0, %__vtable_fb_type** %self, align 8
       ret void
     }
 
@@ -1458,6 +1849,9 @@ fn this_in_action_in_functionblock() {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb_type* @__vtable_fb to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1470,9 +1864,10 @@ fn this_in_action_in_functionblock() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_type(%__vtable_fb_type* @__vtable_fb)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1486,21 +1881,25 @@ fn this_calling_functionblock_body_from_method() {
         END_FUNCTION_BLOCK
     "#,
     );
-    filtered_assert_snapshot!(code, @r###"
+    filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %fb = type {}
+    %fb = type { i32* }
+    %__vtable_fb_type = type { i32*, i32* }
 
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_fb_type__init = unnamed_addr constant %__vtable_fb_type zeroinitializer
+    @__vtable_fb = global %__vtable_fb_type zeroinitializer
 
     define void @fb(%fb* %0) {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void
     }
 
@@ -1508,6 +1907,7 @@ fn this_calling_functionblock_body_from_method() {
     entry:
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       %fb.foo = alloca i16, align 2
       store i16 0, i16* %fb.foo, align 2
       %deref = load %fb*, %fb** %this, align 8
@@ -1516,10 +1916,20 @@ fn this_calling_functionblock_body_from_method() {
       ret i16 %fb__foo_ret
     }
 
+    define void @__init___vtable_fb_type(%__vtable_fb_type* %0) {
+    entry:
+      %self = alloca %__vtable_fb_type*, align 8
+      store %__vtable_fb_type* %0, %__vtable_fb_type** %self, align 8
+      ret void
+    }
+
     define void @__init_fb(%fb* %0) {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb_type* @__vtable_fb to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1532,7 +1942,8 @@ fn this_calling_functionblock_body_from_method() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_fb_type(%__vtable_fb_type* @__vtable_fb)
       ret void
     }
-    "###);
+    "#);
 }
