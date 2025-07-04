@@ -1,12 +1,8 @@
 use std::io::Read;
 
-use driver::{
-    cli,
-    pipelines::{AnnotatedProject, BuildPipeline},
-};
+use driver::{cli, pipelines::BuildPipeline};
 use plc::{linker::LinkerType, DebugLevel};
-use plc_ast::ast::CompilationUnit;
-use plc_diagnostics::{diagnostician::Diagnostician, reporter::DiagnosticReporter};
+use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
 use plc_source::SourceCode;
 use project::project::Project;
@@ -29,19 +25,6 @@ pub fn codegen_without_unwrap(src: &str) -> Result<String, String> {
 pub fn parse_and_validate_buffered(src: &str) -> String {
     let source: SourceCode = src.into();
     driver::parse_and_validate("TestProject", vec![source])
-}
-
-pub fn parse_and_validate_buffered_ast(src: &str) -> Vec<CompilationUnit> {
-    let source: SourceCode = src.into();
-
-    match driver::parse_and_annotate_with_diagnostics("TestProject", vec![source], Diagnostician::buffered())
-    {
-        Ok((mut pipeline, project)) => {
-            project.validate(&pipeline.context, &mut pipeline.diagnostician).unwrap();
-            project.units.into_iter().map(CompilationUnit::from).collect()
-        }
-        Err(diagnostician) => panic!("{}", diagnostician.buffer().unwrap()),
-    }
 }
 
 fn get_debug_param(debug_level: DebugLevel) -> Option<String> {

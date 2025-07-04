@@ -526,31 +526,12 @@ fn evaluate_with_target_hint(
             }
         }
         AstStatement::ExpressionList(expressions) => {
-            //TODO: If an expression failed to resolve as Address, mark the full list as unresolvable
             let inner_elements = expressions
                 .iter()
                 .map(|e| evaluate(e, scope, index))
-                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>();
-            let inner_elements = match inner_elements {
-                Ok(inner_elements) => inner_elements.into_iter().collect::<Option<Vec<AstNode>>>(),
-                Err(UnresolvableKind::Address(adr)) => {
-                    dbg!(adr);
-                    //return the entire expression as unresolvable
-                    return Err(UnresolvableKind::Address(InitData {
-                        initializer: Some(AstNode::new(
-                            AstStatement::ExpressionList(expressions.to_owned()),
-                            id,
-                            location,
-                        )),
-                        target_type_name: target_type.map(|it| it.to_string()),
-                        scope: scope.map(|it| it.to_string()),
-                        lhs: lhs.map(|it| it.to_string()),
-                    }));
-                }
-                Err(any) => {
-                    return Err(any);
-                }
-            };
+                .collect::<Result<Vec<Option<AstNode>>, UnresolvableKind>>()?
+                .into_iter()
+                .collect::<Option<Vec<AstNode>>>();
 
             //return a new array, or return none if one was not resolvable
             inner_elements.map(|ie| AstNode::new(AstStatement::ExpressionList(ie), id, location))
@@ -579,15 +560,11 @@ fn evaluate_with_target_hint(
         }
         AstStatement::Assignment(data) => {
             //Right needs evaluation
-            match evaluate(&data.right, scope, index) {
-                Ok(Some(value)) => Ok(Some(AstFactory::create_assignment(*data.left.clone(), value, id))),
-                Ok(None) => Ok(Some(initial.clone())),
-                Err(UnresolvableKind::Address(mut init)) => {
-                    init.lhs = data.left.get_flat_reference_name().map(|it| it.to_string());
-                    Err(UnresolvableKind::Address(init))
-                }
-                Err(why) => Err(why),
-            }?
+            if let Some(right) = evaluate(&data.right, scope, index)? {
+                Some(AstFactory::create_assignment(*data.left.clone(), right, id))
+            } else {
+                Some(initial.clone())
+            }
         }
         AstStatement::RangeStatement(data) => {
             let start = evaluate(&data.start, scope, index)?.unwrap_or_else(|| *data.start.to_owned());

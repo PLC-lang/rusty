@@ -7,8 +7,8 @@ use crate::{
 };
 use plc_ast::{
     ast::{
-        Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration,
-        Implementation, LinkageType, Pou, PouType, Variable, VariableBlock, VariableBlockType,
+        AstFactory, AstId, AstNode, CompilationUnit, DataTypeDeclaration, Implementation, LinkageType, Pou,
+        PouType, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -51,7 +51,7 @@ where
 impl<'lwr> Init<'lwr> for Initializers {
     fn new(candidates: &'lwr [UnresolvableConstant]) -> Self {
         let mut assignments = Self::default();
-        dbg!(candidates)
+        candidates
             .iter()
             .filter_map(|it| {
                 if let Some(UnresolvableKind::Address(init)) = &it.kind {
@@ -88,17 +88,7 @@ impl<'lwr> Init<'lwr> for Initializers {
             return;
         }
 
-        if let Some(init) = initializer {
-            match init.get_stmt() {
-                AstStatement::ExpressionList(statements) => {}
-                AstStatement::Assignment(Assignment { left, right }) => {}
-                _ => {
-                    assignments.insert(var_name.to_string(), initializer.clone());
-                }
-            }
-        } else {
-            assignments.insert(var_name.to_string(), initializer.clone());
-        }
+        assignments.insert(var_name.to_string(), initializer.clone());
     }
 
     fn insert_initializer(
@@ -170,7 +160,6 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
-    // __init_vtable-child
     let (is_stateless, is_extensible, location) = lowerer
         .index
         .find_pou(container_name)
@@ -207,7 +196,7 @@ fn create_init_unit(
 
     let mut statements = assignments
         .iter()
-        .flat_map(|(lhs_name, initializer)| {
+        .filter_map(|(lhs_name, initializer)| {
             create_assignment_if_necessary(lhs_name, Some(&ident), initializer, id_provider.clone())
         })
         .collect::<Vec<_>>();
@@ -368,7 +357,7 @@ fn create_init_wrapper_function(
     let mut statements = if let Some(stmts) = lowerer.unresolved_initializers.get(GLOBAL_SCOPE) {
         stmts
             .iter()
-            .flat_map(|(var_name, initializer)| {
+            .filter_map(|(var_name, initializer)| {
                 create_assignment_if_necessary(var_name, None, initializer, id_provider.clone())
             })
             .collect::<Vec<_>>()
@@ -520,164 +509,4 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
-}
-
-// TODO: Is this the correct location? Are there not any other initializer tests we can move this module to?
-#[cfg(test)]
-mod tests {
-    use test_utils::parse_and_validate_buffered_ast;
-
-    #[test]
-    fn struct_initializer_with_pointer_assignment() {
-        let source = r"
-            VAR_GLOBAL
-                foo : DINT := 1;
-                bar : DINT := 2;
-                baz : DINT := 3;
-            END_VAR
-
-            TYPE vtable_parent : STRUCT
-                foo : REF_TO DINT := REF(foo);
-                bar : REF_TO DINT := REF(bar);
-            END_STRUCT END_TYPE
-
-            TYPE vtable_child : STRUCT
-                __vtable_parent : vtable_parent := (foo := REF(foo));
-                __vtable_parent2 : vtable_parent := (foo := REF(foo), bar:= REF(bar));
-                bar : REF_TO DINT := REF(bar);
-                baz : REF_TO DINT := REF(baz);
-            END_STRUCT END_TYPE
-        ";
-
-        let units = parse_and_validate_buffered_ast(source);
-        insta::assert_debug_snapshot!(units[1].implementations[1], @r###"
-        Implementation {
-            name: "__init_vtable_child",
-            type_name: "__init_vtable_child",
-            linkage: Internal,
-            pou_type: Init,
-            statements: [
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "bar",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                    right: CallStatement {
-                        operator: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "REF",
-                                },
-                            ),
-                            base: None,
-                        },
-                        parameters: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "bar",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                },
-                Assignment {
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "baz",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                    right: CallStatement {
-                        operator: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "REF",
-                                },
-                            ),
-                            base: None,
-                        },
-                        parameters: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "baz",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__init_vtable_parent",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__vtable_parent",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "self",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-            ],
-            location: SourceLocation {
-                span: Range(12:17 - 12:29),
-            },
-            name_location: SourceLocation {
-                span: Range(12:17 - 12:29),
-            },
-            end_location: SourceLocation {
-                span: Range(12:17 - 12:29),
-            },
-            overriding: false,
-            generic: false,
-            access: None,
-        }
-        "###);
-    }
 }
