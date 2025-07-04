@@ -1119,7 +1119,8 @@ fn fb_method_called_locally() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %call = call i32 @foo__addToBar(%foo* %0, i16 42)
       ret void
     }
@@ -1128,7 +1129,8 @@ fn fb_method_called_locally() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
@@ -1208,7 +1210,8 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %call = call i32 @foo__addToBar(%foo* %0, i16 42)
       ret void
     }
@@ -1217,7 +1220,8 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
@@ -3994,6 +3998,7 @@ fn variables_in_var_external_block_are_not_generated() {
     entry:
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 

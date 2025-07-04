@@ -351,7 +351,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         ",
     );
 
-    filtered_assert_snapshot!(codegen, @r###"
+    filtered_assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -362,23 +362,25 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_fb_type__init = constant %__vtable_fb_type zeroinitializer, !dbg !8
-    @__vtable_fb = global %__vtable_fb_type zeroinitializer, !dbg !14
+    @____vtable_fb_type__init = unnamed_addr constant %__vtable_fb_type zeroinitializer, !dbg !9
+    @__vtable_fb = global %__vtable_fb_type zeroinitializer, !dbg !16
 
-    define void @fb(%fb* %0) !dbg !10 {
+    define void @fb(%fb* %0) !dbg !22 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !13, metadata !DIExpression()), !dbg !14
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !26, metadata !DIExpression()), !dbg !27
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
-      ret void, !dbg !14
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      ret void, !dbg !27
     }
 
-    define void @fb__foo(%fb* %0) !dbg !15 {
+    define void @fb__foo(%fb* %0) !dbg !28 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !16, metadata !DIExpression()), !dbg !17
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !29, metadata !DIExpression()), !dbg !30
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
-      ret void, !dbg !17
+      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      ret void, !dbg !30
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -416,28 +418,41 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!6, !7}
-    !llvm.dbg.cu = !{!8}
+    !llvm.module.flags = !{!18, !19}
+    !llvm.dbg.cu = !{!20}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
-    !5 = !{}
-    !6 = !{i32 2, !"Dwarf Version", i32 5}
-    !7 = !{i32 2, !"Debug Info Version", i32 3}
-    !8 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !9, splitDebugInlining: false)
-    !9 = !{!0}
-    !10 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !11, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !8, retainedNodes: !5)
-    !11 = !DISubroutineType(flags: DIFlagPublic, types: !12)
-    !12 = !{null, !4}
-    !13 = !DILocalVariable(name: "fb", scope: !10, file: !2, line: 5, type: !4)
-    !14 = !DILocation(line: 5, column: 8, scope: !10)
-    !15 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !10, file: !2, line: 3, type: !11, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !8, retainedNodes: !5)
-    !16 = !DILocalVariable(name: "fb", scope: !15, file: !2, line: 4, type: !4)
-    !17 = !DILocation(line: 4, column: 8, scope: !15)
-    "###);
+    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
+    !5 = !{!6}
+    !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
+    !10 = distinct !DIGlobalVariable(name: "____vtable_fb_type__init", scope: !2, file: !2, type: !11, isLocal: false, isDefinition: true)
+    !11 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !12)
+    !12 = !DICompositeType(tag: DW_TAG_structure_type, name: "__vtable_fb_type", scope: !2, file: !2, size: 128, align: 64, flags: DIFlagPublic, elements: !13, identifier: "__vtable_fb_type")
+    !13 = !{!14, !15}
+    !14 = !DIDerivedType(tag: DW_TAG_member, name: "__body", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "fb.foo", scope: !2, file: !2, baseType: !7, size: 64, align: 64, offset: 64, flags: DIFlagPublic)
+    !16 = !DIGlobalVariableExpression(var: !17, expr: !DIExpression())
+    !17 = distinct !DIGlobalVariable(name: "__vtable_fb", scope: !2, file: !2, type: !12, isLocal: false, isDefinition: true)
+    !18 = !{i32 2, !"Dwarf Version", i32 5}
+    !19 = !{i32 2, !"Debug Info Version", i32 3}
+    !20 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !21, splitDebugInlining: false)
+    !21 = !{!16, !9, !0}
+    !22 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !23, scopeLine: 5, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !25)
+    !23 = !DISubroutineType(flags: DIFlagPublic, types: !24)
+    !24 = !{null, !4}
+    !25 = !{}
+    !26 = !DILocalVariable(name: "fb", scope: !22, file: !2, line: 5, type: !4)
+    !27 = !DILocation(line: 5, column: 8, scope: !22)
+    !28 = distinct !DISubprogram(name: "fb.foo", linkageName: "fb.foo", scope: !22, file: !2, line: 3, type: !23, scopeLine: 4, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !20, retainedNodes: !25)
+    !29 = !DILocalVariable(name: "fb", scope: !28, file: !2, line: 4, type: !4)
+    !30 = !DILocation(line: 4, column: 8, scope: !28)
+    "#);
 }
 
 #[test]
@@ -624,7 +639,7 @@ END_FUNCTION
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -732,21 +747,21 @@ END_FUNCTION
       %self = alloca %struct_*, align 8
       store %struct_* %0, %struct_** %self, align 8
       %deref = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
-      call void @__init_inner(%inner* %inner)
-      %deref1 = load %struct_*, %struct_** %self, align 8
-      %s = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 2
+      %s = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 2
       %1 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref2 = load %struct_*, %struct_** %self, align 8
-      %b = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 3
+      %deref1 = load %struct_*, %struct_** %self, align 8
+      %b = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 3
       store i8 1, i8* %b, align 1
-      %deref3 = load %struct_*, %struct_** %self, align 8
-      %r = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 4
+      %deref2 = load %struct_*, %struct_** %self, align 8
+      %r = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 4
       store float 0x400921CAC0000000, float* %r, align 4
-      %deref4 = load %struct_*, %struct_** %self, align 8
-      %i = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 6
+      %deref3 = load %struct_*, %struct_** %self, align 8
+      %i = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 6
       store i16 42, i16* %i, align 2
+      %deref4 = load %struct_*, %struct_** %self, align 8
+      %inner = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 0
+      call void @__init_inner(%inner* %inner)
       ret void
     }
 
@@ -864,7 +879,7 @@ END_FUNCTION
     !62 = !DILocation(line: 42, column: 4, scope: !38)
     !63 = !DILocation(line: 43, column: 4, scope: !38)
     !64 = !DILocation(line: 45, scope: !38)
-    "###);
+    "#);
 }
 
 #[test]

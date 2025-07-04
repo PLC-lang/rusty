@@ -14,17 +14,17 @@ target triple = "[filtered]"
 
 define void @foo(%foo* %0) {
 entry:
-  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %this = alloca %foo*, align 8
   store %foo* %0, %foo** %this, align 8
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   ret void
 }
 
 define void @foo__baz(%foo* %0, [81 x i8]* %1) {
 entry:
-  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %this = alloca %foo*, align 8
   store %foo* %0, %foo** %this, align 8
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
   %out = alloca [81 x i8]*, align 8
   store [81 x i8]* %1, [81 x i8]** %out, align 8
   %deref = load [81 x i8]*, [81 x i8]** %out, align 8

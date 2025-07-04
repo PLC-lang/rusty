@@ -870,6 +870,7 @@ pub fn get_builtin_types() -> Vec<DataType> {
                 name: VOID_POINTER_INTERNAL_NAME.into(),
                 inner_type_name: VOID_INTERNAL_NAME.into(),
                 auto_deref: None,
+                type_safe: true,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

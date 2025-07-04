@@ -1,8 +1,6 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
-    lowering::{
-        create_assignment, create_assignment_if_necessary, create_call_statement, create_member_reference,
-    },
+    lowering::{create_assignment, create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -586,35 +584,6 @@ mod tests {
         assert_eq!(units[1].implementations[0].name, "__init_structa");
         insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
         [
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_structb",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "instanceB",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -716,6 +685,35 @@ mod tests {
                     value: 10,
                 },
             },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
         ]
         "#);
     }
@@ -753,35 +751,6 @@ mod tests {
         assert_eq!(units[1].implementations[0].name, "__init_structa");
         insta::assert_debug_snapshot!(units[1].implementations[0].statements, @r#"
         [
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "__init_structb",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "instanceB",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "self",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                ),
-            },
             Assignment {
                 left: ReferenceExpr {
                     kind: Member(
@@ -931,6 +900,35 @@ mod tests {
                 right: LiteralInteger {
                     value: 10,
                 },
+            },
+            CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__init_structb",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "instanceB",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
         ]
         "#);

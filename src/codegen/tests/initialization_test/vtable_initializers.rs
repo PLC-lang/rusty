@@ -16,26 +16,32 @@ fn function_block_without_parent() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %fb = type { i32* }
     %__vtable_fb_type = type { i32*, i32* }
 
-    @__fb__init = constant %fb zeroinitializer
+    @__fb__init = unnamed_addr constant %fb zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_fb_type__init = constant %__vtable_fb_type zeroinitializer
+    @____vtable_fb_type__init = unnamed_addr constant %__vtable_fb_type zeroinitializer
     @__vtable_fb = global %__vtable_fb_type zeroinitializer
 
     define void @fb(%fb* %0) {
     entry:
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void
     }
 
-    define void @fb_foo(%fb* %0) {
+    define void @fb__foo(%fb* %0) {
     entry:
+      %this = alloca %fb*, align 8
+      store %fb* %0, %fb** %this, align 8
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void
     }
@@ -69,7 +75,7 @@ fn function_block_without_parent() {
       call void @__init___vtable_fb_type(%__vtable_fb_type* @__vtable_fb)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -88,43 +94,53 @@ fn function_block_with_parent() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { i32* }
     %child = type { %parent }
     %__vtable_parent_type = type { i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent zeroinitializer
-    @__child__init = constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
+    @____vtable_parent_type__init = unnamed_addr constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
-    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer
+    @____vtable_child_type__init = unnamed_addr constant %__vtable_child_type zeroinitializer
     @__vtable_child = global %__vtable_child_type zeroinitializer
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
-    define void @parent_foo(%parent* %0) {
+    define void @parent__foo(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_bar(%child* %0) {
+    define void @child__bar(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
@@ -193,7 +209,7 @@ fn function_block_with_parent() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -217,9 +233,11 @@ fn function_block_with_parent_chained() {
         ",
     );
 
-    insta::assert_snapshot!(result, @r###"
+    insta::assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %parent = type { %grandparent }
     %grandparent = type { i32* }
@@ -228,49 +246,61 @@ fn function_block_with_parent_chained() {
     %__vtable_parent_type = type { %__vtable_grandparent_type, i32*, i32* }
     %__vtable_child_type = type { %__vtable_parent_type, i32*, i32* }
 
-    @__parent__init = constant %parent zeroinitializer
-    @__grandparent__init = constant %grandparent zeroinitializer
-    @__child__init = constant %child zeroinitializer
+    @__parent__init = unnamed_addr constant %parent zeroinitializer
+    @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
+    @__child__init = unnamed_addr constant %child zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_grandparent_type__init = constant %__vtable_grandparent_type zeroinitializer
+    @____vtable_grandparent_type__init = unnamed_addr constant %__vtable_grandparent_type zeroinitializer
     @__vtable_grandparent = global %__vtable_grandparent_type zeroinitializer
-    @____vtable_parent_type__init = constant %__vtable_parent_type zeroinitializer
+    @____vtable_parent_type__init = unnamed_addr constant %__vtable_parent_type zeroinitializer
     @__vtable_parent = global %__vtable_parent_type zeroinitializer
-    @____vtable_child_type__init = constant %__vtable_child_type zeroinitializer
+    @____vtable_child_type__init = unnamed_addr constant %__vtable_child_type zeroinitializer
     @__vtable_child = global %__vtable_child_type zeroinitializer
 
     define void @grandparent(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       ret void
     }
 
-    define void @grandparent_foo(%grandparent* %0) {
+    define void @grandparent__foo(%grandparent* %0) {
     entry:
+      %this = alloca %grandparent*, align 8
+      store %grandparent* %0, %grandparent** %this, align 8
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       ret void
     }
 
     define void @parent(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
-    define void @parent_bar(%parent* %0) {
+    define void @parent__bar(%parent* %0) {
     entry:
+      %this = alloca %parent*, align 8
+      store %parent* %0, %parent** %this, align 8
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       ret void
     }
 
     define void @child(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
 
-    define void @child_baz(%child* %0) {
+    define void @child__baz(%child* %0) {
     entry:
+      %this = alloca %child*, align 8
+      store %child* %0, %child** %this, align 8
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       ret void
     }
@@ -375,5 +405,5 @@ fn function_block_with_parent_chained() {
       call void @__init___vtable_child_type(%__vtable_child_type* @__vtable_child)
       ret void
     }
-    "###);
+    "#);
 }

@@ -39,9 +39,9 @@ entry:
 
 define void @fb_t(%fb_t* %0) {
 entry:
-  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %this = alloca %fb_t*, align 8
   store %fb_t* %0, %fb_t** %this, align 8
+  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
@@ -52,9 +52,9 @@ entry:
 
 define void @fb_t__foo(%fb_t* %0) {
 entry:
-  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %this = alloca %fb_t*, align 8
   store %fb_t* %0, %fb_t** %this, align 8
+  %__vtable = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3

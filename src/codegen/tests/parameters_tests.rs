@@ -1075,8 +1075,9 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       %this = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %this, align 8
-      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %val = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %field = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 2
       ret void
     }
 
@@ -1145,11 +1146,12 @@ fn var_output_aggregate_types_are_memcopied() {
     entry:
       %this = alloca %FB*, align 8
       store %FB* %0, %FB** %this, align 8
-      %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-      %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-      %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
-      %output4 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
-      %output5 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+      %__vtable = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
+      %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
+      %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
+      %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
+      %output4 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+      %output5 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 5
       ret void
     }
 

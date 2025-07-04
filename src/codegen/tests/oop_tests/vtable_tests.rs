@@ -16,37 +16,45 @@ fn vtables_are_created_for_function_blocks() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Test = type { i32* }
     %Test2 = type { %Test }
     %__vtable_Test_type = type { i32*, i32* }
     %__vtable_Test2_type = type { %__vtable_Test_type, i32* }
 
-    @__Test__init = constant %Test zeroinitializer
-    @__Test2__init = constant %Test2 zeroinitializer
+    @__Test__init = unnamed_addr constant %Test zeroinitializer
+    @__Test2__init = unnamed_addr constant %Test2 zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_Test_type__init = constant %__vtable_Test_type zeroinitializer
+    @____vtable_Test_type__init = unnamed_addr constant %__vtable_Test_type zeroinitializer
     @__vtable_Test = global %__vtable_Test_type zeroinitializer
-    @____vtable_Test2_type__init = constant %__vtable_Test2_type zeroinitializer
+    @____vtable_Test2_type__init = unnamed_addr constant %__vtable_Test2_type zeroinitializer
     @__vtable_Test2 = global %__vtable_Test2_type zeroinitializer
 
     define void @Test(%Test* %0) {
     entry:
+      %this = alloca %Test*, align 8
+      store %Test* %0, %Test** %this, align 8
       %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
-    define void @Test_TestMethod(%Test* %0) {
+    define void @Test__TestMethod(%Test* %0) {
     entry:
+      %this = alloca %Test*, align 8
+      store %Test* %0, %Test** %this, align 8
       %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
     define void @Test2(%Test2* %0) {
     entry:
+      %this = alloca %Test2*, align 8
+      store %Test2* %0, %Test2** %this, align 8
       %__Test = getelementptr inbounds %Test2, %Test2* %0, i32 0, i32 0
       ret void
     }
@@ -115,7 +123,7 @@ fn vtables_are_created_for_function_blocks() {
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -134,12 +142,14 @@ fn vtables_are_created_for_interfaces() {
     assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %__vtable_TestInt_type = type { i32* }
     %__vtable_TestInt2_type = type {}
 
-    @____vtable_TestInt_type__init = constant %__vtable_TestInt_type zeroinitializer
-    @____vtable_TestInt2_type__init = constant %__vtable_TestInt2_type zeroinitializer
+    @____vtable_TestInt_type__init = unnamed_addr constant %__vtable_TestInt_type zeroinitializer
+    @____vtable_TestInt2_type__init = unnamed_addr constant %__vtable_TestInt2_type zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
 
     define void @__init___vtable_testint_type(%__vtable_TestInt_type* %0) {
@@ -182,30 +192,36 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
     );
     //Expecting a vtable type in the types for the interface vtable
     //Interfaces have no vtable global variables
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Test = type { i32* }
     %__vtable_Test_type = type { %__vtable_TestInt_type, %__vtable_TestInt2_type, i32*, i32* }
     %__vtable_TestInt_type = type { i32* }
     %__vtable_TestInt2_type = type {}
 
-    @__Test__init = constant %Test zeroinitializer
+    @__Test__init = unnamed_addr constant %Test zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_Test_type__init = constant %__vtable_Test_type zeroinitializer
-    @____vtable_TestInt_type__init = constant %__vtable_TestInt_type zeroinitializer
-    @____vtable_TestInt2_type__init = constant %__vtable_TestInt2_type zeroinitializer
+    @____vtable_Test_type__init = unnamed_addr constant %__vtable_Test_type zeroinitializer
+    @____vtable_TestInt_type__init = unnamed_addr constant %__vtable_TestInt_type zeroinitializer
+    @____vtable_TestInt2_type__init = unnamed_addr constant %__vtable_TestInt2_type zeroinitializer
     @__vtable_Test = global %__vtable_Test_type zeroinitializer
 
     define void @Test(%Test* %0) {
     entry:
+      %this = alloca %Test*, align 8
+      store %Test* %0, %Test** %this, align 8
       %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
 
-    define void @Test_TestMethod(%Test* %0) {
+    define void @Test__TestMethod(%Test* %0) {
     entry:
+      %this = alloca %Test*, align 8
+      store %Test* %0, %Test** %this, align 8
       %__vtable = getelementptr inbounds %Test, %Test* %0, i32 0, i32 0
       ret void
     }
@@ -259,7 +275,7 @@ fn vtable_codegen_for_function_block_with_interfaces_show_interface_in_type() {
       call void @__init___vtable_test_type(%__vtable_Test_type* @__vtable_Test)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -278,29 +294,33 @@ fn vtables_for_external_types_are_marked_as_external() {
     //Expecting a vtable in the function block
     //Expecting a vtable type in the types
     //Expecting a global varaible for the vtable
-    assert_snapshot!(result, @r###"
+    assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
+    target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
+    target triple = "x86_64-pc-linux-gnu"
 
     %Test2 = type { %Test }
     %Test = type { i32* }
     %__vtable_Test_type = type { i32*, i32* }
     %__vtable_Test2_type = type { %__vtable_Test_type, i32* }
 
-    @__Test2__init = constant %Test2 zeroinitializer
-    @__Test__init = external global %Test
+    @__Test2__init = unnamed_addr constant %Test2 zeroinitializer
+    @__Test__init = external unnamed_addr constant %Test
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_Test_type__init = constant %__vtable_Test_type zeroinitializer
+    @____vtable_Test_type__init = unnamed_addr constant %__vtable_Test_type zeroinitializer
     @__vtable_Test = external global %__vtable_Test_type
-    @____vtable_Test2_type__init = constant %__vtable_Test2_type zeroinitializer
+    @____vtable_Test2_type__init = unnamed_addr constant %__vtable_Test2_type zeroinitializer
     @__vtable_Test2 = global %__vtable_Test2_type zeroinitializer
 
     declare void @Test(%Test*)
 
-    declare void @Test_TestMethod(%Test*)
+    declare void @Test__TestMethod(%Test*)
 
     define void @Test2(%Test2* %0) {
     entry:
+      %this = alloca %Test2*, align 8
+      store %Test2* %0, %Test2** %this, align 8
       %__Test = getelementptr inbounds %Test2, %Test2* %0, i32 0, i32 0
       ret void
     }
@@ -356,5 +376,5 @@ fn vtables_for_external_types_are_marked_as_external() {
       call void @__init___vtable_test2_type(%__vtable_Test2_type* @__vtable_Test2)
       ret void
     }
-    "###);
+    "#);
 }

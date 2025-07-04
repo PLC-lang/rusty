@@ -16,9 +16,9 @@ target triple = "[filtered]"
 
 define void @MyFB(%MyFB* %0) {
 entry:
-  %__vtable = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   %this = alloca %MyFB*, align 8
   store %MyFB* %0, %MyFB** %this, align 8
+  %__vtable = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
   %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 1
   ret void
 }

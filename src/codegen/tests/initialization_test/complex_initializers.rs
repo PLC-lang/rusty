@@ -269,7 +269,7 @@ fn init_functions_generated_for_function_blocks() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -281,14 +281,22 @@ fn init_functions_generated_for_function_blocks() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @s = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %to_init = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -317,7 +325,7 @@ fn init_functions_generated_for_function_blocks() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -385,7 +393,7 @@ fn nested_initializer_pous() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -407,19 +415,20 @@ fn nested_initializer_pous() {
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__baz__init = unnamed_addr constant %baz zeroinitializer
     @sideProg_instance = global %sideProg zeroinitializer
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
-    @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer
+    @____vtable_bar_type__init = unnamed_addr constant %__vtable_bar_type zeroinitializer
     @__vtable_bar = global %__vtable_bar_type zeroinitializer
-    @____vtable_baz_type__init = constant %__vtable_baz_type zeroinitializer
+    @____vtable_baz_type__init = unnamed_addr constant %__vtable_baz_type zeroinitializer
     @__vtable_baz = global %__vtable_baz_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       call void @bar__print(%bar* %b)
       call void @bar(%bar* %b)
       ret void
@@ -429,7 +438,8 @@ fn nested_initializer_pous() {
     entry:
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
       call void @baz__print(%baz* %b)
       ret void
     }
@@ -438,7 +448,8 @@ fn nested_initializer_pous() {
     entry:
       %this = alloca %baz*, align 8
       store %baz* %0, %baz** %this, align 8
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
       ret void
     }
 
@@ -462,7 +473,8 @@ fn nested_initializer_pous() {
     entry:
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
+      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
       ret void
     }
 
@@ -470,8 +482,9 @@ fn nested_initializer_pous() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -479,7 +492,8 @@ fn nested_initializer_pous() {
     entry:
       %this = alloca %baz*, align 8
       store %baz* %0, %baz** %this, align 8
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
       ret void
     }
 
@@ -488,11 +502,14 @@ fn nested_initializer_pous() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
-      call void @__init_bar(%bar* %b)
-      %deref1 = load %foo*, %foo** %self, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %b = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
+      call void @__init_bar(%bar* %b)
+      %deref2 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -527,11 +544,32 @@ fn nested_initializer_pous() {
       %self = alloca %mainProg*, align 8
       store %mainProg* %0, %mainProg** %self, align 8
       %deref = load %mainProg*, %mainProg** %self, align 8
-      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
-      call void @__init_foo(%foo* %f)
-      %deref1 = load %mainProg*, %mainProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 0
+      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 0
       store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
+      %deref1 = load %mainProg*, %mainProg** %self, align 8
+      %f = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 1
+      call void @__init_foo(%foo* %f)
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar_type(%__vtable_bar_type* %0) {
+    entry:
+      %self = alloca %__vtable_bar_type*, align 8
+      store %__vtable_bar_type* %0, %__vtable_bar_type** %self, align 8
+      ret void
+    }
+
+    define void @__init___vtable_baz_type(%__vtable_baz_type* %0) {
+    entry:
+      %self = alloca %__vtable_baz_type*, align 8
+      store %__vtable_baz_type* %0, %__vtable_baz_type** %self, align 8
       ret void
     }
 
@@ -540,11 +578,11 @@ fn nested_initializer_pous() {
       %self = alloca %sideProg*, align 8
       store %sideProg* %0, %sideProg** %self, align 8
       %deref = load %sideProg*, %sideProg** %self, align 8
-      %f = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 1
-      call void @__init_foo(%foo* %f)
-      %deref1 = load %sideProg*, %sideProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 0
+      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 0
       store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
+      %deref1 = load %sideProg*, %sideProg** %self, align 8
+      %f = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 1
+      call void @__init_foo(%foo* %f)
       ret void
     }
 
@@ -606,7 +644,7 @@ fn nested_initializer_pous() {
       call void @__user_init_sideProg(%sideProg* @sideProg_instance)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -626,23 +664,34 @@ fn local_address() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %foo = type { i16, i16* }
+    %foo = type { i32*, i16, i16* }
+    %__vtable_foo_type = type { i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -651,10 +700,13 @@ fn local_address() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %pi = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %pi = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
       %deref1 = load %foo*, %foo** %self, align 8
-      %i = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      %i = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store i16* %i, i16** %pi, align 8
+      %deref2 = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -667,9 +719,10 @@ fn local_address() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -699,23 +752,27 @@ fn user_init_called_for_variables_on_stack() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %foo = type { i16, i16* }
+    %foo = type { i32*, i16, i16* }
+    %__vtable_foo_type = type { i32*, i32* }
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -723,8 +780,9 @@ fn user_init_called_for_variables_on_stack() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %i = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %pi = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       store i16* %i, i16** %pi, align 8
       ret void
     }
@@ -743,10 +801,20 @@ fn user_init_called_for_variables_on_stack() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
+      ret void
+    }
+
     define void @__init_foo(%foo* %0) {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo_type* @__vtable_foo to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -761,11 +829,12 @@ fn user_init_called_for_variables_on_stack() {
 
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "###);
+    "#);
 }
 
 #[test]
@@ -975,7 +1044,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -993,9 +1062,9 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     @__cl__init = unnamed_addr constant %cl zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
-    @____vtable_cl_type__init = constant %__vtable_cl_type zeroinitializer
+    @____vtable_cl_type__init = unnamed_addr constant %__vtable_cl_type zeroinitializer
     @__vtable_cl = global %__vtable_cl_type zeroinitializer
 
     define void @prog(%prog* %0) {
@@ -1007,6 +1076,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -1014,6 +1084,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -1033,6 +1104,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -1113,7 +1185,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1141,7 +1213,7 @@ fn global_instance() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1156,14 +1228,15 @@ fn global_instance() {
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @fb = global %foo zeroinitializer
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
@@ -1223,7 +1296,7 @@ fn global_instance() {
       call void @__user_init_foo(%foo* @fb)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1256,7 +1329,7 @@ fn aliased_types() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1271,14 +1344,15 @@ fn aliased_types() {
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @global_alias = global %foo zeroinitializer
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
@@ -1345,7 +1419,7 @@ fn aliased_types() {
       call void @__user_init_foo(%foo* @global_alias)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1566,7 +1640,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1577,15 +1651,16 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
     @s = global [81 x i8] zeroinitializer
     @refString = global [81 x i8]* null
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
-    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -1620,11 +1695,11 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     define void @__init___Test() {
     entry:
-      store [81 x i8]* @s, [81 x i8]** @refString, align 8
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
+      store [81 x i8]* @s, [81 x i8]** @refString, align 8
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1645,7 +1720,7 @@ fn ref_to_local_member() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1656,17 +1731,25 @@ fn ref_to_local_member() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 4
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1707,7 +1790,7 @@ fn ref_to_local_member() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1732,7 +1815,7 @@ fn ref_to_local_member_shadows_global() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1744,17 +1827,25 @@ fn ref_to_local_member_shadows_global() {
     @s = global [81 x i8] zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %ptr = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %alias = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
+      %reference_to = getelementptr inbounds %foo, %foo* %0, i32 0, i32 4
+      ret void
+    }
+
+    define void @__init___vtable_foo_type(%__vtable_foo_type* %0) {
+    entry:
+      %self = alloca %__vtable_foo_type*, align 8
+      store %__vtable_foo_type* %0, %__vtable_foo_type** %self, align 8
       ret void
     }
 
@@ -1795,7 +1886,7 @@ fn ref_to_local_member_shadows_global() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1818,7 +1909,7 @@ fn temporary_variable_ref_to_local_member() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1829,14 +1920,15 @@ fn temporary_variable_ref_to_local_member() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %ptr = alloca [81 x i8]*, align 8
       %alias = alloca [81 x i8]*, align 8
       %reference_to = alloca [81 x i8]*, align 8
@@ -1878,7 +1970,7 @@ fn temporary_variable_ref_to_local_member() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###)
+    "#)
 }
 
 #[test]
@@ -1957,7 +2049,7 @@ fn initializing_method_variables_with_refs() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1968,13 +2060,14 @@ fn initializing_method_variables_with_refs() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -1982,6 +2075,7 @@ fn initializing_method_variables_with_refs() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 10, i32* %x, align 4
@@ -2019,7 +2113,7 @@ fn initializing_method_variables_with_refs() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2043,7 +2137,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2052,16 +2146,17 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     %foo = type { i32*, i32 }
     %__vtable_foo_type = type { i32*, i32* }
 
-    @__foo__init = unnamed_addr constant %foo { i32 5 }
+    @__foo__init = unnamed_addr constant %foo { i32* null, i32 5 }
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void
     }
 
@@ -2069,7 +2164,8 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %px = alloca i32*, align 8
       store i32* %x, i32** %px, align 8
       store i32* %x, i32** %px, align 8
@@ -2105,7 +2201,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2129,7 +2225,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2141,13 +2237,14 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     @x = global i32 0
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2155,6 +2252,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %px = alloca i32*, align 8
       store i32* @x, i32** %px, align 8
       store i32* @x, i32** %px, align 8
@@ -2190,7 +2288,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2215,7 +2313,7 @@ fn initializing_method_variables_with_refs_shadowing() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2227,13 +2325,14 @@ fn initializing_method_variables_with_refs_shadowing() {
     @x = global i32 0
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2241,6 +2340,7 @@ fn initializing_method_variables_with_refs_shadowing() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -2278,7 +2378,7 @@ fn initializing_method_variables_with_refs_shadowing() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2299,7 +2399,7 @@ fn initializing_method_variables_with_alias() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2310,13 +2410,14 @@ fn initializing_method_variables_with_alias() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2324,6 +2425,7 @@ fn initializing_method_variables_with_alias() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -2361,7 +2463,7 @@ fn initializing_method_variables_with_alias() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2382,7 +2484,7 @@ fn initializing_method_variables_with_reference_to() {
         )],
     )
     .unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2393,13 +2495,14 @@ fn initializing_method_variables_with_reference_to() {
 
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2407,6 +2510,7 @@ fn initializing_method_variables_with_reference_to() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %x = alloca i32, align 4
       %px = alloca i32*, align 8
       store i32 0, i32* %x, align 4
@@ -2444,7 +2548,7 @@ fn initializing_method_variables_with_reference_to() {
       call void @__init___vtable_foo_type(%__vtable_foo_type* @__vtable_foo)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2472,7 +2576,7 @@ fn methods_call_init_functions_for_their_members() {
     )
     .unwrap();
     // when compiling to ir, we expect `bar.baz` to call `__init_foo` with the local instance.
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2486,17 +2590,18 @@ fn methods_call_init_functions_for_their_members() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
-    @____vtable_bar_type__init = constant %__vtable_bar_type zeroinitializer
+    @____vtable_bar_type__init = unnamed_addr constant %__vtable_bar_type zeroinitializer
     @__vtable_bar = global %__vtable_bar_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -2504,6 +2609,7 @@ fn methods_call_init_functions_for_their_members() {
     entry:
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void
     }
 
@@ -2511,6 +2617,7 @@ fn methods_call_init_functions_for_their_members() {
     entry:
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       %fb = alloca %foo, align 8
       %1 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
@@ -2583,7 +2690,7 @@ fn methods_call_init_functions_for_their_members() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2614,7 +2721,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2627,13 +2734,16 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -2641,8 +2751,9 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       store i16 1, i16* %x, align 2
       store i16 2, i16* %y, align 2
       ret void
@@ -2708,7 +2819,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2749,7 +2860,7 @@ fn user_fb_init_in_global_struct() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2765,15 +2876,16 @@ fn user_fb_init_in_global_struct() {
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @str = global %bar zeroinitializer
-    @____vtable_foo_type__init = constant %__vtable_foo_type zeroinitializer
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
     @__vtable_foo = global %__vtable_foo_type zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       ret void
     }
 
@@ -2781,8 +2893,9 @@ fn user_fb_init_in_global_struct() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       store i16 1, i16* %x, align 2
       store i16 2, i16* %y, align 2
       ret void
@@ -2871,7 +2984,7 @@ fn user_fb_init_in_global_struct() {
       call void @__user_init_bar(%bar* @str)
       ret void
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -2901,7 +3014,7 @@ fn user_init_called_when_declared_as_external() {
     )
     .unwrap();
 
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -2914,6 +3027,8 @@ fn user_init_called_when_declared_as_external() {
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = external unnamed_addr constant %foo
+    @____vtable_foo_type__init = unnamed_addr constant %__vtable_foo_type zeroinitializer
+    @__vtable_foo = external global %__vtable_foo_type
 
     declare void @foo(%foo*)
 
@@ -2966,5 +3081,5 @@ fn user_init_called_when_declared_as_external() {
       call void @__user_init_prog(%prog* @prog_instance)
       ret void
     }
-    "###);
+    "#);
 }

@@ -279,7 +279,7 @@ fn init_wrapper_function_created() {
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 4);
 
-    assert_debug_snapshot!(statements, @r###"
+    assert_debug_snapshot!(statements, @r#"
     [
         CallStatement {
             operator: ReferenceExpr {
@@ -295,6 +295,26 @@ fn init_wrapper_function_created() {
                     kind: Member(
                         Identifier {
                             name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__init___vtable_bar_type",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__vtable_bar",
                         },
                     ),
                     base: None,
@@ -352,7 +372,7 @@ fn init_wrapper_function_created() {
             ),
         },
     ]
-    "###);
+    "#);
 
     // since `foo` has a member-instance of `bar`, we expect its initializer to call/propagate to `__init_bar` with its local member
     let init_foo = &units[1].implementations[2];
