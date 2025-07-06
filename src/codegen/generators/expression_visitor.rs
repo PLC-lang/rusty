@@ -19,7 +19,7 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     codegen::{
-        generators::{literals_generator::LlvmLiteralsGenerator, util::argument_passer::{Argument, CallArguments}},
+        generators::{literals_generator::IntrinsicLiteralsGenerator, util::call_builder::{self, Argument,  CallArguments}},
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::cast_if_needed,
     },
@@ -73,7 +73,7 @@ pub struct ExpressionVisitor<'ink, 'a> {
     pub annotations: &'a AstAnnotations,
     pub index: &'a Index,
 
-    literals_generator: LlvmLiteralsGenerator<'ink, 'a>,
+    literals_generator: IntrinsicLiteralsGenerator<'ink, 'a>,
     result_stack: Vec<Result<GeneratedValue<'ink>, Diagnostic>>,
 
     function_context: Option<&'a FunctionContext<'ink, 'a>>,
@@ -87,7 +87,7 @@ impl<'ink, 'a> ExpressionVisitor<'ink, 'a> {
         index: &'a Index,
         function_context: Option<&'a FunctionContext<'ink, 'a>>,
     ) -> Self {
-        let literals_generator = LlvmLiteralsGenerator::new(llvm, llvm_index, index);
+        let literals_generator = IntrinsicLiteralsGenerator::new(llvm, llvm_index, index);
         Self {
             llvm,
             llvm_index,
@@ -392,7 +392,8 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                         &instance,
                         prg_or_action,
                         &actual_parameters,
-                    )
+                    );
+                    Ok(GeneratedValue::NoValue)
                 }
                 Some((call_name, StatementAnnotation::Variable { resulting_type: qualified_name, .. })) => {
                     // function block instance
@@ -404,7 +405,8 @@ impl<'ink> AstVisitor for ExpressionVisitor<'ink, '_> {
                         &instance,
                         pou,
                         &actual_parameters,
-                    )
+                    );
+                    Ok(GeneratedValue::NoValue)
                 }
                 Some((impl_name, StatementAnnotation::Value { .. })) => {
                     todo!()
@@ -776,52 +778,24 @@ impl<'ink, 'idx> ExpressionVisitor<'ink, 'idx> {
         instance: &PointerValue<'ink>,
         prg: &PouIndexEntry,
         actual_parameters: &[&AstNode],
-    ) -> Result<GeneratedValue<'ink>> {
-        // collect formal and actual parameters
-        let formal_parameters =
-            self.index.get_pou_members(prg.get_name()).iter().filter(|e| e.is_parameter()).collect_vec();
-
-        let arguments = if actual_parameters.iter().all(|p| p.is_assignment() || p.is_output_assignment()) {
-            // explicit calls in random order: foo(formal := )actual, formal := actual)
-            actual_parameters
-                .iter()
-                .map(|assignment| {
-                    if let AstStatement::Assignment(Assignment { left, right: actual, .. })
-                    | AstStatement::OutputAssignment(Assignment { left, right: actual, .. }) =
-                        assignment.get_stmt()
-                    {
-                        if let Some(formal) = self
-                            .annotations
-                            .get(left)
-                            .and_then(|it| it.qualified_name())
-                            .and_then(|qname| self.index.find_fully_qualified_variable(qname))
-                        {
-                            return Ok(Argument::new(formal, actual));
-                        }
-                    }
-                    bail!("Cannot determine formal parameter for assignment {assignment:#?}");
-                })
-                .collect::<Result<Vec<_>>>()?
-        } else {
-            // implicit calls in order: foo(actual, actual, actual)
-            assert_eq!(formal_parameters.len(), actual_parameters.len());
-            // the order is the order of declaration
-            formal_parameters
-                .iter()
-                .zip(actual_parameters.iter())
-                .map(|(formal, actual)| Argument::new(formal, actual))
-                .collect_vec()
-        };
+    ) -> Result<()> {
+        
 
         //if this is a method call we need to pass the instance pointer as first argument
         // if prg.is_method() {
         //     arguments.insert(0, Argument::new(formal, actual)); //todo: introduce this
         // }
 
-        let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
-        let _ = call.generate_program_call(fv, instance, self)?;
+        let arguments = call_builder::build_arguments_list(self, prg.get_name(), actual_parameters)?;
+        call_builder::program_generate_in_arguments(self, instance, arguments.as_slice())?;
+        call_builder::program_build_call(self, fv, instance, prg.get_name());
+        call_builder::program_generate_out_parameters(self, instance, arguments.as_slice())?;
 
-        Ok(GeneratedValue::NoValue)
+
+        // let call = CallArguments::new(self.annotations, self.index, self.llvm, arguments);
+        // let _ = call.generate_program_call(fv, instance, self)?;
+
+        Ok(())
     }
 
     fn generate_all(

@@ -10,20 +10,24 @@ use crate::{
     typesystem::DataTypeInformation,
 };
 
-pub struct LlvmLiteralsGenerator<'ink, 'idx> {
+/// The literals generator generates GeneratedValue for literals namely:
+/// - Integer literals as RValues
+/// - Float literals as RValues
+/// - String literals as LValues 
+pub struct IntrinsicLiteralsGenerator<'ink, 'idx> {
     llvm: &'ink Llvm<'ink>,
     llvm_index: &'ink LlvmTypedIndex<'ink>,
     index: &'idx Index,
 }
 
-impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
+impl<'ink, 'idx> IntrinsicLiteralsGenerator<'ink, 'idx> {
     /// Creates a new `LlvmLiteralsGenerator` instance.
     pub fn new(llvm: &'ink Llvm<'ink>, llvm_index: &'ink LlvmTypedIndex<'ink>, index: &'idx Index) -> Self {
         Self { llvm, llvm_index, index }
     }
 
     /// Generates a constant integer value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant integer value.
+    /// Returns an RValue for the integer given, matching the type information.
     pub fn generate_const_int(
         &self,
         t: &DataTypeInformation,
@@ -58,7 +62,7 @@ impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
     }
 
     /// Generates a constant float value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant float value.
+    /// Returns an RValue for the float given, matching the type information.
     pub fn generate_const_float(
         &self,
         t: &DataTypeInformation,
@@ -79,7 +83,7 @@ impl<'ink, 'idx> LlvmLiteralsGenerator<'ink, 'idx> {
     }
 
     /// Generates a constant string value for the given type and value.
-    /// Returns a `BasicValueEnum` representing the constant string value.
+    /// Returns an LValue for the string given, matching the type information.
     pub fn generate_const_string(
         &self,
         t: &DataTypeInformation,
