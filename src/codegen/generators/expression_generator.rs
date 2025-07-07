@@ -537,17 +537,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
 
         // For method function pointers, we need to handle the instance parameter specially
-        let (method_instance, actual_parameters) = if matches!(function_pou, PouIndexEntry::Method { .. }) && !parameters_list.is_empty() {
-            // For methods, the first parameter is the instance, the rest are method parameters
-            // But if there's only one parameter, it's just the instance and there are no method parameters
-            if parameters_list.len() == 1 {
-                (Some(&parameters_list[0]), [].as_slice())
+        let (method_instance, actual_parameters) =
+            if matches!(function_pou, PouIndexEntry::Method { .. }) && !parameters_list.is_empty() {
+                // For methods, the first parameter is the instance, the rest are method parameters
+                // But if there's only one parameter, it's just the instance and there are no method parameters
+                if parameters_list.len() == 1 {
+                    (Some(&parameters_list[0]), [].as_slice())
+                } else {
+                    (Some(&parameters_list[0]), &parameters_list[1..])
+                }
             } else {
-                (Some(&parameters_list[0]), &parameters_list[1..])
-            }
-        } else {
-            (None, parameters_list.as_slice())
-        };
+                (None, parameters_list.as_slice())
+            };
 
         // For function blocks, we need special handling for parameters
         if matches!(function_pou, PouIndexEntry::FunctionBlock { .. }) {
@@ -1682,7 +1683,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
 
                 // For regular functions or when not in a method context, return the function pointer
-                if let Some(fn_value) = self.llvm_index.find_associated_implementation(&qualified_name) {
+                if let Some(fn_value) = self.llvm_index.find_associated_implementation(qualified_name) {
                     return Ok(fn_value.as_global_value().as_pointer_value());
                 }
 

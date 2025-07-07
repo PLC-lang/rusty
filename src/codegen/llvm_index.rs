@@ -1,3 +1,6 @@
+// TODO(vosa): Remove this
+#![allow(clippy::wrong_self_convention)]
+
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::types::{AnyTypeEnum, BasicType, BasicTypeEnum, FunctionType, PointerType};
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
@@ -25,42 +28,18 @@ pub struct LlvmTypedIndex<'ink> {
 }
 
 pub trait TypeHelper<'ink> {
-    fn is_basic_type(&self) -> bool;
     fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>>;
-    fn is_function(&self) -> bool;
     fn as_function(self) -> Option<FunctionType<'ink>>;
-    fn is_void(&self) -> bool;
-    // fn as_void(self) -> Option<VoidType<'ink>>;
     fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink>;
 }
 
 impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
-    fn is_function(&self) -> bool {
-        matches!(self, AnyTypeEnum::FunctionType(_))
-    }
-
     fn as_function(self) -> Option<FunctionType<'ink>> {
         if let AnyTypeEnum::FunctionType(function_type) = self {
             Some(function_type)
         } else {
             None
         }
-    }
-
-    fn is_void(&self) -> bool {
-        matches!(self, AnyTypeEnum::VoidType(_))
-    }
-
-    fn is_basic_type(&self) -> bool {
-        matches!(
-            self,
-            AnyTypeEnum::ArrayType(_)
-                | AnyTypeEnum::FloatType(_)
-                | AnyTypeEnum::IntType(_)
-                | AnyTypeEnum::PointerType(_)
-                | AnyTypeEnum::StructType(_)
-                | AnyTypeEnum::VectorType(_)
-        )
     }
 
     fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>> {

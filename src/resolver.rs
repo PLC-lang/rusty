@@ -850,7 +850,7 @@ pub trait AnnotationMap {
             StatementAnnotation::Program { qualified_name }
             | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { qualified_name, .. } => Some(&qualified_name),
+            StatementAnnotation::Function { qualified_name, .. } => Some(qualified_name),
             StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }

@@ -107,7 +107,7 @@ lazy_static! {
                         // Check if this is a qualified method reference like fb.fbSpecificMethod
                         if let Some(resolver::StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
                             // This is a qualified method reference - return the function pointer directly
-                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(&qualified_name) {
+                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
                                 return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
                             }
                         }

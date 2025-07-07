@@ -188,13 +188,10 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         let mut parameter_types = vec![];
 
         // For methods, we need to add the 'this' parameter as the first parameter
-        if let Some(pou_entry) = self.index.find_pou(name) {
-            if let PouIndexEntry::Method { parent_name, .. } = pou_entry {
-                // Get the owner class type and add it as the first parameter (this pointer)
-                if let Ok(owner_type) = self.types_index.get_associated_type(parent_name) {
-                    parameter_types
-                        .push(owner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
-                }
+        if let Some(PouIndexEntry::Method { parent_name, .. }) = self.index.find_pou(name) {
+            // Get the owner class type and add it as the first parameter (this pointer)
+            if let Ok(owner_type) = self.types_index.get_associated_type(parent_name) {
+                parameter_types.push(owner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
         }
 
