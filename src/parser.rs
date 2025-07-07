@@ -1008,7 +1008,11 @@ fn parse_type_reference_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.range().start;
     //Subrange
-    let referenced_type = lexer.slice_and_advance();
+    let mut referenced_type = lexer.slice_and_advance();
+    // TODO(vosa): Temporary hack
+    if lexer.try_consume(KeywordDot) {
+        referenced_type = format!("{referenced_type}.{}", lexer.slice_and_advance());
+    }
 
     let bounds = if lexer.try_consume(KeywordParensOpen) {
         // INT (..) :=

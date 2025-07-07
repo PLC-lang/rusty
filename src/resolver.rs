@@ -2024,7 +2024,9 @@ impl<'i> TypeAnnotator<'i> {
                     {
                         // TODO(vosa): also add is_method() check
                         // We're dealing with a function pointer, hence annotate the deref node with the variables name
-                        if inner_type.get_type_information().is_function() {
+                        if inner_type.get_type_information().is_function()
+                            || inner_type.get_type_information().is_method()
+                        {
                             self.annotate(stmt, StatementAnnotation::value(name));
                         } else {
                             self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))

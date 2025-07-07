@@ -1397,6 +1397,16 @@ impl AstNode {
     pub fn with_metadata(self, metadata: MetaData) -> AstNode {
         AstNode { metadata: Some(metadata), ..self }
     }
+
+    pub fn is_deref(&self) -> bool {
+        matches!(
+            self,
+            AstNode {
+                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }),
+                ..
+            }
+        )
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

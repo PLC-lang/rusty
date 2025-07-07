@@ -103,6 +103,15 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        // TODO(vosa): See if there is a better way
+                        // Check if this is a qualified method reference like fb.fbSpecificMethod
+                        if let Some(resolver::StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
+                            // This is a qualified method reference - return the function pointer directly
+                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(&qualified_name) {
+                                return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                            }
+                        }
+
                         generator
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))

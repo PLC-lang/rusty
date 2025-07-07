@@ -480,6 +480,227 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         value
     }
 
+    fn generate_function_pointer_call(
+        &self,
+        operator: &AstNode,
+        parameters: Option<&AstNode>,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        // Extract the base expression from the dereference operator
+        let base = if let AstStatement::ReferenceExpr(ReferenceExpr {
+            access: ReferenceAccess::Deref,
+            base: Some(base),
+        }) = operator.get_stmt()
+        {
+            base
+        } else {
+            return Err(Diagnostic::codegen_error(
+                "Expected dereference expression with base for function pointer call",
+                operator,
+            ));
+        };
+
+        // Get the function pointer type information
+        let function_pointer_type = self.annotations.get_type_or_void(base, self.index);
+
+        // Extract the target function type from the REF_TO pointer type
+        let target_function_type = if let DataTypeInformation::Pointer { inner_type_name, .. } =
+            function_pointer_type.get_type_information()
+        {
+            self.index.find_effective_type_by_name(inner_type_name).ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    format!("Could not find function type: {}", inner_type_name).as_str(),
+                    operator,
+                )
+            })?
+        } else {
+            return Err(Diagnostic::codegen_error("Expected pointer type for function pointer", operator));
+        };
+
+        // Get the function from the index to determine its signature
+        let function_pou = self.index.find_pou(target_function_type.get_name()).ok_or_else(|| {
+            Diagnostic::codegen_error(
+                format!("Could not find function POU: {}", target_function_type.get_name()).as_str(),
+                operator,
+            )
+        })?;
+
+        // Get the function implementation
+        let implementation = function_pou.find_implementation(self.index).ok_or_else(|| {
+            Diagnostic::codegen_error(
+                format!("Could not find implementation for function: {}", target_function_type.get_name())
+                    .as_str(),
+                operator,
+            )
+        })?;
+
+        // Generate the arguments list
+        let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
+
+        // For method function pointers, we need to handle the instance parameter specially
+        let (method_instance, actual_parameters) = if matches!(function_pou, PouIndexEntry::Method { .. }) && !parameters_list.is_empty() {
+            // For methods, the first parameter is the instance, the rest are method parameters
+            // But if there's only one parameter, it's just the instance and there are no method parameters
+            if parameters_list.len() == 1 {
+                (Some(&parameters_list[0]), [].as_slice())
+            } else {
+                (Some(&parameters_list[0]), &parameters_list[1..])
+            }
+        } else {
+            (None, parameters_list.as_slice())
+        };
+
+        // For function blocks, we need special handling for parameters
+        if matches!(function_pou, PouIndexEntry::FunctionBlock { .. }) {
+            // Get the function block instance pointer
+            if let Ok(fb_ptr) = self
+                .generate_expression_value(base)
+                .map(|v| v.as_r_value(self.llvm, Some("deref".to_string())))
+            {
+                // For function blocks, parameters need to be assigned to the instance variables
+                // before calling the function block body
+
+                // Generate parameter assignments to the function block instance
+                let fb_instance_ptr = fb_ptr.into_pointer_value();
+                for argument in parameters_list.iter() {
+                    self.generate_call_struct_argument_assignment(&CallParameterAssignment {
+                        assignment: argument,
+                        function_name: implementation.get_type_name(),
+                        index: self
+                            .annotations
+                            .get_hint(argument)
+                            .and_then(StatementAnnotation::get_location_in_parent)
+                            .expect("arguments must have a type hint"),
+                        parameter_struct: fb_instance_ptr,
+                    })?;
+                }
+
+                // Get the function block body implementation
+                let function_value = self
+                    .llvm_index
+                    .find_associated_implementation(implementation.get_type_name())
+                    .ok_or_else(|| {
+                        Diagnostic::codegen_error(
+                            format!("Could not find LLVM function for: {}", implementation.get_type_name())
+                                .as_str(),
+                            operator,
+                        )
+                    })?;
+
+                // Generate the debug statement for the call
+                self.register_debug_location(operator);
+
+                // Call the function block body with just the instance pointer
+                let call = self.llvm.builder.build_call(function_value, &[fb_ptr.into()], "call");
+
+                // Handle output assignments after the call
+                // Copy output values back to the assigned output variables
+                self.assign_output_values(fb_instance_ptr, implementation.get_type_name(), parameters_list)?;
+
+                // Handle the return value
+                let value = call
+                    .try_as_basic_value()
+                    .either(Ok, |_| {
+                        // Return null pointer for void functions
+                        Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                            .const_null()
+                            .as_basic_value_enum())
+                    })
+                    .map(ExpressionValue::RValue);
+
+                return value;
+            }
+        }
+
+        // Generate the function pointer value (only for non-FB cases)
+        let function_pointer_value = self.generate_expression_value(base)?;
+        let function_pointer = match function_pointer_value {
+            ExpressionValue::LValue(ptr) => {
+                // Load the function pointer from memory
+                self.llvm.load_pointer(&ptr, "").into_pointer_value()
+            }
+            ExpressionValue::RValue(val) => val.into_pointer_value(),
+        };
+
+        // Generate function arguments for non-function block cases
+        let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+        let mut arguments_list =
+            self.generate_function_arguments(function_pou, actual_parameters, declared_parameters)?;
+
+        // For regular function pointers (including method pointers), use indirect calls
+        match function_pou {
+            PouIndexEntry::Method { .. } => {
+                // For method pointers, we need to add the instance pointer as the first argument
+                if let Some(instance_expr) = method_instance {
+                    // Generate the instance pointer from the instance expression
+                    // For method calls, we need a pointer to the instance, not the value
+                    let instance_lvalue = self.generate_lvalue(instance_expr)?;
+                    arguments_list.insert(0, instance_lvalue.as_basic_value_enum().into());
+                } else {
+                    return Err(Diagnostic::codegen_error(
+                        "Method calls require an instance argument",
+                        operator,
+                    ));
+                }
+            }
+            _ => {
+                // Regular functions don't need a 'this' pointer
+            }
+        }
+
+        // Get the LLVM function type from the implementation
+        let function_value = self
+            .llvm_index
+            .find_associated_implementation(implementation.get_type_name())
+            .ok_or_else(|| {
+            Diagnostic::codegen_error(
+                format!("Could not find LLVM function for: {}", implementation.get_type_name()).as_str(),
+                operator,
+            )
+        })?;
+        let function_type = function_value.get_type();
+
+        // Cast the function pointer to the correct function type if needed
+        let callable_ptr = if function_pointer.get_type().get_element_type().is_function_type() {
+            function_pointer
+        } else {
+            // Cast to the correct function pointer type
+            self.llvm
+                .builder
+                .build_bitcast(
+                    function_pointer,
+                    function_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    "cast_fn_ptr",
+                )
+                .into_pointer_value()
+        };
+
+        // Convert the function pointer to a CallableValue
+        let callable = CallableValue::try_from(callable_ptr).map_err(|_| {
+            Diagnostic::codegen_error("Could not convert function pointer to callable", operator)
+        })?;
+
+        // Generate the debug statement for the call
+        self.register_debug_location(operator);
+
+        // Generate the indirect call
+        let call = self.llvm.builder.build_call(callable, &arguments_list, "call");
+
+        // Handle the return value similar to regular function calls
+        let value = call
+            .try_as_basic_value()
+            .either(Ok, |_| {
+                // Return null pointer for void functions
+                Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                    .const_null()
+                    .as_basic_value_enum())
+            })
+            .map(ExpressionValue::RValue);
+
+        value
+    }
+
     /// generates the given call-statement <operator>(<parameters>)
     /// returns the call's result as a BasicValueEnum (may be a void-type for PROGRAMs)
     ///
@@ -490,6 +711,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        // TODO(vosa): Perhaps to be 100% sure also check if the operator has a pointer annotation; for now this works though
+        if operator.is_deref() {
+            return self.generate_function_pointer_call(operator, parameters);
+        }
+
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
@@ -1438,7 +1664,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::unresolved_reference(name, offset)),
                     Ok,
                 ),
-            _ => Err(Diagnostic::unresolved_reference(name, offset)),
+
+            // Handle function references, but only if we're not in a method call context
+            // that should use the implicit 'this' pointer
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                // Check if this is a method that belongs to the current context
+                if self.function_context.is_some() {
+                    // If we have a function context and this might be a local method call,
+                    // let the normal method resolution handle it
+                    if let Some(impl_entry) = self.index.find_pou_implementation(qualified_name) {
+                        if impl_entry.is_method() {
+                            // This is a method - let the normal method call logic handle it
+                            // by falling through to the error case which will be handled by the caller
+                            return Err(Diagnostic::unresolved_reference(name, offset));
+                        }
+                    }
+                }
+
+                // For regular functions or when not in a method context, return the function pointer
+                if let Some(fn_value) = self.llvm_index.find_associated_implementation(&qualified_name) {
+                    return Ok(fn_value.as_global_value().as_pointer_value());
+                }
+
+                log::warn!("could not find function annotation for {context:?}");
+                Err(Diagnostic::unresolved_reference(name, offset))
+            }
+            _ => {
+                log::warn!("could not find annotation for {context:?}");
+                Err(Diagnostic::unresolved_reference(name, offset))
+            }
         }
     }
 
