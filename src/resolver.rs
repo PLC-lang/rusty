@@ -850,8 +850,8 @@ pub trait AnnotationMap {
             StatementAnnotation::Program { qualified_name }
             | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Label { .. }
+            StatementAnnotation::Function { qualified_name, .. } => Some(&qualified_name),
+            StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::Property { .. }
@@ -2011,7 +2011,9 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Deref, _) => {
-                if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: None, .. }) = base
+                if let Some(DataTypeInformation::Pointer {
+                    name, inner_type_name, auto_deref: None, ..
+                }) = base
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index))
                     .map(|it| it.get_type_information())
                 {
@@ -2020,7 +2022,13 @@ impl<'i> TypeAnnotator<'i> {
                         .find_effective_type_by_name(inner_type_name)
                         .or(self.annotation_map.new_index.find_effective_type_by_name(inner_type_name))
                     {
-                        self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
+                        // TODO(vosa): also add is_method() check
+                        // We're dealing with a function pointer, hence annotate the deref node with the variables name
+                        if inner_type.get_type_information().is_function() {
+                            self.annotate(stmt, StatementAnnotation::value(name));
+                        } else {
+                            self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
+                        }
                     }
                 }
             }
