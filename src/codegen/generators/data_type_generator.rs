@@ -87,24 +87,28 @@ pub fn generate_data_types<'ink>(
     // and associate them in the llvm index
     for (name, user_type) in &types {
         if let DataTypeInformation::Struct { name: struct_name, .. } = user_type.get_type_information() {
+            log::debug!("creating struct stub `{name}`");
             generator.types_index.associate_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
     // pou_types will always be struct
     for (name, user_type) in &pou_types {
         if let DataTypeInformation::Struct { name: struct_name, .. } = user_type.get_type_information() {
+            log::debug!("creating POU stub `{name}`");
             generator.types_index.associate_pou_type(name, llvm.create_struct_stub(struct_name).into())?;
         }
     }
 
     // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in &types {
+        log::debug!("creating type `{name}`");
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
         //Get and associate debug type
     }
 
     for (name, user_type) in &pou_types {
+        log::debug!("creating type `{name}`");
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_pou_type(name, gen_type)?
     }
@@ -114,8 +118,9 @@ pub fn generate_data_types<'ink>(
     types_to_init.extend(types);
     types_to_init.extend(pou_types);
     // now since all types should be available in the llvm index, we can think about constructing and associating
-    for (_, user_type) in &types_to_init {
+    for (name, user_type) in &types_to_init {
         //Expand all types
+        log::debug!("expanding type `{name}`");
         generator.expand_opaque_types(user_type)?;
     }
 
@@ -206,7 +211,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
         parameter_types.extend(declared_params);
 
-        let fn_type = match dbg!(return_type) {
+        let fn_type = match return_type {
             AnyTypeEnum::IntType(value) => value.fn_type(parameter_types.as_slice(), false),
             AnyTypeEnum::VoidType(value) => value.fn_type(parameter_types.as_slice(), false),
             _ => unimplemented!(),
