@@ -2,7 +2,7 @@ use crate::test_utils::tests::codegen;
 use plc_util::filtered_assert_snapshot;
 
 #[test]
-fn function_pointer_simple() {
+fn function_pointer() {
     let result = codegen(
         r"
         FUNCTION echo : DINT
@@ -15,10 +15,10 @@ fn function_pointer_simple() {
 
         FUNCTION main
             VAR
-                echoPtr : REF_TO echo;
+                echoPtr : POINTER TO echo;
             END_VAR
 
-            echoPtr := REF(echo);
+            echoPtr := ADR(echo);
             echoPtr^(12345);
         END_FUNCTION
     ",
@@ -56,81 +56,85 @@ fn function_pointer_simple() {
 }
 
 #[test]
-fn function_pointer_simple_method() {
+fn function_pointer_method() {
     let result = codegen(
         r"
-        TYPE VTable:
+        VAR_GLOBAL
+            instanceVTableFbA: VTableFbA := (foo := ADR(FbA.foo));
+        END_VAR
+
+        TYPE VTableFbA:
             STRUCT
-                fbEcho : REF_TO fb.fbEcho := REF(fb.fbEcho);
+                foo: POINTER TO FbA.foo;
             END_STRUCT
         END_TYPE
 
-        FUNCTION_BLOCK fb
-            METHOD fbEcho : DINT
-                VAR_INPUT
-                    value : INT;
-                END_VAR
+        FUNCTION_BLOCK FbA
+            VAR
+                vtable: POINTER TO VTableFbA := ADR(instanceVTableFbA);
+                localVariableInFbA: INT;
+            END_VAR
 
-                fbEcho := value;
+            METHOD foo: INT
+                // printf('Hello from FbA::foo$N');
             END_METHOD
         END_FUNCTION_BLOCK
 
         FUNCTION main
             VAR
-                vt: VTable;
-                instance : fb;
+                instanceFbA: FbA;
             END_VAR
 
-            vt.fbEcho^(instance, INT#5);
+            instanceFbA.vtable^.foo^(instanceFbA);
         END_FUNCTION
         ",
     );
 
+    // XXX: The `__init_globals` is missing here, but we're interested in the derefs here anyways
     filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %fb = type {}
-    %VTable = type { i32 (%fb*, i16)* }
+    %VTableFbA = type { i16 (%FbA*)* }
+    %FbA = type { %VTableFbA*, i16 }
 
-    @__fb__init = unnamed_addr constant %fb zeroinitializer
-    @__VTable__init = unnamed_addr constant %VTable zeroinitializer
+    @instanceVTableFbA = global %VTableFbA zeroinitializer
+    @__VTableFbA__init = unnamed_addr constant %VTableFbA zeroinitializer
+    @__FbA__init = unnamed_addr constant %FbA zeroinitializer
 
-    define void @fb(%fb* %0) {
+    define i16 @FbA__foo(%FbA* %0) {
     entry:
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      ret void
+      %this = alloca %FbA*, align 8
+      store %FbA* %0, %FbA** %this, align 8
+      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %FbA.foo = alloca i16, align 2
+      store i16 0, i16* %FbA.foo, align 2
+      %FbA__foo_ret = load i16, i16* %FbA.foo, align 2
+      ret i16 %FbA__foo_ret
     }
 
-    define i32 @fb__fbEcho(%fb* %0, i16 %1) {
+    define void @FbA(%FbA* %0) {
     entry:
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      %fb.fbEcho = alloca i32, align 4
-      %value = alloca i16, align 2
-      store i16 %1, i16* %value, align 2
-      store i32 0, i32* %fb.fbEcho, align 4
-      %load_value = load i16, i16* %value, align 2
-      %2 = sext i16 %load_value to i32
-      store i32 %2, i32* %fb.fbEcho, align 4
-      %fb__fbEcho_ret = load i32, i32* %fb.fbEcho, align 4
-      ret i32 %fb__fbEcho_ret
+      %this = alloca %FbA*, align 8
+      store %FbA* %0, %FbA** %this, align 8
+      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      ret void
     }
 
     define void @main() {
     entry:
-      %vt = alloca %VTable, align 8
-      %instance = alloca %fb, align 8
-      %0 = bitcast %VTable* %vt to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%VTable* @__VTable__init to i8*), i64 ptrtoint (%VTable* getelementptr (%VTable, %VTable* null, i32 1) to i64), i1 false)
-      %1 = bitcast %fb* %instance to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
-      %fbEcho = getelementptr inbounds %VTable, %VTable* %vt, i32 0, i32 0
-      %2 = load i32 (%fb*, i16)*, i32 (%fb*, i16)** %fbEcho, align 8
-      %call = call i32 %2(%fb* %instance, i16 5)
+      %instanceFbA = alloca %FbA, align 8
+      %0 = bitcast %FbA* %instanceFbA to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FbA* @__FbA__init to i8*), i64 ptrtoint (%FbA* getelementptr (%FbA, %FbA* null, i32 1) to i64), i1 false)
+      %vtable = getelementptr inbounds %FbA, %FbA* %instanceFbA, i32 0, i32 0
+      %deref = load %VTableFbA*, %VTableFbA** %vtable, align 8
+      %foo = getelementptr inbounds %VTableFbA, %VTableFbA* %deref, i32 0, i32 0
+      %1 = load i16 (%FbA*)*, i16 (%FbA*)** %foo, align 8
+      %call = call i16 %1(%FbA* %instanceFbA)
       ret void
     }
 
