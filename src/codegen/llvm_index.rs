@@ -200,10 +200,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
 
     pub fn get_associated_pou_type(&self, type_name: &str) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
         self.find_associated_pou_type(type_name)
-            .or_else(|| {
-                // Fallback: try to find it as a regular type if it's not found as a POU type
-                self.find_associated_type(type_name)
-            })
             .ok_or_else(|| Diagnostic::unknown_type(type_name, SourceLocation::undefined()))
     }
 

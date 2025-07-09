@@ -97,43 +97,22 @@ pub fn generate_data_types<'ink>(
         }
     }
 
-    // Separate function types from other types to process them later
-    let mut function_types = vec![];
-    let mut non_function_types = vec![];
-    
+    // now create all other types (enum's, arrays, etc.)
     for (name, user_type) in &types {
-        if let DataTypeInformation::Struct { source: StructSource::Pou(PouType::Function | PouType::Method { .. }, ..), .. } = user_type.get_type_information() {
-            function_types.push((*name, *user_type));
-        } else {
-            non_function_types.push((*name, *user_type));
-        }
+        let gen_type = generator.create_type(name, user_type)?;
+        generator.types_index.associate_type(name, gen_type)?
+        //Get and associate debug type
     }
 
-    // First create all POU types (excluding functions/methods) - this includes function blocks like ClassA, ClassB
     for (name, user_type) in &pou_types {
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_pou_type(name, gen_type)?
     }
 
-    // Then create function types now that all POU types are available
-    for (name, user_type) in &function_types {
-        let gen_type = generator.create_type(name, user_type)?;
-        generator.types_index.associate_type(name, gen_type)?
-        //Get and associate debug type
-    }
-
-    // Finally create all non-function types (enum's, arrays, VTable structs, etc.)
-    for (name, user_type) in &non_function_types {
-        let gen_type = generator.create_type(name, user_type)?;
-        generator.types_index.associate_type(name, gen_type)?
-        //Get and associate debug type
-    }
-
-    // Combine all types in the order they were processed
+    // Combine the types and pou_types into a single Vector
     let mut types_to_init = VecDeque::new();
+    types_to_init.extend(types);
     types_to_init.extend(pou_types);
-    types_to_init.extend(function_types);
-    types_to_init.extend(non_function_types);
     // now since all types should be available in the llvm index, we can think about constructing and associating
     for (_, user_type) in &types_to_init {
         //Expand all types
@@ -197,7 +176,7 @@ pub fn generate_data_types<'ink>(
 }
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
-    fn create_function_type(&mut self, name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
+    fn create_function_type(&self, name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
         let return_type_dt = self.index.find_return_type(name).unwrap_or(self.index.get_void_type());
 
         let return_type = self
@@ -211,20 +190,8 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         // For methods, we need to add the 'this' parameter as the first parameter
         if let Some(PouIndexEntry::Method { parent_name, .. }) = self.index.find_pou(name) {
             // Get the owner class type and add it as the first parameter (this pointer)
-            // If the parent type is not available yet (e.g., during early type creation), 
-            // we'll create a properly named opaque struct as placeholder
-            if let Ok(owner_type) = self.types_index.get_associated_pou_type(parent_name) {
+            if let Ok(owner_type) = self.types_index.get_associated_type(parent_name) {
                 parameter_types.push(owner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
-            } else {
-                // Create an opaque struct type with the exact same name that will be used
-                // when the full type is created. This ensures LLVM will treat them as the same type.
-                let opaque_struct = self.llvm.context.opaque_struct_type(parent_name);
-                let opaque_type: BasicTypeEnum = opaque_struct.into();
-                
-                // Register it in the POU type index for this generation session
-                let _ = self.types_index.associate_pou_type(parent_name, opaque_type.as_any_type_enum());
-                
-                parameter_types.push(opaque_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
         }
 
@@ -239,11 +206,10 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
         parameter_types.extend(declared_params);
 
-        let fn_type = match return_type {
+        let fn_type = match dbg!(return_type) {
             AnyTypeEnum::IntType(value) => value.fn_type(parameter_types.as_slice(), false),
             AnyTypeEnum::VoidType(value) => value.fn_type(parameter_types.as_slice(), false),
-            AnyTypeEnum::FloatType(value) => value.fn_type(parameter_types.as_slice(), false),
-            _ => unimplemented!("Unsupported function return type: {:?}", return_type),
+            _ => unimplemented!(),
         };
 
         Ok(fn_type)
@@ -282,11 +248,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 StructSource::Pou(PouType::Function | PouType::Method { .. }, ..) => {
                     let gen_type = self.create_function_type(name)?;
 
-                    // Associate the function type in the POU index
+                    // TODO(vosa): Strictly speaking we don't need to register in LLVM index, i.e. `return Ok(gen_type.as_any_type_enum())` would suffice without breaking any tests; re-think approach with AnyType changes in API
                     self.types_index.associate_pou_type(name, gen_type.as_any_type_enum())?;
-                    
-                    // Return the function type
-                    Ok(gen_type.as_any_type_enum())
+                    self.types_index.get_associated_function_type(name).map(|it| it.as_any_type_enum())
                 }
                 StructSource::Pou(..) => self
                     .types_index

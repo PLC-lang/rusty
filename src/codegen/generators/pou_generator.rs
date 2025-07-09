@@ -389,14 +389,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let class_name =
                     implementation.get_associated_class_name().expect("Method needs to have a class-name");
                 let instance_members_struct_type: StructType =
-                    self.llvm_index.get_associated_pou_type(class_name)
-                        .or_else(|_| {
-                            // Fallback: create a placeholder opaque struct type
-                            eprintln!("Warning: POU type '{}' not found, creating placeholder", class_name);
-                            let placeholder_struct = self.llvm.context.opaque_struct_type(class_name);
-                            Ok::<BasicTypeEnum<'_>, Diagnostic>(placeholder_struct.into())
-                        })
-                        .map(|it| it.into_struct_type())?;
+                    self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
                 parameters.insert(
                     0,
                     instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
