@@ -13,8 +13,8 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
-    OnlineChange, Target,
+    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption,
+    vtable::VTableGenerator, ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;
@@ -279,5 +279,16 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for VTableGenerator {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+
+        let mut gen = VTableGenerator::new(self.id_provider.clone());
+        gen.generate_vtables(&index, &mut project.units); // XXX: The index could also be part of the VTableGenerator
+
+        project.index(self.id_provider.clone())
     }
 }

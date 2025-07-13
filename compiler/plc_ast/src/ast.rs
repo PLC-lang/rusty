@@ -395,6 +395,14 @@ impl PouType {
     pub fn is_stateful(&self) -> bool {
         matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, PouType::Class)
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, PouType::FunctionBlock)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -439,6 +447,18 @@ impl CompilationUnit {
             interfaces: Vec::new(),
             user_types: Vec::new(),
             file: FileMarker::File(file_name),
+        }
+    }
+
+    pub fn internal(name: &'static str) -> Self {
+        CompilationUnit {
+            global_vars: Vec::new(),
+            var_config: Vec::new(),
+            pous: Vec::new(),
+            implementations: Vec::new(),
+            interfaces: Vec::new(),
+            user_types: Vec::new(),
+            file: FileMarker::Internal(name),
         }
     }
 
@@ -504,6 +524,10 @@ pub struct VariableBlock {
 }
 
 impl VariableBlock {
+    pub fn global() -> Self {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
@@ -611,6 +635,14 @@ impl From<&DataTypeDeclaration> for SourceLocation {
 }
 
 impl DataTypeDeclaration {
+    pub fn reference<T, U>(name: T, location: U) -> DataTypeDeclaration
+    where
+        T: Into<String>,
+        U: Into<SourceLocation>,
+    {
+        DataTypeDeclaration::Reference { referenced_type: name.into(), location: location.into() }
+    }
+
     pub fn get_name(&self) -> Option<&str> {
         match self {
             Self::Aggregate { referenced_type, .. }
