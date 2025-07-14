@@ -111,6 +111,39 @@ expression: "index.filter_instances(|it, _|\n!it.is_constant()).collect::<Vec<In
                     "rFb",
                 ),
                 Name(
+                    "__vtable",
+                ),
+            ],
+        },
+        VariableIndexEntry {
+            name: "__vtable",
+            qualified_name: "fb.__vtable",
+            initial_value: None,
+            argument_type: ByVal(
+                Local,
+            ),
+            is_constant: false,
+            is_var_external: false,
+            data_type_name: "__VOID_POINTER",
+            location_in_parent: 0,
+            linkage: Internal,
+            binding: None,
+            source_location: SourceLocation {
+                span: None,
+            },
+            varargs: None,
+        },
+    ),
+    (
+        ExpressionPath {
+            names: [
+                Name(
+                    "MainProg",
+                ),
+                Name(
+                    "rFb",
+                ),
+                Name(
                     "a",
                 ),
             ],
@@ -125,7 +158,7 @@ expression: "index.filter_instances(|it, _|\n!it.is_constant()).collect::<Vec<In
             is_constant: false,
             is_var_external: false,
             data_type_name: "DINT",
-            location_in_parent: 0,
+            location_in_parent: 1,
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {
@@ -161,7 +194,7 @@ expression: "index.filter_instances(|it, _|\n!it.is_constant()).collect::<Vec<In
             is_constant: false,
             is_var_external: false,
             data_type_name: "DINT",
-            location_in_parent: 1,
+            location_in_parent: 2,
             linkage: Internal,
             binding: None,
             source_location: SourceLocation {

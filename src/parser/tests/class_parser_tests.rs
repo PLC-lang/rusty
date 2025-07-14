@@ -182,7 +182,10 @@ fn class_with_var_default_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
+
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -202,9 +205,11 @@ fn class_with_var_non_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
-    assert_eq!(vblock.variables.len(), 0);
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
 
+    let vblock = &class.variable_blocks[1];
+    assert_eq!(vblock.variables.len(), 0); // Internal VTable member
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, true);
     assert_eq!(vblock.access, AccessModifier::Public);
@@ -222,7 +227,10 @@ fn class_with_var_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
+
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, true);

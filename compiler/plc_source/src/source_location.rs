@@ -422,7 +422,7 @@ impl SourceLocation {
     }
 
     pub fn is_internal(&self) -> bool {
-        self.file.is_internal()
+        matches!(self.file, FileMarker::Internal(_)) | matches!(self.span, CodeSpan::None)
     }
 
     pub fn is_builtin_internal(&self) -> bool {

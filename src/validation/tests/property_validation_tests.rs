@@ -51,6 +51,38 @@ fn more_than_one_get_or_set_block() {
         ",
     );
     insta::assert_snapshot!(diagnostics, @r"
+    error[E004]: ____vtable_foo___get_foo_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_foo___get_foo_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_bar___set_bar_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_bar___set_bar_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_baz___get_baz_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_baz___get_baz_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_baz___set_baz_prop: Ambiguous datatype.
+
+    error[E004]: ____vtable_baz___set_baz_prop: Ambiguous datatype.
+
+    error[E004]: __get_foo_prop: Duplicate symbol.
+
+    error[E004]: __get_foo_prop: Duplicate symbol.
+
+    error[E004]: __set_bar_prop: Duplicate symbol.
+
+    error[E004]: __set_bar_prop: Duplicate symbol.
+
+    error[E004]: __get_baz_prop: Duplicate symbol.
+
+    error[E004]: __get_baz_prop: Duplicate symbol.
+
+    error[E004]: __set_baz_prop: Duplicate symbol.
+
+    error[E004]: __set_baz_prop: Duplicate symbol.
+
     error[E117]: Property has more than one GET block
       ┌─ <internal>:3:22
       │

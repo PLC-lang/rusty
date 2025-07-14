@@ -147,7 +147,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FOO = type { i8, i8 }
+    %FOO = type { i32*, i8, i8 }
 
     @__FOO__init = unnamed_addr constant %FOO zeroinitializer
 
@@ -155,8 +155,9 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     entry:
       %this = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %this, align 8
-      %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 2
       ret void
     }
 
@@ -167,48 +168,48 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %f = alloca %FOO, align 8
       store i8 0, i8* %error_bits, align 1
       %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FOO* @__FOO__init to i8*), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %load_error_bits = load i8, i8* %error_bits, align 1
       %shift = lshr i8 %load_error_bits, 0
       %2 = and i8 %shift, 1
       store i8 %2, i8* %1, align 1
       call void @FOO(%FOO* %f)
-      %3 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
+      %3 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 2
       %4 = load i8, i8* %error_bits, align 1
       %5 = load i8, i8* %3, align 1
       %erase = and i8 %4, -2
       %value = shl i8 %5, 0
       %or = or i8 %erase, %value
       store i8 %or, i8* %error_bits, align 1
-      %6 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %6 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %load_error_bits1 = load i8, i8* %error_bits, align 1
       %shift2 = lshr i8 %load_error_bits1, 0
       %7 = and i8 %shift2, 1
       store i8 %7, i8* %6, align 1
       call void @FOO(%FOO* %f)
-      %8 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
+      %8 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 2
       %9 = load i8, i8* %error_bits, align 1
       %10 = load i8, i8* %8, align 1
       %erase3 = and i8 %9, -2
       %value4 = shl i8 %10, 0
       %or5 = or i8 %erase3, %value4
       store i8 %or5, i8* %error_bits, align 1
-      %11 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %11 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %load_error_bits6 = load i8, i8* %error_bits, align 1
       %shift7 = lshr i8 %load_error_bits6, 0
       %12 = and i8 %shift7, 1
       store i8 %12, i8* %11, align 1
       call void @FOO(%FOO* %f)
-      %13 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
+      %13 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 2
       %14 = load i8, i8* %error_bits, align 1
       %15 = load i8, i8* %13, align 1
       %erase8 = and i8 %14, -2
       %value9 = shl i8 %15, 0
       %or10 = or i8 %erase8, %value9
       store i8 %or10, i8* %error_bits, align 1
-      %16 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %16 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %load_error_bits11 = load i8, i8* %error_bits, align 1
       %shift12 = lshr i8 %load_error_bits11, 0
       %17 = and i8 %shift12, 1
@@ -252,15 +253,16 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FOO = type { i8 }
+    %FOO = type { i32*, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+    @__FOO__init = unnamed_addr constant %FOO { i32* null, i8 1 }
 
     define void @FOO(%FOO* %0) {
     entry:
       %this = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %this, align 8
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
 
@@ -271,10 +273,10 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %f = alloca %FOO, align 8
       store i8 -17, i8* %error_bits, align 1
       %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FOO* @__FOO__init to i8*), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %2 = load i8, i8* %error_bits, align 1
       %3 = load i8, i8* %1, align 1
       %erase = and i8 %2, -17
@@ -319,15 +321,16 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FOO = type { i8 }
+    %FOO = type { i32*, i8 }
 
-    @__FOO__init = unnamed_addr constant %FOO { i8 1 }
+    @__FOO__init = unnamed_addr constant %FOO { i32* null, i8 1 }
 
     define void @FOO(%FOO* %0) {
     entry:
       %this = alloca %FOO*, align 8
       store %FOO* %0, %FOO** %this, align 8
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
       ret void
     }
 
@@ -338,10 +341,10 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %f = alloca %FOO, align 8
       store i8 -17, i8* %error_bits, align 1
       %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FOO* @__FOO__init to i8*), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
+      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
       %2 = load i8, i8* %error_bits, align 1
       %3 = load i8, i8* %1, align 1
       %erase = and i8 %2, -17
@@ -395,7 +398,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %QUUX = type { i8 }
+    %QUUX = type { i32*, i8 }
     %foo_struct = type { %bar_struct }
     %bar_struct = type { i64 }
 
@@ -407,7 +410,8 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     entry:
       %this = alloca %QUUX*, align 8
       store %QUUX* %0, %QUUX** %this, align 8
-      %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 0
+      %Q = getelementptr inbounds %QUUX, %QUUX* %0, i32 0, i32 1
       ret void
     }
 
@@ -419,12 +423,12 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       %0 = bitcast %foo_struct* %foo to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo_struct* @__foo_struct__init to i8*), i64 ptrtoint (%foo_struct* getelementptr (%foo_struct, %foo_struct* null, i32 1) to i64), i1 false)
       %1 = bitcast %QUUX* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%QUUX, %QUUX* @__QUUX__init, i32 0, i32 0), i64 ptrtoint (%QUUX* getelementptr (%QUUX, %QUUX* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%QUUX* @__QUUX__init to i8*), i64 ptrtoint (%QUUX* getelementptr (%QUUX, %QUUX* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @QUUX(%QUUX* %f)
       %bar = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz = getelementptr inbounds %bar_struct, %bar_struct* %bar, i32 0, i32 0
-      %2 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
+      %2 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 1
       %3 = load i64, i64* %baz, align 8
       %4 = load i8, i8* %2, align 1
       %erase = and i64 %3, -281474976710657
@@ -435,7 +439,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
       call void @QUUX(%QUUX* %f)
       %bar1 = getelementptr inbounds %foo_struct, %foo_struct* %foo, i32 0, i32 0
       %baz2 = getelementptr inbounds %bar_struct, %bar_struct* %bar1, i32 0, i32 0
-      %6 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 0
+      %6 = getelementptr inbounds %QUUX, %QUUX* %f, i32 0, i32 1
       %7 = load i64, i64* %baz2, align 8
       %8 = load i8, i8* %6, align 1
       %erase3 = and i64 %7, -1125899906842625

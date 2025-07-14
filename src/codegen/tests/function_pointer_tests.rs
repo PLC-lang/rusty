@@ -98,7 +98,7 @@ fn function_pointer_method() {
     target triple = "[filtered]"
 
     %VTableFbA = type { i16 (%FbA*)* }
-    %FbA = type { %VTableFbA*, i16 }
+    %FbA = type { i32*, %VTableFbA*, i16 }
 
     @instanceVTableFbA = global %VTableFbA zeroinitializer
     @__VTableFbA__init = unnamed_addr constant %VTableFbA zeroinitializer
@@ -108,8 +108,9 @@ fn function_pointer_method() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
-      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
-      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 2
       %FbA.foo = alloca i16, align 2
       store i16 0, i16* %FbA.foo, align 2
       %FbA__foo_ret = load i16, i16* %FbA.foo, align 2
@@ -120,8 +121,9 @@ fn function_pointer_method() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
-      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
-      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %localVariableInFbA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 2
       ret void
     }
 
@@ -130,7 +132,7 @@ fn function_pointer_method() {
       %instanceFbA = alloca %FbA, align 8
       %0 = bitcast %FbA* %instanceFbA to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FbA* @__FbA__init to i8*), i64 ptrtoint (%FbA* getelementptr (%FbA, %FbA* null, i32 1) to i64), i1 false)
-      %vtable = getelementptr inbounds %FbA, %FbA* %instanceFbA, i32 0, i32 0
+      %vtable = getelementptr inbounds %FbA, %FbA* %instanceFbA, i32 0, i32 1
       %deref = load %VTableFbA*, %VTableFbA** %vtable, align 8
       %foo = getelementptr inbounds %VTableFbA, %VTableFbA* %deref, i32 0, i32 0
       %1 = load i16 (%FbA*)*, i16 (%FbA*)** %foo, align 8

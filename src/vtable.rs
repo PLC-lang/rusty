@@ -133,9 +133,9 @@ impl VTableGenerator {
         // ADR(<pou>.<method>)
         //     ^^^^^^^^^^^^^^
         let names = qualified_name.split('.').collect::<Vec<_>>();
-        debug_assert!(names.len() >= 1 && names.len() <= 2); // It's either a `<pou>` or `<pou>.<method>`, where the latter case represents the body of a FB
+        debug_assert!(!names.is_empty() && names.len() <= 2); // It's either a `<pou>` or `<pou>.<method>`, where the latter case represents the body of a FB
 
-        let argument = match (names.get(0), names.get(1)) {
+        let argument = match (names.first(), names.get(1)) {
             // ADR(<pou>)
             (Some(name_pou), None) => AstFactory::create_member_reference(
                 AstFactory::create_identifier(
@@ -295,28 +295,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                             ],
                         },
@@ -558,28 +536,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -932,28 +888,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -1022,28 +956,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -1489,28 +1401,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -1579,28 +1469,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -1713,28 +1581,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -2132,28 +1978,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
@@ -2222,28 +2046,6 @@ mod tests {
                                             type_safe: false,
                                         },
                                     },
-                                    initializer: Some(
-                                        CallStatement {
-                                            operator: ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "ADR",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
                                 },
                                 Variable {
                                     name: "foo",
