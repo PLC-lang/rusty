@@ -2076,6 +2076,11 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes)),
 
+            AstStatement::ReferenceExpr(_) => {
+                self.visit_statement(ctx, reference);
+                self.annotation_map.get(reference).cloned() // XXX: This looks wrong, but for now does the job
+            }
+
             AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
@@ -2105,6 +2110,7 @@ impl<'i> TypeAnnotator<'i> {
                     strategy.resolve_name(&name, qualifier, self.index, ctx, &self.scopes)
                 })
             }
+            AstStatement::ParenExpression(expr) => self.resolve_reference_expression(expr, qualifier, ctx),
             _ => None,
         }
     }

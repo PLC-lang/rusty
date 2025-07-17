@@ -1,4 +1,7 @@
-use plc_ast::{ast::AstStatement, provider::IdProvider};
+use plc_ast::{
+    ast::{AstStatement, ReferenceAccess, ReferenceExpr},
+    provider::IdProvider,
+};
 
 use crate::{
     resolver::{AnnotationMap, TypeAnnotator},
@@ -86,6 +89,156 @@ fn function_pointer_definition() {
         Some(
             Value {
                 resulting_type: "__main_echoPtr",
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
+    }
+}
+
+#[test]
+fn void_pointer_casting() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+        VAR_GLOBAL
+            vtable_FbA_instance: vtable_FbA;
+        END_VAR
+
+        TYPE vtable_FbA: STRUCT
+            foo: POINTER TO FbA.foo := ADR(FbA.foo);
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK FbA
+            VAR
+                __vtable: POINTER TO __VOID;
+            END_VAR
+
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+
+        FUNCTION main
+            VAR
+                instanceFbA: FbA;
+            END_VAR
+
+            vtable_FbA#(instanceFbA.__vtable);
+            vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[0];
+
+        // vtable_FbA#(instanceFbA.__vtable)
+        //             ^^^^^^^^^^^^^^^^^^^^
+        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Cast(target), .. }) =
+            node.get_stmt()
+        else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(target), @r#"
+        Some(
+            Variable {
+                resulting_type: "__FbA___vtable",
+                qualified_name: "FbA.__vtable",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(target), @"None");
+
+        // vtable_FbA#(instanceFbA.__vtable)
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(node), @r#"
+        Some(
+            Value {
+                resulting_type: "vtable_FbA",
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(node), @"None");
+    }
+
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[1];
+
+        // vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        let AstStatement::CallStatement(call) = node.get_stmt() else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&call.operator), @r#"
+        Some(
+            Value {
+                resulting_type: "__vtable_FbA_foo",
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
+    }
+}
+
+#[test]
+fn demo() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+        VAR_GLOBAL
+            vtable_FbA_instance: vtable_FbA;
+        END_VAR
+
+        TYPE vtable_FbA: STRUCT
+            foo: POINTER TO FbA.foo := ADR(FbA.foo);
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK FbA
+            VAR
+                __vtable: POINTER TO vtable_FbA;
+            END_VAR
+
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+
+        FUNCTION main
+            VAR
+                instanceFbA: FbA;
+            END_VAR
+
+            instanceFbA.__vtable^.foo^(instanceFbA);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[0];
+
+        // instanceFbA.__vtable.foo^(instanceFbA);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^
+        let AstStatement::CallStatement(call) = node.get_stmt() else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&call.operator), @r#"
+        Some(
+            Value {
+                resulting_type: "__vtable_FbA_foo",
             },
         )
         "#);

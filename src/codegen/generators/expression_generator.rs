@@ -2866,12 +2866,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // `INT#target` (INT = base)
             (ReferenceAccess::Cast(target), Some(_base)) => {
+                // Check if this is a simple identifier cast or literal cast (use original logic)
                 if target.as_ref().is_identifier() {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)
-                } else {
+                } else if target.as_ref().is_literal() {
+                    // Handle literal casts with original logic
                     self.generate_expression_value(target.as_ref())
+                } else {
+                    // Otherwise just bitcast the target to the given type
+                    let base_type = self.annotations.get_type_or_void(_base, self.index);
+                    let base_type_name = base_type.get_name();
+
+                    // Generate the value we're casting
+                    let target_value = self.generate_expression_value(target.as_ref())?;
+
+                    // Get the LLVM type for the cast target
+                    let target_llvm_type = self.llvm_index.get_associated_type(base_type_name)
+                        .map(|t| t.ptr_type(AddressSpace::from(0)))
+                        .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
+
+                    // Perform the bitcast
+                    let basic_value = target_value.get_basic_value_enum();
+                    let cast_ptr = self.llvm.builder.build_bitcast(basic_value, target_llvm_type, "cast");
+                    let cast_value = ExpressionValue::RValue(cast_ptr);
+
+                    Ok(cast_value)
                 }
             }
 
