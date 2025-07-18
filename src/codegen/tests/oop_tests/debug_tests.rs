@@ -143,7 +143,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7872, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6, !9, !11, !16}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !10, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
     !10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -227,37 +227,37 @@ fn write_to_parent_variable_qualified_access() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !18
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
 
-    define void @fb(%fb* %0) !dbg !28 {
+    define void @fb(%fb* %0) !dbg !30 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !32, metadata !DIExpression()), !dbg !33
+      call void @llvm.dbg.declare(metadata %fb* %0, metadata !34, metadata !DIExpression()), !dbg !35
       %this = alloca %fb*, align 8
       store %fb* %0, %fb** %this, align 8
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
       %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 2
-      ret void, !dbg !33
+      ret void, !dbg !35
     }
 
-    define void @fb2(%fb2* %0) !dbg !34 {
+    define void @fb2(%fb2* %0) !dbg !36 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb2* %0, metadata !37, metadata !DIExpression()), !dbg !38
+      call void @llvm.dbg.declare(metadata %fb2* %0, metadata !39, metadata !DIExpression()), !dbg !40
       %this = alloca %fb2*, align 8
       store %fb2* %0, %fb2** %this, align 8
       %__fb = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
-      ret void, !dbg !38
+      ret void, !dbg !40
     }
 
-    define void @foo(%foo* %0) !dbg !39 {
+    define void @foo(%foo* %0) !dbg !41 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !42, metadata !DIExpression()), !dbg !43
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !44, metadata !DIExpression()), !dbg !45
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !43
-      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1, !dbg !43
-      store i16 1, i16* %x, align 2, !dbg !43
-      ret void, !dbg !44
+      %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !45
+      %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1, !dbg !45
+      store i16 1, i16* %x, align 2, !dbg !45
+      ret void, !dbg !46
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -372,8 +372,8 @@ fn write_to_parent_variable_qualified_access() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!24, !25}
-    !llvm.dbg.cu = !{!26}
+    !llvm.module.flags = !{!26, !27}
+    !llvm.dbg.cu = !{!28}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__fb__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
@@ -382,7 +382,7 @@ fn write_to_parent_variable_qualified_access() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
     !5 = !{!6, !9, !11}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 4, baseType: !10, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
     !10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -397,29 +397,31 @@ fn write_to_parent_variable_qualified_access() {
     !19 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !20, isLocal: false, isDefinition: true)
     !20 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !21)
     !21 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 192, align: 64, flags: DIFlagPublic, elements: !22, identifier: "foo")
-    !22 = !{!6, !23}
-    !23 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !15, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
-    !24 = !{i32 2, !"Dwarf Version", i32 5}
-    !25 = !{i32 2, !"Debug Info Version", i32 3}
-    !26 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !27, splitDebugInlining: false)
-    !27 = !{!0, !12, !18}
-    !28 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !29, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !26, retainedNodes: !31)
-    !29 = !DISubroutineType(flags: DIFlagPublic, types: !30)
-    !30 = !{null, !4}
-    !31 = !{}
-    !32 = !DILocalVariable(name: "fb", scope: !28, file: !2, line: 7, type: !4)
-    !33 = !DILocation(line: 7, column: 8, scope: !28)
-    !34 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !35, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !26, retainedNodes: !31)
-    !35 = !DISubroutineType(flags: DIFlagPublic, types: !36)
-    !36 = !{null, !15}
-    !37 = !DILocalVariable(name: "fb2", scope: !34, file: !2, line: 10, type: !15)
-    !38 = !DILocation(line: 10, column: 8, scope: !34)
-    !39 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !40, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !26, retainedNodes: !31)
-    !40 = !DISubroutineType(flags: DIFlagPublic, types: !41)
-    !41 = !{null, !21}
-    !42 = !DILocalVariable(name: "foo", scope: !39, file: !2, line: 16, type: !21)
-    !43 = !DILocation(line: 16, column: 12, scope: !39)
-    !44 = !DILocation(line: 17, column: 8, scope: !39)
+    !22 = !{!23, !25}
+    !23 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !24, size: 64, align: 64, flags: DIFlagPublic)
+    !24 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "myFb", scope: !2, file: !2, line: 14, baseType: !15, size: 128, align: 64, offset: 64, flags: DIFlagPublic)
+    !26 = !{i32 2, !"Dwarf Version", i32 5}
+    !27 = !{i32 2, !"Debug Info Version", i32 3}
+    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false)
+    !29 = !{!0, !12, !18}
+    !30 = distinct !DISubprogram(name: "fb", linkageName: "fb", scope: !2, file: !2, line: 2, type: !31, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
+    !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
+    !32 = !{null, !4}
+    !33 = !{}
+    !34 = !DILocalVariable(name: "fb", scope: !30, file: !2, line: 7, type: !4)
+    !35 = !DILocation(line: 7, column: 8, scope: !30)
+    !36 = distinct !DISubprogram(name: "fb2", linkageName: "fb2", scope: !2, file: !2, line: 9, type: !37, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
+    !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
+    !38 = !{null, !15}
+    !39 = !DILocalVariable(name: "fb2", scope: !36, file: !2, line: 10, type: !15)
+    !40 = !DILocation(line: 10, column: 8, scope: !36)
+    !41 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 12, type: !42, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
+    !42 = !DISubroutineType(flags: DIFlagPublic, types: !43)
+    !43 = !{null, !21}
+    !44 = !DILocalVariable(name: "foo", scope: !41, file: !2, line: 16, type: !21)
+    !45 = !DILocation(line: 16, column: 12, scope: !41)
+    !46 = !DILocation(line: 17, column: 8, scope: !41)
     "#);
 }
 
@@ -626,7 +628,7 @@ fn write_to_parent_variable_in_instance() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 768, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6, !9}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !10, size: 648, align: 8, offset: 64, flags: DIFlagPublic)
     !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 648, align: 8, elements: !12)
@@ -924,7 +926,7 @@ fn array_in_parent_generated() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !5, identifier: "grandparent")
     !5 = !{!6, !9, !14}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !10, size: 96, align: 16, offset: 64, flags: DIFlagPublic)
     !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 96, align: 16, elements: !12)
@@ -1214,7 +1216,7 @@ fn complex_array_access_generated() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandparent", scope: !2, file: !2, line: 2, size: 192, align: 64, flags: DIFlagPublic, elements: !5, identifier: "grandparent")
     !5 = !{!6, !9, !14}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__grandparent___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 4, baseType: !10, size: 96, align: 16, offset: 64, flags: DIFlagPublic)
     !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 96, align: 16, elements: !12)
@@ -1415,7 +1417,7 @@ fn function_block_method_debug_info() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
     !5 = !{!6}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
     !10 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 7, type: !11, isLocal: false, isDefinition: true)
@@ -1811,7 +1813,7 @@ END_FUNCTION
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 2, size: 128, align: 64, flags: DIFlagPublic, elements: !5, identifier: "parent")
     !5 = !{!6, !9}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__parent___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !10, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
     !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)

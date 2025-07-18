@@ -247,8 +247,15 @@ fn pou_implementing_single_interface() {
                 variables: [
                     Variable {
                         name: "__vtable",
-                        data_type: DataTypeReference {
-                            referenced_type: "__VOID_POINTER",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                            },
                         },
                     },
                 ],
@@ -287,8 +294,15 @@ fn pou_implementing_multiple_interfaces() {
                 variables: [
                     Variable {
                         name: "__vtable",
-                        data_type: DataTypeReference {
-                            referenced_type: "__VOID_POINTER",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                            },
                         },
                     },
                 ],

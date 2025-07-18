@@ -436,7 +436,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb", scope: !2, file: !2, line: 2, size: 64, align: 64, flags: DIFlagPublic, elements: !5, identifier: "fb")
     !5 = !{!6}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__fb___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !{i32 2, !"Dwarf Version", i32 5}
     !10 = !{i32 2, !"Debug Info Version", i32 3}

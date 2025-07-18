@@ -13,8 +13,10 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption,
-    vtable::VTableGenerator, ConfigFormat, OnlineChange, Target,
+    codegen::GeneratedModule,
+    lowering::{calls::AggregateTypeLowerer, vtable::VTableGenerator},
+    output::FormatOption,
+    ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;

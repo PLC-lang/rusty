@@ -24,7 +24,9 @@ use plc::{
     codegen::{CodegenContext, GeneratedModule},
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
-    lowering::{calls::AggregateTypeLowerer, property::PropertyLowerer, InitVisitor},
+    lowering::{
+        calls::AggregateTypeLowerer, property::PropertyLowerer, vtable::VTableGenerator, InitVisitor,
+    },
     output::FormatOption,
     parser::parse_file,
     resolver::{
@@ -32,7 +34,6 @@ use plc::{
         TypeAnnotator,
     },
     validation::Validator,
-    vtable::VTableGenerator,
     ConfigFormat, ErrorFormat, OnlineChange, Target, Threads,
 };
 use plc_diagnostics::{

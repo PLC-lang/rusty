@@ -28,7 +28,7 @@ use crate::{
         self, ParseSession,
         Token::{self, *},
     },
-    typesystem::{DINT_TYPE, VOID_POINTER_INTERNAL_NAME},
+    typesystem::{DINT_TYPE, VOID_INTERNAL_NAME},
 };
 
 use self::{
@@ -330,9 +330,18 @@ fn parse_pou(
                     kind: VariableBlockType::Local,
                     variables: vec![Variable {
                         name: "__vtable".into(),
-                        data_type_declaration: DataTypeDeclaration::Reference {
-                            referenced_type: VOID_POINTER_INTERNAL_NAME.into(),
+                        data_type_declaration: DataTypeDeclaration::Definition {
+                            data_type: DataType::PointerType {
+                                name: None,
+                                referenced_type: Box::new(DataTypeDeclaration::Reference {
+                                    referenced_type: VOID_INTERNAL_NAME.to_string(),
+                                    location: SourceLocation::internal(),
+                                }),
+                                auto_deref: None,
+                                type_safe: false,
+                            },
                             location: SourceLocation::internal(),
+                            scope: None,
                         },
                         initializer: None,
                         address: None,

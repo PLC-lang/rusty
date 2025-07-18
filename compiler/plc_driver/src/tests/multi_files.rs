@@ -224,7 +224,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     !11 = !DIFile(filename: "external_file2.st", directory: "")
     !12 = !{!13, !16}
     !13 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !11, file: !11, baseType: !14, size: 64, align: 64, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !15, size: 64, align: 64, dwarfAddressSpace: 1)
+    !14 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !15, size: 64, align: 64, dwarfAddressSpace: 1)
     !15 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !16 = !DIDerivedType(tag: DW_TAG_member, name: "something_to_initialize", scope: !11, file: !11, line: 14, baseType: !17, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
     !17 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
@@ -297,7 +297,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     !13 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 12, size: 128, align: 64, flags: DIFlagPublic, elements: !14, identifier: "foo")
     !14 = !{!15, !18}
     !15 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !16, size: 64, align: 64, flags: DIFlagPublic)
-    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__VOID_POINTER", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
+    !16 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !17, size: 64, align: 64, dwarfAddressSpace: 1)
     !17 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !18 = !DIDerivedType(tag: DW_TAG_member, name: "something_to_initialize", scope: !2, file: !2, line: 14, baseType: !4, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
     !19 = !{i32 2, !"Dwarf Version", i32 5}

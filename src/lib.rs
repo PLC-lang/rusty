@@ -46,7 +46,6 @@ mod test_utils;
 
 pub mod typesystem;
 pub mod validation;
-pub mod vtable;
 extern crate shell_words;
 
 pub const DEFAULT_DWARF_VERSION: usize = 5;

@@ -27,6 +27,7 @@ impl VTableGenerator {
             let mut definitions = Vec::new();
             let mut instances = Vec::new();
 
+            // TODO: Move __vtable member injection from parser into this module
             for pou in unit.pous.iter().filter(|pou| pou.kind.is_class() | pou.kind.is_function_block()) {
                 let definition = self.generate_vtable_definitions(index, pou);
                 let instance = self.generate_vtable_instance(pou, &definition);
@@ -185,7 +186,7 @@ impl VTableGenerator {
 mod tests {
     use plc_ast::provider::IdProvider;
 
-    use crate::{test_utils::tests::index_with_ids, vtable::VTableGenerator};
+    use crate::{lowering::vtable::VTableGenerator, test_utils::tests::index_with_ids};
 
     #[test]
     fn empty_pou_has_body_function_pointer() {
@@ -232,7 +233,7 @@ mod tests {
                                     Variable {
                                         name: "__vtable",
                                         data_type: DataTypeReference {
-                                            referenced_type: "__VOID_POINTER",
+                                            referenced_type: "__FbA___vtable",
                                         },
                                     },
                                 ],
@@ -277,6 +278,20 @@ mod tests {
                 ],
                 interfaces: [],
                 user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__FbA___vtable",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                        initializer: None,
+                        scope: None,
+                    },
                     UserTypeDeclaration {
                         data_type: StructType {
                             name: Some(
@@ -363,7 +378,7 @@ mod tests {
                                     Variable {
                                         name: "__vtable",
                                         data_type: DataTypeReference {
-                                            referenced_type: "__VOID_POINTER",
+                                            referenced_type: "__FbA___vtable",
                                         },
                                     },
                                 ],
@@ -518,6 +533,20 @@ mod tests {
                 ],
                 interfaces: [],
                 user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__FbA___vtable",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                        initializer: None,
+                        scope: None,
+                    },
                     UserTypeDeclaration {
                         data_type: StructType {
                             name: Some(
@@ -697,7 +726,7 @@ mod tests {
                                     Variable {
                                         name: "__vtable",
                                         data_type: DataTypeReference {
-                                            referenced_type: "__VOID_POINTER",
+                                            referenced_type: "__FbA___vtable",
                                         },
                                     },
                                 ],
@@ -870,6 +899,20 @@ mod tests {
                 ],
                 interfaces: [],
                 user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__FbA___vtable",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                        initializer: None,
+                        scope: None,
+                    },
                     UserTypeDeclaration {
                         data_type: StructType {
                             name: Some(
@@ -1128,7 +1171,7 @@ mod tests {
                                     Variable {
                                         name: "__vtable",
                                         data_type: DataTypeReference {
-                                            referenced_type: "__VOID_POINTER",
+                                            referenced_type: "__FbA___vtable",
                                         },
                                     },
                                 ],
@@ -1383,6 +1426,20 @@ mod tests {
                 ],
                 interfaces: [],
                 user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__FbA___vtable",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                        initializer: None,
+                        scope: None,
+                    },
                     UserTypeDeclaration {
                         data_type: StructType {
                             name: Some(
@@ -1787,7 +1844,7 @@ mod tests {
                                     Variable {
                                         name: "__vtable",
                                         data_type: DataTypeReference {
-                                            referenced_type: "__VOID_POINTER",
+                                            referenced_type: "__FbA___vtable",
                                         },
                                     },
                                 ],
@@ -1960,6 +2017,20 @@ mod tests {
                 ],
                 interfaces: [],
                 user_types: [
+                    UserTypeDeclaration {
+                        data_type: PointerType {
+                            name: Some(
+                                "__FbA___vtable",
+                            ),
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                        initializer: None,
+                        scope: None,
+                    },
                     UserTypeDeclaration {
                         data_type: StructType {
                             name: Some(

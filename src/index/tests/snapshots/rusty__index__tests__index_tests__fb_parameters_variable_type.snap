@@ -12,7 +12,7 @@ expression: members
         ),
         is_constant: false,
         is_var_external: false,
-        data_type_name: "__VOID_POINTER",
+        data_type_name: "__fb___vtable",
         location_in_parent: 0,
         linkage: Internal,
         binding: None,

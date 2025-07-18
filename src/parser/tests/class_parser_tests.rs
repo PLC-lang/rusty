@@ -698,8 +698,15 @@ fn base_pous_have_embedded_vtables() {
             variables: [
                 Variable {
                     name: "__vtable",
-                    data_type: DataTypeReference {
-                        referenced_type: "__VOID_POINTER",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
                     },
                 },
             ],
@@ -715,8 +722,15 @@ fn base_pous_have_embedded_vtables() {
             variables: [
                 Variable {
                     name: "__vtable",
-                    data_type: DataTypeReference {
-                        referenced_type: "__VOID_POINTER",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
                     },
                 },
             ],
