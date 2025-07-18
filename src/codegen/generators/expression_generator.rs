@@ -232,6 +232,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 Ok(ExpressionValue::LValue(this_value))
             }
             AstStatement::ReferenceExpr(data) => {
+                dbg!(&data, &expression);
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
@@ -614,6 +615,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // Generate the function pointer value (only for non-FB cases)
+        dbg!(&base);
         let function_pointer_value = self.generate_expression_value(base)?;
         let function_pointer = match function_pointer_value {
             ExpressionValue::LValue(ptr) => {
@@ -2865,13 +2867,46 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             // `INT#target` (INT = base)
-            (ReferenceAccess::Cast(target), Some(_base)) => {
+            (ReferenceAccess::Cast(target), Some(base)) => {
+                // Check if this is a simple identifier cast or literal cast (use original logic)
                 if target.as_ref().is_identifier() {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)
-                } else {
+                } else if target.as_ref().is_literal() {
+                    // Handle literal casts with original logic
                     self.generate_expression_value(target.as_ref())
+                } else {
+                    // TODO: We sohuld probably check if the parget is a pointer
+
+                    // For complex expressions like void pointer casts, use bitcast logic
+                    let base_type = self.annotations.get_type_or_void(base, self.index);
+                    let base_type_name = base_type.get_name();
+
+                    // Generate the value we're casting (the target)
+                    let target_value = self.generate_expression_value(target.as_ref())?;
+
+                    // Get the LLVM type for the cast target
+                    let target_llvm_type = self.llvm_index.get_associated_type(base_type_name)
+                        .map(|t| t.ptr_type(AddressSpace::from(0)))
+                        .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
+
+                    // Perform the bitcast
+                    let cast_value = match target_value {
+                        ExpressionValue::LValue(ptr) => {
+                            // Load the pointer value and cast it
+                            let loaded = self.llvm.load_pointer(&ptr, "cast_load");
+                            let cast_ptr = self.llvm.builder.build_bitcast(loaded, target_llvm_type, "cast");
+                            ExpressionValue::RValue(cast_ptr)
+                        }
+                        ExpressionValue::RValue(val) => {
+                            // Direct cast of the value
+                            let cast_ptr = self.llvm.builder.build_bitcast(val, target_llvm_type, "cast");
+                            ExpressionValue::RValue(cast_ptr)
+                        }
+                    };
+
+                    Ok(cast_value)
                 }
             }
 
