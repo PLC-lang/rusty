@@ -13,7 +13,7 @@ use crate::{
     typesystem::DataType,
 };
 
-use inkwell::types::{AnyType, AnyTypeEnum, BasicMetadataTypeEnum, FunctionType};
+use inkwell::types::{AnyType, AnyTypeEnum, FunctionType};
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -104,7 +104,6 @@ pub fn generate_data_types<'ink>(
         log::debug!("creating type `{name}`");
         let gen_type = generator.create_type(name, user_type)?;
         generator.types_index.associate_type(name, gen_type)?
-        //Get and associate debug type
     }
 
     for (name, user_type) in &pou_types {
@@ -181,35 +180,36 @@ pub fn generate_data_types<'ink>(
 }
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
-    fn create_function_type(&self, name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
-        let return_type_dt = self.index.find_return_type(name).unwrap_or(self.index.get_void_type());
-
+    fn create_function_type(&mut self, name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
         let return_type = self
             .types_index
-            .find_associated_type(&return_type_dt.name)
+            .find_associated_type(
+                self.index.find_return_type(name).unwrap_or(self.index.get_void_type()).get_name(),
+            )
             .map(|opt| opt.as_any_type_enum())
             .unwrap_or(self.llvm.context.void_type().into());
 
         let mut parameter_types = vec![];
 
-        // For methods, we need to add the 'this' parameter as the first parameter
+        // We need to add the POU type as the first parameter when dealing with methods
         if let Some(PouIndexEntry::Method { parent_name, .. }) = self.index.find_pou(name) {
-            // Get the owner class type and add it as the first parameter (this pointer)
-            if let Ok(owner_type) = self.types_index.get_associated_type(parent_name) {
-                parameter_types.push(owner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
-            }
+            let ty = self.types_index.get_associated_type(parent_name).expect("must exist");
+            parameter_types.push(ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
         }
 
         // Add the declared parameters
-        let declared_params = self
-            .index
-            .get_declared_parameters(name)
-            .iter()
-            .flat_map(|param| self.types_index.get_associated_type(&param.data_type_name))
-            .map(|opt| opt.into())
-            .collect::<Vec<BasicMetadataTypeEnum>>();
-
-        parameter_types.extend(declared_params);
+        for parameter in self.index.get_declared_parameters(name) {
+            // XXX: This is somewhat hacky, perhaps we can find a better solution? The main problem is that
+            // we query the data types of the parameters which may not yet have been registered. For example,
+            // at the time of writing this comment the `__auto_pointer_to_DINT` type was not registered for a
+            // VAR_IN_OUT parameter in a POU for which we create the function type here. I suppose the creation
+            // of function types must be done as the last step? Alternatively we could register opaque types and
+            // expand them later?
+            let ty = self
+                .create_type(parameter.get_name(), self.index.get_type(&parameter.data_type_name).unwrap())
+                .unwrap();
+            parameter_types.push(ty.try_into().unwrap());
+        }
 
         let fn_type = match return_type {
             AnyTypeEnum::IntType(value) => value.fn_type(parameter_types.as_slice(), false),

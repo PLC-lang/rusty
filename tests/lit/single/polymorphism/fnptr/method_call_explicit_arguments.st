@@ -46,14 +46,14 @@ FUNCTION main
 
     // Implicit
     // CHECK: A::inputArguments: in1 = 5, in2 = 10
-    // CHECK: A::outputArguments: out1 = 100, out2 = 200
+    // CHECK: A::inputArguments: in1 = 5, in2 = 10
     UserDefinedVT_A#(refInstanceA^.vt^).inputArguments^(refInstanceA^, 5, 10);
-    UserDefinedVT_A#(refInstanceA^.vt^).outputArguments^(refInstanceA^, out1, out2);
+    UserDefinedVT_A#(refInstanceA^.vt^).inputArguments^(refInstanceA^, in1 := 5, in2 := 10);
 
     // Explicit
-    // CHECK: A::inputArguments: in1 = 5, in2 = 10
     // CHECK: A::outputArguments: out1 = 100, out2 = 200
-    UserDefinedVT_A#(refInstanceA^.vt^).inputArguments^(refInstanceA^, in1 := 5, in2 := 10);
+    // CHECK: A::outputArguments: out1 = 100, out2 = 200
+    UserDefinedVT_A#(refInstanceA^.vt^).outputArguments^(refInstanceA^, localOut1, localOut2);
     UserDefinedVT_A#(refInstanceA^.vt^).outputArguments^(refInstanceA^, out1 => localOut1, out2 => localOut2);
 END_FUNCTION
 
