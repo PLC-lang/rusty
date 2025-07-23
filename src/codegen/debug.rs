@@ -453,7 +453,7 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        // Try to create proper DWARF string type first
+        // Create proper DWARF string type with encoding
         if let Ok(string_type) = string_type_wrapper::create_string_type(
             &self.debug_info,
             name,
