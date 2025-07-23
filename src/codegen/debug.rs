@@ -27,6 +27,7 @@ use crate::{
 use super::{
     generators::{llvm::Llvm, statement_generator::FunctionContext, ADDRESS_SPACE_GLOBAL},
     llvm_index::LlvmTypedIndex,
+    string_type_wrapper,
 };
 
 #[derive(PartialEq, Eq)]
@@ -452,6 +453,18 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
+        // Try to create proper DWARF string type first
+        if let Ok(string_type) = string_type_wrapper::create_string_type(
+            &self.debug_info,
+            name,
+            length,
+            encoding,
+        ) {
+            self.register_concrete_type(name, DebugType::Basic(string_type));
+            return Ok(());
+        }
+
+        // Fallback to array representation if wrapper fails
         // Register a utf8 or 16 basic type
         let inner_type = match encoding {
             StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),

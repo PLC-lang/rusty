@@ -48,6 +48,7 @@ mod debug;
 pub(crate) mod generators;
 mod llvm_index;
 mod llvm_typesystem;
+mod string_type_wrapper;
 #[cfg(test)]
 mod tests;
 
