@@ -461,7 +461,8 @@ fn user_defined_virtual_table_calls() {
             refInstanceFbA := ADR(instanceFbC);
             UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 15);
         END_FUNCTION
-    ");
+    ",
+    );
 
     // Lots of yada yada, the interesting part happens in the `main` function
     filtered_assert_snapshot!(result, @r#"
