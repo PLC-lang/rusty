@@ -375,3 +375,218 @@ fn void_pointer_casting() {
     attributes #0 = { argmemonly nofree nounwind willreturn }
     "#);
 }
+
+#[test]
+fn user_defined_virtual_table_calls() {
+    let result = codegen(
+        r"
+        // Virtual Table Definitions
+        TYPE UserVT_FbA:
+            STRUCT
+                printNumber: POINTER TO FbA.printNumber := ADR(FbA.printNumber);
+            END_STRUCT
+        END_TYPE
+
+        TYPE UserVT_FbB:
+            STRUCT
+                // No override, hence the ADR(FbA.<...>)
+                printNumber: POINTER TO FbA.printNumber := ADR(FbA.printNumber);
+            END_STRUCT
+        END_TYPE
+
+        TYPE UserVT_FbC:
+            STRUCT
+                // override, hence the ADR(FbC.<...>)
+                printNumber: POINTER TO FbA.printNumber := ADR(FbC.printNumber);
+            END_STRUCT
+        END_TYPE
+
+        // Virtual Table Instances
+        VAR_GLOBAL
+            UserVT_FbA_instance: UserVT_FbA;
+            UserVT_FbB_instance: UserVT_FbB;
+            UserVT_FbC_instance: UserVT_FbC;
+        END_VAR
+
+        FUNCTION_BLOCK FbA
+            VAR
+                vt: POINTER TO __VOID;
+                localStateA: DINT := 5;
+            END_VAR
+
+            METHOD printNumber
+                VAR_INPUT
+                    in: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+            VAR
+                localStateB: DINT := 10;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbC EXTENDS FbA
+            VAR
+                localStateC: DINT := 15;
+            END_VAR
+
+            METHOD printNumber
+                VAR_INPUT
+                    in: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instanceFbA: FbA;
+                instanceFbB: FbB;
+                instanceFbC: FbC;
+                refInstanceFbA: POINTER TO FbA;
+            END_VAR
+
+            // Virtual Table Initialization
+            instanceFbA.vt := ADR(UserVT_FbA_instance);
+            instanceFbB.vt := ADR(UserVT_FbB_instance);
+            instanceFbC.vt := ADR(UserVT_FbC_instance);
+
+            refInstanceFbA := ADR(instanceFbA);
+            UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 5);
+            
+            refInstanceFbA := ADR(instanceFbB);
+            UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 10);
+
+            refInstanceFbA := ADR(instanceFbC);
+            UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 15);
+        END_FUNCTION
+    ");
+
+    // Lots of yada yada, the interesting part happens in the `main` function
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %UserVT_FbA = type { void (%FbA*, i32)* }
+    %FbA = type { i32*, i32 }
+    %UserVT_FbB = type { void (%FbA*, i32)* }
+    %UserVT_FbC = type { void (%FbA*, i32)* }
+    %FbB = type { i32 }
+    %FbC = type { i32 }
+
+    @UserVT_FbA_instance = global %UserVT_FbA zeroinitializer
+    @__UserVT_FbA__init = unnamed_addr constant %UserVT_FbA zeroinitializer
+    @__FbA__init = unnamed_addr constant %FbA { i32* null, i32 5 }
+    @UserVT_FbB_instance = global %UserVT_FbB zeroinitializer
+    @__UserVT_FbB__init = unnamed_addr constant %UserVT_FbB zeroinitializer
+    @UserVT_FbC_instance = global %UserVT_FbC zeroinitializer
+    @__UserVT_FbC__init = unnamed_addr constant %UserVT_FbC zeroinitializer
+    @__FbB__init = unnamed_addr constant %FbB { i32 10 }
+    @__FbC__init = unnamed_addr constant %FbC { i32 15 }
+
+    define void @FbA__printNumber(%FbA* %0, i32 %1) {
+    entry:
+      %this = alloca %FbA*, align 8
+      store %FbA* %0, %FbA** %this, align 8
+      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %localStateA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      %in = alloca i32, align 4
+      store i32 %1, i32* %in, align 4
+      ret void
+    }
+
+    define void @FbA(%FbA* %0) {
+    entry:
+      %this = alloca %FbA*, align 8
+      store %FbA* %0, %FbA** %this, align 8
+      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %localStateA = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
+      ret void
+    }
+
+    define void @FbB(%FbB* %0) {
+    entry:
+      %this = alloca %FbB*, align 8
+      store %FbB* %0, %FbB** %this, align 8
+      %localStateB = getelementptr inbounds %FbB, %FbB* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @FbC(%FbC* %0) {
+    entry:
+      %this = alloca %FbC*, align 8
+      store %FbC* %0, %FbC** %this, align 8
+      %localStateC = getelementptr inbounds %FbC, %FbC* %0, i32 0, i32 0
+      ret void
+    }
+
+    define void @FbC__printNumber(%FbC* %0, i32 %1) {
+    entry:
+      %this = alloca %FbC*, align 8
+      store %FbC* %0, %FbC** %this, align 8
+      %localStateC = getelementptr inbounds %FbC, %FbC* %0, i32 0, i32 0
+      %in = alloca i32, align 4
+      store i32 %1, i32* %in, align 4
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %instanceFbA = alloca %FbA, align 8
+      %instanceFbB = alloca %FbB, align 8
+      %instanceFbC = alloca %FbC, align 8
+      %refInstanceFbA = alloca %FbA*, align 8
+      %0 = bitcast %FbA* %instanceFbA to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%FbA* @__FbA__init to i8*), i64 ptrtoint (%FbA* getelementptr (%FbA, %FbA* null, i32 1) to i64), i1 false)
+      %1 = bitcast %FbB* %instanceFbB to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%FbB* @__FbB__init to i8*), i64 ptrtoint (%FbB* getelementptr (%FbB, %FbB* null, i32 1) to i64), i1 false)
+      %2 = bitcast %FbC* %instanceFbC to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 bitcast (%FbC* @__FbC__init to i8*), i64 ptrtoint (%FbC* getelementptr (%FbC, %FbC* null, i32 1) to i64), i1 false)
+      store %FbA* null, %FbA** %refInstanceFbA, align 8
+      %vt = getelementptr inbounds %FbA, %FbA* %instanceFbA, i32 0, i32 0
+      store i32* bitcast (%UserVT_FbA* @UserVT_FbA_instance to i32*), i32** %vt, align 8
+      %vt1 = getelementptr inbounds %FbB, %FbB* %instanceFbB, i32 0, i32 0
+      store i32* bitcast (%UserVT_FbB* @UserVT_FbB_instance to i32*), i32* %vt1, align 8
+      %vt2 = getelementptr inbounds %FbC, %FbC* %instanceFbC, i32 0, i32 0
+      store i32* bitcast (%UserVT_FbC* @UserVT_FbC_instance to i32*), i32* %vt2, align 8
+      store %FbA* %instanceFbA, %FbA** %refInstanceFbA, align 8
+      %deref = load %FbA*, %FbA** %refInstanceFbA, align 8
+      %vt3 = getelementptr inbounds %FbA, %FbA* %deref, i32 0, i32 0
+      %deref4 = load i32*, i32** %vt3, align 8
+      %cast = bitcast i32* %deref4 to %UserVT_FbA*
+      %printNumber = getelementptr inbounds %UserVT_FbA, %UserVT_FbA* %cast, i32 0, i32 0
+      %3 = load void (%FbA*, i32)*, void (%FbA*, i32)** %printNumber, align 8
+      %deref5 = load %FbA*, %FbA** %refInstanceFbA, align 8
+      call void %3(%FbA* %deref5, i32 5)
+      %4 = bitcast %FbB* %instanceFbB to %FbA*
+      store %FbA* %4, %FbA** %refInstanceFbA, align 8
+      %deref6 = load %FbA*, %FbA** %refInstanceFbA, align 8
+      %vt7 = getelementptr inbounds %FbA, %FbA* %deref6, i32 0, i32 0
+      %deref8 = load i32*, i32** %vt7, align 8
+      %cast9 = bitcast i32* %deref8 to %UserVT_FbA*
+      %printNumber10 = getelementptr inbounds %UserVT_FbA, %UserVT_FbA* %cast9, i32 0, i32 0
+      %5 = load void (%FbA*, i32)*, void (%FbA*, i32)** %printNumber10, align 8
+      %deref11 = load %FbA*, %FbA** %refInstanceFbA, align 8
+      call void %5(%FbA* %deref11, i32 10)
+      %6 = bitcast %FbC* %instanceFbC to %FbA*
+      store %FbA* %6, %FbA** %refInstanceFbA, align 8
+      %deref12 = load %FbA*, %FbA** %refInstanceFbA, align 8
+      %vt13 = getelementptr inbounds %FbA, %FbA* %deref12, i32 0, i32 0
+      %deref14 = load i32*, i32** %vt13, align 8
+      %cast15 = bitcast i32* %deref14 to %UserVT_FbA*
+      %printNumber16 = getelementptr inbounds %UserVT_FbA, %UserVT_FbA* %cast15, i32 0, i32 0
+      %7 = load void (%FbA*, i32)*, void (%FbA*, i32)** %printNumber16, align 8
+      %deref17 = load %FbA*, %FbA** %refInstanceFbA, align 8
+      call void %7(%FbA* %deref17, i32 15)
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
+}
