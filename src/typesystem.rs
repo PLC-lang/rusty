@@ -289,6 +289,16 @@ impl DataType {
             true
         }
     }
+
+    pub fn is_method_pointer(&self, index: &Index) -> bool {
+        match &self.information {
+            DataTypeInformation::Pointer { inner_type_name, .. } => {
+                index.find_type(inner_type_name).is_some_and(|opt| opt.information.is_method())
+            }
+
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

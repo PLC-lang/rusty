@@ -189,3 +189,59 @@ fn void_pointer_casting() {
         insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
     }
 }
+
+#[test]
+fn demo() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+        VAR_GLOBAL
+            vtable_FbA_instance: vtable_FbA;
+        END_VAR
+
+        TYPE vtable_FbA: STRUCT
+            foo: POINTER TO FbA.foo := ADR(FbA.foo);
+        END_STRUCT END_TYPE
+
+        FUNCTION_BLOCK FbA
+            VAR
+                __vtable: POINTER TO vtable_FbA;
+            END_VAR
+
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+
+        FUNCTION main
+            VAR
+                instanceFbA: FbA;
+            END_VAR
+
+            instanceFbA.__vtable^.foo^(instanceFbA);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[0];
+
+        // instanceFbA.__vtable.foo^(instanceFbA);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^
+        let AstStatement::CallStatement(call) = node.get_stmt() else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&call.operator), @r#"
+        Some(
+            Value {
+                resulting_type: "__vtable_FbA_foo",
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
+    }
+}

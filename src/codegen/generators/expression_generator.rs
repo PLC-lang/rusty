@@ -9,6 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use itertools::Either;
 use rustc_hash::FxHashSet;
 
 use plc_ast::{
@@ -30,13 +31,12 @@ use crate::{
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     index::{
-        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry, VariableType,
+        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
+        PouIndexEntry, VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
@@ -486,60 +486,45 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        // Extract the base expression from the dereference operator
-        let base = if let AstStatement::ReferenceExpr(ReferenceExpr {
-            access: ReferenceAccess::Deref,
-            base: Some(base),
-        }) = operator.get_stmt()
-        {
-            base
-        } else {
-            return Err(Diagnostic::codegen_error(
-                "Expected dereference expression with base for function pointer call",
-                operator,
-            ));
+        // Assumptions:
+        // - Used internally only (during lowering for polymorphism) hence unwraps should be fine
+        // - Stateful function call (i.e. the instance is always part of the argument list at position 0)
+        // - Pointer does not point to another pointer, rather directly to the function implementation
+        // - The function pointer is dereferenced, e.g. `myFnPtr^(...)` rather than `myFnPtr(...)`
+
+        // fnPtr^(instanceFbA);
+        // ^^^^^
+        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, base: Some(base) }) =
+            &operator.stmt
+        else {
+            unreachable!("internal error, invalid function invocation")
         };
 
-        // Get the function pointer type information
-        let function_pointer_type = self.annotations.get_type_or_void(base, self.index);
+        // fnPtr -> PointerType { inner_type_name: "FbA.doNothing" }
+        let pointer_type = self.annotations.get_type(base, self.index).unwrap(); // -> PointerType, FbA.doNothing
 
-        // Extract the target function type from the REF_TO pointer type
-        let target_function_type = if let DataTypeInformation::Pointer { inner_type_name, .. } =
-            function_pointer_type.get_type_information()
-        {
-            self.index.find_effective_type_by_name(inner_type_name).ok_or_else(|| {
-                Diagnostic::codegen_error(
-                    format!("Could not find function type: {}", inner_type_name).as_str(),
-                    operator,
-                )
-            })?
-        } else {
-            return Err(Diagnostic::codegen_error("Expected pointer type for function pointer", operator));
+        // PointerType { inner_type_name: "FbA.doNothing" } -> DataType { name: "FbA.doNothing", information: Struct { source: Pou }
+        let target_function_type = match pointer_type.get_type_information() {
+            DataTypeInformation::Pointer { inner_type_name, .. } => {
+                self.index.find_effective_type_by_name(inner_type_name).unwrap()
+            }
+
+            _ => todo!(),
         };
 
-        // Get the function from the index to determine its signature
-        let function_pou = self.index.find_pou(target_function_type.get_name()).ok_or_else(|| {
-            Diagnostic::codegen_error(
-                format!("Could not find function POU: {}", target_function_type.get_name()).as_str(),
-                operator,
-            )
-        })?;
+        // "fba.doNothing" -> "Method { name: "FbA.doNothing", parent_name: "FbA", property: None, declaration_kind: Concrete, return_type: "VOID", instance_struct_name: "FbA.doNothing", linkage: Internal, location: SourceLocation { span: Range(2:19 - 2:28), file: Some("<internal>") } }"
+        let function_pou = self.index.find_pou(target_function_type.get_name()).unwrap();
 
-        // Get the function implementation
-        let implementation = function_pou.find_implementation(self.index).ok_or_else(|| {
-            Diagnostic::codegen_error(
-                format!("Could not find implementation for function: {}", target_function_type.get_name())
-                    .as_str(),
-                operator,
-            )
-        })?;
+        // "Method { name: FbA.doNothing, ..." -> "ImplementationIndexEntry { call_name: "FbA.doNothing"
+        let implementation = function_pou.find_implementation(self.index).unwrap();
 
         // Generate the arguments list
         let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
 
-        // For method function pointers, we need to handle the instance parameter specially
         let (method_instance, actual_parameters) =
-            if matches!(function_pou, PouIndexEntry::Method { .. }) && !parameters_list.is_empty() {
+            if matches!(implementation.implementation_type, ImplementationType::Method { .. })
+                && !parameters_list.is_empty()
+            {
                 // For methods, the first parameter is the instance, the rest are method parameters
                 // But if there's only one parameter, it's just the instance and there are no method parameters
                 if parameters_list.len() == 1 {
@@ -548,85 +533,26 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     (Some(&parameters_list[0]), &parameters_list[1..])
                 }
             } else {
-                (None, parameters_list.as_slice())
+                panic!("{implementation:#?}");
             };
 
-        // For function blocks, we need special handling for parameters
-        if matches!(function_pou, PouIndexEntry::FunctionBlock { .. }) {
-            // Get the function block instance pointer
-            if let Ok(fb_ptr) = self
-                .generate_expression_value(base)
-                .map(|v| v.as_r_value(self.llvm, Some("deref".to_string())))
-            {
-                // For function blocks, parameters need to be assigned to the instance variables
-                // before calling the function block body
-
-                // Generate parameter assignments to the function block instance
-                let fb_instance_ptr = fb_ptr.into_pointer_value();
-                for argument in parameters_list.iter() {
-                    self.generate_call_struct_argument_assignment(&CallParameterAssignment {
-                        assignment: argument,
-                        function_name: implementation.get_type_name(),
-                        index: self
-                            .annotations
-                            .get_hint(argument)
-                            .and_then(StatementAnnotation::get_location_in_parent)
-                            .expect("arguments must have a type hint"),
-                        parameter_struct: fb_instance_ptr,
-                    })?;
-                }
-
-                // Get the function block body implementation
-                let function_value = self
-                    .llvm_index
-                    .find_associated_implementation(implementation.get_type_name())
-                    .ok_or_else(|| {
-                        Diagnostic::codegen_error(
-                            format!("Could not find LLVM function for: {}", implementation.get_type_name())
-                                .as_str(),
-                            operator,
-                        )
-                    })?;
-
-                // Generate the debug statement for the call
-                self.register_debug_location(operator);
-
-                // Call the function block body with just the instance pointer
-                let call = self.llvm.builder.build_call(function_value, &[fb_ptr.into()], "call");
-
-                // Handle output assignments after the call
-                // Copy output values back to the assigned output variables
-                self.assign_output_values(fb_instance_ptr, implementation.get_type_name(), parameters_list)?;
-
-                // Handle the return value
-                let value = call
-                    .try_as_basic_value()
-                    .either(Ok, |_| {
-                        // Return null pointer for void functions
-                        Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                            .const_null()
-                            .as_basic_value_enum())
-                    })
-                    .map(ExpressionValue::RValue);
-
-                return value;
-            }
-        }
-
-        // Generate the function pointer value (only for non-FB cases)
-        dbg!(&base);
+        // TODO: Why alloca?
+        // %fnPtr = alloca void (%FbA*)*, align 8
         let function_pointer_value = self.generate_expression_value(base)?;
+
+        // %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8
         let function_pointer = match function_pointer_value {
             ExpressionValue::LValue(ptr) => {
                 // Load the function pointer from memory
                 self.llvm.load_pointer(&ptr, "").into_pointer_value()
             }
-            ExpressionValue::RValue(val) => val.into_pointer_value(),
+            _ => unreachable!("?"),
         };
 
-        // Generate function arguments for non-function block cases
+        // TODO: Debug & Understand
         let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+
+        // TODO: Debug & Understand
         let mut arguments_list =
             self.generate_function_arguments(function_pou, actual_parameters, declared_parameters)?;
 
@@ -651,57 +577,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        // Get the LLVM function type from the implementation
-        let function_value = self
-            .llvm_index
-            .find_associated_implementation(implementation.get_type_name())
-            .ok_or_else(|| {
-            Diagnostic::codegen_error(
-                format!("Could not find LLVM function for: {}", implementation.get_type_name()).as_str(),
-                operator,
-            )
-        })?;
-        let function_type = function_value.get_type();
-
         // Cast the function pointer to the correct function type if needed
         let callable_ptr = if function_pointer.get_type().get_element_type().is_function_type() {
+            // -> %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8
             function_pointer
         } else {
-            // Cast to the correct function pointer type
-            self.llvm
-                .builder
-                .build_bitcast(
-                    function_pointer,
-                    function_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                    "cast_fn_ptr",
-                )
-                .into_pointer_value()
+            unimplemented!()
         };
 
-        // Convert the function pointer to a CallableValue
-        let callable = CallableValue::try_from(callable_ptr).map_err(|_| {
-            Diagnostic::codegen_error("Could not convert function pointer to callable", operator)
-        })?;
-
-        // Generate the debug statement for the call
-        self.register_debug_location(operator);
+        // -> CallableValue(Right(PointerValue { ptr_value: Value { name: "", address: 0x14d00acc0, is_const: false, is_null: false, is_undef: false, llvm_value: "  %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8", llvm_type: "void (%FbA*)*" } }))
+        let callable = CallableValue::try_from(callable_ptr).unwrap();
 
         // Generate the indirect call
+        // -> call void %1(%FbA* %instanceFbA)
         let call = self.llvm.builder.build_call(callable, &arguments_list, "call");
+        // panic!("{call:#?}");
 
         // Handle the return value similar to regular function calls
-        let value = call
-            .try_as_basic_value()
-            .either(Ok, |_| {
-                // Return null pointer for void functions
-                Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                    .const_null()
-                    .as_basic_value_enum())
-            })
-            .map(ExpressionValue::RValue);
+        let value = match call.try_as_basic_value() {
+            Either::Left(value) => {
+                // If the call returns a value, we return it as an r-value
+                value
+            }
+            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
+        };
 
-        value
+        Ok(ExpressionValue::RValue(value))
     }
 
     /// generates the given call-statement <operator>(<parameters>)
@@ -714,8 +618,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        // TODO(vosa): Perhaps to be 100% sure also check if the operator has a pointer annotation; for now this works though
-        if operator.is_deref() {
+        if operator.is_deref()
+            && self
+                .annotations
+                .get_type(operator, self.index)
+                .is_some_and(|opt| opt.is_method_pointer(self.index))
+        {
             return self.generate_function_pointer_call(operator, parameters);
         }
 
@@ -2867,7 +2775,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             // `INT#target` (INT = base)
-            (ReferenceAccess::Cast(target), Some(base)) => {
+            (ReferenceAccess::Cast(target), Some(_base)) => {
                 // Check if this is a simple identifier cast or literal cast (use original logic)
                 if target.as_ref().is_identifier() {
                     let mr =
@@ -2877,13 +2785,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     // Handle literal casts with original logic
                     self.generate_expression_value(target.as_ref())
                 } else {
-                    // TODO: We sohuld probably check if the parget is a pointer
-
-                    // For complex expressions like void pointer casts, use bitcast logic
-                    let base_type = self.annotations.get_type_or_void(base, self.index);
+                    // Otherwise just bitcast the target to the given type
+                    let base_type = self.annotations.get_type_or_void(_base, self.index);
                     let base_type_name = base_type.get_name();
 
-                    // Generate the value we're casting (the target)
+                    // Generate the value we're casting
                     let target_value = self.generate_expression_value(target.as_ref())?;
 
                     // Get the LLVM type for the cast target
@@ -2892,19 +2798,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
 
                     // Perform the bitcast
-                    let cast_value = match target_value {
-                        ExpressionValue::LValue(ptr) => {
-                            // Load the pointer value and cast it
-                            let loaded = self.llvm.load_pointer(&ptr, "cast_load");
-                            let cast_ptr = self.llvm.builder.build_bitcast(loaded, target_llvm_type, "cast");
-                            ExpressionValue::RValue(cast_ptr)
-                        }
-                        ExpressionValue::RValue(val) => {
-                            // Direct cast of the value
-                            let cast_ptr = self.llvm.builder.build_bitcast(val, target_llvm_type, "cast");
-                            ExpressionValue::RValue(cast_ptr)
-                        }
-                    };
+                    let basic_value = target_value.get_basic_value_enum();
+                    let cast_ptr = self.llvm.builder.build_bitcast(basic_value, target_llvm_type, "cast");
+                    let cast_value = ExpressionValue::RValue(cast_ptr);
 
                     Ok(cast_value)
                 }
