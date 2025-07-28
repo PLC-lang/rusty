@@ -893,7 +893,7 @@ pub trait AnnotationMap {
 
 #[derive(Debug, Default)]
 pub struct AstAnnotations {
-    annotation_map: AnnotationMapImpl,
+    pub annotation_map: AnnotationMapImpl,
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,

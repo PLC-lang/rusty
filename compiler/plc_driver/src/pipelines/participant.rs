@@ -14,7 +14,9 @@ use std::{
 use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
-    lowering::{calls::AggregateTypeLowerer, vtable::VTableGenerator},
+    lowering::{
+        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallDesugarer, vtable::VTableGenerator,
+    },
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
 };
@@ -292,5 +294,29 @@ impl PipelineParticipantMut for VTableGenerator {
         gen.generate_vtables(&index, &mut project.units); // XXX: The index could also be part of the VTableGenerator
 
         project.index(self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for PolymorphicCallDesugarer {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations } = annotated_project;
+        self.index = Some(index);
+        self.annotations = Some(annotations.annotation_map);
+
+        let units = units
+            .into_iter()
+            .map(|AnnotatedUnit { mut unit, .. }| {
+                self.desugar_unit(&mut unit);
+                unit
+            })
+            .collect();
+
+        let indexed_project = IndexedProject {
+            project: ParsedProject { units },
+            index: self.index.take().expect("Index"),
+            unresolvables: vec![],
+        };
+
+        indexed_project.annotate(self.ids.clone())
     }
 }

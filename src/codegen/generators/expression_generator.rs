@@ -232,7 +232,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 Ok(ExpressionValue::LValue(this_value))
             }
             AstStatement::ReferenceExpr(data) => {
-                dbg!(&data, &expression);
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {

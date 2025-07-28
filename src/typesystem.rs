@@ -807,6 +807,17 @@ impl DataTypeInformation {
 
         None
     }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class { .. }), .. })
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock { .. }), .. }
+        )
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

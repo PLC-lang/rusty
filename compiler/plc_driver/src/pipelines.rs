@@ -25,7 +25,8 @@ use plc::{
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
     lowering::{
-        calls::AggregateTypeLowerer, property::PropertyLowerer, vtable::VTableGenerator, InitVisitor,
+        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallDesugarer, property::PropertyLowerer,
+        vtable::VTableGenerator, InitVisitor,
     },
     output::FormatOption,
     parser::parse_file,
@@ -260,9 +261,13 @@ impl<T: SourceContainer> BuildPipeline<T> {
         let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+            // XXX: The PolymorphicCallDesugarer must run before InheritanceLowerer because child classes
+            //      might access the parents __vtable, in which case the inheritance lowerer will patch the
+            //      access to something like __vtable_{parent name}. Ugh :/
+            Box::new(VTableGenerator::new(self.context.provider())),
+            Box::new(PolymorphicCallDesugarer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-            Box::new(VTableGenerator::new(self.context.provider())),
         ];
 
         for participant in mut_participants {

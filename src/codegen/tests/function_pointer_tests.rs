@@ -27,7 +27,7 @@ fn function_pointer_method_no_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FbA = type {}
+    %FbA = type { i32* }
 
     @__FbA__init = unnamed_addr constant %FbA zeroinitializer
 
@@ -35,6 +35,7 @@ fn function_pointer_method_no_parameters() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       ret void
     }
 
@@ -42,6 +43,7 @@ fn function_pointer_method_no_parameters() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       ret void
     }
 
@@ -107,7 +109,7 @@ fn function_pointer_method_with_input_output_inout() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FbA = type {}
+    %FbA = type { i32* }
 
     @__FbA__init = unnamed_addr constant %FbA zeroinitializer
 
@@ -115,6 +117,7 @@ fn function_pointer_method_with_input_output_inout() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       ret void
     }
 
@@ -122,6 +125,7 @@ fn function_pointer_method_with_input_output_inout() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
       %out = alloca i16*, align 8
@@ -205,7 +209,7 @@ fn function_pointer_method_with_input_output_inout_shifted_position_to_right_by_
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %FbA = type {}
+    %FbA = type { i32* }
 
     @__FbA__init = unnamed_addr constant %FbA zeroinitializer
 
@@ -213,6 +217,7 @@ fn function_pointer_method_with_input_output_inout_shifted_position_to_right_by_
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       ret void
     }
 
@@ -220,6 +225,7 @@ fn function_pointer_method_with_input_output_inout_shifted_position_to_right_by_
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
       %out = alloca i16*, align 8
@@ -312,7 +318,7 @@ fn void_pointer_casting() {
     target triple = "[filtered]"
 
     %UserDefinedVirtualTable = type { i32 (%FbA*, i16, i16*, i16*)* }
-    %FbA = type { i32* }
+    %FbA = type { i32*, i32* }
 
     @userDefinedVirtualTableInstance = global %UserDefinedVirtualTable zeroinitializer
     @__UserDefinedVirtualTable__init = unnamed_addr constant %UserDefinedVirtualTable zeroinitializer
@@ -322,7 +328,8 @@ fn void_pointer_casting() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
-      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
       %FbA.foo = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, i16* %in, align 2
@@ -339,7 +346,8 @@ fn void_pointer_casting() {
     entry:
       %this = alloca %FbA*, align 8
       store %FbA* %0, %FbA** %this, align 8
-      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 0
+      %vt = getelementptr inbounds %FbA, %FbA* %0, i32 0, i32 1
       ret void
     }
 
@@ -358,7 +366,7 @@ fn void_pointer_casting() {
       store i16 789, i16* %localInOut, align 2
       store %FbA* %instanceFbA, %FbA** %refInstanceFbA, align 8
       %deref = load %FbA*, %FbA** %refInstanceFbA, align 8
-      %vt = getelementptr inbounds %FbA, %FbA* %deref, i32 0, i32 0
+      %vt = getelementptr inbounds %FbA, %FbA* %deref, i32 0, i32 1
       %deref1 = load i32*, i32** %vt, align 8
       %cast = bitcast i32* %deref1 to %UserDefinedVirtualTable*
       %methodPtr = getelementptr inbounds %UserDefinedVirtualTable, %UserDefinedVirtualTable* %cast, i32 0, i32 0
