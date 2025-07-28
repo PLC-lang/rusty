@@ -444,13 +444,13 @@ impl<'ink> DebugBuilder<'ink> {
     }
 
     /// Creates debug information for string types using an array + typedef approach.
-    /// 
+    ///
     /// This function generates DWARF debug metadata for string types by creating:
     /// 1. A character array type based on the string's encoding (CHAR for UTF-8, WCHAR for UTF-16)
     /// 2. A typedef with a unique name based on encoding and length (e.g., "__STRING__81", "__WSTRING__26")
-    /// 
+    ///
     /// ## Typedef Naming
-    /// 
+    ///
     /// The typedef uses the `__STRING__xyz` or `__WSTRING__xyz` pattern where:
     /// - Double underscore prefix avoids clashing with user-defined types (reserved for compiler internals)
     /// - Length suffix ensures each string type has a unique DWARF reference
@@ -470,10 +470,9 @@ impl<'ink> DebugBuilder<'ink> {
         };
         let char_debug_type = self.get_or_create_debug_type(char_datatype, index, types_index)?;
 
-        let array_align_bits = self.target_data.get_preferred_alignment(
-            &types_index.get_associated_type(name)?
-        ) * 8;
-        
+        let array_align_bits =
+            self.target_data.get_preferred_alignment(&types_index.get_associated_type(name)?) * 8;
+
         let array_type = self.debug_info.create_array_type(
             char_debug_type.into(),
             size,
