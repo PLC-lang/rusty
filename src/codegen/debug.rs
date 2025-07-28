@@ -477,7 +477,8 @@ impl<'ink> DebugBuilder<'ink> {
             char_debug_type.into(),
             size,
             array_align_bits,
-            &[0..length], // Single dimension array from 0 to length
+            #[allow(clippy::single_range_in_vec_init)]
+            &[0..length],
         );
 
         let typedef_name = match encoding {
@@ -492,7 +493,7 @@ impl<'ink> DebugBuilder<'ink> {
             file,
             0, // Line 0 for built-in types
             file.as_debug_info_scope(),
-            array_align_bits as u32,
+            array_align_bits,
         );
 
         self.register_concrete_type(name, DebugType::Derived(string_typedef));
