@@ -239,10 +239,29 @@ fn pou_implementing_single_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.pous[0], @r###"
+    insta::assert_debug_snapshot!(unit.pous[0], @r#"
     POU {
         name: "foo",
-        variable_blocks: [],
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Local,
+            },
+        ],
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [
@@ -255,7 +274,7 @@ fn pou_implementing_single_interface() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -267,10 +286,29 @@ fn pou_implementing_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.pous[0], @r###"
+    insta::assert_debug_snapshot!(unit.pous[0], @r#"
     POU {
         name: "foo",
-        variable_blocks: [],
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Local,
+            },
+        ],
         pou_type: FunctionBlock,
         return_type: None,
         interfaces: [
@@ -295,7 +333,7 @@ fn pou_implementing_multiple_interfaces() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]

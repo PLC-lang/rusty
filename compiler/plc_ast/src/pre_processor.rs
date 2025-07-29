@@ -196,7 +196,6 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 }
 
 fn process_var_config_variables(unit: &mut CompilationUnit) {
-    let block = get_internal_global_block(unit);
     let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
         let AstStatement::HardwareAccess(hardware) = &address.stmt else {
             unreachable!("Must be parsed as hardware access")
@@ -206,10 +205,12 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
             return None;
         }
 
+        // Check if the mangled variable already exists in any of the global variable blocks
+        // XXX: Not a fan of this, we should fix the underlying issue with variable block creation here...
         let name = hardware.get_mangled_variable_name();
-        if block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
-            return None;
-        };
+        if find_mangled_variable(unit, &name) {
+            return None; // Already exists, skip
+        }
 
         Some(Variable {
             name,
@@ -220,7 +221,7 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
         })
     });
 
-    update_generated_globals(unit, variables.collect())
+    update_generated_globals(unit, variables.collect());
 }
 
 fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
@@ -242,11 +243,8 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
     unit.global_vars.push(block);
 }
 
-fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
-    unit.global_vars
-        .iter()
-        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
-        .and_then(|index| unit.global_vars.get(index))
+fn find_mangled_variable(unit: &CompilationUnit, name: &str) -> bool {
+    unit.global_vars.iter().flat_map(|block| &block.variables).any(|var| var.name == name)
 }
 
 fn build_enum_initializer(

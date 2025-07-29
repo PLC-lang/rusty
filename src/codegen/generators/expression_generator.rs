@@ -9,6 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use itertools::Either;
 use rustc_hash::FxHashSet;
 
 use plc_ast::{
@@ -30,13 +31,12 @@ use crate::{
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     index::{
-        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry, VariableType,
+        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
+        PouIndexEntry, VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
@@ -480,6 +480,133 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         value
     }
 
+    fn generate_function_pointer_call(
+        &self,
+        operator: &AstNode,
+        parameters: Option<&AstNode>,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        // Assumptions:
+        // - Used internally only (during lowering for polymorphism) hence unwraps should be fine
+        // - Stateful function call (i.e. the instance is always part of the argument list at position 0)
+        // - Pointer does not point to another pointer, rather directly to the function implementation
+        // - The function pointer is dereferenced, e.g. `myFnPtr^(...)` rather than `myFnPtr(...)`
+
+        // fnPtr^(instanceFbA);
+        // ^^^^^
+        let AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, base: Some(base) }) =
+            &operator.stmt
+        else {
+            unreachable!("internal error, invalid function invocation")
+        };
+
+        // fnPtr -> PointerType { inner_type_name: "FbA.doNothing" }
+        let pointer_type = self.annotations.get_type(base, self.index).unwrap(); // -> PointerType, FbA.doNothing
+
+        // PointerType { inner_type_name: "FbA.doNothing" } -> DataType { name: "FbA.doNothing", information: Struct { source: Pou }
+        let target_function_type = match pointer_type.get_type_information() {
+            DataTypeInformation::Pointer { inner_type_name, .. } => {
+                self.index.find_effective_type_by_name(inner_type_name).unwrap()
+            }
+
+            _ => todo!(),
+        };
+
+        // "fba.doNothing" -> "Method { name: "FbA.doNothing", parent_name: "FbA", property: None, declaration_kind: Concrete, return_type: "VOID", instance_struct_name: "FbA.doNothing", linkage: Internal, location: SourceLocation { span: Range(2:19 - 2:28), file: Some("<internal>") } }"
+        let function_pou = self.index.find_pou(target_function_type.get_name()).unwrap();
+
+        // "Method { name: FbA.doNothing, ..." -> "ImplementationIndexEntry { call_name: "FbA.doNothing"
+        let implementation = function_pou.find_implementation(self.index).unwrap();
+
+        // Generate the arguments list
+        let parameters_list = parameters.map(flatten_expression_list).unwrap_or_default();
+
+        let (method_instance, actual_parameters) =
+            if matches!(implementation.implementation_type, ImplementationType::Method { .. })
+                && !parameters_list.is_empty()
+            {
+                // For methods, the first parameter is the instance, the rest are method parameters
+                // But if there's only one parameter, it's just the instance and there are no method parameters
+                if parameters_list.len() == 1 {
+                    (Some(&parameters_list[0]), [].as_slice())
+                } else {
+                    (Some(&parameters_list[0]), &parameters_list[1..])
+                }
+            } else {
+                panic!("{implementation:#?}");
+            };
+
+        // TODO: Why alloca?
+        // %fnPtr = alloca void (%FbA*)*, align 8
+        let function_pointer_value = self.generate_expression_value(base)?;
+
+        // %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8
+        let function_pointer = match function_pointer_value {
+            ExpressionValue::LValue(ptr) => {
+                // Load the function pointer from memory
+                self.llvm.load_pointer(&ptr, "").into_pointer_value()
+            }
+            _ => unreachable!("?"),
+        };
+
+        // TODO: Debug & Understand
+        let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+
+        // TODO: Debug & Understand
+        let mut arguments_list =
+            self.generate_function_arguments(function_pou, actual_parameters, declared_parameters)?;
+
+        // For regular function pointers (including method pointers), use indirect calls
+        match function_pou {
+            PouIndexEntry::Method { .. } => {
+                // For method pointers, we need to add the instance pointer as the first argument
+                if let Some(instance_expr) = method_instance {
+                    // Generate the instance pointer from the instance expression
+                    // For method calls, we need a pointer to the instance, not the value
+                    let instance_lvalue = self.generate_lvalue(instance_expr)?;
+                    arguments_list.insert(0, instance_lvalue.as_basic_value_enum().into());
+                } else {
+                    return Err(Diagnostic::codegen_error(
+                        "Method calls require an instance argument",
+                        operator,
+                    ));
+                }
+            }
+            _ => {
+                // Regular functions don't need a 'this' pointer
+            }
+        }
+
+        // Cast the function pointer to the correct function type if needed
+        let callable_ptr = if function_pointer.get_type().get_element_type().is_function_type() {
+            // -> %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8
+            function_pointer
+        } else {
+            unimplemented!()
+        };
+
+        // -> CallableValue(Right(PointerValue { ptr_value: Value { name: "", address: 0x14d00acc0, is_const: false, is_null: false, is_undef: false, llvm_value: "  %1 = load void (%FbA*)*, void (%FbA*)** %fnPtr, align 8", llvm_type: "void (%FbA*)*" } }))
+        let callable = CallableValue::try_from(callable_ptr).unwrap();
+
+        // Generate the indirect call
+        // -> call void %1(%FbA* %instanceFbA)
+        let call = self.llvm.builder.build_call(callable, &arguments_list, "call");
+        // panic!("{call:#?}");
+
+        // Handle the return value similar to regular function calls
+        let value = match call.try_as_basic_value() {
+            Either::Left(value) => {
+                // If the call returns a value, we return it as an r-value
+                value
+            }
+            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
+        };
+
+        Ok(ExpressionValue::RValue(value))
+    }
+
     /// generates the given call-statement <operator>(<parameters>)
     /// returns the call's result as a BasicValueEnum (may be a void-type for PROGRAMs)
     ///
@@ -490,6 +617,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        if operator.is_deref()
+            && self
+                .annotations
+                .get_type(operator, self.index)
+                .is_some_and(|opt| opt.is_method_pointer(self.index))
+        {
+            return self.generate_function_pointer_call(operator, parameters);
+        }
+
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
@@ -1438,7 +1574,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .ok_or_else(|| Diagnostic::unresolved_reference(name, offset)),
                     Ok,
                 ),
-            _ => Err(Diagnostic::unresolved_reference(name, offset)),
+
+            // Handle function references, but only if we're not in a method call context
+            // that should use the implicit 'this' pointer
+            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                // Check if this is a method that belongs to the current context
+                if self.function_context.is_some() {
+                    // If we have a function context and this might be a local method call,
+                    // let the normal method resolution handle it
+                    if let Some(impl_entry) = self.index.find_pou_implementation(qualified_name) {
+                        if impl_entry.is_method() {
+                            // This is a method - let the normal method call logic handle it
+                            // by falling through to the error case which will be handled by the caller
+                            return Err(Diagnostic::unresolved_reference(name, offset));
+                        }
+                    }
+                }
+
+                // For regular functions or when not in a method context, return the function pointer
+                if let Some(fn_value) = self.llvm_index.find_associated_implementation(qualified_name) {
+                    return Ok(fn_value.as_global_value().as_pointer_value());
+                }
+
+                log::warn!("could not find function annotation for {context:?}");
+                Err(Diagnostic::unresolved_reference(name, offset))
+            }
+            _ => {
+                log::warn!("could not find annotation for {context:?}");
+                Err(Diagnostic::unresolved_reference(name, offset))
+            }
         }
     }
 
@@ -2611,12 +2775,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // `INT#target` (INT = base)
             (ReferenceAccess::Cast(target), Some(_base)) => {
+                // Check if this is a simple identifier cast or literal cast (use original logic)
                 if target.as_ref().is_identifier() {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)
-                } else {
+                } else if target.as_ref().is_literal() {
+                    // Handle literal casts with original logic
                     self.generate_expression_value(target.as_ref())
+                } else {
+                    // Otherwise just bitcast the target to the given type
+                    let base_type = self.annotations.get_type_or_void(_base, self.index);
+                    let base_type_name = base_type.get_name();
+
+                    // Generate the value we're casting
+                    let target_value = self.generate_expression_value(target.as_ref())?;
+
+                    // Get the LLVM type for the cast target
+                    let target_llvm_type = self.llvm_index.get_associated_type(base_type_name)
+                        .map(|t| t.ptr_type(AddressSpace::from(0)))
+                        .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
+
+                    // Perform the bitcast
+                    let basic_value = target_value.get_basic_value_enum();
+                    let cast_ptr = self.llvm.builder.build_bitcast(basic_value, target_llvm_type, "cast");
+                    let cast_value = ExpressionValue::RValue(cast_ptr);
+
+                    Ok(cast_value)
                 }
             }
 

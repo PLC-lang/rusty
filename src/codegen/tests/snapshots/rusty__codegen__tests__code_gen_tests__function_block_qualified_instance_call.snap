@@ -1,15 +1,14 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%foo = type { %bar }
-%bar = type {}
+%foo = type { i32*, %bar }
+%bar = type { i32* }
 %prg = type { %foo }
 
 @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -20,7 +19,8 @@ define void @foo(%foo* %0) {
 entry:
   %this = alloca %foo*, align 8
   store %foo* %0, %foo** %this, align 8
-  %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+  %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
   ret void
 }
 
@@ -28,13 +28,14 @@ define void @bar(%bar* %0) {
 entry:
   %this = alloca %bar*, align 8
   store %bar* %0, %bar** %this, align 8
+  %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
   ret void
 }
 
 define void @prg(%prg* %0) {
 entry:
   %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0
+  %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 1
   call void @bar(%bar* %bar_inst)
   ret void
 }

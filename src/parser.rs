@@ -28,7 +28,7 @@ use crate::{
         self, ParseSession,
         Token::{self, *},
     },
-    typesystem::DINT_TYPE,
+    typesystem::{DINT_TYPE, VOID_INTERNAL_NAME},
 };
 
 use self::{
@@ -323,6 +323,38 @@ fn parse_pou(
             // parse variable declarations. note that var in/out/inout
             // blocks are not allowed inside of class declarations.
             let mut variable_blocks = vec![];
+
+            // TODO(vosa): This shouldn't be part of the parser, it should be part of the `VTableGenerator` struct; do that before merging
+            if super_class.is_none() && matches!(kind, PouType::Class | PouType::FunctionBlock) {
+                variable_blocks.push(VariableBlock {
+                    kind: VariableBlockType::Local,
+                    variables: vec![Variable {
+                        name: "__vtable".into(),
+                        data_type_declaration: DataTypeDeclaration::Definition {
+                            data_type: DataType::PointerType {
+                                name: None,
+                                referenced_type: Box::new(DataTypeDeclaration::Reference {
+                                    referenced_type: VOID_INTERNAL_NAME.to_string(),
+                                    location: SourceLocation::internal(),
+                                }),
+                                auto_deref: None,
+                                type_safe: false,
+                            },
+                            location: SourceLocation::internal(),
+                            scope: None,
+                        },
+                        initializer: None,
+                        address: None,
+                        location: SourceLocation::internal(),
+                    }],
+                    linkage: LinkageType::Internal,
+                    access: AccessModifier::Protected,
+                    constant: false,
+                    retain: false,
+                    location: SourceLocation::internal(),
+                });
+            }
+
             let allowed_var_types = [
                 KeywordVar,
                 KeywordVarInput,
@@ -1008,7 +1040,11 @@ fn parse_type_reference_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.range().start;
     //Subrange
-    let referenced_type = lexer.slice_and_advance();
+    let mut referenced_type = lexer.slice_and_advance();
+    // TODO(vosa): Temporary hack
+    if lexer.try_consume(KeywordDot) {
+        referenced_type = format!("{referenced_type}.{}", lexer.slice_and_advance());
+    }
 
     let bounds = if lexer.try_consume(KeywordParensOpen) {
         // INT (..) :=

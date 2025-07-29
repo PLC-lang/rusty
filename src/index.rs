@@ -1,6 +1,9 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
-use std::{collections::VecDeque, hash::BuildHasherDefault};
+use std::{
+    collections::VecDeque,
+    hash::{BuildHasherDefault, Hash},
+};
 
 use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
@@ -646,7 +649,7 @@ impl From<&Interface> for InterfaceIndexEntry {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Eq)]
 pub enum PouIndexEntry {
     Program {
         name: String,
@@ -2195,6 +2198,47 @@ impl Index {
         } else {
             current_methods
         }
+    }
+
+    /// Returns all methods defined in a container, including methods from super "classes". Thereby the result
+    /// is in fixed traversal order, meaning that the methods of the super class are always positioned before
+    /// the methods of any child class. This ordering is neccessary for virtual tables, where bitcasting them
+    /// from one type to another requires such an order to ensure that the correct method is called.
+    ///
+    /// For example, if class `A` has a method `foo` and class `B` inherits from `A` but adds another method
+    /// `bar` then the virtual table must have the form [`A.foo`] and [`B.foo`, `B.bar`] such that upcasting
+    /// `B` to `A` will still call method `foo` rather than `bar`. If not, e.g. [`B.bar`, `B.foo`] is used,
+    /// the upcasting to `A` would result calling `B.bar` when we have a call such as `reInstance^.foo()`
+    pub fn get_methods_in_fixed_order(&self, container: &str) -> Vec<&PouIndexEntry> {
+        let res = self.get_methods_recursive_in_fixed_order(container, FxIndexMap::default());
+        res.into_values().collect()
+    }
+
+    /// See [`Index::get_methods_in_fixed_order`]
+    fn get_methods_recursive_in_fixed_order<'b>(
+        &'b self,
+        container: &str,
+        mut collected: FxIndexMap<&'b str, &'b PouIndexEntry>,
+    ) -> FxIndexMap<&'b str, &'b PouIndexEntry> {
+        if let Some(pou) = self.find_pou(container) {
+            if let Some(super_class) = pou.get_super_class() {
+                // We want to recursively climb up the inheritance chain before collecting methods
+                collected = self.get_methods_recursive_in_fixed_order(super_class, collected);
+            }
+
+            let methods = self
+                .get_pous()
+                .values()
+                .filter(|pou| pou.is_method())
+                .filter(|pou| pou.get_parent_pou_name().is_some_and(|opt| opt == container));
+
+            for method in methods {
+                let name = method.get_name().split_once('.').unwrap().1;
+                collected.insert(name, method);
+            }
+        }
+
+        collected
     }
 }
 

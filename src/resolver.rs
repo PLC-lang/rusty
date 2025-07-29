@@ -12,7 +12,7 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -850,8 +850,8 @@ pub trait AnnotationMap {
             StatementAnnotation::Program { qualified_name }
             | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Label { .. }
+            StatementAnnotation::Function { qualified_name, .. } => Some(qualified_name),
+            StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::Property { .. }
@@ -893,7 +893,7 @@ pub trait AnnotationMap {
 
 #[derive(Debug, Default)]
 pub struct AstAnnotations {
-    annotation_map: AnnotationMapImpl,
+    pub annotation_map: AnnotationMapImpl,
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
@@ -1547,15 +1547,22 @@ impl<'i> TypeAnnotator<'i> {
         };
         if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
             match datatype.get_type_information() {
-                DataTypeInformation::Struct { members, .. } => {
+                DataTypeInformation::Struct { members, source, .. } => {
                     for member in members {
                         resolved_names =
                             self.get_datatype_dependencies(member.get_type_name(), resolved_names);
                     }
+
+                    if let StructSource::Pou(PouType::Method { parent, .. }) = source {
+                        resolved_names = self.get_datatype_dependencies(parent, resolved_names);
+                    }
+
                     resolved_names
                 }
                 DataTypeInformation::Array { inner_type_name, .. }
                 | DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    resolved_names
+                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
                     self.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 _ => {
@@ -2011,7 +2018,9 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Deref, _) => {
-                if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: None, .. }) = base
+                if let Some(DataTypeInformation::Pointer {
+                    name, inner_type_name, auto_deref: None, ..
+                }) = base
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index))
                     .map(|it| it.get_type_information())
                 {
@@ -2020,7 +2029,15 @@ impl<'i> TypeAnnotator<'i> {
                         .find_effective_type_by_name(inner_type_name)
                         .or(self.annotation_map.new_index.find_effective_type_by_name(inner_type_name))
                     {
-                        self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
+                        // TODO(vosa): also add is_method() check
+                        // We're dealing with a function pointer, hence annotate the deref node with the variables name
+                        if inner_type.get_type_information().is_function()
+                            || inner_type.get_type_information().is_method()
+                        {
+                            self.annotate(stmt, StatementAnnotation::value(name));
+                        } else {
+                            self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
+                        }
                     }
                 }
             }
@@ -2059,6 +2076,11 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes)),
 
+            AstStatement::ReferenceExpr(_) => {
+                self.visit_statement(ctx, reference);
+                self.annotation_map.get(reference).cloned() // XXX: This looks wrong, but for now does the job
+            }
+
             AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
@@ -2088,6 +2110,7 @@ impl<'i> TypeAnnotator<'i> {
                     strategy.resolve_name(&name, qualifier, self.index, ctx, &self.scopes)
                 })
             }
+            AstStatement::ParenExpression(expr) => self.resolve_reference_expression(expr, qualifier, ctx),
             _ => None,
         }
     }
@@ -2157,6 +2180,7 @@ impl<'i> TypeAnnotator<'i> {
             operator,
         );
         let operator_qualifier = self.get_call_name(operator);
+
         //Use the context without the is_call =true
         //TODO why do we start a lhs context here???
         let ctx = ctx.with_lhs(operator_qualifier.as_str());
@@ -2200,22 +2224,44 @@ impl<'i> TypeAnnotator<'i> {
                     call_name.as_ref().cloned().or_else(|| Some(qualified_name.clone()))
                 }
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
-                StatementAnnotation::Variable { resulting_type, .. } => {
-                    self.index
-                        .find_pou(resulting_type.as_str())
-                        .filter(|it| matches!(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. }))
-                        .map(|it| it.get_name().to_string())
-                }
+                StatementAnnotation::Variable { resulting_type, .. } => self
+                    .index
+                    .find_pou(resulting_type.as_str())
+                    .filter(|it| {
+                        matches!(it, PouIndexEntry::FunctionBlock { .. } | PouIndexEntry::Program { .. })
+                    })
+                    .map(|it| it.get_name().to_string()),
                 // call statements on array access "arr[1]()" will return a StatementAnnotation::Value
                 StatementAnnotation::Value { resulting_type } => {
                     // make sure we come from an array or function_block access
                     match operator.get_stmt() {
-                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Index(_), ..},.. ) => Some(resulting_type.clone()),
-                        AstStatement::ReferenceExpr ( ReferenceExpr{access: ReferenceAccess::Deref, ..}, .. ) =>
-                        // AstStatement::ArrayAccess { .. } => Some(resulting_type.clone()),
-                        // AstStatement::PointerAccess { .. } => {
-                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string()),
-                        // }
+                        AstStatement::ReferenceExpr(
+                            ReferenceExpr { access: ReferenceAccess::Index(_), .. },
+                            ..,
+                        ) => Some(resulting_type.clone()),
+
+                        AstStatement::ReferenceExpr(
+                            ReferenceExpr { access: ReferenceAccess::Deref, .. },
+                            ..,
+                        ) => {
+                            let mut resulting_type = resulting_type.to_string();
+
+                            // When dealing with a pointer, we have to fetch the target type
+                            if let Some(DataTypeInformation::Pointer { inner_type_name, .. }) = self
+                                .index
+                                .find_effective_type_by_name(&resulting_type)
+                                .map(|opt| opt.get_type_information())
+                            {
+                                resulting_type = self
+                                    .index
+                                    .find_pou(inner_type_name)
+                                    .map(|opt| opt.get_name().to_string())
+                                    .expect("must exist")
+                            }
+
+                            self.index.find_pou(resulting_type.as_str()).map(|it| it.get_name().to_string())
+                        }
+
                         _ => None,
                     }
                 }

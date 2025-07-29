@@ -164,13 +164,13 @@ fn external_pous_get_external_initializers() {
         ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %ext_fb = type {}
+    %ext_fb = type { i32* }
     %ext_prog = type {}
 
     @__ext_fb__init = external unnamed_addr constant %ext_fb
@@ -179,7 +179,7 @@ fn external_pous_get_external_initializers() {
     declare void @ext_fb(%ext_fb*)
 
     declare void @ext_prog(%ext_prog*)
-    "###);
+    "#);
 }
 
 #[test]

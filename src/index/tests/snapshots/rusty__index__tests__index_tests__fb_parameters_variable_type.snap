@@ -4,6 +4,24 @@ expression: members
 ---
 [
     VariableIndexEntry {
+        name: "__vtable",
+        qualified_name: "fb.__vtable",
+        initial_value: None,
+        argument_type: ByVal(
+            Local,
+        ),
+        is_constant: false,
+        is_var_external: false,
+        data_type_name: "__fb___vtable",
+        location_in_parent: 0,
+        linkage: Internal,
+        binding: None,
+        source_location: SourceLocation {
+            span: None,
+        },
+        varargs: None,
+    },
+    VariableIndexEntry {
         name: "input1",
         qualified_name: "fb.input1",
         initial_value: None,
@@ -13,7 +31,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "INT",
-        location_in_parent: 0,
+        location_in_parent: 1,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
@@ -34,7 +52,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "INT",
-        location_in_parent: 1,
+        location_in_parent: 2,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {
@@ -55,7 +73,7 @@ expression: members
         is_constant: false,
         is_var_external: false,
         data_type_name: "__auto_pointer_to_INT",
-        location_in_parent: 2,
+        location_in_parent: 3,
         linkage: Internal,
         binding: None,
         source_location: SourceLocation {

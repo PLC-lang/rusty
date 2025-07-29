@@ -1,4 +1,4 @@
-use insta::assert_snapshot;
+use insta::{assert_debug_snapshot, assert_snapshot};
 use plc_ast::ast::{
     AccessModifier, ArgumentProperty, DeclarationKind, PolymorphismMode, PouType, VariableBlockType,
 };
@@ -182,7 +182,10 @@ fn class_with_var_default_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
+
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, false);
@@ -202,9 +205,11 @@ fn class_with_var_non_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
-    assert_eq!(vblock.variables.len(), 0);
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
 
+    let vblock = &class.variable_blocks[1];
+    assert_eq!(vblock.variables.len(), 0); // Internal VTable member
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, true);
     assert_eq!(vblock.access, AccessModifier::Public);
@@ -222,7 +227,10 @@ fn class_with_var_retain_block() {
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
 
-    let vblock = &class.variable_blocks[0];
+    // vtables get their own variable block
+    assert_eq!(class.variable_blocks.len(), 2);
+
+    let vblock = &class.variable_blocks[1];
     assert_eq!(vblock.variables.len(), 0);
 
     assert_eq!(vblock.retain, true);
@@ -667,4 +675,94 @@ fn function_block_can_only_be_extended_once() {
     14 │         FUNCTION_BLOCK quux EXTENDS bar EXTENDS baz EXTENDS qux
        │                                                             ^^^ Multiple inheritance. POUs can only be extended once.
     ")
+}
+
+#[test]
+fn base_pous_have_embedded_vtables() {
+    let source = r"
+    CLASS BaseClass
+    END_CLASS
+
+    FUNCTION_BLOCK BaseFb
+    END_FUNCTION_BLOCK
+    ";
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics, Vec::new());
+
+    // CLASS
+    assert_debug_snapshot!(unit.pous[0].variable_blocks, @r#"
+    [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "__vtable",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                    },
+                },
+            ],
+            variable_block_type: Local,
+        },
+    ]
+    "#);
+
+    // FUNCTION_BLOCK
+    assert_debug_snapshot!(unit.pous[0].variable_blocks, @r#"
+    [
+        VariableBlock {
+            variables: [
+                Variable {
+                    name: "__vtable",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "__VOID",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                        },
+                    },
+                },
+            ],
+            variable_block_type: Local,
+        },
+    ]
+    "#);
+}
+
+#[test]
+fn extended_pous_do_not_have_embedded_vtable() {
+    let source = r"
+    CLASS BaseClass
+    END_CLASS
+
+    FUNCTION_BLOCK BaseFb
+    END_FUNCTION_BLOCK
+
+    CLASS ChildClass EXTENDS BaseClass
+    END_CLASS
+
+    FUNCTION_BLOCK ChildFb EXTENDS BaseFb
+    END_FUNCTION_BLOCK
+    ";
+
+    let (unit, diagnostics) = parse(source);
+
+    assert_eq!(diagnostics, Vec::new());
+
+    // CLASS
+    assert_debug_snapshot!(unit.pous[2].variable_blocks, @"[]");
+
+    // FUNCTION_BLOCK
+    assert_debug_snapshot!(unit.pous[3].variable_blocks, @"[]");
 }

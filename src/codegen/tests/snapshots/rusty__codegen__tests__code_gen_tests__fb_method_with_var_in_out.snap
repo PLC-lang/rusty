@@ -1,14 +1,13 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%MyClass = type { i16, i16 }
+%MyClass = type { i32*, i16, i16 }
 %prg = type { %MyClass, i16 }
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
@@ -18,8 +17,9 @@ define void @MyClass(%MyClass* %0) {
 entry:
   %this = alloca %MyClass*, align 8
   store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
+  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 2
   ret void
 }
 
@@ -27,8 +27,9 @@ define void @MyClass__testMethod(%MyClass* %0, i16* %1) {
 entry:
   %this = alloca %MyClass*, align 8
   store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
+  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 2
   %myMethodArg = alloca i16*, align 8
   store i16* %1, i16** %myMethodArg, align 8
   %deref = load i16*, i16** %myMethodArg, align 8

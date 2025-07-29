@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 typedef struct {
+    void* __vtable;
     int a;
     int b;
 } myFunctionBlock;

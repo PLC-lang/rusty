@@ -20,7 +20,7 @@ source_filename = "fb.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%fb = type {}
+%fb = type { i32* }
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
@@ -28,6 +28,7 @@ define void @fb(%fb* %0) {
 entry:
   %this = alloca %fb*, align 8
   store %fb* %0, %fb** %this, align 8
+  %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
@@ -67,7 +68,7 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 %prog = type { %fb.4 }
-%fb.4 = type {}
+%fb.4 = type { i32* }
 %prg.5 = type { i32 }
 %prg2.6 = type { i32 }
 

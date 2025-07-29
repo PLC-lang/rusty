@@ -289,6 +289,16 @@ impl DataType {
             true
         }
     }
+
+    pub fn is_method_pointer(&self, index: &Index) -> bool {
+        match &self.information {
+            DataTypeInformation::Pointer { inner_type_name, .. } => {
+                index.find_type(inner_type_name).is_some_and(|opt| opt.information.is_method())
+            }
+
+            _ => false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -558,6 +568,14 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_function(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Function), .. })
+    }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Method { .. }), .. })
+    }
+
     pub fn get_dimension_count(&self) -> Option<usize> {
         match self {
             DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
@@ -789,6 +807,17 @@ impl DataTypeInformation {
 
         None
     }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class { .. }), .. })
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock { .. }), .. }
+        )
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -863,6 +892,18 @@ pub fn get_builtin_types() -> Vec<DataType> {
             nature: TypeNature::Any,
             location: SourceLocation::internal(),
         },
+        // DataType {
+        //     name: VOID_POINTER_INTERNAL_NAME.into(),
+        //     initial_value: None,
+        //     information: DataTypeInformation::Pointer {
+        //         name: VOID_POINTER_INTERNAL_NAME.into(),
+        //         inner_type_name: VOID_INTERNAL_NAME.into(),
+        //         auto_deref: None,
+        //         type_safe: false,
+        //     },
+        //     nature: TypeNature::Any,
+        //     location: SourceLocation::internal(),
+        // },
         DataType {
             name: "__VLA".into(),
             initial_value: None,
