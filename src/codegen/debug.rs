@@ -451,7 +451,7 @@ impl<'ink> DebugBuilder<'ink> {
     ///
     /// ## Typedef Naming
     ///
-    /// The typedef uses the `__STRING__xyz` or `__WSTRING__xyz` pattern where:
+    /// The typedef uses the `__STRING__<grapheme count>` or `__WSTRING__<grapheme count>` pattern where:
     /// - Double underscore prefix avoids clashing with user-defined types (reserved for compiler internals)
     /// - Length suffix ensures each string type has a unique DWARF reference
     /// - Consistent pattern enables easy detection by DWARF parsers
@@ -468,11 +468,10 @@ impl<'ink> DebugBuilder<'ink> {
             StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),
             StringEncoding::Utf16 => index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
-        let char_debug_type = self.get_or_create_debug_type(char_datatype, index, types_index)?;
 
+        let char_debug_type = self.get_or_create_debug_type(char_datatype, index, types_index)?;
         let array_align_bits =
             self.target_data.get_preferred_alignment(&types_index.get_associated_type(name)?) * 8;
-
         let array_type = self.debug_info.create_array_type(
             char_debug_type.into(),
             size,
@@ -480,7 +479,6 @@ impl<'ink> DebugBuilder<'ink> {
             #[allow(clippy::single_range_in_vec_init)]
             &[0..length],
         );
-
         let typedef_name = match encoding {
             StringEncoding::Utf8 => format!("__STRING__{}", length),
             StringEncoding::Utf16 => format!("__WSTRING__{}", length),
