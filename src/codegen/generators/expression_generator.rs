@@ -490,6 +490,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        if self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
+            unimplemented!();
+        }
+
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)

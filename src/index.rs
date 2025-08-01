@@ -1792,6 +1792,10 @@ impl Index {
         variable.and_then(|it| self.get_type(it.get_type_name()).ok())
     }
 
+    pub fn get_return_type_or_void(&self, pou_name: &str) -> &DataType {
+        self.find_return_type(pou_name).unwrap_or(self.get_void_type())
+    }
+
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
         self.find_effective_type_by_name(type_name)
             .map(|it| it.get_type_information())

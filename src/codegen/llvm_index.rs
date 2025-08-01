@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::types::BasicTypeEnum;
+use inkwell::types::{AnyTypeEnum, BasicType, BasicTypeEnum, PointerType};
 use inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+use inkwell::AddressSpace;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
@@ -11,8 +12,8 @@ use rustc_hash::FxHashMap;
 #[derive(Debug, Clone, Default)]
 pub struct LlvmTypedIndex<'ink> {
     parent_index: Option<&'ink LlvmTypedIndex<'ink>>,
-    type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
-    pou_type_associations: FxHashMap<String, BasicTypeEnum<'ink>>,
+    type_associations: FxHashMap<String, AnyTypeEnum<'ink>>,
+    pou_type_associations: FxHashMap<String, AnyTypeEnum<'ink>>,
     global_values: FxHashMap<String, GlobalValue<'ink>>,
     got_indices: FxHashMap<String, u64>,
     initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
@@ -21,6 +22,41 @@ pub struct LlvmTypedIndex<'ink> {
     constants: FxHashMap<String, BasicValueEnum<'ink>>,
     utf08_literals: FxHashMap<String, GlobalValue<'ink>>,
     utf16_literals: FxHashMap<String, GlobalValue<'ink>>,
+}
+
+pub trait TypeHelper<'ink> {
+    #[allow(clippy::wrong_self_convention)]
+    fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>>;
+
+    fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink>;
+}
+
+impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
+    fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>> {
+        match self {
+            AnyTypeEnum::ArrayType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::FloatType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::IntType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::PointerType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::StructType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::VectorType(value) => Some(value.as_basic_type_enum()),
+            AnyTypeEnum::VoidType(_) => None,
+            AnyTypeEnum::FunctionType(_) => None,
+        }
+    }
+
+    fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink> {
+        match self {
+            AnyTypeEnum::ArrayType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::FloatType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::IntType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::PointerType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::StructType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::VectorType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::FunctionType(value) => value.ptr_type(address_space),
+            AnyTypeEnum::VoidType(_) => unreachable!("Void type cannot be converted to pointer"),
+        }
+    }
 }
 
 impl<'ink> LlvmTypedIndex<'ink> {
@@ -73,7 +109,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn associate_type(
         &mut self,
         type_name: &str,
-        target_type: BasicTypeEnum<'ink>,
+        target_type: AnyTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         self.type_associations.insert(type_name.to_lowercase(), target_type);
         Ok(())
@@ -82,7 +118,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     pub fn associate_pou_type(
         &mut self,
         type_name: &str,
-        target_type: BasicTypeEnum<'ink>,
+        target_type: AnyTypeEnum<'ink>,
     ) -> Result<(), Diagnostic> {
         self.pou_type_associations.insert(type_name.to_lowercase(), target_type);
         Ok(())
@@ -126,6 +162,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.type_associations
             .get(&type_name.to_lowercase())
             .copied()
+            .and_then(TypeHelper::as_basic_type)
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_type(type_name)))
             .or_else(|| self.find_associated_pou_type(type_name))
     }
@@ -134,6 +171,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
         self.pou_type_associations
             .get(&type_name.to_lowercase())
             .copied()
+            .and_then(TypeHelper::as_basic_type)
             .or_else(|| self.parent_index.and_then(|it| it.find_associated_pou_type(type_name)))
     }
 

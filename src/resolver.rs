@@ -777,6 +777,10 @@ impl StatementAnnotation {
             _ => None,
         }
     }
+
+    pub fn is_fnptr(&self) -> bool {
+        matches!(self, StatementAnnotation::FunctionPointer { .. })
+    }
 }
 
 impl From<&PouIndexEntry> for StatementAnnotation {
@@ -877,7 +881,7 @@ pub trait AnnotationMap {
             StatementAnnotation::Program { qualified_name }
             | StatementAnnotation::Super { name: qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }
-            | StatementAnnotation::FunctionPointer { qualified_name, .. } => Some(&qualified_name),
+            | StatementAnnotation::FunctionPointer { qualified_name, .. } => Some(qualified_name),
             StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
