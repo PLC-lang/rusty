@@ -617,8 +617,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
             let (instance, arguments) = match arguments.len() {
                 0 => panic!("invalid desugared code, no instance argument found"),
-                1 => (self.generate_lvalue(&arguments[0])?, [].as_slice()),
-                _ => (self.generate_lvalue(&arguments[0])?, &arguments[1..]),
+                1 => (self.generate_lvalue(arguments[0])?, [].as_slice()),
+                _ => (self.generate_lvalue(arguments[0])?, &arguments[1..]),
             };
 
             let mut generated_arguments = self.generate_function_arguments(
