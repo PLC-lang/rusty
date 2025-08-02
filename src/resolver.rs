@@ -12,7 +12,7 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -1579,15 +1579,22 @@ impl<'i> TypeAnnotator<'i> {
         };
         if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
             match datatype.get_type_information() {
-                DataTypeInformation::Struct { members, .. } => {
+                DataTypeInformation::Struct { members, source, .. } => {
                     for member in members {
                         resolved_names =
                             self.get_datatype_dependencies(member.get_type_name(), resolved_names);
                     }
+
+                    if let StructSource::Pou(PouType::Method { parent, .. }) = source {
+                        resolved_names = self.get_datatype_dependencies(parent, resolved_names);
+                    }
+
                     resolved_names
                 }
                 DataTypeInformation::Array { inner_type_name, .. }
                 | DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    resolved_names
+                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
                     self.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 _ => {
