@@ -20,10 +20,11 @@ fn function_pointer_method_with_no_arguments() {
 
         FUNCTION main
             VAR
+                instanceFb: Fb;
                 echoPtr: POINTER TO Fb.echo := ADR(Fb.echo);
             END_VAR
 
-            echoPtr^();
+            echoPtr^(instanceFb);
         END_FUNCTION
         ",
         ids.clone(),
@@ -81,7 +82,7 @@ fn function_pointer_method_with_arguments() {
                 instanceFb: Fb;
             END_VAR
 
-            echoPtr^();
+            echoPtr^(instanceFb);
             echoPtr^(instanceFb, localIn, localOut, localInOut);
             echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
         END_FUNCTION
@@ -421,5 +422,171 @@ fn void_pointer_casting() {
         )
         "#);
         insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
+    }
+}
+
+#[test]
+fn function_pointer_arguments_have_correct_type_hint() {
+    let id_provider = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+        FUNCTION_BLOCK A
+            METHOD printArgs
+                VAR_INPUT
+                    message: STRING;
+                    value: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instanceA: A;
+                printArgs: POINTER TO A.printArgs := ADR(A.printArgs);
+            END_VAR
+
+            instanceA.printArgs('value =', 5);
+            printArgs^(instanceA, 'value =', 5);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
+
+    // instanceA.printArgs('value =', 5);
+    //           ^^^^^^^^^
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[0];
+
+        let AstStatement::CallStatement(CallStatement { parameters: Some(parameters), .. }) = &node.stmt
+        else {
+            unreachable!();
+        };
+
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(&arguments[0], @r#"
+        LiteralString {
+            value: "value =",
+            is_wide: false,
+        }
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get(&arguments[0]), @r#"
+        Some(
+            Value {
+                resulting_type: "__STRING_7",
+            },
+        )
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get_type(&arguments[0], &index), @r#"
+        Some(
+            DataType {
+                name: "__STRING_7",
+                initial_value: None,
+                information: String {
+                    size: LiteralInteger(
+                        8,
+                    ),
+                    encoding: Utf8,
+                },
+                nature: String,
+                location: SourceLocation {
+                    span: None,
+                },
+            },
+        )
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get_type_hint(&arguments[0], &index), @r#"
+        Some(
+            DataType {
+                name: "STRING",
+                initial_value: None,
+                information: String {
+                    size: LiteralInteger(
+                        81,
+                    ),
+                    encoding: Utf8,
+                },
+                nature: String,
+                location: SourceLocation {
+                    span: None,
+                },
+            },
+        )
+        "#);
+    }
+
+    // printArgs^(instanceA, 'value =', 5);
+    //                       ^^^^^^^^^
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[1];
+
+        let AstStatement::CallStatement(CallStatement { parameters: Some(parameters), .. }) = &node.stmt
+        else {
+            unreachable!();
+        };
+
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(&arguments[1], @r#"
+        LiteralString {
+            value: "value =",
+            is_wide: false,
+        }
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get(&arguments[1]), @r#"
+        Some(
+            Value {
+                resulting_type: "__STRING_7",
+            },
+        )
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get_type(&arguments[1], &index), @r#"
+        Some(
+            DataType {
+                name: "__STRING_7",
+                initial_value: None,
+                information: String {
+                    size: LiteralInteger(
+                        8,
+                    ),
+                    encoding: Utf8,
+                },
+                nature: String,
+                location: SourceLocation {
+                    span: None,
+                },
+            },
+        )
+        "#);
+
+        insta::assert_debug_snapshot!(annotations.get_type_hint(&arguments[1], &index), @r#"
+        Some(
+            DataType {
+                name: "STRING",
+                initial_value: None,
+                information: String {
+                    size: LiteralInteger(
+                        81,
+                    ),
+                    encoding: Utf8,
+                },
+                nature: String,
+                location: SourceLocation {
+                    span: None,
+                },
+            },
+        )
+        "#);
     }
 }

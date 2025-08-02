@@ -976,7 +976,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
         for (i, argument) in arguments.iter().enumerate() {
-            let (i, parameter, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+            let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
@@ -1000,11 +1000,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .unwrap_or_else(|| {
                     // if we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
-                        variadic_parameters.push(parameter);
+                        variadic_parameters.push(argument);
                         Ok(None)
                     } else {
                         // we are not variadic, we have too many parameters here
-                        Err(Diagnostic::codegen_error("Too many parameters", parameter))
+                        Err(Diagnostic::codegen_error("Too many parameters", argument))
                     }
                 })?;
 
@@ -1014,11 +1014,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         && declaration_type.is_input())
                 {
                     let declared_parameter = declared_parameters.get(i);
-                    self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
+                    self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
                 } else {
                     // by val
-                    if !parameter.is_empty_statement() {
-                        self.generate_expression(parameter)?
+                    if !argument.is_empty_statement() {
+                        self.generate_expression(argument)?
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {

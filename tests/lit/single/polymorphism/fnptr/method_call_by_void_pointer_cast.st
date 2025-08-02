@@ -31,8 +31,7 @@ FUNCTION main
     // table is also accessed in desugared code (though the access happens in the POU rather than a local
     // variable in the main function)
     // CHECK: value = 5
+    // CHECK: value = 5
+    FnTable#(fnTableRef^).printArgs^(instanceA, 'value =', 5);
     FnTable#(fnTableRef^).printArgs^(instanceA, message := 'value =', value := 5);
-
-    // FIXME: Issues when not having named arguments?
-    // FnTable#(fnTableRef^).printArgs^(instanceA, 'value =', 5);
 END_FUNCTION
