@@ -60,7 +60,10 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 
-use crate::{index::Index, resolver::AnnotationMap};
+use crate::{
+    index::Index,
+    resolver::{AnnotationMap, StatementAnnotation},
+};
 
 #[derive(Default, Debug, Clone)]
 struct VisitorContext {
@@ -273,15 +276,16 @@ impl AstVisitorMut for AggregateTypeLowerer {
             return;
         };
         //Get the function being called
-        let Some(crate::resolver::StatementAnnotation::Function {
-            qualified_name,
-            return_type: return_type_name,
-            generic_name,
-            ..
-        }) = annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned()
-        else {
-            return;
-        };
+        let (qualified_name, return_type_name, generic_name) =
+            match annotation.get(&stmt.operator).or_else(|| annotation.get_hint(&stmt.operator)).cloned() {
+                Some(StatementAnnotation::Function { return_type, qualified_name, generic_name, .. }) => {
+                    (qualified_name, return_type, generic_name)
+                }
+                Some(StatementAnnotation::FunctionPointer { return_type, qualified_name }) => {
+                    (qualified_name, return_type, None)
+                }
+                _ => return,
+            };
         //If there's a call name in the function, it is a generic and needs to be replaced.
         //HACK: this is because we don't lower generics
         let function_entry = index.find_pou(&qualified_name).expect("Function not found");
@@ -342,7 +346,14 @@ impl AstVisitorMut for AggregateTypeLowerer {
             let mut parameters =
                 stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
 
-            parameters.insert(0, reference);
+            // When dealing with function pointers (which for now support only methods), then the alloca
+            // variable must be placed at index 1 rather than 0 because the instance variable must always be
+            // the first argument
+            if self.annotation.as_ref().unwrap().get(&stmt.operator).is_some_and(|opt| opt.is_fnptr()) {
+                parameters.insert(1, reference);
+            } else {
+                parameters.insert(0, reference);
+            }
 
             if is_generic_function {
                 //For generic functions, we need to replace the generic name with the function name
@@ -1197,5 +1208,42 @@ mod tests {
         let (_, _, units) = annotate_and_lower_with_ids(unit, index, id_provider.clone());
         let unit = &units.0;
         assert_debug_snapshot!(unit.implementations[1]);
+    }
+
+    #[test]
+    fn fnptr_no_argument() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo: STRING
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instanceFbA: FbA;
+                    fooPtr: POINTER TO FbA.foo;
+                    result: STRING;
+                END_VAR
+
+                result := fooPtr^(instanceFbA);
+            END_FUNCTION
+            "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.implementations[2].statements[0]);
     }
 }

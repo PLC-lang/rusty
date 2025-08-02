@@ -330,7 +330,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             AnyTypeEnum::FunctionType(_) => unreachable!(),
         };
 
-        eprintln!("created function type: {}", fn_type.print_to_string());
         Ok(fn_type)
     }
 
