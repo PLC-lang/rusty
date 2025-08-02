@@ -751,6 +751,7 @@ impl StatementAnnotation {
         match self {
             StatementAnnotation::Variable { qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::FunctionPointer { qualified_name, .. }
             | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
 
             _ => None,
@@ -2248,6 +2249,9 @@ impl<'i> TypeAnnotator<'i> {
             .and_then(|it| match it {
                 StatementAnnotation::Function { qualified_name, call_name, .. } => {
                     call_name.as_ref().cloned().or_else(|| Some(qualified_name.clone()))
+                }
+                StatementAnnotation::FunctionPointer { qualified_name, .. } => {
+                    Some(qualified_name.clone())
                 }
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } => {

@@ -1,5 +1,5 @@
 use plc_ast::{
-    ast::{AstStatement, CallStatement, ReferenceAccess, ReferenceExpr},
+    ast::{Assignment, AstStatement, CallStatement, ReferenceAccess, ReferenceExpr},
     provider::IdProvider,
 };
 
@@ -78,10 +78,12 @@ fn function_pointer_method_with_arguments() {
             VAR
                 echoPtr: POINTER TO Fb.echo := ADR(Fb.echo);
                 localIn, localOut, localInOut: DINT;
+                instanceFb: Fb;
             END_VAR
 
             echoPtr^();
-            echoPtr^(in := localIn, out => localOut, inout := localInOut);
+            echoPtr^(instanceFb, localIn, localOut, localInOut);
+            echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
         END_FUNCTION
         ",
         ids.clone(),
@@ -89,6 +91,8 @@ fn function_pointer_method_with_arguments() {
 
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ids);
     let statements = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements;
+
+    // echoPtr^();
     {
         let AstStatement::CallStatement(CallStatement { operator, .. }) = statements[0].get_stmt() else {
             unreachable!();
@@ -110,12 +114,15 @@ fn function_pointer_method_with_arguments() {
         insta::assert_debug_snapshot!(annotations.get(&statements[0]), @"None");
     }
 
+    // echoPtr^(instanceFb, localIn, localOut, localInOut);
     {
-        let AstStatement::CallStatement(CallStatement { operator, .. }) = statements[1].get_stmt() else {
+        let AstStatement::CallStatement(CallStatement { operator, parameters: Some(parameters) }) =
+            statements[1].get_stmt()
+        else {
             unreachable!();
         };
 
-        // echoPtr^(in := localIn, out => localOut, inout := localInOut);
+        // echoPtr^(instanceFb, localIn, localOut, localInOut);
         // ^^^^^^^^
         insta::assert_debug_snapshot!(annotations.get(operator), @r#"
         Some(
@@ -126,9 +133,200 @@ fn function_pointer_method_with_arguments() {
         )
         "#);
 
-        // echoPtr^(in := localIn, out => localOut, inout := localInOut);
-        //          ^^^^^^^^^^^^^
-        // TODO:
+        // echoPtr^(instanceFb, localIn, localOut, localInOut);
+        //                      ^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&arguments[1]), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localIn",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, localIn, localOut, localInOut);
+        //                               ^^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&arguments[2]), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localOut",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, localIn, localOut, localInOut);
+        //                                         ^^^^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        insta::assert_debug_snapshot!(annotations.get(&arguments[3]), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localInOut",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+    }
+
+    // echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
+    {
+        let AstStatement::CallStatement(CallStatement { operator, parameters: Some(parameters) }) =
+            statements[2].get_stmt()
+        else {
+            unreachable!();
+        };
+
+        // echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
+        // ^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(operator), @r#"
+        Some(
+            FunctionPointer {
+                return_type: "DINT",
+                qualified_name: "Fb.echo",
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
+        //                      ^^^^^^^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        let AstStatement::Assignment(Assignment { left, right }) = &arguments[1].stmt else {
+            unreachable!();
+        };
+        insta::assert_debug_snapshot!(annotations.get(&arguments[1]), @"None");
+        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "Fb.echo.in",
+                constant: false,
+                argument_type: ByVal(
+                    Input,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localIn",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
+        //                                     ^^^^^^^^^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        let AstStatement::OutputAssignment(Assignment { left, right }) = &arguments[2].stmt else {
+            unreachable!();
+        };
+        insta::assert_debug_snapshot!(annotations.get(&arguments[2]), @"None");
+        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "Fb.echo.out",
+                constant: false,
+                argument_type: ByRef(
+                    Output,
+                ),
+                auto_deref: Some(
+                    Default,
+                ),
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localOut",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, in := localIn, out => localOut, inout := localInOut);
+        //                                                      ^^^^^^^^^^^^^^^^^^^
+        let AstStatement::ExpressionList(arguments) = &parameters.stmt else {
+            unreachable!();
+        };
+
+        let AstStatement::Assignment(Assignment { left, right }) = &arguments[3].stmt else {
+            unreachable!();
+        };
+        insta::assert_debug_snapshot!(annotations.get(&arguments[3]), @"None");
+        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "Fb.echo.inout",
+                constant: false,
+                argument_type: ByRef(
+                    InOut,
+                ),
+                auto_deref: Some(
+                    Default,
+                ),
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        Some(
+            Variable {
+                resulting_type: "DINT",
+                qualified_name: "main.localInOut",
+                constant: false,
+                argument_type: ByVal(
+                    Local,
+                ),
+                auto_deref: None,
+            },
+        )
+        "#);
     }
 }
 
