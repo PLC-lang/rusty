@@ -2213,3 +2213,58 @@ fn pou_with_recursive_type_fails() {
     let pou_type = index.find_pou_type("fb").unwrap();
     assert!(pou_type.get_type_information().get_size(&index).is_err());
 }
+
+#[test]
+fn fixed_order() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK A
+            METHOD foo
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK B EXTENDS A
+            METHOD foo
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK C EXTENDS A
+            METHOD foo
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK D EXTENDS B
+            METHOD baz
+            END_METHOD
+
+            METHOD qux
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let methods_a =
+        index.get_methods_in_fixed_order("A").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_a, vec!["A.foo", "A.bar", "A.baz"]);
+
+    let methods_b =
+        index.get_methods_in_fixed_order("B").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_b, vec!["B.foo", "A.bar", "A.baz"]);
+
+    let methods_c =
+        index.get_methods_in_fixed_order("C").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_c, vec!["C.foo", "A.bar", "C.baz"]);
+
+    let methods_d =
+        index.get_methods_in_fixed_order("D").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_d, vec!["B.foo", "A.bar", "D.baz", "D.qux"]);
+}

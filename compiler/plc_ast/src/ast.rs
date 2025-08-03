@@ -395,6 +395,14 @@ impl PouType {
     pub fn is_stateful(&self) -> bool {
         matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, PouType::Class)
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, PouType::FunctionBlock)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -504,6 +512,10 @@ pub struct VariableBlock {
 }
 
 impl VariableBlock {
+    pub fn global() -> Self {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
