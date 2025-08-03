@@ -19,6 +19,8 @@ VAR
     fb: fb_with_method;
     ret : STRING;
 END_VAR
+    fb.__vtable := ADR(__vtable_fb_with_method_instance); // FIXME: Remove
+
     fb();
     ret := fb.method_with_aggregagte_return('World!');
     printf('%s$N', ADR(ret)); // CHECK: World!

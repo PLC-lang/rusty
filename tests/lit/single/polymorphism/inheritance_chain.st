@@ -20,6 +20,13 @@ FUNCTION_BLOCK A
     METHOD A4
         printf('  A::A4$N');
     END_METHOD
+
+    METHOD callMethods
+        A1();
+        A2();
+        A3();
+        A4();
+    END_METHOD
 END_FUNCTION_BLOCK
 
 // B overriddes A2, introduces B1, B2 and B3
@@ -99,7 +106,6 @@ FUNCTION main
         instanceB: B;
         instanceC: C;
         instanceD: DD;
-
 
         instanceRefArrayA: ARRAY[1..4] OF POINTER TO A;
         instanceRefArrayB: ARRAY[1..3] OF POINTER TO B;
