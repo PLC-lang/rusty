@@ -558,6 +558,25 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_function(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Function), .. })
+    }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Method { .. }), .. })
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class { .. }), .. })
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(
+            self,
+            DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock { .. }), .. }
+        )
+    }
+
     pub fn get_dimension_count(&self) -> Option<usize> {
         match self {
             DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
