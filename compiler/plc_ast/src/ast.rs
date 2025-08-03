@@ -16,6 +16,7 @@ use crate::{
     literals::{AstLiteral, StringValue},
     pre_processor,
     provider::IdProvider,
+    visitor::{AstVisitor, Walker},
 };
 
 use plc_source::source_location::*;
@@ -1318,6 +1319,10 @@ impl AstNode {
         matches!(node.get_stmt_peeled(), AstStatement::Super(Some(_)))
     }
 
+    pub fn is_super_or_super_deref(&self) -> bool {
+        self.is_super() || self.is_super_deref()
+    }
+
     pub fn has_super_metadata(&self) -> bool {
         self.get_metadata()
             .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
@@ -1424,6 +1429,30 @@ impl AstNode {
         AstNode { metadata: Some(metadata), ..self }
     }
 
+    pub fn is_deref(&self) -> bool {
+        matches!(
+            self,
+            AstNode {
+                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }),
+                ..
+            }
+        )
+    }
+
+    pub fn get_call_operator(&self) -> Option<&AstNode> {
+        match &self.stmt {
+            AstStatement::CallStatement(CallStatement { operator, .. }) => Some(operator),
+            _ => None,
+        }
+    }
+
+    pub fn get_ref_expr_mut(&mut self) -> Option<&mut ReferenceExpr> {
+        match &mut self.stmt {
+            AstStatement::ReferenceExpr(expr) => Some(expr),
+            _ => None,
+        }
+    }
+
     pub fn get_deref_expr(&self) -> Option<&ReferenceExpr> {
         match &self.stmt {
             AstStatement::ReferenceExpr(expr) => match expr {
@@ -1432,6 +1461,255 @@ impl AstNode {
             },
             _ => None,
         }
+    }
+
+    pub fn get_base(&self) -> Option<&AstNode> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_ref()),
+            _ => None,
+        }
+    }
+
+    pub fn get_base_mut(&mut self) -> Option<&mut AstNode> {
+        match &mut self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_mut()),
+            _ => None,
+        }
+    }
+
+    pub fn as_string(&self) -> String {
+        let mut formatter = StringFormatter { result: String::new() };
+        formatter.visit(self);
+        formatter.result
+    }
+
+    pub fn as_string_mut(&mut self) -> String {
+        let mut formatter = StringFormatter { result: String::new() };
+        formatter.visit(self);
+        formatter.result
+    }
+}
+
+// TODO: Move into own file, rename to AstSerializer and implement some tests
+struct StringFormatter {
+    result: String,
+}
+
+impl AstVisitor for StringFormatter {
+    fn visit(&mut self, node: &AstNode) {
+        node.walk(self)
+    }
+
+    fn visit_compilation_unit(&mut self, _: &CompilationUnit) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_implementation(&mut self, _: &Implementation) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_variable_block(&mut self, _: &VariableBlock) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_variable(&mut self, _: &Variable) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_config_variable(&mut self, _: &ConfigVariable) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_interface(&mut self, _: &Interface) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_property(&mut self, _: &PropertyBlock) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_enum_element(&mut self, element: &AstNode) {
+        element.walk(self);
+    }
+
+    fn visit_data_type_declaration(&mut self, _: &DataTypeDeclaration) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_user_type_declaration(&mut self, _: &UserTypeDeclaration) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_data_type(&mut self, _: &DataType) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_pou(&mut self, _: &Pou) {
+        unimplemented!("for now only interested in individual nodes located in a POU body")
+    }
+
+    fn visit_empty_statement(&mut self, _stmt: &EmptyStatement, _node: &AstNode) {}
+
+    fn visit_default_value(&mut self, _stmt: &DefaultValue, _node: &AstNode) {}
+
+    fn visit_literal(&mut self, stmt: &AstLiteral, _node: &AstNode) {
+        use crate::literals::AstLiteral;
+        match stmt {
+            AstLiteral::Integer(value) => self.result.push_str(&value.to_string()),
+            AstLiteral::Real(value) => self.result.push_str(value),
+            AstLiteral::Bool(value) => self.result.push_str(&value.to_string().to_uppercase()),
+            AstLiteral::String(string_value) => {
+                if string_value.is_wide {
+                    self.result.push_str(&format!("\"{}\"", string_value.value));
+                } else {
+                    self.result.push_str(&format!("'{}'", string_value.value));
+                }
+            }
+            AstLiteral::Null => self.result.push_str("NULL"),
+            _ => stmt.walk(self), // Let other literals use their default walking behavior
+        }
+    }
+
+    fn visit_multiplied_statement(&mut self, stmt: &MultipliedStatement, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_reference_expr(&mut self, stmt: &ReferenceExpr, _node: &AstNode) {
+        if let Some(base) = &stmt.base {
+            base.walk(self);
+        }
+
+        match &stmt.access {
+            ReferenceAccess::Global(reference) => {
+                self.result.push('.');
+                reference.walk(self);
+            }
+            ReferenceAccess::Member(reference) => {
+                if stmt.base.is_some() {
+                    self.result.push('.');
+                }
+                reference.walk(self);
+            }
+            ReferenceAccess::Index(index) => {
+                self.result.push('[');
+                index.walk(self);
+                self.result.push(']');
+            }
+            ReferenceAccess::Cast(reference) => {
+                self.result.push('#');
+                reference.walk(self);
+            }
+            ReferenceAccess::Deref => {
+                self.result.push('^');
+            }
+            ReferenceAccess::Address => {
+                self.result.insert_str(0, "ADR(");
+                self.result.push(')');
+            }
+        }
+    }
+
+    fn visit_identifier(&mut self, stmt: &str, _node: &AstNode) {
+        self.result.push_str(stmt);
+    }
+
+    fn visit_direct_access(&mut self, stmt: &DirectAccess, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_hardware_access(&mut self, stmt: &HardwareAccess, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_binary_expression(&mut self, stmt: &BinaryExpression, _node: &AstNode) {
+        stmt.left.walk(self);
+        self.result.push(' ');
+        self.result.push_str(&stmt.operator.to_string());
+        self.result.push(' ');
+        stmt.right.walk(self);
+    }
+
+    fn visit_unary_expression(&mut self, stmt: &UnaryExpression, _node: &AstNode) {
+        self.result.push_str(&stmt.operator.to_string());
+        stmt.value.walk(self);
+    }
+
+    fn visit_expression_list(&mut self, stmt: &Vec<AstNode>, _node: &AstNode) {
+        for (i, node) in stmt.iter().enumerate() {
+            if i > 0 {
+                self.result.push_str(", ");
+            }
+            node.walk(self);
+        }
+    }
+
+    fn visit_paren_expression(&mut self, inner: &AstNode, _node: &AstNode) {
+        self.result.push('(');
+        inner.walk(self);
+        self.result.push(')');
+    }
+
+    fn visit_range_statement(&mut self, stmt: &RangeStatement, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_vla_range_statement(&mut self, _node: &AstNode) {}
+
+    fn visit_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.left.walk(self);
+        self.result.push_str(" := ");
+        stmt.right.walk(self);
+    }
+
+    fn visit_output_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.left.walk(self);
+        self.result.push_str(" => ");
+        stmt.right.walk(self);
+    }
+
+    fn visit_ref_assignment(&mut self, stmt: &Assignment, _node: &AstNode) {
+        stmt.left.walk(self);
+        self.result.push_str(" REF= ");
+        stmt.right.walk(self);
+    }
+
+    fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
+        stmt.operator.walk(self);
+        self.result.push_str("(");
+        stmt.parameters.as_ref().map(|opt| opt.walk(self));
+        self.result.push_str(")");
+    }
+
+    fn visit_control_statement(&mut self, stmt: &AstControlStatement, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_case_condition(&mut self, child: &AstNode, _node: &AstNode) {
+        child.walk(self)
+    }
+
+    fn visit_exit_statement(&mut self, _node: &AstNode) {}
+
+    fn visit_continue_statement(&mut self, _node: &AstNode) {}
+
+    fn visit_return_statement(&mut self, stmt: &ReturnStatement, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_jump_statement(&mut self, stmt: &JumpStatement, _node: &AstNode) {
+        stmt.walk(self)
+    }
+
+    fn visit_label_statement(&mut self, _stmt: &LabelStatement, _node: &AstNode) {}
+
+    fn visit_allocation(&mut self, _stmt: &Allocation, _node: &AstNode) {}
+
+    fn visit_super(&mut self, _stmt: &AstStatement, _node: &AstNode) {
+        self.result.push_str("SUPER");
+    }
+
+    fn visit_this(&mut self, _stmt: &AstStatement, _node: &AstNode) {
+        self.result.push_str("THIS");
     }
 }
 
@@ -1463,9 +1741,17 @@ impl Display for Operator {
             Operator::Multiplication => "*",
             Operator::Division => "/",
             Operator::Equal => "=",
+            Operator::NotEqual => "<>",
             Operator::Modulo => "MOD",
+            Operator::Less => "<",
+            Operator::Greater => ">",
+            Operator::LessOrEqual => "<=",
+            Operator::GreaterOrEqual => ">=",
+            Operator::Not => "NOT",
+            Operator::And => "AND",
+            Operator::Or => "OR",
+            Operator::Xor => "XOR",
             Operator::Exponentiation => "**",
-            _ => unimplemented!(),
         };
         f.write_str(symbol)
     }
@@ -1543,7 +1829,9 @@ impl Operator {
 
 #[cfg(test)]
 mod tests {
-    use crate::ast::{ArgumentProperty, DeclarationKind, PouType, VariableBlockType};
+    use crate::ast::{
+        ArgumentProperty, AstFactory, AstNode, DeclarationKind, Operator, PouType, VariableBlockType,
+    };
 
     #[test]
     fn display_pou() {
@@ -1572,6 +1860,35 @@ mod tests {
         assert_eq!(VariableBlockType::Output.to_string(), "Output");
         assert_eq!(VariableBlockType::Global.to_string(), "Global");
         assert_eq!(VariableBlockType::InOut.to_string(), "InOut");
+    }
+
+    #[test]
+    fn test_as_string() {
+        use crate::literals::AstLiteral;
+        use plc_source::source_location::SourceLocation;
+
+        // Test integer literal
+        let integer_node = AstNode::new_integer(42, 1, SourceLocation::internal());
+        assert_eq!(integer_node.as_string(), "42");
+
+        // Test identifier
+        let identifier_node = AstFactory::create_identifier("myVar", SourceLocation::internal(), 2);
+        assert_eq!(identifier_node.as_string(), "myVar");
+
+        // Test binary expression: 3 + 5
+        let left = AstNode::new_integer(3, 3, SourceLocation::internal());
+        let right = AstNode::new_integer(5, 4, SourceLocation::internal());
+        let binary_expr = AstFactory::create_binary_expression(left, Operator::Plus, right, 5);
+        assert_eq!(binary_expr.as_string(), "3 + 5");
+
+        // Test parenthesized expression: (42)
+        let inner = AstNode::new_integer(42, 6, SourceLocation::internal());
+        let paren_expr = AstFactory::create_paren_expression(inner, SourceLocation::internal(), 7);
+        assert_eq!(paren_expr.as_string(), "(42)");
+
+        // Test boolean literal
+        let bool_node = AstNode::new_literal(AstLiteral::Bool(true), 8, SourceLocation::internal());
+        assert_eq!(bool_node.as_string(), "TRUE");
     }
 }
 

@@ -62,5 +62,4 @@ FUNCTION main
     
     objRef := ADR(instanceB);
     result := processValue(objRef, 7);
-
 END_FUNCTION

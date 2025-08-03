@@ -1085,68 +1085,15 @@ fn super_access_with_interface_methods() {
 
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[3].statements;
-    assert_debug_snapshot!(statements, @r#"
-        [
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "increment",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                parameters: None,
-            },
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "increment",
-                        },
-                    ),
-                    base: None,
-                },
-                parameters: None,
-            },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "double_increment",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "count",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-            },
-        ]
-        "#);
+    let statements_str = statements.iter().map(|statement| statement.as_string()).collect::<Vec<_>>();
+
+    assert_debug_snapshot!(statements_str, @r#"
+    [
+        "__parent.increment()",
+        "__vtable_child#(THIS^.__parent.__vtable^).increment^(THIS^)",
+        "double_increment := __parent.count",
+    ]
+    "#);
 }
 
 #[test]

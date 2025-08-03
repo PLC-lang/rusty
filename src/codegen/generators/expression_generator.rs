@@ -2150,7 +2150,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
-                Diagnostic::codegen_error(format!("no type hint available for {statement:#?}"), statement)
+                Diagnostic::codegen_error(
+                    format!("no type hint available for {}", statement.as_string()),
+                    statement,
+                )
             })
     }
 

@@ -1,0 +1,733 @@
+//! Module responsible for desugaring function calls that are polymorphic in nature.
+//!
+//! In general there are three cases in which method calls need to be desugared
+//! 1. Method calls within methods
+//! 2. Method calls within the body of a function block
+//! 3. Method calls through a pointer variable pointing to a class or function block, e.g. `fbPtr^.alpha()`
+//! (Note that because ST lacks a `virtual` keyword, we have to assume every method call to be polymorphic in
+//! nature regarding point 1 and 2)
+//!
+//! Desugaring these method calls is achieved by accessing the virtual table, see [`crate::lowering::vtable`].
+//! TODO: Give a simple step-by-step process, then finish up with complete example showcasing points 1 - 3
+
+use plc_ast::{
+    ast::{
+        AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, PouType, ReferenceAccess,
+        ReferenceExpr,
+    },
+    mut_visitor::{AstVisitorMut, WalkerMut},
+    provider::IdProvider,
+};
+use plc_source::source_location::SourceLocation;
+
+use crate::{
+    index::Index,
+    resolver::{AnnotationMap, AnnotationMapImpl},
+    typesystem::{DataType, DataTypeInformation},
+};
+
+pub struct PolymorphicCallDesugarer {
+    pub ids: IdProvider,
+    pub index: Option<Index>,
+    pub annotations: Option<AnnotationMapImpl>,
+
+    pub in_method_or_function_block: Option<String>,
+}
+
+impl PolymorphicCallDesugarer {
+    pub fn new(ids: IdProvider) -> PolymorphicCallDesugarer {
+        PolymorphicCallDesugarer { ids, index: None, annotations: None, in_method_or_function_block: None }
+    }
+
+    pub fn desugar_unit(&mut self, unit: &mut CompilationUnit) {
+        self.visit_compilation_unit(unit);
+    }
+
+    /// Returns true if the given AST node is a candidate that needs to be desugared into a polymorphic call.
+    /// Cases such as:
+    /// 1. A method call within (another) method
+    /// 2. A method call within a function block body
+    /// 3. A method invocation via a pointer to a class or function block instance, e.g. `refInstance^.foo()`
+    fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
+        let index = self.index.as_ref().expect("index must be set before desugaring");
+        let annotations = self.annotations.as_ref().expect("annotations must be set before desugaring");
+
+        // We do not want to desugar SUPER access, e.g. SUPER^() or SUPER^.foo()
+        if operator.is_super_or_super_deref()
+            || operator.get_base().is_some_and(AstNode::is_super_or_super_deref)
+        {
+            return false;
+        }
+
+        // Case 1 & 2
+        if self.in_method_or_function_block.is_some()
+            && annotations.get_type(&operator, index).is_some_and(DataType::is_method)
+            // Only desugar something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
+            && (operator.get_base().is_none() || operator.get_base().is_some_and(|opt| opt.is_this()))
+        {
+            return true;
+        }
+
+        // Case 2
+        let AstStatement::ReferenceExpr(ReferenceExpr { access, base }) = &operator.stmt else {
+            return false;
+        };
+
+        match (access, base) {
+            // Probably dealing with `MyFbRef^.foo()`
+            (ReferenceAccess::Member(_), Some(base)) if base.is_deref() => {
+                self.is_polymorphic_call_candidate(base)
+            }
+
+            // Probably dealing with `MyFbRef^()`
+            (ReferenceAccess::Deref, Some(base)) => {
+                let info_ptr = annotations.get_type_or_void(base, index).get_type_information();
+                let DataTypeInformation::Pointer { inner_type_name, .. } = info_ptr else {
+                    return false;
+                };
+
+                let info_inner = index.get_type_information_or_void(inner_type_name);
+                info_inner.is_class() || info_inner.is_function_block()
+            }
+
+            _ => false,
+        }
+    }
+
+    fn maybe_patch_this_base(&mut self, operator: &mut AstNode) {
+        if !(self.in_method_or_function_block.is_some() && operator.get_base().is_none()) {
+            return;
+        }
+
+        let this_node = Box::new(AstFactory::create_deref_reference(
+            AstFactory::create_this_reference(SourceLocation::internal(), self.ids.next_id()),
+            self.ids.next_id(),
+            SourceLocation::internal(),
+        ));
+
+        operator.get_ref_expr_mut().unwrap().base.replace(this_node);
+    }
+
+    fn patch_instance_argument(&mut self, operator: &mut AstNode, parameters: &mut Option<Box<AstNode>>) {
+        // foo.bar()
+        // ^^^ base
+        let base = operator.get_base().unwrap(); // XXX: I think this might fail on `MyBlockRef^()`
+
+        match parameters {
+            None => {
+                parameters.replace(Box::new(base.clone()));
+            }
+
+            Some(ref mut expr) => match &mut expr.stmt {
+                AstStatement::ExpressionList(expressions) => {
+                    expressions.insert(0, base.clone());
+                }
+
+                _ => {
+                    let mut expressions = Box::new(AstFactory::create_expression_list(
+                        vec![base.clone(), std::mem::take(expr)],
+                        SourceLocation::internal(),
+                        self.ids.next_id(),
+                    ));
+
+                    std::mem::swap(expr, &mut expressions);
+                }
+            },
+        }
+    }
+
+    /// Patches a `__vtable` member access into the given node, e.g. `ref^.foo()` becomes `ref^.__vtable^.foo()`
+    fn patch_vtable_access(&mut self, node: &mut AstNode) {
+        let old_base = node.get_base_mut().unwrap(); // `ref^` in `ref^.foo()`
+
+        let mut new_base = AstFactory::create_deref_reference(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier("__vtable", SourceLocation::internal(), self.ids.next_id()),
+                Some(std::mem::take(old_base)),
+                self.ids.next_id(),
+            ),
+            self.ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        std::mem::swap(old_base, &mut new_base);
+    }
+
+    /// ref^.__vtable^.foo()` -> `__vtable_{POU_NAME}#(ref^.__vtable^).foo()
+    fn patch_vtable_cast(&mut self, node: &mut AstNode, pou_type_name: &str) {
+        let base_old = node.get_base_mut().unwrap(); // `ref^.__vtable^` in `ref^.__vtable^.foo()`
+        let base_old_paren = AstFactory::create_paren_expression(
+            std::mem::take(base_old),
+            SourceLocation::internal(),
+            self.ids.next_id(),
+        );
+
+        let mut base_new = AstFactory::create_cast_statement(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier(
+                    format!("__vtable_{pou_type_name}"),
+                    SourceLocation::internal(),
+                    self.ids.next_id(),
+                ),
+                None,
+                self.ids.next_id(),
+            ),
+            base_old_paren,
+            &SourceLocation::internal(),
+            self.ids.next_id(),
+        );
+
+        std::mem::swap(base_old, &mut base_new);
+    }
+
+    // `__vtable_{POU_NAME}#(ref^.__vtable^).foo()` -> `__vtable_{POU_NAME}#(ref^.__vtable^).foo^()`
+    fn patch_method_call_deref(&mut self, node: &mut AstNode) {
+        let mut base_new = AstFactory::create_deref_reference(
+            std::mem::take(node),
+            self.ids.next_id(),
+            SourceLocation::internal(),
+        );
+
+        std::mem::swap(node, &mut base_new);
+    }
+}
+
+impl AstVisitorMut for PolymorphicCallDesugarer {
+    fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
+        if implementation.location.is_internal() {
+            return;
+        }
+
+        self.in_method_or_function_block = match &implementation.pou_type {
+            PouType::FunctionBlock => Some(implementation.name.clone()),
+            PouType::Method { parent, .. } => Some(parent.clone()),
+            _ => None,
+        };
+
+        for statement in &mut implementation.statements {
+            statement.walk(self);
+        }
+
+        self.in_method_or_function_block = None;
+    }
+
+    fn visit_call_statement(&mut self, node: &mut plc_ast::ast::AstNode) {
+        // When dealing with a function call such as `ref^.foo()` we have to perform several steps to desugar
+        // it into a form that can be executed by the codegen without any intervention from our side, namely:
+        // 1. We must add the expression (excluding the method name) as the first argument to the call
+        //    -> ref^.foo(ref^)
+        // 2. We must access the virtual table of the instance, a VOID pointer
+        //    -> ref^.__vtable^.foo(ref^)
+        // 3. We must cast the virtual table access into a concrete type
+        //    -> __vtable_XXX#(ref^.__vtable^).foo(ref^)
+        // 4. We must dereference the method call, which is a function pointer
+        //    -> __vtable_XXX#(ref^.__vtable^).foo^(ref^)
+        //
+        // The final result transforms ref^.foo() into __vtable_XXX#(ref^.__vtable^).foo^(ref^)
+        let prev = node.as_string();
+        let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
+            unreachable!();
+        };
+
+        // We need to walk the parameters before deciding to potentially stop here, because parameters may
+        // also contain polymorphic calls that need to be desugared, e.g. `functionCall(methodCall())`
+        if let Some(ref mut parameters) = parameters {
+            parameters.walk(self);
+        }
+
+        if !self.is_polymorphic_call_candidate(&operator) {
+            return;
+        };
+
+        let index = self.index.as_ref().unwrap();
+        let annotations = self.annotations.as_ref().unwrap();
+
+        let unit_name = match self.in_method_or_function_block {
+            Some(ref name) => name.clone(),
+            None => annotations.get_type(operator.get_base().unwrap(), index).unwrap().get_name().to_string(),
+        };
+
+        // Step -1: Patch in a `__body` / `__main` call
+        if operator.is_this() || operator.is_this_deref() {
+            if false {
+                todo!("patch a `__body` access such that `THIS^()` becomes `THIS^.__body()`")
+            }
+
+            return; // Don't desugar THIS and function block calls for now
+        }
+
+        // Step 0: Add a `THIS^` base when dealing with method calls without a base
+        self.maybe_patch_this_base(operator);
+        log::trace!("2: {}", operator.as_string());
+
+        // Step 1: Add the expression (excluding the method name) as the first argument to the call
+        self.patch_instance_argument(operator, parameters);
+        log::trace!("3: {}", operator.as_string());
+
+        // Step 2: Patch a dereferenced virtual table access into the operator
+        self.patch_vtable_access(operator);
+        log::trace!("4: {}", operator.as_string());
+
+        // Step 3: Patch the virtual table cast into the operator
+        self.patch_vtable_cast(operator, &unit_name);
+        log::trace!("5: {}", operator.as_string());
+
+        // Step 4: Patch the method call to a dereferenced call
+        self.patch_method_call_deref(operator);
+        log::trace!("6: {}", operator.as_string());
+
+        log::debug!("desugared `{}` into `{}`", prev, node.as_string());
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use driver::parse_and_annotate;
+    use plc_source::SourceCode;
+
+    fn desugared_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {
+        let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
+        let unit = project.units[0].get_unit();
+
+        let mut result = Vec::new();
+        for pou in pous {
+            result.push(format!("// Statements in {pou}"));
+            let statements = &unit.implementations.iter().find(|it| &it.name == pou).unwrap().statements;
+            let statements_str = statements.iter().map(|statement| statement.as_string()).collect::<Vec<_>>();
+
+            result.extend(statements_str);
+        }
+
+        result
+    }
+
+    #[test]
+    fn arguments_are_untouched() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                VAR
+                    localIn, localOut, localInout: DINT;
+                END_VAR
+
+                METHOD alpha
+                END_METHOD
+
+                METHOD bravo
+                    VAR_INPUT
+                        in: DINT;
+                    END_VAR
+                END_METHOD
+
+                METHOD charlie
+                    VAR_INPUT
+                        in: DINT;
+                    END_VAR
+
+                    VAR_OUTPUT
+                        out: DINT;
+                    END_VAR
+                END_METHOD
+
+                METHOD delta
+                    VAR_INPUT
+                        in: DINT;
+                    END_VAR
+
+                    VAR_OUTPUT
+                        out: DINT;
+                    END_VAR
+
+                    VAR_IN_OUT
+                        inout: DINT;
+                    END_VAR
+                END_METHOD
+
+                alpha();
+
+                bravo(1);
+                bravo(localIn);
+
+                bravo(in := 1);
+                bravo(in := localIn);
+
+                charlie(1, localOut);
+                charlie(localIn, localOut);
+
+                charlie(in := 1, out => localOut);
+                charlie(in := localIn, out => localOut);
+
+                delta(1, localOut, localInout);
+                delta(localIn, localOut, localInout);
+
+                delta(in := 1, out => localOut, inout := localInout);
+                delta(inout := localInout, in := localIn, out => localOut);
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["A"]), @r#"
+        [
+            "// Statements in A",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, 1)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, localIn)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, in := 1)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, in := localIn)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, 1, localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, localIn, localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, in := 1, out => localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, in := localIn, out => localOut)",
+            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, 1, localOut, localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, localIn, localOut, localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, in := 1, out => localOut, inout := localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, inout := localInout, in := localIn, out => localOut)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_with_defined_base_are_untouched() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    instanceA: A;
+                END_VAR
+
+                METHOD bravo
+                    instanceA.alpha();
+                END_METHOD
+
+                instanceA.alpha();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["B", "B.bravo"]), @r#"
+        [
+            "// Statements in B",
+            "instanceA.alpha()",
+            "// Statements in B.bravo",
+            "instanceA.alpha()",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn this_call() {
+        let _source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                    THIS^();
+                END_METHOD
+
+                THIS^();
+            END_FUNCTION_BLOCK
+        "#;
+
+        todo!("should be  `__vtable_A#(THIS^.__vtable^).__body^(THIS^)`");
+        // insta::assert_debug_snapshot!(desugared_statements(source, &["A", "A.alpha"]), @r#""#);
+    }
+
+    #[test]
+    fn method_calls_with_this_base() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                    THIS^.alpha();
+                END_METHOD
+
+                THIS^.alpha();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["A", "A.alpha"]), @r#"
+        [
+            "// Statements in A",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "// Statements in A.alpha",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_with_this_base_in_child_pous() {
+        let source = r#"
+            FUNCTION_BLOCK A
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B EXTENDS A
+                METHOD bravo
+                    THIS^.alpha();
+                    THIS^.bravo();
+                END_METHOD
+
+                THIS^.alpha();
+                THIS^.bravo();
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK C EXTENDS B
+                METHOD charlie
+                    THIS^.alpha();
+                    THIS^.bravo();
+                    THIS^.charlie();
+                END_METHOD
+
+                THIS^.alpha();
+                THIS^.bravo();
+                THIS^.charlie();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["B", "B.bravo", "C", "C.charlie"]), @r#"
+        [
+            "// Statements in B",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_B#(THIS^.__A.__vtable^).bravo^(THIS^)",
+            "// Statements in B.bravo",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_B#(THIS^.__A.__vtable^).bravo^(THIS^)",
+            "// Statements in C",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+            "// Statements in C.charlie",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_with_super_base_are_untouched() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B EXTENDS A
+                METHOD bravo
+                    SUPER^.alpha();
+                END_METHOD
+
+                SUPER^.alpha();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["B", "B.bravo"]), @r#"
+        [
+            "// Statements in B",
+            "__A.alpha()",
+            "// Statements in B.bravo",
+            "__A.alpha()",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn function_block_body_call() {
+        let _source = r#"
+            FUNCTION_BLOCK A
+                THIS^();
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refInstanceA: POINTER TO A;
+                END_VAR
+
+                refInstanceA^();
+            END_FUNCTION
+        "#;
+
+        todo!("incorrect as of now, fix this once body calls have been implemented");
+        // insta::assert_debug_snapshot!(desugared_statements(source, &["A", "main"]), @r#""#);
+    }
+
+    #[test]
+    fn method_calls_within_methods() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                    bravo();
+                END_METHOD
+
+                METHOD bravo
+                    alpha();
+                END_METHOD
+
+                alpha();
+                bravo();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["A", "A.alpha", "A.bravo"]), @r#"
+        [
+            "// Statements in A",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^)",
+            "// Statements in A.alpha",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^)",
+            "// Statements in A.bravo",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_within_methods_inheritance() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                END_METHOD
+                
+                alpha();
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B EXTENDS A
+                METHOD bravo
+                    alpha();
+                END_METHOD
+                
+                alpha();
+                bravo();
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK C EXTENDS B
+                METHOD bravo
+                    // Overridden
+                    alpha();
+                    charlie();
+                END_METHOD
+
+                METHOD charlie
+                    alpha();
+                    bravo();
+                END_METHOD
+
+                alpha();
+                bravo();
+                charlie();
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(
+            desugared_statements(source, &["A", "A.alpha", "B", "B.bravo", "C", "C.bravo", "C.charlie"]),
+            @r#"
+        [
+            "// Statements in A",
+            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "// Statements in A.alpha",
+            "// Statements in B",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_B#(THIS^.__A.__vtable^).bravo^(THIS^)",
+            "// Statements in B.bravo",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
+            "// Statements in C",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+            "// Statements in C.bravo",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+            "// Statements in C.charlie",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
+        ]
+        "#
+        );
+    }
+
+    #[test]
+    fn method_call_as_argument() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha: DINT
+                    alpha := 5;
+                END_METHOD
+
+                METHOD bravo
+                    VAR_INPUT
+                        in: DINT;
+                    END_VAR
+                END_METHOD
+
+                bravo(alpha());
+            END_FUNCTION_BLOCK
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["A"]), @r#"
+        [
+            "// Statements in A",
+            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, __vtable_A#(THIS^.__vtable^).alpha^(THIS^))",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn method_calls_through_pointer_variables() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                METHOD alpha
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B EXTENDS A
+                METHOD bravo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK C EXTENDS B
+                METHOD charlie
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION operateOnA
+                VAR_IN_OUT
+                    refInstanceA: POINTER TO A;
+                END_VAR
+
+                refInstanceA^.alpha();
+            END_FUNCTION
+
+            FUNCTION main
+                VAR
+                    refInstanceA: POINTER TO A;
+                    refInstanceB: POINTER TO B;
+                    refInstanceC: POINTER TO C;
+
+                    refInstanceArrayA: ARRAY[1..5] OF POINTER TO A;
+                    refInstanceArrayB: ARRAY[1..5] OF POINTER TO B;
+                    refInstanceArrayC: ARRAY[1..5] OF POINTER TO C;
+                END_VAR
+
+                refInstanceA^.alpha();
+                refInstanceB^.bravo();
+                refInstanceC^.charlie();
+
+                refInstanceArrayA[1]^.alpha();
+                refInstanceArrayB[1]^.bravo();
+                refInstanceArrayC[1]^.charlie();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["main", "operateOnA"]), @r#"
+        [
+            "// Statements in main",
+            "__vtable_A#(refInstanceA^.__vtable^).alpha^(refInstanceA^)",
+            "__vtable_B#(refInstanceB^.__A.__vtable^).bravo^(refInstanceB^)",
+            "__vtable_C#(refInstanceC^.__B.__A.__vtable^).charlie^(refInstanceC^)",
+            "__vtable_A#(refInstanceArrayA[1]^.__vtable^).alpha^(refInstanceArrayA[1]^)",
+            "__vtable_B#(refInstanceArrayB[1]^.__A.__vtable^).bravo^(refInstanceArrayB[1]^)",
+            "__vtable_C#(refInstanceArrayC[1]^.__B.__A.__vtable^).charlie^(refInstanceArrayC[1]^)",
+            "// Statements in operateOnA",
+            "__vtable_A#(refInstanceA^.__vtable^).alpha^(refInstanceA^)",
+        ]
+        "#);
+    }
+}

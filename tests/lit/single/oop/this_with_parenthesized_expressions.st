@@ -65,5 +65,6 @@ FUNCTION main: INT
 VAR
     inst: fb;
 END_VAR
+    inst.__vtable := ADR(__vtable_fb_instance); // FIXME: Remove
     inst.test();
 END_FUNCTION

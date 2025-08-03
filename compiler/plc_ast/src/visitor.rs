@@ -416,6 +416,18 @@ pub trait AstVisitor: Sized {
     /// * `stmt` - The unwraped, typed `Allocation` node to visit.
     /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
     fn visit_allocation(&mut self, _stmt: &Allocation, _node: &AstNode) {}
+
+    /// Visits a `Super` node.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `Super` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_super(&mut self, _stmt: &AstStatement, _node: &AstNode) {}
+
+    /// Visits a `This` node.
+    /// # Arguments
+    /// * `stmt` - The unwraped, typed `This` node to visit.
+    /// * `node` - The wrapped `AstNode` node to visit. Offers access to location information and AstId
+    fn visit_this(&mut self, _stmt: &AstStatement, _node: &AstNode) {}
 }
 
 /// Helper method that walks through a slice of `ConditionalBlock` and applies the visitor's `walk` method to each node.
@@ -610,8 +622,10 @@ impl Walker for AstNode {
             AstStatement::JumpStatement(stmt) => visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) => visitor.visit_label_statement(stmt, node),
             AstStatement::AllocationStatement(stmt) => visitor.visit_allocation(stmt, node),
-            AstStatement::Super(_) => {}
-            AstStatement::This => {}
+
+            // These calls are probably wrong, I just need them for formatting a node back to user code
+            AstStatement::Super(_) => visitor.visit_super(&self.stmt, node),
+            AstStatement::This => visitor.visit_this(&self.stmt, node),
         }
     }
 }

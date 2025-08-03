@@ -382,6 +382,7 @@ fn void_pointer_casting() {
 
             vtable_FbA#(instanceFbA.__vtable);
             vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
+            instanceFbA.foo();
         END_FUNCTION
         ",
         id_provider.clone(),
