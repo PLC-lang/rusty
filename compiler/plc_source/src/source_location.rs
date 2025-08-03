@@ -413,11 +413,16 @@ impl SourceLocation {
     }
 
     pub fn is_internal(&self) -> bool {
-        self.file.is_internal()
+        matches!(self.file, FileMarker::Internal(_)) | matches!(self.span, CodeSpan::None)
     }
 
     pub fn is_builtin_internal(&self) -> bool {
         self.file.is_internal() && self.span == CodeSpan::None
+    }
+
+    // TODO: hmm, we definitely need at least one more is_internal function; fix before merge
+    pub fn is_internal_the_100th(&self) -> bool {
+        self.span == CodeSpan::None
     }
 
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {

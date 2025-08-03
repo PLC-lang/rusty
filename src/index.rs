@@ -2211,7 +2211,11 @@ impl Index {
     /// `B` to `A` will still call method `foo` rather than `bar`. If not, e.g. [`B.bar`, `B.foo`] is used,
     /// the upcasting to `A` would result calling `B.bar` when we have a call such as `reInstance^.foo()`
     pub fn get_methods_in_fixed_order(&self, container: &str) -> Vec<&PouIndexEntry> {
-        let res = self.get_methods_recursive_in_fixed_order(container, FxIndexMap::default());
+        let res = self.get_methods_recursive_in_fixed_order(
+            container,
+            FxIndexMap::default(),
+            &mut FxHashSet::default(),
+        );
         res.into_values().collect()
     }
 
@@ -2220,11 +2224,16 @@ impl Index {
         &'b self,
         container: &str,
         mut collected: FxIndexMap<&'b str, &'b PouIndexEntry>,
+        seen: &mut FxHashSet<&'b str>,
     ) -> FxIndexMap<&'b str, &'b PouIndexEntry> {
         if let Some(pou) = self.find_pou(container) {
             if let Some(super_class) = pou.get_super_class() {
+                if !seen.insert(super_class) {
+                    return collected;
+                }
+
                 // We want to recursively climb up the inheritance chain before collecting methods
-                collected = self.get_methods_recursive_in_fixed_order(super_class, collected);
+                collected = self.get_methods_recursive_in_fixed_order(super_class, collected, seen);
             }
 
             let methods = self

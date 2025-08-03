@@ -203,8 +203,7 @@ fn class_with_var_non_retain_block() {
     assert_eq!(unit.implementations.len(), 1);
 
     let vblock = &class.variable_blocks[0];
-    assert_eq!(vblock.variables.len(), 0);
-
+    assert_eq!(vblock.variables.len(), 0); // Internal VTable member
     assert_eq!(vblock.retain, false);
     assert_eq!(vblock.constant, true);
     assert_eq!(vblock.access, AccessModifier::Public);

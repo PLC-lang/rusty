@@ -159,7 +159,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     let results = compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(5)).unwrap();
 
     // THEN the constant is marked as constant in the generated code
-    filtered_assert_snapshot!(results.join("\n"), @r###"
+    filtered_assert_snapshot!(results.join("\n"), @r#"
     ; ModuleID = 'external_file1.st'
     source_filename = "external_file1.st"
     target datalayout = "[filtered]"
@@ -194,9 +194,9 @@ fn forward_declared_constant_is_also_marked_constant() {
 
     declare void @__init_foo(%foo*)
 
-    declare !dbg !24 void @__user_init_foo(%foo*)
+    declare void @__user_init_foo(%foo*)
 
-    declare !dbg !29 void @mainProg(%mainProg*)
+    declare !dbg !24 void @mainProg(%mainProg*)
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -234,17 +234,12 @@ fn forward_declared_constant_is_also_marked_constant() {
     !21 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !11, file: !11, line: 12, type: !22, scopeLine: 16, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
     !22 = !DISubroutineType(flags: DIFlagPublic, types: !23)
     !23 = !{null, !10}
-    !24 = distinct !DISubprogram(name: "__user_init_foo", linkageName: "__user_init_foo", scope: !25, file: !25, type: !26, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !25 = !DIFile(filename: "__initializers", directory: "")
-    !26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
-    !27 = !{null, !28}
-    !28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_foo", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-    !29 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !11, file: !11, line: 6, type: !30, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
-    !31 = !{null, !32, !14}
-    !32 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !11, file: !11, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !33, identifier: "mainProg")
-    !33 = !{!34}
-    !34 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !11, file: !11, line: 8, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
+    !24 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !11, file: !11, line: 6, type: !25, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !25 = !DISubroutineType(flags: DIFlagPublic, types: !26)
+    !26 = !{null, !27, !14}
+    !27 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !11, file: !11, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !28, identifier: "mainProg")
+    !28 = !{!29}
+    !29 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !11, file: !11, line: 8, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
 
     ; ModuleID = 'external_file2.st'
     source_filename = "external_file2.st"
@@ -380,5 +375,5 @@ fn forward_declared_constant_is_also_marked_constant() {
     declare void @mainProg(%mainProg*)
 
     declare void @__user_init_mainProg(%mainProg*)
-    "###);
+    "#);
 }
