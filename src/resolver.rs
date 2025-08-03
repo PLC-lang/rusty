@@ -1043,7 +1043,6 @@ impl AnnotationMapImpl {
     }
 
     pub fn annotate_type_hint(&mut self, s: &AstNode, annotation: StatementAnnotation) {
-        dbg!(&s, &annotation);
         self.type_hint_map.insert(s.get_id(), annotation);
     }
 
@@ -2220,7 +2219,6 @@ impl<'i> TypeAnnotator<'i> {
     }
 
     fn visit_call_statement(&mut self, statement: &AstNode, ctx: &VisitorContext) {
-        dbg!(&statement);
         let (operator, parameters_stmt) = if let AstStatement::CallStatement(data, ..) = statement.get_stmt()
         {
             (data.operator.as_ref(), data.parameters.as_deref())

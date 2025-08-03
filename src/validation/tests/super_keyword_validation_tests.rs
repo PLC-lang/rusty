@@ -1268,6 +1268,12 @@ fn super_dereferencing_with_method_calls() {
        │
     19 │                 x := SUPER.get_value();    // Trying to call method on pointer
        │                            ^^^^^^^^^ `SUPER` must be dereferenced to access its members.
+
+    error[E037]: Invalid assignment: cannot assign 'get_value' to 'parent'
+       ┌─ <internal>:20:17
+       │
+    20 │                 p2 := SUPER^.get_value;    // Method call missing ()
+       │                 ^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'get_value' to 'parent'
     ");
 }
 
