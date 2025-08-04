@@ -1034,7 +1034,32 @@
 <a href="#1033" id="1033">1033</a>
 <a href="#1034" id="1034">1034</a>
 <a href="#1035" id="1035">1035</a>
-<a href="#1036" id="1036">1036</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#1036" id="1036">1036</a>
+<a href="#1037" id="1037">1037</a>
+<a href="#1038" id="1038">1038</a>
+<a href="#1039" id="1039">1039</a>
+<a href="#1040" id="1040">1040</a>
+<a href="#1041" id="1041">1041</a>
+<a href="#1042" id="1042">1042</a>
+<a href="#1043" id="1043">1043</a>
+<a href="#1044" id="1044">1044</a>
+<a href="#1045" id="1045">1045</a>
+<a href="#1046" id="1046">1046</a>
+<a href="#1047" id="1047">1047</a>
+<a href="#1048" id="1048">1048</a>
+<a href="#1049" id="1049">1049</a>
+<a href="#1050" id="1050">1050</a>
+<a href="#1051" id="1051">1051</a>
+<a href="#1052" id="1052">1052</a>
+<a href="#1053" id="1053">1053</a>
+<a href="#1054" id="1054">1054</a>
+<a href="#1055" id="1055">1055</a>
+<a href="#1056" id="1056">1056</a>
+<a href="#1057" id="1057">1057</a>
+<a href="#1058" id="1058">1058</a>
+<a href="#1059" id="1059">1059</a>
+<a href="#1060" id="1060">1060</a>
+<a href="#1061" id="1061">1061</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1479,7 +1504,19 @@
             .map(|it| it.to_owned())
     }
 
-    <span class="kw">fn </span>create_string_type(
+    <span class="doccomment">/// Creates debug information for string types using an array + typedef approach.
+    ///
+    /// This function generates DWARF debug metadata for string types by creating:
+    /// 1. A character array type based on the string's encoding (CHAR for UTF-8, WCHAR for UTF-16)
+    /// 2. A typedef with a unique name based on encoding and length (e.g., "__STRING__81", "__WSTRING__26")
+    ///
+    /// ## Typedef Naming
+    ///
+    /// The typedef uses the `__STRING__&lt;grapheme count&gt;` or `__WSTRING__&lt;grapheme count&gt;` pattern where:
+    /// - Double underscore prefix avoids clashing with user-defined types (reserved for compiler internals)
+    /// - Length suffix ensures each string type has a unique DWARF reference
+    /// - Consistent pattern enables easy detection by DWARF parsers
+    </span><span class="kw">fn </span>create_string_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         name: <span class="kw-2">&amp;</span>str,
         length: i64,
@@ -1488,24 +1525,37 @@
         index: <span class="kw-2">&amp;</span>Index,
         types_index: <span class="kw-2">&amp;</span>LlvmTypedIndex,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="comment">// Register a utf8 or 16 basic type
-        </span><span class="kw">let </span>inner_type = <span class="kw">match </span>encoding {
+        <span class="kw">let </span>char_datatype = <span class="kw">match </span>encoding {
             StringEncoding::Utf8 =&gt; index.get_effective_type_or_void_by_name(CHAR_TYPE),
             StringEncoding::Utf16 =&gt; index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
-        <span class="kw">let </span>inner_type = <span class="self">self</span>.get_or_create_debug_type(inner_type, index, types_index)<span class="question-mark">?</span>;
-        <span class="kw">let </span>llvm_type = types_index.get_associated_type(name)<span class="question-mark">?</span>;
-        <span class="kw">let </span>align_bits = <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>llvm_type) * <span class="number">8</span>;
-        <span class="comment">//Register an array
-        </span><span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
-            inner_type.into(),
+
+        <span class="kw">let </span>char_debug_type = <span class="self">self</span>.get_or_create_debug_type(char_datatype, index, types_index)<span class="question-mark">?</span>;
+        <span class="kw">let </span>array_align_bits =
+            <span class="self">self</span>.target_data.get_preferred_alignment(<span class="kw-2">&amp;</span>types_index.get_associated_type(name)<span class="question-mark">?</span>) * <span class="number">8</span>;
+        <span class="kw">let </span>array_type = <span class="self">self</span>.debug_info.create_array_type(
+            char_debug_type.into(),
             size,
-            align_bits,
+            array_align_bits,
             <span class="attr">#[allow(clippy::single_range_in_vec_init)]
-            </span><span class="kw-2">&amp;</span>[(<span class="number">0</span>..length)],
+            </span><span class="kw-2">&amp;</span>[<span class="number">0</span>..length],
+        );
+        <span class="kw">let </span>typedef_name = <span class="kw">match </span>encoding {
+            StringEncoding::Utf8 =&gt; <span class="macro">format!</span>(<span class="string">"__STRING__{}"</span>, length),
+            StringEncoding::Utf16 =&gt; <span class="macro">format!</span>(<span class="string">"__WSTRING__{}"</span>, length),
+        };
+
+        <span class="kw">let </span>file = <span class="self">self</span>.compile_unit.get_file();
+        <span class="kw">let </span>string_typedef = <span class="self">self</span>.debug_info.create_typedef(
+            array_type.as_type(),
+            <span class="kw-2">&amp;</span>typedef_name,
+            file,
+            <span class="number">0</span>, <span class="comment">// Line 0 for built-in types
+            </span>file.as_debug_info_scope(),
+            array_align_bits,
         );
 
-        <span class="self">self</span>.register_concrete_type(name, DebugType::Composite(array_type));
+        <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(string_typedef));
         <span class="prelude-val">Ok</span>(())
     }
 
