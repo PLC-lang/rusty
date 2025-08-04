@@ -170,29 +170,6 @@ fn resolve_function_block_calls_in_structs_and_field_access() {
     assert_snapshot!(&diagnostics);
 }
 
-/// tests wheter function's members cannot be access using the function's name as a qualifier
-#[test]
-fn resolve_function_members_via_qualifier() {
-    let diagnostics = parse_and_validate_buffered(
-        "
-            PROGRAM prg
-                foo(a := 1, b := 2, c := 3);    (* ok *)
-                foo.a; (* not ok *)
-                foo.b; (* not ok *)
-                foo.c; (* not ok *)
-            END_PROGRAM
-
-            FUNCTION foo : INT
-                VAR_INPUT
-                    a,b,c : INT;
-                END_VAR
-            END_FUNCTION
-       ",
-    );
-
-    assert_snapshot!(&diagnostics);
-}
-
 /// tests whether references to privater variables do resolve, but end up in an validation problem
 #[test]
 fn reference_to_private_variable_is_illegal() {

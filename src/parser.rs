@@ -1007,8 +1007,13 @@ fn parse_type_reference_type_definition(
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.range().start;
-    //Subrange
-    let referenced_type = lexer.slice_and_advance();
+
+    let mut referenced_type = lexer.slice_and_advance();
+
+    // REMOVE THIS BEFORE MERGE, ONLY USED FOR PROTOTYPE ITERATION (there will be no parsing of such expressions from the desugaring POV)
+    if lexer.try_consume(KeywordDot) {
+        referenced_type = format!("{referenced_type}.{}", lexer.slice_and_advance());
+    }
 
     let bounds = if lexer.try_consume(KeywordParensOpen) {
         // INT (..) :=

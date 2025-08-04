@@ -1397,6 +1397,16 @@ impl AstNode {
     pub fn with_metadata(self, metadata: MetaData) -> AstNode {
         AstNode { metadata: Some(metadata), ..self }
     }
+
+    pub fn get_deref_expr(&self) -> Option<&ReferenceExpr> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(expr) => match expr {
+                ReferenceExpr { access: ReferenceAccess::Deref, .. } => Some(expr),
+                _ => None,
+            },
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
