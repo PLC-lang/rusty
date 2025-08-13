@@ -2246,22 +2246,29 @@ impl<'i> TypeAnnotator<'i> {
             self.annotate_call_statement(operator, parameters_stmt, &ctx);
         };
 
-        if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
-            if let Some(return_type) = self
-                .index
-                .find_effective_type_by_name(return_type)
-                .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
-            {
-                if let Some(StatementAnnotation::ReplacementAst { .. }) = self.annotation_map.get(statement) {
-                    // if we have a replacement ast, we do not need to annotate the function return type as it would
-                    // overwrite the replacement ast
-                    return;
+        match self.annotation_map.get(operator) {
+            Some(StatementAnnotation::Function { return_type, .. })
+            | Some(StatementAnnotation::FunctionPointer { return_type, .. }) => {
+                if let Some(return_type) = self
+                    .index
+                    .find_effective_type_by_name(return_type)
+                    .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
+                {
+                    if let Some(StatementAnnotation::ReplacementAst { .. }) =
+                        self.annotation_map.get(statement)
+                    {
+                        // if we have a replacement ast, we do not need to annotate the function return type as it would
+                        // overwrite the replacement ast
+                        return;
+                    }
+                    self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+                } else {
+                    // Assuming this is a VOID function if no annotation is present
+                    self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
                 }
-                self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
-            } else {
-                // Assuming this is a VOID function if no annotation is present
-                self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
+
+            _ => (),
         }
     }
 

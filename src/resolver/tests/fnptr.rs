@@ -50,7 +50,13 @@ fn function_pointer_method_with_no_arguments() {
 
         // echoPtr^();
         // ^^^^^^^^^^
-        insta::assert_debug_snapshot!(annotations.get(node), @"None");
+        insta::assert_debug_snapshot!(annotations.get(node), @r#"
+        Some(
+            Value {
+                resulting_type: "DINT",
+            },
+        )
+        "#);
     }
 }
 
@@ -112,7 +118,13 @@ fn function_pointer_method_with_arguments() {
 
         // echoPtr^();
         // ^^^^^^^^^^
-        insta::assert_debug_snapshot!(annotations.get(&statements[0]), @"None");
+        insta::assert_debug_snapshot!(annotations.get(&statements[0]), @r#"
+        Some(
+            Value {
+                resulting_type: "DINT",
+            },
+        )
+        "#);
     }
 
     // echoPtr^(instanceFb, localIn, localOut, localInOut);
@@ -190,6 +202,16 @@ fn function_pointer_method_with_arguments() {
                     Local,
                 ),
                 auto_deref: None,
+            },
+        )
+        "#);
+
+        // echoPtr^(instanceFb, localIn, localOut, localInOut);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(&statements[1]), @r#"
+        Some(
+            Value {
+                resulting_type: "DINT",
             },
         )
         "#);
@@ -349,7 +371,7 @@ fn void_pointer_casting() {
                 __vtable: POINTER TO __VOID;
             END_VAR
 
-            METHOD foo
+            METHOD foo: DINT
             END_METHOD
         END_FUNCTION_BLOCK
 
@@ -416,12 +438,27 @@ fn void_pointer_casting() {
         insta::assert_debug_snapshot!(annotations.get(&call.operator), @r#"
         Some(
             FunctionPointer {
-                return_type: "VOID",
+                return_type: "DINT",
                 qualified_name: "FbA.foo",
             },
         )
         "#);
         insta::assert_debug_snapshot!(annotations.get_hint(&call.operator), @"None");
+    }
+
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[1];
+
+        // vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
+        // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(&node), @r#"
+        Some(
+            Value {
+                resulting_type: "DINT",
+            },
+        )
+        "#);
+        insta::assert_debug_snapshot!(annotations.get_hint(&node), @"None");
     }
 }
 
