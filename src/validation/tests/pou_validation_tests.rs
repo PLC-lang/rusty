@@ -225,14 +225,19 @@ fn assigning_return_value_to_void_functions_returns_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E093]: Function declared as VOID, but trying to assign a return value
       ┌─ <internal>:3:9
       │
     3 │         foo := 1;
       │         ^^^^^^^^ Function declared as VOID, but trying to assign a return value
 
-    "###);
+    error[E037]: Invalid assignment: cannot assign 'DINT' to 'foo'
+      ┌─ <internal>:3:9
+      │
+    3 │         foo := 1;
+      │         ^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'foo'
+    ");
 }
 
 #[test]

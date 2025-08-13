@@ -246,20 +246,37 @@ function run_package_std() {
             cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files"
             # Create an SO file from the copied a file
             log "Creating a shared library from the compiled static library"
-            log "Running : $cc --shared -L$lib_dir \
-                -Wl,--whole-archive -liec61131std \
-                -o $lib_dir/out.so -Wl,--no-whole-archive \
-                -lm \
-                -fuse-ld=lld \
-                --target=$val"
-            $cc --shared -L"$lib_dir" \
-                -Wl,--whole-archive -liec61131std \
-                -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-                -lm \
-                -fuse-ld=lld \
-                --target="$val"
+            # Check if we're on macOS and adjust linker flags accordingly
+            unameOut="$(uname -s)"
+            case "${unameOut}" in
+                Darwin*)
+                    log "Running : $cc --shared -L$lib_dir \
+                        -Wl,-force_load,$lib_dir/libiec61131std.a \
+                        -o $lib_dir/libiec61131std.so \
+                        -lm -framework CoreFoundation \
+                        --target=$val"
+                    $cc --shared -L"$lib_dir" \
+                        -Wl,-force_load,"$lib_dir/libiec61131std.a" \
+                        -o "$lib_dir/libiec61131std.so" \
+                        -lm -framework CoreFoundation \
+                        --target="$val"
+                    ;;
+                *)
+                    log "Running : $cc --shared -L$lib_dir \
+                        -Wl,--whole-archive -liec61131std \
+                        -o $lib_dir/libiec61131std.so -Wl,--no-whole-archive \
+                        -lm \
+                        -fuse-ld=lld \
+                        --target=$val"
+                    $cc --shared -L"$lib_dir" \
+                        -Wl,--whole-archive -liec61131std \
+                        -o "$lib_dir/libiec61131std.so" -Wl,--no-whole-archive \
+                        -lm \
+                        -fuse-ld=lld \
+                        --target="$val"
+                    ;;
+            esac
 
-            mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
         done
     else
         lib_dir=$OUTPUT_DIR/lib
@@ -272,21 +289,36 @@ function run_package_std() {
         cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
         # Create an SO file from the copied a file
         log "Creating a shared library from the compiled static library"
-        log "Running : $cc --shared -L"$lib_dir" \
-            -Wl,--whole-archive -liec61131std \
-            -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-            -lm \
-            -fuse-ld=lld "
-        $cc --shared -L"$lib_dir" \
-            -Wl,--whole-archive -liec61131std \
-            -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-            -lm \
-            -fuse-ld=lld
-        mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+        # Check if we're on macOS and adjust linker flags accordingly
+        unameOut="$(uname -s)"
+        case "${unameOut}" in
+            Darwin*)
+                log "Running : $cc --shared -L"$lib_dir" \
+                    -Wl,-force_load,$lib_dir/libiec61131std.a \
+                    -o "$lib_dir/libiec61131std.so" \
+                    -lm -framework CoreFoundation"
+                $cc --shared -L"$lib_dir" \
+                    -Wl,-force_load,"$lib_dir/libiec61131std.a" \
+                    -o "$lib_dir/libiec61131std.so" \
+                    -lm -framework CoreFoundation
+                ;;
+            *)
+                log "Running : $cc --shared -L"$lib_dir" \
+                    -Wl,--whole-archive -liec61131std \
+                    -o "$lib_dir/libiec61131std.so" -Wl,--no-whole-archive \
+                    -lm \
+                    -fuse-ld=lld "
+                $cc --shared -L"$lib_dir" \
+                    -Wl,--whole-archive -liec61131std \
+                    -o "$lib_dir/libiec61131std.so" -Wl,--no-whole-archive \
+                    -lm \
+                    -fuse-ld=lld
+                ;;
+        esac
     fi
 
     log "Enabling read/write on the output folder"
-    chmod a+rw $OUTPUT_DIR -R
+    chmod -R a+rw $OUTPUT_DIR
 
 }
 
@@ -506,7 +538,7 @@ fi
 
 if [[ -d $project_location/target/ ]]; then
     log "Allow access to target folders"
-    chmod a+rw -R $project_location/target/
+    chmod -R a+rw $project_location/target/
 fi
 
 if [[ $offline -ne 0 ]]; then

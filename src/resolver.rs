@@ -12,7 +12,7 @@ use plc_ast::{
     ast::{
         self, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -307,7 +307,23 @@ impl TypeAnnotator<'_> {
 
         let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
         let mut params = vec![];
-        let mut parameters = parameters.into_iter();
+        let mut parameters = if self.annotation_map.get(operator).is_some_and(|opt| opt.is_fnptr()) {
+            // When dealing with a function pointer (which are only supported in the context of methods), the
+            // first argument will be a instance of the POU, e.g. `fnPtrToMyFbEcho^(instanceFb)`, hence we
+            // must skip the first argument as otherwise the remainig arguments will receive an incorrect type
+            // hint. Again, for example assume we have `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and
+            // we do not skip the first argument. Then, `instanceFB` will have a type-hint of "STRING" and
+            // `stringValue` will have a type-hint on `DINT`. This then results in an error in the codegen.
+            // This is super hacky and ugly imo, but because function pointers are internal only constructs I
+            // think it should be fine (kinda). In a perfect world we would desugar method calls such as
+            // `instanceFb.echo('stringValue', 5)` into `echo(instanceFb, 'stringValue', 5)` and update the
+            // declared parameters to also include the instance parameter. As a positive side-effect it would
+            // result in us not distinguishing between functions and methods in the codegen (though that
+            // currently is not a big deal) but also you not reading this comment :^)
+            parameters[1..].iter()
+        } else {
+            parameters.iter()
+        };
 
         // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
@@ -473,6 +489,20 @@ pub enum StatementAnnotation {
         generic_name: Option<String>,
         /// The call name of the function iff it differs from the qualified name (generics)
         call_name: Option<String>,
+    },
+    /// A pointer to a function, mostly needed for polymorphism where function calls are handled indirectly
+    /// with a virtual table.
+    FunctionPointer {
+        /// The return type name of the function pointer
+        return_type: String,
+
+        // XXX: In classical function pointers such information is not neccessary, e.g. in C you would have
+        //      `<return type> (*<function pointer name>)(<comma seperated arg types>)`, however in ST I
+        //      __think__ it might be neccessary because of named arguments? Obviously this limits the use
+        //      case of function pointers because you'd always reference a concrete function rather than some
+        //      generic function such as `DINT(STRING, INT)`.
+        /// The name of the referenced function, e.g. `MyFb.myMethod` in `POINTER TO MyFb.MyMethod := ADR(...)`
+        qualified_name: String,
     },
     /// a reference to a type (e.g. `INT`)
     Type {
@@ -676,6 +706,18 @@ impl StatementAnnotation {
         StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
+    /// Constructs a new [`StatementAnnotation::FunctionPointer`] with the qualified and return type name
+    pub fn fnptr<T, U>(qualified_name: T, return_type_name: U) -> Self
+    where
+        T: Into<String>,
+        U: Into<String>,
+    {
+        StatementAnnotation::FunctionPointer {
+            return_type: return_type_name.into(),
+            qualified_name: qualified_name.into(),
+        }
+    }
+
     pub fn create_override(definitions: Vec<MethodDeclarationType>) -> Self {
         StatementAnnotation::Override { definitions }
     }
@@ -725,6 +767,7 @@ impl StatementAnnotation {
         match self {
             StatementAnnotation::Variable { qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::FunctionPointer { qualified_name, .. }
             | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
 
             _ => None,
@@ -750,6 +793,10 @@ impl StatementAnnotation {
             StatementAnnotation::Argument { position, .. } => Some(*position as u32),
             _ => None,
         }
+    }
+
+    pub fn is_fnptr(&self) -> bool {
+        matches!(self, StatementAnnotation::FunctionPointer { .. })
     }
 }
 
@@ -847,11 +894,12 @@ pub trait AnnotationMap {
                 .get_hint(statement)
                 .or_else(|| self.get(statement))
                 .and_then(|it| self.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name }
-            | StatementAnnotation::Super { name: qualified_name, .. } => Some(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } => Some(type_name),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Label { .. }
+            StatementAnnotation::Program { qualified_name }
+            | StatementAnnotation::Super { name: qualified_name, .. }
+            | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::FunctionPointer { qualified_name, .. } => Some(qualified_name),
+            StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::Property { .. }
@@ -1547,15 +1595,22 @@ impl<'i> TypeAnnotator<'i> {
         };
         if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
             match datatype.get_type_information() {
-                DataTypeInformation::Struct { members, .. } => {
+                DataTypeInformation::Struct { members, source, .. } => {
                     for member in members {
                         resolved_names =
                             self.get_datatype_dependencies(member.get_type_name(), resolved_names);
                     }
+
+                    if let StructSource::Pou(PouType::Method { parent, .. }) = source {
+                        resolved_names = self.get_datatype_dependencies(parent, resolved_names);
+                    }
+
                     resolved_names
                 }
                 DataTypeInformation::Array { inner_type_name, .. }
                 | DataTypeInformation::Pointer { inner_type_name, .. } => {
+                    resolved_names
+                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
                     self.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 _ => {
@@ -2020,6 +2075,17 @@ impl<'i> TypeAnnotator<'i> {
                         .find_effective_type_by_name(inner_type_name)
                         .or(self.annotation_map.new_index.find_effective_type_by_name(inner_type_name))
                     {
+                        // We might be dealing with a function pointer, e.g. `ptr^(...)`
+                        if let Some(pou) = self.index.find_pou(&inner_type.name) {
+                            if pou.is_method() {
+                                let name = pou.get_name();
+                                let return_type = pou.get_return_type().unwrap();
+
+                                self.annotate(stmt, StatementAnnotation::fnptr(name, return_type));
+                                return;
+                            }
+                        }
+
                         self.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
                     }
                 }
@@ -2059,6 +2125,11 @@ impl<'i> TypeAnnotator<'i> {
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, self.index, ctx, &self.scopes)),
 
+            AstStatement::ReferenceExpr(_) => {
+                self.visit_statement(ctx, reference);
+                self.annotation_map.get(reference).cloned()
+            }
+
             AstStatement::Literal(..) => {
                 self.visit_statement_literals(ctx, reference);
                 let literal_annotation = self.annotation_map.get(reference).cloned(); // return what we just annotated //TODO not elegant, we need to clone
@@ -2082,12 +2153,15 @@ impl<'i> TypeAnnotator<'i> {
                 self.visit_statement(ctx, data.index.as_ref());
                 Some(StatementAnnotation::value(get_direct_access_type(&data.access)))
             }
+
             AstStatement::HardwareAccess(data, ..) => {
                 let name = data.get_mangled_variable_name();
                 ctx.resolve_strategy.iter().find_map(|strategy| {
                     strategy.resolve_name(&name, qualifier, self.index, ctx, &self.scopes)
                 })
             }
+
+            AstStatement::ParenExpression(expr) => self.resolve_reference_expression(expr, qualifier, ctx),
             _ => None,
         }
     }
@@ -2172,22 +2246,29 @@ impl<'i> TypeAnnotator<'i> {
             self.annotate_call_statement(operator, parameters_stmt, &ctx);
         };
 
-        if let Some(StatementAnnotation::Function { return_type, .. }) = self.annotation_map.get(operator) {
-            if let Some(return_type) = self
-                .index
-                .find_effective_type_by_name(return_type)
-                .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
-            {
-                if let Some(StatementAnnotation::ReplacementAst { .. }) = self.annotation_map.get(statement) {
-                    // if we have a replacement ast, we do not need to annotate the function return type as it would
-                    // overwrite the replacement ast
-                    return;
+        match self.annotation_map.get(operator) {
+            Some(StatementAnnotation::Function { return_type, .. })
+            | Some(StatementAnnotation::FunctionPointer { return_type, .. }) => {
+                if let Some(return_type) = self
+                    .index
+                    .find_effective_type_by_name(return_type)
+                    .or_else(|| self.annotation_map.new_index.find_effective_type_by_name(return_type))
+                {
+                    if let Some(StatementAnnotation::ReplacementAst { .. }) =
+                        self.annotation_map.get(statement)
+                    {
+                        // if we have a replacement ast, we do not need to annotate the function return type as it would
+                        // overwrite the replacement ast
+                        return;
+                    }
+                    self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+                } else {
+                    // Assuming this is a VOID function if no annotation is present
+                    self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
                 }
-                self.annotate(statement, StatementAnnotation::value(return_type.get_name()));
-            } else {
-                // Assuming this is a VOID function if no annotation is present
-                self.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
+
+            _ => (),
         }
     }
 
@@ -2198,6 +2279,9 @@ impl<'i> TypeAnnotator<'i> {
             .and_then(|it| match it {
                 StatementAnnotation::Function { qualified_name, call_name, .. } => {
                     call_name.as_ref().cloned().or_else(|| Some(qualified_name.clone()))
+                }
+                StatementAnnotation::FunctionPointer { qualified_name, .. } => {
+                    Some(qualified_name.clone())
                 }
                 StatementAnnotation::Program { qualified_name } => Some(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } => {

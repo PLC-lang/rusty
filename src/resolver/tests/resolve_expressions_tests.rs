@@ -1121,7 +1121,7 @@ fn pou_expressions_resolve_types() {
     let statements = &unit.implementations[3].statements;
 
     //Functions and Functionblocks should not resolve to a type
-    let expected_types = vec!["OtherPrg", VOID_TYPE, "OtherFuncBlock"];
+    let expected_types = vec!["OtherPrg", "OtherFunc", "OtherFuncBlock"];
     let type_names: Vec<&str> =
         statements.iter().map(|s| annotations.get_type_or_void(s, &index).get_name()).collect();
     assert_eq!(format!("{expected_types:?}"), format!("{type_names:?}"));
@@ -1288,35 +1288,75 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
 
     //WHEN the AST is annotated
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
-    let statements = &unit.implementations[1].statements;
 
-    // THEN we expect it to be annotated with the function itself
-    let foo_annotation = annotations.get(&statements[0]);
-    assert_eq!(
-        Some(&StatementAnnotation::Function {
-            qualified_name: "foo".into(),
-            return_type: "INT".into(),
+    insta::assert_debug_snapshot!(annotations.get(&unit.implementations[0].statements[0]), @r#"
+    Some(
+        Variable {
+            resulting_type: "INT",
+            qualified_name: "foo.foo",
+            constant: false,
+            argument_type: ByVal(
+                Return,
+            ),
+            auto_deref: None,
+        },
+    )
+    "#);
+
+    insta::assert_debug_snapshot!(annotations.get(&unit.implementations[1].statements[0]), @r#"
+    Some(
+        Function {
+            return_type: "INT",
+            qualified_name: "foo",
             generic_name: None,
             call_name: None,
-        }),
-        foo_annotation
-    );
-    // AND we expect no type to be associated with the expression
-    let associated_type = annotations.get_type(&statements[0], &index);
-    assert_eq!(None, associated_type);
-
-    let statements = &unit.implementations[0].statements;
-    let foo_annotation = annotations.get(&statements[0]);
-    assert_eq!(
-        Some(&StatementAnnotation::Variable {
-            qualified_name: "foo.foo".into(),
-            resulting_type: "INT".into(),
-            constant: false,
-            argument_type: ArgumentType::ByVal(VariableType::Return),
-            auto_deref: None,
-        }),
-        foo_annotation
-    );
+        },
+    )
+    "#);
+    insta::assert_debug_snapshot!(annotations.get_type(&unit.implementations[1].statements[0], &index), @r#"
+    Some(
+        DataType {
+            name: "foo",
+            initial_value: None,
+            information: Struct {
+                name: "foo",
+                members: [
+                    VariableIndexEntry {
+                        name: "foo",
+                        qualified_name: "foo.foo",
+                        initial_value: None,
+                        argument_type: ByVal(
+                            Return,
+                        ),
+                        is_constant: false,
+                        is_var_external: false,
+                        data_type_name: "INT",
+                        location_in_parent: 0,
+                        linkage: Internal,
+                        binding: None,
+                        source_location: SourceLocation {
+                            span: Range(1:17 - 1:20),
+                            file: Some(
+                                "<internal>",
+                            ),
+                        },
+                        varargs: None,
+                    },
+                ],
+                source: Pou(
+                    Function,
+                ),
+            },
+            nature: Any,
+            location: SourceLocation {
+                span: Range(1:17 - 1:20),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+        },
+    )
+    "#);
 }
 
 #[test]
@@ -1613,7 +1653,7 @@ fn function_parameter_assignments_resolve_types() {
         &statements[0]
     {
         //make sure the call's operator resolved correctly
-        assert_eq!(annotations.get_type_or_void(operator, &index).get_name(), VOID_TYPE);
+        assert_eq!(annotations.get_type_or_void(operator, &index).get_name(), "foo");
         assert_eq!(
             annotations.get(operator),
             Some(&StatementAnnotation::Function {

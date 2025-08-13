@@ -50,6 +50,13 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
+                        if let Some(StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
+                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
+                                return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                            }
+                        }
+
                         generator
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
@@ -103,6 +110,13 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
+                        if let Some(StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
+                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
+                                return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                            }
+                        }
+
                         generator
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
