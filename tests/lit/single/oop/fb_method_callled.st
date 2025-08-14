@@ -20,8 +20,6 @@ VAR
     fb: foo;
     x: DINT;
 END_VAR
-    fb.__vtable := ADR(__vtable_foo_instance); // FIXME: Remove
-
     fb();
     x := fb.addToBar(3);
     printf('%d$N', x); // CHECK: 48

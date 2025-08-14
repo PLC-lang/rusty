@@ -119,31 +119,111 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let init_foo_impl = &units[1].implementations[0];
     assert_eq!(&init_foo_impl.name, "__init_foo");
     let statements = &init_foo_impl.statements;
-    assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r#"
-    Assignment {
-        left: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "ps",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__vtable",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "self",
+                            name: "ADR",
                         },
                     ),
                     base: None,
                 },
-            ),
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__vtable_foo_instance",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
         },
-        right: CallStatement {
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "ps",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "REF",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "s",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
+
+    // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
+    let init_bar_impl = &units[1].implementations[1];
+    assert_eq!(&init_bar_impl.name, "__init_bar");
+    let statements = &init_bar_impl.statements;
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements, @r#"
+    [
+        CallStatement {
             operator: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "REF",
+                        name: "__init_foo",
                     },
                 ),
                 base: None,
@@ -152,7 +232,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                 ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "s",
+                            name: "fb",
                         },
                     ),
                     base: Some(
@@ -168,29 +248,11 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                 },
             ),
         },
-    }
-    "#);
-
-    // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
-    let init_bar_impl = &units[1].implementations[1];
-    assert_eq!(&init_bar_impl.name, "__init_bar");
-    let statements = &init_bar_impl.statements;
-    assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r###"
-    CallStatement {
-        operator: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "__init_foo",
-                },
-            ),
-            base: None,
-        },
-        parameters: Some(
-            ReferenceExpr {
+        Assignment {
+            left: ReferenceExpr {
                 kind: Member(
                     Identifier {
-                        name: "fb",
+                        name: "__vtable",
                     },
                 ),
                 base: Some(
@@ -204,9 +266,29 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
                     },
                 ),
             },
-        ),
-    }
-    "###);
+            right: CallStatement {
+                operator: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "ADR",
+                        },
+                    ),
+                    base: None,
+                },
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__vtable_bar_instance",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
 
     // the init-function for `baz` will have a `RefAssignment`, assigning `REF(d)` to `self.pd` (TODO: currently, it actually is an `Assignment`
     // in the AST which is redirected to `generate_ref_assignment` in codegen) followed by a `CallStatement` to `__init_bar`,
@@ -711,6 +793,9 @@ fn generating_init_functions() {
       %deref = load %bar*, %bar** %self, align 8
       %fb = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
       call void @__init_foo(%foo* %fb)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -719,7 +804,10 @@ fn generating_init_functions() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %ps = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %ps = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store %myStruct* @s, %myStruct** %ps, align 8
       ret void
     }
@@ -914,7 +1002,10 @@ fn intializing_temporary_variables() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       ret void
     }
@@ -1013,6 +1104,9 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1130,6 +1224,9 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1223,6 +1320,9 @@ fn initializing_method_variables() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 

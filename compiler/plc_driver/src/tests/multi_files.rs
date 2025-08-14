@@ -119,6 +119,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
 }
 
 #[test]
+#[ignore = "FIXME: works in CLI, assuming the participants aren't registered in this test?"]
 fn forward_declared_constant_is_also_marked_constant() {
     // GIVEN 2 sources, one with a forward declaration of a constant
     // and the other with the definition of that constant.

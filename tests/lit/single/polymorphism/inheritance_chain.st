@@ -113,14 +113,9 @@ FUNCTION main
         instanceRefArrayD: ARRAY[1..1] OF POINTER TO DD;
     END_VAR
 
-    // FIXME:
     // TODOs
     // - initializer in variable declaration not working, e.g. `instanceRefArrayD: ARRAY[1..1] OF POINTER TO D := [ADR(instanceD)]`
     // - initializer in body not working, e.g. `instanceRefArrayD := [ADR(instanceD)]`
-    instanceA.__vtable := ADR(__vtable_A_instance);
-    instanceB.__vtable := ADR(__vtable_B_instance);
-    instanceC.__vtable := ADR(__vtable_C_instance);
-    instanceD.__vtable := ADR(__vtable_DD_instance);
 
     // Initialize the arrays
     instanceRefArrayA[1] := ADR(instanceA);

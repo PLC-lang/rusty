@@ -157,6 +157,7 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
+    log::debug!("creating {init_fn_name}");
     let (is_stateless, location) = lowerer
         .index
         .find_pou(container_name)
@@ -190,6 +191,11 @@ fn create_init_unit(
     let init_pou = new_pou(&init_fn_name, id_provider.next_id(), self_param, PouType::Init, &location);
 
     let mut statements = Vec::new();
+
+    if let Some(initializer) = create_vtable_initializer(lowerer, &mut id_provider, container_name) {
+        statements.push(initializer);
+    }
+
     for (var_name, initializer) in assignments {
         if initializer.as_ref().is_some_and(|opt| !opt.is_literal_array()) {
             let initializers = create_assignments_from_initializer(
@@ -498,6 +504,53 @@ fn new_unit(pou: Pou, implementation: Implementation, file_name: &'static str) -
 
 pub(super) fn get_user_init_fn_name(type_name: &str) -> String {
     format!("__user_init_{}", type_name)
+}
+
+/// Creates an assignment of form `self.__vtable := ADR(__vtable_<pou_name>_instance)`. This is required to
+/// initialize the virtual table of a class or function block. For more information refere to
+/// [`crate::lowering::vtable`] and [`crate::lowering::polymorphism`].
+fn create_vtable_initializer(lowerer: &InitVisitor, ids: &mut IdProvider, pou_name: &str) -> Option<AstNode> {
+    let pou = lowerer.index.find_pou(pou_name)?;
+    if !(pou.is_class() || pou.is_function_block()) {
+        return None;
+    }
+
+    // self.__vtable
+    let lhs = AstFactory::create_member_reference(
+        AstFactory::create_identifier("__vtable", SourceLocation::internal(), ids.next_id()),
+        Some(AstFactory::create_member_reference(
+            AstFactory::create_identifier("self", SourceLocation::internal(), ids.next_id()),
+            None,
+            ids.next_id(),
+        )),
+        ids.next_id(),
+    );
+
+    // ADR(__vtable_<pou_name>_instance)
+    let rhs = AstFactory::create_call_statement(
+        AstFactory::create_member_reference(
+            AstFactory::create_identifier("ADR", SourceLocation::internal(), ids.next_id()),
+            None,
+            ids.next_id(),
+        ),
+        Some(AstFactory::create_member_reference(
+            AstFactory::create_identifier(
+                format!("__vtable_{pou_name}_instance"),
+                SourceLocation::internal(),
+                ids.next_id(),
+            ),
+            None,
+            ids.next_id(),
+        )),
+        ids.next_id(),
+        SourceLocation::internal(),
+    );
+
+    // self.__vtable := ADR(__vtable_<pou_name>_instance)
+    let assignment = AstFactory::create_assignment(lhs, rhs, ids.next_id());
+    log::debug!("created virtual table initializer: {}", assignment.as_string());
+
+    Some(assignment)
 }
 
 #[cfg(test)]
@@ -1529,5 +1582,60 @@ mod tests {
             },
         ]
         "###);
+    }
+
+    #[test]
+    fn virtual_table_initialized() {
+        let src = r#"
+        FUNCTION_BLOCK A
+            METHOD bar
+                // printf('A::bar$N');
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK B EXTENDS A
+            METHOD bar
+                // printf('B::bar$N');
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK C EXTENDS B
+            METHOD bar
+                // printf('C::bar$N');
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+
+        let units = parse_and_validate_buffered_ast(src);
+        let unit_unit = &units
+            .iter()
+            .find(|unit| unit.file.get_name().is_some_and(|name| name == "__initializers"))
+            .unwrap();
+
+        let unit_init_a = unit_unit.implementations.iter().find(|it| it.name == "__init_a").unwrap();
+        let stmts = unit_init_a.statements.iter().map(|statement| statement.as_string()).collect::<Vec<_>>();
+        insta::assert_debug_snapshot!(stmts, @r#"
+        [
+            "self.__vtable := ADR(__vtable_A_instance)",
+        ]
+        "#);
+
+        let unit_init_b = unit_unit.implementations.iter().find(|it| it.name == "__init_b").unwrap();
+        let stmts = unit_init_b.statements.iter().map(|statement| statement.as_string()).collect::<Vec<_>>();
+        insta::assert_debug_snapshot!(stmts, @r#"
+        [
+            "__init_a(self.__A)",
+            "self.__A.__vtable := ADR(__vtable_B_instance)",
+        ]
+        "#);
+
+        let unit_init_c = unit_unit.implementations.iter().find(|it| it.name == "__init_c").unwrap();
+        let stmts = unit_init_c.statements.iter().map(|statement| statement.as_string()).collect::<Vec<_>>();
+        insta::assert_debug_snapshot!(stmts, @r#"
+        [
+            "__init_b(self.__B)",
+            "self.__B.__A.__vtable := ADR(__vtable_C_instance)",
+        ]
+        "#);
     }
 }

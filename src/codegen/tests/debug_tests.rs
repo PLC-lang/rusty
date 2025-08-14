@@ -400,6 +400,9 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     entry:
       %self = alloca %fb*, align 8
       store %fb* %0, %fb** %self, align 8
+      %deref = load %fb*, %fb** %self, align 8
+      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 

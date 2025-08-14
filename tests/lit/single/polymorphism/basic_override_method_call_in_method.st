@@ -32,9 +32,6 @@ FUNCTION main
         refInstanceA: POINTER TO A;
     END_VAR
 
-    instanceA.__vtable := ADR(__vtable_A_instance);
-    instanceB.__vtable := ADR(__vtable_B_instance);
-
     // CHECK: name = A
     refInstanceA := ADR(instanceA);
     refInstanceA^.printName();

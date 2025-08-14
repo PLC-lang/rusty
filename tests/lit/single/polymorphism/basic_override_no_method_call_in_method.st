@@ -39,10 +39,6 @@ FUNCTION main
         result: INT;
     END_VAR
 
-    // FIXME: Missing initialization, these should be part of the __init_<POU>; fix at a later time
-    instanceA.__vtable := ADR(__vtable_A_instance);
-    instanceB.__vtable := ADR(__vtable_B_instance);
-
     // ~~ Direct polymorphic calls ~~
     // CHECK: A::compute(5) = 10
     // CHECK: B::compute(5) = 15
