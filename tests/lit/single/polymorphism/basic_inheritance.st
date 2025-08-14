@@ -87,11 +87,6 @@ FUNCTION main
         refInstanceD: POINTER TO DD;
     END_VAR
 
-    instanceA.__vtable := ADR(__vtable_A_instance);
-    instanceB.__vtable := ADR(__vtable_B_instance);
-    instanceC.__vtable := ADR(__vtable_C_instance);
-    instanceD.__vtable := ADR(__vtable_DD_instance);
-
     // CHECK: name = A
     // CHECK: ancestor = None
     printRefA(ADR(instanceA));

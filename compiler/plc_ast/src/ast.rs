@@ -1675,9 +1675,11 @@ impl AstVisitor for StringFormatter {
 
     fn visit_call_statement(&mut self, stmt: &CallStatement, _node: &AstNode) {
         stmt.operator.walk(self);
-        self.result.push_str("(");
-        stmt.parameters.as_ref().map(|opt| opt.walk(self));
-        self.result.push_str(")");
+        self.result.push('(');
+        if let Some(opt) = stmt.parameters.as_ref() {
+            opt.walk(self)
+        }
+        self.result.push(')');
     }
 
     fn visit_control_statement(&mut self, stmt: &AstControlStatement, _node: &AstNode) {

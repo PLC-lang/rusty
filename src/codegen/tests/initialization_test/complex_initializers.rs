@@ -305,7 +305,10 @@ fn init_functions_generated_for_function_blocks() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %to_init = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %to_init = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store [81 x i8]* @s, [81 x i8]** %to_init, align 8
       ret void
     }
@@ -510,7 +513,10 @@ fn nested_initializer_pous() {
       %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
       call void @__init_bar(%bar* %b)
       %deref1 = load %foo*, %foo** %self, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref2 = load %foo*, %foo** %self, align 8
+      %str_ref = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
       store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
       ret void
     }
@@ -522,6 +528,9 @@ fn nested_initializer_pous() {
       %deref = load %bar*, %bar** %self, align 8
       %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
       call void @__init_baz(%baz* %b)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -530,7 +539,10 @@ fn nested_initializer_pous() {
       %self = alloca %baz*, align 8
       store %baz* %0, %baz** %self, align 8
       %deref = load %baz*, %baz** %self, align 8
-      %str_ref = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_baz* @__vtable_baz_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %baz*, %baz** %self, align 8
+      %str_ref = getelementptr inbounds %baz, %baz* %deref1, i32 0, i32 1
       store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
       ret void
     }
@@ -720,9 +732,12 @@ fn local_address() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %pi = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       %deref1 = load %foo*, %foo** %self, align 8
-      %i = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
+      %pi = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
+      %deref2 = load %foo*, %foo** %self, align 8
+      %i = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
       store i16* %i, i16** %pi, align 8
       ret void
     }
@@ -840,6 +855,9 @@ fn user_init_called_for_variables_on_stack() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1172,6 +1190,9 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1186,6 +1207,9 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
     entry:
       %self = alloca %cl*, align 8
       store %cl* %0, %cl** %self, align 8
+      %deref = load %cl*, %cl** %self, align 8
+      %__vtable = getelementptr inbounds %cl, %cl* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_cl* @__vtable_cl_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1300,7 +1324,10 @@ fn global_instance() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       ret void
     }
@@ -1422,7 +1449,10 @@ fn aliased_types() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %deref1 = load %foo*, %foo** %self, align 8
+      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
       store [81 x i8]* @ps, [81 x i8]** %s, align 8
       ret void
     }
@@ -1621,6 +1651,9 @@ fn var_config_aliased_variables_initialized() {
     entry:
       %self = alloca %FB*, align 8
       store %FB* %0, %FB** %self, align 8
+      %deref = load %FB*, %FB** %self, align 8
+      %__vtable = getelementptr inbounds %FB, %FB* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_FB* @__vtable_FB_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1749,6 +1782,9 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -1832,20 +1868,23 @@ fn ref_to_local_member() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %ptr = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       %deref1 = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
-      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      %ptr = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
       %deref2 = load %foo*, %foo** %self, align 8
-      %alias = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 3
+      %s = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
       %deref3 = load %foo*, %foo** %self, align 8
-      %s4 = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 1
-      store [81 x i8]* %s4, [81 x i8]** %alias, align 8
-      %deref5 = load %foo*, %foo** %self, align 8
-      %reference_to = getelementptr inbounds %foo, %foo* %deref5, i32 0, i32 4
+      %alias = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 3
+      %deref4 = load %foo*, %foo** %self, align 8
+      %s5 = getelementptr inbounds %foo, %foo* %deref4, i32 0, i32 1
+      store [81 x i8]* %s5, [81 x i8]** %alias, align 8
       %deref6 = load %foo*, %foo** %self, align 8
-      %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 1
-      store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      %reference_to = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 4
+      %deref7 = load %foo*, %foo** %self, align 8
+      %s8 = getelementptr inbounds %foo, %foo* %deref7, i32 0, i32 1
+      store [81 x i8]* %s8, [81 x i8]** %reference_to, align 8
       ret void
     }
 
@@ -1933,20 +1972,23 @@ fn ref_to_local_member_shadows_global() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %ptr = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       %deref1 = load %foo*, %foo** %self, align 8
-      %s = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
-      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
+      %ptr = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
       %deref2 = load %foo*, %foo** %self, align 8
-      %alias = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 3
+      %s = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
+      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
       %deref3 = load %foo*, %foo** %self, align 8
-      %s4 = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 1
-      store [81 x i8]* %s4, [81 x i8]** %alias, align 8
-      %deref5 = load %foo*, %foo** %self, align 8
-      %reference_to = getelementptr inbounds %foo, %foo* %deref5, i32 0, i32 4
+      %alias = getelementptr inbounds %foo, %foo* %deref3, i32 0, i32 3
+      %deref4 = load %foo*, %foo** %self, align 8
+      %s5 = getelementptr inbounds %foo, %foo* %deref4, i32 0, i32 1
+      store [81 x i8]* %s5, [81 x i8]** %alias, align 8
       %deref6 = load %foo*, %foo** %self, align 8
-      %s7 = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 1
-      store [81 x i8]* %s7, [81 x i8]** %reference_to, align 8
+      %reference_to = getelementptr inbounds %foo, %foo* %deref6, i32 0, i32 4
+      %deref7 = load %foo*, %foo** %self, align 8
+      %s8 = getelementptr inbounds %foo, %foo* %deref7, i32 0, i32 1
+      store [81 x i8]* %s8, [81 x i8]** %reference_to, align 8
       ret void
     }
 
@@ -2036,6 +2078,9 @@ fn temporary_variable_ref_to_local_member() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2187,6 +2232,9 @@ fn initializing_method_variables_with_refs() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2283,6 +2331,9 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2378,6 +2429,9 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2476,6 +2530,9 @@ fn initializing_method_variables_with_refs_shadowing() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2569,6 +2626,9 @@ fn initializing_method_variables_with_alias() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2662,6 +2722,9 @@ fn initializing_method_variables_with_reference_to() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2781,9 +2844,12 @@ fn methods_call_init_functions_for_their_members() {
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
       %deref = load %foo*, %foo** %self, align 8
-      %y = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       %deref1 = load %foo*, %foo** %self, align 8
-      %x = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 1
+      %y = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 2
+      %deref2 = load %foo*, %foo** %self, align 8
+      %x = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
       store i32* %x, i32** %y, align 8
       ret void
     }
@@ -2799,6 +2865,9 @@ fn methods_call_init_functions_for_their_members() {
     entry:
       %self = alloca %bar*, align 8
       store %bar* %0, %bar** %self, align 8
+      %deref = load %bar*, %bar** %self, align 8
+      %__vtable = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2930,6 +2999,9 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -3091,6 +3163,9 @@ fn user_fb_init_in_global_struct() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 

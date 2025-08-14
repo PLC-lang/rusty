@@ -39,6 +39,5 @@ FUNCTION main
 VAR
     inst: fb2;
 END_VAR
-    inst.__vtable := ADR(__vtable_fb2_instance); // FIXME: Remove
     inst();
 END_FUNCTION

@@ -67,6 +67,9 @@ define void @__init_conditional_return(%conditional_return* %0) {
 entry:
   %self = alloca %conditional_return*, align 8
   store %conditional_return* %0, %conditional_return** %self, align 8
+  %deref = load %conditional_return*, %conditional_return** %self, align 8
+  %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %deref, i32 0, i32 0
+  store i32* bitcast (%__vtable_conditional_return* @__vtable_conditional_return_instance to i32*), i32** %__vtable, align 8
   ret void
 }
 

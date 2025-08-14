@@ -69,6 +69,5 @@ FUNCTION main : INT
 VAR
     inst : child;
 END_VAR
-    inst.__vtable := ADR(__vtable_child_instance); // FIXME: Remove
     inst();
 END_FUNCTION

@@ -4,11 +4,12 @@
 //! 1. Method calls within methods
 //! 2. Method calls within the body of a function block
 //! 3. Method calls through a pointer variable pointing to a class or function block, e.g. `fbPtr^.alpha()`
-//! (Note that because ST lacks a `virtual` keyword, we have to assume every method call to be polymorphic in
-//! nature regarding point 1 and 2)
 //!
 //! Desugaring these method calls is achieved by accessing the virtual table, see [`crate::lowering::vtable`].
 //! TODO: Give a simple step-by-step process, then finish up with complete example showcasing points 1 - 3
+//!
+//! Finally, note that because ST lacks a `virtual` keyword, we have to assume every method call to be
+//! polymorphic in nature regarding point 1 and 2.
 
 use plc_ast::{
     ast::{
@@ -61,7 +62,7 @@ impl PolymorphicCallDesugarer {
 
         // Case 1 & 2
         if self.in_method_or_function_block.is_some()
-            && annotations.get_type(&operator, index).is_some_and(DataType::is_method)
+            && annotations.get_type(operator, index).is_some_and(DataType::is_method)
             // Only desugar something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
             && (operator.get_base().is_none() || operator.get_base().is_some_and(|opt| opt.is_this()))
         {
@@ -235,7 +236,7 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
             parameters.walk(self);
         }
 
-        if !self.is_polymorphic_call_candidate(&operator) {
+        if !self.is_polymorphic_call_candidate(operator) {
             return;
         };
 

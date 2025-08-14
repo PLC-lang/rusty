@@ -47,10 +47,6 @@ FUNCTION main
         refInstanceC: POINTER TO C;
     END_VAR
 
-    instanceA.__vtable := ADR(__vtable_A_instance);
-    instanceB.__vtable := ADR(__vtable_B_instance);
-    instanceC.__vtable := ADR(__vtable_C_instance);
-
     // -- refInstanceA calls --
 
     // CHECK: A::updateState, localStateA = 1
