@@ -1757,6 +1757,7 @@ impl<'i> TypeAnnotator<'i> {
                         inner_type_name: name.to_string(),
                         auto_deref: None,
                         type_safe: true,
+                        is_function: false, // TODO(vosa): In general false, but THIS^() isn't?
                     };
                     let dt = crate::typesystem::DataType {
                         name: ptr_name.clone(),
@@ -2066,7 +2067,12 @@ impl<'i> TypeAnnotator<'i> {
                 }
             }
             (ReferenceAccess::Deref, _) => {
-                if let Some(DataTypeInformation::Pointer { inner_type_name, auto_deref: None, .. }) = base
+                if let Some(DataTypeInformation::Pointer {
+                    inner_type_name,
+                    auto_deref: None,
+                    is_function,
+                    ..
+                }) = base
                     .map(|base| self.annotation_map.get_type_or_void(base, self.index))
                     .map(|it| it.get_type_information())
                 {
@@ -2075,14 +2081,24 @@ impl<'i> TypeAnnotator<'i> {
                         .find_effective_type_by_name(inner_type_name)
                         .or(self.annotation_map.new_index.find_effective_type_by_name(inner_type_name))
                     {
-                        // We might be dealing with a function pointer, e.g. `ptr^(...)`
-                        if let Some(pou) = self.index.find_pou(&inner_type.name) {
-                            if pou.is_method() {
-                                let name = pou.get_name();
-                                let return_type = pou.get_return_type().unwrap();
+                        if ctx
+                            .resolve_strategy
+                            .first()
+                            .is_some_and(|opt| *opt == ResolvingStrategy::FunctionsOnly)
+                        {
+                            // We might be dealing with a function pointer, e.g. `ptr^(...)`
+                            if let Some(pou) = self.index.find_pou(&inner_type.name) {
+                                // TODO(vosa): THIS^(), needs to be handled in the polymorphism PR but is
+                                // ignored here (!stmt.is_this_deref())
+                                if *is_function
+                                    && (pou.is_method() | pou.is_function_block() && !stmt.is_this_deref())
+                                {
+                                    let name = pou.get_name();
+                                    let return_type = pou.get_return_type().unwrap_or(VOID_INTERNAL_NAME);
 
-                                self.annotate(stmt, StatementAnnotation::fnptr(name, return_type));
-                                return;
+                                    self.annotate(stmt, StatementAnnotation::fnptr(name, return_type));
+                                    return;
+                                }
                             }
                         }
 
@@ -2439,6 +2455,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String, type_
                 inner_type_name,
                 auto_deref: None,
                 type_safe,
+                is_function: false,
             },
             location: SourceLocation::internal(),
         });
@@ -2585,7 +2602,7 @@ impl Scope {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ResolvingStrategy {
     /// try to resolve a variable
     Variable,

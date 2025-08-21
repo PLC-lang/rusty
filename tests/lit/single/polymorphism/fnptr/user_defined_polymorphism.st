@@ -3,21 +3,21 @@
 // Virtual Table Definitions
 TYPE UserVT_FbA:
     STRUCT
-        printNumber: POINTER TO FbA.printNumber := ADR(FbA.printNumber);
+        printNumber: FNPTR FbA.printNumber := ADR(FbA.printNumber);
     END_STRUCT
 END_TYPE
 
 TYPE UserVT_FbB:
     STRUCT
         // No override, hence the ADR(FbA.<...>)
-        printNumber: POINTER TO FbA.printNumber := ADR(FbA.printNumber);
+        printNumber: FNPTR FbA.printNumber := ADR(FbA.printNumber);
     END_STRUCT
 END_TYPE
 
 TYPE UserVT_FbC:
     STRUCT
         // override, hence the ADR(FbC.<...>)
-        printNumber: POINTER TO FbA.printNumber := ADR(FbC.printNumber);
+        printNumber: FNPTR FbA.printNumber := ADR(FbC.printNumber);
     END_STRUCT
 END_TYPE
 

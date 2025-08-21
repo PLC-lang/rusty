@@ -1223,7 +1223,7 @@ mod tests {
             FUNCTION main
                 VAR
                     instanceFbA: FbA;
-                    fooPtr: POINTER TO FbA.foo;
+                    fooPtr: FNPTR FbA.foo;
                     result: STRING;
                 END_VAR
 

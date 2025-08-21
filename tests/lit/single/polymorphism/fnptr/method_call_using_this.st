@@ -8,22 +8,22 @@ END_VAR
 
 TYPE VirtualTableA:
     STRUCT
-        getName: POINTER TO A.getName := ADR(A.getName);
-        printName: POINTER TO A.printName := ADR(A.printName);
+        getName: FNPTR A.getName := ADR(A.getName);
+        printName: FNPTR A.printName := ADR(A.printName);
     END_STRUCT
 END_TYPE
 
 TYPE VirtualTableB:
     STRUCT
-        getName: POINTER TO A.getName := ADR(A.getName);
-        printName: POINTER TO A.printName := ADR(A.printName);
+        getName: FNPTR A.getName := ADR(A.getName);
+        printName: FNPTR A.printName := ADR(A.printName);
     END_STRUCT
 END_TYPE
 
 TYPE VirtualTableC:
     STRUCT
-        getName: POINTER TO C.getName := ADR(C.getName);
-        printName: POINTER TO A.printName := ADR(A.printName);
+        getName: FNPTR C.getName := ADR(C.getName);
+        printName: FNPTR A.printName := ADR(A.printName);
     END_STRUCT
 END_TYPE
 

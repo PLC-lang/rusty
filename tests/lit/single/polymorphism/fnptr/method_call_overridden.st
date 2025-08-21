@@ -35,7 +35,7 @@ FUNCTION main
         instanceA: A;
         instanceB: B;
         instanceC: C;
-        fnPtrPrintName: POINTER TO A.printName := ADR(A.printName);
+        fnPtrPrintName: FNPTR A.printName := ADR(A.printName);
     END_VAR
 
     // Ensure that child POUs can be passed to function pointers of both its own and parent POUs. When doing

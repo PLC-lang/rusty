@@ -13,7 +13,7 @@ END_FUNCTION_BLOCK
 
 TYPE FnTable:
     STRUCT
-        printArgs: POINTER TO A.printArgs := ADR(A.printArgs);
+        printArgs: FNPTR A.printArgs := ADR(A.printArgs);
     END_STRUCT
 END_TYPE
 

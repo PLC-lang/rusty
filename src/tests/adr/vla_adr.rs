@@ -91,7 +91,7 @@ fn representation() {
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__ptr_to___arr_vla_1_dint",
         initial_value: None,
@@ -100,6 +100,7 @@ fn representation() {
             inner_type_name: "__arr_vla_1_dint",
             auto_deref: None,
             type_safe: true,
+            is_function: false,
         },
         nature: Any,
         location: SourceLocation {
@@ -109,7 +110,7 @@ fn representation() {
             ),
         },
     }
-    "###);
+    "#);
 
     // ...an array of type DINT with its dimensions unknown at compile time
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),

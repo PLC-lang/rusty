@@ -1256,6 +1256,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             inner_type_name: "INT".to_string(),
             auto_deref: None,
             type_safe: true,
+            is_function: false,
         }
     );
 
@@ -1268,6 +1269,7 @@ fn pointer_and_in_out_pointer_should_not_conflict() {
             inner_type_name: "INT".to_string(),
             auto_deref: Some(AutoDerefType::Default),
             type_safe: true,
+            is_function: false,
         }
     );
 }
@@ -1308,6 +1310,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: None,
             type_safe: true,
+            is_function: false,
         }
     );
 
@@ -1320,6 +1323,7 @@ fn pointer_and_in_out_pointer_should_not_conflict_2() {
             inner_type_name: "INT".to_string(),
             auto_deref: Some(AutoDerefType::Default),
             type_safe: true,
+            is_function: false,
         }
     );
 }
@@ -1806,7 +1810,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
     }
     "###);
 
-    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r#"
     Some(
         DataType {
             name: "__global_foo",
@@ -1818,6 +1822,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     Alias,
                 ),
                 type_safe: true,
+                is_function: false,
             },
             nature: Any,
             location: SourceLocation {
@@ -1828,7 +1833,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
             },
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -1875,7 +1880,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_type("__global_foo"), @r###"
+    assert_debug_snapshot!(index.find_type("__global_foo"), @r#"
     Some(
         DataType {
             name: "__global_foo",
@@ -1887,6 +1892,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                     Alias,
                 ),
                 type_safe: true,
+                is_function: false,
             },
             nature: Any,
             location: SourceLocation {
@@ -1897,7 +1903,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
             },
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
