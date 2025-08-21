@@ -709,6 +709,9 @@ pub enum DataType {
         /// e.g., `foo : POINTER TO DINT := ADR(stringValue)`. When true, the type of the pointer must match
         /// the referenced type exactly.
         type_safe: bool,
+
+        /// Indicates whether the pointer is a function pointer.
+        is_function: bool,
     },
     StringType {
         name: Option<String>,
@@ -1260,6 +1263,17 @@ impl AstNode {
 
     pub fn is_this(&self) -> bool {
         matches!(self.stmt, AstStatement::This)
+    }
+
+    pub fn is_this_deref(&self) -> bool {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Deref, base: Some(base) },
+                ..,
+            ) => base.is_this(),
+
+            _ => false,
+        }
     }
 
     pub fn is_paren(&self) -> bool {

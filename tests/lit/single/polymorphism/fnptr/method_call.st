@@ -23,8 +23,8 @@ END_FUNCTION_BLOCK
 FUNCTION main
     VAR
         instanceFbA: FbA;
-        fnPtrIncreaseStateByOne: POINTER TO FbA.increaseStateByOne := ADR(FbA.increaseStateByOne);
-        fnPtrIncreaseStateByArg: POINTER TO FbA.increaseStateByArg := ADR(FbA.increaseStateByArg);
+        fnPtrIncreaseStateByOne: FNPTR FbA.increaseStateByOne := ADR(FbA.increaseStateByOne);
+        fnPtrIncreaseStateByArg: FNPTR FbA.increaseStateByArg := ADR(FbA.increaseStateByArg);
     END_VAR
 
     // CHECK: FbA::increaseStateByOne: localState = 6

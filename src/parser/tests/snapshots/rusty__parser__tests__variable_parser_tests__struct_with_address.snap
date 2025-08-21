@@ -27,6 +27,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -52,6 +53,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -77,6 +79,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -102,6 +105,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -131,6 +135,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -163,6 +168,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(
@@ -198,6 +204,7 @@ CompilationUnit {
                                     Alias,
                                 ),
                                 type_safe: true,
+                                is_function: false,
                             },
                         },
                         address: Some(

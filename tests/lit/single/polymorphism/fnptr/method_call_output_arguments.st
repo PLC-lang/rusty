@@ -19,7 +19,7 @@ FUNCTION main
         localOut1: DINT;
         localOut2: DINT;
 
-        fnPtrOutputArguments: POINTER TO A.outputArguments := ADR(A.outputArguments);
+        fnPtrOutputArguments: FNPTR A.outputArguments := ADR(A.outputArguments);
     END_VAR
 
     // Explicit

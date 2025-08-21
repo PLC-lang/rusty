@@ -3433,6 +3433,7 @@ fn address_of_is_annotated_correctly() {
                 name: "__POINTER_TO_INT".to_string(),
                 auto_deref: None,
                 type_safe: true,
+                is_function: false,
             }),
             index.find_effective_type_info(resulting_type),
         );

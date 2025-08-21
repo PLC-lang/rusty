@@ -51,11 +51,23 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let [reference] = params {
                         // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
-                        if let Some(StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
-                            if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
-                                return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                        match generator.annotations.get(reference) {
+                            Some(StatementAnnotation::Function { qualified_name, .. }) => {
+                                if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
+                                    return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                                }
                             }
-                        }
+
+                            Some(StatementAnnotation::Type { type_name }) => {
+                                if generator.index.find_type(type_name).is_some_and(|opt| opt.information.is_function_block()) {
+                                    if let Some(fn_value) = generator.llvm_index.find_associated_implementation(type_name) {
+                                        return Ok(ExpressionValue::RValue(fn_value.as_global_value().as_pointer_value().as_basic_value_enum()));
+                                    }
+                                }
+                            }
+
+                            _ => (),
+                        };
 
                         generator
                             .generate_lvalue(reference)
@@ -95,7 +107,7 @@ lazy_static! {
                     let ptr_type = resolver::add_pointer_type(
                         &mut annotator.annotation_map.new_index,
                         input_type,
-                        true
+                        true,
                     );
 
                     annotator.annotate(

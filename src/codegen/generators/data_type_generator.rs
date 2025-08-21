@@ -19,7 +19,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum},
     AddressSpace,
 };
-use plc_ast::ast::{AstNode, AstStatement, PouType};
+use plc_ast::ast::{AstNode, AstStatement};
 use plc_ast::literals::AstLiteral;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -206,10 +206,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
-                StructSource::Pou(PouType::Method { .. }) => {
-                    Ok(self.create_function_type(name)?.as_any_type_enum())
-                }
-
                 StructSource::Pou(..) => self
                     .types_index
                     .get_associated_pou_type(data_type.get_name())
@@ -276,7 +272,12 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => Ok(get_llvm_int_type(self.llvm.context, 32, "Void").into()),
             DataTypeInformation::Pointer { inner_type_name, .. } => {
-                let inner_type = self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
+                let inner_type = if information.is_function_pointer() {
+                    self.create_function_type(inner_type_name)?.as_any_type_enum()
+                } else {
+                    self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?
+                };
+
                 Ok(inner_type.create_ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
             }
             DataTypeInformation::Generic { .. } => {
@@ -298,24 +299,37 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
 
         // Methods are defined as functions in the LLVM IR, but carry the underlying POU type as their first
         // parameter to operate on them, hence push the POU type to the very first position.
-        if let Some(PouIndexEntry::Method { parent_name, .. }) = self.index.find_pou(pou_name) {
-            let ty = self.types_index.get_associated_type(parent_name).expect("must exist");
-            let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
+        match self.index.find_pou(pou_name) {
+            Some(PouIndexEntry::Method { parent_name, .. }) => {
+                let ty = self.types_index.get_associated_type(parent_name).expect("must exist");
+                let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
 
-            parameter_types.push(ty_ptr);
-        }
+                parameter_types.push(ty_ptr);
+                for parameter in self.index.get_declared_parameters(pou_name) {
+                    // Instead of relying on the LLVM index, we create data-types directly in here because some of
+                    // them may not have been registered yet. For example, at the time of writing this comment the
+                    // `__auto_pointer_to_DINT` type was not present in the index for a VAR_IN_OUT parameter which
+                    // resulted in an error
+                    let ty = self.create_type(
+                        parameter.get_name(),
+                        self.index.get_type(&parameter.data_type_name).expect("must exist"),
+                    )?;
 
-        for parameter in self.index.get_declared_parameters(pou_name) {
-            // Instead of relying on the LLVM index, we create data-types directly in here because some of
-            // them may not have been registered yet. For example, at the time of writing this comment the
-            // `__auto_pointer_to_DINT` type was not present in the index for a VAR_IN_OUT parameter which
-            // resulted in an error
-            let ty = self.create_type(
-                parameter.get_name(),
-                self.index.get_type(&parameter.data_type_name).expect("must exist"),
-            )?;
+                    parameter_types.push(ty.try_into().unwrap());
+                }
+            }
 
-            parameter_types.push(ty.try_into().unwrap());
+            // Function blocks are a bit "weird" in that they only expect an instance argument even if they
+            // define input, output and/or inout parameters. Effectively, while being methods per-se, their
+            // calling convention differs from regular methods.
+            Some(PouIndexEntry::FunctionBlock { name, .. }) => {
+                let ty = self.types_index.get_associated_type(name).expect("must exist");
+                let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
+
+                parameter_types.push(ty_ptr);
+            }
+
+            _ => unreachable!("internal error, invalid method call"),
         }
 
         let fn_type = match return_type {

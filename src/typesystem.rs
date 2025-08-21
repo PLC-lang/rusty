@@ -412,6 +412,7 @@ pub enum DataTypeInformation {
         inner_type_name: TypeId,
         auto_deref: Option<AutoDerefType>,
         type_safe: bool,
+        is_function: bool,
     },
     Integer {
         name: TypeId,
@@ -637,6 +638,10 @@ impl DataTypeInformation {
         matches!(self.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
     }
 
+    pub fn is_function_pointer(&self) -> bool {
+        matches!(self, DataTypeInformation::Pointer { is_function: true, .. })
+    }
+
     /// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     pub fn get_semantic_size(&self, index: &Index) -> u32 {
         if let DataTypeInformation::Integer { semantic_size: Some(s), .. } = self {
@@ -788,6 +793,10 @@ impl DataTypeInformation {
         }
 
         None
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. })
     }
 }
 

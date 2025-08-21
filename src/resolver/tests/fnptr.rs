@@ -21,7 +21,7 @@ fn function_pointer_method_with_no_arguments() {
         FUNCTION main
             VAR
                 instanceFb: Fb;
-                echoPtr: POINTER TO Fb.echo := ADR(Fb.echo);
+                echoPtr: FNPTR Fb.echo := ADR(Fb.echo);
             END_VAR
 
             echoPtr^(instanceFb);
@@ -83,7 +83,7 @@ fn function_pointer_method_with_arguments() {
 
         FUNCTION main
             VAR
-                echoPtr: POINTER TO Fb.echo := ADR(Fb.echo);
+                echoPtr: FNPTR Fb.echo := ADR(Fb.echo);
                 localIn, localOut, localInOut: DINT;
                 instanceFb: Fb;
             END_VAR
@@ -363,7 +363,7 @@ fn void_pointer_casting() {
         END_VAR
 
         TYPE vtable_FbA: STRUCT
-            foo: POINTER TO FbA.foo := ADR(FbA.foo);
+            foo: FNPTR FbA.foo := ADR(FbA.foo);
         END_STRUCT END_TYPE
 
         FUNCTION_BLOCK FbA
@@ -479,7 +479,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
         FUNCTION main
             VAR
                 instanceA: A;
-                printArgs: POINTER TO A.printArgs := ADR(A.printArgs);
+                printArgs: FNPTR A.printArgs := ADR(A.printArgs);
             END_VAR
 
             instanceA.printArgs('value =', 5);
@@ -622,6 +622,56 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+            },
+        )
+        "#);
+    }
+}
+
+#[test]
+fn function_block_body() {
+    let ids = IdProvider::default();
+    let (unit, index) = index_with_ids(
+        r"
+        FUNCTION_BLOCK Fb
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instanceFb: Fb;
+                bodyPtr: FNPTR Fb;
+            END_VAR
+
+            bodyPtr^(instanceFb);
+        END_FUNCTION
+        ",
+        ids.clone(),
+    );
+
+    let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, ids);
+    {
+        let node = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap().statements[0];
+        let AstStatement::CallStatement(CallStatement { operator, .. }) = node.get_stmt() else {
+            unreachable!();
+        };
+
+        // bodyPtr^();
+        // ^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(operator), @r#"
+        Some(
+            FunctionPointer {
+                return_type: "__VOID",
+                qualified_name: "Fb",
+            },
+        )
+        "#);
+
+        // bodyPtr^();
+        // ^^^^^^^^^^
+        insta::assert_debug_snapshot!(annotations.get(node), @r#"
+        Some(
+            Value {
+                resulting_type: "__VOID",
             },
         )
         "#);

@@ -12,6 +12,7 @@ Variable {
             },
             auto_deref: None,
             type_safe: false,
+            is_function: false,
         },
     },
 }

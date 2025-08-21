@@ -472,6 +472,10 @@ impl ImplementationIndexEntry {
     pub fn is_action(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Action)
     }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::FunctionBlock)
+    }
 }
 
 impl From<&PouType> for ImplementationType {

@@ -31,13 +31,12 @@ use crate::{
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     index::{
-        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry, VariableType,
+        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
+        PouIndexEntry, VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
@@ -596,12 +595,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         arguments: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let Some(ReferenceExpr { base: Some(ref base), .. }) = operator.get_deref_expr() else {
-            unreachable!("internal error, invalid function invocation")
+            unreachable!("internal error, invalid method call")
         };
 
         let qualified_pou_name = self.annotations.get(operator).unwrap().qualified_name().unwrap();
         let impl_entry = self.index.find_implementation_by_name(qualified_pou_name).unwrap();
-        debug_assert!(impl_entry.is_method(), "internal error, invalid function invocation");
+        debug_assert!(
+            impl_entry.is_method() | impl_entry.is_function_block(),
+            "internal error, invalid method call"
+        );
 
         // Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
         // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
@@ -613,27 +615,40 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // Generate the argument list; our assumption is function pointers are only supported for methods
         // right now, hence we explicitly fetch the instance arguments from the list. In desugared code it we
         // would have something alike `fnPtr^(instanceFb, arg1, arg2, ..., argN)`
-        let arguments = {
+        let (instance, arguments_raw, arguments_llvm) = {
             let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
             let (instance, arguments) = match arguments.len() {
                 0 => panic!("invalid desugared code, no instance argument found"),
-                1 => (self.generate_lvalue(arguments[0])?, [].as_slice()),
-                _ => (self.generate_lvalue(arguments[0])?, &arguments[1..]),
+                1 => (self.generate_lvalue(arguments[0])?, Vec::new()),
+                _ => (self.generate_lvalue(arguments[0])?, arguments[1..].to_vec()),
             };
 
-            let mut generated_arguments = self.generate_function_arguments(
-                self.index.find_pou(qualified_pou_name).unwrap(),
-                arguments,
-                self.index.get_declared_parameters(qualified_pou_name),
-            )?;
+            let mut generated_arguments = match &impl_entry.implementation_type {
+                ImplementationType::Method => self.generate_function_arguments(
+                    self.index.find_pou(qualified_pou_name).unwrap(),
+                    &arguments,
+                    self.index.get_declared_parameters(qualified_pou_name),
+                )?,
 
-            generated_arguments.insert(0, instance.as_basic_value_enum().into());
-            generated_arguments
+                // Function Block body calls have a slightly different calling convention compared to regular
+                // methods. Specifically the arguments aren't passed to the call itself but rather the
+                // instance struct is gep'ed and the arguments are stored into the gep'ed pointer value.
+                // Best to call `--ir` on a simple function block body call to see the generated IR.
+                ImplementationType::FunctionBlock => {
+                    self.generate_stateful_pou_arguments(qualified_pou_name, None, instance, &arguments)?;
+                    Vec::new()
+                }
+
+                _ => unreachable!("internal error, invalid method call"),
+            };
+
+            generated_arguments.insert(0, instance.clone().as_basic_value_enum().into());
+            (instance, arguments, generated_arguments)
         };
 
         // Finally generate the function pointer call
         let callable = CallableValue::try_from(function_pointer_value).unwrap();
-        let call = self.llvm.builder.build_call(callable, &arguments, "fnptr_call");
+        let call = self.llvm.builder.build_call(callable, &arguments_llvm, "fnptr_call");
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
@@ -645,6 +660,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .as_basic_value_enum()
             }
         };
+
+        // Output variables are assigned after the function block call, effectively gep'ing the instance
+        // struct fetching the output values
+        if impl_entry.is_function_block() {
+            self.assign_output_values(instance, qualified_pou_name, arguments_raw)?
+        }
 
         Ok(ExpressionValue::RValue(value))
     }
