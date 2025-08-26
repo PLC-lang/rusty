@@ -275,7 +275,7 @@ fn init_functions_generated_for_function_blocks() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, [81 x i8]* }
 
     @s = global [81 x i8] zeroinitializer
@@ -412,9 +412,9 @@ fn nested_initializer_pous() {
     %bar = type { i32*, %baz }
     %baz = type { i32*, [81 x i8]* }
     %sideProg = type { [81 x i8]*, %foo }
-    %__vtable_foo = type { %foo* }
-    %__vtable_bar = type { %bar* }
-    %__vtable_baz = type { %baz* }
+    %__vtable_foo = type { void (%foo*)* }
+    %__vtable_bar = type { void (%bar*)* }
+    %__vtable_baz = type { void (%baz*)* }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -702,7 +702,7 @@ fn local_address() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, i16, i16* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -798,7 +798,7 @@ fn user_init_called_for_variables_on_stack() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32*, i16, i16* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1103,7 +1103,7 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     %myStruct = type { i32 }
     %prog = type {}
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
     %__vtable_cl = type { void (%cl*)* }
     %cl = type { i32* }
@@ -1294,7 +1294,7 @@ fn global_instance() {
 
     %prog = type {}
     %foo = type { i32*, [81 x i8]* }
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
 
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1418,7 +1418,7 @@ fn aliased_types() {
 
     %prog = type { %foo }
     %foo = type { i32*, [81 x i8]* }
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
 
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1614,7 +1614,7 @@ fn var_config_aliased_variables_initialized() {
 
     %prog = type { %FB, %FB }
     %FB = type { i32*, i32* }
-    %__vtable_FB = type { %FB* }
+    %__vtable_FB = type { void (%FB*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
@@ -1748,7 +1748,7 @@ fn var_external_blocks_are_ignored_in_init_functions() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1836,7 +1836,7 @@ fn ref_to_local_member() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1939,7 +1939,7 @@ fn ref_to_local_member_shadows_global() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, [81 x i8], [81 x i8]*, [81 x i8]*, [81 x i8]* }
 
     @s = global [81 x i8] zeroinitializer
@@ -2041,7 +2041,7 @@ fn temporary_variable_ref_to_local_member() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, [81 x i8] }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2189,7 +2189,7 @@ fn initializing_method_variables_with_refs() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2288,7 +2288,7 @@ fn initializing_method_variables_with_refs_referencing_parent_pou_variable() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32*, i32 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2387,7 +2387,7 @@ fn initializing_method_variables_with_refs_referencing_global_variable() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @x = global i32 0
@@ -2486,7 +2486,7 @@ fn initializing_method_variables_with_refs_shadowing() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @x = global i32 0
@@ -2583,7 +2583,7 @@ fn initializing_method_variables_with_alias() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2679,7 +2679,7 @@ fn initializing_method_variables_with_reference_to() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2782,9 +2782,9 @@ fn methods_call_init_functions_for_their_members() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, i32, i32* }
-    %__vtable_bar = type { %bar*, void (%bar*)* }
+    %__vtable_bar = type { void (%bar*)*, void (%bar*)* }
     %bar = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2948,7 +2948,7 @@ fn user_fb_init_is_added_and_called_if_it_exists() {
 
     %prog = type { %foo }
     %foo = type { i32*, i16, i16 }
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
@@ -3099,7 +3099,7 @@ fn user_fb_init_in_global_struct() {
     %prog = type { %bar }
     %bar = type { %foo }
     %foo = type { i32*, i16, i16 }
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
@@ -3263,7 +3263,7 @@ fn user_init_called_when_declared_as_external() {
 
     %prog = type { %foo }
     %foo = type { i32*, i16, i16 }
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer

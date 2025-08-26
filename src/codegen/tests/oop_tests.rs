@@ -25,9 +25,9 @@ fn members_from_base_class_are_available_in_subclasses() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, i16, [81 x i8], [11 x [81 x i8]] }
-    %__vtable_bar = type { %bar* }
+    %__vtable_bar = type { void (%bar*)* }
     %bar = type { %foo }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -166,11 +166,11 @@ fn write_to_parent_variable_qualified_access() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { %fb* }
+    %__vtable_fb = type { void (%fb*)* }
     %fb = type { i32*, i16, i16 }
-    %__vtable_fb2 = type { %fb2* }
+    %__vtable_fb2 = type { void (%fb2*)* }
     %fb2 = type { %fb }
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, %fb2 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -366,9 +366,9 @@ fn write_to_parent_variable_in_instance() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32*, [81 x i8] }
-    %__vtable_bar = type { %bar*, void (%foo*)* }
+    %__vtable_bar = type { void (%bar*)*, void (%foo*)* }
     %bar = type { %foo }
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
@@ -568,11 +568,11 @@ fn array_in_parent_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_grandparent = type { %grandparent* }
+    %__vtable_grandparent = type { void (%grandparent*)* }
     %grandparent = type { i32*, [6 x i16], i16 }
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { %grandparent, [11 x i16], i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent, [11 x i16] }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -806,11 +806,11 @@ fn complex_array_access_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_grandparent = type { %grandparent* }
+    %__vtable_grandparent = type { void (%grandparent*)* }
     %grandparent = type { i32*, [6 x i16], i16 }
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { %grandparent, [11 x i16], i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent, [11 x i16] }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1069,7 +1069,7 @@ fn this_in_method_call_chain() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, void (%FB_Test*)*, void (%FB_Test*)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1178,7 +1178,7 @@ fn this_in_method_and_body_in_function_block() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, i16 (%FB_Test*)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, i16 (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1296,10 +1296,10 @@ fn pass_this_to_method() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, void (%FB_Test*)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
     %FB_Test2 = type { i32* }
-    %__vtable_FB_Test2 = type { %FB_Test2*, i16 (%FB_Test2*, %FB_Test*)* }
+    %__vtable_FB_Test2 = type { void (%FB_Test2*)*, i16 (%FB_Test2*, %FB_Test*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
@@ -1471,7 +1471,7 @@ fn this_with_shadowed_variable() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, void (%FB_Test*)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1576,7 +1576,7 @@ fn this_calling_function_and_passing_this() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test* }
+    %__vtable_FB_Test = type { void (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1679,7 +1679,7 @@ fn this_in_property_and_calling_method() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, i16 (%FB_Test*)*, i16 (%FB_Test*)*, void (%FB_Test*, i16)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, i16 (%FB_Test*)*, i16 (%FB_Test*)*, void (%FB_Test*, i16)* }
     %FB_Test = type { i32*, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1827,7 +1827,7 @@ fn this_with_self_pointer() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB_Test = type { %FB_Test*, void (%FB_Test*)* }
+    %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32*, %FB_Test* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1923,7 +1923,7 @@ fn this_in_variable_initialization() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_FB = type { %FB* }
+    %__vtable_FB = type { void (%FB*)* }
     %FB = type { i32*, i16, %FB*, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2000,7 +2000,7 @@ fn this_in_action_in_functionblock() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { %fb* }
+    %__vtable_fb = type { void (%fb*)* }
     %fb = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2083,7 +2083,7 @@ fn this_calling_functionblock_body_from_method() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { %fb*, i16 (%fb*)* }
+    %__vtable_fb = type { void (%fb*)*, i16 (%fb*)* }
     %fb = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]

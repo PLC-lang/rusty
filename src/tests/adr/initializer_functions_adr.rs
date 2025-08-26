@@ -748,8 +748,8 @@ fn generating_init_functions() {
     %bar = type { i32*, %foo }
     %foo = type { i32*, %myStruct* }
     %myStruct = type { i8, i8 }
-    %__vtable_foo = type { %foo* }
-    %__vtable_bar = type { %bar* }
+    %__vtable_foo = type { void (%foo*)* }
+    %__vtable_bar = type { void (%bar*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @baz_instance = global %baz zeroinitializer
@@ -945,7 +945,7 @@ fn intializing_temporary_variables() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo* }
+    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, [81 x i8]* }
 
     @ps2 = global [81 x i8] zeroinitializer
@@ -1061,7 +1061,7 @@ fn initializing_method_variables() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1165,7 +1165,7 @@ fn initializing_method_variables() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)*, void (%foo*)* }
     %foo = type { i32*, i32 }
 
     @y = global i32 0
@@ -1275,7 +1275,7 @@ fn initializing_method_variables() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { %foo*, void (%foo*)* }
+    %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
     %foo = type { i32*, i32 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]

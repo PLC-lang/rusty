@@ -23,9 +23,9 @@ fn super_keyword_basic_access() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -160,9 +160,9 @@ fn super_without_deref() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent, %parent* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -304,9 +304,9 @@ fn super_in_method_calls() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent*, i16 (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, i16 (%parent*)* }
     %parent = type { i32*, i16 }
-    %__vtable_child = type { %child*, i16 (%child*)*, i16 (%child*)* }
+    %__vtable_child = type { void (%child*)*, i16 (%child*)*, i16 (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -496,9 +496,9 @@ fn super_in_complex_expressions() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16, i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -643,9 +643,9 @@ fn super_with_array_access() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, [6 x i16] }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent, i16 }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
@@ -804,11 +804,11 @@ fn super_in_multi_level_inheritance() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_grandparent = type { %grandparent*, i16 (%grandparent*)* }
+    %__vtable_grandparent = type { void (%grandparent*)*, i16 (%grandparent*)* }
     %grandparent = type { i32*, i16 }
-    %__vtable_parent = type { %parent*, i16 (%grandparent*)*, i16 (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, i16 (%grandparent*)*, i16 (%parent*)* }
     %parent = type { %grandparent, i16 }
-    %__vtable_child = type { %child*, i16 (%grandparent*)*, i16 (%parent*)*, i16 (%child*)* }
+    %__vtable_child = type { void (%child*)*, i16 (%grandparent*)*, i16 (%parent*)*, i16 (%child*)* }
     %child = type { %parent, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1060,9 +1060,9 @@ fn super_with_pointer_operations() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16, i16* }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1217,9 +1217,9 @@ fn super_in_conditionals() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16, i16 }
-    %__vtable_child = type { %child*, void (%child*)* }
+    %__vtable_child = type { void (%child*)*, void (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1407,9 +1407,9 @@ fn super_with_const_variables() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16, i16 }
-    %__vtable_child = type { %child* }
+    %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1559,9 +1559,9 @@ fn super_as_function_parameter() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, i16 }
-    %__vtable_child = type { %child*, void (%child*)* }
+    %__vtable_child = type { void (%child*)*, void (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1744,9 +1744,9 @@ fn super_with_deeply_nested_expressions() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent*, i16 (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, i16 (%parent*)* }
     %parent = type { i32*, i16, i16, i16 }
-    %__vtable_child = type { %child*, i16 (%parent*)*, i16 (%child*)* }
+    %__vtable_child = type { void (%child*)*, i16 (%parent*)*, i16 (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -1969,9 +1969,9 @@ fn super_in_loop_constructs() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent*, void (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, void (%parent*)* }
     %parent = type { i32*, i16, [6 x i16] }
-    %__vtable_child = type { %child*, void (%parent*)*, void (%child*)* }
+    %__vtable_child = type { void (%child*)*, void (%parent*)*, void (%child*)* }
     %child = type { %parent }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
@@ -2246,11 +2246,11 @@ fn super_with_method_overrides_in_three_levels() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_grandparent = type { %grandparent*, i16 (%grandparent*)* }
+    %__vtable_grandparent = type { void (%grandparent*)*, i16 (%grandparent*)* }
     %grandparent = type { i32* }
-    %__vtable_parent = type { %parent*, i16 (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, i16 (%parent*)* }
     %parent = type { %grandparent }
-    %__vtable_child = type { %child*, i16 (%child*)* }
+    %__vtable_child = type { void (%child*)*, i16 (%child*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -2548,9 +2548,9 @@ fn super_with_structured_types() {
     target triple = "[filtered]"
 
     %Complex_Type = type { i16, i16, float }
-    %__vtable_parent = type { %parent* }
+    %__vtable_parent = type { void (%parent*)* }
     %parent = type { i32*, %Complex_Type, [2 x %Complex_Type] }
-    %__vtable_child = type { %child*, void (%child*)* }
+    %__vtable_child = type { void (%child*)*, void (%child*)* }
     %child = type { %parent }
 
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
@@ -2763,9 +2763,9 @@ fn super_in_action_blocks() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { %parent*, void (%parent*)* }
+    %__vtable_parent = type { void (%parent*)*, void (%parent*)* }
     %parent = type { i32*, i16 }
-    %__vtable_child = type { %child*, void (%parent*)* }
+    %__vtable_child = type { void (%child*)*, void (%parent*)* }
     %child = type { %parent }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]

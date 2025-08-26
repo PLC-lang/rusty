@@ -73,6 +73,7 @@ impl VirtualTableGenerator {
                                 }),
                                 auto_deref: None,
                                 type_safe: false,
+                                is_function: false,
                             },
                             location: location.clone(),
                             scope: None,
@@ -113,7 +114,7 @@ impl VirtualTableGenerator {
             let member = Variable {
                 name: String::from("__body"),
                 data_type_declaration: DataTypeDeclaration::Definition {
-                    data_type: helper::create_pointer_type(pou.name.clone(), pou.location.clone()),
+                    data_type: helper::create_function_pointer(pou.name.clone(), pou.location.clone()),
                     location: location.clone(),
                     scope: None,
                 },
@@ -130,7 +131,7 @@ impl VirtualTableGenerator {
             let member = Variable {
                 name: method.get_call_name().to_string(),
                 data_type_declaration: DataTypeDeclaration::Definition {
-                    data_type: helper::create_pointer_type(
+                    data_type: helper::create_function_pointer(
                         method.get_name().into(),
                         method.get_location().into(),
                     ),
@@ -232,12 +233,13 @@ mod helper {
         format!("__vtable_{}_instance", pou.name)
     }
 
-    pub fn create_pointer_type(referenced_type: String, location: SourceLocation) -> DataType {
+    pub fn create_function_pointer(referenced_type: String, location: SourceLocation) -> DataType {
         DataType::PointerType {
             name: None,
             referenced_type: Box::new(DataTypeDeclaration::Reference { referenced_type, location }),
             auto_deref: None,
             type_safe: false,
+            is_function: true,
         }
     }
 }
@@ -320,6 +322,7 @@ mod tests {
                                         },
                                         auto_deref: None,
                                         type_safe: false,
+                                        is_function: false,
                                     },
                                 },
                             },
@@ -398,6 +401,7 @@ mod tests {
                                         },
                                         auto_deref: None,
                                         type_safe: false,
+                                        is_function: false,
                                     },
                                 },
                             },
@@ -548,6 +552,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -572,6 +577,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -721,6 +727,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -734,6 +741,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -778,6 +786,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -833,6 +842,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -846,6 +856,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -890,6 +901,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -934,6 +946,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -989,6 +1002,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -1002,6 +1016,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1046,6 +1061,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1090,6 +1106,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1134,6 +1151,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1189,6 +1207,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1233,6 +1252,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1288,6 +1308,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1332,6 +1353,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1376,6 +1398,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1431,6 +1454,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1475,6 +1499,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1519,6 +1544,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1563,6 +1589,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1739,6 +1766,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -1752,6 +1780,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1796,6 +1825,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1851,6 +1881,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -1864,6 +1895,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1908,6 +1940,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -1952,6 +1985,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2007,6 +2041,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -2020,6 +2055,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2064,6 +2100,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2108,6 +2145,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2152,6 +2190,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2207,6 +2246,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2251,6 +2291,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2306,6 +2347,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2350,6 +2392,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2394,6 +2437,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2449,6 +2493,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2493,6 +2538,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2537,6 +2583,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2581,6 +2628,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2771,6 +2819,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -2784,6 +2833,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2828,6 +2878,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2872,6 +2923,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2927,6 +2979,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -2940,6 +2993,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -2984,6 +3038,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3028,6 +3083,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3072,6 +3128,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3116,6 +3173,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3171,6 +3229,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                         },
@@ -3184,6 +3243,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3228,6 +3288,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3272,6 +3333,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3316,6 +3378,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3360,6 +3423,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3404,6 +3468,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3459,6 +3524,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3503,6 +3569,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3547,6 +3614,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3602,6 +3670,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3646,6 +3715,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3690,6 +3760,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3734,6 +3805,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3778,6 +3850,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3833,6 +3906,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3877,6 +3951,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3921,6 +3996,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -3965,6 +4041,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -4009,6 +4086,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(
@@ -4053,6 +4131,7 @@ mod tests {
                                     },
                                     auto_deref: None,
                                     type_safe: false,
+                                    is_function: true,
                                 },
                             },
                             initializer: Some(

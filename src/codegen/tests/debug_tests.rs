@@ -357,7 +357,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { %fb*, void (%fb*)* }
+    %__vtable_fb = type { void (%fb*)*, void (%fb*)* }
     %fb = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
