@@ -59,6 +59,9 @@ define void @__init___vtable_conditional_return(%__vtable_conditional_return* %0
 entry:
   %self = alloca %__vtable_conditional_return*, align 8
   store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align 8
+  %deref = load %__vtable_conditional_return*, %__vtable_conditional_return** %self, align 8
+  %__body = getelementptr inbounds %__vtable_conditional_return, %__vtable_conditional_return* %deref, i32 0, i32 0
+  store void (%conditional_return*)* @conditional_return, void (%conditional_return*)** %__body, align 8
   ret void
 }
 

@@ -116,7 +116,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     let AnnotatedProject { units, .. } = annotated_project;
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
     // the init-function for `foo` is expected to have a single assignment statement in its function body
-    let init_foo_impl = &units[1].implementations[0];
+    let init_foo_impl = &units[1].implementations[2];
     assert_eq!(&init_foo_impl.name, "__init_foo");
     let statements = &init_foo_impl.statements;
     assert_eq!(statements.len(), 2);
@@ -213,7 +213,7 @@ fn initializers_are_assigned_or_delegated_to_respective_init_functions() {
     "#);
 
     // the init-function for `bar` will have a `CallStatement` to `__init_foo` as its only statement, passing the member-instance `self.fb`
-    let init_bar_impl = &units[1].implementations[1];
+    let init_bar_impl = &units[1].implementations[3];
     assert_eq!(&init_bar_impl.name, "__init_bar");
     let statements = &init_bar_impl.statements;
     assert_eq!(statements.len(), 2);
@@ -786,6 +786,26 @@ fn generating_init_functions() {
       ret void
     }
 
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      ret void
+    }
+
+    define void @__init___vtable_bar(%__vtable_bar* %0) {
+    entry:
+      %self = alloca %__vtable_bar*, align 8
+      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
+      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
+      ret void
+    }
+
     define void @__init_bar(%bar* %0) {
     entry:
       %self = alloca %bar*, align 8
@@ -816,20 +836,6 @@ fn generating_init_functions() {
     entry:
       %self = alloca %myStruct*, align 8
       store %myStruct* %0, %myStruct** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_foo(%__vtable_foo* %0) {
-    entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_bar(%__vtable_bar* %0) {
-    entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
       ret void
     }
 
@@ -994,6 +1000,9 @@ fn intializing_temporary_variables() {
     entry:
       %self = alloca %__vtable_foo*, align 8
       store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
       ret void
     }
 
@@ -1095,7 +1104,10 @@ fn initializing_method_variables() {
       %self = alloca %__vtable_foo*, align 8
       store %__vtable_foo* %0, %__vtable_foo** %self, align 8
       %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
       store void (%foo*)* @foo__bar, void (%foo*)** %bar, align 8
       ret void
     }
@@ -1212,10 +1224,13 @@ fn initializing_method_variables() {
       %self = alloca %__vtable_foo*, align 8
       store %__vtable_foo* %0, %__vtable_foo** %self, align 8
       %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 1
-      store void (%foo*)* @foo__bar, void (%foo*)** %bar, align 8
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
       %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 2
+      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
+      store void (%foo*)* @foo__bar, void (%foo*)** %bar, align 8
+      %deref2 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %baz = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref2, i32 0, i32 2
       store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
       ret void
     }
@@ -1311,7 +1326,10 @@ fn initializing_method_variables() {
       %self = alloca %__vtable_foo*, align 8
       store %__vtable_foo* %0, %__vtable_foo** %self, align 8
       %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %bar = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
       store void (%foo*)* @foo__bar, void (%foo*)** %bar, align 8
       ret void
     }

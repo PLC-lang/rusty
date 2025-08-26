@@ -391,7 +391,10 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       %self = alloca %__vtable_fb*, align 8
       store %__vtable_fb* %0, %__vtable_fb** %self, align 8
       %deref = load %__vtable_fb*, %__vtable_fb** %self, align 8
-      %foo = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 0
+      store void (%fb*)* @fb, void (%fb*)** %__body, align 8
+      %deref1 = load %__vtable_fb*, %__vtable_fb** %self, align 8
+      %foo = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref1, i32 0, i32 1
       store void (%fb*)* @fb__foo, void (%fb*)** %foo, align 8
       ret void
     }

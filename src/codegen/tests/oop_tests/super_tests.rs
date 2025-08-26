@@ -59,6 +59,9 @@ fn super_keyword_basic_access() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -66,6 +69,9 @@ fn super_keyword_basic_access() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -196,6 +202,9 @@ fn super_without_deref() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -203,6 +212,9 @@ fn super_without_deref() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -386,7 +398,10 @@ fn super_in_method_calls() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %process = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %process = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
       store i16 (%parent*)* @parent__process, i16 (%parent*)** %process, align 8
       ret void
     }
@@ -396,10 +411,13 @@ fn super_in_method_calls() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %process = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
-      store i16 (%child*)* @child__process, i16 (%child*)** %process, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 2
+      %process = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
+      store i16 (%child*)* @child__process, i16 (%child*)** %process, align 8
+      %deref2 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 2
       store i16 (%child*)* @child__test, i16 (%child*)** %test, align 8
       ret void
     }
@@ -542,6 +560,9 @@ fn super_in_complex_expressions() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -549,6 +570,9 @@ fn super_in_complex_expressions() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -686,6 +710,9 @@ fn super_with_array_access() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -693,6 +720,9 @@ fn super_with_array_access() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -901,7 +931,10 @@ fn super_in_multi_level_inheritance() {
       %self = alloca %__vtable_grandparent*, align 8
       store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
       %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
-      %gp_method = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 0
+      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align 8
+      %deref1 = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
+      %gp_method = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref1, i32 0, i32 1
       store i16 (%grandparent*)* @grandparent__gp_method, i16 (%grandparent*)** %gp_method, align 8
       ret void
     }
@@ -911,10 +944,13 @@ fn super_in_multi_level_inheritance() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %gp_method = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
-      store i16 (%grandparent*)* @grandparent__gp_method, i16 (%grandparent*)** %gp_method, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %p_method = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 2
+      %gp_method = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
+      store i16 (%grandparent*)* @grandparent__gp_method, i16 (%grandparent*)** %gp_method, align 8
+      %deref2 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %p_method = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref2, i32 0, i32 2
       store i16 (%parent*)* @parent__p_method, i16 (%parent*)** %p_method, align 8
       ret void
     }
@@ -924,13 +960,16 @@ fn super_in_multi_level_inheritance() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %gp_method = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
-      store i16 (%grandparent*)* @grandparent__gp_method, i16 (%grandparent*)** %gp_method, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %p_method = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 2
-      store i16 (%parent*)* @parent__p_method, i16 (%parent*)** %p_method, align 8
+      %gp_method = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
+      store i16 (%grandparent*)* @grandparent__gp_method, i16 (%grandparent*)** %gp_method, align 8
       %deref2 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 3
+      %p_method = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 2
+      store i16 (%parent*)* @parent__p_method, i16 (%parent*)** %p_method, align 8
+      %deref3 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref3, i32 0, i32 3
       store i16 (%child*)* @child__test, i16 (%child*)** %test, align 8
       ret void
     }
@@ -1106,6 +1145,9 @@ fn super_with_pointer_operations() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -1113,6 +1155,9 @@ fn super_with_pointer_operations() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -1299,20 +1344,26 @@ fn super_in_conditionals() {
       ret void
     }
 
+    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    entry:
+      %self = alloca %__vtable_parent*, align 8
+      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      ret void
+    }
+
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
       store void (%child*)* @child__test, void (%child*)** %test, align 8
-      ret void
-    }
-
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
-    entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       ret void
     }
 
@@ -1444,6 +1495,9 @@ fn super_with_const_variables() {
     entry:
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
       ret void
     }
 
@@ -1451,6 +1505,9 @@ fn super_with_const_variables() {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       ret void
     }
 
@@ -1629,20 +1686,26 @@ fn super_as_function_parameter() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    entry:
+      %self = alloca %__vtable_parent*, align 8
+      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      ret void
+    }
+
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
       store void (%child*)* @child__test, void (%child*)** %test, align 8
-      ret void
-    }
-
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
-    entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       ret void
     }
 
@@ -1837,7 +1900,10 @@ fn super_with_deeply_nested_expressions() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %calc = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %calc = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
       store i16 (%parent*)* @parent__calc, i16 (%parent*)** %calc, align 8
       ret void
     }
@@ -1847,10 +1913,13 @@ fn super_with_deeply_nested_expressions() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %calc = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
-      store i16 (%parent*)* @parent__calc, i16 (%parent*)** %calc, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 2
+      %calc = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
+      store i16 (%parent*)* @parent__calc, i16 (%parent*)** %calc, align 8
+      %deref2 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 2
       store i16 (%child*)* @child__test, i16 (%child*)** %test, align 8
       ret void
     }
@@ -2131,7 +2200,10 @@ fn super_in_loop_constructs() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %increment = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %increment = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
       store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
       ret void
     }
@@ -2141,10 +2213,13 @@ fn super_in_loop_constructs() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %increment = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
-      store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
       %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %process = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 2
+      %increment = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
+      store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
+      %deref2 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %process = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 2
       store void (%child*)* @child__process, void (%child*)** %process, align 8
       ret void
     }
@@ -2337,7 +2412,10 @@ fn super_with_method_overrides_in_three_levels() {
       %self = alloca %__vtable_grandparent*, align 8
       store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
       %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
-      %calculate = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 0
+      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align 8
+      %deref1 = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
+      %calculate = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref1, i32 0, i32 1
       store i16 (%grandparent*)* @grandparent__calculate, i16 (%grandparent*)** %calculate, align 8
       ret void
     }
@@ -2347,7 +2425,10 @@ fn super_with_method_overrides_in_three_levels() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %calculate = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %calculate = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
       store i16 (%parent*)* @parent__calculate, i16 (%parent*)** %calculate, align 8
       ret void
     }
@@ -2357,7 +2438,10 @@ fn super_with_method_overrides_in_three_levels() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %calculate = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %calculate = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
       store i16 (%child*)* @child__calculate, i16 (%child*)** %calculate, align 8
       ret void
     }
@@ -2628,12 +2712,25 @@ fn super_with_structured_types() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    entry:
+      %self = alloca %__vtable_parent*, align 8
+      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      ret void
+    }
+
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
       store void (%child*)* @child__test, void (%child*)** %test, align 8
       ret void
     }
@@ -2642,13 +2739,6 @@ fn super_with_structured_types() {
     entry:
       %self = alloca %Complex_Type*, align 8
       store %Complex_Type* %0, %Complex_Type** %self, align 8
-      ret void
-    }
-
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
-    entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       ret void
     }
 
@@ -2828,7 +2918,10 @@ fn super_in_action_blocks() {
       %self = alloca %__vtable_parent*, align 8
       store %__vtable_parent* %0, %__vtable_parent** %self, align 8
       %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %increment = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
+      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %increment = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
       store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
       ret void
     }
@@ -2838,7 +2931,10 @@ fn super_in_action_blocks() {
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
       %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %increment = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 1
+      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
+      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
+      %increment = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
       store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
       ret void
     }

@@ -118,7 +118,7 @@ impl VirtualTableGenerator {
                     location: location.clone(),
                     scope: None,
                 },
-                initializer: None, // TODO(vosa): Doesn't currently work
+                initializer: Some(self.generate_initalizer(pou.name.as_str())),
                 address: None,
                 location: location.clone(),
             };
@@ -555,6 +555,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                     ],
                 },
@@ -580,6 +602,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                     ],
                 },
@@ -730,6 +774,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -845,6 +911,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -1005,6 +1093,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbC",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -1769,6 +1879,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -1884,6 +2016,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -2044,6 +2198,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbC",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "methodOneInA",
@@ -2822,6 +2998,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbA",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "one",
@@ -2982,6 +3180,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbB",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "one",
@@ -3232,6 +3452,28 @@ mod tests {
                                     is_function: true,
                                 },
                             },
+                            initializer: Some(
+                                CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "ADR",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "FbC",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                    ),
+                                },
+                            ),
                         },
                         Variable {
                             name: "one",
