@@ -975,6 +975,10 @@ pub fn validate_assignment_mismatch<T>(
             ));
         }
     } else if type_info_lhs != type_info_rhs {
+        if is_related_to(context, type_info_lhs.get_name(), type_info_rhs.get_name()) {
+            return;
+        }
+
         let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
         let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
@@ -983,6 +987,34 @@ pub fn validate_assignment_mismatch<T>(
             &type_name_lhs,
             assignment_location,
         ));
+    }
+}
+
+// TODO: Needs testing
+fn is_related_to<T>(context: &ValidationContext<T>, pou_name_lhs: &str, pou_name_rhs: &str) -> bool
+where
+    T: AnnotationMap,
+{
+    eprintln!("{pou_name_lhs}, {pou_name_rhs}");
+    let Some(pou_lhs) = context.index.find_pou(pou_name_lhs) else {
+        return false;
+    };
+
+    let Some(pou_rhs) = context.index.find_pou(pou_name_rhs) else {
+        return false;
+    };
+
+    dbg!(pou_lhs, pou_rhs);
+    match pou_rhs.get_super_class() {
+        Some(parent) => {
+            if pou_lhs.get_name() == parent {
+                true
+            } else {
+                is_related_to(context, pou_name_lhs, parent)
+            }
+        }
+
+        None => false,
     }
 }
 

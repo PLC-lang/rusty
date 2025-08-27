@@ -1130,13 +1130,7 @@ fn this_in_method_call_chain() {
       store %FB_Test* %0, %FB_Test** %this, align 8
       %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %__vtable1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
-      %deref2 = load i32*, i32** %__vtable1, align 8
-      %cast = bitcast i32* %deref2 to %__vtable_FB_Test*
-      %Increment = getelementptr inbounds %__vtable_FB_Test, %__vtable_FB_Test* %cast, i32 0, i32 2
-      %1 = load void (%FB_Test*)*, void (%FB_Test*)** %Increment, align 8
-      %deref3 = load %FB_Test*, %FB_Test** %this, align 8
-      call void %1(%FB_Test* %deref3)
+      call void @FB_Test__Increment(%FB_Test* %deref)
       ret void
     }
 
@@ -1783,14 +1777,8 @@ fn this_in_property_and_calling_method() {
       store i16 0, i16* %Value, align 2
       store i16 0, i16* %FB_Test.__get_Value, align 2
       %deref = load %FB_Test*, %FB_Test** %this, align 8
-      %__vtable1 = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
-      %deref2 = load i32*, i32** %__vtable1, align 8
-      %cast = bitcast i32* %deref2 to %__vtable_FB_Test*
-      %DoubleX = getelementptr inbounds %__vtable_FB_Test, %__vtable_FB_Test* %cast, i32 0, i32 1
-      %1 = load i16 (%FB_Test*)*, i16 (%FB_Test*)** %DoubleX, align 8
-      %deref3 = load %FB_Test*, %FB_Test** %this, align 8
-      %fnptr_call = call i16 %1(%FB_Test* %deref3)
-      store i16 %fnptr_call, i16* %Value, align 2
+      %call = call i16 @FB_Test__DoubleX(%FB_Test* %deref)
+      store i16 %call, i16* %Value, align 2
       %load_Value = load i16, i16* %Value, align 2
       store i16 %load_Value, i16* %FB_Test.__get_Value, align 2
       %FB_Test____get_Value_ret = load i16, i16* %FB_Test.__get_Value, align 2

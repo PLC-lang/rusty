@@ -72,7 +72,6 @@
                 }
             },
             "args": [
-                "-j=1",
                 "target/demo.st",
                 "tests/lit/util/printf.pli",
                 "-j=1",

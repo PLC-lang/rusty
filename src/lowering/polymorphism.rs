@@ -87,11 +87,18 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
 
         let unit_name = match self.in_method_or_function_block {
             Some(ref name) => name.clone(),
-            None => {
-                // When dealing with e.g. __main_myVariable
-                let ty = annotations.get_type(operator.get_base().unwrap(), index).unwrap();
-                index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
-            }
+            None => match operator.get_base() {
+                Some(base) => {
+                    // When dealing with e.g. __main_myVariable
+                    let ty = annotations.get_type(base, index).unwrap();
+                    index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
+                }
+
+                None => {
+                    let ty = annotations.get_type(operator, index).unwrap();
+                    index.find_elementary_pointer_type(ty.get_type_information()).get_name().to_string()
+                }
+            },
         };
 
         log::trace!("desugaring {}", operator.as_string());
@@ -171,9 +178,7 @@ impl PolymorphicCallDesugarer {
 
         match (access, base) {
             // Probably dealing with `MyFbRef^.foo()`
-            (ReferenceAccess::Member(_), Some(base)) if base.is_deref() => {
-                self.is_polymorphic_call_candidate(base)
-            }
+            (ReferenceAccess::Member(_), Some(base)) => self.is_polymorphic_call_candidate(base),
 
             // Probably dealing with `MyFbRef^()`
             (ReferenceAccess::Deref, Some(base)) => {
@@ -188,6 +193,11 @@ impl PolymorphicCallDesugarer {
 
                 let inner_pointer_type = index.get_type_information_or_void(inner_type_name);
                 inner_pointer_type.is_class() || inner_pointer_type.is_function_block()
+            }
+
+            // Auto-deref, e.g. `refInstance: REFERENCE TO ...`
+            (ReferenceAccess::Member(member), None) => {
+                annotations.get(member).is_some_and(StatementAnnotation::is_reference_to)
             }
 
             _ => false,
@@ -387,6 +397,25 @@ mod tests {
             "// Statements in B.foo",
             "__A()",
             "__A.foo()",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn function_calls_are_untouched() {
+        let source = r#"
+            FUNCTION foo
+            END_FUNCTION
+
+            FUNCTION main
+                foo();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "foo()",
         ]
         "#);
     }
@@ -767,6 +796,84 @@ mod tests {
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
             "__vtable_B#(refInstanceA^.refB^.__vtable^).__body^(refInstanceA^.refB^)",
             "__vtable_C#(refInstanceA^.refB^.refC^.__vtable^).__body^(refInstanceA^.refB^.refC^)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn ref_to() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                VAR
+                    refB: REF_TO B;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refC: REF_TO C;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK C
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refInstanceA: REF_TO A;
+                END_VAR
+
+                refInstanceA();
+                refInstanceA.refB();
+                refInstanceA.refB.refC();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
+            "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
+            "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
+        ]
+        "#);
+    }
+
+    #[test]
+    fn reference_to() {
+        let source = r#"
+            FUNCTION_BLOCK A
+                VAR
+                    refB: REFERENCE TO B;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK B
+                VAR
+                    refC: REFERENCE TO C;
+                END_VAR
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK C
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    refInstanceA: REFERENCE TO A;
+                END_VAR
+
+                refInstanceA();
+                refInstanceA.refB();
+                refInstanceA.refB.refC();
+            END_FUNCTION
+        "#;
+
+        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        [
+            "// Statements in main",
+            "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
+            "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
+            "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
         ]
         "#);
     }
