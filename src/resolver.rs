@@ -308,15 +308,15 @@ impl TypeAnnotator<'_> {
         let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
         let mut params = vec![];
         let mut parameters = if self.annotation_map.get(operator).is_some_and(|opt| opt.is_fnptr()) {
-            // When dealing with a function pointer (which are only supported in the context of methods), the
-            // first argument will be a instance of the POU, e.g. `fnPtrToMyFbEcho^(instanceFb)`, hence we
-            // must skip the first argument as otherwise the remainig arguments will receive an incorrect type
-            // hint. Again, for example assume we have `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and
-            // we do not skip the first argument. Then, `instanceFB` will have a type-hint of "STRING" and
-            // `stringValue` will have a type-hint on `DINT`. This then results in an error in the codegen.
-            // Somewhat "ugly" I have to admit and a better approach would be to desugar method calls from
-            // `fbInstance.echo('stringValue', 5)` to `fbInstance.echo(fbInstance, 'stringValue', 5)` but this
-            // has to do for now
+            // When dealing with a function pointer (which are only supported in the context of methods and
+            // direct function block calls), the first argument will be a instance of the POU, e.g.
+            // `fnPtrToMyFbEcho^(instanceFb)`, hence we must skip the first argument as otherwise the
+            // remaining arguments will receive an incorrect type hint. Again, for example assume we have
+            // `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and we do not skip the first argument. Then,
+            // `instanceFB` will have a type-hint of "STRING" and `stringValue` will have a type-hint on
+            // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
+            // better approach would be to desugar method calls from `fbInstance.echo('stringValue', 5)` to
+            // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
             parameters[1..].iter()
         } else {
             parameters.iter()

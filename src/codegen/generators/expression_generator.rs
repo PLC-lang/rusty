@@ -613,9 +613,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             ExpressionValue::RValue(_) => unreachable!(),
         };
 
-        // Generate the argument list; our assumption is function pointers are only supported for methods
-        // right now, hence we explicitly fetch the instance arguments from the list. In desugared code it we
-        // would have something alike `fnPtr^(instanceFb, arg1, arg2, ..., argN)`
+        // Generate the argument list; our assumption is function pointers are only supported for methods and
+        // direct function block calls, hence we explicitly fetch the instance argument from the list. In
+        // terms of desugared ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
         let (instance, arguments_raw, arguments_llvm) = {
             let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
             let (instance, arguments) = match arguments.len() {
