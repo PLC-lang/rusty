@@ -208,85 +208,96 @@ function set_offline() {
     fi
 }
 
+# Create shared library from static library with platform-specific flags
+function create_shared_library() {
+    local cc=$1
+    local lib_dir=$2
+    local target=$3
+    
+    log "Creating a shared library from the compiled static library"
+    
+    # Check if we're on macOS and adjust linker flags accordingly
+    case "$(uname -s)" in
+        Darwin*)
+            local cmd_args=("--shared" "-L$lib_dir" "-Wl,-force_load,$lib_dir/libiec61131std.a" "-o" "$lib_dir/libiec61131std.so" "-lm" "-framework" "CoreFoundation")
+            if [[ -n "$target" ]]; then
+                cmd_args+=("--target=$target")
+            fi
+            log "Running: $cc ${cmd_args[*]}"
+            "$cc" "${cmd_args[@]}"
+            ;;
+        *)
+            local cmd_args=("--shared" "-L$lib_dir" "-Wl,--whole-archive" "-liec61131std" "-o" "$lib_dir/libiec61131std.so" "-Wl,--no-whole-archive" "-lm" "-fuse-ld=lld")
+            if [[ -n "$target" ]]; then
+                cmd_args+=("--target=$target")
+            fi
+            log "Running: $cc ${cmd_args[*]}"
+            "$cc" "${cmd_args[@]}"
+            ;;
+    esac
+}
+
 function run_package_std() {
+    local cc
     cc=$(get_compiler)
-    OUTPUT_DIR=$project_location/output
+    local OUTPUT_DIR=$project_location/output
+    local target_dir="$project_location/target"
+    local include_dir=$OUTPUT_DIR/include
+    
     make_dir "$OUTPUT_DIR"
     log "Packaging Standard functions"
     log "Removing previous output folder"
-    rm -rf $OUTPUT_DIR
-    target_dir="$project_location/target"
-    include_dir=$OUTPUT_DIR/include
-    make_dir $include_dir
-    #Copy the iec61131-st folder
+    rm -rf "$OUTPUT_DIR"
+    make_dir "$include_dir"
+    
+    # Copy the iec61131-st folder
     cp -r "$project_location"/libs/stdlib/iec61131-st/*.st "$include_dir"
 
-    if [[ ! -z $target ]]; then
-        for val in ${target//,/ }
-        do
-            lib_dir=$OUTPUT_DIR/$val/lib
-            make_dir $lib_dir
+    if [[ -n "$target" ]]; then
+        for val in ${target//,/ }; do
+            local lib_dir=$OUTPUT_DIR/$val/lib
+            make_dir "$lib_dir"
 
-            # if the target ends with -linux-gnu but does not have unknown, add unknown
+            # Normalize target name for rustc
+            local rustc_target=$val
             if [[ $val == *"-linux-gnu" && $val != *"unknown-linux-gnu" ]]; then
                 rustc_target="${val/-linux-gnu/-unknown-linux-gnu}"
-            else
-                rustc_target=$val
             fi
-            rel_dir="$target_dir/$rustc_target"
+            
+            # Determine release or debug directory
+            local rel_dir="$target_dir/$rustc_target"
             if [[ $release -ne 0 ]]; then
                 rel_dir="$rel_dir/release"
             else
                 rel_dir="$rel_dir/debug"
             fi
+            
             if [[ ! -d "$rel_dir" ]]; then
                 echo "Compilation directory $rel_dir not found"
                 exit 1
             fi
-            cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null  || log "$rel_dir does not contain *.a files"
-            # Create an SO file from the copied a file
-            log "Creating a shared library from the compiled static library"
-            log "Running : $cc --shared -L$lib_dir \
-                -Wl,--whole-archive -liec61131std \
-                -o $lib_dir/out.so -Wl,--no-whole-archive \
-                -lm \
-                -fuse-ld=lld \
-                --target=$val"
-            $cc --shared -L"$lib_dir" \
-                -Wl,--whole-archive -liec61131std \
-                -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-                -lm \
-                -fuse-ld=lld \
-                --target="$val"
-
-            mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+            
+            cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
+            create_shared_library "$cc" "$lib_dir" "$val"
         done
     else
-        lib_dir=$OUTPUT_DIR/lib
-        make_dir $lib_dir
+        local lib_dir=$OUTPUT_DIR/lib
+        make_dir "$lib_dir"
+        
+        # Determine release or debug directory
+        local rel_dir="$target_dir"
         if [[ $release -ne 0 ]]; then
-            rel_dir="$target_dir/release"
+            rel_dir="$rel_dir/release"
         else
-            rel_dir="$target_dir/debug"
+            rel_dir="$rel_dir/debug"
         fi
+        
         cp "$rel_dir/"*.a "$lib_dir" 2>/dev/null || log "$rel_dir does not contain *.a files"
-        # Create an SO file from the copied a file
-        log "Creating a shared library from the compiled static library"
-        log "Running : $cc --shared -L"$lib_dir" \
-            -Wl,--whole-archive -liec61131std \
-            -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-            -lm \
-            -fuse-ld=lld "
-        $cc --shared -L"$lib_dir" \
-            -Wl,--whole-archive -liec61131std \
-            -o "$lib_dir/out.so" -Wl,--no-whole-archive \
-            -lm \
-            -fuse-ld=lld
-        mv "$lib_dir/out.so" "$lib_dir/libiec61131std.so"
+        create_shared_library "$cc" "$lib_dir" ""
     fi
 
     log "Enabling read/write on the output folder"
-    chmod a+rw $OUTPUT_DIR -R
+    chmod -R a+rw "$OUTPUT_DIR"
 
 }
 
@@ -504,9 +515,9 @@ if [[ $coverage -ne 0 ]]; then
     run_coverage
 fi
 
-if [[ -d $project_location/target/ ]]; then
+if [[ -d "$project_location/target/" ]]; then
     log "Allow access to target folders"
-    chmod a+rw -R $project_location/target/
+    chmod -R a+rw "$project_location/target/"
 fi
 
 if [[ $offline -ne 0 ]]; then
