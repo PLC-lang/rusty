@@ -27,7 +27,6 @@ pub struct LlvmTypedIndex<'ink> {
 pub trait TypeHelper<'ink> {
     #[allow(clippy::wrong_self_convention)]
     fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>>;
-
     fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink>;
 }
 
@@ -113,7 +112,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = type_name.to_lowercase();
 
-        log::debug!("registered `{name}` as type `{}`", target_type.print_to_string());
+        log::trace!("registered `{name}` as type `{}`", target_type.print_to_string());
         self.type_associations.insert(name, target_type);
         Ok(())
     }
@@ -125,7 +124,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = type_name.to_lowercase();
 
-        log::debug!("registered `{name}` as POU type `{}`", target_type.print_to_string());
+        log::trace!("registered `{name}` as POU type `{}`", target_type.print_to_string());
         self.pou_type_associations.insert(name, target_type);
         Ok(())
     }
@@ -137,7 +136,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = type_name.to_lowercase();
 
-        log::debug!("registered `{name}` as initial value type `{}`", initial_value.print_to_string());
+        log::trace!("registered `{name}` as initial value type `{}`", initial_value.print_to_string());
         self.initial_value_associations.insert(name, initial_value);
         Ok(())
     }
@@ -150,7 +149,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = qualified_name(container_name, variable_name).to_lowercase();
 
-        log::debug!("registered `{name}` as loaded local type `{}`", target_value.print_to_string());
+        log::trace!("registered `{name}` as loaded local type `{}`", target_value.print_to_string());
         self.loaded_variable_associations.insert(name, target_value);
         Ok(())
     }
@@ -162,7 +161,7 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = variable_name.to_lowercase();
 
-        log::debug!("registered `{name}` as global variable type `{}`", global_variable.print_to_string());
+        log::trace!("registered `{name}` as global variable type `{}`", global_variable.print_to_string());
         self.global_values.insert(name.clone(), global_variable);
         self.initial_value_associations.insert(name, global_variable.as_pointer_value().into());
 
@@ -177,19 +176,19 @@ impl<'ink> LlvmTypedIndex<'ink> {
     ) -> Result<(), Diagnostic> {
         let name = callable_name.to_lowercase();
 
-        log::debug!("registered `{name}` as implementation type `{}`", function_value.print_to_string());
+        log::trace!("registered `{name}` as implementation type `{}`", function_value.print_to_string());
         self.implementations.insert(name, function_value);
 
         Ok(())
     }
 
     pub fn associate_utf08_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
-        log::debug!("registered literal {literal}");
+        log::trace!("registered literal {literal}");
         self.utf08_literals.insert(literal.to_string(), literal_variable);
     }
 
     pub fn associate_utf16_literal(&mut self, literal: &str, literal_variable: GlobalValue<'ink>) {
-        log::debug!("registered literal {literal}");
+        log::trace!("registered literal {literal}");
         self.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 

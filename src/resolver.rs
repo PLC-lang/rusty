@@ -314,12 +314,9 @@ impl TypeAnnotator<'_> {
             // hint. Again, for example assume we have `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and
             // we do not skip the first argument. Then, `instanceFB` will have a type-hint of "STRING" and
             // `stringValue` will have a type-hint on `DINT`. This then results in an error in the codegen.
-            // This is super hacky and ugly imo, but because function pointers are internal only constructs I
-            // think it should be fine (kinda). In a perfect world we would desugar method calls such as
-            // `instanceFb.echo('stringValue', 5)` into `echo(instanceFb, 'stringValue', 5)` and update the
-            // declared parameters to also include the instance parameter. As a positive side-effect it would
-            // result in us not distinguishing between functions and methods in the codegen (though that
-            // currently is not a big deal) but also you not reading this comment :^)
+            // Somewhat "ugly" I have to admit and a better approach would be to desugar method calls from
+            // `fbInstance.echo('stringValue', 5)` to `fbInstance.echo(fbInstance, 'stringValue', 5)` but this
+            // has to do for now
             parameters[1..].iter()
         } else {
             parameters.iter()
@@ -500,7 +497,9 @@ pub enum StatementAnnotation {
         //      `<return type> (*<function pointer name>)(<comma seperated arg types>)`, however in ST I
         //      __think__ it might be neccessary because of named arguments? Obviously this limits the use
         //      case of function pointers because you'd always reference a concrete function rather than some
-        //      generic function such as `DINT(STRING, INT)`.
+        //      generic function such as `DINT(STRING, INT)`. If we ever decide to support function pointers
+        //      for real, we probably want to include another syntax similar to C with the limitation of not
+        //      supporting named arguments.
         /// The name of the referenced function, e.g. `MyFb.myMethod` in `POINTER TO MyFb.MyMethod := ADR(...)`
         qualified_name: String,
     },

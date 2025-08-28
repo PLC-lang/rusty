@@ -346,9 +346,8 @@ impl AstVisitorMut for AggregateTypeLowerer {
             let mut parameters =
                 stmt.parameters.as_mut().map(|it| steal_expression_list(it.borrow_mut())).unwrap_or_default();
 
-            // When dealing with function pointers (which for now support only methods), then the alloca
-            // variable must be placed at index 1 rather than 0 because the instance variable must always be
-            // the first argument
+            // Place the alloca aggregate variable at index 1 when dealing with function pointers because 0
+            // is reserved for the instance variable.
             if self.annotation.as_ref().unwrap().get(&stmt.operator).is_some_and(|opt| opt.is_fnptr()) {
                 parameters.insert(1, reference);
             } else {
@@ -1211,7 +1210,50 @@ mod tests {
     }
 
     #[test]
-    fn fnptr_no_argument() {
+    fn fnptr_with_arguments() {
+        let id_provider = IdProvider::default();
+        let (mut unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo: STRING
+                    VAR_INPUT
+                        x: DINT;
+                        y: STRING;
+                    END_VAR
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION main
+                VAR
+                    instanceFbA: FbA;
+                    fooPtr: FNPTR FbA.foo;
+                    localX: DINT;
+                    localY: STRING;
+                    result: STRING;
+                END_VAR
+
+                result := fooPtr^(instanceFbA, localX, localY);
+            END_FUNCTION
+            "#,
+            id_provider.clone(),
+        );
+
+        let mut lowerer = AggregateTypeLowerer {
+            index: Some(index),
+            annotation: None,
+            id_provider: id_provider.clone(),
+            ..Default::default()
+        };
+        lowerer.visit_compilation_unit(&mut unit);
+        lowerer.index.replace(index_unit_with_id(&unit, id_provider.clone()));
+        let annotations = annotate_with_ids(&unit, lowerer.index.as_mut().unwrap(), id_provider.clone());
+        lowerer.annotation.replace(Box::new(annotations));
+        lowerer.visit_compilation_unit(&mut unit);
+        assert_debug_snapshot!(unit.implementations[2].statements[0]);
+    }
+
+    #[test]
+    fn fnptr_without_arguments() {
         let id_provider = IdProvider::default();
         let (mut unit, index) = index_with_ids(
             r#"

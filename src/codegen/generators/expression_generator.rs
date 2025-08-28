@@ -490,7 +490,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
-        // Check if we are dealing with something alike `foo^(...)`
         if self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
             return self.generate_fnptr_call(operator, parameters);
         }
@@ -595,6 +594,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         arguments: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
         let Some(ReferenceExpr { base: Some(ref base), .. }) = operator.get_deref_expr() else {
+            // XXX: This would fail for auto-deref pointers, but given (for now) function pointers are never
+            // auto-derefed this should be fine.
             unreachable!("internal error, invalid method call")
         };
 
@@ -652,13 +653,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
-            Either::Right(_) => {
-                // TODO: When is this neccessary?
-                get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                    .const_null()
-                    .as_basic_value_enum()
-            }
+            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
         };
 
         // Output variables are assigned after the function block call, effectively gep'ing the instance
