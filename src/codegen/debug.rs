@@ -422,26 +422,19 @@ impl<'ink> DebugBuilder<'ink> {
 
         // Handle auto-dereferencing pointers by creating a typedef if needed. This ensures
         // that the DWARF information accurately reflects the intended usage (deref semantics) of the pointer type.
-        let ty = if let DataTypeInformation::Pointer { auto_deref: Some(auto_deref), .. } =
+        let ty = if let DataTypeInformation::Pointer { auto_deref: Some(_), .. } =
             index.get_type(name).map(|it| it.get_type_information())?
         {
-            match auto_deref {
-                // Default pointers do not need a typedef, since they can be identified by their name (`__auto_pointer_to_*`)
-                plc_ast::ast::AutoDerefType::Default => pointer_type,
-                // Alias and Reference types get a typedef to distinguish them from normal pointers
-                plc_ast::ast::AutoDerefType::Alias | plc_ast::ast::AutoDerefType::Reference => {
-                    let file = self.compile_unit.get_file();
-                    let typedef_name = format!("__auto_pointer_to_{name}");
-                    self.debug_info.create_typedef(
-                        pointer_type.as_type(),
-                        &typedef_name,
-                        file,
-                        0, // Line 0 for built-in types
-                        file.as_debug_info_scope(),
-                        align_bits,
-                    )
-                }
-            }
+            let file = self.compile_unit.get_file();
+            let typedef_name = format!("__AUTO_DEREF__{name}");
+            self.debug_info.create_typedef(
+                pointer_type.as_type(),
+                &typedef_name,
+                file,
+                0, // Line 0 for built-in types
+                file.as_debug_info_scope(),
+                align_bits,
+            )
         } else {
             pointer_type
         };
