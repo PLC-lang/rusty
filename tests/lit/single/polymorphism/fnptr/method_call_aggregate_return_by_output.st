@@ -36,7 +36,7 @@ END_FUNCTION_BLOCK
 
 FUNCTION main
     VAR
-        fooPtr: FNPTR FbA.foo := ADR(FbA.foo);
+        fooPtr: __FPOINTER FbA.foo := ADR(FbA.foo);
         instanceA: FbA;
         localOutString: STRING;
         localOutStruct: PositionWithExtraMetadata;

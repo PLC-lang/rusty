@@ -17,7 +17,7 @@ FUNCTION main
         localOut1: DINT;
         localOut2: DINT;
 
-        fnPtrInputArguments: FNPTR A.inputArguments := ADR(A.inputArguments);
+        fnPtrInputArguments: __FPOINTER A.inputArguments := ADR(A.inputArguments);
     END_VAR
 
     // Implicit

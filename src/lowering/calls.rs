@@ -1226,7 +1226,7 @@ mod tests {
             FUNCTION main
                 VAR
                     instanceFbA: FbA;
-                    fooPtr: FNPTR FbA.foo;
+                    fooPtr: __FPOINTER FbA.foo;
                     localX: DINT;
                     localY: STRING;
                     result: STRING;
@@ -1265,7 +1265,7 @@ mod tests {
             FUNCTION main
                 VAR
                     instanceFbA: FbA;
-                    fooPtr: FNPTR FbA.foo;
+                    fooPtr: __FPOINTER FbA.foo;
                     result: STRING;
                 END_VAR
 

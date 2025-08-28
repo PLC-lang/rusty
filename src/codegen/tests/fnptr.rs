@@ -13,7 +13,7 @@ fn function_pointer_method_no_parameters() {
         FUNCTION main
             VAR
                 instanceA: A;
-                fooPtr: FNPTR A.foo := ADR(A.foo);
+                fooPtr: __FPOINTER A.foo := ADR(A.foo);
             END_VAR
 
             fooPtr^(instanceA);
@@ -76,7 +76,7 @@ fn function_pointer_method_with_return_type() {
         FUNCTION main
             VAR
                 instanceA: A;
-                fooPtr: FNPTR A.foo := ADR(A.foo);
+                fooPtr: __FPOINTER A.foo := ADR(A.foo);
             END_VAR
 
             fooPtr^(instanceA);
@@ -147,8 +147,8 @@ fn function_pointer_method_with_return_type_aggregate() {
         FUNCTION main
             VAR
                 instanceA: A;
-                fooPtr: FNPTR A.foo := ADR(A.foo);
-                barPtr: FNPTR A.bar := ADR(A.bar);
+                fooPtr: __FPOINTER A.foo := ADR(A.foo);
+                barPtr: __FPOINTER A.bar := ADR(A.bar);
             END_VAR
 
             fooPtr^(instanceA);
@@ -261,7 +261,7 @@ fn function_pointer_method_with_all_variable_parameter_types() {
         FUNCTION main
             VAR
                 instanceA: A;
-                fooPtr: FNPTR A.foo := ADR(A.foo);
+                fooPtr: __FPOINTER A.foo := ADR(A.foo);
                 localIn: DINT;
                 localOut: STRING;
                 localInOut: ARRAY[1..5] OF DINT;
@@ -365,7 +365,7 @@ fn function_block_body() {
         FUNCTION main
             VAR
                 instanceA: A;
-                bodyPtr: FNPTR A := ADR(A);
+                bodyPtr: __FPOINTER A := ADR(A);
 
                 localIn: INT;
                 localOut: DINT;

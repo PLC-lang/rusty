@@ -39,10 +39,10 @@ END_FUNCTION_BLOCK
 FUNCTION main
     VAR
         instanceA: FbA;
-        returnStringPtr: FNPTR FbA.returnString := ADR(instanceA.returnString);
-        returnStructPtr: FNPTR FbA.returnStruct := ADR(instanceA.returnStruct);
-        returnStringArrayPtr: FNPTR FbA.returnStringArray := ADR(instanceA.returnStringArray);
-        returnStructArrayPtr: FNPTR FbA.returnStructArray := ADR(instanceA.returnStructArray);
+        returnStringPtr: __FPOINTER FbA.returnString := ADR(instanceA.returnString);
+        returnStructPtr: __FPOINTER FbA.returnStruct := ADR(instanceA.returnStruct);
+        returnStringArrayPtr: __FPOINTER FbA.returnStringArray := ADR(instanceA.returnStringArray);
+        returnStructArrayPtr: __FPOINTER FbA.returnStructArray := ADR(instanceA.returnStructArray);
 
         localReturnString: STRING;
         localReturnStruct: PositionWithExtraMetadata;
