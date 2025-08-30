@@ -319,7 +319,8 @@
 <a href="#318" id="318">318</a>
 <a href="#319" id="319">319</a>
 <a href="#320" id="320">320</a>
-<a href="#321" id="321">321</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
+<a href="#321" id="321">321</a>
+<a href="#322" id="322">322</a></pre></div><pre class="rust"><code><span class="kw">use </span>plc_ast::ast::{
     <span class="self">self</span>, ArgumentProperty, DataTypeDeclaration, DeclarationKind, Pou, PouType, PropertyKind, TypeNature,
     VariableBlock, VariableBlockType,
 };
@@ -632,6 +633,7 @@
                 inner_type_name: inner_type_name.to_string(),
                 auto_deref: <span class="prelude-val">Some</span>(ast::AutoDerefType::Default),
                 type_safe,
+                is_function: <span class="bool-val">false</span>,
             },
             nature: TypeNature::Any,
             location: SourceLocation::internal(),

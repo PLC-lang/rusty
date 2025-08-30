@@ -242,9 +242,66 @@
 <a href="#241" id="241">241</a>
 <a href="#242" id="242">242</a>
 <a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-</span><span class="kw">use </span>inkwell::types::BasicTypeEnum;
-<span class="kw">use </span>inkwell::values::{BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+<a href="#244" id="244">244</a>
+<a href="#245" id="245">245</a>
+<a href="#246" id="246">246</a>
+<a href="#247" id="247">247</a>
+<a href="#248" id="248">248</a>
+<a href="#249" id="249">249</a>
+<a href="#250" id="250">250</a>
+<a href="#251" id="251">251</a>
+<a href="#252" id="252">252</a>
+<a href="#253" id="253">253</a>
+<a href="#254" id="254">254</a>
+<a href="#255" id="255">255</a>
+<a href="#256" id="256">256</a>
+<a href="#257" id="257">257</a>
+<a href="#258" id="258">258</a>
+<a href="#259" id="259">259</a>
+<a href="#260" id="260">260</a>
+<a href="#261" id="261">261</a>
+<a href="#262" id="262">262</a>
+<a href="#263" id="263">263</a>
+<a href="#264" id="264">264</a>
+<a href="#265" id="265">265</a>
+<a href="#266" id="266">266</a>
+<a href="#267" id="267">267</a>
+<a href="#268" id="268">268</a>
+<a href="#269" id="269">269</a>
+<a href="#270" id="270">270</a>
+<a href="#271" id="271">271</a>
+<a href="#272" id="272">272</a>
+<a href="#273" id="273">273</a>
+<a href="#274" id="274">274</a>
+<a href="#275" id="275">275</a>
+<a href="#276" id="276">276</a>
+<a href="#277" id="277">277</a>
+<a href="#278" id="278">278</a>
+<a href="#279" id="279">279</a>
+<a href="#280" id="280">280</a>
+<a href="#281" id="281">281</a>
+<a href="#282" id="282">282</a>
+<a href="#283" id="283">283</a>
+<a href="#284" id="284">284</a>
+<a href="#285" id="285">285</a>
+<a href="#286" id="286">286</a>
+<a href="#287" id="287">287</a>
+<a href="#288" id="288">288</a>
+<a href="#289" id="289">289</a>
+<a href="#290" id="290">290</a>
+<a href="#291" id="291">291</a>
+<a href="#292" id="292">292</a>
+<a href="#293" id="293">293</a>
+<a href="#294" id="294">294</a>
+<a href="#295" id="295">295</a>
+<a href="#296" id="296">296</a>
+<a href="#297" id="297">297</a>
+<a href="#298" id="298">298</a>
+<a href="#299" id="299">299</a>
+<a href="#300" id="300">300</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+</span><span class="kw">use </span>inkwell::types::{AnyTypeEnum, BasicType, BasicTypeEnum, PointerType};
+<span class="kw">use </span>inkwell::values::{AnyValue, BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
+<span class="kw">use </span>inkwell::AddressSpace;
 <span class="kw">use </span>plc_diagnostics::diagnostics::Diagnostic;
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>plc_util::convention::qualified_name;
@@ -255,8 +312,8 @@
 </span><span class="attr">#[derive(Debug, Clone, Default)]
 </span><span class="kw">pub struct </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt; {
     parent_index: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ink </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
-    pou_type_associations: FxHashMap&lt;String, BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    type_associations: FxHashMap&lt;String, AnyTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+    pou_type_associations: FxHashMap&lt;String, AnyTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     global_values: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     got_indices: FxHashMap&lt;String, u64&gt;,
     initial_value_associations: FxHashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
@@ -265,6 +322,40 @@
     constants: FxHashMap&lt;String, BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     utf08_literals: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
     utf16_literals: FxHashMap&lt;String, GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt;,
+}
+
+<span class="kw">pub trait </span>TypeHelper&lt;<span class="lifetime">'ink</span>&gt; {
+    <span class="attr">#[allow(clippy::wrong_self_convention)]
+    </span><span class="kw">fn </span>as_basic_type(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt;;
+    <span class="kw">fn </span>create_ptr_type(<span class="kw-2">&amp;</span><span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ink</span>&gt;;
+}
+
+<span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; TypeHelper&lt;<span class="lifetime">'ink</span>&gt; <span class="kw">for </span>AnyTypeEnum&lt;<span class="lifetime">'ink</span>&gt; {
+    <span class="kw">fn </span>as_basic_type(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            AnyTypeEnum::ArrayType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::FloatType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::IntType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::PointerType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::StructType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::VectorType(value) =&gt; <span class="prelude-val">Some</span>(value.as_basic_type_enum()),
+            AnyTypeEnum::VoidType(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+            AnyTypeEnum::FunctionType(<span class="kw">_</span>) =&gt; <span class="prelude-val">None</span>,
+        }
+    }
+
+    <span class="kw">fn </span>create_ptr_type(<span class="kw-2">&amp;</span><span class="self">self</span>, address_space: AddressSpace) -&gt; PointerType&lt;<span class="lifetime">'ink</span>&gt; {
+        <span class="kw">match </span><span class="self">self </span>{
+            AnyTypeEnum::ArrayType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::FloatType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::IntType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::PointerType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::StructType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::VectorType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::FunctionType(value) =&gt; value.ptr_type(address_space),
+            AnyTypeEnum::VoidType(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(<span class="string">"Void type cannot be converted to pointer"</span>),
+        }
+    }
 }
 
 <span class="kw">impl</span>&lt;<span class="lifetime">'ink</span>&gt; LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt; {
@@ -317,18 +408,24 @@
     <span class="kw">pub fn </span>associate_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         type_name: <span class="kw-2">&amp;</span>str,
-        target_type: BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
+        target_type: AnyTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.type_associations.insert(type_name.to_lowercase(), target_type);
+        <span class="kw">let </span>name = type_name.to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as type `{}`"</span>, target_type.print_to_string());
+        <span class="self">self</span>.type_associations.insert(name, target_type);
         <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>associate_pou_type(
         <span class="kw-2">&amp;mut </span><span class="self">self</span>,
         type_name: <span class="kw-2">&amp;</span>str,
-        target_type: BasicTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
+        target_type: AnyTypeEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.pou_type_associations.insert(type_name.to_lowercase(), target_type);
+        <span class="kw">let </span>name = type_name.to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as POU type `{}`"</span>, target_type.print_to_string());
+        <span class="self">self</span>.pou_type_associations.insert(name, target_type);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -337,7 +434,10 @@
         type_name: <span class="kw-2">&amp;</span>str,
         initial_value: BasicValueEnum&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.initial_value_associations.insert(type_name.to_lowercase(), initial_value);
+        <span class="kw">let </span>name = type_name.to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as initial value type `{}`"</span>, initial_value.print_to_string());
+        <span class="self">self</span>.initial_value_associations.insert(name, initial_value);
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -347,8 +447,62 @@
         variable_name: <span class="kw-2">&amp;</span>str,
         target_value: PointerValue&lt;<span class="lifetime">'ink</span>&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span>qualified_name = qualified_name(container_name, variable_name);
-        <span class="self">self</span>.loaded_variable_associations.insert(qualified_name.to_lowercase(), target_value);
+        <span class="kw">let </span>name = qualified_name(container_name, variable_name).to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as loaded local type `{}`"</span>, target_value.print_to_string());
+        <span class="self">self</span>.loaded_variable_associations.insert(name, target_value);
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>associate_global(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        variable_name: <span class="kw-2">&amp;</span>str,
+        global_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>name = variable_name.to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as global variable type `{}`"</span>, global_variable.print_to_string());
+        <span class="self">self</span>.global_values.insert(name.clone(), global_variable);
+        <span class="self">self</span>.initial_value_associations.insert(name, global_variable.as_pointer_value().into());
+
+        <span class="comment">// FIXME: Do we want to call .insert_new_got_index() here?
+        </span><span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>associate_implementation(
+        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+        callable_name: <span class="kw-2">&amp;</span>str,
+        function_value: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>name = callable_name.to_lowercase();
+
+        <span class="macro">log::trace!</span>(<span class="string">"registered `{name}` as implementation type `{}`"</span>, function_value.print_to_string());
+        <span class="self">self</span>.implementations.insert(name, function_value);
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>associate_utf08_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;) {
+        <span class="macro">log::trace!</span>(<span class="string">"registered literal {literal}"</span>);
+        <span class="self">self</span>.utf08_literals.insert(literal.to_string(), literal_variable);
+    }
+
+    <span class="kw">pub fn </span>associate_utf16_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;) {
+        <span class="macro">log::trace!</span>(<span class="string">"registered literal {literal}"</span>);
+        <span class="self">self</span>.utf16_literals.insert(literal.to_string(), literal_variable);
+    }
+
+    <span class="kw">pub fn </span>associate_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str, index: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>name = variable_name.to_lowercase();
+        <span class="self">self</span>.got_indices.insert(name, index);
+
+        <span class="prelude-val">Ok</span>(())
+    }
+
+    <span class="kw">pub fn </span>insert_new_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
+        <span class="kw">let </span>idx = <span class="self">self</span>.got_indices.values().max().copied().unwrap_or(<span class="number">0</span>);
+        <span class="self">self</span>.got_indices.insert(variable_name.to_lowercase(), idx);
+
         <span class="prelude-val">Ok</span>(())
     }
 
@@ -370,6 +524,7 @@
         <span class="self">self</span>.type_associations
             .get(<span class="kw-2">&amp;</span>type_name.to_lowercase())
             .copied()
+            .and_then(TypeHelper::as_basic_type)
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_associated_type(type_name)))
             .or_else(|| <span class="self">self</span>.find_associated_pou_type(type_name))
     }
@@ -378,6 +533,7 @@
         <span class="self">self</span>.pou_type_associations
             .get(<span class="kw-2">&amp;</span>type_name.to_lowercase())
             .copied()
+            .and_then(TypeHelper::as_basic_type)
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_associated_pou_type(type_name)))
     }
 
@@ -396,42 +552,6 @@
             .get(<span class="kw-2">&amp;</span>type_name.to_lowercase())
             .copied()
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_associated_initial_value(type_name)))
-    }
-
-    <span class="kw">pub fn </span>associate_global(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        variable_name: <span class="kw-2">&amp;</span>str,
-        global_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.global_values.insert(variable_name.to_lowercase(), global_variable);
-        <span class="self">self</span>.initial_value_associations
-            .insert(variable_name.to_lowercase(), global_variable.as_pointer_value().into());
-
-        <span class="comment">// FIXME: Do we want to call .insert_new_got_index() here?
-
-        </span><span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub fn </span>associate_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str, index: u64) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.got_indices.insert(variable_name.to_lowercase(), index);
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub fn </span>insert_new_got_index(<span class="kw-2">&amp;mut </span><span class="self">self</span>, variable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="kw">let </span>idx = <span class="self">self</span>.got_indices.values().max().copied().unwrap_or(<span class="number">0</span>);
-
-        <span class="self">self</span>.got_indices.insert(variable_name.to_lowercase(), idx);
-
-        <span class="prelude-val">Ok</span>(())
-    }
-
-    <span class="kw">pub fn </span>associate_implementation(
-        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-        callable_name: <span class="kw-2">&amp;</span>str,
-        function_value: FunctionValue&lt;<span class="lifetime">'ink</span>&gt;,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
-        <span class="self">self</span>.implementations.insert(callable_name.to_lowercase(), function_value);
-        <span class="prelude-val">Ok</span>(())
     }
 
     <span class="kw">pub fn </span>find_associated_implementation(<span class="kw-2">&amp;</span><span class="self">self</span>, callable_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {
@@ -466,18 +586,10 @@
         <span class="self">self</span>.constants.get(qualified_name).copied()
     }
 
-    <span class="kw">pub fn </span>associate_utf08_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;) {
-        <span class="self">self</span>.utf08_literals.insert(literal.to_string(), literal_variable);
-    }
-
     <span class="kw">pub fn </span>find_utf08_literal_string(<span class="kw-2">&amp;</span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {
         <span class="self">self</span>.utf08_literals
             .get(literal)
             .or_else(|| <span class="self">self</span>.parent_index.and_then(|it| it.find_utf08_literal_string(literal)))
-    }
-
-    <span class="kw">pub fn </span>associate_utf16_literal(<span class="kw-2">&amp;mut </span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str, literal_variable: GlobalValue&lt;<span class="lifetime">'ink</span>&gt;) {
-        <span class="self">self</span>.utf16_literals.insert(literal.to_string(), literal_variable);
     }
 
     <span class="kw">pub fn </span>find_utf16_literal_string(<span class="kw-2">&amp;</span><span class="self">self</span>, literal: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>GlobalValue&lt;<span class="lifetime">'ink</span>&gt;&gt; {

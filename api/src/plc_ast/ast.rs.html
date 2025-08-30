@@ -2064,7 +2064,31 @@
 <a href="#2063" id="2063">2063</a>
 <a href="#2064" id="2064">2064</a>
 <a href="#2065" id="2065">2065</a>
-<a href="#2066" id="2066">2066</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2066" id="2066">2066</a>
+<a href="#2067" id="2067">2067</a>
+<a href="#2068" id="2068">2068</a>
+<a href="#2069" id="2069">2069</a>
+<a href="#2070" id="2070">2070</a>
+<a href="#2071" id="2071">2071</a>
+<a href="#2072" id="2072">2072</a>
+<a href="#2073" id="2073">2073</a>
+<a href="#2074" id="2074">2074</a>
+<a href="#2075" id="2075">2075</a>
+<a href="#2076" id="2076">2076</a>
+<a href="#2077" id="2077">2077</a>
+<a href="#2078" id="2078">2078</a>
+<a href="#2079" id="2079">2079</a>
+<a href="#2080" id="2080">2080</a>
+<a href="#2081" id="2081">2081</a>
+<a href="#2082" id="2082">2082</a>
+<a href="#2083" id="2083">2083</a>
+<a href="#2084" id="2084">2084</a>
+<a href="#2085" id="2085">2085</a>
+<a href="#2086" id="2086">2086</a>
+<a href="#2087" id="2087">2087</a>
+<a href="#2088" id="2088">2088</a>
+<a href="#2089" id="2089">2089</a>
+<a href="#2090" id="2090">2090</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{
     fmt::{Debug, Display, Formatter},
@@ -2775,6 +2799,9 @@
         /// e.g., `foo : POINTER TO DINT := ADR(stringValue)`. When true, the type of the pointer must match
         /// the referenced type exactly.
         </span>type_safe: bool,
+
+        <span class="doccomment">/// Indicates whether the pointer is a function pointer.
+        </span>is_function: bool,
     },
     StringType {
         name: <span class="prelude-ty">Option</span>&lt;String&gt;,
@@ -3328,6 +3355,17 @@
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::This)
     }
 
+    <span class="kw">pub fn </span>is_this_deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(
+                ReferenceExpr { access: ReferenceAccess::Deref, base: <span class="prelude-val">Some</span>(base) },
+                ..,
+            ) =&gt; base.is_this(),
+
+            <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+        }
+    }
+
     <span class="kw">pub fn </span>is_paren(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
         <span class="macro">matches!</span>(<span class="self">self</span>.stmt, AstStatement::ParenExpression { .. })
     }
@@ -3462,6 +3500,16 @@
 
     <span class="kw">pub fn </span>with_metadata(<span class="self">self</span>, metadata: MetaData) -&gt; AstNode {
         AstNode { metadata: <span class="prelude-val">Some</span>(metadata), ..<span class="self">self </span>}
+    }
+
+    <span class="kw">pub fn </span>get_deref_expr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>ReferenceExpr&gt; {
+        <span class="kw">match </span><span class="kw-2">&amp;</span><span class="self">self</span>.stmt {
+            AstStatement::ReferenceExpr(expr) =&gt; <span class="kw">match </span>expr {
+                ReferenceExpr { access: ReferenceAccess::Deref, .. } =&gt; <span class="prelude-val">Some</span>(expr),
+                <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+            },
+            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+        }
     }
 }
 

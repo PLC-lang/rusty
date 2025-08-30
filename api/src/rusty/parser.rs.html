@@ -1553,7 +1553,22 @@
 <a href="#1552" id="1552">1552</a>
 <a href="#1553" id="1553">1553</a>
 <a href="#1554" id="1554">1554</a>
-<a href="#1555" id="1555">1555</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1555" id="1555">1555</a>
+<a href="#1556" id="1556">1556</a>
+<a href="#1557" id="1557">1557</a>
+<a href="#1558" id="1558">1558</a>
+<a href="#1559" id="1559">1559</a>
+<a href="#1560" id="1560">1560</a>
+<a href="#1561" id="1561">1561</a>
+<a href="#1562" id="1562">1562</a>
+<a href="#1563" id="1563">1563</a>
+<a href="#1564" id="1564">1564</a>
+<a href="#1565" id="1565">1565</a>
+<a href="#1566" id="1566">1566</a>
+<a href="#1567" id="1567">1567</a>
+<a href="#1568" id="1568">1568</a>
+<a href="#1569" id="1569">1569</a>
+<a href="#1570" id="1570">1570</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::ops::Range;
 
@@ -2511,9 +2526,9 @@
             lexer.advance();
         }
 
-        parse_pointer_definition(lexer, name, start_pos, <span class="prelude-val">None</span>, <span class="bool-val">false</span>)
+        parse_pointer_definition(lexer, name, start_pos, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">false</span>)
     } <span class="kw">else if </span>lexer.try_consume(KeywordRef) {
-        parse_pointer_definition(lexer, name, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">true</span>)
+        parse_pointer_definition(lexer, name, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">true</span>, <span class="bool-val">false</span>)
     } <span class="kw">else if </span>lexer.try_consume(KeywordParensOpen) {
         <span class="comment">//enum without datatype
         </span>parse_enum_type_definition(lexer, name)
@@ -2538,6 +2553,7 @@
     start_pos: usize,
     auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
     type_safe: bool,
+    is_function: bool,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     parse_data_type_definition(lexer, <span class="prelude-val">None</span>).map(|(decl, initializer)| {
         (
@@ -2547,6 +2563,7 @@
                     referenced_type: Box::new(decl),
                     auto_deref,
                     type_safe,
+                    is_function,
                 },
                 <span class="comment">// FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 </span>location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
@@ -2562,8 +2579,12 @@
     name: <span class="prelude-ty">Option</span>&lt;String&gt;,
 ) -&gt; <span class="prelude-ty">Option</span>&lt;(DataTypeDeclaration, <span class="prelude-ty">Option</span>&lt;AstNode&gt;)&gt; {
     <span class="kw">let </span>start = lexer.range().start;
-    <span class="comment">//Subrange
-    </span><span class="kw">let </span>referenced_type = lexer.slice_and_advance();
+
+    <span class="kw">let </span><span class="kw-2">mut </span>referenced_type = lexer.slice_and_advance();
+
+    <span class="kw">if </span>lexer.try_consume(KeywordDot) {
+        referenced_type = <span class="macro">format!</span>(<span class="string">"{referenced_type}.{}"</span>, lexer.slice_and_advance());
+    }
 
     <span class="kw">let </span>bounds = <span class="kw">if </span>lexer.try_consume(KeywordParensOpen) {
         <span class="comment">// INT (..) :=
@@ -2975,7 +2996,7 @@
     }
 
     <span class="kw">let </span>start = <span class="kw-2">&amp;</span>lexer.location().get_span().to_range().unwrap_or(lexer.last_range.clone()).start;
-    <span class="kw">let </span>datatype = parse_pointer_definition(lexer, <span class="prelude-val">None</span>, <span class="kw-2">*</span>start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>);
+    <span class="kw">let </span>datatype = parse_pointer_definition(lexer, <span class="prelude-val">None</span>, <span class="kw-2">*</span>start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>);
     <span class="kw">if </span>!lexer.try_consume(KeywordSemicolon) {
         lexer.accept_diagnostic(Diagnostic::missing_token(
             <span class="macro">format!</span>(<span class="string">"{KeywordSemicolon:?}"</span>).as_str(),
@@ -3053,9 +3074,18 @@
     </span><span class="kw">let </span><span class="kw-2">mut </span>variables = <span class="macro">vec!</span>[];
 
     <span class="kw">let </span>parse_definition_opt = <span class="kw">if </span>lexer.try_consume(KeywordReferenceTo) {
-        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Reference), <span class="bool-val">true</span>)
+        parse_pointer_definition(
+            lexer,
+            <span class="prelude-val">None</span>,
+            lexer.last_range.start,
+            <span class="prelude-val">Some</span>(AutoDerefType::Reference),
+            <span class="bool-val">true</span>,
+            <span class="bool-val">false</span>,
+        )
+    } <span class="kw">else if </span>lexer.try_consume(KeywordFunctionPointer) {
+        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">None</span>, <span class="bool-val">false</span>, <span class="bool-val">true</span>)
     } <span class="kw">else if </span>address.is_some() {
-        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>)
+        parse_pointer_definition(lexer, <span class="prelude-val">None</span>, lexer.last_range.start, <span class="prelude-val">Some</span>(AutoDerefType::Alias), <span class="bool-val">true</span>, <span class="bool-val">false</span>)
     } <span class="kw">else </span>{
         parse_full_data_type_definition(lexer, <span class="prelude-val">None</span>)
     };

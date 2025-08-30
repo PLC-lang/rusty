@@ -1451,7 +1451,16 @@
 <a href="#1450" id="1450">1450</a>
 <a href="#1451" id="1451">1451</a>
 <a href="#1452" id="1452">1452</a>
-<a href="#1453" id="1453">1453</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#1453" id="1453">1453</a>
+<a href="#1454" id="1454">1454</a>
+<a href="#1455" id="1455">1455</a>
+<a href="#1456" id="1456">1456</a>
+<a href="#1457" id="1457">1457</a>
+<a href="#1458" id="1458">1458</a>
+<a href="#1459" id="1459">1459</a>
+<a href="#1460" id="1460">1460</a>
+<a href="#1461" id="1461">1461</a>
+<a href="#1462" id="1462">1462</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use </span>std::{
     hash::Hash,
     mem::size_of,
@@ -1865,6 +1874,7 @@
         inner_type_name: TypeId,
         auto_deref: <span class="prelude-ty">Option</span>&lt;AutoDerefType&gt;,
         type_safe: bool,
+        is_function: bool,
     },
     Integer {
         name: TypeId,
@@ -2090,6 +2100,10 @@
         <span class="macro">matches!</span>(<span class="self">self</span>.get_name(), DATE_TYPE | DATE_AND_TIME_TYPE | TIME_OF_DAY_TYPE | TIME_TYPE)
     }
 
+    <span class="kw">pub fn </span>is_function_pointer(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Pointer { is_function: <span class="bool-val">true</span>, .. })
+    }
+
     <span class="doccomment">/// returns the number of bits of this type, as understood by IEC61131 (may be smaller than get_size(...))
     </span><span class="kw">pub fn </span>get_semantic_size(<span class="kw-2">&amp;</span><span class="self">self</span>, index: <span class="kw-2">&amp;</span>Index) -&gt; u32 {
         <span class="kw">if let </span>DataTypeInformation::Integer { semantic_size: <span class="prelude-val">Some</span>(s), .. } = <span class="self">self </span>{
@@ -2242,6 +2256,10 @@
 
         <span class="prelude-val">None
     </span>}
+
+    <span class="kw">pub fn </span>is_function_block(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. })
+    }
 }
 
 <span class="attr">#[derive(Debug, Clone, Copy, PartialEq, Eq)]

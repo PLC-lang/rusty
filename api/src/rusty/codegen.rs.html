@@ -1018,7 +1018,7 @@
         <span class="kw">let </span>location = (<span class="kw-2">&amp;</span>unit.file).into();
 
         <span class="self">self</span>.debug.finalize();
-        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.module.to_string());
+        <span class="macro">log::trace!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.module.to_string());
 
         <span class="attr">#[cfg(feature = <span class="string">"verify"</span>)]
         </span>{
@@ -1057,7 +1057,7 @@
             .create_module_from_ir(buffer)
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
 
-        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, module.to_string());
+        <span class="macro">log::trace!</span>(<span class="string">"{}"</span>, module.to_string());
 
         <span class="prelude-val">Ok</span>(GeneratedModule { module, location: path.into(), engine: RefCell::new(<span class="prelude-val">None</span>) })
     }
@@ -1066,7 +1066,7 @@
         <span class="self">self</span>.module
             .link_in_module(other.module)
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code(<span class="string">"E071"</span>))<span class="question-mark">?</span>;
-        <span class="macro">log::debug!</span>(<span class="string">"Merged: {}"</span>, <span class="self">self</span>.module.to_string());
+        <span class="macro">log::trace!</span>(<span class="string">"Merged: {}"</span>, <span class="self">self</span>.module.to_string());
 
         <span class="prelude-val">Ok</span>(<span class="self">self</span>)
     }
@@ -1244,8 +1244,8 @@
     /// * `codegen` - The generated LLVM module to be persisted
     /// * `output`  - The location to save the generated ir file
     </span><span class="kw">pub fn </span>persist_to_ir(<span class="kw-2">&amp;</span><span class="self">self</span>, output: PathBuf) -&gt; <span class="prelude-ty">Result</span>&lt;PathBuf, Diagnostic&gt; {
-        <span class="macro">log::debug!</span>(<span class="string">"Output location: {}"</span>, output.to_string_lossy());
-        <span class="macro">log::debug!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.persist_to_string());
+        <span class="macro">log::trace!</span>(<span class="string">"Output location: {}"</span>, output.to_string_lossy());
+        <span class="macro">log::trace!</span>(<span class="string">"{}"</span>, <span class="self">self</span>.persist_to_string());
 
         <span class="self">self</span>.module
             .print_to_file(<span class="kw-2">&amp;</span>output)

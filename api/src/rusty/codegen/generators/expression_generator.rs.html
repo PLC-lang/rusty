@@ -2892,7 +2892,110 @@
 <a href="#2891" id="2891">2891</a>
 <a href="#2892" id="2892">2892</a>
 <a href="#2893" id="2893">2893</a>
-<a href="#2894" id="2894">2894</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2894" id="2894">2894</a>
+<a href="#2895" id="2895">2895</a>
+<a href="#2896" id="2896">2896</a>
+<a href="#2897" id="2897">2897</a>
+<a href="#2898" id="2898">2898</a>
+<a href="#2899" id="2899">2899</a>
+<a href="#2900" id="2900">2900</a>
+<a href="#2901" id="2901">2901</a>
+<a href="#2902" id="2902">2902</a>
+<a href="#2903" id="2903">2903</a>
+<a href="#2904" id="2904">2904</a>
+<a href="#2905" id="2905">2905</a>
+<a href="#2906" id="2906">2906</a>
+<a href="#2907" id="2907">2907</a>
+<a href="#2908" id="2908">2908</a>
+<a href="#2909" id="2909">2909</a>
+<a href="#2910" id="2910">2910</a>
+<a href="#2911" id="2911">2911</a>
+<a href="#2912" id="2912">2912</a>
+<a href="#2913" id="2913">2913</a>
+<a href="#2914" id="2914">2914</a>
+<a href="#2915" id="2915">2915</a>
+<a href="#2916" id="2916">2916</a>
+<a href="#2917" id="2917">2917</a>
+<a href="#2918" id="2918">2918</a>
+<a href="#2919" id="2919">2919</a>
+<a href="#2920" id="2920">2920</a>
+<a href="#2921" id="2921">2921</a>
+<a href="#2922" id="2922">2922</a>
+<a href="#2923" id="2923">2923</a>
+<a href="#2924" id="2924">2924</a>
+<a href="#2925" id="2925">2925</a>
+<a href="#2926" id="2926">2926</a>
+<a href="#2927" id="2927">2927</a>
+<a href="#2928" id="2928">2928</a>
+<a href="#2929" id="2929">2929</a>
+<a href="#2930" id="2930">2930</a>
+<a href="#2931" id="2931">2931</a>
+<a href="#2932" id="2932">2932</a>
+<a href="#2933" id="2933">2933</a>
+<a href="#2934" id="2934">2934</a>
+<a href="#2935" id="2935">2935</a>
+<a href="#2936" id="2936">2936</a>
+<a href="#2937" id="2937">2937</a>
+<a href="#2938" id="2938">2938</a>
+<a href="#2939" id="2939">2939</a>
+<a href="#2940" id="2940">2940</a>
+<a href="#2941" id="2941">2941</a>
+<a href="#2942" id="2942">2942</a>
+<a href="#2943" id="2943">2943</a>
+<a href="#2944" id="2944">2944</a>
+<a href="#2945" id="2945">2945</a>
+<a href="#2946" id="2946">2946</a>
+<a href="#2947" id="2947">2947</a>
+<a href="#2948" id="2948">2948</a>
+<a href="#2949" id="2949">2949</a>
+<a href="#2950" id="2950">2950</a>
+<a href="#2951" id="2951">2951</a>
+<a href="#2952" id="2952">2952</a>
+<a href="#2953" id="2953">2953</a>
+<a href="#2954" id="2954">2954</a>
+<a href="#2955" id="2955">2955</a>
+<a href="#2956" id="2956">2956</a>
+<a href="#2957" id="2957">2957</a>
+<a href="#2958" id="2958">2958</a>
+<a href="#2959" id="2959">2959</a>
+<a href="#2960" id="2960">2960</a>
+<a href="#2961" id="2961">2961</a>
+<a href="#2962" id="2962">2962</a>
+<a href="#2963" id="2963">2963</a>
+<a href="#2964" id="2964">2964</a>
+<a href="#2965" id="2965">2965</a>
+<a href="#2966" id="2966">2966</a>
+<a href="#2967" id="2967">2967</a>
+<a href="#2968" id="2968">2968</a>
+<a href="#2969" id="2969">2969</a>
+<a href="#2970" id="2970">2970</a>
+<a href="#2971" id="2971">2971</a>
+<a href="#2972" id="2972">2972</a>
+<a href="#2973" id="2973">2973</a>
+<a href="#2974" id="2974">2974</a>
+<a href="#2975" id="2975">2975</a>
+<a href="#2976" id="2976">2976</a>
+<a href="#2977" id="2977">2977</a>
+<a href="#2978" id="2978">2978</a>
+<a href="#2979" id="2979">2979</a>
+<a href="#2980" id="2980">2980</a>
+<a href="#2981" id="2981">2981</a>
+<a href="#2982" id="2982">2982</a>
+<a href="#2983" id="2983">2983</a>
+<a href="#2984" id="2984">2984</a>
+<a href="#2985" id="2985">2985</a>
+<a href="#2986" id="2986">2986</a>
+<a href="#2987" id="2987">2987</a>
+<a href="#2988" id="2988">2988</a>
+<a href="#2989" id="2989">2989</a>
+<a href="#2990" id="2990">2990</a>
+<a href="#2991" id="2991">2991</a>
+<a href="#2992" id="2992">2992</a>
+<a href="#2993" id="2993">2993</a>
+<a href="#2994" id="2994">2994</a>
+<a href="#2995" id="2995">2995</a>
+<a href="#2996" id="2996">2996</a>
+<a href="#2997" id="2997">2997</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -2903,6 +3006,7 @@
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+<span class="kw">use </span>itertools::Either;
 <span class="kw">use </span>rustc_hash::FxHashSet;
 
 <span class="kw">use </span>plc_ast::{
@@ -2924,13 +3028,12 @@
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     index::{
-        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry, VariableType,
+        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
+        PouIndexEntry, VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        <span class="self">self</span>, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
@@ -3384,6 +3487,10 @@
         operator: <span class="kw-2">&amp;</span>AstNode,
         parameters: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
     ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">if </span><span class="self">self</span>.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
+            <span class="kw">return </span><span class="self">self</span>.generate_fnptr_call(operator, parameters);
+        }
+
         <span class="comment">// find the pou we're calling
         </span><span class="kw">let </span>pou = <span class="self">self</span>.annotations.get_call_name(operator).zip(<span class="self">self</span>.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| <span class="self">self</span>.index.find_pou(call_name)
@@ -3476,6 +3583,86 @@
         </span>}
 
         value
+    }
+
+    <span class="kw">fn </span>generate_fnptr_call(
+        <span class="kw-2">&amp;</span><span class="self">self</span>,
+        operator: <span class="kw-2">&amp;</span>AstNode,
+        arguments: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>AstNode&gt;,
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
+        <span class="kw">let </span><span class="prelude-val">Some</span>(ReferenceExpr { base: <span class="prelude-val">Some</span>(<span class="kw-2">ref </span>base), .. }) = operator.get_deref_expr() <span class="kw">else </span>{
+            <span class="comment">// XXX: This would fail for auto-deref pointers, but given (for now) function pointers are never
+            // auto-derefed this should be fine.
+            </span><span class="macro">unreachable!</span>(<span class="string">"internal error, invalid method call"</span>)
+        };
+
+        <span class="kw">let </span>qualified_pou_name = <span class="self">self</span>.annotations.get(operator).unwrap().qualified_name().unwrap();
+        <span class="kw">let </span>impl_entry = <span class="self">self</span>.index.find_implementation_by_name(qualified_pou_name).unwrap();
+        <span class="macro">debug_assert!</span>(
+            impl_entry.is_method() | impl_entry.is_function_block(),
+            <span class="string">"internal error, invalid method call"
+        </span>);
+
+        <span class="comment">// Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
+        // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
+        </span><span class="kw">let </span>function_pointer_value = <span class="kw">match </span><span class="self">self</span>.generate_expression_value(base)<span class="question-mark">? </span>{
+            ExpressionValue::LValue(value) =&gt; <span class="self">self</span>.llvm.load_pointer(<span class="kw-2">&amp;</span>value, <span class="string">""</span>).into_pointer_value(),
+            ExpressionValue::RValue(<span class="kw">_</span>) =&gt; <span class="macro">unreachable!</span>(),
+        };
+
+        <span class="comment">// Generate the argument list; our assumption is function pointers are only supported for methods and
+        // direct function block calls, hence we explicitly fetch the instance argument from the list. In
+        // terms of desugared ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
+        </span><span class="kw">let </span>(instance, arguments_raw, arguments_llvm) = {
+            <span class="kw">let </span>arguments = arguments.map(flatten_expression_list).unwrap_or_default();
+            <span class="kw">let </span>(instance, arguments) = <span class="kw">match </span>arguments.len() {
+                <span class="number">0 </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid desugared code, no instance argument found"</span>),
+                <span class="number">1 </span>=&gt; (<span class="self">self</span>.generate_lvalue(arguments[<span class="number">0</span>])<span class="question-mark">?</span>, Vec::new()),
+                <span class="kw">_ </span>=&gt; (<span class="self">self</span>.generate_lvalue(arguments[<span class="number">0</span>])<span class="question-mark">?</span>, arguments[<span class="number">1</span>..].to_vec()),
+            };
+
+            <span class="kw">let </span><span class="kw-2">mut </span>generated_arguments = <span class="kw">match </span><span class="kw-2">&amp;</span>impl_entry.implementation_type {
+                ImplementationType::Method =&gt; <span class="self">self</span>.generate_function_arguments(
+                    <span class="self">self</span>.index.find_pou(qualified_pou_name).unwrap(),
+                    <span class="kw-2">&amp;</span>arguments,
+                    <span class="self">self</span>.index.get_declared_parameters(qualified_pou_name),
+                )<span class="question-mark">?</span>,
+
+                <span class="comment">// Function Block body calls have a slightly different calling convention compared to regular
+                // methods. Specifically the arguments aren't passed to the call itself but rather the
+                // instance struct is gep'ed and the arguments are stored into the gep'ed pointer value.
+                // Best to call `--ir` on a simple function block body call to see the generated IR.
+                </span>ImplementationType::FunctionBlock =&gt; {
+                    <span class="self">self</span>.generate_stateful_pou_arguments(qualified_pou_name, <span class="prelude-val">None</span>, instance, <span class="kw-2">&amp;</span>arguments)<span class="question-mark">?</span>;
+                    Vec::new()
+                }
+
+                <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(<span class="string">"internal error, invalid method call"</span>),
+            };
+
+            generated_arguments.insert(<span class="number">0</span>, instance.clone().as_basic_value_enum().into());
+            (instance, arguments, generated_arguments)
+        };
+
+        <span class="comment">// Finally generate the function pointer call
+        </span><span class="kw">let </span>callable = CallableValue::try_from(function_pointer_value).unwrap();
+        <span class="kw">let </span>call = <span class="self">self</span>.llvm.builder.build_call(callable, <span class="kw-2">&amp;</span>arguments_llvm, <span class="string">"fnptr_call"</span>);
+
+        <span class="kw">let </span>value = <span class="kw">match </span>call.try_as_basic_value() {
+            Either::Left(value) =&gt; value,
+            Either::Right(<span class="kw">_</span>) =&gt; get_llvm_int_type(<span class="self">self</span>.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
+        };
+
+        <span class="comment">// Output variables are assigned after the function block call, effectively gep'ing the instance
+        // struct fetching the output values
+        </span><span class="kw">if </span>impl_entry.is_function_block() {
+            <span class="self">self</span>.assign_output_values(instance, qualified_pou_name, arguments_raw)<span class="question-mark">?
+        </span>}
+
+        <span class="prelude-val">Ok</span>(ExpressionValue::RValue(value))
     }
 
     <span class="doccomment">/// copies the output values to the assigned output variables
@@ -3805,7 +3992,7 @@
         <span class="kw">let </span><span class="kw-2">mut </span>variadic_parameters = Vec::new();
         <span class="kw">let </span><span class="kw-2">mut </span>passed_param_indices = Vec::new();
         <span class="kw">for </span>(i, argument) <span class="kw">in </span>arguments.iter().enumerate() {
-            <span class="kw">let </span>(i, parameter, <span class="kw">_</span>) = get_implicit_call_parameter(argument, <span class="kw-2">&amp;</span>declared_parameters, i)<span class="question-mark">?</span>;
+            <span class="kw">let </span>(i, argument, <span class="kw">_</span>) = get_implicit_call_parameter(argument, <span class="kw-2">&amp;</span>declared_parameters, i)<span class="question-mark">?</span>;
 
             <span class="comment">// parameter_info includes the declaration type and type name
             </span><span class="kw">let </span>parameter_info = declared_parameters
@@ -3829,11 +4016,11 @@
                 </span>.unwrap_or_else(|| {
                     <span class="comment">// if we are dealing with a variadic function, we can accept all extra parameters
                     </span><span class="kw">if </span>pou.is_variadic() {
-                        variadic_parameters.push(parameter);
+                        variadic_parameters.push(argument);
                         <span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>)
                     } <span class="kw">else </span>{
                         <span class="comment">// we are not variadic, we have too many parameters here
-                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Too many parameters"</span>, parameter))
+                        </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Too many parameters"</span>, argument))
                     }
                 })<span class="question-mark">?</span>;
 
@@ -3843,11 +4030,11 @@
                         &amp;&amp; declaration_type.is_input())
                 {
                     <span class="kw">let </span>declared_parameter = declared_parameters.get(i);
-                    <span class="self">self</span>.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())<span class="question-mark">?
+                    <span class="self">self</span>.generate_argument_by_ref(argument, type_name, declared_parameter.copied())<span class="question-mark">?
                 </span>} <span class="kw">else </span>{
                     <span class="comment">// by val
-                    </span><span class="kw">if </span>!parameter.is_empty_statement() {
-                        <span class="self">self</span>.generate_expression(parameter)<span class="question-mark">?
+                    </span><span class="kw">if </span>!argument.is_empty_statement() {
+                        <span class="self">self</span>.generate_expression(argument)<span class="question-mark">?
                     </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(param) = declared_parameters.get(i) {
                         <span class="self">self</span>.generate_empty_expression(param)<span class="question-mark">?
                     </span>} <span class="kw">else </span>{
@@ -5504,13 +5691,32 @@
             }
 
             <span class="comment">// `INT#target` (INT = base)
-            </span>(ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(_base)) =&gt; {
+            </span>(ReferenceAccess::Cast(target), <span class="prelude-val">Some</span>(base)) =&gt; {
                 <span class="kw">if </span>target.as_ref().is_identifier() {
                     <span class="kw">let </span>mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), <span class="prelude-val">None</span>, target.get_id());
                     <span class="self">self</span>.generate_expression_value(<span class="kw-2">&amp;</span>mr)
-                } <span class="kw">else </span>{
+                } <span class="kw">else if </span>target.as_ref().is_literal(){
                     <span class="self">self</span>.generate_expression_value(target.as_ref())
+                } <span class="kw">else </span>{
+                    <span class="comment">// Otherwise just bitcast the target to the given type
+                    </span><span class="kw">let </span>base_type = <span class="self">self</span>.annotations.get_type_or_void(base, <span class="self">self</span>.index);
+                    <span class="kw">let </span>base_type_name = base_type.get_name();
+
+                    <span class="comment">// Generate the value we're casting
+                    </span><span class="kw">let </span>target_value = <span class="self">self</span>.generate_expression_value(target.as_ref())<span class="question-mark">?</span>;
+
+                    <span class="comment">// Get the LLVM type for the cast target
+                    </span><span class="kw">let </span>target_llvm_type = <span class="self">self</span>.llvm_index.get_associated_type(base_type_name)
+                        .map(|t| t.ptr_type(AddressSpace::from(<span class="number">0</span>)))
+                        .unwrap_or_else(|<span class="kw">_</span>| <span class="self">self</span>.llvm.context.i8_type().ptr_type(AddressSpace::from(<span class="number">0</span>)));
+
+                    <span class="comment">// Perform the bitcast
+                    </span><span class="kw">let </span>basic_value = target_value.get_basic_value_enum();
+                    <span class="kw">let </span>cast_ptr = <span class="self">self</span>.llvm.builder.build_bitcast(basic_value, target_llvm_type, <span class="string">"cast"</span>);
+                    <span class="kw">let </span>cast_value = ExpressionValue::RValue(cast_ptr);
+
+                    <span class="prelude-val">Ok</span>(cast_value)
                 }
             }
 

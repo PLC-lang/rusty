@@ -879,7 +879,8 @@
 <a href="#878" id="878">878</a>
 <a href="#879" id="879">879</a>
 <a href="#880" id="880">880</a>
-<a href="#881" id="881">881</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#881" id="881">881</a>
+<a href="#882" id="882">882</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 </span><span class="kw">use super</span>::{
     expression_generator::{to_i1, ExpressionCodeGenerator, ExpressionValue},
     llvm::Llvm,
@@ -914,6 +915,7 @@
 <span class="kw">use </span>rustc_hash::FxHashMap;
 
 <span class="doccomment">/// the full context when generating statements inside a POU
+</span><span class="attr">#[derive(Debug)]
 </span><span class="kw">pub struct </span>FunctionContext&lt;<span class="lifetime">'ink</span>, <span class="lifetime">'b</span>&gt; {
     <span class="doccomment">/// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
     </span><span class="kw">pub </span>linking_context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>ImplementationIndexEntry,

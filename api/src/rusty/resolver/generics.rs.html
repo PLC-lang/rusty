@@ -496,7 +496,9 @@
 <a href="#495" id="495">495</a>
 <a href="#496" id="496">496</a>
 <a href="#497" id="497">497</a>
-<a href="#498" id="498">498</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
+<a href="#498" id="498">498</a>
+<a href="#499" id="499">499</a>
+<a href="#500" id="500">500</a></pre></div><pre class="rust"><code><span class="kw">use </span>itertools::Itertools;
 <span class="kw">use </span>plc_ast::ast::{flatten_expression_list, AstNode, AstStatement, GenericBinding, LinkageType, TypeNature};
 <span class="kw">use </span>plc_source::source_location::SourceLocation;
 <span class="kw">use </span>rustc_hash::FxHashMap;
@@ -727,6 +729,7 @@
                 inner_type_name,
                 auto_deref: <span class="prelude-val">Some</span>(kind),
                 type_safe,
+                is_function,
             }) =&gt; {
                 <span class="comment">// This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
@@ -738,6 +741,7 @@
                     inner_type_name,
                     auto_deref: <span class="prelude-val">Some</span>(<span class="kw-2">*</span>kind),
                     type_safe: <span class="kw-2">*</span>type_safe,
+                    is_function: <span class="kw-2">*</span>is_function,
                 };
 
                 <span class="comment">// Registers a new pointer type to the index

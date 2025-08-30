@@ -2715,7 +2715,107 @@
 <a href="#2714" id="2714">2714</a>
 <a href="#2715" id="2715">2715</a>
 <a href="#2716" id="2716">2716</a>
-<a href="#2717" id="2717">2717</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2717" id="2717">2717</a>
+<a href="#2718" id="2718">2718</a>
+<a href="#2719" id="2719">2719</a>
+<a href="#2720" id="2720">2720</a>
+<a href="#2721" id="2721">2721</a>
+<a href="#2722" id="2722">2722</a>
+<a href="#2723" id="2723">2723</a>
+<a href="#2724" id="2724">2724</a>
+<a href="#2725" id="2725">2725</a>
+<a href="#2726" id="2726">2726</a>
+<a href="#2727" id="2727">2727</a>
+<a href="#2728" id="2728">2728</a>
+<a href="#2729" id="2729">2729</a>
+<a href="#2730" id="2730">2730</a>
+<a href="#2731" id="2731">2731</a>
+<a href="#2732" id="2732">2732</a>
+<a href="#2733" id="2733">2733</a>
+<a href="#2734" id="2734">2734</a>
+<a href="#2735" id="2735">2735</a>
+<a href="#2736" id="2736">2736</a>
+<a href="#2737" id="2737">2737</a>
+<a href="#2738" id="2738">2738</a>
+<a href="#2739" id="2739">2739</a>
+<a href="#2740" id="2740">2740</a>
+<a href="#2741" id="2741">2741</a>
+<a href="#2742" id="2742">2742</a>
+<a href="#2743" id="2743">2743</a>
+<a href="#2744" id="2744">2744</a>
+<a href="#2745" id="2745">2745</a>
+<a href="#2746" id="2746">2746</a>
+<a href="#2747" id="2747">2747</a>
+<a href="#2748" id="2748">2748</a>
+<a href="#2749" id="2749">2749</a>
+<a href="#2750" id="2750">2750</a>
+<a href="#2751" id="2751">2751</a>
+<a href="#2752" id="2752">2752</a>
+<a href="#2753" id="2753">2753</a>
+<a href="#2754" id="2754">2754</a>
+<a href="#2755" id="2755">2755</a>
+<a href="#2756" id="2756">2756</a>
+<a href="#2757" id="2757">2757</a>
+<a href="#2758" id="2758">2758</a>
+<a href="#2759" id="2759">2759</a>
+<a href="#2760" id="2760">2760</a>
+<a href="#2761" id="2761">2761</a>
+<a href="#2762" id="2762">2762</a>
+<a href="#2763" id="2763">2763</a>
+<a href="#2764" id="2764">2764</a>
+<a href="#2765" id="2765">2765</a>
+<a href="#2766" id="2766">2766</a>
+<a href="#2767" id="2767">2767</a>
+<a href="#2768" id="2768">2768</a>
+<a href="#2769" id="2769">2769</a>
+<a href="#2770" id="2770">2770</a>
+<a href="#2771" id="2771">2771</a>
+<a href="#2772" id="2772">2772</a>
+<a href="#2773" id="2773">2773</a>
+<a href="#2774" id="2774">2774</a>
+<a href="#2775" id="2775">2775</a>
+<a href="#2776" id="2776">2776</a>
+<a href="#2777" id="2777">2777</a>
+<a href="#2778" id="2778">2778</a>
+<a href="#2779" id="2779">2779</a>
+<a href="#2780" id="2780">2780</a>
+<a href="#2781" id="2781">2781</a>
+<a href="#2782" id="2782">2782</a>
+<a href="#2783" id="2783">2783</a>
+<a href="#2784" id="2784">2784</a>
+<a href="#2785" id="2785">2785</a>
+<a href="#2786" id="2786">2786</a>
+<a href="#2787" id="2787">2787</a>
+<a href="#2788" id="2788">2788</a>
+<a href="#2789" id="2789">2789</a>
+<a href="#2790" id="2790">2790</a>
+<a href="#2791" id="2791">2791</a>
+<a href="#2792" id="2792">2792</a>
+<a href="#2793" id="2793">2793</a>
+<a href="#2794" id="2794">2794</a>
+<a href="#2795" id="2795">2795</a>
+<a href="#2796" id="2796">2796</a>
+<a href="#2797" id="2797">2797</a>
+<a href="#2798" id="2798">2798</a>
+<a href="#2799" id="2799">2799</a>
+<a href="#2800" id="2800">2800</a>
+<a href="#2801" id="2801">2801</a>
+<a href="#2802" id="2802">2802</a>
+<a href="#2803" id="2803">2803</a>
+<a href="#2804" id="2804">2804</a>
+<a href="#2805" id="2805">2805</a>
+<a href="#2806" id="2806">2806</a>
+<a href="#2807" id="2807">2807</a>
+<a href="#2808" id="2808">2808</a>
+<a href="#2809" id="2809">2809</a>
+<a href="#2810" id="2810">2810</a>
+<a href="#2811" id="2811">2811</a>
+<a href="#2812" id="2812">2812</a>
+<a href="#2813" id="2813">2813</a>
+<a href="#2814" id="2814">2814</a>
+<a href="#2815" id="2815">2815</a>
+<a href="#2816" id="2816">2816</a>
+<a href="#2817" id="2817">2817</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -2729,7 +2829,7 @@
     ast::{
         <span class="self">self</span>, flatten_expression_list, Allocation, Assignment, AstFactory, AstId, AstNode, AstStatement,
         BinaryExpression, CompilationUnit, DataType, DataTypeDeclaration, DirectAccessType, Identifier,
-        Interface, JumpStatement, Operator, Pou, ReferenceAccess, ReferenceExpr, TypeNature,
+        Interface, JumpStatement, Operator, Pou, PouType, ReferenceAccess, ReferenceExpr, TypeNature,
         UserTypeDeclaration, Variable,
     },
     control_statements::{AstControlStatement, ReturnStatement},
@@ -3024,7 +3124,20 @@
 
         <span class="kw">let </span><span class="kw-2">mut </span>generics_candidates: FxHashMap&lt;String, Vec&lt;String&gt;&gt; = FxHashMap::default();
         <span class="kw">let </span><span class="kw-2">mut </span>params = <span class="macro">vec!</span>[];
-        <span class="kw">let </span><span class="kw-2">mut </span>parameters = parameters.into_iter();
+        <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="kw">if </span><span class="self">self</span>.annotation_map.get(operator).is_some_and(|opt| opt.is_fnptr()) {
+            <span class="comment">// When dealing with a function pointer (which are only supported in the context of methods and
+            // direct function block calls), the first argument will be a instance of the POU, e.g.
+            // `fnPtrToMyFbEcho^(instanceFb)`, hence we must skip the first argument as otherwise the
+            // remaining arguments will receive an incorrect type hint. Again, for example assume we have
+            // `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and we do not skip the first argument. Then,
+            // `instanceFB` will have a type-hint of "STRING" and `stringValue` will have a type-hint on
+            // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
+            // better approach would be to desugar method calls from `fbInstance.echo('stringValue', 5)` to
+            // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
+            </span>parameters[<span class="number">1</span>..].iter()
+        } <span class="kw">else </span>{
+            parameters.iter()
+        };
 
         <span class="comment">// If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
@@ -3190,6 +3303,22 @@
         </span>generic_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
         <span class="doccomment">/// The call name of the function iff it differs from the qualified name (generics)
         </span>call_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+    },
+    <span class="doccomment">/// A pointer to a function, mostly needed for polymorphism where function calls are handled indirectly
+    /// with a virtual table.
+    </span>FunctionPointer {
+        <span class="doccomment">/// The return type name of the function pointer
+        </span>return_type: String,
+
+        <span class="comment">// XXX: In classical function pointers such information is not neccessary, e.g. in C you would have
+        //      `&lt;return type&gt; (*&lt;function pointer name&gt;)(&lt;comma seperated arg types&gt;)`, however in ST I
+        //      __think__ it might be neccessary because of named arguments? Obviously this limits the use
+        //      case of function pointers because you'd always reference a concrete function rather than some
+        //      generic function such as `DINT(STRING, INT)`. If we ever decide to support function pointers
+        //      for real, we probably want to include another syntax similar to C with the limitation of not
+        //      supporting named arguments.
+        </span><span class="doccomment">/// The name of the referenced function, e.g. `MyFb.myMethod` in `POINTER TO MyFb.MyMethod := ADR(...)`
+        </span>qualified_name: String,
     },
     <span class="doccomment">/// a reference to a type (e.g. `INT`)
     </span>Type {
@@ -3393,6 +3522,18 @@
         StatementAnnotation::Value { resulting_type: type_name.into() }
     }
 
+    <span class="doccomment">/// Constructs a new [`StatementAnnotation::FunctionPointer`] with the qualified and return type name
+    </span><span class="kw">pub fn </span>fnptr&lt;T, U&gt;(qualified_name: T, return_type_name: U) -&gt; <span class="self">Self
+    </span><span class="kw">where
+        </span>T: Into&lt;String&gt;,
+        U: Into&lt;String&gt;,
+    {
+        StatementAnnotation::FunctionPointer {
+            return_type: return_type_name.into(),
+            qualified_name: qualified_name.into(),
+        }
+    }
+
     <span class="kw">pub fn </span>create_override(definitions: Vec&lt;MethodDeclarationType&gt;) -&gt; <span class="self">Self </span>{
         StatementAnnotation::Override { definitions }
     }
@@ -3442,6 +3583,7 @@
         <span class="kw">match </span><span class="self">self </span>{
             StatementAnnotation::Variable { qualified_name, .. }
             | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::FunctionPointer { qualified_name, .. }
             | StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
 
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
@@ -3467,6 +3609,10 @@
             StatementAnnotation::Argument { position, .. } =&gt; <span class="prelude-val">Some</span>(<span class="kw-2">*</span>position <span class="kw">as </span>u32),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
+    }
+
+    <span class="kw">pub fn </span>is_fnptr(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
+        <span class="macro">matches!</span>(<span class="self">self</span>, StatementAnnotation::FunctionPointer { .. })
     }
 }
 
@@ -3564,11 +3710,12 @@
                 </span>.get_hint(statement)
                 .or_else(|| <span class="self">self</span>.get(statement))
                 .and_then(|it| <span class="self">self</span>.get_type_name_for_annotation(it)),
-            StatementAnnotation::Program { qualified_name }
-            | StatementAnnotation::Super { name: qualified_name, .. } =&gt; <span class="prelude-val">Some</span>(qualified_name.as_str()),
             StatementAnnotation::Type { type_name } =&gt; <span class="prelude-val">Some</span>(type_name),
-            StatementAnnotation::Function { .. }
-            | StatementAnnotation::Label { .. }
+            StatementAnnotation::Program { qualified_name }
+            | StatementAnnotation::Super { name: qualified_name, .. }
+            | StatementAnnotation::Function { qualified_name, .. }
+            | StatementAnnotation::FunctionPointer { qualified_name, .. } =&gt; <span class="prelude-val">Some</span>(qualified_name),
+            StatementAnnotation::Label { .. }
             | StatementAnnotation::Override { .. }
             | StatementAnnotation::MethodDeclarations { .. }
             | StatementAnnotation::Property { .. }
@@ -4264,15 +4411,22 @@
         };
         <span class="kw">if </span>resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
             <span class="kw">match </span>datatype.get_type_information() {
-                DataTypeInformation::Struct { members, .. } =&gt; {
+                DataTypeInformation::Struct { members, source, .. } =&gt; {
                     <span class="kw">for </span>member <span class="kw">in </span>members {
                         resolved_names =
                             <span class="self">self</span>.get_datatype_dependencies(member.get_type_name(), resolved_names);
                     }
+
+                    <span class="kw">if let </span>StructSource::Pou(PouType::Method { parent, .. }) = source {
+                        resolved_names = <span class="self">self</span>.get_datatype_dependencies(parent, resolved_names);
+                    }
+
                     resolved_names
                 }
                 DataTypeInformation::Array { inner_type_name, .. }
                 | DataTypeInformation::Pointer { inner_type_name, .. } =&gt; {
+                    resolved_names
+                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
                     <span class="self">self</span>.get_datatype_dependencies(inner_type_name, resolved_names)
                 }
                 <span class="kw">_ </span>=&gt; {
@@ -4419,7 +4573,8 @@
                         inner_type_name: name.to_string(),
                         auto_deref: <span class="prelude-val">None</span>,
                         type_safe: <span class="bool-val">true</span>,
-                    };
+                        is_function: <span class="bool-val">false</span>, <span class="comment">// TODO(vosa): In general false, but THIS^() isn't?
+                    </span>};
                     <span class="kw">let </span>dt = <span class="kw">crate</span>::typesystem::DataType {
                         name: ptr_name.clone(),
                         initial_value: <span class="prelude-val">None</span>,
@@ -4728,7 +4883,12 @@
                 }
             }
             (ReferenceAccess::Deref, <span class="kw">_</span>) =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">None</span>, .. }) = base
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeInformation::Pointer {
+                    inner_type_name,
+                    auto_deref: <span class="prelude-val">None</span>,
+                    is_function,
+                    ..
+                }) = base
                     .map(|base| <span class="self">self</span>.annotation_map.get_type_or_void(base, <span class="self">self</span>.index))
                     .map(|it| it.get_type_information())
                 {
@@ -4737,6 +4897,27 @@
                         .find_effective_type_by_name(inner_type_name)
                         .or(<span class="self">self</span>.annotation_map.new_index.find_effective_type_by_name(inner_type_name))
                     {
+                        <span class="kw">if </span>ctx
+                            .resolve_strategy
+                            .first()
+                            .is_some_and(|opt| <span class="kw-2">*</span>opt == ResolvingStrategy::FunctionsOnly)
+                        {
+                            <span class="comment">// We might be dealing with a function pointer, e.g. `ptr^(...)`
+                            </span><span class="kw">if let </span><span class="prelude-val">Some</span>(pou) = <span class="self">self</span>.index.find_pou(<span class="kw-2">&amp;</span>inner_type.name) {
+                                <span class="comment">// TODO(vosa): THIS^(), needs to be handled in the polymorphism PR but is
+                                // ignored here (!stmt.is_this_deref())
+                                </span><span class="kw">if </span><span class="kw-2">*</span>is_function
+                                    &amp;&amp; (pou.is_method() | pou.is_function_block() &amp;&amp; !stmt.is_this_deref())
+                                {
+                                    <span class="kw">let </span>name = pou.get_name();
+                                    <span class="kw">let </span>return_type = pou.get_return_type().unwrap_or(VOID_INTERNAL_NAME);
+
+                                    <span class="self">self</span>.annotate(stmt, StatementAnnotation::fnptr(name, return_type));
+                                    <span class="kw">return</span>;
+                                }
+                            }
+                        }
+
                         <span class="self">self</span>.annotate(stmt, StatementAnnotation::value(inner_type.get_name()))
                     }
                 }
@@ -4776,6 +4957,11 @@
                 .iter()
                 .find_map(|scope| scope.resolve_name(name, qualifier, <span class="self">self</span>.index, ctx, <span class="kw-2">&amp;</span><span class="self">self</span>.scopes)),
 
+            AstStatement::ReferenceExpr(<span class="kw">_</span>) =&gt; {
+                <span class="self">self</span>.visit_statement(ctx, reference);
+                <span class="self">self</span>.annotation_map.get(reference).cloned()
+            }
+
             AstStatement::Literal(..) =&gt; {
                 <span class="self">self</span>.visit_statement_literals(ctx, reference);
                 <span class="kw">let </span>literal_annotation = <span class="self">self</span>.annotation_map.get(reference).cloned(); <span class="comment">// return what we just annotated //TODO not elegant, we need to clone
@@ -4799,12 +4985,15 @@
                 </span><span class="self">self</span>.visit_statement(ctx, data.index.as_ref());
                 <span class="prelude-val">Some</span>(StatementAnnotation::value(get_direct_access_type(<span class="kw-2">&amp;</span>data.access)))
             }
+
             AstStatement::HardwareAccess(data, ..) =&gt; {
                 <span class="kw">let </span>name = data.get_mangled_variable_name();
                 ctx.resolve_strategy.iter().find_map(|strategy| {
                     strategy.resolve_name(<span class="kw-2">&amp;</span>name, qualifier, <span class="self">self</span>.index, ctx, <span class="kw-2">&amp;</span><span class="self">self</span>.scopes)
                 })
             }
+
+            AstStatement::ParenExpression(expr) =&gt; <span class="self">self</span>.resolve_reference_expression(expr, qualifier, ctx),
             <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
         }
     }
@@ -4889,22 +5078,29 @@
             </span><span class="self">self</span>.annotate_call_statement(operator, parameters_stmt, <span class="kw-2">&amp;</span>ctx);
         };
 
-        <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::Function { return_type, .. }) = <span class="self">self</span>.annotation_map.get(operator) {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="self">self
-                </span>.index
-                .find_effective_type_by_name(return_type)
-                .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_effective_type_by_name(return_type))
-            {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { .. }) = <span class="self">self</span>.annotation_map.get(statement) {
-                    <span class="comment">// if we have a replacement ast, we do not need to annotate the function return type as it would
-                    // overwrite the replacement ast
-                    </span><span class="kw">return</span>;
+        <span class="kw">match </span><span class="self">self</span>.annotation_map.get(operator) {
+            <span class="prelude-val">Some</span>(StatementAnnotation::Function { return_type, .. })
+            | <span class="prelude-val">Some</span>(StatementAnnotation::FunctionPointer { return_type, .. }) =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="self">self
+                    </span>.index
+                    .find_effective_type_by_name(return_type)
+                    .or_else(|| <span class="self">self</span>.annotation_map.new_index.find_effective_type_by_name(return_type))
+                {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(StatementAnnotation::ReplacementAst { .. }) =
+                        <span class="self">self</span>.annotation_map.get(statement)
+                    {
+                        <span class="comment">// if we have a replacement ast, we do not need to annotate the function return type as it would
+                        // overwrite the replacement ast
+                        </span><span class="kw">return</span>;
+                    }
+                    <span class="self">self</span>.annotate(statement, StatementAnnotation::value(return_type.get_name()));
+                } <span class="kw">else </span>{
+                    <span class="comment">// Assuming this is a VOID function if no annotation is present
+                    </span><span class="self">self</span>.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
                 }
-                <span class="self">self</span>.annotate(statement, StatementAnnotation::value(return_type.get_name()));
-            } <span class="kw">else </span>{
-                <span class="comment">// Assuming this is a VOID function if no annotation is present
-                </span><span class="self">self</span>.annotate(statement, StatementAnnotation::value(VOID_INTERNAL_NAME));
             }
+
+            <span class="kw">_ </span>=&gt; (),
         }
     }
 
@@ -4915,6 +5111,9 @@
             .and_then(|it| <span class="kw">match </span>it {
                 StatementAnnotation::Function { qualified_name, call_name, .. } =&gt; {
                     call_name.as_ref().cloned().or_else(|| <span class="prelude-val">Some</span>(qualified_name.clone()))
+                }
+                StatementAnnotation::FunctionPointer { qualified_name, .. } =&gt; {
+                    <span class="prelude-val">Some</span>(qualified_name.clone())
                 }
                 StatementAnnotation::Program { qualified_name } =&gt; <span class="prelude-val">Some</span>(qualified_name.clone()),
                 StatementAnnotation::Variable { resulting_type, .. } =&gt; {
@@ -5072,6 +5271,7 @@
                 inner_type_name,
                 auto_deref: <span class="prelude-val">None</span>,
                 type_safe,
+                is_function: <span class="bool-val">false</span>,
             },
             location: SourceLocation::internal(),
         });
@@ -5218,7 +5418,7 @@
     }
 }
 
-<span class="attr">#[derive(Clone, Copy)]
+<span class="attr">#[derive(Clone, Copy, PartialEq, Eq)]
 </span><span class="kw">pub enum </span>ResolvingStrategy {
     <span class="doccomment">/// try to resolve a variable
     </span>Variable,
