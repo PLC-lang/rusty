@@ -229,6 +229,7 @@ impl TypeAnnotator<'_> {
                 inner_type_name,
                 auto_deref: Some(kind),
                 type_safe,
+                is_function,
             }) => {
                 // This is an auto deref pointer (VAR_IN_OUT or VAR_INPUT {ref}) that points to a
                 // generic. We first resolve the generic type, then create a new pointer type of
@@ -240,6 +241,7 @@ impl TypeAnnotator<'_> {
                     inner_type_name,
                     auto_deref: Some(*kind),
                     type_safe: *type_safe,
+                    is_function: *is_function,
                 };
 
                 // Registers a new pointer type to the index

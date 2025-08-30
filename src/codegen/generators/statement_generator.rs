@@ -33,6 +33,7 @@ use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
 /// the full context when generating statements inside a POU
+#[derive(Debug)]
 pub struct FunctionContext<'ink, 'b> {
     /// the current pou's name. This means that a variable x may refer to "`linking_context`.x"
     pub linking_context: &'b ImplementationIndexEntry,

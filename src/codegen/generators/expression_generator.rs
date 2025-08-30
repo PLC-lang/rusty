@@ -9,6 +9,7 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
+use itertools::Either;
 use rustc_hash::FxHashSet;
 
 use plc_ast::{
@@ -30,13 +31,12 @@ use crate::{
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
     index::{
-        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, Index, PouIndexEntry,
-        VariableIndexEntry, VariableType,
+        const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
+        PouIndexEntry, VariableIndexEntry, VariableType,
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
-    typesystem,
     typesystem::{
-        is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
         StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
@@ -490,6 +490,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         operator: &AstNode,
         parameters: Option<&AstNode>,
     ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        if self.annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
+            return self.generate_fnptr_call(operator, parameters);
+        }
+
         // find the pou we're calling
         let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
             .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
@@ -582,6 +586,86 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         value
+    }
+
+    fn generate_fnptr_call(
+        &self,
+        operator: &AstNode,
+        arguments: Option<&AstNode>,
+    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+        let Some(ReferenceExpr { base: Some(ref base), .. }) = operator.get_deref_expr() else {
+            // XXX: This would fail for auto-deref pointers, but given (for now) function pointers are never
+            // auto-derefed this should be fine.
+            unreachable!("internal error, invalid method call")
+        };
+
+        let qualified_pou_name = self.annotations.get(operator).unwrap().qualified_name().unwrap();
+        let impl_entry = self.index.find_implementation_by_name(qualified_pou_name).unwrap();
+        debug_assert!(
+            impl_entry.is_method() | impl_entry.is_function_block(),
+            "internal error, invalid method call"
+        );
+
+        // Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
+        // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
+        let function_pointer_value = match self.generate_expression_value(base)? {
+            ExpressionValue::LValue(value) => self.llvm.load_pointer(&value, "").into_pointer_value(),
+            ExpressionValue::RValue(_) => unreachable!(),
+        };
+
+        // Generate the argument list; our assumption is function pointers are only supported for methods and
+        // direct function block calls, hence we explicitly fetch the instance argument from the list. In
+        // terms of desugared ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
+        let (instance, arguments_raw, arguments_llvm) = {
+            let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
+            let (instance, arguments) = match arguments.len() {
+                0 => panic!("invalid desugared code, no instance argument found"),
+                1 => (self.generate_lvalue(arguments[0])?, Vec::new()),
+                _ => (self.generate_lvalue(arguments[0])?, arguments[1..].to_vec()),
+            };
+
+            let mut generated_arguments = match &impl_entry.implementation_type {
+                ImplementationType::Method => self.generate_function_arguments(
+                    self.index.find_pou(qualified_pou_name).unwrap(),
+                    &arguments,
+                    self.index.get_declared_parameters(qualified_pou_name),
+                )?,
+
+                // Function Block body calls have a slightly different calling convention compared to regular
+                // methods. Specifically the arguments aren't passed to the call itself but rather the
+                // instance struct is gep'ed and the arguments are stored into the gep'ed pointer value.
+                // Best to call `--ir` on a simple function block body call to see the generated IR.
+                ImplementationType::FunctionBlock => {
+                    self.generate_stateful_pou_arguments(qualified_pou_name, None, instance, &arguments)?;
+                    Vec::new()
+                }
+
+                _ => unreachable!("internal error, invalid method call"),
+            };
+
+            generated_arguments.insert(0, instance.clone().as_basic_value_enum().into());
+            (instance, arguments, generated_arguments)
+        };
+
+        // Finally generate the function pointer call
+        let callable = CallableValue::try_from(function_pointer_value).unwrap();
+        let call = self.llvm.builder.build_call(callable, &arguments_llvm, "fnptr_call");
+
+        let value = match call.try_as_basic_value() {
+            Either::Left(value) => value,
+            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
+        };
+
+        // Output variables are assigned after the function block call, effectively gep'ing the instance
+        // struct fetching the output values
+        if impl_entry.is_function_block() {
+            self.assign_output_values(instance, qualified_pou_name, arguments_raw)?
+        }
+
+        Ok(ExpressionValue::RValue(value))
     }
 
     /// copies the output values to the assigned output variables
@@ -911,7 +995,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let mut variadic_parameters = Vec::new();
         let mut passed_param_indices = Vec::new();
         for (i, argument) in arguments.iter().enumerate() {
-            let (i, parameter, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
+            let (i, argument, _) = get_implicit_call_parameter(argument, &declared_parameters, i)?;
 
             // parameter_info includes the declaration type and type name
             let parameter_info = declared_parameters
@@ -935,11 +1019,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .unwrap_or_else(|| {
                     // if we are dealing with a variadic function, we can accept all extra parameters
                     if pou.is_variadic() {
-                        variadic_parameters.push(parameter);
+                        variadic_parameters.push(argument);
                         Ok(None)
                     } else {
                         // we are not variadic, we have too many parameters here
-                        Err(Diagnostic::codegen_error("Too many parameters", parameter))
+                        Err(Diagnostic::codegen_error("Too many parameters", argument))
                     }
                 })?;
 
@@ -949,11 +1033,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         && declaration_type.is_input())
                 {
                     let declared_parameter = declared_parameters.get(i);
-                    self.generate_argument_by_ref(parameter, type_name, declared_parameter.copied())?
+                    self.generate_argument_by_ref(argument, type_name, declared_parameter.copied())?
                 } else {
                     // by val
-                    if !parameter.is_empty_statement() {
-                        self.generate_expression(parameter)?
+                    if !argument.is_empty_statement() {
+                        self.generate_expression(argument)?
                     } else if let Some(param) = declared_parameters.get(i) {
                         self.generate_empty_expression(param)?
                     } else {
@@ -2610,13 +2694,32 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
 
             // `INT#target` (INT = base)
-            (ReferenceAccess::Cast(target), Some(_base)) => {
+            (ReferenceAccess::Cast(target), Some(base)) => {
                 if target.as_ref().is_identifier() {
                     let mr =
                         AstFactory::create_member_reference(target.as_ref().clone(), None, target.get_id());
                     self.generate_expression_value(&mr)
-                } else {
+                } else if target.as_ref().is_literal(){
                     self.generate_expression_value(target.as_ref())
+                } else {
+                    // Otherwise just bitcast the target to the given type
+                    let base_type = self.annotations.get_type_or_void(base, self.index);
+                    let base_type_name = base_type.get_name();
+
+                    // Generate the value we're casting
+                    let target_value = self.generate_expression_value(target.as_ref())?;
+
+                    // Get the LLVM type for the cast target
+                    let target_llvm_type = self.llvm_index.get_associated_type(base_type_name)
+                        .map(|t| t.ptr_type(AddressSpace::from(0)))
+                        .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
+
+                    // Perform the bitcast
+                    let basic_value = target_value.get_basic_value_enum();
+                    let cast_ptr = self.llvm.builder.build_bitcast(basic_value, target_llvm_type, "cast");
+                    let cast_value = ExpressionValue::RValue(cast_ptr);
+
+                    Ok(cast_value)
                 }
             }
 

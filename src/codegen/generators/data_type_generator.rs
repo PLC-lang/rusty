@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::codegen::debug::Debug;
-use crate::index::{FxIndexSet, Index, VariableIndexEntry, VariableType};
+use crate::codegen::llvm_index::TypeHelper;
+use crate::index::{FxIndexSet, Index, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
 use crate::{
@@ -12,6 +13,7 @@ use crate::{
     typesystem::DataType,
 };
 
+use inkwell::types::{AnyType, AnyTypeEnum, FunctionType};
 use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{BasicValue, BasicValueEnum},
@@ -200,15 +202,22 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     /// Creates an llvm type to be associated with the given data type.
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
-    fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+    fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<AnyTypeEnum<'ink>, Diagnostic> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
-                StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
-                StructSource::OriginalDeclaration => {
-                    self.types_index.get_associated_type(data_type.get_name())
-                }
-                StructSource::Internal(_) => self.types_index.get_associated_type(data_type.get_name()),
+                StructSource::Pou(..) => self
+                    .types_index
+                    .get_associated_pou_type(data_type.get_name())
+                    .map(|res| res.as_any_type_enum()),
+                StructSource::OriginalDeclaration => self
+                    .types_index
+                    .get_associated_type(data_type.get_name())
+                    .map(|res| res.as_any_type_enum()),
+                StructSource::Internal(_) => self
+                    .types_index
+                    .get_associated_type(data_type.get_name())
+                    .map(|res| res.as_any_type_enum()),
             },
 
             // We distinguish between two types of arrays, normal and variable length ones.
@@ -222,7 +231,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                         .get_effective_type_by_name(inner_type_name)
                         .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
                         .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
-                        .map(|it| it.as_basic_type_enum())
+                        .map(|it| it.as_any_type_enum())
                 }
             }
             DataTypeInformation::Integer { size, .. } => {
@@ -263,13 +272,78 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => Ok(get_llvm_int_type(self.llvm.context, 32, "Void").into()),
             DataTypeInformation::Pointer { inner_type_name, .. } => {
-                let inner_type = self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?;
-                Ok(inner_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
+                let inner_type = if information.is_function_pointer() {
+                    self.create_function_type(inner_type_name)?.as_any_type_enum()
+                } else {
+                    self.create_type(inner_type_name, self.index.get_type(inner_type_name)?)?
+                };
+
+                Ok(inner_type.create_ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into())
             }
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")
             }
         }
+    }
+
+    fn create_function_type(&mut self, method_name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
+        let return_type = self
+            .types_index
+            .find_associated_type(self.index.get_return_type_or_void(method_name).get_name())
+            .map(|opt| opt.as_any_type_enum())
+            .unwrap_or(self.llvm.context.void_type().as_any_type_enum());
+
+        let mut parameter_types = Vec::new();
+
+        match self.index.find_pou(method_name) {
+            Some(PouIndexEntry::Method { parent_name, .. }) => {
+                let ty = self.types_index.get_associated_type(parent_name).expect("must exist");
+                let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
+
+                // Methods are defined as functions in the LLVM IR, but carry the underlying POU type as their
+                // first parameter to operate on them, hence push the POU type to the very first position.
+                parameter_types.push(ty_ptr);
+
+                for parameter in self.index.get_declared_parameters(method_name) {
+                    // Instead of relying on the LLVM index, we create data-types on the fly here because some
+                    // types have not yet been visited and as a result may not be in the index. For example at
+                    // the time of writing this the index was not able to find a input parameter of type
+                    // `__auto_pointer_to_DINT`, consequently panicking
+                    let ty = self.create_type(
+                        parameter.get_name(),
+                        self.index.get_type(&parameter.data_type_name).expect("must exist"),
+                    )?;
+
+                    parameter_types.push(ty.try_into().unwrap());
+                }
+            }
+
+            Some(PouIndexEntry::FunctionBlock { name, .. }) => {
+                let ty = self.types_index.get_associated_type(name).expect("must exist");
+                let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
+
+                // Function blocks are a bit "weird" in that they only expect an instance argument even if
+                // they define input, output and/or inout parameters. Effectively, while being methods per-se,
+                // their calling convention differs from regular methods.
+                parameter_types.push(ty_ptr);
+            }
+
+            _ => unreachable!("internal error, invalid method call"),
+        }
+
+        let fn_type = match return_type {
+            AnyTypeEnum::ArrayType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::FloatType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::IntType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::PointerType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::StructType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::VectorType(value) => value.fn_type(parameter_types.as_slice(), false),
+            AnyTypeEnum::VoidType(value) => value.fn_type(parameter_types.as_slice(), false),
+
+            AnyTypeEnum::FunctionType(_) => unreachable!(),
+        };
+
+        Ok(fn_type)
     }
 
     fn generate_initial_value(
@@ -435,9 +509,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     /// `arr: ARRAY[0..3] OF INT`.
     fn create_nested_array_type(
         &self,
-        inner_type: BasicTypeEnum<'ink>,
+        inner_type: AnyTypeEnum<'ink>,
         dimensions: &[Dimension],
-    ) -> Result<BasicTypeEnum<'ink>, Diagnostic> {
+    ) -> Result<AnyTypeEnum<'ink>, Diagnostic> {
         let len = dimensions
             .iter()
             .map(|dimension| {
@@ -453,14 +527,17 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             })?;
 
         let result = match inner_type {
-            BasicTypeEnum::IntType(ty) => ty.array_type(len),
-            BasicTypeEnum::FloatType(ty) => ty.array_type(len),
-            BasicTypeEnum::StructType(ty) => ty.array_type(len),
-            BasicTypeEnum::ArrayType(ty) => ty.array_type(len),
-            BasicTypeEnum::PointerType(ty) => ty.array_type(len),
-            BasicTypeEnum::VectorType(ty) => ty.array_type(len),
+            AnyTypeEnum::IntType(ty) => ty.array_type(len),
+            AnyTypeEnum::FloatType(ty) => ty.array_type(len),
+            AnyTypeEnum::StructType(ty) => ty.array_type(len),
+            AnyTypeEnum::ArrayType(ty) => ty.array_type(len),
+            AnyTypeEnum::PointerType(ty) => ty.array_type(len),
+            AnyTypeEnum::VectorType(ty) => ty.array_type(len),
+
+            AnyTypeEnum::FunctionType(_) => unimplemented!("function types are not supported in arrays"),
+            AnyTypeEnum::VoidType(_) => unimplemented!("void types not supported in arrays"),
         }
-        .as_basic_type_enum();
+        .as_any_type_enum();
 
         Ok(result)
     }

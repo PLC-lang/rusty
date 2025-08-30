@@ -305,7 +305,7 @@ fn reference_to_dint_declaration() {
     );
 
     assert!(diagnostics.is_empty());
-    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -326,6 +326,7 @@ fn reference_to_dint_declaration() {
                             Reference,
                         ),
                         type_safe: true,
+                        is_function: false,
                     },
                 },
             },
@@ -338,7 +339,7 @@ fn reference_to_dint_declaration() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -354,7 +355,7 @@ fn reference_to_string_declaration() {
     );
 
     assert!(diagnostics.is_empty());
-    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -369,13 +370,14 @@ fn reference_to_string_declaration() {
                             Reference,
                         ),
                         type_safe: true,
+                        is_function: false,
                     },
                 },
             },
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -391,7 +393,7 @@ fn aliasing_dint_variable() {
     );
 
     assert_eq!(diagnostics, vec![]);
-    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r###"
+    insta::assert_debug_snapshot!(result.pous[0].variable_blocks[0], @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -406,6 +408,7 @@ fn aliasing_dint_variable() {
                             Alias,
                         ),
                         type_safe: true,
+                        is_function: false,
                     },
                 },
                 initializer: Some(
@@ -422,5 +425,5 @@ fn aliasing_dint_variable() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 }

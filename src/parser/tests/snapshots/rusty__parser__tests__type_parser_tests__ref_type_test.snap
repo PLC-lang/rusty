@@ -12,6 +12,7 @@ UserTypeDeclaration {
         },
         auto_deref: None,
         type_safe: true,
+        is_function: false,
     },
     initializer: None,
     scope: None,

@@ -343,7 +343,7 @@ impl<'ink> CodeGen<'ink> {
         let location = (&unit.file).into();
 
         self.debug.finalize();
-        log::debug!("{}", self.module.to_string());
+        log::trace!("{}", self.module.to_string());
 
         #[cfg(feature = "verify")]
         {
@@ -382,7 +382,7 @@ impl<'ink> GeneratedModule<'ink> {
             .create_module_from_ir(buffer)
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
 
-        log::debug!("{}", module.to_string());
+        log::trace!("{}", module.to_string());
 
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
@@ -391,7 +391,7 @@ impl<'ink> GeneratedModule<'ink> {
         self.module
             .link_in_module(other.module)
             .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        log::debug!("Merged: {}", self.module.to_string());
+        log::trace!("Merged: {}", self.module.to_string());
 
         Ok(self)
     }
@@ -569,8 +569,8 @@ impl<'ink> GeneratedModule<'ink> {
     /// * `codegen` - The generated LLVM module to be persisted
     /// * `output`  - The location to save the generated ir file
     pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
-        log::debug!("Output location: {}", output.to_string_lossy());
-        log::debug!("{}", self.persist_to_string());
+        log::trace!("Output location: {}", output.to_string_lossy());
+        log::trace!("{}", self.persist_to_string());
 
         self.module
             .print_to_file(&output)
