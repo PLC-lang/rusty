@@ -1,15 +1,110 @@
-//! Module responsible for desugaring function calls that are polymorphic in nature.
+//! Desugaring of method calls into indirect calls through virtual tables
 //!
-//! In general there are three cases in which method calls need to be desugared
-//! 1. Method calls within methods
-//! 2. Method calls within the body of a function block
-//! 3. Method calls through a pointer variable pointing to a class or function block, e.g. `fbPtr^.alpha()`
+//! This module is responsible for desugaring / transforming method calls into method calls through the
+//! virtual table (for information regarding virtual tables refer to [`crate::lowering::vtable`]). In a
+//! nutshell it will transform a method call such as `ptr^.foo()` into `__vtable_Fb#(ptr^.__vtable^).foo^(ptr^)`.
 //!
-//! Desugaring these method calls is achieved by accessing the virtual table, see [`crate::lowering::vtable`].
-//! TODO: Give a simple step-by-step process, then finish up with complete example showcasing points 1 - 3
+//! However, not all method calls must be desugared but rather the following cases:
 //!
-//! Finally, note that because ST lacks a `virtual` keyword, we have to assume every method call to be
-//! polymorphic in nature regarding point 1 and 2.
+//! # 1. Method calls within methods (and function block bodies)
+//! The reason we want to desugar all method calls within (other) methods is for the fact that a non
+//! overridden method may make use of an overridden method. For example consider
+//! ```
+//! FUNCTION_BLOCK A
+//!     METHOD getName: STRING
+//!         getName := 'A';
+//!     END_METHOD
+//!
+//!     METHOD printName
+//!         printf('name = %s$N', ADR(getName()));
+//!     END_METHOD
+//! END_FUNCTION_BLOCK
+//!
+//! FUNCTION_BLOCK B EXTENDS A
+//!     METHOD getName: STRING
+//!         getName := 'B';
+//!     END_METHOD
+//!
+//!     METHOD persistName
+//!         // Persist name to some file
+//!     END_METHOD
+//! END_FUNCTION_BLOCK
+//!
+//! FUNCTION main
+//!     VAR
+//!         instanceA: A;
+//!         instanceB: B;
+//!
+//!         refInstanceA: POINTER TO A;
+//!     END_VAR
+//!
+//!     refInstanceA := ADR(instanceA);
+//!     refInstanceA^.printName(); // Calls `A::printName` which calls `A::getName` yielding "name = A"
+//!
+//!     refInstanceA := ADR(instanceB);
+//!     refInstanceA^.printName(); // Calls `A::printName` which calls `B::getName` yielding "name = B"
+//! END_FUNCTION
+//! ```
+//!
+//! As described in the main function, the calls to `printName` must happen at runtime. Were that not the case
+//! then `printName` in A would resolve to `A::getName` at compile time, yielding an incorrect result for the
+//! second `refInstanceA^.printName()` call. Desugaring the call to `printName` would result in
+//! `printf('name = %s$N', ADR(__vtable_A#(THIS^.__vtable^).getName^(THIS^))`.
+//!
+//! # 2. Method calls through a pointer variable pointing to a class or function block
+//! Essentially what is illustrated in 1. within the main function, consider:
+//!
+//! ```
+//! FUNCTION main
+//!     VAR
+//!         name: STRING;
+//!         instanceA: A;
+//!         instanceB: B;
+//!
+//!         refInstanceA: POINTER TO A;
+//!     END_VAR
+//!
+//!     refInstanceA := ADR(instanceA);
+//!     name := refInstanceA^.getName(); // Calls `A::getName` yielding "name = A"
+//!
+//!     refInstanceA := ADR(instanceB);
+//!     name := refInstanceA^.getName(); // Calls `B::getName` yielding "name = B"
+//! END_FUNCTION
+//! ```
+//!
+//! While this is a simple example, and in theory compilers would be able to derive the correct method calls
+//! at compile time with some statical analysis, our compiler today is not able to do that. Specifically it
+//! does not know that the second `refInstanceA` variable is pointing at `B` and the pointer call could be
+//! simplified into a direct call to `B::getName()`. Instead, it relies on dynamic dispatch for a correct code
+//! execution. Again, this is done by accessing the virtual table and calling the function pointer behind it.
+//! In terms of ST code we would transform the calls into `__vtable_A#(refInstanceA^.__vtable^).getName^(refInstanceA^)`.
+//!
+//!
+//! One final thing to note, while the casting of the virtual tables into concrete types is not really
+//! interesting per-se, the upcasting from a child to its parent virtual table should at least be mentioned.
+//! That is, as long as the virtual table definitions are compatible, upcasting can be performed without any
+//! issues. Compatible here refers to the fact that the order of the member fields must be constant. More
+//! specifically, the methods must be defined in "ancestral hierarchical order". To illustrate with the
+//! previous examples, assume we have
+//! ```
+//! TYPE __vtable_A:
+//!     STRUCT
+//!         getName: __FPOINTER TO A.getName := ADR(A.getName);
+//!         printName: __FPOINTER TO A.printName := ADR(A.printName);
+//!     END_STRUCT
+//! END_TYPE
+//!
+//! TYPE __vtable_B:
+//!     STRUCT
+//!         getName: __FPOINTER TO B.getName := ADR(B.getName);             // Overridden
+//!         printName: __FPOINTER TO A.printName := ADR(A.printName);       // Inherited
+//!         persistName: __FPOINTER TO B.persistName := ADR(B.persistName); // New
+//!     END_STRUCT
+//! ```
+//!
+//! We can safely cast from B to A's virtual table because the layout is compatible and it would result in
+//! `persistName` to be cut off in the cast. Were that not the case, e.g. if `getName` were to be swapped with
+//! `persistName` then the call to `getName` would silently result in calling `persistName`.
 
 use plc_ast::{
     ast::{
@@ -62,11 +157,11 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
         // 2. We must access the virtual table of the instance, a VOID pointer
         //    -> ref^.__vtable^.foo(ref^)
         // 3. We must cast the virtual table access into a concrete type
-        //    -> __vtable_XXX#(ref^.__vtable^).foo(ref^)
+        //    -> __vtable_<POU_NAME>#(ref^.__vtable^).foo(ref^)
         // 4. We must dereference the method call, which is a function pointer
-        //    -> __vtable_XXX#(ref^.__vtable^).foo^(ref^)
+        //    -> __vtable_<POU_NAME>#(ref^.__vtable^).foo^(ref^)
         //
-        // The final result transforms ref^.foo() into __vtable_XXX#(ref^.__vtable^).foo^(ref^)
+        // The final result transforms ref^.foo() into __vtable_<POU_NAME>#(ref^.__vtable^).foo^(ref^)
         let prev = node.as_string();
         let AstStatement::CallStatement(CallStatement { operator, parameters }) = &mut node.stmt else {
             unreachable!();
@@ -103,11 +198,11 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
 
         log::trace!("desugaring {}", operator.as_string());
 
-        // Step -1: Add a `__body` call when dealing with a direct function block call, e.g. `refFb^()`
+        // Pre-steps, add `__body` call when dealing with a direct function block and...
         self.maybe_patch_body_operator(operator);
         log::trace!("-1: {}", operator.as_string());
 
-        // Step 0: Add a `THIS^` base when dealing with method calls without a base, e.g. `foo()`
+        // ...add a `THIS^` base when dealing with method calls without a base, e.g. `foo()`
         self.maybe_patch_this_base(operator);
         log::trace!("0: {}", operator.as_string());
 
@@ -141,10 +236,6 @@ impl PolymorphicCallDesugarer {
     }
 
     /// Returns true if the given AST node is a candidate that needs to be desugared into a polymorphic call.
-    /// Cases such as:
-    /// 1. A method call within (another) method
-    /// 2. A method call within a function block body
-    /// 3. A method invocation via a pointer to a class or function block instance, e.g. `refInstance^.foo()`
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
         let index = self.index.as_ref().expect("index must be set before desugaring");
         let annotations = self.annotations.as_ref().expect("annotations must be set before desugaring");
@@ -162,7 +253,7 @@ impl PolymorphicCallDesugarer {
             return false;
         }
 
-        // Case 1 & 2
+        // Case 1 (Method call within methods or function block bodies)
         if self.in_method_or_function_block.is_some()
             && annotations.get_type(operator, index).is_some_and(DataType::is_method)
             // Only desugar something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
@@ -171,16 +262,16 @@ impl PolymorphicCallDesugarer {
             return true;
         }
 
-        // Case 3
+        // Case 2 (Method invocation via a pointer to a class or function block instance)
         let AstStatement::ReferenceExpr(ReferenceExpr { access, base }) = &operator.stmt else {
             return false;
         };
 
         match (access, base) {
-            // Probably dealing with `MyFbRef^.foo()`
+            // Dealing with `MyFbRef^.foo()`
             (ReferenceAccess::Member(_), Some(base)) => self.is_polymorphic_call_candidate(base),
 
-            // Probably dealing with `MyFbRef^()`
+            // Dealing with `MyFbRef^()`
             (ReferenceAccess::Deref, Some(base)) => {
                 if annotations.get(operator).is_some_and(StatementAnnotation::is_fnptr) {
                     return false;

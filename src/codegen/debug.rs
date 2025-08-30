@@ -316,7 +316,6 @@ impl<'ink> DebugBuilder<'ink> {
 
         let struct_type = types_index.get_associated_type(name).map(|ty| match ty {
             BasicTypeEnum::StructType(value) => value,
-            // XXX: Is there a better way to handle this?
             _ => self.context.opaque_struct_type(name),
         })?;
 

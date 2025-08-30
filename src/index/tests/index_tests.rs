@@ -2230,19 +2230,28 @@ fn fixed_order() {
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK B EXTENDS A
-            METHOD foo
+            METHOD bar
             END_METHOD
         END_FUNCTION_BLOCK
 
         FUNCTION_BLOCK C EXTENDS A
+            METHOD qux
+            END_METHOD
+
             METHOD foo
             END_METHOD
 
             METHOD baz
             END_METHOD
+
+            METHOD whateverComesAfterQux
+            END_METHOD
         END_FUNCTION_BLOCK
 
-        FUNCTION_BLOCK D EXTENDS B
+        FUNCTION_BLOCK D EXTENDS C
+            METHOD idk
+            END_METHOD
+
             METHOD baz
             END_METHOD
 
@@ -2252,19 +2261,15 @@ fn fixed_order() {
         "#,
     );
 
-    let methods_a =
-        index.get_methods_in_fixed_order("A").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
+    let methods_a = index.get_methods_in_fixed_order("A").iter().map(|p| p.get_name()).collect::<Vec<_>>();
     assert_eq!(methods_a, vec!["A.foo", "A.bar", "A.baz"]);
 
-    let methods_b =
-        index.get_methods_in_fixed_order("B").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
-    assert_eq!(methods_b, vec!["B.foo", "A.bar", "A.baz"]);
+    let methods_b = index.get_methods_in_fixed_order("B").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_b, vec!["A.foo", "B.bar", "A.baz"]);
 
-    let methods_c =
-        index.get_methods_in_fixed_order("C").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
-    assert_eq!(methods_c, vec!["C.foo", "A.bar", "C.baz"]);
+    let methods_c = index.get_methods_in_fixed_order("C").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_c, vec!["C.foo", "A.bar", "C.baz", "C.qux", "C.whateverComesAfterQux"]);
 
-    let methods_d =
-        index.get_methods_in_fixed_order("D").iter().map(|pou| pou.get_name()).collect::<Vec<_>>();
-    assert_eq!(methods_d, vec!["B.foo", "A.bar", "D.baz", "D.qux"]);
+    let methods_d = index.get_methods_in_fixed_order("D").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_d, vec!["C.foo", "A.bar", "D.baz", "D.qux", "C.whateverComesAfterQux", "D.idk"]);
 }

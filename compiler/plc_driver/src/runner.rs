@@ -3,6 +3,7 @@ use crate::{
     CompileOptions,
 };
 
+use log::trace;
 use plc::codegen::{CodegenContext, GeneratedModule};
 use plc_diagnostics::diagnostician::Diagnostician;
 use plc_index::GlobalContext;
@@ -66,7 +67,8 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
 pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    // module.print_to_stderr();
+
+    trace!("{}", module.persist_to_string());
     module.run::<T, U>("main", params)
 }
 
@@ -77,6 +79,7 @@ pub fn compile_and_run<T, U, S: Compilable>(source: S, params: &mut T) -> U {
 pub fn compile_and_run_no_params<U, S: Compilable>(source: S) -> U {
     let context: CodegenContext = CodegenContext::create();
     let module = compile(&context, source);
-    // module.print_to_stderr();
+
+    trace!("{}", module.persist_to_string());
     module.run_no_param::<U>("main")
 }

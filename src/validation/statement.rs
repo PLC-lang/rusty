@@ -990,12 +990,11 @@ pub fn validate_assignment_mismatch<T>(
     }
 }
 
-// TODO: Needs testing
+/// Returns true if the right POU is a direct or indirect child of the left POU
 fn is_related_to<T>(context: &ValidationContext<T>, pou_name_lhs: &str, pou_name_rhs: &str) -> bool
 where
     T: AnnotationMap,
 {
-    eprintln!("{pou_name_lhs}, {pou_name_rhs}");
     let Some(pou_lhs) = context.index.find_pou(pou_name_lhs) else {
         return false;
     };
@@ -1004,7 +1003,6 @@ where
         return false;
     };
 
-    dbg!(pou_lhs, pou_rhs);
     match pou_rhs.get_super_class() {
         Some(parent) => {
             if pou_lhs.get_name() == parent {

@@ -157,7 +157,7 @@ fn create_init_unit(
 ) -> Option<CompilationUnit> {
     let mut id_provider = lowerer.ctxt.id_provider.clone();
     let init_fn_name = get_init_fn_name(container_name);
-    log::debug!("creating {init_fn_name}");
+    log::trace!("creating {init_fn_name}");
     let (is_stateless, location) = lowerer
         .index
         .find_pou(container_name)

@@ -420,16 +420,11 @@ impl SourceLocation {
         self.file.is_internal() && self.span == CodeSpan::None
     }
 
-    // TODO: hmm, we definitely need at least one more is_internal function; fix before merge
-    pub fn is_internal_the_100th(&self) -> bool {
-        self.span == CodeSpan::None
-    }
-
     pub fn is_in_unit(&self, unit: impl AsRef<str>) -> bool {
         if let Some(filename) = self.get_file_name() {
             filename == unit.as_ref()
         } else {
-            //Fallback, if no file is defined all files are local
+            // Fallback, if no file is defined all files are local
             true
         }
     }

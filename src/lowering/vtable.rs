@@ -1,9 +1,70 @@
-//! Module responsible for creating virtual tables
+//! Virtual table generation of classes and function blocks.
 //!
-//! TODO: Documentation, in a nutshell:
-//! * Virtual table struct definition
-//! * Virtual table instance (global variable)
-//! * Virtual table as member field in POU
+//! This module is responsible for creating virtual tables for classes and function blocks, enabling
+//! dynamic dispatch for polymorphic use cases. In short, every method call needs to be invoked indirectly
+//! through a virtual table at runtime, which essentially is a collection of function pointers pointing to
+//! the method implementations of POUs. The process of creating these virtual tables can be broken down into
+//! three tasks:
+//!
+//! # 1. Virtual Table POU Member Field
+//! Every root, i.e. non-extended, class or function block will receive a `__vtable: POINTER TO __VOID` member
+//! field. For example a function block such as
+//! ```norun
+//! FUNCTION_BLOCK A
+//!     VAR
+//!         one: DINT;
+//!     END_VAR
+//! END_FUNCTION_BLOCK
+//! ```
+//! will internally expand to
+//! ```norun
+//! FUNCTION_BLOCK A
+//!     VAR
+//!         __vtable: POINTER TO __VOID;
+//!         one: DINT;
+//!     END_VAR
+//! END_FUNCTION_BLOCK
+//! ```
+//! Note that we use a `VOID` type here because the actual type assigned to the `__vtable` member differs from
+//! POU to POU.
+//!
+//! # 2. Virtual Table Struct Definition
+//! As mentioned, virtual tables are essentially just a collection of function pointers reflecting a POU.
+//! Consider a function block A with methods `foo` and `bar` as well as a function block B extending A with
+//! methods `foo` (inherited) and `bar` (overridden) as well as `baz` (new). For these two function blocks we
+//! would generate the following virtual table structures:
+//!
+//! ```norun
+//! TYPE __vtable_A:
+//!     STRUCT
+//!         foo: __FPOINTER TO A.foo := ADR(A.foo);
+//!         bar: __FPOINTER TO A.bar := ADR(A.bar);
+//!     END_STRUCT
+//! END_TYPE
+//!
+//! TYPE __vtable_B:
+//!     STRUCT
+//!         foo: __FPOINTER TO A.foo := ADR(A.foo); // inherited
+//!         bar: __FPOINTER TO B.bar := ADR(B.bar); // overridden
+//!         baz: __FPOINTER TO B.baz := ADR(B.baz); // new
+//!     END_STRUCT
+//! END_TYPE
+//! ```
+//!
+//! # 3. Global Virtual Table Instances
+//! The newly created `__vtable` member fields need to point to some instance of the corresponding virtual
+//! table. For that we will create one global variable for each virtual table. Deriving from the previous
+//! example we would generate the following two variables
+//! ```
+//! VAR_GLOBAL
+//!     __vtable_instance_A: __vtable_A;
+//!     __vtable_instance_B: __vtable_B;
+//! END_VAR
+//! ```
+//! These global variables will later be assigned in the [`crate::lowering::initializers`] module.
+//!
+//! Note that the actual desugaring of method calls to make use of these virtual tables will happen in the
+//! [`crate::lowering::polymorphism`] module.
 
 use plc_ast::{
     ast::{
@@ -31,9 +92,9 @@ impl VirtualTableGenerator {
             let mut instances = Vec::new();
 
             for pou in unit.pous.iter_mut().filter(|pou| pou.kind.is_class() | pou.kind.is_function_block()) {
-                self.inject_vtable_member(pou);
-                let definition = self.generate_vtable_struct_definition(index, pou);
-                let instance = self.generate_global_vtable_instance(pou, &definition);
+                self.patch_vtable_member(pou);
+                let definition = self.generate_vtable_definition(index, pou);
+                let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
                 instances.push(instance);
@@ -44,65 +105,50 @@ impl VirtualTableGenerator {
         }
     }
 
-    /// Injects a `__vtable` member variable into the POU when dealing with a class or function block that
-    /// does NOT extend another. In terms of source code we would get
-    /// ```norun
-    /// FUNCTION_BLOCK MyFb
-    ///     VAR
-    ///         __vtable: POINTER TO __VOID;
-    ///         myVariable: DINT;
-    ///     END_VAR
-    /// END_FUNCTION_BLOCK
-    /// ```
-    fn inject_vtable_member(&mut self, pou: &mut Pou) {
-        let location = SourceLocation::internal_in_unit(pou.location.get_file_name());
+    /// Patches a `__vtable: POINTER TO __VOID` member variable into the given POU
+    fn patch_vtable_member(&mut self, pou: &mut Pou) {
+        debug_assert!(matches!(pou.kind, PouType::Class | PouType::FunctionBlock));
 
-        if pou.super_class.is_none() && matches!(pou.kind, PouType::Class | PouType::FunctionBlock) {
-            pou.variable_blocks.insert(
-                0,
-                VariableBlock {
-                    kind: VariableBlockType::Local,
-                    variables: vec![Variable {
-                        name: "__vtable".into(),
-                        data_type_declaration: DataTypeDeclaration::Definition {
-                            data_type: DataType::PointerType {
-                                name: None,
-                                referenced_type: Box::new(DataTypeDeclaration::Reference {
-                                    referenced_type: VOID_INTERNAL_NAME.to_string(),
-                                    location: location.clone(),
-                                }),
-                                auto_deref: None,
-                                type_safe: false,
-                                is_function: false,
-                            },
-                            location: location.clone(),
-                            scope: None,
-                        },
-                        initializer: None,
-                        address: None,
-                        location: location.clone(),
-                    }],
-                    linkage: LinkageType::Internal,
-                    access: AccessModifier::Protected,
-                    constant: false,
-                    retain: false,
-                    location: location.clone(),
-                },
-            );
+        if pou.super_class.is_some() {
+            return;
         }
+
+        let location = SourceLocation::internal_in_unit(pou.location.get_file_name());
+        pou.variable_blocks.insert(
+            0,
+            VariableBlock {
+                kind: VariableBlockType::Local,
+                variables: vec![Variable {
+                    name: "__vtable".into(),
+                    data_type_declaration: DataTypeDeclaration::Definition {
+                        data_type: DataType::PointerType {
+                            name: None,
+                            referenced_type: Box::new(DataTypeDeclaration::Reference {
+                                referenced_type: VOID_INTERNAL_NAME.to_string(),
+                                location: location.clone(),
+                            }),
+                            auto_deref: None,
+                            type_safe: false,
+                            is_function: false,
+                        },
+                        location: location.clone(),
+                        scope: None,
+                    },
+                    initializer: None,
+                    address: None,
+                    location: location.clone(),
+                }],
+                linkage: LinkageType::Internal,
+                access: AccessModifier::Protected,
+                constant: false,
+                retain: false,
+                location: location.clone(),
+            },
+        );
     }
 
-    /// Creates the virtual table struct definition of the given POU. In terms of source code something alike
-    /// ```norun
-    /// TYPE vtable:
-    ///     STRUCT
-    ///         // <method name>: POINTER TO <POU>.<method name> := ADR(<POU>.<method name>);
-    ///         foo: POINTER TO MyFb.foo := ADR(MyFb.foo);
-    ///         ...
-    ///     END_STRUCT
-    /// END_TYPE
-    /// ```
-    fn generate_vtable_struct_definition(&mut self, index: &Index, pou: &Pou) -> UserTypeDeclaration {
+    /// Creates the virtual table struct definition for the given POU.
+    fn generate_vtable_definition(&mut self, index: &Index, pou: &Pou) -> UserTypeDeclaration {
         debug_assert!(pou.kind.is_class() | pou.kind.is_function_block());
 
         let mut members = Vec::new();
@@ -154,9 +200,8 @@ impl VirtualTableGenerator {
         }
     }
 
-    /// Creates a global virtual table instance for the given POU. These instances are used when creating a
-    /// POU instance, such that the initializer of the POU will call `self.__vtable := ADR(<instance>)`
-    fn generate_global_vtable_instance(&mut self, pou: &Pou, vtable: &UserTypeDeclaration) -> Variable {
+    /// Creates a global virtual table instance for the given POU.
+    fn generate_vtable_instance(&mut self, pou: &Pou, vtable: &UserTypeDeclaration) -> Variable {
         Variable {
             name: helper::get_vtable_instance_name(pou),
             data_type_declaration: DataTypeDeclaration::Reference {
@@ -169,7 +214,6 @@ impl VirtualTableGenerator {
         }
     }
 
-    // XXX: fuck me, a `parse(<input>)` would make life so much easier here, the whole method would be a simple `parse("ADR(foo.bar)")` essentially
     /// Creates a call statement of form `ADR(<qualified name of method>)`, e.g. `ADR(MyFb.foo)`
     fn generate_initalizer(&mut self, qualified_name: &str) -> AstNode {
         // ADR(<pou>.<method>)
@@ -183,10 +227,8 @@ impl VirtualTableGenerator {
         // ADR(<pou>.<method>)
         //     ^^^^^^^^^^^^^^
         let names = qualified_name.split('.').collect::<Vec<_>>();
-        debug_assert!(!names.is_empty() && names.len() <= 2); // It's either a `<pou>` or `<pou>.<method>`, where the latter case represents the body of a FB
+        debug_assert!(!names.is_empty() && names.len() <= 2, "expected either <pou> or <pou>.<method>");
 
-        // XXX: Before merging check if the body methods of function blocks are renamed to `__body`, in which
-        //      case `ADR(<POU>)` no longer needs to be supported simplfiying this code; see debug_assert asweel
         let argument = match (names.first(), names.get(1)) {
             // ADR(<pou>)
             (Some(name_pou), None) => AstFactory::create_member_reference(
@@ -206,7 +248,6 @@ impl VirtualTableGenerator {
                 self.ids.next_id(),
             ),
 
-            // In theory unreachable?
             _ => unreachable!(),
         };
 
@@ -244,58 +285,37 @@ mod helper {
     }
 }
 
-// TODO: Before merging try to make these tests more concise by not abusing snapshot testing here.
-//       Specifically some tests here really don't need the whole snapshot data but rather only parts of it
-//       such as the method names part of a virtual table struct. I think for the first few tests we want to
-//       have snapshots such that the reader understands the structure of things and for the remaining we then
-//       can switch to a more concise format.
 #[cfg(test)]
 mod tests {
-    use plc_ast::provider::IdProvider;
+    use itertools::Itertools;
+    use plc_ast::{ast::DataType, provider::IdProvider};
 
     use crate::{lowering::vtable::VirtualTableGenerator, test_utils::tests::index_with_ids};
 
     #[test]
-    fn vtable_member_variable_is_inject() {
+    fn root_pou_has_vtable_member_field() {
         let ids = IdProvider::default();
         let (unit, index) = index_with_ids(
-            r"
+            r#"
             FUNCTION_BLOCK FbA
                 VAR
-                    stateA: DINT;
+                    localVar: DINT;
                 END_VAR
             END_FUNCTION_BLOCK
 
             FUNCTION_BLOCK FbB EXTENDS FbA
-                VAR
-                    stateB: DINT;
-                END_VAR
             END_FUNCTION_BLOCK
 
-            FUNCTION_BLOCK FbC EXTENDS FbB
+            CLASS ClA
                 VAR
-                    stateC: DINT;
-                END_VAR
-            END_FUNCTION_BLOCK
-
-            CLASS ClassA
-                VAR
-                    stateA: DINT;
+                    localVar: DINT;
                 END_VAR
             END_CLASS
 
-            CLASS ClassB EXTENDS ClassA
-                VAR
-                    stateB: DINT;
-                END_VAR
+            CLASS ClB EXTENDS ClA
             END_CLASS
 
-            CLASS ClassC EXTENDS ClassB
-                VAR
-                    stateC: DINT;
-                END_VAR
-            END_CLASS
-            ",
+            "#,
             ids.clone(),
         );
 
@@ -303,189 +323,96 @@ mod tests {
         let mut generator = VirtualTableGenerator::new(ids);
         generator.generate(&index, &mut units);
 
-        // XXX: Could probably be improved by finding a local variable block instead of creating a new one?
-        // Only the "root" POUs should receive a `__vtable` member field
-        insta::assert_debug_snapshot!(units[0].pous, @r#"
+        let fb_a = units[0].pous.iter().find(|pou| pou.name == "FbA").unwrap();
+        let fb_b = units[0].pous.iter().find(|pou| pou.name == "FbB").unwrap();
+
+        assert_eq!(fb_b.variable_blocks.len(), 0);
+        insta::assert_debug_snapshot!(fb_a.variable_blocks, @r#"
         [
-            POU {
-                name: "FbA",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__vtable",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
                                 },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: false,
                             },
-                        ],
-                        variable_block_type: Local,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateA",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
+                        },
                     },
                 ],
-                pou_type: FunctionBlock,
-                return_type: None,
-                interfaces: [],
-                properties: [],
+                variable_block_type: Local,
             },
-            POU {
-                name: "FbB",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateB",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "localVar",
+                        data_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
                     },
                 ],
-                pou_type: FunctionBlock,
-                return_type: None,
-                interfaces: [],
-                properties: [],
+                variable_block_type: Local,
             },
-            POU {
-                name: "FbC",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateC",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
+        ]
+        "#);
+
+        let cl_a = units[0].pous.iter().find(|pou| pou.name == "ClA").unwrap();
+        let cl_b = units[0].pous.iter().find(|pou| pou.name == "ClB").unwrap();
+
+        assert_eq!(cl_b.variable_blocks.len(), 0);
+        insta::assert_debug_snapshot!(cl_a.variable_blocks, @r#"
+        [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "__vtable",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "__VOID",
                                 },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: false,
                             },
-                        ],
-                        variable_block_type: Local,
+                        },
                     },
                 ],
-                pou_type: FunctionBlock,
-                return_type: None,
-                interfaces: [],
-                properties: [],
+                variable_block_type: Local,
             },
-            POU {
-                name: "ClassA",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "__vtable",
-                                data_type: DataTypeDefinition {
-                                    data_type: PointerType {
-                                        name: None,
-                                        referenced_type: DataTypeReference {
-                                            referenced_type: "__VOID",
-                                        },
-                                        auto_deref: None,
-                                        type_safe: false,
-                                        is_function: false,
-                                    },
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
-                    },
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateA",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "localVar",
+                        data_type: DataTypeReference {
+                            referenced_type: "DINT",
+                        },
                     },
                 ],
-                pou_type: Class,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "ClassB",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateB",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
-                    },
-                ],
-                pou_type: Class,
-                return_type: None,
-                interfaces: [],
-                properties: [],
-            },
-            POU {
-                name: "ClassC",
-                variable_blocks: [
-                    VariableBlock {
-                        variables: [
-                            Variable {
-                                name: "stateC",
-                                data_type: DataTypeReference {
-                                    referenced_type: "DINT",
-                                },
-                            },
-                        ],
-                        variable_block_type: Local,
-                    },
-                ],
-                pou_type: Class,
-                return_type: None,
-                interfaces: [],
-                properties: [],
+                variable_block_type: Local,
             },
         ]
         "#);
     }
 
     #[test]
-    fn virtual_table_definition_and_instances_are_created_for_every_class_or_function_block() {
+    fn virtual_table_has_body_entry_for_function_blocks() {
         let ids = IdProvider::default();
         let (unit, index) = index_with_ids(
-            r"
+            r#"
             FUNCTION_BLOCK FbA
             END_FUNCTION_BLOCK
 
-            FUNCTION_BLOCK FbB EXTENDS FbA
-            END_FUNCTION_BLOCK
-
-            CLASS ClassA
+            CLASS ClA
             END_CLASS
-            
-            CLASS ClassB EXTENDS ClassA
-            END_CLASS
-            ",
+            "#,
             ids.clone(),
         );
 
@@ -493,7 +420,752 @@ mod tests {
         let mut generator = VirtualTableGenerator::new(ids);
         generator.generate(&index, &mut units);
 
-        // XXX: Could probably be improved by finding a global variable block instead of creating a new one?
+        let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
+        insta::assert_debug_snapshot!(fb_a.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_FbA",
+                ),
+                variables: [
+                    Variable {
+                        name: "__body",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbA",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "FbA",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+
+        // Classes are not callable, hence no `__body` entry
+        let cl_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_ClA");
+        insta::assert_debug_snapshot!(cl_a.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_ClA",
+                ),
+                variables: [],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn virtual_table_struct_definitions_are_generated() {
+        let ids = IdProvider::default();
+        let (unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            CLASS ClA
+                METHOD foo
+                END_METHOD
+            END_CLASS
+            "#,
+            ids.clone(),
+        );
+
+        let mut units = vec![unit];
+        let mut generator = VirtualTableGenerator::new(ids);
+        generator.generate(&index, &mut units);
+
+        let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
+        insta::assert_debug_snapshot!(fb_a.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_FbA",
+                ),
+                variables: [
+                    Variable {
+                        name: "__body",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbA",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "FbA",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbA.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "FbA",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+
+        let cl_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_ClA");
+        insta::assert_debug_snapshot!(cl_a.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_ClA",
+                ),
+                variables: [
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "ClA.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ClA",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn virtual_table_struct_definitions_are_generated_for_overridden_methods() {
+        let ids = IdProvider::default();
+        let (unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            CLASS ClA
+                METHOD foo
+                END_METHOD
+            END_CLASS
+
+            CLASS ClB EXTENDS ClA
+                METHOD foo
+                END_METHOD
+            END_CLASS
+            "#,
+            ids.clone(),
+        );
+
+        let mut units = vec![unit];
+        let mut generator = VirtualTableGenerator::new(ids);
+        generator.generate(&index, &mut units);
+
+        let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
+        insta::assert_debug_snapshot!(fb_b.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_FbB",
+                ),
+                variables: [
+                    Variable {
+                        name: "__body",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbB",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "FbB",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbB.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "FbB",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+
+        let cl_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_ClB");
+        insta::assert_debug_snapshot!(cl_b.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_ClB",
+                ),
+                variables: [
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "ClB.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ClB",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn virtual_table_struct_definitions_are_generated_for_new_methods() {
+        let ids = IdProvider::default();
+        let (unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            CLASS ClA
+                METHOD foo
+                END_METHOD
+            END_CLASS
+
+            CLASS ClB EXTENDS ClA
+                METHOD bar
+                END_METHOD
+            END_CLASS
+            "#,
+            ids.clone(),
+        );
+
+        let mut units = vec![unit];
+        let mut generator = VirtualTableGenerator::new(ids);
+        generator.generate(&index, &mut units);
+
+        let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
+        insta::assert_debug_snapshot!(fb_b.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_FbB",
+                ),
+                variables: [
+                    Variable {
+                        name: "__body",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbB",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "FbB",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbA.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "FbA",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    Variable {
+                        name: "bar",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "FbB.bar",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "bar",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "FbB",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+
+        let cl_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_ClB");
+        insta::assert_debug_snapshot!(cl_b.unwrap(), @r#"
+        UserTypeDeclaration {
+            data_type: StructType {
+                name: Some(
+                    "__vtable_ClB",
+                ),
+                variables: [
+                    Variable {
+                        name: "foo",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "ClA.foo",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ClA",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    Variable {
+                        name: "bar",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "ClB.bar",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                        initializer: Some(
+                            CallStatement {
+                                operator: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "ADR",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                                parameters: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "bar",
+                                            },
+                                        ),
+                                        base: Some(
+                                            ReferenceExpr {
+                                                kind: Member(
+                                                    Identifier {
+                                                        name: "ClB",
+                                                    },
+                                                ),
+                                                base: None,
+                                            },
+                                        ),
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                ],
+            },
+            initializer: None,
+            scope: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn global_variable_instances_are_generated() {
+        let ids = IdProvider::default();
+        let (unit, index) = index_with_ids(
+            r#"
+            FUNCTION_BLOCK FbA
+                METHOD foo
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            FUNCTION_BLOCK FbB EXTENDS FbA
+                METHOD bar
+                END_METHOD
+            END_FUNCTION_BLOCK
+
+            CLASS ClA
+                METHOD foo
+                END_METHOD
+            END_CLASS
+
+            CLASS ClB EXTENDS ClA
+                METHOD bar
+                END_METHOD
+            END_CLASS
+            "#,
+            ids.clone(),
+        );
+
+        let mut units = vec![unit];
+        let mut generator = VirtualTableGenerator::new(ids);
+        generator.generate(&index, &mut units);
+
         insta::assert_debug_snapshot!(units[0].global_vars, @r#"
         [
             VariableBlock {
@@ -515,15 +1187,15 @@ mod tests {
                         },
                     },
                     Variable {
-                        name: "__vtable_ClassA_instance",
+                        name: "__vtable_ClA_instance",
                         data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassA",
+                            referenced_type: "__vtable_ClA",
                         },
                     },
                     Variable {
-                        name: "__vtable_ClassB_instance",
+                        name: "__vtable_ClB_instance",
                         data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassB",
+                            referenced_type: "__vtable_ClB",
                         },
                     },
                 ],
@@ -531,2325 +1203,10 @@ mod tests {
             },
         ]
         "#);
-
-        // Because classes are not callable unlike function blocks, e.g. MyFb(), the virtual table will not
-        // contain any function pointers if no methods are declared
-        insta::assert_debug_snapshot!(units[0].user_types, @r#"
-        [
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbA",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassA",
-                    ),
-                    variables: [],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassB",
-                    ),
-                    variables: [],
-                },
-                initializer: None,
-                scope: None,
-            },
-        ]
-        "#);
     }
 
     #[test]
-    fn methods_are_part_of_virtual_tables_and_inherited_by_children() {
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(
-            r"
-            FUNCTION_BLOCK FbA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodTwoInA
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbB EXTENDS FbA
-                METHOD methodOneInB
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbC EXTENDS FbB
-                METHOD methodOneInC
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            CLASS ClassA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodTwoInA
-                END_METHOD
-            END_CLASS
-            
-            CLASS ClassB EXTENDS ClassA
-                METHOD methodOneInB
-                END_METHOD
-            END_CLASS
-
-            CLASS ClassC EXTENDS ClassB
-                METHOD methodOneInC
-                END_METHOD
-            END_CLASS
-            ",
-            ids.clone(),
-        );
-
-        let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
-
-        // XXX: Could probably be improved by finding a global variable block instead of creating a new one?
-        insta::assert_debug_snapshot!(units[0].global_vars, @r#"
-        [
-            VariableBlock {
-                variables: [],
-                variable_block_type: Global,
-            },
-            VariableBlock {
-                variables: [
-                    Variable {
-                        name: "__vtable_FbA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbC",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassC",
-                        },
-                    },
-                ],
-                variable_block_type: Global,
-            },
-        ]
-        "#);
-
-        insta::assert_debug_snapshot!(units[0].user_types, @r#"
-        [
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbA",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbC",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInC",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC.methodOneInC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInC",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInC",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassC.methodOneInC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInC",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-        ]
-        "#);
-    }
-
-    #[test]
-    fn overridden_methods_point_to_child_pou_rather_than_parent() {
-        let ids = IdProvider::default();
-        let (unit, index) = index_with_ids(
-            r"
-            FUNCTION_BLOCK FbA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodTwoInA
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbB EXTENDS FbA
-                // Overridden, should point to FbB.methodOneInA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodOneInB
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            FUNCTION_BLOCK FbC EXTENDS FbB
-                // Overridden, should point to FbC.methodOneInB
-                METHOD methodOneInB
-                END_METHOD
-
-                METHOD methodOneInC
-                END_METHOD
-            END_FUNCTION_BLOCK
-
-            CLASS ClassA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodTwoInA
-                END_METHOD
-            END_CLASS
-
-            CLASS ClassB EXTENDS ClassA
-                // Overridden, should point to ClassB.methodOneInA
-                METHOD methodOneInA
-                END_METHOD
-
-                METHOD methodOneInB
-                END_METHOD
-            END_CLASS
-
-            CLASS ClassC EXTENDS ClassB
-                // Overridden, should point to ClassC.methodOneInB
-                METHOD methodOneInB
-                END_METHOD
-
-                METHOD methodOneInC
-                END_METHOD
-            END_CLASS
-            ",
-            ids.clone(),
-        );
-
-        let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
-        generator.generate(&index, &mut units);
-
-        // XXX: Could probably be improved by finding a global variable block instead of creating a new one?
-        insta::assert_debug_snapshot!(units[0].global_vars, @r#"
-        [
-            VariableBlock {
-                variables: [],
-                variable_block_type: Global,
-            },
-            VariableBlock {
-                variables: [
-                    Variable {
-                        name: "__vtable_FbA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbC",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassC",
-                        },
-                    },
-                ],
-                variable_block_type: Global,
-            },
-        ]
-        "#);
-
-        insta::assert_debug_snapshot!(units[0].user_types, @r#"
-        [
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbA",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbC",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInC",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC.methodOneInC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInC",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "methodOneInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.methodOneInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodTwoInA",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.methodTwoInA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodTwoInA",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInB",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassC.methodOneInB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInB",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "methodOneInC",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassC.methodOneInC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "methodOneInC",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-        ]
-        "#);
-    }
-
-    #[test]
-    fn virtual_table_method_order_is_untouched_in_extended_virtual_tables() {
+    fn order_of_methods_in_virtual_table_is_constant() {
         let ids = IdProvider::default();
         let (unit, index) = index_with_ids(
             r"
@@ -2926,1493 +1283,25 @@ mod tests {
         let mut generator = VirtualTableGenerator::new(ids);
         generator.generate(&index, &mut units);
 
-        // XXX: Could probably be improved by finding a global variable block instead of creating a new one?
-        insta::assert_debug_snapshot!(units[0].global_vars, @r#"
-        [
-            VariableBlock {
-                variables: [],
-                variable_block_type: Global,
-            },
-            VariableBlock {
-                variables: [
-                    Variable {
-                        name: "__vtable_FbA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_FbC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_FbC",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassA_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassA",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassB_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassB",
-                        },
-                    },
-                    Variable {
-                        name: "__vtable_ClassC_instance",
-                        data_type: DataTypeReference {
-                            referenced_type: "__vtable_ClassC",
-                        },
-                    },
-                ],
-                variable_block_type: Global,
-            },
-        ]
-        "#);
+        let mut types = Vec::new();
+        for ty in &units[0].user_types {
+            let DataType::StructType { name: Some(name), variables } = &ty.data_type else { unreachable!() };
+            let var_names = variables.iter().map(|var| &var.name).join(", ");
 
-        insta::assert_debug_snapshot!(units[0].user_types, @r#"
+            types.push(format!("{name}: {var_names}"));
+        }
+
+        // Despite the methods being declared "chaotically" (not in order) in the child POUs, we expect them
+        // to appear in order in the actual struct definition. This is required to safely upcast from a child
+        // POU to a parent POU in the context of polymorphic calls.
+        insta::assert_debug_snapshot!(types, @r#"
         [
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbA",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbB",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "four",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.four",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "four",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "five",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.five",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "five",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_FbC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "__body",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "FbC",
-                                                },
-                                            ),
-                                            base: None,
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "four",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbB.four",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "four",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "five",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC.five",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "five",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "six",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "FbC.six",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "six",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "FbC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassA",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassB",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "four",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.four",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "four",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "five",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.five",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "five",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
-            UserTypeDeclaration {
-                data_type: StructType {
-                    name: Some(
-                        "__vtable_ClassC",
-                    ),
-                    variables: [
-                        Variable {
-                            name: "one",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.one",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "one",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "two",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.two",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "two",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "three",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassA.three",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "three",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassA",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "four",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassB.four",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "four",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassB",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "five",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassC.five",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "five",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                        Variable {
-                            name: "six",
-                            data_type: DataTypeDefinition {
-                                data_type: PointerType {
-                                    name: None,
-                                    referenced_type: DataTypeReference {
-                                        referenced_type: "ClassC.six",
-                                    },
-                                    auto_deref: None,
-                                    type_safe: false,
-                                    is_function: true,
-                                },
-                            },
-                            initializer: Some(
-                                CallStatement {
-                                    operator: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "ADR",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    parameters: Some(
-                                        ReferenceExpr {
-                                            kind: Member(
-                                                Identifier {
-                                                    name: "six",
-                                                },
-                                            ),
-                                            base: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "ClassC",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
-                                    ),
-                                },
-                            ),
-                        },
-                    ],
-                },
-                initializer: None,
-                scope: None,
-            },
+            "__vtable_FbA: __body, one, two, three",
+            "__vtable_FbB: __body, one, two, three, four, five",
+            "__vtable_FbC: __body, one, two, three, four, five, six",
+            "__vtable_ClassA: one, two, three",
+            "__vtable_ClassB: one, two, three, four, five",
+            "__vtable_ClassC: one, two, three, four, five, six",
         ]
         "#);
     }

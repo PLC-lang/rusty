@@ -622,8 +622,6 @@ impl Walker for AstNode {
             AstStatement::JumpStatement(stmt) => visitor.visit_jump_statement(stmt, node),
             AstStatement::LabelStatement(stmt) => visitor.visit_label_statement(stmt, node),
             AstStatement::AllocationStatement(stmt) => visitor.visit_allocation(stmt, node),
-
-            // These calls are probably wrong, I just need them for formatting a node back to user code
             AstStatement::Super(_) => visitor.visit_super(&self.stmt, node),
             AstStatement::This => visitor.visit_this(&self.stmt, node),
         }

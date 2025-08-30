@@ -4,31 +4,29 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        {
-            "type": "codelldb",
-            "request": "launch",
-            "name": "Debug codelldb standard_lib",
-            "cargo": {
-                "args": [
-                    "build",
-                    "--bin=plc",
-                    "--package=plc_driver"
-                ],
-                "filter": {
-                    "name": "plc",
-                    "kind": "bin"
-                }
-            },
-            "program": "target/debug/plc",
+    {
+        "type": "codelldb",
+        "request": "launch",
+        "name": "Debug codelldb standard_lib",
+        "cargo": {
             "args": [
-                "libs/stdlib/iec61131-st/*.st"
+                "build",
+                "--bin=plc",
+                "--package=plc_driver"
             ],
-            "cwd": "${workspaceFolder}",
-            "env": {
-                "RUST_LOG": "rusty"
-            },
-            "terminal": "integrated"
+            "filter": {
+                "name": "plc",
+                "kind": "bin"
+            }
         },
+        "program": "target/debug/plc",
+        "args": ["libs/stdlib/iec61131-st/*.st"],
+        "cwd": "${workspaceFolder}",
+        "env": {
+            "RUST_LOG": "rusty"
+        },
+        "terminal": "integrated"
+    },
         {
             "type": "codelldb",
             "request": "launch",
@@ -45,11 +43,7 @@
                 }
             },
             "program": "target/debug/plc",
-            "args": [
-                "target/demo.st",
-                "-g",
-                "-c"
-            ],
+            "args": ["target/demo.st", "-g", "-c"],
             "cwd": "${workspaceFolder}",
             "env": {
                 "RUST_LOG": "rusty"
@@ -64,7 +58,7 @@
                 "args": [
                     "build",
                     "--bin=plc",
-                    "--package=plc_driver",
+                    "--package=plc_driver"
                 ],
                 "filter": {
                     "name": "plc",
@@ -73,8 +67,7 @@
             },
             "args": [
                 "target/demo.st",
-                "tests/lit/util/printf.pli",
-                "-j=1",
+                "tests/lit/util/printf.pli"
             ],
             "cwd": "${workspaceFolder}",
             "env": {
@@ -114,6 +107,7 @@
             "cwd": "${workspaceFolder}",
             "program": "target/demo",
             "terminal": "integrated"
+
         }
     ]
 }

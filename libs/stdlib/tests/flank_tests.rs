@@ -17,7 +17,6 @@ struct MainType {
 }
 
 #[test]
-#[ignore = "Convert to lit test, works on system but fails as test"]
 fn rising_edge_smoke_test() {
     let prg = r#"
         PROGRAM main
@@ -42,7 +41,6 @@ fn rising_edge_smoke_test() {
 }
 
 #[test]
-#[ignore = "Convert to lit test, works on system but fails as test"]
 fn falling_edge_smoke_test() {
     let prg = r#"
     PROGRAM main
