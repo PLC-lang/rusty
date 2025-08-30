@@ -823,18 +823,18 @@ mod tests {
                     refInstanceA: REF_TO A;
                 END_VAR
 
-                refInstanceA();
-                refInstanceA.refB();
-                refInstanceA.refB.refC();
+                refInstanceA^();
+                refInstanceA^.refB^();
+                refInstanceA^.refB^.refC^();
             END_FUNCTION
         "#;
 
         insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
-            "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",
-            "__vtable_A#(refInstanceA.refB.__vtable^).__body^(refInstanceA.refB)",
-            "__vtable_B#(refInstanceA.refB.refC.__vtable^).__body^(refInstanceA.refB.refC)",
+            "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
+            "__vtable_B#(refInstanceA^.refB^.__vtable^).__body^(refInstanceA^.refB^)",
+            "__vtable_C#(refInstanceA^.refB^.refC^.__vtable^).__body^(refInstanceA^.refB^.refC^)",
         ]
         "#);
     }
