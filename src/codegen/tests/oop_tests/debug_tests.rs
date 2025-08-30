@@ -33,28 +33,28 @@ fn members_from_base_class_are_available_in_subclasses() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, !dbg !20
+    @__bar__init = unnamed_addr constant %bar zeroinitializer, !dbg !21
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
 
-    define void @foo(%foo* %0) !dbg !30 {
+    define void @foo(%foo* %0) !dbg !31 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !34, metadata !DIExpression()), !dbg !35
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !35, metadata !DIExpression()), !dbg !36
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
       %c = getelementptr inbounds %foo, %foo* %0, i32 0, i32 3
-      ret void, !dbg !35
+      ret void, !dbg !36
     }
 
-    define void @bar(%bar* %0) !dbg !36 {
+    define void @bar(%bar* %0) !dbg !37 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !39, metadata !DIExpression()), !dbg !40
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !40, metadata !DIExpression()), !dbg !41
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      ret void, !dbg !40
+      ret void, !dbg !41
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -146,50 +146,51 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
-    !llvm.module.flags = !{!26, !27}
-    !llvm.dbg.cu = !{!28}
+    !llvm.module.flags = !{!27, !28}
+    !llvm.dbg.cu = !{!29}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
     !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
     !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 2, size: 7872, align: 64, flags: DIFlagPublic, elements: !5, identifier: "foo")
-    !5 = !{!6, !9, !11, !16}
+    !5 = !{!6, !9, !11, !17}
     !6 = !DIDerivedType(tag: DW_TAG_member, name: "__vtable", scope: !2, file: !2, baseType: !7, size: 64, align: 64, flags: DIFlagPublic)
     !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 4, baseType: !10, size: 16, align: 16, offset: 64, flags: DIFlagPublic)
     !10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !11 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 5, baseType: !12, size: 648, align: 8, offset: 80, flags: DIFlagPublic)
-    !12 = !DICompositeType(tag: DW_TAG_array_type, baseType: !13, size: 648, align: 8, elements: !14)
-    !13 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-    !14 = !{!15}
-    !15 = !DISubrange(count: 81, lowerBound: 0)
-    !16 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !17, size: 7128, align: 8, offset: 728, flags: DIFlagPublic)
-    !17 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 7128, align: 8, elements: !18)
-    !18 = !{!19}
-    !19 = !DISubrange(count: 11, lowerBound: 0)
-    !20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
-    !21 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 10, type: !22, isLocal: false, isDefinition: true)
-    !22 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !23)
-    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7872, align: 64, flags: DIFlagPublic, elements: !24, identifier: "bar")
-    !24 = !{!25}
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 7872, align: 64, flags: DIFlagPublic)
-    !26 = !{i32 2, !"Dwarf Version", i32 5}
-    !27 = !{i32 2, !"Debug Info Version", i32 3}
-    !28 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !29, splitDebugInlining: false)
-    !29 = !{!0, !20}
-    !30 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !31, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
-    !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
-    !32 = !{null, !4}
-    !33 = !{}
-    !34 = !DILocalVariable(name: "foo", scope: !30, file: !2, line: 8, type: !4)
-    !35 = !DILocation(line: 8, column: 8, scope: !30)
-    !36 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !37, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !28, retainedNodes: !33)
-    !37 = !DISubroutineType(flags: DIFlagPublic, types: !38)
-    !38 = !{null, !23}
-    !39 = !DILocalVariable(name: "bar", scope: !36, file: !2, line: 11, type: !23)
-    !40 = !DILocation(line: 11, column: 8, scope: !36)
+    !12 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !13, align: 8)
+    !13 = !DICompositeType(tag: DW_TAG_array_type, baseType: !14, size: 648, align: 8, elements: !15)
+    !14 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !15 = !{!16}
+    !16 = !DISubrange(count: 81, lowerBound: 0)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 6, baseType: !18, size: 7128, align: 8, offset: 728, flags: DIFlagPublic)
+    !18 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 7128, align: 8, elements: !19)
+    !19 = !{!20}
+    !20 = !DISubrange(count: 11, lowerBound: 0)
+    !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
+    !22 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 10, type: !23, isLocal: false, isDefinition: true)
+    !23 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !24)
+    !24 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7872, align: 64, flags: DIFlagPublic, elements: !25, identifier: "bar")
+    !25 = !{!26}
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 7872, align: 64, flags: DIFlagPublic)
+    !27 = !{i32 2, !"Dwarf Version", i32 5}
+    !28 = !{i32 2, !"Debug Info Version", i32 3}
+    !29 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !30, splitDebugInlining: false)
+    !30 = !{!0, !21}
+    !31 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !32, scopeLine: 8, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
+    !32 = !DISubroutineType(flags: DIFlagPublic, types: !33)
+    !33 = !{null, !4}
+    !34 = !{}
+    !35 = !DILocalVariable(name: "foo", scope: !31, file: !2, line: 8, type: !4)
+    !36 = !DILocation(line: 8, column: 8, scope: !31)
+    !37 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 10, type: !38, scopeLine: 11, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !29, retainedNodes: !34)
+    !38 = !DISubroutineType(flags: DIFlagPublic, types: !39)
+    !39 = !{null, !24}
+    !40 = !DILocalVariable(name: "bar", scope: !37, file: !2, line: 11, type: !24)
+    !41 = !DILocation(line: 11, column: 8, scope: !37)
     "#);
 }
 
@@ -502,59 +503,59 @@ fn write_to_parent_variable_in_instance() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !0
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__bar__init = unnamed_addr constant %bar zeroinitializer, !dbg !14
+    @__bar__init = unnamed_addr constant %bar zeroinitializer, !dbg !15
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
 
-    define void @foo(%foo* %0) !dbg !24 {
+    define void @foo(%foo* %0) !dbg !25 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !28, metadata !DIExpression()), !dbg !29
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !29, metadata !DIExpression()), !dbg !30
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      ret void, !dbg !29
+      ret void, !dbg !30
     }
 
-    define void @foo__baz(%foo* %0) !dbg !30 {
+    define void @foo__baz(%foo* %0) !dbg !31 {
     entry:
-      call void @llvm.dbg.declare(metadata %foo* %0, metadata !31, metadata !DIExpression()), !dbg !32
+      call void @llvm.dbg.declare(metadata %foo* %0, metadata !32, metadata !DIExpression()), !dbg !33
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %1 = bitcast [81 x i8]* %s to i8*, !dbg !32
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !32
-      ret void, !dbg !33
+      %1 = bitcast [81 x i8]* %s to i8*, !dbg !33
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !33
+      ret void, !dbg !34
     }
 
-    define void @bar(%bar* %0) !dbg !34 {
+    define void @bar(%bar* %0) !dbg !35 {
     entry:
-      call void @llvm.dbg.declare(metadata %bar* %0, metadata !37, metadata !DIExpression()), !dbg !38
+      call void @llvm.dbg.declare(metadata %bar* %0, metadata !38, metadata !DIExpression()), !dbg !39
       %this = alloca %bar*, align 8
       store %bar* %0, %bar** %this, align 8
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1, !dbg !38
-      %1 = bitcast [81 x i8]* %s to i8*, !dbg !38
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !38
-      ret void, !dbg !39
+      %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1, !dbg !39
+      %1 = bitcast [81 x i8]* %s to i8*, !dbg !39
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !39
+      ret void, !dbg !40
     }
 
-    define void @main() !dbg !40 {
+    define void @main() !dbg !41 {
     entry:
       %s = alloca [81 x i8], align 1
       %fb = alloca %bar, align 8
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !43, metadata !DIExpression()), !dbg !44
+      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !44, metadata !DIExpression()), !dbg !45
       %0 = bitcast [81 x i8]* %s to i8*
       call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !45, metadata !DIExpression()), !dbg !46
+      call void @llvm.dbg.declare(metadata %bar* %fb, metadata !46, metadata !DIExpression()), !dbg !47
       %1 = bitcast %bar* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
-      call void @__init_bar(%bar* %fb), !dbg !47
-      call void @__user_init_bar(%bar* %fb), !dbg !47
-      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !47
-      call void @foo__baz(%foo* %__foo), !dbg !48
-      call void @bar(%bar* %fb), !dbg !49
-      ret void, !dbg !50
+      call void @__init_bar(%bar* %fb), !dbg !48
+      call void @__user_init_bar(%bar* %fb), !dbg !48
+      %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !48
+      call void @foo__baz(%foo* %__foo), !dbg !49
+      call void @bar(%bar* %fb), !dbg !50
+      ret void, !dbg !51
     }
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -663,8 +664,8 @@ fn write_to_parent_variable_in_instance() {
     attributes #1 = { argmemonly nofree nounwind willreturn }
     attributes #2 = { argmemonly nofree nounwind willreturn writeonly }
 
-    !llvm.module.flags = !{!20, !21}
-    !llvm.dbg.cu = !{!22}
+    !llvm.module.flags = !{!21, !22}
+    !llvm.dbg.cu = !{!23}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
     !1 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
@@ -676,47 +677,48 @@ fn write_to_parent_variable_in_instance() {
     !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__foo___vtable", baseType: !8, size: 64, align: 64, dwarfAddressSpace: 1)
     !8 = !DIBasicType(name: "__VOID", encoding: DW_ATE_unsigned, flags: DIFlagPublic)
     !9 = !DIDerivedType(tag: DW_TAG_member, name: "s", scope: !2, file: !2, line: 4, baseType: !10, size: 648, align: 8, offset: 64, flags: DIFlagPublic)
-    !10 = !DICompositeType(tag: DW_TAG_array_type, baseType: !11, size: 648, align: 8, elements: !12)
-    !11 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-    !12 = !{!13}
-    !13 = !DISubrange(count: 81, lowerBound: 0)
-    !14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
-    !15 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !16, isLocal: false, isDefinition: true)
-    !16 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
-    !17 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 768, align: 64, flags: DIFlagPublic, elements: !18, identifier: "bar")
-    !18 = !{!19}
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 768, align: 64, flags: DIFlagPublic)
-    !20 = !{i32 2, !"Dwarf Version", i32 5}
-    !21 = !{i32 2, !"Debug Info Version", i32 3}
-    !22 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !23, splitDebugInlining: false)
-    !23 = !{!0, !14}
-    !24 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !25, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !22, retainedNodes: !27)
-    !25 = !DISubroutineType(flags: DIFlagPublic, types: !26)
-    !26 = !{null, !4}
-    !27 = !{}
-    !28 = !DILocalVariable(name: "foo", scope: !24, file: !2, line: 9, type: !4)
-    !29 = !DILocation(line: 9, column: 8, scope: !24)
-    !30 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !24, file: !2, line: 6, type: !25, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !22, retainedNodes: !27)
-    !31 = !DILocalVariable(name: "foo", scope: !30, file: !2, line: 7, type: !4)
-    !32 = !DILocation(line: 7, column: 12, scope: !30)
-    !33 = !DILocation(line: 8, column: 8, scope: !30)
-    !34 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !35, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !22, retainedNodes: !27)
-    !35 = !DISubroutineType(flags: DIFlagPublic, types: !36)
-    !36 = !{null, !17}
-    !37 = !DILocalVariable(name: "bar", scope: !34, file: !2, line: 12, type: !17)
-    !38 = !DILocation(line: 12, column: 12, scope: !34)
-    !39 = !DILocation(line: 13, column: 8, scope: !34)
-    !40 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !41, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !22, retainedNodes: !27)
-    !41 = !DISubroutineType(flags: DIFlagPublic, types: !42)
-    !42 = !{null}
-    !43 = !DILocalVariable(name: "s", scope: !40, file: !2, line: 17, type: !10, align: 8)
-    !44 = !DILocation(line: 17, column: 12, scope: !40)
-    !45 = !DILocalVariable(name: "fb", scope: !40, file: !2, line: 18, type: !17, align: 64)
-    !46 = !DILocation(line: 18, column: 12, scope: !40)
-    !47 = !DILocation(line: 0, scope: !40)
-    !48 = !DILocation(line: 20, column: 12, scope: !40)
-    !49 = !DILocation(line: 21, column: 12, scope: !40)
-    !50 = !DILocation(line: 22, column: 8, scope: !40)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !11, align: 8)
+    !11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align: 8, elements: !13)
+    !12 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !13 = !{!14}
+    !14 = !DISubrange(count: 81, lowerBound: 0)
+    !15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
+    !16 = distinct !DIGlobalVariable(name: "__bar__init", scope: !2, file: !2, line: 11, type: !17, isLocal: false, isDefinition: true)
+    !17 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !18)
+    !18 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 768, align: 64, flags: DIFlagPublic, elements: !19, identifier: "bar")
+    !19 = !{!20}
+    !20 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 768, align: 64, flags: DIFlagPublic)
+    !21 = !{i32 2, !"Dwarf Version", i32 5}
+    !22 = !{i32 2, !"Debug Info Version", i32 3}
+    !23 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !24, splitDebugInlining: false)
+    !24 = !{!0, !15}
+    !25 = distinct !DISubprogram(name: "foo", linkageName: "foo", scope: !2, file: !2, line: 2, type: !26, scopeLine: 9, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
+    !26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
+    !27 = !{null, !4}
+    !28 = !{}
+    !29 = !DILocalVariable(name: "foo", scope: !25, file: !2, line: 9, type: !4)
+    !30 = !DILocation(line: 9, column: 8, scope: !25)
+    !31 = distinct !DISubprogram(name: "foo.baz", linkageName: "foo.baz", scope: !25, file: !2, line: 6, type: !26, scopeLine: 7, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
+    !32 = !DILocalVariable(name: "foo", scope: !31, file: !2, line: 7, type: !4)
+    !33 = !DILocation(line: 7, column: 12, scope: !31)
+    !34 = !DILocation(line: 8, column: 8, scope: !31)
+    !35 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 11, type: !36, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
+    !36 = !DISubroutineType(flags: DIFlagPublic, types: !37)
+    !37 = !{null, !18}
+    !38 = !DILocalVariable(name: "bar", scope: !35, file: !2, line: 12, type: !18)
+    !39 = !DILocation(line: 12, column: 12, scope: !35)
+    !40 = !DILocation(line: 13, column: 8, scope: !35)
+    !41 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 15, type: !42, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !23, retainedNodes: !28)
+    !42 = !DISubroutineType(flags: DIFlagPublic, types: !43)
+    !43 = !{null}
+    !44 = !DILocalVariable(name: "s", scope: !41, file: !2, line: 17, type: !10, align: 8)
+    !45 = !DILocation(line: 17, column: 12, scope: !41)
+    !46 = !DILocalVariable(name: "fb", scope: !41, file: !2, line: 18, type: !18, align: 64)
+    !47 = !DILocation(line: 18, column: 12, scope: !41)
+    !48 = !DILocation(line: 0, scope: !41)
+    !49 = !DILocation(line: 20, column: 12, scope: !41)
+    !50 = !DILocation(line: 21, column: 12, scope: !41)
+    !51 = !DILocation(line: 22, column: 8, scope: !41)
     "#);
 }
 

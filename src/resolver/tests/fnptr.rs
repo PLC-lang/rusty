@@ -21,7 +21,7 @@ fn function_pointer_method_with_no_arguments() {
         FUNCTION main
             VAR
                 instanceFb: Fb;
-                echoPtr: FNPTR Fb.echo := ADR(Fb.echo);
+                echoPtr: __FPOINTER Fb.echo := ADR(Fb.echo);
             END_VAR
 
             echoPtr^(instanceFb);
@@ -83,7 +83,7 @@ fn function_pointer_method_with_arguments() {
 
         FUNCTION main
             VAR
-                echoPtr: FNPTR Fb.echo := ADR(Fb.echo);
+                echoPtr: __FPOINTER Fb.echo := ADR(Fb.echo);
                 localIn, localOut, localInOut: DINT;
                 instanceFb: Fb;
             END_VAR
@@ -363,7 +363,7 @@ fn void_pointer_casting() {
         END_VAR
 
         TYPE vtable_FbA: STRUCT
-            foo: FNPTR FbA.foo := ADR(FbA.foo);
+            foo: __FPOINTER FbA.foo := ADR(FbA.foo);
         END_STRUCT END_TYPE
 
         FUNCTION_BLOCK FbA
@@ -382,7 +382,6 @@ fn void_pointer_casting() {
 
             vtable_FbA#(instanceFbA.__vtable);
             vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
-            instanceFbA.foo();
         END_FUNCTION
         ",
         id_provider.clone(),
@@ -480,7 +479,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
         FUNCTION main
             VAR
                 instanceA: A;
-                printArgs: FNPTR A.printArgs := ADR(A.printArgs);
+                printArgs: __FPOINTER A.printArgs := ADR(A.printArgs);
             END_VAR
 
             instanceA.printArgs('value =', 5);
@@ -640,7 +639,7 @@ fn function_block_body() {
         FUNCTION main
             VAR
                 instanceFb: Fb;
-                bodyPtr: FNPTR Fb;
+                bodyPtr: __FPOINTER Fb;
             END_VAR
 
             bodyPtr^(instanceFb);

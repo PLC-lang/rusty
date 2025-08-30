@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -9,23 +8,25 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @a = global [81 x i8] zeroinitializer, !dbg !0
-@b = global [81 x i16] zeroinitializer, !dbg !7
+@b = global [81 x i16] zeroinitializer, !dbg !8
 
-!llvm.module.flags = !{!11, !12}
-!llvm.dbg.cu = !{!13}
+!llvm.module.flags = !{!13, !14}
+!llvm.dbg.cu = !{!15}
 
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "a", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
 !2 = !DIFile(filename: "<internal>", directory: "")
-!3 = !DICompositeType(tag: DW_TAG_array_type, baseType: !4, size: 648, align: 8, elements: !5)
-!4 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-!5 = !{!6}
-!6 = !DISubrange(count: 81, lowerBound: 0)
-!7 = !DIGlobalVariableExpression(var: !8, expr: !DIExpression())
-!8 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 4, type: !9, isLocal: false, isDefinition: true)
-!9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 1296, align: 16, elements: !5)
-!10 = !DIBasicType(name: "WCHAR", size: 16, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-!11 = !{i32 2, !"Dwarf Version", i32 5}
-!12 = !{i32 2, !"Debug Info Version", i32 3}
-!13 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !14, splitDebugInlining: false)
-!14 = !{!0, !7}
+!3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !4, align: 8)
+!4 = !DICompositeType(tag: DW_TAG_array_type, baseType: !5, size: 648, align: 8, elements: !6)
+!5 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+!6 = !{!7}
+!7 = !DISubrange(count: 81, lowerBound: 0)
+!8 = !DIGlobalVariableExpression(var: !9, expr: !DIExpression())
+!9 = distinct !DIGlobalVariable(name: "b", scope: !2, file: !2, line: 4, type: !10, isLocal: false, isDefinition: true)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__WSTRING__81", scope: !2, file: !2, baseType: !11, align: 16)
+!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 1296, align: 16, elements: !6)
+!12 = !DIBasicType(name: "WCHAR", size: 16, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+!13 = !{i32 2, !"Dwarf Version", i32 5}
+!14 = !{i32 2, !"Debug Info Version", i32 3}
+!15 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !16, splitDebugInlining: false)
+!16 = !{!0, !8}

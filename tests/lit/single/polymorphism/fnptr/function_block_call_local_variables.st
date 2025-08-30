@@ -45,7 +45,7 @@ END_FUNCTION_BLOCK
 FUNCTION main
     VAR
         instanceA: A;
-        fnPtrBody: FNPTR A := ADR(A);
+        fnPtrBody: __FPOINTER A := ADR(A);
     END_VAR
 
     // CHECK: A::printState: localStateInt = 0

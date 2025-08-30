@@ -286,30 +286,29 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         }
     }
 
-    // TODO(vosa): Is this neccessary? Are the function types indexed and later on used in the expression
-    // generator? If not this whole commit could be reverted, double-check before merging
-    fn create_function_type(&mut self, pou_name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
+    fn create_function_type(&mut self, method_name: &str) -> Result<FunctionType<'ink>, Diagnostic> {
         let return_type = self
             .types_index
-            .find_associated_type(self.index.get_return_type_or_void(pou_name).get_name())
+            .find_associated_type(self.index.get_return_type_or_void(method_name).get_name())
             .map(|opt| opt.as_any_type_enum())
             .unwrap_or(self.llvm.context.void_type().as_any_type_enum());
 
         let mut parameter_types = Vec::new();
 
-        // Methods are defined as functions in the LLVM IR, but carry the underlying POU type as their first
-        // parameter to operate on them, hence push the POU type to the very first position.
-        match self.index.find_pou(pou_name) {
+        match self.index.find_pou(method_name) {
             Some(PouIndexEntry::Method { parent_name, .. }) => {
                 let ty = self.types_index.get_associated_type(parent_name).expect("must exist");
                 let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
 
+                // Methods are defined as functions in the LLVM IR, but carry the underlying POU type as their
+                // first parameter to operate on them, hence push the POU type to the very first position.
                 parameter_types.push(ty_ptr);
-                for parameter in self.index.get_declared_parameters(pou_name) {
-                    // Instead of relying on the LLVM index, we create data-types directly in here because some of
-                    // them may not have been registered yet. For example, at the time of writing this comment the
-                    // `__auto_pointer_to_DINT` type was not present in the index for a VAR_IN_OUT parameter which
-                    // resulted in an error
+
+                for parameter in self.index.get_declared_parameters(method_name) {
+                    // Instead of relying on the LLVM index, we create data-types on the fly here because some
+                    // types have not yet been visited and as a result may not be in the index. For example at
+                    // the time of writing this the index was not able to find a input parameter of type
+                    // `__auto_pointer_to_DINT`, consequently panicking
                     let ty = self.create_type(
                         parameter.get_name(),
                         self.index.get_type(&parameter.data_type_name).expect("must exist"),
@@ -319,13 +318,13 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 }
             }
 
-            // Function blocks are a bit "weird" in that they only expect an instance argument even if they
-            // define input, output and/or inout parameters. Effectively, while being methods per-se, their
-            // calling convention differs from regular methods.
             Some(PouIndexEntry::FunctionBlock { name, .. }) => {
                 let ty = self.types_index.get_associated_type(name).expect("must exist");
                 let ty_ptr = ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
 
+                // Function blocks are a bit "weird" in that they only expect an instance argument even if
+                // they define input, output and/or inout parameters. Effectively, while being methods per-se,
+                // their calling convention differs from regular methods.
                 parameter_types.push(ty_ptr);
             }
 

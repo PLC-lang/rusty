@@ -469,6 +469,18 @@ impl<'ink> DebugBuilder<'ink> {
             .map(|it| it.to_owned())
     }
 
+    /// Creates debug information for string types using an array + typedef approach.
+    ///
+    /// This function generates DWARF debug metadata for string types by creating:
+    /// 1. A character array type based on the string's encoding (CHAR for UTF-8, WCHAR for UTF-16)
+    /// 2. A typedef with a unique name based on encoding and length (e.g., "__STRING__81", "__WSTRING__26")
+    ///
+    /// ## Typedef Naming
+    ///
+    /// The typedef uses the `__STRING__<grapheme count>` or `__WSTRING__<grapheme count>` pattern where:
+    /// - Double underscore prefix avoids clashing with user-defined types (reserved for compiler internals)
+    /// - Length suffix ensures each string type has a unique DWARF reference
+    /// - Consistent pattern enables easy detection by DWARF parsers
     fn create_string_type(
         &mut self,
         name: &str,
@@ -478,24 +490,37 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        // Register a utf8 or 16 basic type
-        let inner_type = match encoding {
+        let char_datatype = match encoding {
             StringEncoding::Utf8 => index.get_effective_type_or_void_by_name(CHAR_TYPE),
             StringEncoding::Utf16 => index.get_effective_type_or_void_by_name(WCHAR_TYPE),
         };
-        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
-        let llvm_type = types_index.get_associated_type(name)?;
-        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
-        //Register an array
+
+        let char_debug_type = self.get_or_create_debug_type(char_datatype, index, types_index)?;
+        let array_align_bits =
+            self.target_data.get_preferred_alignment(&types_index.get_associated_type(name)?) * 8;
         let array_type = self.debug_info.create_array_type(
-            inner_type.into(),
+            char_debug_type.into(),
             size,
-            align_bits,
+            array_align_bits,
             #[allow(clippy::single_range_in_vec_init)]
-            &[(0..length)],
+            &[0..length],
+        );
+        let typedef_name = match encoding {
+            StringEncoding::Utf8 => format!("__STRING__{}", length),
+            StringEncoding::Utf16 => format!("__WSTRING__{}", length),
+        };
+
+        let file = self.compile_unit.get_file();
+        let string_typedef = self.debug_info.create_typedef(
+            array_type.as_type(),
+            &typedef_name,
+            file,
+            0, // Line 0 for built-in types
+            file.as_debug_info_scope(),
+            array_align_bits,
         );
 
-        self.register_concrete_type(name, DebugType::Composite(array_type));
+        self.register_concrete_type(name, DebugType::Derived(string_typedef));
         Ok(())
     }
 

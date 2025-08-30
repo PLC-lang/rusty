@@ -614,8 +614,8 @@ fn function_pointer() {
     let src = r#"
         TYPE Collection:
             STRUCT
-                body:   FNPTR Fb;
-                foo:    FNPTR Fb.foo;
+                body:   __FPOINTER Fb;
+                foo:    __FPOINTER Fb.foo;
             END_STRUCT
         END_TYPE
 
@@ -629,7 +629,7 @@ fn function_pointer() {
 
         FUNCTION main
             VAR
-                bar: FNPTR Fb.bar;
+                bar: __FPOINTER Fb.bar;
             END_VAR
         END_FUNCTION
     "#;

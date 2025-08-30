@@ -80,7 +80,7 @@ END_FUNCTION_BLOCK
 FUNCTION main
     VAR
         instanceFbA: FbA;
-        bodyPtr: FNPTR FbA := ADR(FbA);
+        bodyPtr: __FPOINTER FbA := ADR(FbA);
 
         localIn1: DINT;
         localIn2: STRING;

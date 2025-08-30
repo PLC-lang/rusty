@@ -298,7 +298,7 @@ pub enum Token {
     #[token("POINTER", ignore(case))]
     KeywordPointer,
 
-    #[token("FNPTR", ignore(case))]
+    #[token("__FPOINTER", ignore(case))]
     KeywordFunctionPointer,
 
     #[token("REF_TO", ignore(case))]

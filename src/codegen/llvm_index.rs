@@ -27,7 +27,6 @@ pub struct LlvmTypedIndex<'ink> {
 pub trait TypeHelper<'ink> {
     #[allow(clippy::wrong_self_convention)]
     fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>>;
-
     fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink>;
 }
 
