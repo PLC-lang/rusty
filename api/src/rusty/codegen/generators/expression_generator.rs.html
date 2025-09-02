@@ -2995,7 +2995,25 @@
 <a href="#2994" id="2994">2994</a>
 <a href="#2995" id="2995">2995</a>
 <a href="#2996" id="2996">2996</a>
-<a href="#2997" id="2997">2997</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2997" id="2997">2997</a>
+<a href="#2998" id="2998">2998</a>
+<a href="#2999" id="2999">2999</a>
+<a href="#3000" id="3000">3000</a>
+<a href="#3001" id="3001">3001</a>
+<a href="#3002" id="3002">3002</a>
+<a href="#3003" id="3003">3003</a>
+<a href="#3004" id="3004">3004</a>
+<a href="#3005" id="3005">3005</a>
+<a href="#3006" id="3006">3006</a>
+<a href="#3007" id="3007">3007</a>
+<a href="#3008" id="3008">3008</a>
+<a href="#3009" id="3009">3009</a>
+<a href="#3010" id="3010">3010</a>
+<a href="#3011" id="3011">3011</a>
+<a href="#3012" id="3012">3012</a>
+<a href="#3013" id="3013">3013</a>
+<a href="#3014" id="3014">3014</a>
+<a href="#3015" id="3015">3015</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -5555,7 +5573,7 @@
         reference: ExpressionValue&lt;<span class="lifetime">'ink</span>&gt;,
         reference_annotation: <span class="kw-2">&amp;</span>StatementAnnotation,
         access: <span class="kw-2">&amp;</span>AstNode,
-    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, ()&gt; {
+    ) -&gt; <span class="prelude-ty">Result</span>&lt;PointerValue&lt;<span class="lifetime">'ink</span>&gt;, Diagnostic&gt; {
         <span class="kw">let </span>builder = <span class="kw-2">&amp;</span><span class="self">self</span>.llvm.builder;
 
         <span class="comment">// array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
@@ -5568,7 +5586,9 @@
         <span class="kw">let </span>struct_ptr = reference.get_basic_value_enum().into_pointer_value();
         <span class="comment">// GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
-        </span><span class="kw">let </span>arr_ptr_gep = <span class="self">self</span>.llvm.builder.build_struct_gep(struct_ptr, <span class="number">0</span>, <span class="string">"vla_arr_gep"</span>)<span class="question-mark">?</span>;
+        </span><span class="kw">let </span>arr_ptr_gep = <span class="self">self</span>.llvm.builder.build_struct_gep(struct_ptr, <span class="number">0</span>, <span class="string">"vla_arr_gep"</span>).map_err(|<span class="kw">_</span>| {
+            Diagnostic::codegen_error(<span class="string">"Cannot access VLA array pointer"</span>, access.get_location())
+        })<span class="question-mark">?</span>;
         <span class="kw">let </span>vla_arr_ptr = builder.build_load(arr_ptr_gep, <span class="string">"vla_arr_ptr"</span>).into_pointer_value();
         <span class="comment">// get pointer to array containing dimension information
         </span><span class="kw">let </span>dim_arr_gep = builder.build_struct_gep(struct_ptr, <span class="number">1</span>, <span class="string">"dim_arr"</span>).unwrap();
@@ -5587,7 +5607,15 @@
             <span class="kw">let </span><span class="prelude-val">Some</span>(stmt) = access_statements.first() <span class="kw">else </span>{
                 <span class="macro">unreachable!</span>(<span class="string">"Must have exactly 1 access statement"</span>)
             };
-            <span class="kw">let </span>access_value = <span class="self">self</span>.generate_expression(stmt).map_err(|<span class="kw">_</span>| ())<span class="question-mark">?</span>;
+            <span class="comment">//turn it into i32 immediately
+            // this is the  same logic we use for normal array accessors
+            </span><span class="kw">let </span>access_value = <span class="macro">cast_if_needed!</span>(
+                <span class="self">self</span>,
+                <span class="self">self</span>.index.get_type(DINT_TYPE)<span class="question-mark">?</span>,
+                <span class="self">self</span>.get_type_hint_for(stmt)<span class="question-mark">?</span>,
+                <span class="self">self</span>.generate_expression(stmt)<span class="question-mark">?</span>,
+                <span class="prelude-val">None
+            </span>);
 
             <span class="comment">// if start offset is not 0, adjust the access value accordingly
             </span><span class="kw">let </span><span class="prelude-val">Some</span>(start_offset) = index_offsets.first().map(|(start, <span class="kw">_</span>)| <span class="kw-2">*</span>start) <span class="kw">else </span>{
@@ -5601,11 +5629,19 @@
             </span><span class="kw">let </span>accessors = access_statements
                 .iter()
                 .map(|it| {
-                    <span class="self">self</span>.generate_expression(it)
-                        .expect(<span class="string">"Uncaught invalid accessor statement"</span>)
-                        .into_int_value()
+                    <span class="kw">let </span>value = <span class="self">self</span>.generate_expression(it).expect(<span class="string">"Uncaught invalid accessor statement"</span>);
+                    <span class="comment">//turn it into i32 immediately
+                    // this is the  same logic we use for normal array accessors
+                    </span><span class="prelude-val">Ok</span>(<span class="macro">cast_if_needed!</span>(
+                        <span class="self">self</span>,
+                        <span class="self">self</span>.index.get_type(DINT_TYPE)<span class="question-mark">?</span>,
+                        <span class="self">self</span>.get_type_hint_for(it)<span class="question-mark">?</span>,
+                        value,
+                        <span class="prelude-val">None
+                    </span>)
+                    .into_int_value())
                 })
-                .collect::&lt;Vec&lt;<span class="kw">_</span>&gt;&gt;();
+                .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()<span class="question-mark">?</span>;
 
             <span class="kw">if </span>access_statements.len() != index_offsets.len() {
                 <span class="macro">unreachable!</span>(<span class="string">"Amount of access statements and dimensions does not match."</span>)
