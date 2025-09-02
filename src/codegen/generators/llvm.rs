@@ -162,6 +162,11 @@ impl<'a> Llvm<'a> {
         self.context.i32_type()
     }
 
+    /// returns the i64_type
+    pub fn i64_type(&self) -> inkwell::types::IntType<'a> {
+        self.context.i64_type()
+    }
+
     /// create a constant bool with the given value
     ///
     /// - `index` the index to obtain the datatypeinformation for BOOL

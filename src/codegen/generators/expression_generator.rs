@@ -2558,7 +2558,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         reference: ExpressionValue<'ink>,
         reference_annotation: &StatementAnnotation,
         access: &AstNode,
-    ) -> Result<PointerValue<'ink>, ()> {
+    ) -> Result<PointerValue<'ink>, Diagnostic> {
         let builder = &self.llvm.builder;
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
@@ -2571,7 +2571,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
         // dereferences the former
-        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep")?;
+        let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").map_err(|_| {
+            Diagnostic::codegen_error("Cannot access VLA array pointer", access.get_location())
+        })?;
         let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr").into_pointer_value();
         // get pointer to array containing dimension information
         let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr").unwrap();
@@ -2590,7 +2592,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let Some(stmt) = access_statements.first() else {
                 unreachable!("Must have exactly 1 access statement")
             };
-            let access_value = self.generate_expression(stmt).map_err(|_| ())?;
+            //turn it into i32 immediately
+            // this is the  same logic we use for normal array accessors
+            let access_value = cast_if_needed!(
+                self,
+                self.index.get_type(DINT_TYPE)?,
+                self.get_type_hint_for(stmt)?,
+                self.generate_expression(stmt)?,
+                None
+            );
 
             // if start offset is not 0, adjust the access value accordingly
             let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
@@ -2604,11 +2614,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let accessors = access_statements
                 .iter()
                 .map(|it| {
-                    self.generate_expression(it)
-                        .expect("Uncaught invalid accessor statement")
-                        .into_int_value()
+                    let value = self.generate_expression(it).expect("Uncaught invalid accessor statement");
+                    //turn it into i32 immediately
+                    // this is the  same logic we use for normal array accessors
+                    Ok(cast_if_needed!(
+                        self,
+                        self.index.get_type(DINT_TYPE)?,
+                        self.get_type_hint_for(it)?,
+                        value,
+                        None
+                    )
+                    .into_int_value())
                 })
-                .collect::<Vec<_>>();
+                .collect::<Result<Vec<_>, Diagnostic>>()?;
 
             if access_statements.len() != index_offsets.len() {
                 unreachable!("Amount of access statements and dimensions does not match.")
