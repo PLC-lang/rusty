@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"

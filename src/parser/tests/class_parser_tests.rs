@@ -201,14 +201,11 @@ fn class_with_var_non_retain_block() {
 
     // classes have implementation because they are treated as other POUs
     assert_eq!(unit.implementations.len(), 1);
-
-    let vblock = &class.variable_blocks[0];
-    assert_eq!(vblock.variables.len(), 0);
-
-    assert_eq!(vblock.retain, false);
-    assert_eq!(vblock.constant, true);
-    assert_eq!(vblock.access, AccessModifier::Public);
-    assert_eq!(vblock.kind, VariableBlockType::Local);
+    assert_eq!(class.variable_blocks[0].variables.len(), 0);
+    assert_eq!(class.variable_blocks[0].retain, false);
+    assert_eq!(class.variable_blocks[0].constant, true);
+    assert_eq!(class.variable_blocks[0].access, AccessModifier::Public);
+    assert_eq!(class.variable_blocks[0].kind, VariableBlockType::Local);
 }
 
 #[test]
