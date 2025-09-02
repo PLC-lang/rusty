@@ -608,3 +608,102 @@ fn var_external_constant() {
     }
     "###);
 }
+
+#[test]
+fn function_pointer() {
+    let src = r#"
+        TYPE Collection:
+            STRUCT
+                body:   __FPOINTER Fb;
+                foo:    __FPOINTER Fb.foo;
+            END_STRUCT
+        END_TYPE
+
+        FUNCTION_BLOCK Fb
+            METHOD foo
+            END_METHOD
+
+            METHOD bar: DINT
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                bar: __FPOINTER Fb.bar;
+            END_VAR
+        END_FUNCTION
+    "#;
+
+    let (result, _) = parse(src);
+    insta::assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: StructType {
+            name: Some(
+                "Collection",
+            ),
+            variables: [
+                Variable {
+                    name: "body",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "Fb",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                            is_function: true,
+                        },
+                    },
+                },
+                Variable {
+                    name: "foo",
+                    data_type: DataTypeDefinition {
+                        data_type: PointerType {
+                            name: None,
+                            referenced_type: DataTypeReference {
+                                referenced_type: "Fb.foo",
+                            },
+                            auto_deref: None,
+                            type_safe: false,
+                            is_function: true,
+                        },
+                    },
+                },
+            ],
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    insta::assert_debug_snapshot!(result.pous.iter().find(|pou| pou.name == "main").unwrap(), @r#"
+    POU {
+        name: "main",
+        variable_blocks: [
+            VariableBlock {
+                variables: [
+                    Variable {
+                        name: "bar",
+                        data_type: DataTypeDefinition {
+                            data_type: PointerType {
+                                name: None,
+                                referenced_type: DataTypeReference {
+                                    referenced_type: "Fb.bar",
+                                },
+                                auto_deref: None,
+                                type_safe: false,
+                                is_function: true,
+                            },
+                        },
+                    },
+                ],
+                variable_block_type: Local,
+            },
+        ],
+        pou_type: Function,
+        return_type: None,
+        interfaces: [],
+        properties: [],
+    }
+    "#);
+}

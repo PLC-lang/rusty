@@ -1,0 +1,67 @@
+---
+source: src/lowering/calls.rs
+expression: "unit.implementations[2].statements[0]"
+---
+ExpressionList {
+    expressions: [
+        Allocation {
+            name: "__0",
+            reference_type: "STRING",
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Deref,
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "fooPtr",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            parameters: Some(
+                ExpressionList {
+                    expressions: [
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "instanceFbA",
+                                },
+                            ),
+                            base: None,
+                        },
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__0",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ],
+                },
+            ),
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "result",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__0",
+                    },
+                ),
+                base: None,
+            },
+        },
+    ],
+}

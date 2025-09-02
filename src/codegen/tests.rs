@@ -7,6 +7,7 @@ mod constants_tests;
 mod debug_tests;
 mod directaccess_test;
 mod expression_tests;
+mod fnptr;
 mod function_tests;
 mod generics_test;
 mod initialization_test;

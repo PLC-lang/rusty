@@ -472,6 +472,10 @@ impl ImplementationIndexEntry {
     pub fn is_action(&self) -> bool {
         matches!(self.get_implementation_type(), ImplementationType::Action)
     }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self.get_implementation_type(), ImplementationType::FunctionBlock)
+    }
 }
 
 impl From<&PouType> for ImplementationType {
@@ -1790,6 +1794,10 @@ impl Index {
     pub fn find_return_type(&self, pou_name: &str) -> Option<&DataType> {
         let variable = self.find_return_variable(pou_name);
         variable.and_then(|it| self.get_type(it.get_type_name()).ok())
+    }
+
+    pub fn get_return_type_or_void(&self, pou_name: &str) -> &DataType {
+        self.find_return_type(pou_name).unwrap_or(self.get_void_type())
     }
 
     pub fn get_type_information_or_void(&self, type_name: &str) -> &DataTypeInformation {
