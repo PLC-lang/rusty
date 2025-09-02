@@ -385,7 +385,14 @@
 <a href="#384" id="384">384</a>
 <a href="#385" id="385">385</a>
 <a href="#386" id="386">386</a>
-<a href="#387" id="387">387</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#387" id="387">387</a>
+<a href="#388" id="388">388</a>
+<a href="#389" id="389">389</a>
+<a href="#390" id="390">390</a>
+<a href="#391" id="391">391</a>
+<a href="#392" id="392">392</a>
+<a href="#393" id="393">393</a>
+<a href="#394" id="394">394</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>rustc_hash::FxHashMap;
 
@@ -744,7 +751,14 @@
     types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
     location: <span class="kw-2">&amp;</span>SourceLocation,
 ) {
-    <span class="kw">let </span>new_type_name = <span class="macro">format!</span>(<span class="string">"{container_name}_"</span>); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+    <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+    </span><span class="kw">let </span>new_type_name = <span class="macro">format!</span>(<span class="string">"{container_name}_"</span>);
+    <span class="comment">// FIXME: When processing pointer-to-pointer types (e.g., alias variables pointing to existing pointers),
+    // the inner type is already a DataTypeDeclaration::Reference, so replace_data_type_with_reference_to
+    // returns None and nested type processing is skipped. This results in incomplete names like "__global_alias_var_"
+    // (with trailing underscore but no suffix) when the inner pointer type should be processed.
+    // We need to distinguish between pointer references (which should be processed) and other references
+    // (which should return None) to properly handle nested pointer structures.
     </span><span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location: inner_location, scope }) =
         datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {

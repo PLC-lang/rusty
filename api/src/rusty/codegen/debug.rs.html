@@ -1059,7 +1059,28 @@
 <a href="#1058" id="1058">1058</a>
 <a href="#1059" id="1059">1059</a>
 <a href="#1060" id="1060">1060</a>
-<a href="#1061" id="1061">1061</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#1061" id="1061">1061</a>
+<a href="#1062" id="1062">1062</a>
+<a href="#1063" id="1063">1063</a>
+<a href="#1064" id="1064">1064</a>
+<a href="#1065" id="1065">1065</a>
+<a href="#1066" id="1066">1066</a>
+<a href="#1067" id="1067">1067</a>
+<a href="#1068" id="1068">1068</a>
+<a href="#1069" id="1069">1069</a>
+<a href="#1070" id="1070">1070</a>
+<a href="#1071" id="1071">1071</a>
+<a href="#1072" id="1072">1072</a>
+<a href="#1073" id="1073">1073</a>
+<a href="#1074" id="1074">1074</a>
+<a href="#1075" id="1075">1075</a>
+<a href="#1076" id="1076">1076</a>
+<a href="#1077" id="1077">1077</a>
+<a href="#1078" id="1078">1078</a>
+<a href="#1079" id="1079">1079</a>
+<a href="#1080" id="1080">1080</a>
+<a href="#1081" id="1081">1081</a>
+<a href="#1082" id="1082">1082</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1480,7 +1501,28 @@
             align_bits,
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
-        <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(pointer_type));
+
+        <span class="comment">// Handle auto-dereferencing pointers by creating a typedef if needed. This ensures
+        // that the DWARF information accurately reflects the intended usage (deref semantics) of the pointer type.
+        </span><span class="kw">let </span>ty = <span class="kw">if let </span>DataTypeInformation::Pointer { auto_deref: <span class="prelude-val">Some</span>(<span class="kw">_</span>), .. } =
+            index.get_type(name).map(|it| it.get_type_information())<span class="question-mark">?
+        </span>{
+            <span class="kw">let </span>file = <span class="self">self</span>.compile_unit.get_file();
+            <span class="kw">let </span>typedef_name = <span class="macro">format!</span>(<span class="string">"__AUTO_DEREF__{name}"</span>);
+            <span class="self">self</span>.debug_info.create_typedef(
+                pointer_type.as_type(),
+                <span class="kw-2">&amp;</span>typedef_name,
+                file,
+                <span class="number">0</span>, <span class="comment">// Line 0 for built-in types
+                </span>file.as_debug_info_scope(),
+                align_bits,
+            )
+        } <span class="kw">else </span>{
+            pointer_type
+        };
+
+        <span class="self">self</span>.register_concrete_type(name, DebugType::Derived(ty));
+
         <span class="prelude-val">Ok</span>(())
     }
 
