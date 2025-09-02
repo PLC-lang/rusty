@@ -11,16 +11,18 @@ fn variable_length_array_single_dimension_access() {
         c: i64,
         d: i64,
         e: i64,
+        f: i64,
     }
 
     let mut main_type = MainType::default();
     let src = r#"
     PROGRAM main
         VAR
-            a, b, c, d, e : LINT;
+            a, b, c, d, e,f : LINT;
         END_VAR
         VAR_TEMP
             arr : ARRAY[-21..4] OF LINT;
+            access_index : DINT := -20;
         END_VAR
 
         foo(arr);
@@ -29,11 +31,13 @@ fn variable_length_array_single_dimension_access() {
         c := arr[2];
         d := arr[3];
         e := arr[4];
+        f := arr[access_index];
     END_PROGRAM
 
     FUNCTION foo : DINT
         VAR_INPUT
             vla : ARRAY[ * ] OF LINT;
+            access_index : DINT := -20;
         END_VAR
 
         vla[-21] := 2;
@@ -41,6 +45,7 @@ fn variable_length_array_single_dimension_access() {
         vla[2] := 6;
         vla[3] := 8;
         vla[4] := 10;
+        vla[access_index] := 42;
     END_FUNCTION
     "#;
 
@@ -50,6 +55,7 @@ fn variable_length_array_single_dimension_access() {
     assert_eq!(6, main_type.c);
     assert_eq!(8, main_type.d);
     assert_eq!(10, main_type.e);
+    assert_eq!(42, main_type.f);
 }
 
 #[test]

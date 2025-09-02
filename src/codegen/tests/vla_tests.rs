@@ -46,6 +46,81 @@ fn vla_read_access() {
 }
 
 #[test]
+fn vla_read_access_with_lint() {
+    let res = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*] OF INT;
+        END_VAR
+            FOO := vla[LINT#0];
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF INT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn vla_read_access_with_var() {
+    let res = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*] OF INT;
+        END_VAR
+        VAR
+            i : DINT := 0;
+        END_VAR
+            FOO := vla[i];
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF INT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn vla_read_access_with_expr() {
+    let res = codegen(
+        r#"
+        FUNCTION foo : INT
+        VAR_INPUT
+            vla : ARRAY[*] OF INT;
+        END_VAR
+        VAR
+            i : DINT := 0;
+        END_VAR
+            FOO := vla[i+1];
+        END_FUNCTION
+
+        FUNCTION main : DINT
+        VAR
+            arr : ARRAY[0..1] OF INT;
+        END_VAR
+            foo(arr);
+        END_FUNCTION
+    "#,
+    );
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
 fn global_variable_passed_to_function_as_vla() {
     let res = codegen(
         r#"
