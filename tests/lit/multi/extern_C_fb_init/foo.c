@@ -4,11 +4,12 @@ typedef struct {
     void* __vtable;
     int a;
     int b;
-} myFunctionBlock;
+} fbInstance;
 
-myFunctionBlock __myFunctionBlock__init = { 0 };
+fbInstance __myFunctionBlock__init = { 0 };
 
-void myFunctionBlock__FB_INIT(myFunctionBlock* fb_instance) {
+void myFunctionBlock(fbInstance* fb_instance) {}
+void myFunctionBlock__FB_INIT(fbInstance* fb_instance) {
     fb_instance->a = 1;
     fb_instance->b = 2;
     printf("myFunctionBlock initialized with a = %d, b = %d\n", fb_instance->a, fb_instance->b);
