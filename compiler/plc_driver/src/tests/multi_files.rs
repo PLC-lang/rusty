@@ -196,7 +196,7 @@ fn forward_declared_constant_is_also_marked_constant() {
 
     declare !dbg !24 void @__user_init_foo(%foo*)
 
-    declare !dbg !29 void @mainProg(%mainProg*)
+    declare !dbg !30 void @mainProg(%mainProg*)
 
     ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
@@ -238,13 +238,14 @@ fn forward_declared_constant_is_also_marked_constant() {
     !25 = !DIFile(filename: "__initializers", directory: "")
     !26 = !DISubroutineType(flags: DIFlagPublic, types: !27)
     !27 = !{null, !28}
-    !28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_foo", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-    !29 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !11, file: !11, line: 6, type: !30, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
-    !30 = !DISubroutineType(flags: DIFlagPublic, types: !31)
-    !31 = !{null, !32, !14}
-    !32 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !11, file: !11, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !33, identifier: "mainProg")
-    !33 = !{!34}
-    !34 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !11, file: !11, line: 8, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_foo", scope: !3, file: !3, baseType: !29, align: 64)
+    !29 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_foo", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
+    !30 = distinct !DISubprogram(name: "mainProg", linkageName: "mainProg", scope: !11, file: !11, line: 6, type: !31, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !8)
+    !31 = !DISubroutineType(flags: DIFlagPublic, types: !32)
+    !32 = !{null, !33, !14}
+    !33 = !DICompositeType(tag: DW_TAG_structure_type, name: "mainProg", scope: !11, file: !11, line: 6, size: 16, align: 64, flags: DIFlagPublic, elements: !34, identifier: "mainProg")
+    !34 = !{!35}
+    !35 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !11, file: !11, line: 8, baseType: !14, size: 16, align: 16, flags: DIFlagPublic)
 
     ; ModuleID = 'external_file2.st'
     source_filename = "external_file2.st"
