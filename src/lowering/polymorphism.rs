@@ -9,7 +9,7 @@
 //! # 1. Method calls within methods (and function block bodies)
 //! The reason we want to desugar all method calls within (other) methods is for the fact that a non
 //! overridden method may make use of an overridden method. For example consider
-//! ```
+//! ```text
 //! FUNCTION_BLOCK A
 //!     METHOD getName: STRING
 //!         getName := 'A';
@@ -54,7 +54,7 @@
 //! # 2. Method calls through a pointer variable pointing to a class or function block
 //! Essentially what is illustrated in 1. within the main function, consider:
 //!
-//! ```
+//! ```text
 //! FUNCTION main
 //!     VAR
 //!         name: STRING;
@@ -86,7 +86,7 @@
 //! issues. Compatible here refers to the fact that the order of the member fields must be constant. More
 //! specifically, the methods must be defined in "ancestral hierarchical order". To illustrate with the
 //! previous examples, assume we have
-//! ```
+//! ```text
 //! TYPE __vtable_A:
 //!     STRUCT
 //!         getName: __FPOINTER TO A.getName := ADR(A.getName);

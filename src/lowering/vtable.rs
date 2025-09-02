@@ -9,7 +9,7 @@
 //! # 1. Virtual Table POU Member Field
 //! Every root, i.e. non-extended, class or function block will receive a `__vtable: POINTER TO __VOID` member
 //! field. For example a function block such as
-//! ```norun
+//! ```text
 //! FUNCTION_BLOCK A
 //!     VAR
 //!         one: DINT;
@@ -17,7 +17,7 @@
 //! END_FUNCTION_BLOCK
 //! ```
 //! will internally expand to
-//! ```norun
+//! ```text
 //! FUNCTION_BLOCK A
 //!     VAR
 //!         __vtable: POINTER TO __VOID;
@@ -34,7 +34,7 @@
 //! methods `foo` (inherited) and `bar` (overridden) as well as `baz` (new). For these two function blocks we
 //! would generate the following virtual table structures:
 //!
-//! ```norun
+//! ```text
 //! TYPE __vtable_A:
 //!     STRUCT
 //!         foo: __FPOINTER TO A.foo := ADR(A.foo);
@@ -55,7 +55,7 @@
 //! The newly created `__vtable` member fields need to point to some instance of the corresponding virtual
 //! table. For that we will create one global variable for each virtual table. Deriving from the previous
 //! example we would generate the following two variables
-//! ```
+//! ```text
 //! VAR_GLOBAL
 //!     __vtable_instance_A: __vtable_A;
 //!     __vtable_instance_B: __vtable_B;
