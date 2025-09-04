@@ -1887,7 +1887,12 @@
 <a href="#1886" id="1886">1886</a>
 <a href="#1887" id="1887">1887</a>
 <a href="#1888" id="1888">1888</a>
-<a href="#1889" id="1889">1889</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1889" id="1889">1889</a>
+<a href="#1890" id="1890">1890</a>
+<a href="#1891" id="1891">1891</a>
+<a href="#1892" id="1892">1892</a>
+<a href="#1893" id="1893">1893</a>
+<a href="#1894" id="1894">1894</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -3685,8 +3690,13 @@
 
     <span class="kw">let </span>argument_count_is_incorrect = <span class="kw">match </span>pou {
         PouIndexEntry::Function { .. } =&gt; {
-            !((has_variadic_parameter &amp;&amp; arguments.len() &gt;= parameters.len())
-                || (arguments.len() == parameters.len()))
+            <span class="comment">// parameters with default values are optional, so the argument count can be less than
+            // the parameter count. This only works if the parameters with default values are at the end
+            </span><span class="kw">let </span>optional_parameters =
+                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+            <span class="kw">let </span>min_required_parameters = parameters.len() - optional_parameters;
+            arguments.len() &lt; min_required_parameters
+                || (!has_variadic_parameter &amp;&amp; arguments.len() &gt; parameters.len())
         }
 
         PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } =&gt; {
