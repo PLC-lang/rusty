@@ -27,6 +27,7 @@ use crate::{
 use super::index::*;
 
 use inkwell::{
+    attributes::{Attribute, AttributeLoc},
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
@@ -325,6 +326,33 @@ impl<'ink> CodeGen<'ink> {
         global_index: &Index,
         llvm_index: LlvmTypedIndex<'ink>,
     ) -> Result<GeneratedModule<'ink>, Diagnostic> {
+        // This loops through functions and adds the `sanitize_address` attribute.
+        // The AddressSanitizer LLVM passes will then use this to identify which
+        // functions need to be instrumented.
+        //
+        // There's likely somewhere else this should go. Placing it here for now.
+        // TODO: Once it's in it's proper place, we'll add a flag to enable/disable it.
+        for implementation in &unit.implementations {
+            // Skip non-internal functions (external links + built-ins)
+            if implementation.linkage != LinkageType::Internal {
+                continue;
+            }
+
+            // Skip no-definition functions
+            // TODO - investigate which functions don't have definitions and why
+            // TODO - better way to log this than println
+            let func = match llvm_index.find_associated_implementation(&implementation.name) {
+                Some(func) => func,
+                None => {
+                    println!("Skipping undefined function: {}", &implementation.name);
+                    continue;
+                }
+            };
+            let sanitizer_attribute_id = Attribute::get_named_enum_kind_id("sanitize_address");
+            let sanitizer_attribute = context.create_enum_attribute(sanitizer_attribute_id, 0);
+            func.add_attribute(AttributeLoc::Function, sanitizer_attribute);
+        }
+
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
         let pou_generator =
@@ -477,11 +505,23 @@ impl<'ink> GeneratedModule<'ink> {
         if let Some(parent) = output.parent() {
             std::fs::create_dir_all(parent)?;
         }
-        ////Run the passes
+        // Run the passes
+        // TODO - Add asan as optional cli parameter
+        // TODO - Currently doesn't add linking parameters for the asan runtime
+        //
+        // NOTE - these pass names have changed in newer versions of LLVM.
+        //      - [Latest](https://github.com/llvm/llvm-project/blob/main/llvm/lib/Passes/PassRegistry.def)
+        //      - [LLVM 14](https://github.com/llvm/llvm-project/blob/release/14.x/llvm/lib/Passes/PassRegistry.def)
+        // It should also be noted that the ASAN pass requies:
+        // - Specific target architectures [see here](https://github.com/google/sanitizers/wiki/AddressSanitizer).
+        // - Output is NOT IR (otherwise the pass will run twice with the next compiler (i.e. clang) and it will cause a bad time)
+
+        let passes = format!("{},asan-module,function(asan)", optimization_level.opt_params());
+
         machine
             .and_then(|it| {
                 self.module
-                    .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
+                    .run_passes(&passes, &it, PassBuilderOptions::create())
                     .map_err(|it| {
                         Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
                     })
