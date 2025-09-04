@@ -1796,8 +1796,13 @@ fn validate_argument_count<T: AnnotationMap>(
 
     let argument_count_is_incorrect = match pou {
         PouIndexEntry::Function { .. } => {
-            !((has_variadic_parameter && arguments.len() >= parameters.len())
-                || (arguments.len() == parameters.len()))
+            // parameters with default values are optional, so the argument count can be less than
+            // the parameter count. This only works if the parameters with default values are at the end
+            let optional_parameters =
+                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+            let min_required_parameters = parameters.len() - optional_parameters;
+            arguments.len() < min_required_parameters
+                || (!has_variadic_parameter && arguments.len() > parameters.len())
         }
 
         PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } => {
