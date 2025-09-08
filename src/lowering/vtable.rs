@@ -63,7 +63,7 @@
 //! ```
 //! These global variables will later be assigned in the [`crate::lowering::initializers`] module.
 //!
-//! Note that the actual desugaring of method calls to make use of these virtual tables will happen in the
+//! Note that the actual lowering of method calls to make use of these virtual tables will happen in the
 //! [`crate::lowering::polymorphism`] module.
 
 use plc_ast::{

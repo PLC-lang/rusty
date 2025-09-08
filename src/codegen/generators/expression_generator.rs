@@ -615,11 +615,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // Generate the argument list; our assumption is function pointers are only supported for methods and
         // direct function block calls, hence we explicitly fetch the instance argument from the list. In
-        // terms of desugared ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
+        // terms of lowered ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
         let (instance, arguments_raw, arguments_llvm) = {
             let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
             let (instance, arguments) = match arguments.len() {
-                0 => panic!("invalid desugared code, no instance argument found"),
+                0 => panic!("invalid lowered code, no instance argument found"),
                 1 => (self.generate_lvalue(arguments[0])?, Vec::new()),
                 _ => (self.generate_lvalue(arguments[0])?, arguments[1..].to_vec()),
             };

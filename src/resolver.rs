@@ -315,7 +315,7 @@ impl TypeAnnotator<'_> {
             // `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and we do not skip the first argument. Then,
             // `instanceFB` will have a type-hint of "STRING" and `stringValue` will have a type-hint on
             // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
-            // better approach would be to desugar method calls from `fbInstance.echo('stringValue', 5)` to
+            // better approach would be to lower method calls from `fbInstance.echo('stringValue', 5)` to
             // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
             parameters[1..].iter()
         } else {

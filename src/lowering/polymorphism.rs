@@ -1,13 +1,13 @@
-//! Desugaring of method calls into indirect calls through virtual tables
+//! Lowering of method calls into indirect calls through virtual tables
 //!
-//! This module is responsible for desugaring / transforming method calls into method calls through the
+//! This module is responsible for lowering / transforming method calls into method calls through the
 //! virtual table (for information regarding virtual tables refer to [`crate::lowering::vtable`]). In a
 //! nutshell it will transform a method call such as `ptr^.foo()` into `__vtable_Fb#(ptr^.__vtable^).foo^(ptr^)`.
 //!
-//! However, not all method calls must be desugared but rather the following cases:
+//! However, not all method calls must be lowered but rather the following cases:
 //!
 //! # 1. Method calls within methods (and function block bodies)
-//! The reason we want to desugar all method calls within (other) methods is for the fact that a non
+//! The reason we want to lower all method calls within (other) methods is for the fact that a non
 //! overridden method may make use of an overridden method. For example consider
 //! ```text
 //! FUNCTION_BLOCK A
@@ -48,7 +48,7 @@
 //!
 //! As described in the main function, the calls to `printName` must happen at runtime. Were that not the case
 //! then `printName` in A would resolve to `A::getName` at compile time, yielding an incorrect result for the
-//! second `refInstanceA^.printName()` call. Desugaring the call to `printName` would result in
+//! second `refInstanceA^.printName()` call. Lowering the call to `printName` would result in
 //! `printf('name = %s$N', ADR(__vtable_A#(THIS^.__vtable^).getName^(THIS^))`.
 //!
 //! # 2. Method calls through a pointer variable pointing to a class or function block
@@ -122,7 +122,7 @@ use crate::{
     typesystem::{DataType, DataTypeInformation},
 };
 
-pub struct PolymorphicCallDesugarer {
+pub struct PolymorphicCallLowerer {
     pub ids: IdProvider,
     pub index: Option<Index>,
     pub annotations: Option<AnnotationMapImpl>,
@@ -130,7 +130,7 @@ pub struct PolymorphicCallDesugarer {
     pub in_method_or_function_block: Option<String>,
 }
 
-impl AstVisitorMut for PolymorphicCallDesugarer {
+impl AstVisitorMut for PolymorphicCallLowerer {
     fn visit_implementation(&mut self, implementation: &mut plc_ast::ast::Implementation) {
         if implementation.location.is_internal() {
             return;
@@ -150,7 +150,7 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
     }
 
     fn visit_call_statement(&mut self, node: &mut plc_ast::ast::AstNode) {
-        // When dealing with a function call such as `ref^.foo()` we have to perform several steps to desugar
+        // When dealing with a function call such as `ref^.foo()` we have to perform several steps to lower
         // it into a form that can be executed by the codegen without any intervention from our side, namely:
         // 1. We must add the expression (excluding the method name) as the first argument to the call
         //    -> ref^.foo(ref^)
@@ -168,7 +168,7 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
         };
 
         // We need to walk the parameters before deciding to potentially stop here, because parameters may
-        // also contain polymorphic calls that need to be desugared, e.g. `functionCall(methodCall())`
+        // also contain polymorphic calls that need to be lowered, e.g. `functionCall(methodCall())`
         if let Some(ref mut parameters) = parameters {
             parameters.walk(self);
         }
@@ -196,7 +196,7 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
             },
         };
 
-        log::trace!("desugaring {}", operator.as_string());
+        log::trace!("lowering {}", operator.as_string());
 
         // Pre-steps, add `__body` call when dealing with a direct function block and...
         self.maybe_patch_body_operator(operator);
@@ -226,21 +226,21 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
     }
 }
 
-impl PolymorphicCallDesugarer {
-    pub fn new(ids: IdProvider) -> PolymorphicCallDesugarer {
-        PolymorphicCallDesugarer { ids, index: None, annotations: None, in_method_or_function_block: None }
+impl PolymorphicCallLowerer {
+    pub fn new(ids: IdProvider) -> PolymorphicCallLowerer {
+        PolymorphicCallLowerer { ids, index: None, annotations: None, in_method_or_function_block: None }
     }
 
-    pub fn desugar_unit(&mut self, unit: &mut CompilationUnit) {
+    pub fn lower_unit(&mut self, unit: &mut CompilationUnit) {
         self.visit_compilation_unit(unit);
     }
 
-    /// Returns true if the given AST node is a candidate that needs to be desugared into a polymorphic call.
+    /// Returns true if the given AST node is a candidate that needs to be lowered into a polymorphic call.
     fn is_polymorphic_call_candidate(&self, operator: &AstNode) -> bool {
-        let index = self.index.as_ref().expect("index must be set before desugaring");
-        let annotations = self.annotations.as_ref().expect("annotations must be set before desugaring");
+        let index = self.index.as_ref().expect("index must be set before lowering");
+        let annotations = self.annotations.as_ref().expect("annotations must be set before lowering");
 
-        // We do not want to desugar SUPER access, e.g. SUPER^() or SUPER^.foo()
+        // We do not want to lower THIS and SUPER access, e.g. {THIS,SUPER}^() or {THIS,SUPER}^.foo()
         if operator.is_super_or_super_deref()
             || operator.get_base_ref_expr().is_some_and(AstNode::is_super_or_super_deref)
             || operator.is_this()
@@ -256,7 +256,7 @@ impl PolymorphicCallDesugarer {
         // Case 1 (Method call within methods or function block bodies)
         if self.in_method_or_function_block.is_some()
             && annotations.get_type(operator, index).is_some_and(DataType::is_method)
-            // Only desugar something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
+            // Only lower something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
             && (operator.get_base_ref_expr().is_none() || operator.get_base_ref_expr().is_some_and(|opt| opt.is_this()))
         {
             return true;
@@ -416,7 +416,7 @@ mod tests {
     use driver::parse_and_annotate;
     use plc_source::SourceCode;
 
-    fn desugared_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {
+    fn lower_statements(source: impl Into<SourceCode>, pous: &[&str]) -> Vec<String> {
         let (_, project) = parse_and_annotate("unit-test", vec![source.into()]).unwrap();
         let unit = project.units[0].get_unit();
 
@@ -449,7 +449,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["A", "A.foo"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["A", "A.foo"]), @r#"
         [
             "// Statements in A",
             "THIS^()",
@@ -480,7 +480,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["B", "B.foo"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.foo"]), @r#"
         [
             "// Statements in B",
             "__A()",
@@ -503,7 +503,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
             "foo()",
@@ -534,7 +534,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["B", "B.bravo"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["B", "B.bravo"]), @r#"
         [
             "// Statements in B",
             "instanceA()",
@@ -609,7 +609,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["A"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["A"]), @r#"
         [
             "// Statements in A",
             "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
@@ -646,7 +646,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["A", "A.alpha", "A.bravo"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["A", "A.alpha", "A.bravo"]), @r#"
         [
             "// Statements in A",
             "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
@@ -697,7 +697,7 @@ mod tests {
         "#;
 
         insta::assert_debug_snapshot!(
-            desugared_statements(source, &["A", "A.alpha", "B", "B.bravo", "C", "C.bravo", "C.charlie"]),
+            lower_statements(source, &["A", "A.alpha", "B", "B.bravo", "C", "C.bravo", "C.charlie"]),
             @r#"
         [
             "// Statements in A",
@@ -741,7 +741,7 @@ mod tests {
             END_FUNCTION_BLOCK
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["A"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["A"]), @r#"
         [
             "// Statements in A",
             "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, __vtable_A#(THIS^.__vtable^).alpha^(THIS^))",
@@ -796,7 +796,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main", "operateOnA"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main", "operateOnA"]), @r#"
         [
             "// Statements in main",
             "__vtable_A#(refInstanceA^.__vtable^).alpha^(refInstanceA^)",
@@ -841,7 +841,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
@@ -881,7 +881,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
@@ -920,7 +920,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
             "__vtable_A#(refInstanceA^.__vtable^).__body^(refInstanceA^)",
@@ -959,7 +959,7 @@ mod tests {
             END_FUNCTION
         "#;
 
-        insta::assert_debug_snapshot!(desugared_statements(source, &["main"]), @r#"
+        insta::assert_debug_snapshot!(lower_statements(source, &["main"]), @r#"
         [
             "// Statements in main",
             "__vtable_A#(refInstanceA.__vtable^).__body^(refInstanceA)",

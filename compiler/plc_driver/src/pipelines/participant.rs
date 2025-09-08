@@ -15,7 +15,7 @@ use ast::provider::IdProvider;
 use plc::{
     codegen::GeneratedModule,
     lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallDesugarer, vtable::VirtualTableGenerator,
+        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, vtable::VirtualTableGenerator,
     },
     output::FormatOption,
     ConfigFormat, OnlineChange, Target,
@@ -297,7 +297,7 @@ impl PipelineParticipantMut for VirtualTableGenerator {
     }
 }
 
-impl PipelineParticipantMut for PolymorphicCallDesugarer {
+impl PipelineParticipantMut for PolymorphicCallLowerer {
     fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
         let AnnotatedProject { units, index, annotations } = annotated_project;
         self.index = Some(index);
@@ -306,7 +306,7 @@ impl PipelineParticipantMut for PolymorphicCallDesugarer {
         let units = units
             .into_iter()
             .map(|AnnotatedUnit { mut unit, .. }| {
-                self.desugar_unit(&mut unit);
+                self.lower_unit(&mut unit);
                 unit
             })
             .collect();

@@ -54,18 +54,18 @@ fn ref_call_in_initializer_is_lowered_to_init_function() {
     assert!(index.find_pou("__init_foo").is_some());
 
     let units = units.iter().map(|unit| unit.get_unit()).collect::<Vec<_>>();
-    let init_foo_unit = &units[1].pous[0];
+    let init_foo_unit = &units[1].pous[1];
 
     assert_debug_snapshot!(init_foo_unit, @r#"
     POU {
-        name: "__init___vtable_foo",
+        name: "__init_foo",
         variable_blocks: [
             VariableBlock {
                 variables: [
                     Variable {
                         name: "self",
                         data_type: DataTypeReference {
-                            referenced_type: "__vtable_foo",
+                            referenced_type: "foo",
                         },
                     },
                 ],
