@@ -663,3 +663,43 @@ fn date_and_time_constants_can_be_parsed() {
 ]"#;
     assert_eq!(ast_string, expected_ast)
 }
+
+#[test]
+fn unary_plus_initializer_test() {
+    let src = "
+    VAR_GLOBAL CONSTANT g1 : INT := +5; END_VAR
+
+    PROGRAM exp
+    VAR
+        x : INT := +g1;
+    END_VAR
+    END_PROGRAM
+    ";
+
+    let (result, _) = parse(src);
+    let g1_init = &result.global_vars[0].variables[0].initializer;
+    insta::assert_debug_snapshot!(g1_init, @r"
+    Some(
+        LiteralInteger {
+            value: 5,
+        },
+    )
+    ");
+
+    let x_init = &result.pous[0].variable_blocks[0].variables[0].initializer;
+    insta::assert_debug_snapshot!(x_init, @r#"
+    Some(
+        UnaryExpression {
+            operator: Plus,
+            value: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "g1",
+                    },
+                ),
+                base: None,
+            },
+        },
+    )
+    "#);
+}
