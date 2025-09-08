@@ -555,6 +555,10 @@ fn validate_reference<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    if location.is_internal() {
+        return;
+    }
+
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         if base.is_some_and(|it| it.has_super_metadata() || it.is_super()) {

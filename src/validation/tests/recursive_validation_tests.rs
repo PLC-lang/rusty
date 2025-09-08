@@ -751,10 +751,6 @@ mod inheritance {
           ·
         5 │             FUNCTION_BLOCK bar EXTENDS foo
           │                            --- see also
-
-        error[E048]: Could not resolve reference to __vtable
-
-        error[E048]: Could not resolve reference to __vtable
         ");
     }
 
