@@ -1463,14 +1463,14 @@ impl AstNode {
         }
     }
 
-    pub fn get_base(&self) -> Option<&AstNode> {
+    pub fn get_base_ref_expr(&self) -> Option<&AstNode> {
         match &self.stmt {
             AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_ref()),
             _ => None,
         }
     }
 
-    pub fn get_base_mut(&mut self) -> Option<&mut AstNode> {
+    pub fn get_base_ref_expr_mut(&mut self) -> Option<&mut AstNode> {
         match &mut self.stmt {
             AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_mut()),
             _ => None,

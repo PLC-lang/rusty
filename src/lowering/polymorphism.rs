@@ -182,7 +182,7 @@ impl AstVisitorMut for PolymorphicCallDesugarer {
 
         let unit_name = match self.in_method_or_function_block {
             Some(ref name) => name.clone(),
-            None => match operator.get_base() {
+            None => match operator.get_base_ref_expr() {
                 Some(base) => {
                     // When dealing with e.g. __main_myVariable
                     let ty = annotations.get_type(base, index).unwrap();
@@ -242,7 +242,7 @@ impl PolymorphicCallDesugarer {
 
         // We do not want to desugar SUPER access, e.g. SUPER^() or SUPER^.foo()
         if operator.is_super_or_super_deref()
-            || operator.get_base().is_some_and(AstNode::is_super_or_super_deref)
+            || operator.get_base_ref_expr().is_some_and(AstNode::is_super_or_super_deref)
             || operator.is_this()
             || operator.is_this_deref()
         {
@@ -257,7 +257,7 @@ impl PolymorphicCallDesugarer {
         if self.in_method_or_function_block.is_some()
             && annotations.get_type(operator, index).is_some_and(DataType::is_method)
             // Only desugar something alike `THIS^.foo()` or `foo()` as opposed to `SUPER^.foo()` or `instanceFb.foo()`
-            && (operator.get_base().is_none() || operator.get_base().is_some_and(|opt| opt.is_this()))
+            && (operator.get_base_ref_expr().is_none() || operator.get_base_ref_expr().is_some_and(|opt| opt.is_this()))
         {
             return true;
         }
@@ -314,7 +314,7 @@ impl PolymorphicCallDesugarer {
     }
 
     fn maybe_patch_this_base(&mut self, operator: &mut AstNode) {
-        if !(self.in_method_or_function_block.is_some() && operator.get_base().is_none()) {
+        if !(self.in_method_or_function_block.is_some() && operator.get_base_ref_expr().is_none()) {
             return;
         }
 
@@ -330,7 +330,7 @@ impl PolymorphicCallDesugarer {
     fn patch_instance_argument(&mut self, operator: &mut AstNode, parameters: &mut Option<Box<AstNode>>) {
         // foo.bar()
         // ^^^ base
-        let base = operator.get_base().unwrap(); // XXX: I think this might fail on `MyBlockRef^()`
+        let base = operator.get_base_ref_expr().unwrap(); // XXX: I think this might fail on `MyBlockRef^()`
 
         match parameters {
             None => {
@@ -357,7 +357,7 @@ impl PolymorphicCallDesugarer {
 
     /// Patches a `__vtable` member access into the given node, e.g. `ref^.foo()` becomes `ref^.__vtable^.foo()`
     fn patch_vtable_access(&mut self, node: &mut AstNode) {
-        let old_base = node.get_base_mut().unwrap(); // `ref^` in `ref^.foo()`
+        let old_base = node.get_base_ref_expr_mut().unwrap(); // `ref^` in `ref^.foo()`
 
         let mut new_base = AstFactory::create_deref_reference(
             AstFactory::create_member_reference(
@@ -374,7 +374,7 @@ impl PolymorphicCallDesugarer {
 
     /// ref^.__vtable^.foo()` -> `__vtable_{POU_NAME}#(ref^.__vtable^).foo()
     fn patch_vtable_cast(&mut self, node: &mut AstNode, pou_type_name: &str) {
-        let base_old = node.get_base_mut().unwrap(); // `ref^.__vtable^` in `ref^.__vtable^.foo()`
+        let base_old = node.get_base_ref_expr_mut().unwrap(); // `ref^.__vtable^` in `ref^.__vtable^.foo()`
         let base_old_paren = AstFactory::create_paren_expression(
             std::mem::take(base_old),
             SourceLocation::internal(),
