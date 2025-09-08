@@ -220,6 +220,35 @@ fn ref_assignment() {
 }
 
 #[test]
+fn ref_assignment_to_null() {
+    let result = codegen(
+        r#"
+        FUNCTION main
+        VAR
+            a : REF_TO DINT;
+        END_VAR
+            a REF= 0;
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    define void @main() {
+    entry:
+      %a = alloca i32*, align 8
+      store i32* null, i32** %a, align 8
+      store i32 0, i32** %a, align 4
+      ret void
+    }
+    "#);
+}
+
+#[test]
 fn reference_to_assignment() {
     let auto_deref = codegen(
         r#"
