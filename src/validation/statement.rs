@@ -1033,7 +1033,10 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !(assignment.right.is_reference() || assignment_location.is_builtin_internal()) {
+    if !(assignment.right.is_reference()
+        || assignment_location.is_builtin_internal()
+        || assignment.right.is_zero())
+    {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a reference")
                 .with_location(&assignment.right.location)
@@ -1830,8 +1833,13 @@ fn validate_argument_count<T: AnnotationMap>(
 
     let argument_count_is_incorrect = match pou {
         PouIndexEntry::Function { .. } => {
-            !((has_variadic_parameter && arguments.len() >= parameters.len())
-                || (arguments.len() == parameters.len()))
+            // parameters with default values are optional, so the argument count can be less than
+            // the parameter count. This only works if the parameters with default values are at the end
+            let optional_parameters =
+                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+            let min_required_parameters = parameters.len() - optional_parameters;
+            arguments.len() < min_required_parameters
+                || (!has_variadic_parameter && arguments.len() > parameters.len())
         }
 
         PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } => {

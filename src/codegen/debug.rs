@@ -444,7 +444,28 @@ impl<'ink> DebugBuilder<'ink> {
             align_bits,
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
-        self.register_concrete_type(name, DebugType::Derived(pointer_type));
+
+        // Handle auto-dereferencing pointers by creating a typedef if needed. This ensures
+        // that the DWARF information accurately reflects the intended usage (deref semantics) of the pointer type.
+        let ty = if let DataTypeInformation::Pointer { auto_deref: Some(_), .. } =
+            index.get_type(name).map(|it| it.get_type_information())?
+        {
+            let file = self.compile_unit.get_file();
+            let typedef_name = format!("__AUTO_DEREF__{name}");
+            self.debug_info.create_typedef(
+                pointer_type.as_type(),
+                &typedef_name,
+                file,
+                0, // Line 0 for built-in types
+                file.as_debug_info_scope(),
+                align_bits,
+            )
+        } else {
+            pointer_type
+        };
+
+        self.register_concrete_type(name, DebugType::Derived(ty));
+
         Ok(())
     }
 

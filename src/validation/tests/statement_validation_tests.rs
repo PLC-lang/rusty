@@ -1725,6 +1725,90 @@ fn incorrect_argument_count_stateless_pous() {
 }
 
 #[test]
+fn incorrect_argument_count_stateless_pous_optional_params() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+            fn_with_one_parameter(); //allowed
+            fn_with_one_parameter(1); //allowed
+            fn_with_one_parameter(1, 2); //not allowed
+
+            fn_with_two_parameters(1); // allowed
+            fn_with_two_parameters(1, 2); // allowed
+            fn_with_two_parameters(1, 2, 3); // not allowed
+            fn_with_two_parameters_default_first(); // not allowed
+            fn_with_two_parameters_default_first(1); // not allowed
+            fn_with_two_parameters_default_first(1,2); // allowed
+            fn_with_two_parameters_default_first(1,2,3); // not allowed
+
+            fn_with_one_variadic_parameter();
+            fn_with_one_variadic_parameter(1);
+            fn_with_one_variadic_parameter(1, 2);
+            fn_with_one_variadic_parameter(1, 2, 3);
+        END_FUNCTION
+
+        FUNCTION fn_with_one_parameter
+            VAR_INPUT
+                in_one : DINT := 0;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION fn_with_two_parameters
+            VAR_INPUT
+                in_one : DINT;
+                in_two : DINT := 0;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION fn_with_two_parameters_default_first
+            VAR_INPUT
+                in_one : DINT := 0;
+                in_two : DINT;
+            END_VAR
+        END_FUNCTION
+
+        FUNCTION fn_with_one_variadic_parameter
+            VAR_INPUT
+                vararg: DINT...;
+            END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E032]: this POU takes 1 argument but 2 arguments were supplied
+      ┌─ <internal>:5:13
+      │
+    5 │             fn_with_one_parameter(1, 2); //not allowed
+      │             ^^^^^^^^^^^^^^^^^^^^^ this POU takes 1 argument but 2 arguments were supplied
+
+    error[E032]: this POU takes 2 arguments but 3 arguments were supplied
+      ┌─ <internal>:9:13
+      │
+    9 │             fn_with_two_parameters(1, 2, 3); // not allowed
+      │             ^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 3 arguments were supplied
+
+    error[E032]: this POU takes 2 arguments but 0 arguments were supplied
+       ┌─ <internal>:10:13
+       │
+    10 │             fn_with_two_parameters_default_first(); // not allowed
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 0 arguments were supplied
+
+    error[E032]: this POU takes 2 arguments but 1 argument was supplied
+       ┌─ <internal>:11:13
+       │
+    11 │             fn_with_two_parameters_default_first(1); // not allowed
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 1 argument was supplied
+
+    error[E032]: this POU takes 2 arguments but 3 arguments were supplied
+       ┌─ <internal>:13:13
+       │
+    13 │             fn_with_two_parameters_default_first(1,2,3); // not allowed
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ this POU takes 2 arguments but 3 arguments were supplied
+    ");
+}
+
+#[test]
 fn incorrect_argument_count_stateful_pous() {
     let source = r"
         FUNCTION main : DINT
@@ -1815,7 +1899,7 @@ fn binary_expressions_with_incompatible_types() {
                 var_string      : STRING;
                 var_array_tod   : ARRAY[1..5] OF TOD;
             END_VAR
-        
+
             // Compatible Types
             var_int + var_dint + var_real;
 

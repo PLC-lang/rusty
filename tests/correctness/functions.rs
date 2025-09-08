@@ -1120,3 +1120,41 @@ fn argument_passed_by_ref_then_by_val() {
 
     assert_eq!(maintype.arr, [1, 2, 3, 4, 5]);
 }
+
+#[test]
+fn function_with_optional_params() {
+    #[repr(C)]
+    struct MainType {
+        a: i32,
+        b: i32,
+        c: i32,
+        d: i32,
+    }
+    let function = r#"
+        FUNCTION foo : DINT
+        VAR_INPUT
+            a : DINT := 1;
+            b : DINT := 2;
+            c : DINT := 3;
+        END_VAR
+            foo := a + b + c;
+        END_FUNCTION
+
+        PROGRAM main
+        VAR
+            a,b,c,d : DINT;
+        END_VAR
+            a := foo(); // 1 + 2 + 3
+            b := foo(10); // 10 + 2 + 3
+            c := foo(10, 20); // 10 + 20 + 3
+            d := foo(10, 20, 30); // 10 + 20 + 30
+        END_PROGRAM
+        "#;
+
+    let mut maintype = MainType { a: 0, b: 0, c: 0, d: 0 };
+    let _: i32 = compile_and_run(function.to_string(), &mut maintype);
+    assert_eq!(maintype.a, 6);
+    assert_eq!(maintype.b, 15);
+    assert_eq!(maintype.c, 33);
+    assert_eq!(maintype.d, 60);
+}

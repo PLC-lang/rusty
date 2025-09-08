@@ -355,7 +355,14 @@ fn add_nested_datatypes(
     types: &mut Vec<UserTypeDeclaration>,
     location: &SourceLocation,
 ) {
-    let new_type_name = format!("{container_name}_"); // TODO: Naming convention (see plc_util/src/convention.rs)
+    // TODO: Naming convention (see plc_util/src/convention.rs)
+    let new_type_name = format!("{container_name}_");
+    // FIXME: When processing pointer-to-pointer types (e.g., alias variables pointing to existing pointers),
+    // the inner type is already a DataTypeDeclaration::Reference, so replace_data_type_with_reference_to
+    // returns None and nested type processing is skipped. This results in incomplete names like "__global_alias_var_"
+    // (with trailing underscore but no suffix) when the inner pointer type should be processed.
+    // We need to distinguish between pointer references (which should be processed) and other references
+    // (which should return None) to properly handle nested pointer structures.
     if let Some(DataTypeDeclaration::Definition { mut data_type, location: inner_location, scope }) =
         datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
     {
