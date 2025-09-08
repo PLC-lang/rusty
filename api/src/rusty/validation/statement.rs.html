@@ -1892,7 +1892,10 @@
 <a href="#1891" id="1891">1891</a>
 <a href="#1892" id="1892">1892</a>
 <a href="#1893" id="1893">1893</a>
-<a href="#1894" id="1894">1894</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1894" id="1894">1894</a>
+<a href="#1895" id="1895">1895</a>
+<a href="#1896" id="1896">1896</a>
+<a href="#1897" id="1897">1897</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2893,7 +2896,10 @@
     <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
 
     <span class="comment">// Assert that the right-hand side is a reference
-    </span><span class="kw">if </span>!(assignment.right.is_reference() || assignment_location.is_builtin_internal()) {
+    </span><span class="kw">if </span>!(assignment.right.is_reference()
+        || assignment_location.is_builtin_internal()
+        || assignment.right.is_zero())
+    {
         validator.push_diagnostic(
             Diagnostic::new(<span class="string">"Invalid assignment, expected a reference"</span>)
                 .with_location(<span class="kw-2">&amp;</span>assignment.right.location)
