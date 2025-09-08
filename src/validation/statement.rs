@@ -999,7 +999,10 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !(assignment.right.is_reference() || assignment_location.is_builtin_internal()) {
+    if !(assignment.right.is_reference()
+        || assignment_location.is_builtin_internal()
+        || assignment.right.is_zero())
+    {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a reference")
                 .with_location(&assignment.right.location)

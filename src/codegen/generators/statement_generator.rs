@@ -288,7 +288,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
             let expr = exp.generate_reference_expression(&data.access, data.base.as_deref(), left)?;
             expr.get_basic_value_enum().into_pointer_value()
         };
-        let right_expr_val = ref_builtin.codegen(&exp, &[right], right.get_location())?;
+        let right_expr_val = if right.is_zero() {
+            exp.generate_literal(right)?
+        } else {
+            ref_builtin.codegen(&exp, &[right], right.get_location())?
+        };
 
         self.llvm.builder.build_store(left_ptr_val, right_expr_val.get_basic_value_enum());
         Ok(())
