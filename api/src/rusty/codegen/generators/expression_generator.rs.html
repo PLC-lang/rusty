@@ -3013,7 +3013,8 @@
 <a href="#3012" id="3012">3012</a>
 <a href="#3013" id="3013">3013</a>
 <a href="#3014" id="3014">3014</a>
-<a href="#3015" id="3015">3015</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#3015" id="3015">3015</a>
+<a href="#3016" id="3016">3016</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3490,6 +3491,7 @@
                     <span class="prelude-val">Err</span>(Diagnostic::codegen_error(<span class="string">"Negated expression must be numeric"</span>, expression))
                 }
             }
+            Operator::Plus =&gt; <span class="self">self</span>.generate_expression(expression),
             <span class="kw">_ </span>=&gt; <span class="macro">unimplemented!</span>(),
         };
         value
