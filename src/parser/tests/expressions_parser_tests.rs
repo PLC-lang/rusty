@@ -2,7 +2,7 @@
 use crate::parser::tests::ref_to;
 use crate::test_utils::tests::parse;
 use insta::{assert_debug_snapshot, assert_snapshot};
-use plc_ast::ast::{AstFactory, AstNode, AstStatement, Operator};
+use plc_ast::ast::{Assignment, AstFactory, AstNode, AstStatement, Operator};
 use plc_ast::literals::AstLiteral;
 use plc_source::source_location::SourceLocation;
 use pretty_assertions::*;
@@ -2120,5 +2120,132 @@ somePtr := this;
             },
         },
     ]
+    "#);
+}
+
+#[test]
+fn unary_plus_expression_test() {
+    let src = "
+    PROGRAM exp
+    VAR
+        x : INT;
+    END_VAR
+        +x;
+        x := +x + 4;
+        x := +-4 + 5;
+        +-x;
+        x := +foo(+x);
+    END_PROGRAM
+
+    FUNCTION foo : INT
+    VAR_INPUT
+        x : INT;
+    END_VAR
+    END_FUNCTION
+    ";
+    let result = parse(src).0;
+
+    let prg = &result.implementations[0];
+    let statement = &prg.statements[0];
+    assert_debug_snapshot!(statement, @r#"
+    UnaryExpression {
+        operator: Plus,
+        value: ReferenceExpr {
+            kind: Member(
+                Identifier {
+                    name: "x",
+                },
+            ),
+            base: None,
+        },
+    }
+    "#);
+
+    let AstStatement::Assignment(Assignment { right: expr, .. }) = &prg.statements[1].get_stmt() else {
+        panic!()
+    };
+    assert_debug_snapshot!(expr, @r#"
+    BinaryExpression {
+        operator: Plus,
+        left: UnaryExpression {
+            operator: Plus,
+            value: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+        },
+        right: LiteralInteger {
+            value: 4,
+        },
+    }
+    "#);
+
+    let AstStatement::Assignment(Assignment { right: expr, .. }) = &prg.statements[2].get_stmt() else {
+        panic!()
+    };
+    assert_debug_snapshot!(expr, @r"
+    BinaryExpression {
+        operator: Plus,
+        left: LiteralInteger {
+            value: -4,
+        },
+        right: LiteralInteger {
+            value: 5,
+        },
+    }
+    ");
+
+    let statement = &prg.statements[3];
+    assert_debug_snapshot!(statement, @r#"
+    UnaryExpression {
+        operator: Plus,
+        value: UnaryExpression {
+            operator: Minus,
+            value: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: None,
+            },
+        },
+    }
+    "#);
+
+    let AstStatement::Assignment(Assignment { right: expr, .. }) = &prg.statements[4].get_stmt() else {
+        panic!()
+    };
+    assert_debug_snapshot!(expr, @r#"
+    UnaryExpression {
+        operator: Plus,
+        value: CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "foo",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                UnaryExpression {
+                    operator: Plus,
+                    value: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: None,
+                    },
+                },
+            ),
+        },
+    }
     "#);
 }

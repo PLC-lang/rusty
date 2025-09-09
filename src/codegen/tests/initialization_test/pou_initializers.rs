@@ -407,3 +407,37 @@ fn enum_variants_have_precedence_over_global_variables_in_inline_assignment() {
     // the enum variant `x` rather than the global variable `x`
     filtered_assert_snapshot!(function)
 }
+
+#[test]
+fn unary_plus_in_initializer() {
+    let result = codegen(
+        "
+        VAR_GLOBAL CONSTANT g1 : INT := 5; END_VAR
+        PROGRAM exp
+        VAR
+            x : INT := +g1;
+            y : REAL := +3.14;
+        END_VAR
+        END_PROGRAM
+        ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %exp = type { i16, float }
+
+    @g1 = unnamed_addr constant i16 5
+    @exp_instance = global %exp { i16 5, float 0x40091EB860000000 }
+
+    define void @exp(%exp* %0) {
+    entry:
+      %x = getelementptr inbounds %exp, %exp* %0, i32 0, i32 0
+      %y = getelementptr inbounds %exp, %exp* %0, i32 0, i32 1
+      ret void
+    }
+    "#);
+}
