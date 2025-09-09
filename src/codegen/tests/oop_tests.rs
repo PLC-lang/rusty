@@ -1536,3 +1536,30 @@ fn this_calling_functionblock_body_from_method() {
     }
     "###);
 }
+
+#[test]
+fn fb_extension_with_output() {
+    let code = codegen(
+        "FUNCTION_BLOCK foo
+            METHOD met1 : INT
+            VAR_INPUT
+            mandatoryInput : INT;
+            optionalInput : INT := 5;
+            END_VAR
+            // VAR_OUTPUT
+            // outputValue : INT;
+            // END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK foo2 EXTENDS foo
+            met1(
+                mandatoryInput := 0,
+                optionalInput := 0,
+                // outputValue =>
+            );
+        END_FUNCTION_BLOCK"
+    );
+    filtered_assert_snapshot!(code, @r###"
+    "###);
+}

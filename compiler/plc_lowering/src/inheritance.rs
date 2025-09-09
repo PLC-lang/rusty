@@ -139,6 +139,7 @@ impl InheritanceLowerer {
         base: Option<Box<AstNode>>,
         base_type: &str,
     ) -> Option<Box<AstNode>> {
+        log::trace!("Updating inheritance chain for {node:?} with base {base:?} and type {base_type}");
         if self.index.is_none() || self.annotations.is_none() {
             return base;
         }
@@ -159,6 +160,8 @@ impl InheritanceLowerer {
         if inheritance_chain.len() <= 1 {
             return base;
         }
+
+        log::trace!("Inheritance chain: {inheritance_chain:?}");
 
         // add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
         inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
@@ -241,6 +244,7 @@ impl AstVisitorMut for InheritanceLowerer {
             return;
         }
         // Find the base type of the expression before walking the node
+        log::trace!("Looking for base name in expression {:?}", node.get_stmt());
         let base_type_name =
             if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) = node.get_stmt() {
                 let index = self.index.as_ref().expect("Index exists");
@@ -249,6 +253,7 @@ impl AstVisitorMut for InheritanceLowerer {
             } else {
                 self.ctx.pou.clone()
             };
+        log::trace!("Found base type name: {base_type_name:?}");
         // First walk the statement itself so we make sure any base is correctly added
         let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
         stmt.walk(self);
