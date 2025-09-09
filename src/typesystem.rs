@@ -695,8 +695,7 @@ impl DataTypeInformation {
                 if let Some(inner_type) = index.find_type(referenced_type) {
                     inner_type.get_type_information().get_size_recursive(index, seen)
                 } else {
-                    // Type not found, fall back to void
-                    Ok(Bytes::from_bits(0))
+                   Err(anyhow!("Could not find aliased type {}", referenced_type))
                 }
             }
             DataTypeInformation::Enum { referenced_type, .. } => index

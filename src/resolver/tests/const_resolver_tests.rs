@@ -1404,3 +1404,21 @@ fn reference_to_initializer_is_marked_as_resolve_later() {
     assert_eq!(init.lhs, Some("ps".into()));
     assert_eq!(init.target_type_name, Some("__foo_ps".to_string()));
 }
+
+#[test]
+fn leading_unary_plus_in_global_const_reference_is_resolvable() {
+    let (_, index) = index(
+        r#"
+        VAR_GLOBAL CONSTANT g1 : INT ; END_VAR
+
+        PROGRAM exp
+        VAR
+            x : INT := +g1;
+        END_VAR
+       "#,
+    );
+
+    let (_, unresolvable) = evaluate_constants(index);
+    dbg!(&unresolvable);
+    assert_eq!(unresolvable.len(), 0);
+}
