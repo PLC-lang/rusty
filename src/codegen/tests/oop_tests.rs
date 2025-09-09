@@ -1546,9 +1546,9 @@ fn fb_extension_with_output() {
             mandatoryInput : INT;
             optionalInput : INT := 5;
             END_VAR
-            // VAR_OUTPUT
-            // outputValue : INT;
-            // END_VAR
+            VAR_OUTPUT
+            outputValue : INT;
+            END_VAR
             END_METHOD
         END_FUNCTION_BLOCK
 
@@ -1556,10 +1556,93 @@ fn fb_extension_with_output() {
             met1(
                 mandatoryInput := 0,
                 optionalInput := 0,
-                // outputValue =>
+                outputValue =>
             );
         END_FUNCTION_BLOCK"
     );
-    filtered_assert_snapshot!(code, @r###"
-    "###);
+    filtered_assert_snapshot!(code, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %foo = type {}
+    %foo2 = type { %foo }
+
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      ret void
+    }
+
+    define i16 @foo__met1(%foo* %0, i16 %1, i16 %2, i16* %3) {
+    entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %foo.met1 = alloca i16, align 2
+      %mandatoryInput = alloca i16, align 2
+      store i16 %1, i16* %mandatoryInput, align 2
+      %optionalInput = alloca i16, align 2
+      store i16 %2, i16* %optionalInput, align 2
+      %outputValue = alloca i16*, align 8
+      store i16* %3, i16** %outputValue, align 8
+      store i16 0, i16* %foo.met1, align 2
+      %foo__met1_ret = load i16, i16* %foo.met1, align 2
+      ret i16 %foo__met1_ret
+    }
+
+    define void @foo2(%foo2* %0) {
+    entry:
+      %this = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %this, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
+      %1 = alloca i16, align 2
+      %call = call i16 @foo__met1(%foo* %__foo, i16 0, i16 0, i16* %1)
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init_foo2(%foo2* %0) {
+    entry:
+      %self = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %self, align 8
+      %deref = load %foo2*, %foo2** %self, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo2(%foo2* %0) {
+    entry:
+      %self = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %self, align 8
+      %deref = load %foo2*, %foo2** %self, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+    "#);
 }

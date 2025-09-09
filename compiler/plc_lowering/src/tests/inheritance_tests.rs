@@ -1752,6 +1752,126 @@ mod units_tests {
         }
         "###);
     }
+
+#[test]
+fn fb_extension_with_output() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK foo
+            METHOD met1 : INT
+            VAR_INPUT
+            mandatoryInput : INT;
+            optionalInput : INT := 5;
+            END_VAR
+            VAR_OUTPUT
+            outputValue : INT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK foo2 EXTENDS foo
+            met1(
+                mandatoryInput := 0,
+                optionalInput := 0,
+                outputValue =>
+            );
+        END_FUNCTION_BLOCK"#.into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[2];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "foo2",
+            type_name: "foo2",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "met1",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "mandatoryInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 0,
+                                    },
+                                },
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "optionalInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 0,
+                                    },
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "outputValue",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: EmptyStatement,
+                                },
+                            ],
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(14:12 - 18:14),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(13:23 - 13:27),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(19:8 - 19:26),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+}
+
 }
 
 mod resolve_bases_tests {

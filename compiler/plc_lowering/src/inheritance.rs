@@ -54,8 +54,7 @@
 use plc::{index::Index, lowering::create_call_statement, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -68,6 +67,7 @@ struct Context {
     base_type_name: Option<String>,
     pou: Option<String>,
     access_kind: Option<AccessKind>,
+    in_call: bool,
     id_provider: IdProvider,
 }
 
@@ -80,7 +80,7 @@ enum AccessKind {
 
 impl Context {
     fn new(id_provider: IdProvider) -> Self {
-        Self { base_type_name: None, pou: None, access_kind: None, id_provider }
+        Self { base_type_name: None, pou: None, access_kind: None, in_call: false, id_provider }
     }
 
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
@@ -139,7 +139,6 @@ impl InheritanceLowerer {
         base: Option<Box<AstNode>>,
         base_type: &str,
     ) -> Option<Box<AstNode>> {
-        log::trace!("Updating inheritance chain for {node:?} with base {base:?} and type {base_type}");
         if self.index.is_none() || self.annotations.is_none() {
             return base;
         }
@@ -161,19 +160,17 @@ impl InheritanceLowerer {
             return base;
         }
 
-        log::trace!("Inheritance chain: {inheritance_chain:?}");
-
         // add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
         inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
             Some(Box::new(AstFactory::create_member_reference(
-                AstFactory::create_identifier(
-                    format!("__{}", pou.get_name()),
-                    SourceLocation::internal(),
-                    self.provider().next_id(),
-                ),
-                base.map(|it: Box<AstNode>| *it),
-                self.provider().next_id(),
-            )))
+                            AstFactory::create_identifier(
+                                format!("__{}", pou.get_name()),
+                                SourceLocation::internal(),
+                                self.provider().next_id(),
+                            ),
+                            base.map(|it: Box<AstNode>| *it),
+                            self.provider().next_id(),
+                        )))
         })
     }
 }
@@ -267,6 +264,32 @@ impl AstVisitorMut for InheritanceLowerer {
             }
         };
     }
+
+    fn visit_assignment(&mut self, node: &mut AstNode) {
+        let Assignment { left, right } = try_from_mut!(node, Assignment).expect("Assignment");
+        // If we are in a call statement, don't walk the left side
+        if !self.ctx.in_call {
+            left.walk(self);
+        }
+        right.walk(self);
+    }
+
+    fn visit_output_assignment(&mut self, node: &mut AstNode) {
+        let Assignment { left, right } = try_from_mut!(node, Assignment).expect("OutputAssignment");
+        // If we are in a call statement, don't walk the left side
+        if !self.ctx.in_call {
+            left.walk(self);
+        }
+        right.walk(self);
+    }
+
+    fn visit_call_statement(&mut self, node: &mut AstNode) {
+        let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+        let mut ctx = self.ctx.clone();
+        ctx.in_call = true;
+        self.walk_with_context(stmt, ctx);
+    }
+
 }
 
 struct SuperKeywordLowerer<'sup> {
@@ -421,7 +444,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
         };
 
         let mut new_node = match self.ctx.access_kind {
-            Some(AccessKind::MemberOrIndex) | Some(AccessKind::Global) | Some(AccessKind::Cast) => {
+            Some(AccessKind::MemberOrIndex) | Some(AccessKind::Global) | Some(AccessKind::Cast)=> {
                 // Neither of these cases are valid code:
                 //      1. `myFb.SUPER`     - this is a qualified access to `SUPER` outside of the derived POU
                 //      2. `myFb.SUPER.x`   - this is a member access to a parent variable through the pointer instead of the instance on top of an outside access
