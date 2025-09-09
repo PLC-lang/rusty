@@ -1872,6 +1872,58 @@ fn fb_extension_with_output() {
         "#);
 }
 
+#[test]
+fn function_with_output_used_in_main_by_extension() {
+    let src : SourceCode = "
+    FUNCTION_BLOCK foo
+    METHOD met1 : INT
+        VAR_INPUT
+        mandatoryInput : INT;
+        optionalInput : INT := 5;
+        END_VAR
+        VAR_OUTPUT
+        outputValue : INT;
+        END_VAR
+        outputValue := mandatoryInput + optionalInput;
+    END_METHOD
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK foo2 EXTENDS foo
+    VAR
+        x : INT;
+    END_VAR
+    met1(
+        mandatoryInput := 0,
+        optionalInput := 0,
+        outputValue => x
+    );
+    met1(
+        mandatoryInput := 5,
+        outputValue => x
+    );
+    END_FUNCTION_BLOCK
+
+    FUNCTION main : DINT
+    VAR
+        foo_inst: foo;
+        foo2_inst : foo2;
+        out : INT;
+    END_VAR
+    foo2_inst();
+
+    foo2.met1(mandatoryInput:= 1, outputValue => out);
+
+    foo.met1(mandatoryInput:= 2, outputValue => out);
+
+    END_FUNCTION
+
+    ".into();
+
+    let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+    let unit = &project.units[0].get_unit().implementations[3];
+    assert_debug_snapshot!(unit, @r#""#);
+}
+
 }
 
 mod resolve_bases_tests {

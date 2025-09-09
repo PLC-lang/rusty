@@ -942,7 +942,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_function_arguments(pou, passed_parameters, declared_parameters)
             }
             PouIndexEntry::Method { .. } => {
-                let class_ptr = self.generate_lvalue(operator).or_else(|_| {
+                let class_ptr = self.generate_lvalue(dbg!(operator)).or_else(|_| {
                     // this might be a local method
                     function_context
                         .function
