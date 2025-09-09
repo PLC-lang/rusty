@@ -1234,6 +1234,7 @@ fn ref_assignments() {
 
             localRefTo          REF= localDINT;
             localReferenceTo    REF= localDINT;
+            localRefTo          REF= 0; // This is allowed, assigning to a null pointer
 
             // The following are invalid
             1                   REF= localDINT;
@@ -1248,62 +1249,61 @@ fn ref_assignments() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E098]: Invalid assignment, expected a pointer reference
-       ┌─ <internal>:16:13
+       ┌─ <internal>:17:13
        │
-    16 │             1                   REF= localDINT;
+    17 │             1                   REF= localDINT;
        │             ^ Invalid assignment, expected a pointer reference
 
     error[E098]: Invalid assignment, expected a pointer reference
-       ┌─ <internal>:17:13
+       ┌─ <internal>:18:13
        │
-    17 │             localINT            REF= localDINT;
+    18 │             localINT            REF= localDINT;
        │             ^^^^^^^^ Invalid assignment, expected a pointer reference
 
     error[E037]: Invalid assignment: cannot assign 'DINT' to 'INT'
-       ┌─ <internal>:17:13
+       ┌─ <internal>:18:13
        │
-    17 │             localINT            REF= localDINT;
+    18 │             localINT            REF= localDINT;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'DINT' to 'INT'
-
-    error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:18:38
-       │
-    18 │             localRefTo          REF= 1;
-       │                                      ^ Invalid assignment, expected a reference
 
     error[E098]: Invalid assignment, expected a reference
        ┌─ <internal>:19:38
        │
-    19 │             localReferenceTo    REF= 1;
+    19 │             localRefTo          REF= 1;
+       │                                      ^ Invalid assignment, expected a reference
+
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:20:38
+       │
+    20 │             localReferenceTo    REF= 1;
        │                                      ^ Invalid assignment, expected a reference
 
     error[E037]: Invalid assignment: cannot assign 'INT' to 'DINT'
-       ┌─ <internal>:21:13
-       │
-    21 │             localReferenceTo    REF= localINT;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
-
-    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:22:13
        │
-    22 │             localReferenceTo    REF= localSTRING;
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
-
-    error[E098]: Invalid assignment, expected a reference
-       ┌─ <internal>:23:38
-       │
-    23 │             localReferenceTo    REF= 'howdy';
-       │                                      ^^^^^^^ Invalid assignment, expected a reference
+    22 │             localReferenceTo    REF= localINT;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'DINT'
 
     error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
        ┌─ <internal>:23:13
        │
-    23 │             localReferenceTo    REF= 'howdy';
-       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+    23 │             localReferenceTo    REF= localSTRING;
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
 
-    "###);
+    error[E098]: Invalid assignment, expected a reference
+       ┌─ <internal>:24:38
+       │
+    24 │             localReferenceTo    REF= 'howdy';
+       │                                      ^^^^^^^ Invalid assignment, expected a reference
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'DINT'
+       ┌─ <internal>:24:13
+       │
+    24 │             localReferenceTo    REF= 'howdy';
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
+    ");
 }
 
 #[test]
@@ -1466,7 +1466,7 @@ fn invalid_reference_to_declaration() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordReferenceTo
       ┌─ <internal>:4:38
       │
@@ -1494,8 +1494,7 @@ fn invalid_reference_to_declaration() {
     6 │ │                 qux : REF_TO REFERENCE TO DINT;
       │ ╰───────────────────────────────────────────────^ Unexpected token: expected KeywordEndVar but found 'REFERENCE TO DINT;
                     qux : REF_TO REFERENCE TO DINT;'
-
-    "###);
+    ");
 }
 
 #[test]
