@@ -2213,3 +2213,29 @@ fn pou_with_recursive_type_fails() {
     let pou_type = index.find_pou_type("fb").unwrap();
     assert!(pou_type.get_type_information().get_size(&index).is_err());
 }
+
+#[test]
+fn recursive_type_aliases_fail() {
+    let (_, index) = index(
+        "
+        TYPE type1 : type2; END_TYPE
+        TYPE type2 : type1; END_TYPE
+        ",
+    );
+
+    // Test that find_effective_type detects the cycle
+    let type1 = index.find_type("type1").unwrap();
+    assert!(index.find_effective_type(type1).is_none());
+
+    let type2 = index.find_type("type2").unwrap();
+    assert!(index.find_effective_type(type2).is_none());
+
+    // Test that get_size detects the cycle
+    let result1 = type1.get_type_information().get_size(&index);
+    println!("type1 get_size result: {:?}", result1);
+    assert!(result1.is_err());
+
+    let result2 = type2.get_type_information().get_size(&index);
+    println!("type2 get_size result: {:?}", result2);
+    assert!(result2.is_err());
+}

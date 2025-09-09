@@ -1196,9 +1196,29 @@ impl TypeIndex {
     /// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(&'ret self, data_type: &'ret DataType) -> Option<&'ret DataType> {
+        self.find_effective_type_recursive(data_type, &mut FxHashSet::default())
+    }
+
+    fn find_effective_type_recursive<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+        seen: &mut FxHashSet<&'ret str>,
+    ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
             DataTypeInformation::Alias { referenced_type, .. } => {
-                self.find_type(referenced_type).and_then(|it| self.find_effective_type(it))
+                // Check for cycles in type aliases
+                if !seen.insert(data_type.get_name()) {
+                    // Cycle detected, return None to indicate error
+                    return None;
+                }
+
+                let result = self
+                    .find_type(referenced_type)
+                    .and_then(|it| self.find_effective_type_recursive(it, seen));
+
+                // Remove from seen set when backtracking
+                seen.remove(data_type.get_name());
+                result
             }
             _ => Some(data_type),
         }
