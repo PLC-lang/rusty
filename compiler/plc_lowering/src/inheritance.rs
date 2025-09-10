@@ -54,8 +54,9 @@
 use plc::{index::Index, lowering::create_call_statement, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
-        AstFactory, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType,
-        ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType,
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
+        LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock,
+        VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -68,6 +69,7 @@ struct Context {
     base_type_name: Option<String>,
     pou: Option<String>,
     access_kind: Option<AccessKind>,
+    in_call: bool,
     id_provider: IdProvider,
 }
 
@@ -80,7 +82,7 @@ enum AccessKind {
 
 impl Context {
     fn new(id_provider: IdProvider) -> Self {
-        Self { base_type_name: None, pou: None, access_kind: None, id_provider }
+        Self { base_type_name: None, pou: None, access_kind: None, in_call: false, id_provider }
     }
 
     fn with_base(&self, base_type_name: impl Into<String>) -> Self {
@@ -241,6 +243,7 @@ impl AstVisitorMut for InheritanceLowerer {
             return;
         }
         // Find the base type of the expression before walking the node
+        log::trace!("Looking for base name in expression {:?}", node.get_stmt());
         let base_type_name =
             if let AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) = node.get_stmt() {
                 let index = self.index.as_ref().expect("Index exists");
@@ -249,6 +252,7 @@ impl AstVisitorMut for InheritanceLowerer {
             } else {
                 self.ctx.pou.clone()
             };
+        log::trace!("Found base type name: {base_type_name:?}");
         // First walk the statement itself so we make sure any base is correctly added
         let stmt = try_from_mut!(node, ReferenceExpr).expect("ReferenceExpr");
         stmt.walk(self);
@@ -261,6 +265,31 @@ impl AstVisitorMut for InheritanceLowerer {
                 std::mem::swap(base, &mut owned_base);
             }
         };
+    }
+
+    fn visit_assignment(&mut self, node: &mut AstNode) {
+        let Assignment { left, right } = try_from_mut!(node, Assignment).expect("Assignment");
+        // If we are in a call statement, don't walk the left side
+        if !self.ctx.in_call {
+            left.walk(self);
+        }
+        right.walk(self);
+    }
+
+    fn visit_output_assignment(&mut self, node: &mut AstNode) {
+        let Assignment { left, right } = try_from_mut!(node, Assignment).expect("OutputAssignment");
+        // If we are in a call statement, don't walk the left side
+        if !self.ctx.in_call {
+            left.walk(self);
+        }
+        right.walk(self);
+    }
+
+    fn visit_call_statement(&mut self, node: &mut AstNode) {
+        let stmt = try_from_mut!(node, CallStatement).expect("CallStatement");
+        let mut ctx = self.ctx.clone();
+        ctx.in_call = true;
+        self.walk_with_context(stmt, ctx);
     }
 }
 
