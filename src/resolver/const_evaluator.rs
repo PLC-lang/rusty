@@ -528,6 +528,9 @@ fn evaluate_with_target_hint(
                 _ => return Err(UnresolvableKind::Misc(format!("Cannot resolve constant Minus {value:?}"))),
             }
         }
+        AstStatement::UnaryExpression(UnaryExpression { operator: Operator::Plus, value }) => {
+            evaluate(value, scope, index, lhs)?
+        }
         AstStatement::ExpressionList(expressions) => {
             let inner_elements = expressions
                 .iter()
