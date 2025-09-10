@@ -2,11 +2,16 @@
 FUNCTION main: DINT
     VAR
         foo : REFERENCE TO DINT;
+        foo2 : REFERENCE TO INT;
         bar,baz,qux : DINT;
     END_VAR
 
     // Set to null
     foo REF= 0;
+    // Should not crash
+
+    // Set to null
+    foo2 REF= 0;
     // Should not crash
 
     foo REF= bar;
