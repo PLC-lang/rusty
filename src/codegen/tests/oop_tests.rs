@@ -1558,7 +1558,7 @@ fn fb_extension_with_output() {
                 optionalInput := 0,
                 outputValue =>
             );
-        END_FUNCTION_BLOCK"
+        END_FUNCTION_BLOCK",
     );
     filtered_assert_snapshot!(code, @r#"
     ; ModuleID = '<internal>'
@@ -1649,7 +1649,8 @@ fn fb_extension_with_output() {
 
 #[test]
 fn function_with_output_used_in_main_by_extension() {
-    let code = codegen("
+    let code = codegen(
+        "
     FUNCTION_BLOCK foo
     METHOD met1 : INT
         VAR_INPUT
@@ -1675,11 +1676,131 @@ fn function_with_output_used_in_main_by_extension() {
         foo2_inst : foo2;
         out : INT;
     END_VAR
-    // foo.met1(mandatoryInput:= 1, outputValue => out);
-    foo2.met1(mandatoryInput:= 2, outputValue => out);
+    foo_inst.met1(mandatoryInput:= 1, outputValue => out);
+    foo2_inst.met1(mandatoryInput:= 2, outputValue => out);
     END_FUNCTION
 
-    ");
+    ",
+    );
 
-    filtered_assert_snapshot!(code, @r#""#);
+    filtered_assert_snapshot!(code, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %foo2 = type { %foo, i16 }
+    %foo = type {}
+
+    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define void @foo(%foo* %0) {
+    entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      ret void
+    }
+
+    define i16 @foo__met1(%foo* %0, i16 %1, i16 %2, i16* %3) {
+    entry:
+      %this = alloca %foo*, align 8
+      store %foo* %0, %foo** %this, align 8
+      %foo.met1 = alloca i16, align 2
+      %mandatoryInput = alloca i16, align 2
+      store i16 %1, i16* %mandatoryInput, align 2
+      %optionalInput = alloca i16, align 2
+      store i16 %2, i16* %optionalInput, align 2
+      %outputValue = alloca i16*, align 8
+      store i16* %3, i16** %outputValue, align 8
+      store i16 0, i16* %foo.met1, align 2
+      %deref = load i16*, i16** %outputValue, align 8
+      %load_mandatoryInput = load i16, i16* %mandatoryInput, align 2
+      %4 = sext i16 %load_mandatoryInput to i32
+      %load_optionalInput = load i16, i16* %optionalInput, align 2
+      %5 = sext i16 %load_optionalInput to i32
+      %tmpVar = add i32 %4, %5
+      %6 = trunc i32 %tmpVar to i16
+      store i16 %6, i16* %deref, align 2
+      %foo__met1_ret = load i16, i16* %foo.met1, align 2
+      ret i16 %foo__met1_ret
+    }
+
+    define void @foo2(%foo2* %0) {
+    entry:
+      %this = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %this, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
+      %x = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 1
+      ret void
+    }
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align 4
+      %foo_inst = alloca %foo, align 8
+      %foo2_inst = alloca %foo2, align 8
+      %out = alloca i16, align 2
+      %0 = bitcast %foo* %foo_inst to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+      %1 = bitcast %foo2* %foo2_inst to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo2* @__foo2__init to i8*), i64 ptrtoint (%foo2* getelementptr (%foo2, %foo2* null, i32 1) to i64), i1 false)
+      store i16 0, i16* %out, align 2
+      store i32 0, i32* %main, align 4
+      call void @__init_foo(%foo* %foo_inst)
+      call void @__init_foo2(%foo2* %foo2_inst)
+      call void @__user_init_foo(%foo* %foo_inst)
+      call void @__user_init_foo2(%foo2* %foo2_inst)
+      %call = call i16 @foo__met1(%foo* %foo_inst, i16 1, i16 5, i16* %out)
+      %__foo = getelementptr inbounds %foo2, %foo2* %foo2_inst, i32 0, i32 0
+      %call1 = call i16 @foo__met1(%foo* %__foo, i16 2, i16 5, i16* %out)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+
+    define void @__init_foo2(%foo2* %0) {
+    entry:
+      %self = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %self, align 8
+      %deref = load %foo2*, %foo2** %self, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_foo2(%foo2* %0) {
+    entry:
+      %self = alloca %foo2*, align 8
+      store %foo2* %0, %foo2** %self, align 8
+      %deref = load %foo2*, %foo2** %self, align 8
+      %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
+      call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    define void @__user_init_foo(%foo* %0) {
+    entry:
+      %self = alloca %foo*, align 8
+      store %foo* %0, %foo** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
 }

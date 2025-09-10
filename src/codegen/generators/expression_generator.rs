@@ -496,18 +496,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // find the pou we're calling
-        let pou = self.annotations.get_call_name(operator).zip(self.annotations.get_qualified_name(operator))
-            .and_then(|(call_name, qualified_name)| self.index.find_pou(call_name)
-            // for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
-            .or_else(|| self.index.find_pou(qualified_name)))
+        let pou = self.annotations.get_call_name(operator)
+            .zip(self.annotations.get_qualified_name(operator))
+            .and_then(|(call_name, qualified_name)| {
+                self.index.find_pou(call_name)
+                    // for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+                    .or_else(|| self.index.find_pou(qualified_name))
+            })
             .or_else(||
                 // some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 if let Some(name) = operator.get_flat_reference_name() {
-                    self.index.find_pou(name)
-                } else {
-                    None
-                }
-            )
+                                    self.index.find_pou(name)
+                                } else {
+                                    None
+                                })
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
         // find corresponding implementation
@@ -943,7 +945,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_function_arguments(pou, passed_parameters, declared_parameters)
             }
             PouIndexEntry::Method { .. } => {
-                let class_ptr = self.generate_lvalue(dbg!(operator)).or_else(|_| {
+                let class_ptr = self.generate_lvalue(operator).or_else(|_| {
                     // this might be a local method
                     function_context
                         .function

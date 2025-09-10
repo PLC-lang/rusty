@@ -42,14 +42,15 @@ VAR
 END_VAR
 foo2_inst();
 
-foo2.met1(mandatoryInput:= 1, outputValue => out);
-// CHECK: method 1 - mandatoryInput: 1, optionalInput: 5
-// CHECK: method output : 6
-printf('method output : %d$N', out);
-
-foo.met1(mandatoryInput:= 2, outputValue => out);
+foo_inst.met1(mandatoryInput:= 2, outputValue => out);
 // CHECK: method 1 - mandatoryInput: 2, optionalInput: 5
 // CHECK: method output : 7
+printf('method output : %d$N', out);
+
+
+foo2_inst.met1(mandatoryInput:= 1, outputValue => out);
+// CHECK: method 1 - mandatoryInput: 1, optionalInput: 5
+// CHECK: method output : 6
 printf('method output : %d$N', out);
 
 END_FUNCTION

@@ -54,7 +54,9 @@
 use plc::{index::Index, lowering::create_call_statement, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
-        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration, LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock, VariableBlockType
+        Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,
+        LinkageType, Pou, PouType, ReferenceAccess, ReferenceExpr, Variable, VariableBlock,
+        VariableBlockType,
     },
     mut_visitor::{AstVisitorMut, WalkerMut},
     provider::IdProvider,
@@ -163,14 +165,14 @@ impl InheritanceLowerer {
         // add a `__SUPER` qualifier for each element in the inheritance chain, exluding `self`
         inheritance_chain.iter().rev().skip(1).fold(base, |base, pou| {
             Some(Box::new(AstFactory::create_member_reference(
-                            AstFactory::create_identifier(
-                                format!("__{}", pou.get_name()),
-                                SourceLocation::internal(),
-                                self.provider().next_id(),
-                            ),
-                            base.map(|it: Box<AstNode>| *it),
-                            self.provider().next_id(),
-                        )))
+                AstFactory::create_identifier(
+                    format!("__{}", pou.get_name()),
+                    SourceLocation::internal(),
+                    self.provider().next_id(),
+                ),
+                base.map(|it: Box<AstNode>| *it),
+                self.provider().next_id(),
+            )))
         })
     }
 }
@@ -289,7 +291,6 @@ impl AstVisitorMut for InheritanceLowerer {
         ctx.in_call = true;
         self.walk_with_context(stmt, ctx);
     }
-
 }
 
 struct SuperKeywordLowerer<'sup> {
@@ -444,7 +445,7 @@ impl AstVisitorMut for SuperKeywordLowerer<'_> {
         };
 
         let mut new_node = match self.ctx.access_kind {
-            Some(AccessKind::MemberOrIndex) | Some(AccessKind::Global) | Some(AccessKind::Cast)=> {
+            Some(AccessKind::MemberOrIndex) | Some(AccessKind::Global) | Some(AccessKind::Cast) => {
                 // Neither of these cases are valid code:
                 //      1. `myFb.SUPER`     - this is a qualified access to `SUPER` outside of the derived POU
                 //      2. `myFb.SUPER.x`   - this is a member access to a parent variable through the pointer instead of the instance on top of an outside access
