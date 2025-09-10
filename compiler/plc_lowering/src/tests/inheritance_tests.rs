@@ -1752,6 +1752,421 @@ mod units_tests {
         }
         "###);
     }
+
+    #[test]
+    fn fb_extension_with_output() {
+        let src: SourceCode = r#"
+        FUNCTION_BLOCK foo
+            METHOD met1 : INT
+            VAR_INPUT
+            mandatoryInput : INT;
+            optionalInput : INT := 5;
+            END_VAR
+            VAR_OUTPUT
+            outputValue : INT;
+            END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK foo2 EXTENDS foo
+            met1(
+                mandatoryInput := 0,
+                optionalInput := 0,
+                outputValue =>
+            );
+        END_FUNCTION_BLOCK"#
+            .into();
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[2];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "foo2",
+            type_name: "foo2",
+            linkage: Internal,
+            pou_type: FunctionBlock,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "met1",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "mandatoryInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 0,
+                                    },
+                                },
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "optionalInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 0,
+                                    },
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "outputValue",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: EmptyStatement,
+                                },
+                            ],
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(14:12 - 18:14),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(13:23 - 13:27),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(19:8 - 19:26),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
+
+    #[test]
+    fn function_with_output_used_in_main_by_extension() {
+        let src: SourceCode = "
+    FUNCTION_BLOCK foo
+    METHOD met1 : INT
+        VAR_INPUT
+        mandatoryInput : INT;
+        optionalInput : INT := 5;
+        END_VAR
+        VAR_OUTPUT
+        outputValue : INT;
+        END_VAR
+        outputValue := mandatoryInput + optionalInput;
+    END_METHOD
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK foo2 EXTENDS foo
+    VAR
+        x : INT;
+    END_VAR
+    met1(
+        mandatoryInput := 0,
+        optionalInput := 0,
+        outputValue => x
+    );
+    met1(
+        mandatoryInput := 5,
+        outputValue => x
+    );
+    END_FUNCTION_BLOCK
+
+    FUNCTION main : DINT
+    VAR
+        foo_inst: foo;
+        foo2_inst : foo2;
+        out : INT;
+    END_VAR
+    foo2_inst();
+
+    foo_inst.met1(mandatoryInput:= 2, outputValue => out);
+    foo2_inst.met1(mandatoryInput:= 1, outputValue => out);
+
+
+    END_FUNCTION
+
+    "
+        .into();
+
+        let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
+        let unit = &project.units[0].get_unit().implementations[3];
+        assert_debug_snapshot!(unit, @r#"
+        Implementation {
+            name: "main",
+            type_name: "main",
+            linkage: Internal,
+            pou_type: Function,
+            statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__init_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__init_foo2",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo2_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__user_init_foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__user_init_foo2",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo2_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo2_inst",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: None,
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "met1",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "foo_inst",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "mandatoryInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 2,
+                                    },
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "outputValue",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "out",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                },
+                            ],
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "met1",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__foo",
+                                    },
+                                ),
+                                base: Some(
+                                    ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "foo2_inst",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                ),
+                            },
+                        ),
+                    },
+                    parameters: Some(
+                        ExpressionList {
+                            expressions: [
+                                Assignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "mandatoryInput",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: LiteralInteger {
+                                        value: 1,
+                                    },
+                                },
+                                OutputAssignment {
+                                    left: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "outputValue",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    right: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "out",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                },
+                            ],
+                        },
+                    ),
+                },
+            ],
+            location: SourceLocation {
+                span: Range(35:4 - 38:59),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            name_location: SourceLocation {
+                span: Range(29:13 - 29:17),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            end_location: SourceLocation {
+                span: Range(41:4 - 41:16),
+                file: Some(
+                    "<internal>",
+                ),
+            },
+            overriding: false,
+            generic: false,
+            access: None,
+        }
+        "#);
+    }
 }
 
 mod resolve_bases_tests {
