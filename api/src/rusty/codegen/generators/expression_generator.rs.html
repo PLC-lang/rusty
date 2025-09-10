@@ -3014,7 +3014,8 @@
 <a href="#3013" id="3013">3013</a>
 <a href="#3014" id="3014">3014</a>
 <a href="#3015" id="3015">3015</a>
-<a href="#3016" id="3016">3016</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#3016" id="3016">3016</a>
+<a href="#3017" id="3017">3017</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>inkwell::{
     builder::Builder,
@@ -3513,17 +3514,18 @@
 
         <span class="comment">// find the pou we're calling
         </span><span class="kw">let </span>pou = <span class="self">self</span>.annotations.get_call_name(operator).zip(<span class="self">self</span>.annotations.get_qualified_name(operator))
-            .and_then(|(call_name, qualified_name)| <span class="self">self</span>.index.find_pou(call_name)
-            <span class="comment">// for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
-            </span>.or_else(|| <span class="self">self</span>.index.find_pou(qualified_name)))
+            .and_then(|(call_name, qualified_name)| {
+                <span class="self">self</span>.index.find_pou(call_name)
+                    <span class="comment">// for some functions (builtins) the call name does not exist in the index, we try to call with the originally defined generic functions
+                    </span>.or_else(|| <span class="self">self</span>.index.find_pou(qualified_name))
+            })
             .or_else(||
                 <span class="comment">// some rare situations have a callstatement that's not properly annotated (e.g. checkRange-call of ranged datatypes)
                 </span><span class="kw">if let </span><span class="prelude-val">Some</span>(name) = operator.get_flat_reference_name() {
                     <span class="self">self</span>.index.find_pou(name)
                 } <span class="kw">else </span>{
                     <span class="prelude-val">None
-                </span>}
-            )
+                </span>})
             .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))<span class="question-mark">?</span>;
 
         <span class="comment">// find corresponding implementation
