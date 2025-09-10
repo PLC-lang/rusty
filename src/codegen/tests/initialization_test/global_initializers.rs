@@ -187,7 +187,7 @@ fn external_pous_get_external_initializers() {
 fn external_aggregate_types_get_external_initializers() {
     let result = codegen(
         "
-        {external} 
+        {external}
         VAR_GLOBAL
           a: ARRAY[0..10] OF DINT;
           b: STRING;
@@ -197,4 +197,29 @@ fn external_aggregate_types_get_external_initializers() {
     );
 
     filtered_assert_snapshot!(result, @r###""###);
+}
+
+#[test]
+fn unary_plus_in_initializer() {
+    let result = codegen(
+        "
+        VAR_GLOBAL CONSTANT g1 : INT := +5; END_VAR
+
+        VAR_GLOBAL
+            g2 : INT := +g1;
+            r1 : REAL := +3.14;
+        END_VAR
+        ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @g1 = unnamed_addr constant i16 5
+    @g2 = global i16 5
+    @r1 = global float 0x40091EB860000000
+    "#)
 }

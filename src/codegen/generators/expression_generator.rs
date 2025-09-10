@@ -475,6 +475,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     Err(Diagnostic::codegen_error("Negated expression must be numeric", expression))
                 }
             }
+            Operator::Plus => self.generate_expression(expression),
             _ => unimplemented!(),
         };
         value

@@ -801,3 +801,67 @@ fn global_namespace_operator() {
     }
     "#);
 }
+
+#[test]
+fn unary_plus_expression_test() {
+    let result = codegen(
+        "
+        PROGRAM exp
+        VAR
+            x : DINT;
+        END_VAR
+            +x;
+            x := +x + 4;
+            x := +-4 + 5;
+            +-x;
+            x := +foo(+x);
+        END_PROGRAM
+
+        FUNCTION foo : DINT
+        VAR_INPUT
+            x : DINT;
+        END_VAR
+            foo := +x;
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %exp = type { i32 }
+
+    @exp_instance = global %exp zeroinitializer
+
+    define void @exp(%exp* %0) {
+    entry:
+      %x = getelementptr inbounds %exp, %exp* %0, i32 0, i32 0
+      %load_x = load i32, i32* %x, align 4
+      %load_x1 = load i32, i32* %x, align 4
+      %tmpVar = add i32 %load_x1, 4
+      store i32 %tmpVar, i32* %x, align 4
+      store i32 1, i32* %x, align 4
+      %load_x2 = load i32, i32* %x, align 4
+      %tmpVar3 = sub i32 0, %load_x2
+      %load_x4 = load i32, i32* %x, align 4
+      %call = call i32 @foo(i32 %load_x4)
+      store i32 %call, i32* %x, align 4
+      ret void
+    }
+
+    define i32 @foo(i32 %0) {
+    entry:
+      %foo = alloca i32, align 4
+      %x = alloca i32, align 4
+      store i32 %0, i32* %x, align 4
+      store i32 0, i32* %foo, align 4
+      %load_x = load i32, i32* %x, align 4
+      store i32 %load_x, i32* %foo, align 4
+      %foo_ret = load i32, i32* %foo, align 4
+      ret i32 %foo_ret
+    }
+    "#)
+}
