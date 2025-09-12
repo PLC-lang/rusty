@@ -213,20 +213,25 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
+                        // Handle named arguments by extracting actual parameters
+                        let actual_g = extract_actual_parameter(g);
+                        let actual_in0 = extract_actual_parameter(in0);
+                        let actual_in1 = extract_actual_parameter(in1);
+                        
                         // evaluate the parameters
-                        let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder);
+                        let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder);
                         // for aggregate types we need a ptr to perform memcpy
                         // use generate_expression_value(), this will return a gep
                         // generate_expression() would load the ptr
-                        let in0 = if generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(in0)?.get_basic_value_enum()
+                        let in0 = if generator.annotations.get_type(actual_in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(actual_in0)?.get_basic_value_enum()
                         } else {
-                            generator.generate_expression(in0)?
+                            generator.generate_expression(actual_in0)?
                         };
-                        let in1 = if generator.annotations.get_type(in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(in1)?.get_basic_value_enum()
+                        let in1 = if generator.annotations.get_type(actual_in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(actual_in1)?.get_basic_value_enum()
                         } else {
-                            generator.generate_expression(in1)?
+                            generator.generate_expression(actual_in1)?
                         };
                         // generate an llvm select instruction
                         let sel = generator.llvm.builder.build_select(cond, in1, in0, "");
@@ -256,7 +261,9 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        // Handle named arguments by extracting the actual parameter
+                        let actual_param = extract_actual_parameter(params[0]);
+                        generator.generate_expression(actual_param).map(ExpressionValue::RValue)
                     } else {
                         Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
                     }
@@ -276,9 +283,18 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if let [reference] = params {
+                        // Handle named arguments by extracting the actual parameter from Assignment nodes
+                        let actual_param = if let AstStatement::Assignment(assignment) = reference.get_stmt() {
+                            // For named arguments like SIZEOF(in := foo), extract the right side (foo)
+                            assignment.right.as_ref()
+                        } else {
+                            // For positional arguments like SIZEOF(foo), use the parameter directly
+                            reference
+                        };
+                        
                         // get name of datatype behind reference
                         let type_name = generator.annotations
-                            .get_type(reference, generator.index)
+                            .get_type(actual_param, generator.index)
                             .map(|it| generator.index.get_effective_type_or_void_by_name(it.get_name()))
                             .unwrap()
                             .get_name();
@@ -853,6 +869,19 @@ fn validate_argument_count(
     }
 }
 
+/// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
+/// For named arguments like `func(param := value)`, the AST contains an Assignment node where we need
+/// to extract the right-hand side (the actual value). For positional arguments, use the parameter directly.
+fn extract_actual_parameter(param: &AstNode) -> &AstNode {
+    if let AstStatement::Assignment(assignment) = param.get_stmt() {
+        // Named argument: extract the actual value from the right side of the assignment
+        assignment.right.as_ref()
+    } else {
+        // Positional argument: use the parameter directly
+        param
+    }
+}
+
 /// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
@@ -863,8 +892,13 @@ fn generate_variable_length_array_bound_function<'ink>(
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
+    
+    // Handle named arguments by extracting the actual parameter
+    let actual_first_param = extract_actual_parameter(params[0]);
+    let actual_second_param = extract_actual_parameter(params[1]);
+    
     let data_type_information =
-        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
+        generator.annotations.get_type_or_void(actual_first_param, generator.index).get_type_information();
 
     // TODO: most of the codegen errors should already be caught during validation.
     // once we abort codegen on critical errors, revisit and change to unreachable where possible
@@ -875,10 +909,10 @@ fn generate_variable_length_array_bound_function<'ink>(
         ));
     };
 
-    let vla = generator.generate_lvalue(params[0]).unwrap();
+    let vla = generator.generate_lvalue(actual_first_param).unwrap();
     let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
-    let accessor = match params[1].get_stmt() {
+    let accessor = match actual_second_param.get_stmt() {
         // e.g. LOWER_BOUND(arr, 1)
         AstStatement::Literal(kind) => {
             let AstLiteral::Integer(value) = kind else {
@@ -897,7 +931,7 @@ fn generate_variable_length_array_bound_function<'ink>(
         }
         // e.g. LOWER_BOUND(arr, idx + 3)
         _ => {
-            let expression_value = generator.generate_expression(params[1])?;
+            let expression_value = generator.generate_expression(actual_second_param)?;
             if !expression_value.is_int_value() {
                 todo!()
             };
