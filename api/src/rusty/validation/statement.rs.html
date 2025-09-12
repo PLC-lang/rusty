@@ -1895,7 +1895,10 @@
 <a href="#1894" id="1894">1894</a>
 <a href="#1895" id="1895">1895</a>
 <a href="#1896" id="1896">1896</a>
-<a href="#1897" id="1897">1897</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
+<a href="#1897" id="1897">1897</a>
+<a href="#1898" id="1898">1898</a>
+<a href="#1899" id="1899">1899</a>
+<a href="#1900" id="1900">1900</a></pre></div><pre class="rust"><code><span class="kw">use </span>rustc_hash::{FxHashMap, FxHashSet};
 <span class="kw">use </span>std::mem::discriminant;
 
 <span class="kw">use </span>plc_ast::ast::Assignment;
@@ -2916,7 +2919,10 @@
         )
     }
 
-    validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+    <span class="comment">// If the right side is a reference, validate type mismatches
+    </span><span class="kw">if </span>assignment.right.is_reference() {
+        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+    }
 }
 
 <span class="doccomment">/// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
