@@ -691,3 +691,163 @@ fn global_variables_dependencies_resolved() {
     assert!(dependencies.contains(&Dependency::Variable("y".into())));
     assert_eq!(dependencies.len(), 5);
 }
+
+#[test]
+fn cross_unit_nested_typedef_chain() {
+    // Nested typedef chain: struct -> typedef1 -> typedef2, each in a different unit
+    let units = [
+        "
+        TYPE mystruct : STRUCT
+            x : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE typedef1 : mystruct; END_TYPE
+        ",
+        "
+        TYPE typedef2 : typedef1; END_TYPE
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    // Check dependencies for each unit
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("typedef1".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("typedef2".into())));
+    assert_eq!(dependencies.len(), 2);
+}
+
+#[test]
+fn cross_unit_typedefs_for_array_pointer_subrange_enum() {
+    // Typedefs for array, pointer, subrange, enum across units
+    let units = [
+        "
+        TYPE base_enum : (A, B, C) END_TYPE
+        TYPE base_subrange : INT(0..10) END_TYPE
+        ",
+        "
+        TYPE arr_type : ARRAY[0..3] OF DINT; END_TYPE
+        TYPE ptr_type : REF_TO DINT; END_TYPE
+        ",
+        "
+        TYPE enum_alias : base_enum; END_TYPE
+        TYPE subrange_alias : base_subrange; END_TYPE
+        TYPE arr_alias : arr_type; END_TYPE
+        TYPE ptr_alias : ptr_type; END_TYPE
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    // Check dependencies for each alias
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("enum_alias".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("base_enum".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("subrange_alias".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("base_subrange".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("arr_alias".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("arr_type".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("ptr_alias".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("ptr_type".into())));
+    assert!(dependencies.contains(&Dependency::Variable("base_enum.A".into())));
+    assert!(dependencies.contains(&Dependency::Variable("base_enum.B".into())));
+    assert!(dependencies.contains(&Dependency::Variable("base_enum.C".into())));
+    assert_eq!(dependencies.len(), 12);
+}
+
+#[test]
+fn cyclic_typedefs_across_units() {
+    // Cyclic typedefs: typedefA -> typedefB, typedefB -> typedefA
+    let units = [
+        "
+        TYPE typedefA : typedefB; END_TYPE
+        ",
+        "
+        TYPE typedefB : typedefA; END_TYPE
+        ",
+    ];
+    let id_provider = IdProvider::default();
+    let (unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+
+    // Check that both typedefs are tracked as dependencies
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit1, id_provider.clone());
+    assert!(dependencies.contains(&Dependency::Datatype("typedefA".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("typedefB".into())));
+    assert_eq!(dependencies.len(), 2);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit2, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("typedefA".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("typedefB".into())));
+    assert_eq!(dependencies.len(), 2);
+}
+
+#[test]
+fn cross_unit_typedef_in_function_and_struct() {
+    // Typedef used in function signature and struct field across units
+    let units = [
+        "
+        TYPE mystruct : STRUCT
+            x : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE mytype : mystruct; END_TYPE
+        ",
+        "
+        FUNCTION foo : mytype
+        VAR_INPUT
+            a : mytype;
+        END_VAR
+        END_FUNCTION
+        ",
+        "
+        TYPE container : STRUCT
+            field : mytype;
+        END_STRUCT
+        END_TYPE
+        ",
+    ];
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let (unit4, index4) = index_with_ids(units[3], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+    index.import(index4);
+
+    // Check dependencies for function and struct
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider.clone());
+    assert!(dependencies.contains(&Dependency::Datatype("foo".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mytype".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 4);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit4, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("container".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mytype".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 4);
+}
