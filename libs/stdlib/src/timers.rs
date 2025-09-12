@@ -15,6 +15,7 @@ pub type Time = i64;
 #[repr(C)]
 #[derive(Debug, Default)]
 pub struct TimerParams {
+    __vtable: usize,
     input: bool,
     preset_time: Time,
     output: bool,
@@ -22,6 +23,11 @@ pub struct TimerParams {
     input_edge: Signal,
     is_running: bool,
     start_time: Option<Instant>,
+}
+
+#[repr(C)]
+pub struct VTableTimer {
+    body: extern "C" fn(&mut TimerParams),
 }
 
 impl TimerParams {
@@ -80,6 +86,25 @@ impl TimerParams {
     }
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TP: VTableTimer = VTableTimer { body: TP };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TP__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
+
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TP(timer: &mut TimerParams) {
@@ -104,6 +129,25 @@ pub extern "C" fn TP(timer: &mut TimerParams) {
     timer.set_output(output);
     timer.input_edge.set(timer.input);
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TON: VTableTimer = VTableTimer { body: TON };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TON__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
 
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -131,6 +175,25 @@ pub extern "C" fn TON(timer: &mut TimerParams) {
     timer.input_edge.set(timer.input);
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TOF: VTableTimer = VTableTimer { body: TOF };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TOF__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
+
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TOF(timer: &mut TimerParams) {
@@ -153,11 +216,49 @@ pub extern "C" fn TOF(timer: &mut TimerParams) {
 }
 
 // Aliases
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TP_TIME: VTableTimer = VTableTimer { body: TP_TIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TP_TIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
+
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TP_TIME(timer: &mut TimerParams) {
     TP(timer)
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TP_LTIME: VTableTimer = VTableTimer { body: TP_LTIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TP_LTIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
 
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -165,11 +266,49 @@ pub extern "C" fn TP_LTIME(timer: &mut TimerParams) {
     TP(timer)
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TON_TIME: VTableTimer = VTableTimer { body: TON_TIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TON_TIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
+
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TON_TIME(timer: &mut TimerParams) {
     TON(timer)
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TON_LTIME: VTableTimer = VTableTimer { body: TON_LTIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TON_LTIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
 
 #[allow(non_snake_case)]
 #[no_mangle]
@@ -177,11 +316,49 @@ pub extern "C" fn TON_LTIME(timer: &mut TimerParams) {
     TON(timer)
 }
 
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TOF_TIME: VTableTimer = VTableTimer { body: TOF_TIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TOF_TIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
+
 #[allow(non_snake_case)]
 #[no_mangle]
 pub extern "C" fn TOF_TIME(timer: &mut TimerParams) {
     TOF(timer)
 }
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __vtable_TOF_LTIME: VTableTimer = VTableTimer { body: TOF_LTIME };
+
+#[allow(non_upper_case_globals)]
+#[no_mangle]
+#[used]
+pub static __TOF_LTIME__init: TimerParams = TimerParams {
+    __vtable: 0,
+    input: false,
+    preset_time: 0,
+    output: false,
+    elapsed_time: 0,
+    input_edge: Signal { current_value: false },
+    is_running: false,
+    start_time: None,
+};
 
 #[allow(non_snake_case)]
 #[no_mangle]
