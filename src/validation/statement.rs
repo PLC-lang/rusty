@@ -1019,7 +1019,10 @@ fn validate_ref_assignment<T: AnnotationMap>(
         )
     }
 
-    validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+    // If the right side is a reference, validate type mismatches
+    if assignment.right.is_reference() {
+        validate_assignment_mismatch(context, validator, type_lhs, type_rhs, assignment_location);
+    }
 }
 
 /// Returns a diagnostic if an alias declared variables address is re-assigned in the POU body.
