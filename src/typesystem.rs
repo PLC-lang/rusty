@@ -591,13 +591,27 @@ impl DataTypeInformation {
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
+        let mut visited = rustc_hash::FxHashSet::default();
+        self.is_generic_recursive(index, &mut visited)
+    }
+
+    fn is_generic_recursive(&self, index: &Index, visited: &mut rustc_hash::FxHashSet<String>) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }
             | DataTypeInformation::Pointer { inner_type_name, .. }
-            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => index
-                .find_effective_type_by_name(inner_type_name)
-                .map(|dt| dt.get_type_information().is_generic(index))
-                .unwrap_or(false),
+            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => {
+                if visited.contains(inner_type_name) {
+                    // Cycle detected, assume not generic to break recursion
+                    return false;
+                }
+                visited.insert(inner_type_name.clone());
+                let result = index
+                    .find_effective_type_by_name(inner_type_name)
+                    .map(|dt| dt.get_type_information().is_generic_recursive(index, visited))
+                    .unwrap_or(false);
+                visited.remove(inner_type_name);
+                result
+            }
             DataTypeInformation::Generic { .. } => true,
             _ => false,
         }

@@ -311,3 +311,91 @@ fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
     let result = codegen(src);
     filtered_assert_snapshot!(result);
 }
+
+#[test]
+fn recursive_type_alias_broken_by_reference_to_codegen() {
+    let result = codegen(
+        r#"
+        TYPE type1 : type2; END_TYPE
+        TYPE type2 : REFERENCE TO type1; END_TYPE
+
+        PROGRAM main
+        VAR
+            var1 : type1;
+            var2 : type2;
+        END_VAR
+            var1 := 42;
+            var2 := REF(var1);
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r"");
+}
+
+#[test]
+fn recursive_type_alias_broken_by_ref_to_codegen() {
+    let result = codegen(
+        r#"
+        TYPE type1 : type2; END_TYPE
+        TYPE type2 : REF_TO type1; END_TYPE
+
+        PROGRAM main
+        VAR
+            var1 : type1;
+            var2 : type2;
+        END_VAR
+            var1 := 42;
+            var2 := REF(var1);
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r"");
+}
+
+#[test]
+fn recursive_type_alias_broken_by_pointer_to_codegen() {
+    let result = codegen(
+        r#"
+        TYPE type1 : type2; END_TYPE
+        TYPE type2 : POINTER TO type1; END_TYPE
+
+        PROGRAM main
+        VAR
+            var1 : type1;
+            var2 : type2;
+        END_VAR
+            var1 := 42;
+            var2 := ADR(var1);
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r"");
+}
+
+#[test]
+fn self_referential_struct_via_reference_codegen() {
+    let result = codegen(
+        r#"
+        TYPE Node : STRUCT
+            data : DINT;
+            next : REFERENCE TO Node;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+        VAR
+            node1 : Node;
+            node2 : Node;
+        END_VAR
+            node1.data := 42;
+            node2.data := 84;
+            node1.next := REF(node2);
+            node2.next := REF(node1);
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r"");
+}

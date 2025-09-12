@@ -763,7 +763,7 @@ mod inheritance {
                 x : X;
             END_VAR
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK bar EXTENDS foo
             END_FUNCTION_BLOCK
 
@@ -986,5 +986,123 @@ mod type_aliases {
         );
 
         assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn recursive_type_alias_broken_by_reference_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : REFERENCE TO type1; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "REFERENCE TO should break recursion: type1 -> type2 -> REFERENCE TO type1");
+    }
+
+    #[test]
+    fn recursive_type_alias_broken_by_ref_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : REF_TO type1; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "REF_TO should break recursion: type1 -> type2 -> REF_TO type1");
+    }
+
+    #[test]
+    fn recursive_type_alias_broken_by_pointer_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : POINTER TO type1; END_TYPE
+            ",
+        );
+
+        // we only expect a warning about pointer types being not type-safe, not about recursion
+        assert!(diagnostics.len() == 1 && diagnostics.contains("type-safe"), "POINTER TO should break recursion: type1 -> type2 -> POINTER TO type1");
+    }
+
+    #[test]
+    fn longer_recursive_chain_broken_by_reference_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : type3; END_TYPE
+            TYPE type3 : REFERENCE TO type1; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "REFERENCE TO should break longer recursion: type1 -> type2 -> type3 -> REFERENCE TO type1. Got: {diagnostics:?}");
+    }
+
+    #[test]
+    fn longer_recursive_chain_broken_by_ref_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : type3; END_TYPE
+            TYPE type3 : REF_TO type1; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "REF_TO should break longer recursion: type1 -> type2 -> type3 -> REF_TO type1");
+    }
+
+    #[test]
+    fn longer_recursive_chain_broken_by_pointer_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : type3; END_TYPE
+            TYPE type3 : POINTER TO type1; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "POINTER TO should break longer recursion: type1 -> type2 -> type3 -> POINTER TO type1");
+    }
+
+    #[test]
+    fn self_referential_struct_with_reference_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : REFERENCE TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "Self-referential struct with REFERENCE TO should be valid");
+    }
+
+    #[test]
+    fn self_referential_struct_with_ref_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : REF_TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "Self-referential struct with REF_TO should be valid");
+    }
+
+    #[test]
+    fn self_referential_struct_with_pointer_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : POINTER TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "Self-referential struct with POINTER TO should be valid");
     }
 }
