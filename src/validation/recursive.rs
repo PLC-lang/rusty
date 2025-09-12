@@ -48,6 +48,92 @@ impl RecursiveValidator {
 
         let mut detective = CycleInvestigator::<InterfaceIndexEntry>::new();
         self.diagnostics.extend(detective.investigate(index));
+
+        // Check for recursive type aliases
+        self.validate_type_aliases(index);
+    }
+
+    /// Validates that type aliases are not recursive
+    fn validate_type_aliases(&mut self, index: &Index) {
+        for data_type in index.get_types().values() {
+            if let DataTypeInformation::Alias { referenced_type, .. } = data_type.get_type_information() {
+                // If the referenced type exists but `find_effective_type` returns None,
+                // it indicates a recursive type alias
+                if index.find_effective_type(data_type).is_none()
+                    && index.find_type(referenced_type).is_some()
+                {
+                    if let Some(cycle_path) = self.find_type_alias_cycle(index, data_type) {
+                        let cycle_path_str = cycle_path.iter().map(|dt| dt.get_name()).join(" -> ");
+                        // Exclude the last element since it's a duplicate of the first element in the cycle
+                        let unique_ranges = cycle_path
+                            .iter()
+                            .take(cycle_path.len() - 1)
+                            .map(|dt| dt.location.clone())
+                            .collect::<Vec<_>>();
+
+                        let diagnostic =
+                            Diagnostic::new(format!("Recursive type alias `{}`", cycle_path_str))
+                                .with_error_code("E121");
+
+                        let diagnostic = if let Some(first) = unique_ranges.first() {
+                            diagnostic.with_location(first)
+                        } else {
+                            diagnostic
+                        };
+
+                        let diagnostic = if unique_ranges.len() > 1 {
+                            unique_ranges
+                                .iter()
+                                .skip(1)
+                                .fold(diagnostic, |prev, location| prev.with_secondary_location(location))
+                        } else {
+                            diagnostic
+                        };
+
+                        self.diagnostics.push(diagnostic);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Finds the cycle path for a recursive type alias
+    fn find_type_alias_cycle<'a>(
+        &self,
+        index: &'a Index,
+        start_type: &'a DataType,
+    ) -> Option<Vec<&'a DataType>> {
+        let mut path = Vec::new();
+        let mut seen = FxIndexSet::default();
+
+        let mut current = start_type;
+        loop {
+            if !seen.insert(current.get_name()) {
+                // Found the cycle - extract the cycle part
+                if let Some(cycle_start_idx) =
+                    path.iter().position(|dt: &&DataType| dt.get_name() == current.get_name())
+                {
+                    let mut cycle = path[cycle_start_idx..].to_vec();
+                    cycle.push(current); // Complete the cycle
+                    return Some(cycle);
+                }
+                return None;
+            }
+
+            path.push(current);
+
+            if let DataTypeInformation::Alias { referenced_type, .. } = current.get_type_information() {
+                if let Some(next_type) = index.find_type(referenced_type) {
+                    current = next_type;
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        }
+
+        None
     }
 }
 

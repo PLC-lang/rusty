@@ -222,6 +222,7 @@ lazy_static! {
         E118,   Info,       include_str!("./error_codes/E118.md"),  // Follow-up error to 112
         E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword
+        E121,   Error,      include_str!("./error_codes/E121.md"),  // Recursive type alias
     );
 }
 
