@@ -1609,8 +1609,18 @@ impl Index {
     /// Returns all enum variants of the given variable.
     pub fn get_enum_variants_by_variable(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
         let Some(var) = self.type_index.find_type(&variable.data_type_name) else { return vec![] };
-        let DataTypeInformation::Enum { variants, .. } = var.get_type_information() else { return vec![] };
-        variants.iter().collect()
+
+        match var.get_type_information() {
+            DataTypeInformation::Enum { variants, .. } => variants.iter().collect(),
+            DataTypeInformation::Pointer { name, inner_type_name, .. } => {
+                let Some(inner_type) = self.type_index.find_type(inner_type_name) else { return vec![] };
+                let DataTypeInformation::Enum { variants, .. } = inner_type.get_type_information() else {
+                    return vec![];
+                };
+                variants.iter().collect()
+            }
+            _ => vec![],
+        }
     }
 
     /// Tries to return an enum variant defined within a POU
