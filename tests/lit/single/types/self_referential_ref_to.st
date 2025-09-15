@@ -26,10 +26,10 @@ FUNCTION main : DINT
     printf('Root: %d$N', root.data);
 
     // CHECK: Left: 25
-    printf('Left: %d$N', root.left.data);
+    printf('Left: %d$N', root.left^.data);
 
     // CHECK: Right: 75
-    printf('Right: %d$N', root.right.data);
+    printf('Right: %d$N', root.right^.data);
 
     main := 0;
 END_FUNCTION

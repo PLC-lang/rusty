@@ -15,8 +15,8 @@ FUNCTION main : DINT
     node2.data := 84;
 
     // Create circular reference
-    node1.next := REF= node2;
-    node2.next := REF= node1;
+    node1.next REF= node2;
+    node2.next REF= node1;
 
     // CHECK: Node1 data: 42
     printf('Node1 data: %d$N', node1.data);

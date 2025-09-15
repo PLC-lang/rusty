@@ -313,75 +313,12 @@ fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
 }
 
 #[test]
-fn recursive_type_alias_broken_by_reference_to_codegen() {
-    let result = codegen(
-        r#"
-        TYPE type1 : type2; END_TYPE
-        TYPE type2 : REFERENCE TO type1; END_TYPE
-
-        PROGRAM main
-        VAR
-            var1 : type1;
-            var2 : type2;
-        END_VAR
-            var1 := 42;
-            var2 := REF(var1);
-        END_PROGRAM
-        "#,
-    );
-
-    filtered_assert_snapshot!(result, @r"");
-}
-
-#[test]
-fn recursive_type_alias_broken_by_ref_to_codegen() {
-    let result = codegen(
-        r#"
-        TYPE type1 : type2; END_TYPE
-        TYPE type2 : REF_TO type1; END_TYPE
-
-        PROGRAM main
-        VAR
-            var1 : type1;
-            var2 : type2;
-        END_VAR
-            var1 := 42;
-            var2 := REF(var1);
-        END_PROGRAM
-        "#,
-    );
-
-    filtered_assert_snapshot!(result, @r"");
-}
-
-#[test]
-fn recursive_type_alias_broken_by_pointer_to_codegen() {
-    let result = codegen(
-        r#"
-        TYPE type1 : type2; END_TYPE
-        TYPE type2 : POINTER TO type1; END_TYPE
-
-        PROGRAM main
-        VAR
-            var1 : type1;
-            var2 : type2;
-        END_VAR
-            var1 := 42;
-            var2 := ADR(var1);
-        END_PROGRAM
-        "#,
-    );
-
-    filtered_assert_snapshot!(result, @r"");
-}
-
-#[test]
 fn self_referential_struct_via_reference_codegen() {
     let result = codegen(
         r#"
         TYPE Node : STRUCT
             data : DINT;
-            next : REFERENCE TO Node;
+            next : REF_TO Node;
         END_STRUCT END_TYPE
 
         PROGRAM main
@@ -397,5 +334,31 @@ fn self_referential_struct_via_reference_codegen() {
         "#,
     );
 
-    filtered_assert_snapshot!(result, @r"");
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { %Node, %Node }
+    %Node = type { i32, %Node* }
+
+    @main_instance = global %main zeroinitializer
+    @__Node__init = unnamed_addr constant %Node zeroinitializer
+
+    define void @main(%main* %0) {
+    entry:
+      %node1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %node2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %data = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 0
+      store i32 42, i32* %data, align 4
+      %data1 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 0
+      store i32 84, i32* %data1, align 4
+      %next = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 1
+      store %Node* %node2, %Node** %next, align 8
+      %next2 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 1
+      store %Node* %node1, %Node** %next2, align 8
+      ret void
+    }
+    "#);
 }

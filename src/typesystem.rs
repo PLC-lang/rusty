@@ -591,27 +591,13 @@ impl DataTypeInformation {
     }
 
     pub fn is_generic(&self, index: &Index) -> bool {
-        let mut visited = rustc_hash::FxHashSet::default();
-        self.is_generic_recursive(index, &mut visited)
-    }
-
-    fn is_generic_recursive(&self, index: &Index, visited: &mut rustc_hash::FxHashSet<String>) -> bool {
         match self {
             DataTypeInformation::Array { inner_type_name, .. }
             | DataTypeInformation::Pointer { inner_type_name, .. }
-            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => {
-                if visited.contains(inner_type_name) {
-                    // Cycle detected, assume not generic to break recursion
-                    return false;
-                }
-                visited.insert(inner_type_name.clone());
-                let result = index
-                    .find_effective_type_by_name(inner_type_name)
-                    .map(|dt| dt.get_type_information().is_generic_recursive(index, visited))
-                    .unwrap_or(false);
-                visited.remove(inner_type_name);
-                result
-            }
+            | DataTypeInformation::Alias { referenced_type: inner_type_name, .. } => index
+                .find_effective_type_by_name(inner_type_name)
+                .map(|dt| dt.get_type_information().is_generic(index))
+                .unwrap_or(false),
             DataTypeInformation::Generic { .. } => true,
             _ => false,
         }
@@ -674,9 +660,7 @@ impl DataTypeInformation {
     }
 
     fn get_size_recursive<'b>(&'b self, index: &'b Index, seen: &mut FxHashSet<&'b str>) -> Result<Bytes> {
-        if (self.is_struct() || matches!(self, DataTypeInformation::Alias { .. }))
-            && !seen.insert(self.get_name())
-        {
+        if self.is_struct() && !seen.insert(self.get_name()) {
             return Err(anyhow!("Recursive type detected: {}", self.get_name()));
         }
         let res = match self {
@@ -706,11 +690,8 @@ impl DataTypeInformation {
             DataTypeInformation::Pointer { .. } => Ok(Bytes::from_bits(POINTER_SIZE)),
             DataTypeInformation::Alias { referenced_type, .. }
             | DataTypeInformation::SubRange { referenced_type, .. } => {
-                if let Some(inner_type) = index.find_type(referenced_type) {
-                    inner_type.get_type_information().get_size_recursive(index, seen)
-                } else {
-                    Err(anyhow!("Could not find aliased type {}", referenced_type))
-                }
+                let inner_type = index.get_type_information_or_void(referenced_type);
+                inner_type.get_size_recursive(index, seen)
             }
             DataTypeInformation::Enum { referenced_type, .. } => index
                 .find_effective_type_info(referenced_type)
