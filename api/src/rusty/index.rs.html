@@ -2214,7 +2214,27 @@
 <a href="#2213" id="2213">2213</a>
 <a href="#2214" id="2214">2214</a>
 <a href="#2215" id="2215">2215</a>
-<a href="#2216" id="2216">2216</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
+<a href="#2216" id="2216">2216</a>
+<a href="#2217" id="2217">2217</a>
+<a href="#2218" id="2218">2218</a>
+<a href="#2219" id="2219">2219</a>
+<a href="#2220" id="2220">2220</a>
+<a href="#2221" id="2221">2221</a>
+<a href="#2222" id="2222">2222</a>
+<a href="#2223" id="2223">2223</a>
+<a href="#2224" id="2224">2224</a>
+<a href="#2225" id="2225">2225</a>
+<a href="#2226" id="2226">2226</a>
+<a href="#2227" id="2227">2227</a>
+<a href="#2228" id="2228">2228</a>
+<a href="#2229" id="2229">2229</a>
+<a href="#2230" id="2230">2230</a>
+<a href="#2231" id="2231">2231</a>
+<a href="#2232" id="2232">2232</a>
+<a href="#2233" id="2233">2233</a>
+<a href="#2234" id="2234">2234</a>
+<a href="#2235" id="2235">2235</a>
+<a href="#2236" id="2236">2236</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 </span><span class="kw">use </span>std::{collections::VecDeque, hash::BuildHasherDefault};
 
@@ -3412,9 +3432,29 @@
     <span class="doccomment">/// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     </span><span class="kw">pub fn </span>find_effective_type&lt;<span class="lifetime">'ret</span>&gt;(<span class="kw-2">&amp;</span><span class="lifetime">'ret </span><span class="self">self</span>, data_type: <span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType&gt; {
+        <span class="self">self</span>.find_effective_type_recursive(data_type, <span class="kw-2">&amp;mut </span>FxHashSet::default())
+    }
+
+    <span class="kw">fn </span>find_effective_type_recursive&lt;<span class="lifetime">'ret</span>&gt;(
+        <span class="kw-2">&amp;</span><span class="lifetime">'ret </span><span class="self">self</span>,
+        data_type: <span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType,
+        seen: <span class="kw-2">&amp;mut </span>FxHashSet&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ret </span>str&gt;,
+    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'ret </span>DataType&gt; {
         <span class="kw">match </span>data_type.get_type_information() {
             DataTypeInformation::Alias { referenced_type, .. } =&gt; {
-                <span class="self">self</span>.find_type(referenced_type).and_then(|it| <span class="self">self</span>.find_effective_type(it))
+                <span class="comment">// Check for cycles in type aliases
+                </span><span class="kw">if </span>!seen.insert(data_type.get_name()) {
+                    <span class="comment">// Cycle detected, return None to indicate error
+                    </span><span class="kw">return </span><span class="prelude-val">None</span>;
+                }
+
+                <span class="kw">let </span>result = <span class="self">self
+                    </span>.find_type(referenced_type)
+                    .and_then(|it| <span class="self">self</span>.find_effective_type_recursive(it, seen));
+
+                <span class="comment">// Remove from seen set when backtracking
+                </span>seen.remove(data_type.get_name());
+                result
             }
             <span class="kw">_ </span>=&gt; <span class="prelude-val">Some</span>(data_type),
         }

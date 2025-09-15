@@ -614,7 +614,60 @@ END_FUNCTION_BLOCK
 <div style="break-before: page; page-break-before: always;"></div><h1 id="unexpected-return-type"><a class="header" href="#unexpected-return-type">Unexpected return type</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="unsupported-return-type"><a class="header" href="#unsupported-return-type">Unsupported return type</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="empty-variable-block"><a class="header" href="#empty-variable-block">Empty variable block</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="recursive-data-structure"><a class="header" href="#recursive-data-structure">Recursive data structure</a></h1>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="e029-recursive-data-structure"><a class="header" href="#e029-recursive-data-structure">E029: Recursive data structure</a></h1>
+<p>This error occurs when data structures contain themselves directly or indirectly, creating infinite recursion during type resolution.</p>
+<h2 id="example-2"><a class="header" href="#example-2">Example</a></h2>
+<pre><code class="language-st">TYPE MyStruct : STRUCT
+    value : INT;
+    nested : MyStruct;  (* This creates infinite recursion *)
+END_STRUCT; END_TYPE
+</code></pre>
+<p>In this example, <code>MyStruct</code> contains a field of type <code>MyStruct</code>, which would require infinite memory to represent.</p>
+<h2 id="another-example---indirect-recursion"><a class="header" href="#another-example---indirect-recursion">Another example - indirect recursion</a></h2>
+<pre><code class="language-st">TYPE StructA : STRUCT
+    data : INT;
+    ref_b : StructB;
+END_STRUCT; END_TYPE
+
+TYPE StructB : STRUCT
+    info : STRING;
+    ref_a : StructA;  (* Creates a cycle: StructA -&gt; StructB -&gt; StructA *)
+END_STRUCT; END_TYPE
+</code></pre>
+<p>This shows two structures that reference each other, creating a circular dependency.</p>
+<h2 id="valid-self-referential-structures-with-pointers"><a class="header" href="#valid-self-referential-structures-with-pointers">Valid self-referential structures with pointers</a></h2>
+<p>Self-referential data structures are allowed when using references or pointers, as these have fixed size:</p>
+<pre><code class="language-st">(* Tree node structure *)
+TYPE TreeNode : STRUCT
+    value : INT;
+    left : REF_TO TreeNode;   (* Pointer to left child *)
+    right : REF_TO TreeNode;  (* Pointer to right child *)
+END_STRUCT; END_TYPE
+
+(* Linked list node *)
+TYPE ListNode : STRUCT
+    data : STRING;
+    next : REF_TO ListNode;   (* Pointer to next node *)
+END_STRUCT; END_TYPE
+</code></pre>
+<h2 id="how-to-fix"><a class="header" href="#how-to-fix">How to fix</a></h2>
+<p><strong>Use references or pointers for self-referential structures</strong></p>
+<p>Break the infinite recursion by using <code>REF_TO</code> for recursive references:</p>
+<pre><code class="language-st">TYPE Node : STRUCT
+    value : INT;
+    child : REF_TO Node;  (* Use REF_TO instead of direct inclusion *)
+END_STRUCT; END_TYPE
+</code></pre>
+<p><strong>Restructure circular dependencies</strong></p>
+<p>For mutually recursive structures, consider using references or redesigning the data structure:</p>
+<pre><code class="language-st">TYPE PersonID : DINT; END_TYPE
+
+TYPE Person : STRUCT
+    name : STRING;
+    manager_id : PersonID;    (* Reference by ID instead of direct inclusion *)
+    reports : ARRAY[0..9] OF PersonID;
+END_STRUCT; END_TYPE
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="missing-in_out-parameters"><a class="header" href="#missing-in_out-parameters">Missing IN_OUT parameters</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-parameter-type"><a class="header" href="#invalid-parameter-type">Invalid parameter type</a></h1>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-number-of-arguments"><a class="header" href="#invalid-number-of-arguments">Invalid number of arguments</a></h1>
@@ -1224,6 +1277,23 @@ END_FUNCTION_BLOCK
     END_ACTION
 END_FUNCTION_BLOCK
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="e121-recursive-type-alias"><a class="header" href="#e121-recursive-type-alias">E121: Recursive type alias</a></h1>
+<p>This error occurs when type aliases reference each other in a cycle, creating an infinite recursion.</p>
+<h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
+<pre><code class="language-st">TYPE type1 : type2; END_TYPE
+TYPE type2 : type1; END_TYPE
+</code></pre>
+<p>In this example, <code>type1</code> is defined as <code>type2</code>, which is in turn defined as <code>type1</code>, creating a circular dependency.</p>
+<h2 id="another-example"><a class="header" href="#another-example">Another example</a></h2>
+<pre><code class="language-st">TYPE self_type : self_type; END_TYPE
+</code></pre>
+<p>This shows a type alias that directly references itself.</p>
+<h2 id="how-to-fix-1"><a class="header" href="#how-to-fix-1">How to fix</a></h2>
+<p><strong>Break the chain by resolving to concrete types</strong></p>
+<p>Break the circular dependency by ensuring that type aliases eventually resolve to concrete types:</p>
+<pre><code class="language-st">TYPE typeA : DINT; END_TYPE      (* Points to concrete type *)
+TYPE typeB : typeA; END_TYPE     (* Points to another alias, but ultimately resolves to DINT *)
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>
@@ -1352,7 +1422,7 @@ To achieve this, the called function must be defined in a <code>C</code> compati
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <p>When including multiple header files/function interfaces, the <code>-i</code> flag must precede each individual file, e.g. <code>-i file1.st -i file2.st -i file3.st</code>. Alternatively, when including an entire folder with <code>-i '/liblocation/*.st'</code>, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with <code>-i</code>).</p>
-<h3 id="example-2"><a class="header" href="#example-2">Example</a></h3>
+<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
@@ -1911,7 +1981,7 @@ END_ACTION
 <p>Variable declaration blocks can be delcared as CONSTANT.
 All variables of a constant declaration block become constants.
 Constant variables can not be changed and need to be initialized.</p>
-<h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
+<h2 id="example-5"><a class="header" href="#example-5">Example</a></h2>
 <pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -1934,7 +2004,7 @@ Note that initializers must not contain recursive definitions.</p>
 <h3 id="array-initialization"><a class="header" href="#array-initialization">Array Initialization</a></h3>
 <p>Arrays can be initialized using array literals.
 If the array-initial value does not contain all required elements, the array's inner type's default value will be used to fill the missing values.</p>
-<h2 id="example-4"><a class="header" href="#example-4">Example</a></h2>
+<h2 id="example-6"><a class="header" href="#example-6">Example</a></h2>
 <pre><code class="language-iecst">TYPE SignalValue : INT := -1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -1981,7 +2051,7 @@ END_PROGRAM
 </li>
 </ul>
 <p>It is important to note that if there are pointer initializations present in your project, failing to call the initialization function in your runtime or in <code>main</code> will result in <strong>null pointer dereferences</strong> at runtime.</p>
-<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <p><em>myProject.st</em>:</p>
 <pre><code class="language-iecst">VAR_GLOBAL
     myGlobal : STRING;
@@ -2170,7 +2240,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-6"><a class="header" href="#example-6">Example</a></h3>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2199,7 +2269,7 @@ The provided varibale has to be a direct Reference variable (non Qualified).</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2326,7 +2396,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-8"><a class="header" href="#example-8">Example</a></h4>
+<h4 id="example-10"><a class="header" href="#example-10">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string

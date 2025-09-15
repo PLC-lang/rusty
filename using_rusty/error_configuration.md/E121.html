@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>E029 - RuSTy User Documentation</title>
+        <title>E121 - RuSTy User Documentation</title>
 
 
         <!-- Custom HTML head -->
@@ -152,70 +152,33 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="e029-recursive-data-structure"><a class="header" href="#e029-recursive-data-structure">E029: Recursive data structure</a></h1>
-<p>This error occurs when data structures contain themselves directly or indirectly, creating infinite recursion during type resolution.</p>
+                        <h1 id="e121-recursive-type-alias"><a class="header" href="#e121-recursive-type-alias">E121: Recursive type alias</a></h1>
+<p>This error occurs when type aliases reference each other in a cycle, creating an infinite recursion.</p>
 <h2 id="example"><a class="header" href="#example">Example</a></h2>
-<pre><code class="language-st">TYPE MyStruct : STRUCT
-    value : INT;
-    nested : MyStruct;  (* This creates infinite recursion *)
-END_STRUCT; END_TYPE
+<pre><code class="language-st">TYPE type1 : type2; END_TYPE
+TYPE type2 : type1; END_TYPE
 </code></pre>
-<p>In this example, <code>MyStruct</code> contains a field of type <code>MyStruct</code>, which would require infinite memory to represent.</p>
-<h2 id="another-example---indirect-recursion"><a class="header" href="#another-example---indirect-recursion">Another example - indirect recursion</a></h2>
-<pre><code class="language-st">TYPE StructA : STRUCT
-    data : INT;
-    ref_b : StructB;
-END_STRUCT; END_TYPE
-
-TYPE StructB : STRUCT
-    info : STRING;
-    ref_a : StructA;  (* Creates a cycle: StructA -&gt; StructB -&gt; StructA *)
-END_STRUCT; END_TYPE
+<p>In this example, <code>type1</code> is defined as <code>type2</code>, which is in turn defined as <code>type1</code>, creating a circular dependency.</p>
+<h2 id="another-example"><a class="header" href="#another-example">Another example</a></h2>
+<pre><code class="language-st">TYPE self_type : self_type; END_TYPE
 </code></pre>
-<p>This shows two structures that reference each other, creating a circular dependency.</p>
-<h2 id="valid-self-referential-structures-with-pointers"><a class="header" href="#valid-self-referential-structures-with-pointers">Valid self-referential structures with pointers</a></h2>
-<p>Self-referential data structures are allowed when using references or pointers, as these have fixed size:</p>
-<pre><code class="language-st">(* Tree node structure *)
-TYPE TreeNode : STRUCT
-    value : INT;
-    left : REF_TO TreeNode;   (* Pointer to left child *)
-    right : REF_TO TreeNode;  (* Pointer to right child *)
-END_STRUCT; END_TYPE
-
-(* Linked list node *)
-TYPE ListNode : STRUCT
-    data : STRING;
-    next : REF_TO ListNode;   (* Pointer to next node *)
-END_STRUCT; END_TYPE
-</code></pre>
+<p>This shows a type alias that directly references itself.</p>
 <h2 id="how-to-fix"><a class="header" href="#how-to-fix">How to fix</a></h2>
-<p><strong>Use references or pointers for self-referential structures</strong></p>
-<p>Break the infinite recursion by using <code>REF_TO</code> for recursive references:</p>
-<pre><code class="language-st">TYPE Node : STRUCT
-    value : INT;
-    child : REF_TO Node;  (* Use REF_TO instead of direct inclusion *)
-END_STRUCT; END_TYPE
-</code></pre>
-<p><strong>Restructure circular dependencies</strong></p>
-<p>For mutually recursive structures, consider using references or redesigning the data structure:</p>
-<pre><code class="language-st">TYPE PersonID : DINT; END_TYPE
-
-TYPE Person : STRUCT
-    name : STRING;
-    manager_id : PersonID;    (* Reference by ID instead of direct inclusion *)
-    reports : ARRAY[0..9] OF PersonID;
-END_STRUCT; END_TYPE
+<p><strong>Break the chain by resolving to concrete types</strong></p>
+<p>Break the circular dependency by ensuring that type aliases eventually resolve to concrete types:</p>
+<pre><code class="language-st">TYPE typeA : DINT; END_TYPE      (* Points to concrete type *)
+TYPE typeB : typeA; END_TYPE     (* Points to another alias, but ultimately resolves to DINT *)
 </code></pre>
 
                     </main>
 
                     <nav class="nav-wrapper" aria-label="Page navigation">
                         <!-- Mobile navigation buttons -->
-                            <a rel="prev" href="../../using_rusty/error_configuration.md/E028.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                            <a rel="prev" href="../../using_rusty/error_configuration.md/E120.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                                 <i class="fa fa-angle-left"></i>
                             </a>
 
-                            <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E030.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                            <a rel="next prefetch" href="../../libraries.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                                 <i class="fa fa-angle-right"></i>
                             </a>
 
@@ -225,11 +188,11 @@ END_STRUCT; END_TYPE
             </div>
 
             <nav class="nav-wide-wrapper" aria-label="Page navigation">
-                    <a rel="prev" href="../../using_rusty/error_configuration.md/E028.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                    <a rel="prev" href="../../using_rusty/error_configuration.md/E120.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
                         <i class="fa fa-angle-left"></i>
                     </a>
 
-                    <a rel="next prefetch" href="../../using_rusty/error_configuration.md/E030.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                    <a rel="next prefetch" href="../../libraries.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
                         <i class="fa fa-angle-right"></i>
                     </a>
             </nav>
