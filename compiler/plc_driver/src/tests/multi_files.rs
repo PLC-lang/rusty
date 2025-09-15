@@ -119,6 +119,7 @@ fn multiple_files_in_different_locations_with_debug_info() {
 }
 
 #[test]
+#[ignore = "TODO: Works as a lit test but not in here because `compile_with_root` does not register any participants"]
 fn forward_declared_constant_is_also_marked_constant() {
     // GIVEN 2 sources, one with a forward declaration of a constant
     // and the other with the definition of that constant.
@@ -159,7 +160,7 @@ fn forward_declared_constant_is_also_marked_constant() {
     let results = compile_with_root(vec![src1, src2], vec![], "root", DebugLevel::Full(5)).unwrap();
 
     // THEN the constant is marked as constant in the generated code
-    filtered_assert_snapshot!(results.join("\n"), @r###"
+    filtered_assert_snapshot!(results.join("\n"), @r#"
     ; ModuleID = 'external_file1.st'
     source_filename = "external_file1.st"
     target datalayout = "[filtered]"
@@ -194,7 +195,7 @@ fn forward_declared_constant_is_also_marked_constant() {
 
     declare void @__init_foo(%foo*)
 
-    declare !dbg !24 void @__user_init_foo(%foo*)
+    declare void @__user_init_foo(%foo*)
 
     declare !dbg !30 void @mainProg(%mainProg*)
 
@@ -381,5 +382,5 @@ fn forward_declared_constant_is_also_marked_constant() {
     declare void @mainProg(%mainProg*)
 
     declare void @__user_init_mainProg(%mainProg*)
-    "###);
+    "#);
 }

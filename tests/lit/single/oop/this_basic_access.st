@@ -36,5 +36,6 @@ FUNCTION main : INT
 VAR
     inst : fb;
 END_VAR
+
     inst();
 END_FUNCTION
