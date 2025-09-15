@@ -1080,7 +1080,13 @@
 <a href="#1079" id="1079">1079</a>
 <a href="#1080" id="1080">1080</a>
 <a href="#1081" id="1081">1081</a>
-<a href="#1082" id="1082">1082</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
+<a href="#1082" id="1082">1082</a>
+<a href="#1083" id="1083">1083</a>
+<a href="#1084" id="1084">1084</a>
+<a href="#1085" id="1085">1085</a>
+<a href="#1086" id="1086">1086</a>
+<a href="#1087" id="1087">1087</a>
+<a href="#1088" id="1088">1088</a></pre></div><pre class="rust"><code><span class="kw">use </span>std::{ops::Range, path::Path};
 
 <span class="kw">use </span>inkwell::{
     basic_block::BasicBlock,
@@ -1813,6 +1819,7 @@
                 .map(|llvm_type| <span class="self">self</span>.target_data.get_bit_size(<span class="kw-2">&amp;</span>llvm_type))
                 .unwrap_or(<span class="number">0</span>);
             <span class="kw">let </span>location = <span class="kw-2">&amp;</span>datatype.location;
+            <span class="macro">log::trace!</span>(<span class="string">"Creating debug info for type {name} with size {size} and info {type_info:?}"</span>);
             <span class="kw">match </span>type_info {
                 DataTypeInformation::Struct { members, .. } =&gt; {
                     <span class="self">self</span>.create_struct_type(name, members.as_slice(), location, index, types_index)
@@ -1846,13 +1853,18 @@
                     <span class="self">self</span>.create_string_type(name, length, <span class="kw-2">*</span>encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
-                | DataTypeInformation::Enum { name, referenced_type, .. } =&gt; {
+                | DataTypeInformation::Enum { name, referenced_type, .. }
+                | DataTypeInformation::SubRange { name, referenced_type, .. } =&gt; {
                     <span class="self">self</span>.create_typedef_type(name, referenced_type, location, index, types_index)
                 }
                 <span class="comment">// Other types are just derived basic types
-                </span><span class="kw">_ </span>=&gt; <span class="prelude-val">Ok</span>(()),
+                </span><span class="kw">_ </span>=&gt; {
+                    <span class="macro">log::debug!</span>(<span class="string">"Type {name} has unsupported debug info generation for {type_info:?}"</span>);
+                    <span class="prelude-val">Ok</span>(())
+                }
             }
         } <span class="kw">else </span>{
+            <span class="macro">log::trace!</span>(<span class="string">"Type {name} already has debug info"</span>);
             <span class="prelude-val">Ok</span>(())
         }
     }
