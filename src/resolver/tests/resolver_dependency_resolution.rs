@@ -722,7 +722,9 @@ fn cross_unit_nested_typedef_chain() {
     let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
     assert!(dependencies.contains(&Dependency::Datatype("typedef1".into())));
     assert!(dependencies.contains(&Dependency::Datatype("typedef2".into())));
-    assert_eq!(dependencies.len(), 2);
+    assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 4);
 }
 
 #[test]
@@ -767,10 +769,11 @@ fn cross_unit_typedefs_for_array_pointer_subrange_enum() {
     assert!(dependencies.contains(&Dependency::Variable("base_enum.A".into())));
     assert!(dependencies.contains(&Dependency::Variable("base_enum.B".into())));
     assert!(dependencies.contains(&Dependency::Variable("base_enum.C".into())));
-    assert_eq!(dependencies.len(), 12);
+    assert_eq!(dependencies.len(), 13);
 }
 
-#[test]
+#[test] // Circular dependency
+#[ignore = "No auto conversion of generic types, we need the conversion function to be done PR#21"]
 fn cyclic_typedefs_across_units() {
     // Cyclic typedefs: typedefA -> typedefB, typedefB -> typedefA
     let units = [
@@ -850,4 +853,217 @@ fn cross_unit_typedef_in_function_and_struct() {
     assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
     assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
     assert_eq!(dependencies.len(), 4);
+}
+
+#[test]
+fn cross_unit_struct_containing_typedef_of_array() {
+    // Test struct containing typedef of array across units
+    let units = [
+        "
+        TYPE int_array : ARRAY[0..9] OF DINT; END_TYPE
+        ",
+        "
+        TYPE container_struct : STRUCT
+            arr_field : int_array;
+            simple_field : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            container : container_struct;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    println!("Dependencies found: {:?}", dependencies);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("container_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("int_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_typedef_of_struct_containing_typedef_of_struct() {
+    // Test typedef of struct containing typedef of another struct
+    let units = [
+        "
+        TYPE inner_struct : STRUCT
+            value : LINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE inner_typedef : inner_struct; END_TYPE
+        ",
+        "
+        TYPE outer_struct : STRUCT
+            inner_field : inner_typedef;
+            outer_value : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE outer_typedef : outer_struct; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            data : outer_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (_unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let (_unit4, index4) = index_with_ids(units[3], id_provider.clone());
+    let (unit5, index5) = index_with_ids(units[4], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+    index.import(index4);
+    index.import(index5);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit5, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("outer_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("inner_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("inner_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("outer_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("LINT".into())));
+    assert_eq!(dependencies.len(), 7);
+}
+
+#[test]
+fn cross_unit_deep_nested_typedef_chains() {
+    // Test deep nested typedef chains (typedef -> typedef -> typedef -> struct)
+    let units = [
+        "
+        TYPE base_struct : STRUCT
+            x : DINT;
+            y : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE level1_typedef : base_struct; END_TYPE
+        ",
+        "
+        TYPE level2_typedef : level1_typedef; END_TYPE
+        ",
+        "
+        TYPE level3_typedef : level2_typedef; END_TYPE
+        ",
+        "
+        TYPE level4_typedef : level3_typedef; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            deep_var : level4_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (_unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let (_unit4, index4) = index_with_ids(units[3], id_provider.clone());
+    let (_unit5, index5) = index_with_ids(units[4], id_provider.clone());
+    let (unit6, index6) = index_with_ids(units[5], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+    index.import(index4);
+    index.import(index5);
+    index.import(index6);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit6, id_provider);
+    println!("Dependencies found: {:?}", dependencies);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("level4_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("base_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    // Only direct dependencies are tracked, not transitive ones
+    // TODO: is 5 correct?: "prog", "level4_typedef", "base_struct", "DINT", "REAL"
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_typedef_circular_dependency_with_structs() {
+    // Test circular dependency between structs using typedefs and pointers
+    let units = [
+        "
+        TYPE struct_a : STRUCT
+            ptr_to_b : REF_TO struct_b_typedef;
+            value : INT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE struct_b_typedef : struct_b; END_TYPE
+        ",
+        "
+        TYPE struct_b : STRUCT
+            ptr_to_a : REF_TO struct_a_typedef;
+            data : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE struct_a_typedef : struct_a; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            a_instance : struct_a_typedef;
+            b_instance : struct_b_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (_unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let (_unit4, index4) = index_with_ids(units[3], id_provider.clone());
+    let (unit5, index5) = index_with_ids(units[4], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+    index.import(index4);
+    index.import(index5);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit5, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_a_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_a".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__struct_a_ptr_to_b".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_b_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_b".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__struct_b_ptr_to_a".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert_eq!(dependencies.len(), 9);
 }

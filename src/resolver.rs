@@ -1645,7 +1645,8 @@ impl<'i> TypeAnnotator<'i> {
                         self.update_expected_types(expected_type, bounds);
                     }
                 }
-                self.dependencies.insert(Dependency::Datatype(referenced_type.to_string()));
+                self.dependencies
+                    .extend(self.get_datatype_dependencies(referenced_type, FxIndexSet::default()));
             }
             DataType::EnumType { elements, name, .. } => {
                 let ctx = name.as_ref().map(|n| ctx.with_lhs(n)).unwrap_or(ctx.clone());
