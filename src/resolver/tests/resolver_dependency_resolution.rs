@@ -1067,3 +1067,407 @@ fn cross_unit_typedef_circular_dependency_with_structs() {
     assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
     assert_eq!(dependencies.len(), 9);
 }
+
+#[test]
+fn cross_unit_array_of_typedef_of_struct() {
+    // Test array of typedef of struct across units
+    let units = [
+        "
+        TYPE mystruct : STRUCT
+            x : DINT;
+            y : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE struct_typedef : mystruct; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            arr : ARRAY[0..4] OF struct_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__prog_arr".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert_eq!(dependencies.len(), 6);
+}
+
+#[test]
+fn cross_unit_array_of_typedef_of_array() {
+    // Test array of typedef of array across units
+    let units = [
+        "
+        TYPE inner_array : ARRAY[0..2] OF DINT; END_TYPE
+        ",
+        "
+        TYPE array_typedef : inner_array; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            nested_arr : ARRAY[0..1] OF array_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__prog_nested_arr".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("array_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("inner_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_pointer_to_typedef_of_struct() {
+    // Test pointer to typedef of struct across units
+    let units = [
+        "
+        TYPE mystruct : STRUCT
+            value : LINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE struct_typedef : mystruct; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            ptr : REF_TO struct_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__prog_ptr".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("struct_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("mystruct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("LINT".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_pointer_to_typedef_of_array() {
+    // Test pointer to typedef of array across units
+    let units = [
+        "
+        TYPE int_array : ARRAY[0..9] OF INT; END_TYPE
+        ",
+        "
+        TYPE array_typedef : int_array; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            arr_ptr : REF_TO array_typedef;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__prog_arr_ptr".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("array_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("int_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_struct_containing_array_of_typedef() {
+    // Test struct containing array of typedef across units
+    let units = [
+        "
+        TYPE simple_typedef : REAL; END_TYPE
+        ",
+        "
+        TYPE container_struct : STRUCT
+            arr_field : ARRAY[0..3] OF simple_typedef;
+            other_field : INT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            container : container_struct;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("container_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__container_struct_arr_field".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("simple_typedef".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
+    assert_eq!(dependencies.len(), 6);
+}
+
+#[test]
+fn cross_unit_typedef_of_array_of_struct() {
+    // Test typedef of array of struct across units
+    let units = [
+        "
+        TYPE point : STRUCT
+            x : DINT;
+            y : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE point_array : ARRAY[0..9] OF point; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            points : point_array;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("point_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("point".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 4);
+}
+
+#[test]
+fn cross_unit_multidimensional_array_with_typedefs() {
+    // Test multidimensional arrays with typedefs across units
+    let units = [
+        "
+        TYPE base_type : REAL; END_TYPE
+        ",
+        "
+        TYPE row_array : ARRAY[0..2] OF base_type; END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            matrix : ARRAY[0..3] OF row_array;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__prog_matrix".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("row_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("base_type".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_enum_in_struct_field() {
+    // Test enum used in struct field across units
+    let units = [
+        "
+        TYPE status_enum : (IDLE, RUNNING, ERROR) END_TYPE
+        ",
+        "
+        TYPE device_info : STRUCT
+            status : status_enum;
+            value : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            device : device_info;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("device_info".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("status_enum".into())));
+    assert!(dependencies.contains(&Dependency::Variable("status_enum.IDLE".into())));
+    assert!(dependencies.contains(&Dependency::Variable("status_enum.RUNNING".into())));
+    assert!(dependencies.contains(&Dependency::Variable("status_enum.ERROR".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 7);
+}
+
+#[test]
+fn cross_unit_subrange_in_struct_field() {
+    // Test subrange used in struct field across units
+    let units = [
+        "
+        TYPE percentage : INT(0..100) END_TYPE
+        ",
+        "
+        TYPE measurement : STRUCT
+            percent : percentage;
+            timestamp : DINT;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        PROGRAM prog
+        VAR
+            data : measurement;
+        END_VAR
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit3, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("measurement".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("percentage".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("INT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert_eq!(dependencies.len(), 5);
+}
+
+#[test]
+fn cross_unit_function_with_typedef_array_parameter() {
+    // Test function with typedef array parameter across units
+    let units = [
+        "
+        TYPE data_struct : STRUCT
+            id : DINT;
+            value : REAL;
+        END_STRUCT
+        END_TYPE
+        ",
+        "
+        TYPE data_array : ARRAY[0..9] OF data_struct; END_TYPE
+        ",
+        "
+        FUNCTION process_data : BOOL
+        VAR_INPUT
+            input_data : data_array;
+        END_VAR
+        VAR_IN_OUT
+            output_data : data_array;
+        END_VAR
+        END_FUNCTION
+        ",
+        "
+        PROGRAM prog
+            process_data();
+        END_PROGRAM
+        ",
+    ];
+
+    let id_provider = IdProvider::default();
+    let (_unit1, index1) = index_with_ids(units[0], id_provider.clone());
+    let (_unit2, index2) = index_with_ids(units[1], id_provider.clone());
+    let (_unit3, index3) = index_with_ids(units[2], id_provider.clone());
+    let (unit4, index4) = index_with_ids(units[3], id_provider.clone());
+    let mut index = index1;
+    index.import(index2);
+    index.import(index3);
+    index.import(index4);
+
+    let (_, dependencies, _) = TypeAnnotator::visit_unit(&index, &unit4, id_provider);
+    assert!(dependencies.contains(&Dependency::Datatype("prog".into())));
+    assert!(dependencies.contains(&Dependency::Call("process_data".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("process_data".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("data_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("__auto_pointer_to_data_array".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("data_struct".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("BOOL".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("DINT".into())));
+    assert!(dependencies.contains(&Dependency::Datatype("REAL".into())));
+    assert_eq!(dependencies.len(), 9);
+}
