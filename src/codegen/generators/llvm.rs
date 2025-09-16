@@ -393,3 +393,29 @@ impl<'a> Llvm<'a> {
         Ok(())
     }
 }
+
+/// Recursively gets the fundamental element type from nested arrays
+/// For example: [2 x [81 x i8]] -> i8, [3 x i32] -> i32
+pub fn get_fundamental_element_type_from_array(array_type: ArrayType) -> Result<BasicTypeEnum, String> {
+    let element_type = array_type.get_element_type();
+    if element_type.is_array_type() {
+        // Recursively get the fundamental type for nested arrays
+        get_fundamental_element_type_from_array(element_type.into_array_type())
+    } else {
+        // Found the fundamental element type
+        Ok(element_type)
+    }
+}
+
+/// Gets the fundamental element type from a pointer to nested arrays
+/// For example: [2 x [81 x i8]]* -> i8, [3 x i32]* -> i32
+pub fn get_fundamental_element_type_from_pointer(
+    pointer_value: PointerValue,
+) -> Result<BasicTypeEnum, String> {
+    let element_type = pointer_value.get_type().get_element_type();
+    if element_type.is_array_type() {
+        get_fundamental_element_type_from_array(element_type.into_array_type())
+    } else {
+        element_type.try_into().map_err(|_| "Expected basic type".to_string())
+    }
+}
