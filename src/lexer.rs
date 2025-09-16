@@ -340,6 +340,6 @@ pub fn lex_with_ids(
     source: &str,
     id_provider: IdProvider,
     location_factory: SourceLocationFactory,
-) -> ParseSession {
+) -> ParseSession<'_> {
     ParseSession::new(Token::lexer(source), id_provider, location_factory)
 }

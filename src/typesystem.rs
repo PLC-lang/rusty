@@ -433,7 +433,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: TypeId,
         referenced_type: TypeId,
-        sub_range: Range<AstNode>,
+        sub_range: Box<Range<AstNode>>,
     },
     Alias {
         name: TypeId,

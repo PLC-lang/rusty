@@ -929,7 +929,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: literal_int(7)..literal_int(1000),
+        sub_range: Box::new(literal_int(7)..literal_int(1000)),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
@@ -2188,7 +2188,7 @@ fn pou_with_two_types_not_considered_recursive() {
             METHOD x : fb
             END_METHOD
         END_PROGRAM
-        
+
         ACTION p.y
         END_ACTION",
     );
