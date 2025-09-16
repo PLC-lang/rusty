@@ -311,3 +311,54 @@ fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
     let result = codegen(src);
     filtered_assert_snapshot!(result);
 }
+
+#[test]
+fn self_referential_struct_via_reference_codegen() {
+    let result = codegen(
+        r#"
+        TYPE Node : STRUCT
+            data : DINT;
+            next : REF_TO Node;
+        END_STRUCT END_TYPE
+
+        PROGRAM main
+        VAR
+            node1 : Node;
+            node2 : Node;
+        END_VAR
+            node1.data := 42;
+            node2.data := 84;
+            node1.next := REF(node2);
+            node2.next := REF(node1);
+        END_PROGRAM
+        "#,
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { %Node, %Node }
+    %Node = type { i32, %Node* }
+
+    @main_instance = global %main zeroinitializer
+    @__Node__init = unnamed_addr constant %Node zeroinitializer
+
+    define void @main(%main* %0) {
+    entry:
+      %node1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %node2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %data = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 0
+      store i32 42, i32* %data, align 4
+      %data1 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 0
+      store i32 84, i32* %data1, align 4
+      %next = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 1
+      store %Node* %node2, %Node** %next, align 8
+      %next2 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 1
+      store %Node* %node1, %Node** %next2, align 8
+      ret void
+    }
+    "#);
+}

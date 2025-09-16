@@ -1610,3 +1610,76 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     !59 = !DILocation(line: 17, column: 4, scope: !54)
     "###)
 }
+
+#[test]
+fn range_datatype_debug() {
+    let codegen = codegen(
+        r#"
+        TYPE RangeType :
+            DINT(0..100)  := 0;
+        END_TYPE
+
+        Function main : DINT
+        VAR
+            r : RangeType;
+        END_VAR
+            r := 50;
+            main := r;
+        END_FUNCTION
+    "#,
+    );
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define i32 @main() !dbg !4 {
+    entry:
+      %main = alloca i32, align 4
+      %r = alloca i32, align 4
+      call void @llvm.dbg.declare(metadata i32* %r, metadata !8, metadata !DIExpression()), !dbg !11
+      store i32 0, i32* %r, align 4
+      call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !13
+      store i32 0, i32* %main, align 4
+      store i32 50, i32* %r, align 4, !dbg !14
+      %load_r = load i32, i32* %r, align 4, !dbg !15
+      store i32 %load_r, i32* %main, align 4, !dbg !15
+      %main_ret = load i32, i32* %main, align 4, !dbg !16
+      ret i32 %main_ret, !dbg !16
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+    !llvm.module.flags = !{!0, !1}
+    !llvm.dbg.cu = !{!2}
+
+    !0 = !{i32 2, !"Dwarf Version", i32 5}
+    !1 = !{i32 2, !"Debug Info Version", i32 3}
+    !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
+    !3 = !DIFile(filename: "<internal>", directory: "")
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
+    !6 = !{null}
+    !7 = !{}
+    !8 = !DILocalVariable(name: "r", scope: !4, file: !3, line: 8, type: !9, align: 32)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "RangeType", scope: !3, file: !3, line: 2, baseType: !10, align: 32)
+    !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !11 = !DILocation(line: 8, column: 12, scope: !4)
+    !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align: 32)
+    !13 = !DILocation(line: 6, column: 17, scope: !4)
+    !14 = !DILocation(line: 10, column: 12, scope: !4)
+    !15 = !DILocation(line: 11, column: 12, scope: !4)
+    !16 = !DILocation(line: 12, column: 8, scope: !4)
+    "#)
+}

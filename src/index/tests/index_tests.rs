@@ -2188,7 +2188,7 @@ fn pou_with_two_types_not_considered_recursive() {
             METHOD x : fb
             END_METHOD
         END_PROGRAM
-        
+
         ACTION p.y
         END_ACTION",
     );
