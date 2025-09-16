@@ -11,13 +11,13 @@ on:
 
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: latest
+  IMAGE_VERSION: 14-1.83
 
 jobs:
   metrics:
     name: Metrics
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
+    container: ghcr.io/plc-lang/rust-llvm:14-1.83
 
     steps:
     - uses: actions/checkout@v3
