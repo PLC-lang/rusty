@@ -399,9 +399,6 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
             DataTypeInformation::Alias { referenced_type, .. } => {
-                // println!("generating initial value for alias {}", referenced_type);
-                // let reference_type = self.index.get_type(&referenced_type)?;
-                // dbg!(self.generate_initial_value(reference_type))
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
             //all other types (scalars, pointer and void)
