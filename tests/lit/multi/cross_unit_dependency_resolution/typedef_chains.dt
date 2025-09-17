@@ -1,0 +1,5 @@
+TYPE struct_typedef : base_struct; END_TYPE
+
+TYPE level1_typedef : struct_typedef; END_TYPE
+
+TYPE level2_typedef : level1_typedef; END_TYPE
