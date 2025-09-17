@@ -739,7 +739,7 @@
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(initializer) = initializer_statement {
             (exp_gen.generate_expression(initializer)<span class="question-mark">?</span>, DEFAULT_ALIGNMENT)
         <span class="comment">// 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
-        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(global_variable) = llvm_index.find_global_value(<span class="kw-2">&amp;</span><span class="kw">crate</span>::index::get_initializer_name(type_name)) {
+        </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(global_variable) = llvm_index.find_global_value(<span class="kw-2">&amp;</span><span class="kw">crate</span>::index::get_initializer_name(variable_data_type.get_name())) {
             (global_variable.as_basic_value_enum(), global_variable.get_alignment())
         <span class="comment">// 4th try, see if the datatype has a default initializer
         </span>} <span class="kw">else if let </span><span class="prelude-val">Some</span>(initial_value) = llvm_index.find_associated_initial_value(type_name) {

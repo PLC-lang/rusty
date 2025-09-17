@@ -2815,7 +2815,11 @@
 <a href="#2814" id="2814">2814</a>
 <a href="#2815" id="2815">2815</a>
 <a href="#2816" id="2816">2816</a>
-<a href="#2817" id="2817">2817</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
+<a href="#2817" id="2817">2817</a>
+<a href="#2818" id="2818">2818</a>
+<a href="#2819" id="2819">2819</a>
+<a href="#2820" id="2820">2820</a>
+<a href="#2821" id="2821">2821</a></pre></div><pre class="rust"><code><span class="comment">// Copyright (c) 2021 Ghaith Hachem and Mathias Riede
 
 </span><span class="doccomment">//! Resolves (partial) expressions &amp; statements and annotates the resulting types
 //!
@@ -4455,11 +4459,15 @@
             DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(referenced_type), .. } =&gt; {
                 <span class="self">self</span>.visit_data_type_declaration(ctx, referenced_type.as_ref())
             }
-            DataType::SubRangeType { referenced_type, bounds: <span class="prelude-val">Some</span>(bounds), .. } =&gt; {
-                <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_type) = <span class="self">self</span>.index.find_effective_type_by_name(referenced_type) {
-                    <span class="self">self</span>.visit_statement(ctx, bounds);
-                    <span class="self">self</span>.update_expected_types(expected_type, bounds);
+            DataType::SubRangeType { referenced_type, bounds, .. } =&gt; {
+                <span class="kw">if let </span><span class="prelude-val">Some</span>(bounds) = bounds {
+                    <span class="kw">if let </span><span class="prelude-val">Some</span>(expected_type) = <span class="self">self</span>.index.find_effective_type_by_name(referenced_type) {
+                        <span class="self">self</span>.visit_statement(ctx, bounds);
+                        <span class="self">self</span>.update_expected_types(expected_type, bounds);
+                    }
                 }
+                <span class="self">self</span>.dependencies
+                    .extend(<span class="self">self</span>.get_datatype_dependencies(referenced_type, FxIndexSet::default()));
             }
             DataType::EnumType { elements, name, .. } =&gt; {
                 <span class="kw">let </span>ctx = name.as_ref().map(|n| ctx.with_lhs(n)).unwrap_or(ctx.clone());
