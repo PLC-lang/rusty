@@ -1,3 +1,2 @@
-// Array of typedef of struct with array - creating complex nesting
 TYPE struct_array_typedef : struct_with_array; END_TYPE
 TYPE complex_nested_array : ARRAY[0..2] OF struct_array_typedef; END_TYPE

@@ -8,15 +8,14 @@ END_TYPE
 
 TYPE matrix_type : ARRAY[0..2] OF row_array; END_TYPE
 
-// Extended nested types for complex scenarios
 TYPE typedef_nested_struct : STRUCT
-    outer_field : base_struct;  // provides .x and .y fields
-    inner : struct_with_array;  // provides .values array and .count
+    outer_field : base_struct;
+    inner : struct_with_array;
 END_STRUCT
 END_TYPE
 
 TYPE direct_nested_struct : STRUCT
-    outer_field : base_struct;  // provides .x and .y fields  
-    inner : struct_with_array;  // provides .values array and .count
+    outer_field : base_struct;
+    inner : struct_with_array;
 END_STRUCT
 END_TYPE

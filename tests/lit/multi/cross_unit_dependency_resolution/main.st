@@ -31,45 +31,37 @@ VAR
     // Deep typedef chain
     deep_var : level2_typedef;
 
-    // NEW: Array of typedef of struct of array
+    // Array of typedef of struct of array
     complex_nested : complex_nested_array;
 
-    // NEW: Typedef struct of struct
+    // Typedef struct of struct
     typedef_nested : typedef_nested_struct;
 
-    // NEW: Struct of struct
+    // Struct of struct
     direct_nested : direct_nested_struct;
 END_VAR
-    // Test array of typedef of struct
     my_struct_arr[0].x := 1337;
     my_struct_arr[0].y := 3.14;
 
-    // Test deep typedef chain
     deep_var.x := 7331;
     deep_var.y := 2.71;
 
-    // Test container with complex types
     container.arr_field[0].x := 9001;
     container.status := status_enum#RUNNING;
     container.percent := 75;
 
-    // Test multi-dimensional arrays
     matrix[0][0] := 1.23;
     matrix[1][1] := 4.56;
 
-    // Test function call
     test_function(my_struct_arr, my_struct_arr);
 
-    // Complex nested: array of typedef of struct of array
     complex_nested[0].values[0] := 42;
     complex_nested[0].count := 84;
 
-    // Typedef struct of struct
     typedef_nested.outer_field.x := 1000;
     typedef_nested.outer_field.y := 2.5;
     typedef_nested.inner.values[0] := 123;
 
-    // Direct struct of struct
     direct_nested.outer_field.x := 2000;
     direct_nested.outer_field.y := 5.0;
     direct_nested.inner.values[1] := 456;
