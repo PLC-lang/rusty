@@ -1694,23 +1694,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             .map_err(|_| Diagnostic::codegen_error("non-numeric index-access", access))
                     })?;
 
-                    // Check if this is a nested array (array of [array|string])
-                    let is_flattened_array_ptr =
-                        if let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) {
-                            matches!(
-                                inner_type.get_type_information(),
-                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
-                            )
-                        } else {
-                            false
-                        };
-
                     let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
                         // For typed array pointers (e.g.: [81 x i32]*):
                         // the first index (0) will point to the array -> [81 x i32]
                         // the second index (index_access) will point to the element in the array
                         vec![self.llvm.i32_type().const_zero(), index_access]
-                    } else if is_flattened_array_ptr {
+                    } else if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
+                        matches!(
+                            it.get_type_information(),
+                            DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
+                        )
+                    }) {
                         // For flattened array-of-array parameters (fundamental element pointer):
                         // Calculate proper stride: index * element_size
                         // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
