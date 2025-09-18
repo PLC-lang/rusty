@@ -1,0 +1,5 @@
+TYPE int_array : ARRAY[0..9] OF DINT; END_TYPE
+
+TYPE struct_array : ARRAY[0..4] OF struct_typedef; END_TYPE
+
+TYPE row_array : ARRAY[0..2] OF REAL; END_TYPE

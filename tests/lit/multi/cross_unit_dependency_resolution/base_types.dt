@@ -1,0 +1,21 @@
+TYPE base_struct : STRUCT
+    x : DINT;
+    y : REAL;
+END_STRUCT
+END_TYPE
+
+TYPE status_enum : (IDLE, RUNNING, ERROR); END_TYPE
+
+TYPE percentage : INT(0..100); END_TYPE
+
+TYPE struct_with_array : STRUCT
+    values : ARRAY[0..4] OF INT;
+    count : DINT;
+END_STRUCT
+END_TYPE
+
+TYPE inner_nested_struct : STRUCT
+    id : DINT;
+    name : ARRAY[0..15] OF CHAR;
+END_STRUCT
+END_TYPE
