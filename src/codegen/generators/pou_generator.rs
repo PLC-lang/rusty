@@ -10,7 +10,7 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        generators::llvm::get_fundamental_element_type_from_array,
+        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
     },
     index::{self, ImplementationType},
@@ -221,10 +221,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     {
                         // for by-ref array types we will generate a pointer to the fundamental element type
                         // not a pointer to array
-                        let fundamental_element_type = get_fundamental_element_type_from_array(
-                            p.into_pointer_type().get_element_type().into_array_type(),
-                        )
-                        .expect("Expected basic type");
+                        let fundamental_element_type = p
+                            .into_pointer_type()
+                            .get_element_type()
+                            .into_array_type()
+                            .into_fundamental_type();
+
                         let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
 
                         // set the new type for further codegen
@@ -247,8 +249,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                 DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => {
                                     // For arrays, get the fundamental element type
                                     let fundamental_element_type =
-                                        get_fundamental_element_type_from_array(p.into_array_type())
-                                            .expect("Expected basic type");
+                                        p.into_array_type().into_fundamental_type();
                                     fundamental_element_type
                                         .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                         .into()

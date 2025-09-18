@@ -27,7 +27,7 @@ use plc_util::convention::qualified_name;
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        generators::llvm::get_fundamental_element_type_from_pointer,
+        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
     },
@@ -1153,8 +1153,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
         if value.get_type().get_element_type().is_array_type() {
-            let fundamental_element_type =
-                get_fundamental_element_type_from_pointer(value).expect("Expected basic type");
+            let fundamental_element_type = value.into_fundamental_type();
             let res = self.llvm.builder.build_bitcast(
                 value,
                 fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
