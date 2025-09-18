@@ -2609,11 +2609,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let builder = &self.llvm.builder;
 
         // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
-
-        let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
-        else {
-            unreachable!();
+        let reference_type = match reference_annotation {
+            StatementAnnotation::Variable { resulting_type, .. } | StatementAnnotation::Value { resulting_type, .. } => {
+                resulting_type
+            },
+            _ => unreachable!()
         };
+        // let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
+        // else {
+        //     unreachable!("{access:#?} {reference:#?} is not a variable: {reference_annotation:#?}");
+        // };
 
         let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
         // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
@@ -2746,7 +2751,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
                     // vla array needs special handling
                     self.generate_element_pointer_for_vla(
-                        self.generate_expression_value(base)?,
+                        self.generate_expression_value(dbg!(base))?,
                         self.annotations.get(base).expect(""),
                         array_idx.as_ref(),
                     )
