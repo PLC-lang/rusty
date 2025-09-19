@@ -966,7 +966,7 @@ impl BuiltIn {
 }
 
 pub fn parse_built_ins(id_provider: IdProvider) -> CompilationUnit {
-    let src = BUILTIN.iter().map(|(_, it)| it.decl).collect::<Vec<&str>>().join(" ");
+    let src = BUILTIN.values().map(|it| it.decl).collect::<Vec<&str>>().join(" ");
     let mut unit = parser::parse(
         lexer::lex_with_ids(&src, id_provider.clone(), SourceLocationFactory::internal(&src)),
         LinkageType::BuiltIn,

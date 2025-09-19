@@ -274,7 +274,7 @@ fn validate_variable<T: AnnotationMap>(
             .and_then(|initial_id| context.index.get_const_expressions().find_const_expression(&initial_id))
         {
             Some(ConstExpression::Unresolvable { reason, statement }) => {
-                match reason {
+                match reason.as_ref() {
                     UnresolvableKind::Misc(reason) => validator.push_diagnostic(
                         Diagnostic::new(format!(
                             "Unresolved constant `{}` variable: {}",

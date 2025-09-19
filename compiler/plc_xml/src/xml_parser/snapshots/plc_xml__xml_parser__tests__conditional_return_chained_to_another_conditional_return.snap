@@ -4,52 +4,56 @@ expression: diagnostics
 ---
 [
     Diagnostic {
-        message: "Control statement has no connection",
-        primary_location: SourceLocation {
-            span: Block {
-                local_id: 1,
-                execution_order: Some(
-                    0,
+        inner: DiagnosticsInner {
+            message: "Control statement has no connection",
+            primary_location: SourceLocation {
+                span: Block {
+                    local_id: 1,
+                    execution_order: Some(
+                        0,
+                    ),
+                    inner_range: None,
+                },
+                file: Some(
+                    "test.cfc",
                 ),
-                inner_range: None,
             },
-            file: Some(
-                "test.cfc",
-            ),
+            secondary_locations: None,
+            error_code: "E081",
+            sub_diagnostics: [],
+            internal_error: None,
         },
-        secondary_locations: None,
-        error_code: "E081",
-        sub_diagnostics: [],
-        internal_error: None,
     },
     Diagnostic {
-        message: "Unexpected relationship between nodes",
-        primary_location: SourceLocation {
-            span: Combined(
-                [
-                    Block {
-                        local_id: 2,
-                        execution_order: Some(
-                            1,
-                        ),
-                        inner_range: None,
-                    },
-                    Block {
-                        local_id: 1,
-                        execution_order: Some(
-                            0,
-                        ),
-                        inner_range: None,
-                    },
-                ],
-            ),
-            file: Some(
-                "test.cfc",
-            ),
+        inner: DiagnosticsInner {
+            message: "Unexpected relationship between nodes",
+            primary_location: SourceLocation {
+                span: Combined(
+                    [
+                        Block {
+                            local_id: 2,
+                            execution_order: Some(
+                                1,
+                            ),
+                            inner_range: None,
+                        },
+                        Block {
+                            local_id: 1,
+                            execution_order: Some(
+                                0,
+                            ),
+                            inner_range: None,
+                        },
+                    ],
+                ),
+                file: Some(
+                    "test.cfc",
+                ),
+            },
+            secondary_locations: None,
+            error_code: "E083",
+            sub_diagnostics: [],
+            internal_error: None,
         },
-        secondary_locations: None,
-        error_code: "E083",
-        sub_diagnostics: [],
-        internal_error: None,
     },
 ]

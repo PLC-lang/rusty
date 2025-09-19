@@ -335,244 +335,280 @@ fn pointer_to_validates_assignment_when_not_dealing_with_memory_address_in_body(
         .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
         .collect::<Vec<_>>();
 
-    insta::assert_debug_snapshot!(filtered_diagnostics, @r###"
+    insta::assert_debug_snapshot!(filtered_diagnostics, @r#"
     [
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(46:8 - 46:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(46:8 - 46:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO INT'",
-            primary_location: SourceLocation {
-                span: Range(47:8 - 47:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO INT'",
+                primary_location: SourceLocation {
+                    span: Range(47:8 - 47:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO REAL'",
-            primary_location: SourceLocation {
-                span: Range(48:8 - 48:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO REAL'",
+                primary_location: SourceLocation {
+                    span: Range(48:8 - 48:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME'",
-            primary_location: SourceLocation {
-                span: Range(49:8 - 49:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME'",
+                primary_location: SourceLocation {
+                    span: Range(49:8 - 49:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME_OF_DAY'",
-            primary_location: SourceLocation {
-                span: Range(50:8 - 50:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO TIME_OF_DAY'",
+                primary_location: SourceLocation {
+                    span: Range(50:8 - 50:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO DATE'",
-            primary_location: SourceLocation {
-                span: Range(51:8 - 51:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO DATE'",
+                primary_location: SourceLocation {
+                    span: Range(51:8 - 51:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position1D'",
-            primary_location: SourceLocation {
-                span: Range(52:8 - 52:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position1D'",
+                primary_location: SourceLocation {
+                    span: Range(52:8 - 52:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position2D'",
-            primary_location: SourceLocation {
-                span: Range(53:8 - 53:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position2D'",
+                primary_location: SourceLocation {
+                    span: Range(53:8 - 53:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position3D'",
-            primary_location: SourceLocation {
-                span: Range(54:8 - 54:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'POINTER TO Position3D'",
+                primary_location: SourceLocation {
+                    span: Range(54:8 - 54:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(56:8 - 56:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(56:8 - 56:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO INT'",
-            primary_location: SourceLocation {
-                span: Range(57:8 - 57:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO INT'",
+                primary_location: SourceLocation {
+                    span: Range(57:8 - 57:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO REAL'",
-            primary_location: SourceLocation {
-                span: Range(58:8 - 58:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO REAL'",
+                primary_location: SourceLocation {
+                    span: Range(58:8 - 58:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME'",
-            primary_location: SourceLocation {
-                span: Range(59:8 - 59:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME'",
+                primary_location: SourceLocation {
+                    span: Range(59:8 - 59:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME_OF_DAY'",
-            primary_location: SourceLocation {
-                span: Range(60:8 - 60:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO TIME_OF_DAY'",
+                primary_location: SourceLocation {
+                    span: Range(60:8 - 60:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO DATE'",
-            primary_location: SourceLocation {
-                span: Range(61:8 - 61:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO DATE'",
+                primary_location: SourceLocation {
+                    span: Range(61:8 - 61:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position1D'",
-            primary_location: SourceLocation {
-                span: Range(62:8 - 62:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position1D'",
+                primary_location: SourceLocation {
+                    span: Range(62:8 - 62:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position2D'",
-            primary_location: SourceLocation {
-                span: Range(63:8 - 63:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position2D'",
+                primary_location: SourceLocation {
+                    span: Range(63:8 - 63:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position3D'",
-            primary_location: SourceLocation {
-                span: Range(64:8 - 64:28),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'STRING' to 'REF_TO Position3D'",
+                primary_location: SourceLocation {
+                    span: Range(64:8 - 64:28),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -694,138 +730,158 @@ fn pointer_to_validates_assignment_of_non_pointer_sized_integers() {
         .filter(|diagnostic| !matches!(diagnostic.error_code, "E015" | "E065"))
         .collect::<Vec<_>>();
 
-    insta::assert_debug_snapshot!(filtered_diagnostics, @r###"
+    insta::assert_debug_snapshot!(filtered_diagnostics, @r#"
     [
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'SINT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(28:8 - 28:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'SINT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(28:8 - 28:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'USINT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(29:8 - 29:24),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'USINT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(29:8 - 29:24),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'BYTE' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(30:8 - 30:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'BYTE' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(30:8 - 30:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'INT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(31:8 - 31:22),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'INT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(31:8 - 31:22),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'UINT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(32:8 - 32:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'UINT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(32:8 - 32:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'WORD' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(33:8 - 33:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'WORD' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(33:8 - 33:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'DINT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(34:8 - 34:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'DINT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(34:8 - 34:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'UDINT' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(35:8 - 35:24),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'UDINT' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(35:8 - 35:24),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'DWORD' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(36:8 - 36:24),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'DWORD' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(36:8 - 36:24),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
         Diagnostic {
-            message: "Invalid assignment: cannot assign 'REAL' to 'POINTER TO STRING'",
-            primary_location: SourceLocation {
-                span: Range(38:8 - 38:23),
-                file: Some(
-                    "<internal>",
-                ),
+            inner: DiagnosticsInner {
+                message: "Invalid assignment: cannot assign 'REAL' to 'POINTER TO STRING'",
+                primary_location: SourceLocation {
+                    span: Range(38:8 - 38:23),
+                    file: Some(
+                        "<internal>",
+                    ),
+                },
+                secondary_locations: None,
+                error_code: "E037",
+                sub_diagnostics: [],
+                internal_error: None,
             },
-            secondary_locations: None,
-            error_code: "E037",
-            sub_diagnostics: [],
-            internal_error: None,
         },
     ]
-    "###);
+    "#);
 }

@@ -1,4 +1,5 @@
-FROM ghcr.io/plc-lang/rust-llvm:latest
+ARG RUST_LLVM_VERSION=latest
+FROM ghcr.io/plc-lang/rust-llvm:${RUST_LLVM_VERSION}
 
 # Allow invoking `plc` from anywhere
 ENV PLCLOC="/opt/rusty"

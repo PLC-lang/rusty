@@ -4,20 +4,22 @@ expression: diagnostics
 ---
 [
     Diagnostic {
-        message: "Source 's1' is not connected.",
-        primary_location: SourceLocation {
-            span: Block {
-                local_id: 1,
-                execution_order: None,
-                inner_range: None,
+        inner: DiagnosticsInner {
+            message: "Source 's1' is not connected.",
+            primary_location: SourceLocation {
+                span: Block {
+                    local_id: 1,
+                    execution_order: None,
+                    inner_range: None,
+                },
+                file: Some(
+                    "test",
+                ),
             },
-            file: Some(
-                "test",
-            ),
+            secondary_locations: None,
+            error_code: "E084",
+            sub_diagnostics: [],
+            internal_error: None,
         },
-        secondary_locations: None,
-        error_code: "E084",
-        sub_diagnostics: [],
-        internal_error: None,
     },
 ]

@@ -584,7 +584,7 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         implementation_start: usize,
-    ) -> DISubprogram {
+    ) -> DISubprogram<'_> {
         let location = pou.get_location();
         let file = location
             .get_file_name()

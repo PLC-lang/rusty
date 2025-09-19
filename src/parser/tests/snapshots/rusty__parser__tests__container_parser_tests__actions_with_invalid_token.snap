@@ -3,12 +3,14 @@ source: src/parser/tests/container_parser_tests.rs
 expression: errors.first().unwrap()
 ---
 Diagnostic {
-    message: "Unexpected token: expected KeywordAction but found BRAVO",
-    primary_location: SourceLocation {
-        span: Range(0:13 - 0:18),
+    inner: DiagnosticsInner {
+        message: "Unexpected token: expected KeywordAction but found BRAVO",
+        primary_location: SourceLocation {
+            span: Range(0:13 - 0:18),
+        },
+        secondary_locations: None,
+        error_code: "E007",
+        sub_diagnostics: [],
+        internal_error: None,
     },
-    secondary_locations: None,
-    error_code: "E007",
-    sub_diagnostics: [],
-    internal_error: None,
 }

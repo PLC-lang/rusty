@@ -1,5 +1,5 @@
-# FROM mcr.microsoft.com/vscode/devcontainers/rust:latest
-FROM ghcr.io/plc-lang/rust-llvm:latest
+ARG RUST_LLVM_VERSION=latest
+FROM ghcr.io/plc-lang/rust-llvm:${RUST_LLVM_VERSION}
 
 # Avoid warnings by switching to noninteractive
 ENV DEBIAN_FRONTEND=noninteractive

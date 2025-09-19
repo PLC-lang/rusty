@@ -129,7 +129,7 @@ fn inline_enum_declaration_can_be_parsed() {
     let v = Variable {
         name: "my_enum".to_string(),
         data_type_declaration: DataTypeDeclaration::Definition {
-            data_type: DataType::EnumType {
+            data_type: Box::new(DataType::EnumType {
                 name: None,
                 numeric_type: DINT_TYPE.to_string(),
                 elements: AstFactory::create_expression_list(
@@ -137,7 +137,7 @@ fn inline_enum_declaration_can_be_parsed() {
                     SourceLocation::internal(),
                     0,
                 ),
-            },
+            }),
             location: SourceLocation::internal(),
             scope: None,
         },

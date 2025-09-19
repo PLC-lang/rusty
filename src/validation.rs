@@ -153,14 +153,13 @@ impl<'a> Validator<'a> {
         // Find and report const-expressions that would overflow
         for it in index.get_const_expressions().into_iter() {
             let Some(expr) = index.get_const_expressions().find_const_expression(&it.0) else { continue };
-            let ConstExpression::Unresolvable {
-                reason: UnresolvableKind::Overflow(reason, location), ..
-            } = expr
-            else {
-                continue;
+            if let ConstExpression::Unresolvable { reason, .. } = expr {
+                if let UnresolvableKind::Overflow(reason, location) = reason.as_ref() {
+                    self.push_diagnostic(
+                        Diagnostic::new(reason).with_error_code("E039").with_location(location),
+                    );
+                }
             };
-
-            self.push_diagnostic(Diagnostic::new(reason).with_error_code("E039").with_location(location));
         }
     }
 

@@ -196,20 +196,21 @@ impl<'i> PouIndexer<'i> {
 
         for block in &pou.variable_blocks {
             for var in &block.variables {
-                let varargs = if let DataTypeDeclaration::Definition {
-                    data_type: ast::DataType::VarArgs { referenced_type, sized },
-                    ..
-                } = &var.data_type_declaration
-                {
-                    let name = referenced_type
-                        .as_ref()
-                        .map(|it| &**it)
-                        .and_then(DataTypeDeclaration::get_name)
-                        .map(|it| it.to_string());
-                    Some(if *sized { VarArgs::Sized(name) } else { VarArgs::Unsized(name) })
-                } else {
-                    None
-                };
+                let varargs =
+                    if let DataTypeDeclaration::Definition { data_type, .. } = &var.data_type_declaration {
+                        if let ast::DataType::VarArgs { referenced_type, sized } = data_type.as_ref() {
+                            let name = referenced_type
+                                .as_ref()
+                                .map(|it| &**it)
+                                .and_then(DataTypeDeclaration::get_name)
+                                .map(|it| it.to_string());
+                            Some(if *sized { VarArgs::Sized(name) } else { VarArgs::Unsized(name) })
+                        } else {
+                            None
+                        }
+                    } else {
+                        None
+                    };
 
                 if varargs.is_some() {
                     member_varargs.clone_from(&varargs);

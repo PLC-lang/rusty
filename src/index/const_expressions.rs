@@ -44,7 +44,7 @@ pub enum ConstExpression {
     Resolved(AstNode),
     Unresolvable {
         statement: AstNode,
-        reason: UnresolvableKind,
+        reason: Box<UnresolvableKind>,
     },
 }
 
@@ -78,6 +78,14 @@ impl ConstExpression {
         matches!(self, ConstExpression::Resolved(_))
     }
 
+    pub fn is_unresolvable(&self) -> bool {
+        matches!(self, ConstExpression::Unresolvable { .. })
+    }
+
+    pub fn is_address_unresolvable(&self) -> bool {
+        matches!(self, ConstExpression::Unresolvable { reason, .. } if reason.is_unresolvable_address())
+    }
+
     pub(crate) fn is_default(&self) -> bool {
         self.get_statement().is_default_value()
     }
@@ -87,7 +95,7 @@ impl ConstExpression {
 /// therefore not resolvable before the codegen stage
 #[derive(Debug, PartialEq, Clone)]
 pub struct InitData {
-    pub initializer: Option<AstNode>,
+    pub initializer: Box<Option<AstNode>>,
     pub target_type_name: Option<String>,
     pub scope: Option<String>,
     pub lhs: Option<String>,
@@ -101,7 +109,7 @@ impl InitData {
         target: Option<&str>,
     ) -> Self {
         InitData {
-            initializer: initializer.cloned(),
+            initializer: Box::new(initializer.cloned()),
             target_type_name: target_type.map(|it| it.into()),
             scope: scope.map(|it| it.into()),
             lhs: target.map(|it| it.into()),
@@ -135,6 +143,10 @@ impl UnresolvableKind {
 
     pub fn is_overflow(&self) -> bool {
         matches!(self, UnresolvableKind::Overflow(..))
+    }
+
+    pub fn is_unresolvable_address(&self) -> bool {
+        matches!(self, UnresolvableKind::Address { .. })
     }
 }
 
@@ -218,7 +230,10 @@ impl ConstExpressions {
             .get_mut(*id)
             .ok_or_else(|| format!("Cannot find constant expression with id: {id:?}"))?;
 
-        wrapper.expr = ConstExpression::Unresolvable { statement: wrapper.get_statement().clone(), reason };
+        wrapper.expr = ConstExpression::Unresolvable {
+            statement: wrapper.get_statement().clone(),
+            reason: Box::new(reason),
+        };
 
         Ok(())
     }

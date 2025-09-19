@@ -52,7 +52,7 @@ pub fn get_st_file(name: &str) -> SourceCode {
 
 /// Compiles code with all native functions included
 /// Should be updated for each native function we add
-pub fn compile_with_native<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule {
+pub fn compile_with_native<T: Compilable>(context: &CodegenContext, source: T) -> GeneratedModule<'_> {
     let functions = vec![
         ("ROUND__REAL", iec61131std::numerical_functions::ROUND__REAL as usize),
         ("ROUND__LREAL", iec61131std::numerical_functions::ROUND__LREAL as usize),

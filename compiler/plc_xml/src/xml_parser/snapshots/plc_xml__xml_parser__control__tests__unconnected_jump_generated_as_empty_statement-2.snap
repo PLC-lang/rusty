@@ -4,22 +4,24 @@ expression: diagnostics
 ---
 [
     Diagnostic {
-        message: "Control statement has no connection",
-        primary_location: SourceLocation {
-            span: Block {
-                local_id: 2,
-                execution_order: Some(
-                    1,
+        inner: DiagnosticsInner {
+            message: "Control statement has no connection",
+            primary_location: SourceLocation {
+                span: Block {
+                    local_id: 2,
+                    execution_order: Some(
+                        1,
+                    ),
+                    inner_range: None,
+                },
+                file: Some(
+                    "<internal>",
                 ),
-                inner_range: None,
             },
-            file: Some(
-                "<internal>",
-            ),
+            secondary_locations: None,
+            error_code: "E081",
+            sub_diagnostics: [],
+            internal_error: None,
         },
-        secondary_locations: None,
-        error_code: "E081",
-        sub_diagnostics: [],
-        internal_error: None,
     },
 ]
