@@ -637,7 +637,7 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::Reference { .. } => Some(self.clone()),
 
             DataTypeDeclaration::Definition { data_type, .. } => {
-                if let DataType::PointerType { referenced_type, .. } = &**data_type {
+                if let DataType::PointerType { referenced_type, .. } = data_type.as_ref() {
                     return referenced_type.get_inner_pointer_ty();
                 }
 

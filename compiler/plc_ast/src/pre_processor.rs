@@ -328,7 +328,7 @@ fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
     match datatype {
         DataTypeDeclaration::Reference { .. } | DataTypeDeclaration::Aggregate { .. } => false,
         DataTypeDeclaration::Definition { data_type, .. }
-            if matches!(**data_type, DataType::VarArgs { .. }) =>
+            if matches!(data_type.as_ref(), DataType::VarArgs { .. }) =>
         {
             false
         }
