@@ -18,7 +18,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/${CONTAINER_NAME}:${CONTAINER_VERSION}
+    container: ghcr.io/plc-lang/$CONTAINER_NAME:$CONTAINER_VERSION
     steps:
       - uses: actions/checkout@v3
 
@@ -29,7 +29,7 @@ jobs:
   test-linux:
     name: Test Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/${CONTAINER_NAME}:${CONTAINER_VERSION}
+    container: ghcr.io/plc-lang/$CONTAINER_NAME:$CONTAINER_VERSION
     steps:
       - uses: actions/checkout@v3
 
@@ -42,7 +42,7 @@ jobs:
   package-linux:
     name: Package Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/${CONTAINER_NAME}:${CONTAINER_VERSION}
+    container: ghcr.io/plc-lang/$CONTAINER_NAME:$CONTAINER_VERSION
     steps:
       - uses: actions/checkout@v3
 
