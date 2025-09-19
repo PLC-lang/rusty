@@ -2383,17 +2383,23 @@ impl<'i> TypeAnnotator<'i> {
                     AstLiteral::Real(value) => {
                         log::trace!("Annotate real literal {statement:?} with value {value}");
                         // Check if we have context about the expected type (from variable declaration)
-                        if let Some(lhs_type) = ctx.lhs.as_ref()
-                            .and_then(|lhs| self.index.find_effective_type_by_name(lhs))
+                        if let Some(lhs_type) =
+                            ctx.lhs.as_ref().and_then(|lhs| self.index.find_effective_type_by_name(lhs))
                         {
                             if lhs_type.get_type_information().is_float() {
                                 log::trace!("Using expected type from context: {}", lhs_type.get_name());
                                 self.annotate(statement, StatementAnnotation::value(lhs_type.get_name()));
                             } else {
-                                self.annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
+                                self.annotate(
+                                    statement,
+                                    StatementAnnotation::value(get_real_type_name_for(value)),
+                                );
                             }
                         } else {
-                            self.annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
+                            self.annotate(
+                                statement,
+                                StatementAnnotation::value(get_real_type_name_for(value)),
+                            );
                         }
                     }
                     AstLiteral::Array(Array { elements: Some(elements), .. }) => {
