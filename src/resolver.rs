@@ -1638,11 +1638,15 @@ impl<'i> TypeAnnotator<'i> {
             DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {
                 self.visit_data_type_declaration(ctx, referenced_type.as_ref())
             }
-            DataType::SubRangeType { referenced_type, bounds: Some(bounds), .. } => {
-                if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
-                    self.visit_statement(ctx, bounds);
-                    self.update_expected_types(expected_type, bounds);
+            DataType::SubRangeType { referenced_type, bounds, .. } => {
+                if let Some(bounds) = bounds {
+                    if let Some(expected_type) = self.index.find_effective_type_by_name(referenced_type) {
+                        self.visit_statement(ctx, bounds);
+                        self.update_expected_types(expected_type, bounds);
+                    }
                 }
+                self.dependencies
+                    .extend(self.get_datatype_dependencies(referenced_type, FxIndexSet::default()));
             }
             DataType::EnumType { elements, name, .. } => {
                 let ctx = name.as_ref().map(|n| ctx.with_lhs(n)).unwrap_or(ctx.clone());
