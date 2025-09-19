@@ -17,7 +17,7 @@ jobs:
   metrics:
     name: Metrics
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/$IMAGE_NAME:$IMAGE_VERSION
+    container: ghcr.io/plc-lang/rust-llvm:latest
 
     steps:
     - uses: actions/checkout@v3

@@ -9,15 +9,11 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: latest
-
 jobs:
   lit-linux-debug:
     name: lit tests (Linux, debug build)
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/$IMAGE_NAME:$IMAGE_VERSION
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
@@ -29,7 +25,7 @@ jobs:
   lit-linux-release:
     name: lit tests (Linux, release build)
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/$IMAGE_NAME:$IMAGE_VERSION
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
