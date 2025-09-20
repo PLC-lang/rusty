@@ -1,8 +1,7 @@
 {
     "name": "Rust",
     "build": {
-        "dockerfile": "./Dockerfile"
-        "args": { "CONTAINER_VERSION": "14-1.90" }
+        "dockerfile": "./Dockerfile",
     },
     // "image": "ghcr.io/plc-lang/rust-llvm:latest",
     "features": {
