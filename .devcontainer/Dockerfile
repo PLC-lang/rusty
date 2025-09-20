@@ -1,4 +1,3 @@
-# FROM mcr.microsoft.com/vscode/devcontainers/rust:latest
 ARG LLVM_VER=14
 ARG RUST_VER=1.90
 ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER

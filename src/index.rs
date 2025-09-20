@@ -2088,7 +2088,7 @@ impl Index {
     }
 
     /// Creates an iterator over all instances in the index
-    pub fn find_instances(&self) -> InstanceIterator {
+    pub fn find_instances(&self) -> InstanceIterator<'_> {
         InstanceIterator::new(self)
     }
 
@@ -2098,7 +2098,7 @@ impl Index {
     pub fn filter_instances(
         &self,
         inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
-    ) -> InstanceIterator {
+    ) -> InstanceIterator<'_> {
         InstanceIterator::with_filter(self, inner_filter)
     }
 

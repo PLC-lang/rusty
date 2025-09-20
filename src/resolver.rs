@@ -1301,7 +1301,7 @@ impl<'i> TypeAnnotator<'i> {
                         AstFactory::create_call_to_check_function_ast(
                             f.get_call_name(),
                             right_side.clone(),
-                            sub_range.clone(),
+                            *sub_range.clone(),
                             &annotated_left_side.get_location(),
                             ctx.id_provider.clone(),
                         )
