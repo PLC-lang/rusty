@@ -344,7 +344,7 @@ impl<'a> Llvm<'a> {
         } else if let Some(initializer) = initializer_statement {
             (exp_gen.generate_expression(initializer)?, DEFAULT_ALIGNMENT)
         // 3rd try: see if ther is a global variable with the variable's type name - naming convention :-(
-        } else if let Some(global_variable) = llvm_index.find_global_value(&crate::index::get_initializer_name(type_name)) {
+        } else if let Some(global_variable) = llvm_index.find_global_value(&crate::index::get_initializer_name(variable_data_type.get_name())) {
             (global_variable.as_basic_value_enum(), global_variable.get_alignment())
         // 4th try, see if the datatype has a default initializer
         } else if let Some(initial_value) = llvm_index.find_associated_initial_value(type_name) {

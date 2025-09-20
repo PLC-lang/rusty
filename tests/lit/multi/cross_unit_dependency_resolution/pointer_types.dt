@@ -1,0 +1,3 @@
+TYPE struct_ptr : REF_TO struct_typedef; END_TYPE
+
+TYPE array_ptr : REF_TO int_array; END_TYPE
