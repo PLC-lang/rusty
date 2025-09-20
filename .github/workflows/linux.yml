@@ -16,7 +16,7 @@ jobs:
   check:
     name: Check
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:14-1.83
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
@@ -27,7 +27,7 @@ jobs:
   test-linux:
     name: Test Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:14-1.83
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
@@ -40,7 +40,7 @@ jobs:
   package-linux:
     name: Package Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:14-1.83
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
@@ -158,7 +158,7 @@ jobs:
   style:
     name: Check Style
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:14-1.83
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 
@@ -169,7 +169,7 @@ jobs:
   coverage:
     name: Run Coverage
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:14-1.83
+    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
 

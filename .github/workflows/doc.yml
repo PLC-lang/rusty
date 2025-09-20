@@ -7,7 +7,7 @@ on:
 
 env:
   IMAGE_NAME: rust-llvm
-  IMAGE_VERSION: 14-1.83
+  IMAGE_VERSION: latest
 
 jobs:
   cargo-docs:
