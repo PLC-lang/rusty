@@ -1,7 +1,7 @@
 {
     "name": "Rust",
     "build": {
-        "dockerfile": "./Dockerfile",
+        "dockerfile": "./Dockerfile"
     },
     // "image": "ghcr.io/plc-lang/rust-llvm:latest",
     "features": {
