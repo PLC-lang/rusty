@@ -1,8 +1,8 @@
 # FROM mcr.microsoft.com/vscode/devcontainers/rust:latest
 ARG LLVM_VER=14
-ARG RUST_VER=1.83
-ARG IMAGE_TAG=${LLVM_VER}-${RUST_VER}
-ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:${IMAGE_TAG}
+ARG RUST_VER=1.90
+ARG CONTAINER_VERSION=${LLVM_VER}-${RUST_VER}
+ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:${CONTAINER_VERSION}
 FROM ${BASE_IMAGE}
 
 # Avoid warnings by switching to noninteractive
