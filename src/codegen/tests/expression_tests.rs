@@ -356,6 +356,20 @@ fn builtin_function_call_sel() {
 }
 
 #[test]
+fn builtin_function_call_sel_with_named_argument() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b,c : DINT;
+        END_VAR
+            a := SEL(G := TRUE, IN0 := b, IN1 := c);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn builtin_function_call_sel_as_expression() {
     let result = codegen(
         "PROGRAM main
@@ -384,6 +398,20 @@ fn builtin_function_call_move() {
 }
 
 #[test]
+fn builtin_function_call_move_with_named_argument() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a,b : DINT;
+        END_VAR
+            a := MOVE(IN := b);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn builtin_function_call_sizeof() {
     let result = codegen(
         "PROGRAM main
@@ -392,6 +420,21 @@ fn builtin_function_call_sizeof() {
             b: LINT;
         END_VAR
             a := SIZEOF(b);
+        END_PROGRAM",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_sizeof_with_named_argument() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: DINT;
+            b: LINT;
+        END_VAR
+            a := SIZEOF(IN := b);
         END_PROGRAM",
     );
 
@@ -414,6 +457,54 @@ fn builtin_function_call_lower_bound() {
             vla: ARRAY[*] OF DINT;
         END_VAR
             foo := LOWER_BOUND(vla, 1);
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_lower_bound_with_named_arguments() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: ARRAY[0..1] OF DINT;
+            b: DINT;
+        END_VAR
+            b := foo(a);
+        END_PROGRAM
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            foo := LOWER_BOUND(arr := vla, dim := 1);
+        END_VAR
+        END_FUNCTION
+        ",
+    );
+
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_upper_bound_with_named_argument() {
+    let result = codegen(
+        "PROGRAM main
+        VAR
+            a: ARRAY[0..1] OF DINT;
+            b: DINT;
+        END_VAR
+            b := foo(a);
+        END_PROGRAM
+
+        FUNCTION foo : DINT
+        VAR_IN_OUT
+            vla: ARRAY[*] OF DINT;
+        END_VAR
+            foo := UPPER_BOUND(arr := vla, dim := 1);
         END_VAR
         END_FUNCTION
         ",
