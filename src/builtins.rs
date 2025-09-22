@@ -6,8 +6,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstNode, AstStatement,
-        CompilationUnit, GenericBinding, LinkageType, Operator, TypeNature,
+        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
+        GenericBinding, LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -786,7 +786,7 @@ fn annotate_variable_length_array_bound_function(
         // caught during validation
         return;
     };
-    let vla_param = extract_actual_parameter(params[0]);
+    let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
     let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
@@ -795,10 +795,8 @@ fn annotate_variable_length_array_bound_function(
         // otherwise annotate it with an internal, reserved VLA type
         typesystem::__VLA_TYPE
     };
-
     annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
-    // if params.first().is_some_and(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
-    // }
+
     if params.len() == 2 {
         let dim_param = extract_actual_parameter(params[1]);
         let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
@@ -812,85 +810,6 @@ fn annotate_variable_length_array_bound_function(
             annotator.annotation_map.annotate_type_hint(dim_param, StatementAnnotation::value("DINT"));
         }
     }
-
-    // let (vla_param, dim_param) = if params.len() == 2 {
-    //     let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
-    //     let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
-    //
-    //     // FIXME: review code and implement for remaining bultins
-    //     //
-    //     // if we get two assignments then we know we have named arguments
-    //     if first_is_assignment && second_is_assignment {
-    //         let mut vla_expr = None;
-    //         let mut dim_expr = None;
-    //
-    //         for param in &params {
-    //             if let AstStatement::Assignment(assignment) = param.get_stmt() {
-    //                 if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
-    //                     if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
-    //                         if let Some(identifier_name) = identifier.get_flat_reference_name() {
-    //                             match identifier_name {
-    //                                 "arr" => vla_expr = Some(assignment.right.as_ref()),
-    //                                 "dim" => dim_expr = Some(assignment.right.as_ref()),
-    //                                 _ => {}
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-    //
-    //         match (vla_expr, dim_expr) {
-    //             (Some(vla), Some(dim)) => (vla, dim),
-    //             _ => return, // Invalid structure - caught during validation
-    //         }
-    //     } else {
-    //         (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
-    //     }
-    // } else if params.len() == 1 {
-    //     // Only one parameter provided - still annotate the VLA parameter but skip dim
-    //     let vla = extract_actual_parameter(params[0]);
-    //     let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
-    //     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
-    //         vla_type.get_name()
-    //     } else {
-    //         typesystem::__VLA_TYPE
-    //     };
-    //
-    //     // Annotate just the VLA parameter and return early
-    //     if matches!(params[0].get_stmt(), AstStatement::Assignment(_)) {
-    //         annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
-    //     }
-    //     return;
-    // } else {
-    //     // Invalid parameter count - caught during validation
-    //     return;
-    // };
-    //
-    // // if the VLA parameter is a VLA struct, annotate it as such
-    // let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
-    // let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
-    //     vla_type.get_name()
-    // } else {
-    //     // otherwise annotate it with an internal, reserved VLA type
-    //     typesystem::__VLA_TYPE
-    // };
-    //
-    // if params.first().is_some_and(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
-    //     annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
-    // }
-    //
-    // // Also annotate the dimension parameter to resolve its generic type T: ANY_INT
-    // let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
-    // if dim_type.get_name() != typesystem::VOID_TYPE {
-    //     // Use the actual type of the dimension parameter
-    //     annotator
-    //         .annotation_map
-    //         .annotate_type_hint(dim_param, StatementAnnotation::value(dim_type.get_name()));
-    // } else {
-    //     // Fallback to a default integer type if no type is available
-    //     annotator.annotation_map.annotate_type_hint(dim_param, StatementAnnotation::value("DINT"));
-    // }
 }
 
 fn validate_variable_length_array_bound_function(
@@ -913,21 +832,6 @@ fn validate_variable_length_array_bound_function(
         validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
     }
 
-    // match (params.first()) {
-    //     Some(_vla) => {
-    //         let actual_vla = if params.len() > 0 {
-    //             let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
-    //             if first_is_assignment {
-    //                 extract_actual_parameter(params[0])
-    //             } else {
-    //                 extract_actual_parameter(params[0])
-    //             }
-    //         };
-    //     }
-    //     _ => {
-    //         todo!("todo")
-    //     }
-    // }
     match (params.first(), params.get(1)) {
         (Some(_vla), Some(_idx)) => {
             let (actual_vla, actual_idx) = if params.len() == 2 {

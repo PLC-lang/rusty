@@ -1305,7 +1305,6 @@ fn sizeof_minimal_test_with_argument() {
         END_PROGRAM
         "#;
 
-    let mut maintype = MainType::default();
     let context = CodegenContext::create();
     let module = compile(&context, function);
     let mut res = 0;
