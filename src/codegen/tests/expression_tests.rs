@@ -295,6 +295,25 @@ fn builtin_function_call_adr() {
 }
 
 #[test]
+fn builtin_function_call_adr_with_named_argument() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+        PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := ADR(IN := b);
+        END_PROGRAM
+        ",
+    );
+    // WHEN compiled
+    // We expect the same behaviour as if REF was called, due to the assignee being a pointer
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
 fn builtin_function_call_ref() {
     // GIVEN some nested call statements
     let result = codegen(
@@ -305,6 +324,25 @@ fn builtin_function_call_ref() {
             b : DINT;
         END_VAR
             a := REF(b);
+        END_PROGRAM
+        ",
+    );
+    // WHEN compiled
+    // We expect a direct conversion and subsequent assignment to pointer(no call)
+    filtered_assert_snapshot!(result);
+}
+
+#[test]
+fn builtin_function_call_ref_with_named_argument() {
+    // GIVEN some nested call statements
+    let result = codegen(
+        "
+        PROGRAM main
+        VAR
+            a : REF_TO DINT;
+            b : DINT;
+        END_VAR
+            a := REF(IN := b);
         END_PROGRAM
         ",
     );
@@ -558,6 +596,7 @@ fn builtin_function_call_upper_bound_expr() {
         END_VAR
             // upper bound of 4th dimension => 8th element in dimension array
             foo := UPPER_BOUND(vla, MY_CONST - (2 * 3));
+            foo := UPPER_BOUND(arr := vla, dim := MY_CONST - (2 * 3));
         END_VAR
         END_FUNCTION
         ",
