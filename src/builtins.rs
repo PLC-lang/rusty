@@ -6,8 +6,8 @@ use inkwell::{
 use lazy_static::lazy_static;
 use plc_ast::{
     ast::{
-        self, flatten_expression_list, pre_process, AstFactory, AstNode, AstStatement, CompilationUnit,
-        GenericBinding, LinkageType, Operator, TypeNature,
+        self, flatten_expression_list, pre_process, Assignment, AstFactory, AstNode, AstStatement,
+        CompilationUnit, GenericBinding, LinkageType, Operator, TypeNature,
     },
     literals::AstLiteral,
     provider::IdProvider,
@@ -50,6 +50,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        let reference = extract_actual_parameter(reference);
                         // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
                         match generator.annotations.get(reference) {
                             Some(StatementAnnotation::Function { qualified_name, .. }) => {
@@ -74,7 +75,7 @@ lazy_static! {
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for REF",
+                            "Expected exactly one parameter for ADR",
                             location,
                         ))
                     }
@@ -97,19 +98,24 @@ lazy_static! {
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
                     let input = flatten_expression_list(params);
-                    let Some(input) = input.first()  else { return; };
+                    let actual_input = extract_actual_parameter(input.first().expect("Exactly one parameter required"));
                     let input_type = annotator.annotation_map
-                        .get_type_or_void(input, annotator.index)
-                        .get_type_information()
-                        .get_name()
-                        .to_owned();
+                                            .get_type_or_void(actual_input, annotator.index)
+                                            .get_type_information()
+                                            .get_name()
+                                            .to_owned();
 
                     let ptr_type = resolver::add_pointer_type(
                         &mut annotator.annotation_map.new_index,
-                        input_type,
+                        input_type.clone(),
                         true,
                     );
 
+                    if input.first().is_some_and(|it| {
+                        matches!(it.get_stmt(), AstStatement::Assignment(_))
+                    }){
+                        annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
+                    }
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), generic_name: None, call_name: None
@@ -122,6 +128,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        let reference = extract_actual_parameter(reference);
                         // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
                         if let Some(StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
                             if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
@@ -217,7 +224,7 @@ lazy_static! {
                         let actual_g = extract_actual_parameter(g);
                         let actual_in0 = extract_actual_parameter(in0);
                         let actual_in1 = extract_actual_parameter(in1);
-                        
+
                         // evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder);
                         // for aggregate types we need a ptr to perform memcpy
@@ -291,7 +298,7 @@ lazy_static! {
                             // For positional arguments like SIZEOF(foo), use the parameter directly
                             reference
                         };
-                        
+
                         // get name of datatype behind reference
                         let type_name = generator.annotations
                             .get_type(actual_param, generator.index)
@@ -779,9 +786,9 @@ fn annotate_variable_length_array_bound_function(
         // caught during validation
         return;
     };
-
+    let vla_param = extract_actual_parameter(params[0]);
     // if the VLA parameter is a VLA struct, annotate it as such
-    let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
         vla_type.get_name()
     } else {
@@ -789,7 +796,101 @@ fn annotate_variable_length_array_bound_function(
         typesystem::__VLA_TYPE
     };
 
-    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
+    annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
+    // if params.first().is_some_and(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+    // }
+    if params.len() == 2 {
+        let dim_param = extract_actual_parameter(params[1]);
+        let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
+        if dim_type.get_name() != typesystem::VOID_TYPE {
+            // Use the actual type of the dimension parameter
+            annotator
+                .annotation_map
+                .annotate_type_hint(dim_param, StatementAnnotation::value(dim_type.get_name()));
+        } else {
+            // Fallback to a default integer type if no type is available
+            annotator.annotation_map.annotate_type_hint(dim_param, StatementAnnotation::value("DINT"));
+        }
+    }
+
+    // let (vla_param, dim_param) = if params.len() == 2 {
+    //     let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
+    //     let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
+    //
+    //     // FIXME: review code and implement for remaining bultins
+    //     //
+    //     // if we get two assignments then we know we have named arguments
+    //     if first_is_assignment && second_is_assignment {
+    //         let mut vla_expr = None;
+    //         let mut dim_expr = None;
+    //
+    //         for param in &params {
+    //             if let AstStatement::Assignment(assignment) = param.get_stmt() {
+    //                 if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
+    //                     if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
+    //                         if let Some(identifier_name) = identifier.get_flat_reference_name() {
+    //                             match identifier_name {
+    //                                 "arr" => vla_expr = Some(assignment.right.as_ref()),
+    //                                 "dim" => dim_expr = Some(assignment.right.as_ref()),
+    //                                 _ => {}
+    //                             }
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //
+    //         match (vla_expr, dim_expr) {
+    //             (Some(vla), Some(dim)) => (vla, dim),
+    //             _ => return, // Invalid structure - caught during validation
+    //         }
+    //     } else {
+    //         (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
+    //     }
+    // } else if params.len() == 1 {
+    //     // Only one parameter provided - still annotate the VLA parameter but skip dim
+    //     let vla = extract_actual_parameter(params[0]);
+    //     let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    //     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+    //         vla_type.get_name()
+    //     } else {
+    //         typesystem::__VLA_TYPE
+    //     };
+    //
+    //     // Annotate just the VLA parameter and return early
+    //     if matches!(params[0].get_stmt(), AstStatement::Assignment(_)) {
+    //         annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
+    //     }
+    //     return;
+    // } else {
+    //     // Invalid parameter count - caught during validation
+    //     return;
+    // };
+    //
+    // // if the VLA parameter is a VLA struct, annotate it as such
+    // let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
+    // let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+    //     vla_type.get_name()
+    // } else {
+    //     // otherwise annotate it with an internal, reserved VLA type
+    //     typesystem::__VLA_TYPE
+    // };
+    //
+    // if params.first().is_some_and(|it| matches!(it.get_stmt(), AstStatement::Assignment(_))) {
+    //     annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
+    // }
+    //
+    // // Also annotate the dimension parameter to resolve its generic type T: ANY_INT
+    // let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
+    // if dim_type.get_name() != typesystem::VOID_TYPE {
+    //     // Use the actual type of the dimension parameter
+    //     annotator
+    //         .annotation_map
+    //         .annotate_type_hint(dim_param, StatementAnnotation::value(dim_type.get_name()));
+    // } else {
+    //     // Fallback to a default integer type if no type is available
+    //     annotator.annotation_map.annotate_type_hint(dim_param, StatementAnnotation::value("DINT"));
+    // }
 }
 
 fn validate_variable_length_array_bound_function(
@@ -812,9 +913,62 @@ fn validate_variable_length_array_bound_function(
         validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
     }
 
+    // match (params.first()) {
+    //     Some(_vla) => {
+    //         let actual_vla = if params.len() > 0 {
+    //             let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
+    //             if first_is_assignment {
+    //                 extract_actual_parameter(params[0])
+    //             } else {
+    //                 extract_actual_parameter(params[0])
+    //             }
+    //         };
+    //     }
+    //     _ => {
+    //         todo!("todo")
+    //     }
+    // }
     match (params.first(), params.get(1)) {
-        (Some(vla), Some(idx)) => {
-            let idx_type = annotations.get_type_or_void(idx, index);
+        (Some(_vla), Some(_idx)) => {
+            let (actual_vla, actual_idx) = if params.len() == 2 {
+                let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
+                let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
+
+                if first_is_assignment && second_is_assignment {
+                    // Named arguments - extract by parameter name
+                    let mut vla_expr = None;
+                    let mut dim_expr = None;
+
+                    for param in &params {
+                        if let AstStatement::Assignment(assignment) = param.get_stmt() {
+                            if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
+                                if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
+                                    if let Some(identifier_name) = identifier.get_flat_reference_name() {
+                                        match identifier_name {
+                                            "arr" => vla_expr = Some(assignment.right.as_ref()),
+                                            "dim" => dim_expr = Some(assignment.right.as_ref()),
+                                            _ => {}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    match (vla_expr, dim_expr) {
+                        (Some(vla), Some(dim)) => (vla, dim),
+                        _ => return, // Invalid structure - caught during validation
+                    }
+                } else {
+                    // TODO: is return correct here?
+                    (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
+                }
+            } else {
+                // TODO: is return correct here?
+                return; // Invalid parameter count - caught during validation
+            };
+
+            let idx_type = annotations.get_type_or_void(actual_idx, index);
 
             if !idx_type.has_nature(TypeNature::Int, index) {
                 validator.push_diagnostic(
@@ -824,16 +978,18 @@ fn validate_variable_length_array_bound_function(
                         TypeNature::Int
                     ))
                     .with_error_code("E062")
-                    .with_location(*idx),
+                    .with_location(actual_idx),
                 )
             }
 
             // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
-            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = idx.get_stmt() {
+            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = actual_idx.get_stmt() {
                 let dimension_idx = *dimension_idx as usize;
 
-                let Some(n_dimensions) =
-                    annotations.get_type_or_void(vla, index).get_type_information().get_dimension_count()
+                let Some(n_dimensions) = annotations
+                    .get_type_or_void(actual_vla, index)
+                    .get_type_information()
+                    .get_dimension_count()
                 else {
                     // not a vla, validated via type nature
                     return;
@@ -892,11 +1048,48 @@ fn generate_variable_length_array_bound_function<'ink>(
 ) -> Result<ExpressionValue<'ink>, Diagnostic> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
-    
-    // Handle named arguments by extracting the actual parameter
-    let actual_first_param = extract_actual_parameter(params[0]);
-    let actual_second_param = extract_actual_parameter(params[1]);
-    
+
+    let (actual_first_param, actual_second_param) = if params.len() == 2 {
+        let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
+        let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
+
+        if first_is_assignment && second_is_assignment {
+            // Named arguments - extract by parameter name
+            let mut vla_expr = None;
+            let mut dim_expr = None;
+
+            for param in params.iter() {
+                if let AstStatement::Assignment(assignment) = param.get_stmt() {
+                    if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
+                        if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
+                            if let Some(identifier_name) = identifier.get_flat_reference_name() {
+                                match identifier_name {
+                                    "arr" => vla_expr = Some(assignment.right.as_ref()),
+                                    "dim" => dim_expr = Some(assignment.right.as_ref()),
+                                    _ => {}
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            match (vla_expr, dim_expr) {
+                (Some(vla), Some(dim)) => (vla, dim),
+                _ => {
+                    return Err(Diagnostic::codegen_error("Invalid structure for named arguments", location))
+                }
+            }
+        } else {
+            (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
+        }
+    } else {
+        return Err(Diagnostic::codegen_error(
+            format!("Invalid parameter count. Expected 2 but got {}", params.len()),
+            location,
+        ));
+    };
+
     let data_type_information =
         generator.annotations.get_type_or_void(actual_first_param, generator.index).get_type_information();
 

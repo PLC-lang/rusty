@@ -1,0 +1,48 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%main = type { [2 x i32], i32 }
+%__foo_vla = type { i32*, [2 x i32] }
+
+@main_instance = global %main zeroinitializer
+@____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
+
+define void @main(%main* %0) {
+entry:
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %auto_deref = load [2 x i32], [2 x i32]* %a, align 4
+  %outer_arr_gep = getelementptr inbounds [2 x i32], [2 x i32]* %a, i32 0, i32 0
+  %vla_struct = alloca %__foo_vla, align 8
+  %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
+  store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
+  store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
+  %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
+  %vla_struct_ptr = alloca %__foo_vla, align 8
+  store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
+  %call = call i32 @foo(%__foo_vla* %vla_struct_ptr)
+  store i32 %call, i32* %b, align 4
+  ret void
+}
+
+define i32 @foo(%__foo_vla* %0) {
+entry:
+  %foo = alloca i32, align 4
+  %vla = alloca %__foo_vla*, align 8
+  store %__foo_vla* %0, %__foo_vla** %vla, align 8
+  store i32 0, i32* %foo, align 4
+  %deref = load %__foo_vla*, %__foo_vla** %vla, align 8
+  %dim = getelementptr inbounds %__foo_vla, %__foo_vla* %deref, i32 0, i32 1
+  %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 0
+  %2 = load i32, i32* %1, align 4
+  store i32 %2, i32* %foo, align 4
+  %foo_ret = load i32, i32* %foo, align 4
+  ret i32 %foo_ret
+}
