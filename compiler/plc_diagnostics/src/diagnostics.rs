@@ -1,4 +1,7 @@
-use std::fmt::Display;
+use std::{
+    fmt::Display,
+    ops::{Deref, DerefMut},
+};
 
 use serde::{Deserialize, Serialize};
 
@@ -29,6 +32,11 @@ pub enum Severity {
 /// Diagnostic severity can be overridden when being reported.
 #[derive(Debug)]
 pub struct Diagnostic {
+    pub inner: Box<DiagnosticsInner>,
+}
+
+#[derive(Debug)]
+pub struct DiagnosticsInner {
     /// The Description of the error being reported.
     pub message: String,
     /// Primary location where the diagnostic occurred
@@ -41,6 +49,20 @@ pub struct Diagnostic {
     pub sub_diagnostics: Vec<Diagnostic>,
     /// If the diagnostic is caused by an error, this field contains the original error
     pub internal_error: Option<anyhow::Error>,
+}
+
+impl Deref for Diagnostic {
+    type Target = DiagnosticsInner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl DerefMut for Diagnostic {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
 }
 
 impl std::error::Error for Diagnostic {
@@ -58,14 +80,15 @@ impl From<std::io::Error> for Diagnostic {
 /// Builder for Diagnostics
 impl Diagnostic {
     pub fn new(message: impl Into<String>) -> Self {
-        Diagnostic {
+        let inner = DiagnosticsInner {
             message: message.into(),
             primary_location: SourceLocation::undefined(),
             secondary_locations: Default::default(),
             error_code: "E001", //Default error if none specified
             sub_diagnostics: Default::default(),
             internal_error: Default::default(),
-        }
+        };
+        Self { inner: Box::new(inner) }
     }
 
     pub fn with_location<T>(mut self, location: T) -> Self
