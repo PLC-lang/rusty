@@ -290,15 +290,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if let [reference] = params {
-                        // Handle named arguments by extracting the actual parameter from Assignment nodes
-                        let actual_param = if let AstStatement::Assignment(assignment) = reference.get_stmt() {
-                            // For named arguments like SIZEOF(in := foo), extract the right side (foo)
-                            assignment.right.as_ref()
-                        } else {
-                            // For positional arguments like SIZEOF(foo), use the parameter directly
-                            reference
-                        };
-
+                        let actual_param = extract_actual_parameter(reference);
                         // get name of datatype behind reference
                         let type_name = generator.annotations
                             .get_type(actual_param, generator.index)
@@ -833,44 +825,9 @@ fn validate_variable_length_array_bound_function(
     }
 
     match (params.first(), params.get(1)) {
-        (Some(_vla), Some(_idx)) => {
-            let (actual_vla, actual_idx) = if params.len() == 2 {
-                let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
-                let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
-
-                if first_is_assignment && second_is_assignment {
-                    // Named arguments - extract by parameter name
-                    let mut vla_expr = None;
-                    let mut dim_expr = None;
-
-                    for param in &params {
-                        if let AstStatement::Assignment(assignment) = param.get_stmt() {
-                            if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
-                                if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
-                                    if let Some(identifier_name) = identifier.get_flat_reference_name() {
-                                        match identifier_name {
-                                            "arr" => vla_expr = Some(assignment.right.as_ref()),
-                                            "dim" => dim_expr = Some(assignment.right.as_ref()),
-                                            _ => {}
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    match (vla_expr, dim_expr) {
-                        (Some(vla), Some(dim)) => (vla, dim),
-                        _ => return, // Invalid structure - caught during validation
-                    }
-                } else {
-                    // TODO: is return correct here?
-                    (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
-                }
-            } else {
-                // TODO: is return correct here?
-                return; // Invalid parameter count - caught during validation
-            };
+        (Some(vla), Some(idx)) => {
+            let actual_vla = extract_actual_parameter(vla);
+            let actual_idx = extract_actual_parameter(idx);
 
             let idx_type = annotations.get_type_or_void(actual_idx, index);
 
