@@ -1173,12 +1173,50 @@ fn sel_string_literal() {
 }
 
 #[test]
+fn sel_string_literal_with_named_arguments() {
+    #[repr(C)]
+    #[derive(Default)]
+    struct MainType {
+        res: [u8; 6],
+    }
+
+    let function = r#"
+    PROGRAM main
+    VAR
+        str1 : STRING[5];
+    END_VAR
+        str1 := SEL(G := TRUE, IN0 := 'hello', IN1 := 'world'); // world
+    END_PROGRAM
+    "#;
+
+    let mut main = MainType::default();
+    let _: i32 = compile_and_run(function.to_string(), &mut main);
+    assert_eq!(main.res, "world\0".as_bytes());
+}
+
+#[test]
 fn move_test() {
     let function = r#"
         FUNCTION main : DINT
         VAR a : DINT; END_VAR
             a := 4;
             main := MOVE(a); //Result is 4
+        END_FUNCTION
+        "#;
+
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let res: i32 = module.run_no_param("main");
+    assert_eq!(res, 4)
+}
+
+#[test]
+fn move_test_with_named_argument() {
+    let function = r#"
+        FUNCTION main : DINT
+        VAR a : DINT; END_VAR
+            a := 4;
+            main := MOVE(in := a); //Result is 4
         END_FUNCTION
         "#;
 
@@ -1253,6 +1291,27 @@ fn sizeof_test() {
     let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 4 };
 
     assert_eq!(expected, maintype);
+}
+
+#[test]
+fn sizeof_minimal_test_with_argument() {
+    let function = r#"
+        PROGRAM main
+        VAR
+            s1 : INT;
+            a  : INT;
+        END_VAR
+            s1 := SIZEOF(in := a); // a is INT, so SIZEOF(a) = 2
+        END_PROGRAM
+        "#;
+
+    let mut maintype = MainType::default();
+    let context = CodegenContext::create();
+    let module = compile(&context, function);
+    let mut res = 0;
+    let _: i32 = module.run("main", &mut res);
+
+    assert_eq!(2, res);
 }
 
 #[test]
