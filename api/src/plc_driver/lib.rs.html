@@ -1,637 +1,318 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/./src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-46f98efaafac5295.ttf.woff2,FiraSans-Regular-018c141bf0843ffd.woff2,FiraSans-Medium-8f9a781e4970d388.woff2,SourceCodePro-Regular-562dcc5011b6de7d.ttf.woff2,SourceCodePro-Semibold-d899c5a5c4aeb14a.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-76eba96aa4d2e634.css"><link rel="stylesheet" href="../../static.files/rustdoc-b0742ba02757f159.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.83.0 (90b35a623 2024-11-26)" data-channel="1.83.0" data-search-js="search-f0d225181b97f9a4.js" data-settings-js="settings-805db61a62df4bd2.js" ><script src="../../static.files/storage-1d39b6787ed640ff.js"></script><script defer src="../../static.files/src-script-e66d777a5a92e9b2.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-f070b9041d14864c.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-0111fcff984fae8f.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-422f7d1d52889060.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-2c020d218678b618.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">plc_driver/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap"><div data-nosnippet><pre class="src-line-numbers">
-<a href="#1" id="1">1</a>
-<a href="#2" id="2">2</a>
-<a href="#3" id="3">3</a>
-<a href="#4" id="4">4</a>
-<a href="#5" id="5">5</a>
-<a href="#6" id="6">6</a>
-<a href="#7" id="7">7</a>
-<a href="#8" id="8">8</a>
-<a href="#9" id="9">9</a>
-<a href="#10" id="10">10</a>
-<a href="#11" id="11">11</a>
-<a href="#12" id="12">12</a>
-<a href="#13" id="13">13</a>
-<a href="#14" id="14">14</a>
-<a href="#15" id="15">15</a>
-<a href="#16" id="16">16</a>
-<a href="#17" id="17">17</a>
-<a href="#18" id="18">18</a>
-<a href="#19" id="19">19</a>
-<a href="#20" id="20">20</a>
-<a href="#21" id="21">21</a>
-<a href="#22" id="22">22</a>
-<a href="#23" id="23">23</a>
-<a href="#24" id="24">24</a>
-<a href="#25" id="25">25</a>
-<a href="#26" id="26">26</a>
-<a href="#27" id="27">27</a>
-<a href="#28" id="28">28</a>
-<a href="#29" id="29">29</a>
-<a href="#30" id="30">30</a>
-<a href="#31" id="31">31</a>
-<a href="#32" id="32">32</a>
-<a href="#33" id="33">33</a>
-<a href="#34" id="34">34</a>
-<a href="#35" id="35">35</a>
-<a href="#36" id="36">36</a>
-<a href="#37" id="37">37</a>
-<a href="#38" id="38">38</a>
-<a href="#39" id="39">39</a>
-<a href="#40" id="40">40</a>
-<a href="#41" id="41">41</a>
-<a href="#42" id="42">42</a>
-<a href="#43" id="43">43</a>
-<a href="#44" id="44">44</a>
-<a href="#45" id="45">45</a>
-<a href="#46" id="46">46</a>
-<a href="#47" id="47">47</a>
-<a href="#48" id="48">48</a>
-<a href="#49" id="49">49</a>
-<a href="#50" id="50">50</a>
-<a href="#51" id="51">51</a>
-<a href="#52" id="52">52</a>
-<a href="#53" id="53">53</a>
-<a href="#54" id="54">54</a>
-<a href="#55" id="55">55</a>
-<a href="#56" id="56">56</a>
-<a href="#57" id="57">57</a>
-<a href="#58" id="58">58</a>
-<a href="#59" id="59">59</a>
-<a href="#60" id="60">60</a>
-<a href="#61" id="61">61</a>
-<a href="#62" id="62">62</a>
-<a href="#63" id="63">63</a>
-<a href="#64" id="64">64</a>
-<a href="#65" id="65">65</a>
-<a href="#66" id="66">66</a>
-<a href="#67" id="67">67</a>
-<a href="#68" id="68">68</a>
-<a href="#69" id="69">69</a>
-<a href="#70" id="70">70</a>
-<a href="#71" id="71">71</a>
-<a href="#72" id="72">72</a>
-<a href="#73" id="73">73</a>
-<a href="#74" id="74">74</a>
-<a href="#75" id="75">75</a>
-<a href="#76" id="76">76</a>
-<a href="#77" id="77">77</a>
-<a href="#78" id="78">78</a>
-<a href="#79" id="79">79</a>
-<a href="#80" id="80">80</a>
-<a href="#81" id="81">81</a>
-<a href="#82" id="82">82</a>
-<a href="#83" id="83">83</a>
-<a href="#84" id="84">84</a>
-<a href="#85" id="85">85</a>
-<a href="#86" id="86">86</a>
-<a href="#87" id="87">87</a>
-<a href="#88" id="88">88</a>
-<a href="#89" id="89">89</a>
-<a href="#90" id="90">90</a>
-<a href="#91" id="91">91</a>
-<a href="#92" id="92">92</a>
-<a href="#93" id="93">93</a>
-<a href="#94" id="94">94</a>
-<a href="#95" id="95">95</a>
-<a href="#96" id="96">96</a>
-<a href="#97" id="97">97</a>
-<a href="#98" id="98">98</a>
-<a href="#99" id="99">99</a>
-<a href="#100" id="100">100</a>
-<a href="#101" id="101">101</a>
-<a href="#102" id="102">102</a>
-<a href="#103" id="103">103</a>
-<a href="#104" id="104">104</a>
-<a href="#105" id="105">105</a>
-<a href="#106" id="106">106</a>
-<a href="#107" id="107">107</a>
-<a href="#108" id="108">108</a>
-<a href="#109" id="109">109</a>
-<a href="#110" id="110">110</a>
-<a href="#111" id="111">111</a>
-<a href="#112" id="112">112</a>
-<a href="#113" id="113">113</a>
-<a href="#114" id="114">114</a>
-<a href="#115" id="115">115</a>
-<a href="#116" id="116">116</a>
-<a href="#117" id="117">117</a>
-<a href="#118" id="118">118</a>
-<a href="#119" id="119">119</a>
-<a href="#120" id="120">120</a>
-<a href="#121" id="121">121</a>
-<a href="#122" id="122">122</a>
-<a href="#123" id="123">123</a>
-<a href="#124" id="124">124</a>
-<a href="#125" id="125">125</a>
-<a href="#126" id="126">126</a>
-<a href="#127" id="127">127</a>
-<a href="#128" id="128">128</a>
-<a href="#129" id="129">129</a>
-<a href="#130" id="130">130</a>
-<a href="#131" id="131">131</a>
-<a href="#132" id="132">132</a>
-<a href="#133" id="133">133</a>
-<a href="#134" id="134">134</a>
-<a href="#135" id="135">135</a>
-<a href="#136" id="136">136</a>
-<a href="#137" id="137">137</a>
-<a href="#138" id="138">138</a>
-<a href="#139" id="139">139</a>
-<a href="#140" id="140">140</a>
-<a href="#141" id="141">141</a>
-<a href="#142" id="142">142</a>
-<a href="#143" id="143">143</a>
-<a href="#144" id="144">144</a>
-<a href="#145" id="145">145</a>
-<a href="#146" id="146">146</a>
-<a href="#147" id="147">147</a>
-<a href="#148" id="148">148</a>
-<a href="#149" id="149">149</a>
-<a href="#150" id="150">150</a>
-<a href="#151" id="151">151</a>
-<a href="#152" id="152">152</a>
-<a href="#153" id="153">153</a>
-<a href="#154" id="154">154</a>
-<a href="#155" id="155">155</a>
-<a href="#156" id="156">156</a>
-<a href="#157" id="157">157</a>
-<a href="#158" id="158">158</a>
-<a href="#159" id="159">159</a>
-<a href="#160" id="160">160</a>
-<a href="#161" id="161">161</a>
-<a href="#162" id="162">162</a>
-<a href="#163" id="163">163</a>
-<a href="#164" id="164">164</a>
-<a href="#165" id="165">165</a>
-<a href="#166" id="166">166</a>
-<a href="#167" id="167">167</a>
-<a href="#168" id="168">168</a>
-<a href="#169" id="169">169</a>
-<a href="#170" id="170">170</a>
-<a href="#171" id="171">171</a>
-<a href="#172" id="172">172</a>
-<a href="#173" id="173">173</a>
-<a href="#174" id="174">174</a>
-<a href="#175" id="175">175</a>
-<a href="#176" id="176">176</a>
-<a href="#177" id="177">177</a>
-<a href="#178" id="178">178</a>
-<a href="#179" id="179">179</a>
-<a href="#180" id="180">180</a>
-<a href="#181" id="181">181</a>
-<a href="#182" id="182">182</a>
-<a href="#183" id="183">183</a>
-<a href="#184" id="184">184</a>
-<a href="#185" id="185">185</a>
-<a href="#186" id="186">186</a>
-<a href="#187" id="187">187</a>
-<a href="#188" id="188">188</a>
-<a href="#189" id="189">189</a>
-<a href="#190" id="190">190</a>
-<a href="#191" id="191">191</a>
-<a href="#192" id="192">192</a>
-<a href="#193" id="193">193</a>
-<a href="#194" id="194">194</a>
-<a href="#195" id="195">195</a>
-<a href="#196" id="196">196</a>
-<a href="#197" id="197">197</a>
-<a href="#198" id="198">198</a>
-<a href="#199" id="199">199</a>
-<a href="#200" id="200">200</a>
-<a href="#201" id="201">201</a>
-<a href="#202" id="202">202</a>
-<a href="#203" id="203">203</a>
-<a href="#204" id="204">204</a>
-<a href="#205" id="205">205</a>
-<a href="#206" id="206">206</a>
-<a href="#207" id="207">207</a>
-<a href="#208" id="208">208</a>
-<a href="#209" id="209">209</a>
-<a href="#210" id="210">210</a>
-<a href="#211" id="211">211</a>
-<a href="#212" id="212">212</a>
-<a href="#213" id="213">213</a>
-<a href="#214" id="214">214</a>
-<a href="#215" id="215">215</a>
-<a href="#216" id="216">216</a>
-<a href="#217" id="217">217</a>
-<a href="#218" id="218">218</a>
-<a href="#219" id="219">219</a>
-<a href="#220" id="220">220</a>
-<a href="#221" id="221">221</a>
-<a href="#222" id="222">222</a>
-<a href="#223" id="223">223</a>
-<a href="#224" id="224">224</a>
-<a href="#225" id="225">225</a>
-<a href="#226" id="226">226</a>
-<a href="#227" id="227">227</a>
-<a href="#228" id="228">228</a>
-<a href="#229" id="229">229</a>
-<a href="#230" id="230">230</a>
-<a href="#231" id="231">231</a>
-<a href="#232" id="232">232</a>
-<a href="#233" id="233">233</a>
-<a href="#234" id="234">234</a>
-<a href="#235" id="235">235</a>
-<a href="#236" id="236">236</a>
-<a href="#237" id="237">237</a>
-<a href="#238" id="238">238</a>
-<a href="#239" id="239">239</a>
-<a href="#240" id="240">240</a>
-<a href="#241" id="241">241</a>
-<a href="#242" id="242">242</a>
-<a href="#243" id="243">243</a>
-<a href="#244" id="244">244</a>
-<a href="#245" id="245">245</a>
-<a href="#246" id="246">246</a>
-<a href="#247" id="247">247</a>
-<a href="#248" id="248">248</a>
-<a href="#249" id="249">249</a>
-<a href="#250" id="250">250</a>
-<a href="#251" id="251">251</a>
-<a href="#252" id="252">252</a>
-<a href="#253" id="253">253</a>
-<a href="#254" id="254">254</a>
-<a href="#255" id="255">255</a>
-<a href="#256" id="256">256</a>
-<a href="#257" id="257">257</a>
-<a href="#258" id="258">258</a>
-<a href="#259" id="259">259</a>
-<a href="#260" id="260">260</a>
-<a href="#261" id="261">261</a>
-<a href="#262" id="262">262</a>
-<a href="#263" id="263">263</a>
-<a href="#264" id="264">264</a>
-<a href="#265" id="265">265</a>
-<a href="#266" id="266">266</a>
-<a href="#267" id="267">267</a>
-<a href="#268" id="268">268</a>
-<a href="#269" id="269">269</a>
-<a href="#270" id="270">270</a>
-<a href="#271" id="271">271</a>
-<a href="#272" id="272">272</a>
-<a href="#273" id="273">273</a>
-<a href="#274" id="274">274</a>
-<a href="#275" id="275">275</a>
-<a href="#276" id="276">276</a>
-<a href="#277" id="277">277</a>
-<a href="#278" id="278">278</a>
-<a href="#279" id="279">279</a>
-<a href="#280" id="280">280</a>
-<a href="#281" id="281">281</a>
-<a href="#282" id="282">282</a>
-<a href="#283" id="283">283</a>
-<a href="#284" id="284">284</a>
-<a href="#285" id="285">285</a>
-<a href="#286" id="286">286</a>
-<a href="#287" id="287">287</a>
-<a href="#288" id="288">288</a>
-<a href="#289" id="289">289</a>
-<a href="#290" id="290">290</a>
-<a href="#291" id="291">291</a>
-<a href="#292" id="292">292</a>
-<a href="#293" id="293">293</a>
-<a href="#294" id="294">294</a>
-<a href="#295" id="295">295</a>
-<a href="#296" id="296">296</a>
-<a href="#297" id="297">297</a>
-<a href="#298" id="298">298</a>
-<a href="#299" id="299">299</a>
-<a href="#300" id="300">300</a>
-<a href="#301" id="301">301</a>
-<a href="#302" id="302">302</a>
-<a href="#303" id="303">303</a>
-<a href="#304" id="304">304</a>
-<a href="#305" id="305">305</a>
-<a href="#306" id="306">306</a>
-<a href="#307" id="307">307</a>
-<a href="#308" id="308">308</a>
-<a href="#309" id="309">309</a>
-<a href="#310" id="310">310</a>
-<a href="#311" id="311">311</a>
-<a href="#312" id="312">312</a>
-<a href="#313" id="313">313</a>
-<a href="#314" id="314">314</a>
-<a href="#315" id="315">315</a>
-<a href="#316" id="316">316</a>
-<a href="#317" id="317">317</a>
-<a href="#318" id="318">318</a></pre></div><pre class="rust"><code><span class="doccomment">//! Compiler driver for the PLC Compiler
-//!
-//! This crates offers the main methods to interact with the PLC Compiler
-//! It can be used to verify a project or to produce:
-//!  - Object files
-//!  - LLVM files
-//!  - LLVM Bitcode
-//!  - Shared Objects
-//!  - Executables
-
-</span><span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
-<span class="kw">use </span>pipelines::{
-    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
-};
-<span class="kw">use </span>std::{
-    ffi::OsStr,
-    fmt::{Debug, Display},
-    path::{Path, PathBuf},
-    sync::{Arc, RwLock},
-};
-
-<span class="kw">use </span>cli::{CompileParameters, ParameterError};
-<span class="kw">use </span>plc::{
-    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
-    OptimizationLevel,
-};
-
-<span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
-<span class="kw">use </span>plc_index::GlobalContext;
-<span class="kw">use </span>project::project::Project;
-<span class="kw">use </span>source_code::SourceContainer;
-
-<span class="kw">pub mod </span>cli;
-<span class="kw">pub mod </span>pipelines;
-
-<span class="attr">#[cfg(test)]
-</span><span class="kw">mod </span>tests;
-<span class="comment">//Not a [test] because it is used in external integration tests
-</span><span class="kw">pub mod </span>runner;
-
-<span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_OUTPUT_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"out"</span>;
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub struct </span>CompileOptions {
-    <span class="doccomment">/// Default project location (where the plc.json is defined, or where we are currently
-    /// compiling)
-    </span><span class="kw">pub </span>root: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    <span class="doccomment">/// The location where the build would happen. This is None if the build subcommand was not
-    /// used
-    </span><span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    <span class="doccomment">/// The name of the resulting compiled file
-    </span><span class="kw">pub </span>output: String,
-    <span class="kw">pub </span>output_format: FormatOption,
-    <span class="kw">pub </span>optimization: OptimizationLevel,
-    <span class="kw">pub </span>error_format: ErrorFormat,
-    <span class="kw">pub </span>debug_level: DebugLevel,
-    <span class="kw">pub </span>single_module: bool,
-    <span class="kw">pub </span>online_change: OnlineChange,
-}
-
-<span class="kw">impl </span>Default <span class="kw">for </span>CompileOptions {
-    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
-        CompileOptions {
-            root: <span class="prelude-val">None</span>,
-            build_location: <span class="prelude-val">None</span>,
-            output: String::new(),
-            output_format: Default::default(),
-            optimization: OptimizationLevel::None,
-            error_format: ErrorFormat::None,
-            debug_level: DebugLevel::None,
-            single_module: <span class="bool-val">false</span>,
-            online_change: OnlineChange::Disabled,
-        }
-    }
-}
-
-<span class="attr">#[derive(Clone, Default, Debug)]
-</span><span class="kw">pub struct </span>LinkOptions {
-    <span class="kw">pub </span>libraries: Vec&lt;String&gt;,
-    <span class="kw">pub </span>library_paths: Vec&lt;PathBuf&gt;,
-    <span class="kw">pub </span>format: FormatOption,
-    <span class="kw">pub </span>linker: LinkerType,
-    <span class="kw">pub </span>lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    <span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
-    <span class="kw">pub </span>linker_script: LinkerScript,
-    <span class="kw">pub </span>module_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
-}
-
-<span class="attr">#[derive(Clone, Default, Debug)]
-</span><span class="kw">pub enum </span>LinkerScript {
-    <span class="attr">#[default]
-    </span>Builtin,
-    Path(String),
-    <span class="prelude-val">None</span>,
-}
-
-<span class="attr">#[derive(Debug)]
-</span><span class="kw">pub enum </span>CompileError {
-    Diagnostic(Diagnostic),
-    Parameter(ParameterError),
-}
-
-<span class="kw">impl </span>From&lt;Diagnostic&gt; <span class="kw">for </span>CompileError {
-    <span class="kw">fn </span>from(value: Diagnostic) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Diagnostic(value)
-    }
-}
-<span class="kw">impl </span>From&lt;ParameterError&gt; <span class="kw">for </span>CompileError {
-    <span class="kw">fn </span>from(value: ParameterError) -&gt; <span class="self">Self </span>{
-        <span class="self">Self</span>::Parameter(value)
-    }
-}
-
-<span class="kw">impl </span>CompileError {
-    <span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
-        <span class="kw">match </span><span class="self">self </span>{
-            CompileError::Diagnostic(err) =&gt; {
-                <span class="macro">println!</span>(<span class="string">"{err}"</span>);
-                std::process::exit(<span class="number">1</span>)
-            }
-            CompileError::Parameter(err) =&gt; err.exit(),
-        }
-    }
-
-    <span class="kw">pub fn </span>into_diagnostic(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Diagnostic&gt; {
-        <span class="kw">let </span>CompileError::Diagnostic(res) = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
-        <span class="prelude-val">Some</span>(res)
-    }
-}
-
-<span class="kw">impl </span>Display <span class="kw">for </span>CompileError {
-    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
-        <span class="kw">match </span><span class="self">self </span>{
-            CompileError::Diagnostic(err) =&gt; Display::fmt(err, f),
-            CompileError::Parameter(err) =&gt; Display::fmt(err, f),
-        }
-    }
-}
-
-<span class="kw">pub struct </span>CompilationContext {
-    <span class="kw">pub </span>compile_parameters: CompileParameters,
-    <span class="kw">pub </span>project: Project&lt;PathBuf&gt;,
-    <span class="kw">pub </span>diagnostician: Diagnostician,
-    <span class="kw">pub </span>compile_options: CompileOptions,
-    <span class="kw">pub </span>link_options: LinkOptions,
-}
-
-<span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="comment">//Parse the arguments
-    </span><span class="kw">let </span>pipeline = BuildPipeline::new(args)<span class="question-mark">?</span>;
-    compile_with_pipeline(pipeline)
-}
-
-<span class="kw">pub fn </span>compile_with_pipeline&lt;T: SourceContainer + Clone + <span class="lifetime">'static</span>&gt;(
-    <span class="kw-2">mut </span>pipeline: BuildPipeline&lt;T&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
-    <span class="comment">//register participants
-    </span>pipeline.register_default_participants();
-    <span class="kw">let </span>target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
-    <span class="kw">let </span>codegen_participant = CodegenParticipant {
-        compile_options: pipeline.get_compile_options().unwrap(),
-        link_options: pipeline.get_link_options().unwrap(),
-        target: target.clone(),
-        objects: Arc::new(RwLock::new(GeneratedProject {
-            target,
-            objects: pipeline.project.get_objects().to_vec(),
-        })),
-        got_layout: Default::default(),
-        compile_dirs: Default::default(),
-        libraries: pipeline.project.get_libraries().to_vec(),
-    };
-    pipeline.register_participant(Box::new(codegen_participant));
-
-    <span class="kw">let </span>format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
-
-    pipeline.run().map_err(|err| {
-        <span class="comment">//Only report the hint if we are using rich error reporting
-        </span><span class="kw">if </span><span class="macro">matches!</span>(format, ErrorFormat::Rich) {
-            <span class="macro">anyhow!</span>(
-                <span class="string">"{err}.
-Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
-            </span>)
-        } <span class="kw">else </span>{
-            err.into()
-        }
-    })
-}
-
-<span class="doccomment">/// Parses and annotates a given project. Can be used in tests or api calls
-</span><span class="kw">pub fn </span>parse_and_annotate&lt;T: SourceContainer + Clone&gt;(
-    name: <span class="kw-2">&amp;</span>str,
-    src: Vec&lt;T&gt;,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject), Diagnostic&gt; {
-    <span class="kw">let </span>(pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())
-        .map_err(|it| Diagnostic::new(it.buffer().unwrap_or_default()))<span class="question-mark">?</span>;
-    <span class="prelude-val">Ok</span>((pipeline.context, project))
-}
-
-<span class="kw">pub fn </span>parse_and_annotate_with_diagnostics&lt;T: SourceContainer + Clone&gt;(
-    name: <span class="kw-2">&amp;</span>str,
-    src: Vec&lt;T&gt;,
-    diagnostician: Diagnostician,
-) -&gt; <span class="prelude-ty">Result</span>&lt;(BuildPipeline&lt;T&gt;, AnnotatedProject), Diagnostician&gt; {
-    <span class="comment">// Parse the source to ast
-    </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
-    <span class="kw">let </span><span class="prelude-val">Ok</span>(context) = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>) <span class="kw">else </span>{
-        <span class="kw">return </span><span class="prelude-val">Err</span>(diagnostician);
-    };
-    <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
-        context,
-        project,
-        diagnostician,
-        compile_parameters: <span class="prelude-val">None</span>,
-        linker: LinkerType::Internal,
-        mutable_participants: Vec::default(),
-        participants: Vec::default(),
-        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
-    };
-    pipeline.register_default_participants();
-    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.parse() <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
-    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.index(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
-    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.annotate(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
-    <span class="prelude-val">Ok</span>((pipeline, project))
-}
-
-<span class="kw">pub fn </span>parse_and_validate&lt;T: SourceContainer + Clone&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; String {
-    <span class="kw">match </span>parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
-        <span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>pipeline, project)) =&gt; {
-            <span class="kw">let _ </span>= project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician);
-            pipeline.diagnostician.buffer().unwrap()
-        }
-        <span class="prelude-val">Err</span>(diagnostician) =&gt; diagnostician.buffer().unwrap(),
-    }
-}
-
-<span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
-</span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-    generate_to_string_internal(name, src, <span class="bool-val">false</span>)
-}
-
-<span class="doccomment">/// Generates an IR string from a list of sources with debug information enabled. Useful for tests or api calls
-</span><span class="kw">pub fn </span>generate_to_string_debug&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-    generate_to_string_internal(name, src, <span class="bool-val">true</span>)
-}
-
-<span class="kw">fn </span>generate_to_string_internal&lt;T: SourceContainer&gt;(
-    name: <span class="kw-2">&amp;</span>str,
-    src: Vec&lt;T&gt;,
-    debug: bool,
-) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
-    <span class="comment">// plc src --ir --single-module
-    </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
-    <span class="kw">let </span>context = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-    <span class="kw">let </span>diagnostician = Diagnostician::default();
-    <span class="kw">let </span><span class="kw-2">mut </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>[<span class="string">"plc"</span>, <span class="string">"--ir"</span>, <span class="string">"--single-module"</span>, <span class="string">"-O"</span>, <span class="string">"none"</span>])
-        .map_err(|e| Diagnostic::new(e.to_string()))<span class="question-mark">?</span>;
-    params.generate_debug = debug;
-    <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
-        context,
-        project,
-        diagnostician,
-        compile_parameters: <span class="prelude-val">Some</span>(params),
-        linker: LinkerType::Internal,
-        mutable_participants: Vec::default(),
-        participants: Vec::default(),
-        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
-    };
-    pipeline.register_default_participants();
-    <span class="kw">let </span>project = pipeline.parse()<span class="question-mark">?</span>;
-    <span class="kw">let </span>project = pipeline.index(project)<span class="question-mark">?</span>;
-    <span class="kw">let </span>project = pipeline.annotate(project)<span class="question-mark">?</span>;
-    <span class="comment">// Validate
-    // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
-    </span>project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician)<span class="question-mark">?</span>;
-    <span class="kw">let </span>context = CodegenContext::create();
-    <span class="kw">let </span>module =
-        project.generate_single_module(<span class="kw-2">&amp;</span>context, pipeline.get_compile_options().as_ref().unwrap(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
-
-    <span class="comment">// Generate
-    </span>module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">"Cannot generate module"</span>))
-}
-
-<span class="kw">fn </span>get_project(compile_parameters: <span class="kw-2">&amp;</span>CompileParameters) -&gt; <span class="prelude-ty">Result</span>&lt;Project&lt;PathBuf&gt;&gt; {
-    <span class="comment">//Create a project from either the subcommand or single params
-    </span><span class="kw">let </span>project = compile_parameters
-        .get_build_configuration()<span class="question-mark">?
-        </span>.map(|it| Project::from_config(<span class="kw-2">&amp;</span>it))
-        .unwrap_or_else(|| {
-            <span class="comment">//Build with parameters
-            </span><span class="kw">let </span>name = compile_parameters
-                .input
-                .first()
-                .and_then(|it| it.get_location())
-                .and_then(|it| it.file_name())
-                .and_then(|it| it.to_str())
-                .unwrap_or(DEFAULT_OUTPUT_NAME);
-            <span class="kw">let </span>project = Project::new(name.to_string())
-                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
-                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
-                .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
-                .with_libraries(compile_parameters.libraries.clone());
-            <span class="prelude-val">Ok</span>(project)
-        });
-    <span class="comment">//Override default settings with compile options
-    </span>project
-        .map(|proj| {
-            <span class="kw">if let </span><span class="prelude-val">Some</span>(format) = compile_parameters.output_format() {
-                proj.with_format(format)
-            } <span class="kw">else </span>{
-                proj
-            }
-        })
-        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
-}
-
-<span class="kw">fn </span>get_config(root: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
-    root.join(<span class="string">"plc.json"</span>)
-}
-</code></pre></div></section></main></body></html>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `compiler/plc_driver/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="plc_driver" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">plc_driver/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Compiler driver for the PLC Compiler
+<a href=#2 id=2 data-nosnippet>2</a>//!
+<a href=#3 id=3 data-nosnippet>3</a>//! This crates offers the main methods to interact with the PLC Compiler
+<a href=#4 id=4 data-nosnippet>4</a>//! It can be used to verify a project or to produce:
+<a href=#5 id=5 data-nosnippet>5</a>//!  - Object files
+<a href=#6 id=6 data-nosnippet>6</a>//!  - LLVM files
+<a href=#7 id=7 data-nosnippet>7</a>//!  - LLVM Bitcode
+<a href=#8 id=8 data-nosnippet>8</a>//!  - Shared Objects
+<a href=#9 id=9 data-nosnippet>9</a>//!  - Executables
+<a href=#10 id=10 data-nosnippet>10</a>
+<a href=#11 id=11 data-nosnippet>11</a></span><span class="kw">use </span>anyhow::{anyhow, <span class="prelude-ty">Result</span>};
+<a href=#12 id=12 data-nosnippet>12</a><span class="kw">use </span>pipelines::{
+<a href=#13 id=13 data-nosnippet>13</a>    participant::CodegenParticipant, AnnotatedProject, BuildPipeline, GeneratedProject, Pipeline,
+<a href=#14 id=14 data-nosnippet>14</a>};
+<a href=#15 id=15 data-nosnippet>15</a><span class="kw">use </span>std::{
+<a href=#16 id=16 data-nosnippet>16</a>    ffi::OsStr,
+<a href=#17 id=17 data-nosnippet>17</a>    fmt::{Debug, Display},
+<a href=#18 id=18 data-nosnippet>18</a>    path::{Path, PathBuf},
+<a href=#19 id=19 data-nosnippet>19</a>    sync::{Arc, RwLock},
+<a href=#20 id=20 data-nosnippet>20</a>};
+<a href=#21 id=21 data-nosnippet>21</a>
+<a href=#22 id=22 data-nosnippet>22</a><span class="kw">use </span>cli::{CompileParameters, ParameterError};
+<a href=#23 id=23 data-nosnippet>23</a><span class="kw">use </span>plc::{
+<a href=#24 id=24 data-nosnippet>24</a>    codegen::CodegenContext, linker::LinkerType, output::FormatOption, DebugLevel, ErrorFormat, OnlineChange,
+<a href=#25 id=25 data-nosnippet>25</a>    OptimizationLevel,
+<a href=#26 id=26 data-nosnippet>26</a>};
+<a href=#27 id=27 data-nosnippet>27</a>
+<a href=#28 id=28 data-nosnippet>28</a><span class="kw">use </span>plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic, reporter::DiagnosticReporter};
+<a href=#29 id=29 data-nosnippet>29</a><span class="kw">use </span>plc_index::GlobalContext;
+<a href=#30 id=30 data-nosnippet>30</a><span class="kw">use </span>project::project::Project;
+<a href=#31 id=31 data-nosnippet>31</a><span class="kw">use </span>source_code::SourceContainer;
+<a href=#32 id=32 data-nosnippet>32</a>
+<a href=#33 id=33 data-nosnippet>33</a><span class="kw">pub mod </span>cli;
+<a href=#34 id=34 data-nosnippet>34</a><span class="kw">pub mod </span>pipelines;
+<a href=#35 id=35 data-nosnippet>35</a>
+<a href=#36 id=36 data-nosnippet>36</a><span class="attr">#[cfg(test)]
+<a href=#37 id=37 data-nosnippet>37</a></span><span class="kw">mod </span>tests;
+<a href=#38 id=38 data-nosnippet>38</a><span class="comment">//Not a [test] because it is used in external integration tests
+<a href=#39 id=39 data-nosnippet>39</a></span><span class="kw">pub mod </span>runner;
+<a href=#40 id=40 data-nosnippet>40</a>
+<a href=#41 id=41 data-nosnippet>41</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>DEFAULT_OUTPUT_NAME: <span class="kw-2">&amp;</span>str = <span class="string">"out"</span>;
+<a href=#42 id=42 data-nosnippet>42</a>
+<a href=#43 id=43 data-nosnippet>43</a><span class="attr">#[derive(Debug)]
+<a href=#44 id=44 data-nosnippet>44</a></span><span class="kw">pub struct </span>CompileOptions {
+<a href=#45 id=45 data-nosnippet>45</a>    <span class="doccomment">/// Default project location (where the plc.json is defined, or where we are currently
+<a href=#46 id=46 data-nosnippet>46</a>    /// compiling)
+<a href=#47 id=47 data-nosnippet>47</a>    </span><span class="kw">pub </span>root: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+<a href=#48 id=48 data-nosnippet>48</a>    <span class="doccomment">/// The location where the build would happen. This is None if the build subcommand was not
+<a href=#49 id=49 data-nosnippet>49</a>    /// used
+<a href=#50 id=50 data-nosnippet>50</a>    </span><span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+<a href=#51 id=51 data-nosnippet>51</a>    <span class="doccomment">/// The name of the resulting compiled file
+<a href=#52 id=52 data-nosnippet>52</a>    </span><span class="kw">pub </span>output: String,
+<a href=#53 id=53 data-nosnippet>53</a>    <span class="kw">pub </span>output_format: FormatOption,
+<a href=#54 id=54 data-nosnippet>54</a>    <span class="kw">pub </span>optimization: OptimizationLevel,
+<a href=#55 id=55 data-nosnippet>55</a>    <span class="kw">pub </span>error_format: ErrorFormat,
+<a href=#56 id=56 data-nosnippet>56</a>    <span class="kw">pub </span>debug_level: DebugLevel,
+<a href=#57 id=57 data-nosnippet>57</a>    <span class="kw">pub </span>single_module: bool,
+<a href=#58 id=58 data-nosnippet>58</a>    <span class="kw">pub </span>online_change: OnlineChange,
+<a href=#59 id=59 data-nosnippet>59</a>}
+<a href=#60 id=60 data-nosnippet>60</a>
+<a href=#61 id=61 data-nosnippet>61</a><span class="kw">impl </span>Default <span class="kw">for </span>CompileOptions {
+<a href=#62 id=62 data-nosnippet>62</a>    <span class="kw">fn </span>default() -&gt; <span class="self">Self </span>{
+<a href=#63 id=63 data-nosnippet>63</a>        CompileOptions {
+<a href=#64 id=64 data-nosnippet>64</a>            root: <span class="prelude-val">None</span>,
+<a href=#65 id=65 data-nosnippet>65</a>            build_location: <span class="prelude-val">None</span>,
+<a href=#66 id=66 data-nosnippet>66</a>            output: String::new(),
+<a href=#67 id=67 data-nosnippet>67</a>            output_format: Default::default(),
+<a href=#68 id=68 data-nosnippet>68</a>            optimization: OptimizationLevel::None,
+<a href=#69 id=69 data-nosnippet>69</a>            error_format: ErrorFormat::None,
+<a href=#70 id=70 data-nosnippet>70</a>            debug_level: DebugLevel::None,
+<a href=#71 id=71 data-nosnippet>71</a>            single_module: <span class="bool-val">false</span>,
+<a href=#72 id=72 data-nosnippet>72</a>            online_change: OnlineChange::Disabled,
+<a href=#73 id=73 data-nosnippet>73</a>        }
+<a href=#74 id=74 data-nosnippet>74</a>    }
+<a href=#75 id=75 data-nosnippet>75</a>}
+<a href=#76 id=76 data-nosnippet>76</a>
+<a href=#77 id=77 data-nosnippet>77</a><span class="attr">#[derive(Clone, Default, Debug)]
+<a href=#78 id=78 data-nosnippet>78</a></span><span class="kw">pub struct </span>LinkOptions {
+<a href=#79 id=79 data-nosnippet>79</a>    <span class="kw">pub </span>libraries: Vec&lt;String&gt;,
+<a href=#80 id=80 data-nosnippet>80</a>    <span class="kw">pub </span>library_paths: Vec&lt;PathBuf&gt;,
+<a href=#81 id=81 data-nosnippet>81</a>    <span class="kw">pub </span>format: FormatOption,
+<a href=#82 id=82 data-nosnippet>82</a>    <span class="kw">pub </span>linker: LinkerType,
+<a href=#83 id=83 data-nosnippet>83</a>    <span class="kw">pub </span>lib_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+<a href=#84 id=84 data-nosnippet>84</a>    <span class="kw">pub </span>build_location: <span class="prelude-ty">Option</span>&lt;PathBuf&gt;,
+<a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">pub </span>linker_script: LinkerScript,
+<a href=#86 id=86 data-nosnippet>86</a>    <span class="kw">pub </span>module_name: <span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#87 id=87 data-nosnippet>87</a>}
+<a href=#88 id=88 data-nosnippet>88</a>
+<a href=#89 id=89 data-nosnippet>89</a><span class="attr">#[derive(Clone, Default, Debug)]
+<a href=#90 id=90 data-nosnippet>90</a></span><span class="kw">pub enum </span>LinkerScript {
+<a href=#91 id=91 data-nosnippet>91</a>    <span class="attr">#[default]
+<a href=#92 id=92 data-nosnippet>92</a>    </span>Builtin,
+<a href=#93 id=93 data-nosnippet>93</a>    Path(String),
+<a href=#94 id=94 data-nosnippet>94</a>    <span class="prelude-val">None</span>,
+<a href=#95 id=95 data-nosnippet>95</a>}
+<a href=#96 id=96 data-nosnippet>96</a>
+<a href=#97 id=97 data-nosnippet>97</a><span class="attr">#[derive(Debug)]
+<a href=#98 id=98 data-nosnippet>98</a></span><span class="kw">pub enum </span>CompileError {
+<a href=#99 id=99 data-nosnippet>99</a>    Diagnostic(Diagnostic),
+<a href=#100 id=100 data-nosnippet>100</a>    Parameter(ParameterError),
+<a href=#101 id=101 data-nosnippet>101</a>}
+<a href=#102 id=102 data-nosnippet>102</a>
+<a href=#103 id=103 data-nosnippet>103</a><span class="kw">impl </span>From&lt;Diagnostic&gt; <span class="kw">for </span>CompileError {
+<a href=#104 id=104 data-nosnippet>104</a>    <span class="kw">fn </span>from(value: Diagnostic) -&gt; <span class="self">Self </span>{
+<a href=#105 id=105 data-nosnippet>105</a>        <span class="self">Self</span>::Diagnostic(value)
+<a href=#106 id=106 data-nosnippet>106</a>    }
+<a href=#107 id=107 data-nosnippet>107</a>}
+<a href=#108 id=108 data-nosnippet>108</a><span class="kw">impl </span>From&lt;ParameterError&gt; <span class="kw">for </span>CompileError {
+<a href=#109 id=109 data-nosnippet>109</a>    <span class="kw">fn </span>from(value: ParameterError) -&gt; <span class="self">Self </span>{
+<a href=#110 id=110 data-nosnippet>110</a>        <span class="self">Self</span>::Parameter(value)
+<a href=#111 id=111 data-nosnippet>111</a>    }
+<a href=#112 id=112 data-nosnippet>112</a>}
+<a href=#113 id=113 data-nosnippet>113</a>
+<a href=#114 id=114 data-nosnippet>114</a><span class="kw">impl </span>CompileError {
+<a href=#115 id=115 data-nosnippet>115</a>    <span class="kw">pub fn </span>exit(<span class="kw-2">&amp;</span><span class="self">self</span>) {
+<a href=#116 id=116 data-nosnippet>116</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#117 id=117 data-nosnippet>117</a>            CompileError::Diagnostic(err) =&gt; {
+<a href=#118 id=118 data-nosnippet>118</a>                <span class="macro">println!</span>(<span class="string">"{err}"</span>);
+<a href=#119 id=119 data-nosnippet>119</a>                std::process::exit(<span class="number">1</span>)
+<a href=#120 id=120 data-nosnippet>120</a>            }
+<a href=#121 id=121 data-nosnippet>121</a>            CompileError::Parameter(err) =&gt; err.exit(),
+<a href=#122 id=122 data-nosnippet>122</a>        }
+<a href=#123 id=123 data-nosnippet>123</a>    }
+<a href=#124 id=124 data-nosnippet>124</a>
+<a href=#125 id=125 data-nosnippet>125</a>    <span class="kw">pub fn </span>into_diagnostic(<span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Diagnostic&gt; {
+<a href=#126 id=126 data-nosnippet>126</a>        <span class="kw">let </span>CompileError::Diagnostic(res) = <span class="self">self </span><span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">None </span>};
+<a href=#127 id=127 data-nosnippet>127</a>        <span class="prelude-val">Some</span>(res)
+<a href=#128 id=128 data-nosnippet>128</a>    }
+<a href=#129 id=129 data-nosnippet>129</a>}
+<a href=#130 id=130 data-nosnippet>130</a>
+<a href=#131 id=131 data-nosnippet>131</a><span class="kw">impl </span>Display <span class="kw">for </span>CompileError {
+<a href=#132 id=132 data-nosnippet>132</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, f: <span class="kw-2">&amp;mut </span>std::fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; std::fmt::Result {
+<a href=#133 id=133 data-nosnippet>133</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#134 id=134 data-nosnippet>134</a>            CompileError::Diagnostic(err) =&gt; Display::fmt(err, f),
+<a href=#135 id=135 data-nosnippet>135</a>            CompileError::Parameter(err) =&gt; Display::fmt(err, f),
+<a href=#136 id=136 data-nosnippet>136</a>        }
+<a href=#137 id=137 data-nosnippet>137</a>    }
+<a href=#138 id=138 data-nosnippet>138</a>}
+<a href=#139 id=139 data-nosnippet>139</a>
+<a href=#140 id=140 data-nosnippet>140</a><span class="kw">pub struct </span>CompilationContext {
+<a href=#141 id=141 data-nosnippet>141</a>    <span class="kw">pub </span>compile_parameters: CompileParameters,
+<a href=#142 id=142 data-nosnippet>142</a>    <span class="kw">pub </span>project: Project&lt;PathBuf&gt;,
+<a href=#143 id=143 data-nosnippet>143</a>    <span class="kw">pub </span>diagnostician: Diagnostician,
+<a href=#144 id=144 data-nosnippet>144</a>    <span class="kw">pub </span>compile_options: CompileOptions,
+<a href=#145 id=145 data-nosnippet>145</a>    <span class="kw">pub </span>link_options: LinkOptions,
+<a href=#146 id=146 data-nosnippet>146</a>}
+<a href=#147 id=147 data-nosnippet>147</a>
+<a href=#148 id=148 data-nosnippet>148</a><span class="kw">pub fn </span>compile&lt;T: AsRef&lt;str&gt; + AsRef&lt;OsStr&gt; + Debug&gt;(args: <span class="kw-2">&amp;</span>[T]) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#149 id=149 data-nosnippet>149</a>    <span class="comment">//Parse the arguments
+<a href=#150 id=150 data-nosnippet>150</a>    </span><span class="kw">let </span>pipeline = BuildPipeline::new(args)<span class="question-mark">?</span>;
+<a href=#151 id=151 data-nosnippet>151</a>    compile_with_pipeline(pipeline)
+<a href=#152 id=152 data-nosnippet>152</a>}
+<a href=#153 id=153 data-nosnippet>153</a>
+<a href=#154 id=154 data-nosnippet>154</a><span class="kw">pub fn </span>compile_with_pipeline&lt;T: SourceContainer + Clone + <span class="lifetime">'static</span>&gt;(
+<a href=#155 id=155 data-nosnippet>155</a>    <span class="kw-2">mut </span>pipeline: BuildPipeline&lt;T&gt;,
+<a href=#156 id=156 data-nosnippet>156</a>) -&gt; <span class="prelude-ty">Result</span>&lt;()&gt; {
+<a href=#157 id=157 data-nosnippet>157</a>    <span class="comment">//register participants
+<a href=#158 id=158 data-nosnippet>158</a>    </span>pipeline.register_default_participants();
+<a href=#159 id=159 data-nosnippet>159</a>    <span class="kw">let </span>target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
+<a href=#160 id=160 data-nosnippet>160</a>    <span class="kw">let </span>codegen_participant = CodegenParticipant {
+<a href=#161 id=161 data-nosnippet>161</a>        compile_options: pipeline.get_compile_options().unwrap(),
+<a href=#162 id=162 data-nosnippet>162</a>        link_options: pipeline.get_link_options().unwrap(),
+<a href=#163 id=163 data-nosnippet>163</a>        target: target.clone(),
+<a href=#164 id=164 data-nosnippet>164</a>        objects: Arc::new(RwLock::new(GeneratedProject {
+<a href=#165 id=165 data-nosnippet>165</a>            target,
+<a href=#166 id=166 data-nosnippet>166</a>            objects: pipeline.project.get_objects().to_vec(),
+<a href=#167 id=167 data-nosnippet>167</a>        })),
+<a href=#168 id=168 data-nosnippet>168</a>        got_layout: Default::default(),
+<a href=#169 id=169 data-nosnippet>169</a>        compile_dirs: Default::default(),
+<a href=#170 id=170 data-nosnippet>170</a>        libraries: pipeline.project.get_libraries().to_vec(),
+<a href=#171 id=171 data-nosnippet>171</a>    };
+<a href=#172 id=172 data-nosnippet>172</a>    pipeline.register_participant(Box::new(codegen_participant));
+<a href=#173 id=173 data-nosnippet>173</a>
+<a href=#174 id=174 data-nosnippet>174</a>    <span class="kw">let </span>format = pipeline.compile_parameters.as_ref().map(|it| it.error_format).unwrap_or_default();
+<a href=#175 id=175 data-nosnippet>175</a>
+<a href=#176 id=176 data-nosnippet>176</a>    pipeline.run().map_err(|err| {
+<a href=#177 id=177 data-nosnippet>177</a>        <span class="comment">//Only report the hint if we are using rich error reporting
+<a href=#178 id=178 data-nosnippet>178</a>        </span><span class="kw">if </span><span class="macro">matches!</span>(format, ErrorFormat::Rich) {
+<a href=#179 id=179 data-nosnippet>179</a>            <span class="macro">anyhow!</span>(
+<a href=#180 id=180 data-nosnippet>180</a>                <span class="string">"{err}.
+<a href=#181 id=181 data-nosnippet>181</a>Hint: You can use `plc explain &lt;ErrorCode&gt;` for more information"
+<a href=#182 id=182 data-nosnippet>182</a>            </span>)
+<a href=#183 id=183 data-nosnippet>183</a>        } <span class="kw">else </span>{
+<a href=#184 id=184 data-nosnippet>184</a>            err.into()
+<a href=#185 id=185 data-nosnippet>185</a>        }
+<a href=#186 id=186 data-nosnippet>186</a>    })
+<a href=#187 id=187 data-nosnippet>187</a>}
+<a href=#188 id=188 data-nosnippet>188</a>
+<a href=#189 id=189 data-nosnippet>189</a><span class="doccomment">/// Parses and annotates a given project. Can be used in tests or api calls
+<a href=#190 id=190 data-nosnippet>190</a></span><span class="kw">pub fn </span>parse_and_annotate&lt;T: SourceContainer + Clone&gt;(
+<a href=#191 id=191 data-nosnippet>191</a>    name: <span class="kw-2">&amp;</span>str,
+<a href=#192 id=192 data-nosnippet>192</a>    src: Vec&lt;T&gt;,
+<a href=#193 id=193 data-nosnippet>193</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(GlobalContext, AnnotatedProject), Diagnostic&gt; {
+<a href=#194 id=194 data-nosnippet>194</a>    <span class="kw">let </span>(pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())
+<a href=#195 id=195 data-nosnippet>195</a>        .map_err(|it| Diagnostic::new(it.buffer().unwrap_or_default()))<span class="question-mark">?</span>;
+<a href=#196 id=196 data-nosnippet>196</a>    <span class="prelude-val">Ok</span>((pipeline.context, project))
+<a href=#197 id=197 data-nosnippet>197</a>}
+<a href=#198 id=198 data-nosnippet>198</a>
+<a href=#199 id=199 data-nosnippet>199</a><span class="kw">pub fn </span>parse_and_annotate_with_diagnostics&lt;T: SourceContainer + Clone&gt;(
+<a href=#200 id=200 data-nosnippet>200</a>    name: <span class="kw-2">&amp;</span>str,
+<a href=#201 id=201 data-nosnippet>201</a>    src: Vec&lt;T&gt;,
+<a href=#202 id=202 data-nosnippet>202</a>    diagnostician: Diagnostician,
+<a href=#203 id=203 data-nosnippet>203</a>) -&gt; <span class="prelude-ty">Result</span>&lt;(BuildPipeline&lt;T&gt;, AnnotatedProject), Diagnostician&gt; {
+<a href=#204 id=204 data-nosnippet>204</a>    <span class="comment">// Parse the source to ast
+<a href=#205 id=205 data-nosnippet>205</a>    </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
+<a href=#206 id=206 data-nosnippet>206</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(context) = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>) <span class="kw">else </span>{
+<a href=#207 id=207 data-nosnippet>207</a>        <span class="kw">return </span><span class="prelude-val">Err</span>(diagnostician);
+<a href=#208 id=208 data-nosnippet>208</a>    };
+<a href=#209 id=209 data-nosnippet>209</a>    <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
+<a href=#210 id=210 data-nosnippet>210</a>        context,
+<a href=#211 id=211 data-nosnippet>211</a>        project,
+<a href=#212 id=212 data-nosnippet>212</a>        diagnostician,
+<a href=#213 id=213 data-nosnippet>213</a>        compile_parameters: <span class="prelude-val">None</span>,
+<a href=#214 id=214 data-nosnippet>214</a>        linker: LinkerType::Internal,
+<a href=#215 id=215 data-nosnippet>215</a>        mutable_participants: Vec::default(),
+<a href=#216 id=216 data-nosnippet>216</a>        participants: Vec::default(),
+<a href=#217 id=217 data-nosnippet>217</a>        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
+<a href=#218 id=218 data-nosnippet>218</a>    };
+<a href=#219 id=219 data-nosnippet>219</a>    pipeline.register_default_participants();
+<a href=#220 id=220 data-nosnippet>220</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.parse() <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+<a href=#221 id=221 data-nosnippet>221</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.index(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+<a href=#222 id=222 data-nosnippet>222</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(project) = pipeline.annotate(project) <span class="kw">else </span>{ <span class="kw">return </span><span class="prelude-val">Err</span>(pipeline.diagnostician) };
+<a href=#223 id=223 data-nosnippet>223</a>    <span class="prelude-val">Ok</span>((pipeline, project))
+<a href=#224 id=224 data-nosnippet>224</a>}
+<a href=#225 id=225 data-nosnippet>225</a>
+<a href=#226 id=226 data-nosnippet>226</a><span class="kw">pub fn </span>parse_and_validate&lt;T: SourceContainer + Clone&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; String {
+<a href=#227 id=227 data-nosnippet>227</a>    <span class="kw">match </span>parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered()) {
+<a href=#228 id=228 data-nosnippet>228</a>        <span class="prelude-val">Ok</span>((<span class="kw-2">mut </span>pipeline, project)) =&gt; {
+<a href=#229 id=229 data-nosnippet>229</a>            <span class="kw">let _ </span>= project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician);
+<a href=#230 id=230 data-nosnippet>230</a>            pipeline.diagnostician.buffer().unwrap()
+<a href=#231 id=231 data-nosnippet>231</a>        }
+<a href=#232 id=232 data-nosnippet>232</a>        <span class="prelude-val">Err</span>(diagnostician) =&gt; diagnostician.buffer().unwrap(),
+<a href=#233 id=233 data-nosnippet>233</a>    }
+<a href=#234 id=234 data-nosnippet>234</a>}
+<a href=#235 id=235 data-nosnippet>235</a>
+<a href=#236 id=236 data-nosnippet>236</a><span class="doccomment">/// Generates an IR string from a list of sources. Useful for tests or api calls
+<a href=#237 id=237 data-nosnippet>237</a></span><span class="kw">pub fn </span>generate_to_string&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+<a href=#238 id=238 data-nosnippet>238</a>    generate_to_string_internal(name, src, <span class="bool-val">false</span>)
+<a href=#239 id=239 data-nosnippet>239</a>}
+<a href=#240 id=240 data-nosnippet>240</a>
+<a href=#241 id=241 data-nosnippet>241</a><span class="doccomment">/// Generates an IR string from a list of sources with debug information enabled. Useful for tests or api calls
+<a href=#242 id=242 data-nosnippet>242</a></span><span class="kw">pub fn </span>generate_to_string_debug&lt;T: SourceContainer&gt;(name: <span class="kw-2">&amp;</span>str, src: Vec&lt;T&gt;) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+<a href=#243 id=243 data-nosnippet>243</a>    generate_to_string_internal(name, src, <span class="bool-val">true</span>)
+<a href=#244 id=244 data-nosnippet>244</a>}
+<a href=#245 id=245 data-nosnippet>245</a>
+<a href=#246 id=246 data-nosnippet>246</a><span class="kw">fn </span>generate_to_string_internal&lt;T: SourceContainer&gt;(
+<a href=#247 id=247 data-nosnippet>247</a>    name: <span class="kw-2">&amp;</span>str,
+<a href=#248 id=248 data-nosnippet>248</a>    src: Vec&lt;T&gt;,
+<a href=#249 id=249 data-nosnippet>249</a>    debug: bool,
+<a href=#250 id=250 data-nosnippet>250</a>) -&gt; <span class="prelude-ty">Result</span>&lt;String, Diagnostic&gt; {
+<a href=#251 id=251 data-nosnippet>251</a>    <span class="comment">// plc src --ir --single-module
+<a href=#252 id=252 data-nosnippet>252</a>    </span><span class="kw">let </span>project = Project::new(name.to_string()).with_sources(src);
+<a href=#253 id=253 data-nosnippet>253</a>    <span class="kw">let </span>context = GlobalContext::new().with_source(project.get_sources(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+<a href=#254 id=254 data-nosnippet>254</a>    <span class="kw">let </span>diagnostician = Diagnostician::default();
+<a href=#255 id=255 data-nosnippet>255</a>    <span class="kw">let </span><span class="kw-2">mut </span>params = cli::CompileParameters::parse(<span class="kw-2">&amp;</span>[<span class="string">"plc"</span>, <span class="string">"--ir"</span>, <span class="string">"--single-module"</span>, <span class="string">"-O"</span>, <span class="string">"none"</span>])
+<a href=#256 id=256 data-nosnippet>256</a>        .map_err(|e| Diagnostic::new(e.to_string()))<span class="question-mark">?</span>;
+<a href=#257 id=257 data-nosnippet>257</a>    params.generate_debug = debug;
+<a href=#258 id=258 data-nosnippet>258</a>    <span class="kw">let </span><span class="kw-2">mut </span>pipeline = BuildPipeline {
+<a href=#259 id=259 data-nosnippet>259</a>        context,
+<a href=#260 id=260 data-nosnippet>260</a>        project,
+<a href=#261 id=261 data-nosnippet>261</a>        diagnostician,
+<a href=#262 id=262 data-nosnippet>262</a>        compile_parameters: <span class="prelude-val">Some</span>(params),
+<a href=#263 id=263 data-nosnippet>263</a>        linker: LinkerType::Internal,
+<a href=#264 id=264 data-nosnippet>264</a>        mutable_participants: Vec::default(),
+<a href=#265 id=265 data-nosnippet>265</a>        participants: Vec::default(),
+<a href=#266 id=266 data-nosnippet>266</a>        module_name: <span class="prelude-val">Some</span>(<span class="string">"&lt;internal&gt;"</span>.to_string()),
+<a href=#267 id=267 data-nosnippet>267</a>    };
+<a href=#268 id=268 data-nosnippet>268</a>    pipeline.register_default_participants();
+<a href=#269 id=269 data-nosnippet>269</a>    <span class="kw">let </span>project = pipeline.parse()<span class="question-mark">?</span>;
+<a href=#270 id=270 data-nosnippet>270</a>    <span class="kw">let </span>project = pipeline.index(project)<span class="question-mark">?</span>;
+<a href=#271 id=271 data-nosnippet>271</a>    <span class="kw">let </span>project = pipeline.annotate(project)<span class="question-mark">?</span>;
+<a href=#272 id=272 data-nosnippet>272</a>    <span class="comment">// Validate
+<a href=#273 id=273 data-nosnippet>273</a>    // TODO: move validation to participants, maybe refactor codegen to stop at generated modules and persist in dedicated step?
+<a href=#274 id=274 data-nosnippet>274</a>    </span>project.validate(<span class="kw-2">&amp;</span>pipeline.context, <span class="kw-2">&amp;mut </span>pipeline.diagnostician)<span class="question-mark">?</span>;
+<a href=#275 id=275 data-nosnippet>275</a>    <span class="kw">let </span>context = CodegenContext::create();
+<a href=#276 id=276 data-nosnippet>276</a>    <span class="kw">let </span>module =
+<a href=#277 id=277 data-nosnippet>277</a>        project.generate_single_module(<span class="kw-2">&amp;</span>context, pipeline.get_compile_options().as_ref().unwrap(), <span class="prelude-val">None</span>)<span class="question-mark">?</span>;
+<a href=#278 id=278 data-nosnippet>278</a>
+<a href=#279 id=279 data-nosnippet>279</a>    <span class="comment">// Generate
+<a href=#280 id=280 data-nosnippet>280</a>    </span>module.map(|it| it.persist_to_string()).ok_or_else(|| Diagnostic::new(<span class="string">"Cannot generate module"</span>))
+<a href=#281 id=281 data-nosnippet>281</a>}
+<a href=#282 id=282 data-nosnippet>282</a>
+<a href=#283 id=283 data-nosnippet>283</a><span class="kw">fn </span>get_project(compile_parameters: <span class="kw-2">&amp;</span>CompileParameters) -&gt; <span class="prelude-ty">Result</span>&lt;Project&lt;PathBuf&gt;&gt; {
+<a href=#284 id=284 data-nosnippet>284</a>    <span class="comment">//Create a project from either the subcommand or single params
+<a href=#285 id=285 data-nosnippet>285</a>    </span><span class="kw">let </span>project = compile_parameters
+<a href=#286 id=286 data-nosnippet>286</a>        .get_build_configuration()<span class="question-mark">?
+<a href=#287 id=287 data-nosnippet>287</a>        </span>.map(|it| Project::from_config(<span class="kw-2">&amp;</span>it))
+<a href=#288 id=288 data-nosnippet>288</a>        .unwrap_or_else(|| {
+<a href=#289 id=289 data-nosnippet>289</a>            <span class="comment">//Build with parameters
+<a href=#290 id=290 data-nosnippet>290</a>            </span><span class="kw">let </span>name = compile_parameters
+<a href=#291 id=291 data-nosnippet>291</a>                .input
+<a href=#292 id=292 data-nosnippet>292</a>                .first()
+<a href=#293 id=293 data-nosnippet>293</a>                .and_then(|it| it.get_location())
+<a href=#294 id=294 data-nosnippet>294</a>                .and_then(|it| it.file_name())
+<a href=#295 id=295 data-nosnippet>295</a>                .and_then(|it| it.to_str())
+<a href=#296 id=296 data-nosnippet>296</a>                .unwrap_or(DEFAULT_OUTPUT_NAME);
+<a href=#297 id=297 data-nosnippet>297</a>            <span class="kw">let </span>project = Project::new(name.to_string())
+<a href=#298 id=298 data-nosnippet>298</a>                .with_file_paths(compile_parameters.input.iter().map(PathBuf::from).collect())
+<a href=#299 id=299 data-nosnippet>299</a>                .with_include_paths(compile_parameters.includes.iter().map(PathBuf::from).collect())
+<a href=#300 id=300 data-nosnippet>300</a>                .with_library_paths(compile_parameters.library_paths.iter().map(PathBuf::from).collect())
+<a href=#301 id=301 data-nosnippet>301</a>                .with_libraries(compile_parameters.libraries.clone());
+<a href=#302 id=302 data-nosnippet>302</a>            <span class="prelude-val">Ok</span>(project)
+<a href=#303 id=303 data-nosnippet>303</a>        });
+<a href=#304 id=304 data-nosnippet>304</a>    <span class="comment">//Override default settings with compile options
+<a href=#305 id=305 data-nosnippet>305</a>    </span>project
+<a href=#306 id=306 data-nosnippet>306</a>        .map(|proj| {
+<a href=#307 id=307 data-nosnippet>307</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(format) = compile_parameters.output_format() {
+<a href=#308 id=308 data-nosnippet>308</a>                proj.with_format(format)
+<a href=#309 id=309 data-nosnippet>309</a>            } <span class="kw">else </span>{
+<a href=#310 id=310 data-nosnippet>310</a>                proj
+<a href=#311 id=311 data-nosnippet>311</a>            }
+<a href=#312 id=312 data-nosnippet>312</a>        })
+<a href=#313 id=313 data-nosnippet>313</a>        .map(|proj| proj.with_output_name(compile_parameters.output.clone()))
+<a href=#314 id=314 data-nosnippet>314</a>}
+<a href=#315 id=315 data-nosnippet>315</a>
+<a href=#316 id=316 data-nosnippet>316</a><span class="kw">fn </span>get_config(root: <span class="kw-2">&amp;</span>Path) -&gt; PathBuf {
+<a href=#317 id=317 data-nosnippet>317</a>    root.join(<span class="string">"plc.json"</span>)
+<a href=#318 id=318 data-nosnippet>318</a>}</code></pre></div></section></main></body></html>
