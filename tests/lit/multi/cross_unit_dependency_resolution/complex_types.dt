@@ -1,0 +1,21 @@
+TYPE container_struct : STRUCT
+    arr_field : ARRAY[0..3] OF struct_typedef;
+    status : status_enum;
+    percent : percentage;
+    ptr_field : struct_ptr;
+END_STRUCT
+END_TYPE
+
+TYPE matrix_type : ARRAY[0..2] OF row_array; END_TYPE
+
+TYPE typedef_nested_struct : STRUCT
+    outer_field : base_struct;
+    inner : struct_with_array;
+END_STRUCT
+END_TYPE
+
+TYPE direct_nested_struct : STRUCT
+    outer_field : base_struct;
+    inner : struct_with_array;
+END_STRUCT
+END_TYPE

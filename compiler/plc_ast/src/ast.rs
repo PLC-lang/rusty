@@ -584,7 +584,7 @@ impl Variable {
 #[derive(Clone, PartialEq)]
 pub enum DataTypeDeclaration {
     Reference { referenced_type: String, location: SourceLocation },
-    Definition { data_type: DataType, location: SourceLocation, scope: Option<String> },
+    Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String> },
     Aggregate { referenced_type: String, location: SourceLocation },
 }
 
@@ -637,7 +637,7 @@ impl DataTypeDeclaration {
             DataTypeDeclaration::Reference { .. } => Some(self.clone()),
 
             DataTypeDeclaration::Definition { data_type, .. } => {
-                if let DataType::PointerType { referenced_type, .. } = data_type {
+                if let DataType::PointerType { referenced_type, .. } = data_type.as_ref() {
                     return referenced_type.get_inner_pointer_ty();
                 }
 

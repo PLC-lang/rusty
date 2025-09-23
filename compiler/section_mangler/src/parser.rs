@@ -18,7 +18,7 @@ enum Prefix {
     Var,
 }
 
-fn parse_prefix(input: &str) -> ParseResult<Prefix> {
+fn parse_prefix(input: &str) -> ParseResult<'_, Prefix> {
     let fn_prefix = tag("fn").map(|_| Prefix::Fn);
     let var_prefix = tag("var").map(|_| Prefix::Var);
 
@@ -28,20 +28,20 @@ fn parse_prefix(input: &str) -> ParseResult<Prefix> {
     Ok((input, prefix))
 }
 
-fn parse_entity_name(input: &str) -> ParseResult<&str> {
+fn parse_entity_name(input: &str) -> ParseResult<'_, &str> {
     delimited(char('-'), take_until1(":"), char(':'))(input)
 }
 
-fn type_void(input: &str) -> ParseResult<Type> {
+fn type_void(input: &str) -> ParseResult<'_, Type> {
     char('v').map(|_| Type::Void).parse(input)
 }
 
-fn number<T: str::FromStr>(input: &str) -> ParseResult<T> {
+fn number<T: str::FromStr>(input: &str) -> ParseResult<'_, T> {
     map_res(digit1, str::parse)(input)
 }
 
-fn type_integer(input: &str) -> ParseResult<Type> {
-    fn parse_signedness(input: &str) -> ParseResult<bool> {
+fn type_integer(input: &str) -> ParseResult<'_, Type> {
+    fn parse_signedness(input: &str) -> ParseResult<'_, bool> {
         let signed = char('i').map(|_| true);
         let unsigned = char('u').map(|_| false);
 
@@ -54,21 +54,21 @@ fn type_integer(input: &str) -> ParseResult<Type> {
         .parse(input)
 }
 
-fn type_float(input: &str) -> ParseResult<Type> {
+fn type_float(input: &str) -> ParseResult<'_, Type> {
     char('f').and(number::<u32>).map(|(_, size)| Type::Float { size }).parse(input)
 }
 
-fn type_pointer(input: &str) -> ParseResult<Type> {
+fn type_pointer(input: &str) -> ParseResult<'_, Type> {
     char('p').and(parse_type).map(|(_, inner)| Type::Pointer { inner: Box::new(inner) }).parse(input)
 }
 
-fn type_struct(input: &str) -> ParseResult<Type> {
+fn type_struct(input: &str) -> ParseResult<'_, Type> {
     let (input, (_, n)) = char('r').and(number::<usize>).parse(input)?;
 
     many_m_n(n, n, parse_type).map(|members| Type::Struct { members }).parse(input)
 }
 
-fn type_enum(input: &str) -> ParseResult<Type> {
+fn type_enum(input: &str) -> ParseResult<'_, Type> {
     char('e')
         .and(number::<usize>)
         .and(parse_type)
@@ -76,14 +76,14 @@ fn type_enum(input: &str) -> ParseResult<Type> {
         .parse(input)
 }
 
-fn string_encoding(input: &str) -> ParseResult<StringEncoding> {
+fn string_encoding(input: &str) -> ParseResult<'_, StringEncoding> {
     let utf8 = tag("8u").map(|_| StringEncoding::Utf8);
     let utf16 = tag("16u").map(|_| StringEncoding::Utf16);
 
     alt((utf8, utf16))(input)
 }
 
-fn type_string(input: &str) -> ParseResult<Type> {
+fn type_string(input: &str) -> ParseResult<'_, Type> {
     char('s')
         .and(string_encoding)
         .and(number::<usize>)
@@ -91,11 +91,11 @@ fn type_string(input: &str) -> ParseResult<Type> {
         .parse(input)
 }
 
-fn type_array(input: &str) -> ParseResult<Type> {
+fn type_array(input: &str) -> ParseResult<'_, Type> {
     char('a').and(parse_type).map(|(_, inner_ty)| Type::Array { inner: Box::new(inner_ty) }).parse(input)
 }
 
-fn parse_type(input: &str) -> ParseResult<Type> {
+fn parse_type(input: &str) -> ParseResult<'_, Type> {
     alt((type_void, type_integer, type_float, type_pointer, type_struct, type_enum, type_string, type_array))(
         input,
     )
