@@ -30,6 +30,10 @@ VAR
     iVar1       : INT := 5;
 
     myarray     : ARRAY [0..9] OF BYTE := [0,1,2,3,4,5,6,7,8,9];
+
+    dividend    : DINT := 20;
+    divisor     : DINT := 4;
+    subtrahend  : DINT := 7;
 END_VAR
 
     // MOVE
@@ -71,6 +75,18 @@ END_VAR
     piAddress2 := REF(in := iVar1);         // named argument
     result := (piAddress1 = piAddress2);
     printf('%d$N', result);                 // CHECK: 1
+
+    // DIV
+    result := DIV(IN1 := dividend, IN2 := divisor);
+    printf('%d$N', result);                 // CHECK: 5
+    result := DIV(dividend, divisor);
+    printf('%d$N', result);                 // CHECK: 5
+
+    // SUB
+    result := SUB(IN1 := dividend, IN2 := subtrahend);
+    printf('%d$N', result);                 // CHECK: 13
+    result := SUB(dividend, subtrahend);
+    printf('%d$N', result);                 // CHECK: 13
 
     test_bounds(myarray);
 
