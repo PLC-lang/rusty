@@ -119,7 +119,7 @@ impl SerializeWithContext for HardwareBinding<'_> {
 }
 
 /// Retrieves hardware bindings from all defined instances in the program
-pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfiguration, Diagnostic> {
+pub fn collect_hardware_configuration(index: &Index) -> Result<HardwareConfiguration<'_>, Diagnostic> {
     let conf: Result<Vec<HardwareBinding>, String> = index
         //Avoid arrays that are not representing structural types
         .find_instances()
