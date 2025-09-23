@@ -879,6 +879,40 @@ fn builtin_div_mixed() {
 }
 
 #[test]
+fn builtin_div_with_named_arguments() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x : DINT := 20;
+            y : DINT := 4;
+        END_VAR
+            DIV(IN1 := x, IN2 := y);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
+fn builtin_sub_with_named_arguments() {
+    let src = r#"
+        FUNCTION main : DINT
+        VAR
+            x : DINT := 20;
+            y : DINT := 4;
+        END_VAR
+            SUB(IN1 := x, IN2 := y);
+        END_FUNCTION
+    "#;
+
+    let res = codegen(src);
+
+    filtered_assert_snapshot!(res);
+}
+
+#[test]
 fn global_namespace_operator() {
     let src = r#"
     VAR_GLOBAL
