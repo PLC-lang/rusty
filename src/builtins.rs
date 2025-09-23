@@ -623,7 +623,8 @@ fn validate_types(
 ) {
     let Some(params) = parameters else { return };
 
-    let types = flatten_expression_list(params);
+    let types: Vec<_> =
+        flatten_expression_list(params).into_iter().map(|it| extract_actual_parameter(it).clone()).collect();
     let mut types = types.iter().peekable();
 
     while let Some(left) = types.next() {
@@ -722,7 +723,10 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
 ) {
-    let params_flattened = flatten_expression_list(parameters);
+    let params_flattened: Vec<_> = flatten_expression_list(parameters)
+        .into_iter()
+        .map(|it| extract_actual_parameter(it).clone())
+        .collect();
     if params_flattened.iter().any(|it| {
         !annotator
             .annotation_map
