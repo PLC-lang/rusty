@@ -723,11 +723,27 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
 ) {
-    let params_flattened: Vec<_> = flatten_expression_list(parameters)
+    let params_extracted_flattened: Vec<_> = flatten_expression_list(parameters)
         .into_iter()
         .map(|it| extract_actual_parameter(it).clone())
         .collect();
-    if params_flattened.iter().any(|it| {
+
+    let params = flatten_expression_list(parameters);
+    // loop params to add type hints for named arguments
+    for (original_param, actual_param) in params.iter().zip(params_extracted_flattened.iter()) {
+        // check if it's a named argument
+        if matches!(original_param.get_stmt(), AstStatement::Assignment(_)) {
+            let param_type = annotator
+                .annotation_map
+                .get_type_or_void(actual_param, annotator.index)
+                .get_type_information()
+                .get_name()
+                .to_owned();
+            annotator.annotation_map.annotate_type_hint(actual_param, StatementAnnotation::value(param_type));
+        }
+    }
+
+    if params_extracted_flattened.iter().any(|it| {
         !annotator
             .annotation_map
             .get_type_or_void(it, annotator.index)
@@ -742,11 +758,12 @@ fn annotate_arithmetic_function(
     // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
     // mutable and immutable borrow of TypeAnnotator
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
-        let mut bigger = annotator
-            .annotation_map
-            .get_type_or_void(params_flattened.first().expect("must have this parameter"), annotator.index);
+        let mut bigger = annotator.annotation_map.get_type_or_void(
+            params_extracted_flattened.first().expect("must have this parameter"),
+            annotator.index,
+        );
 
-        for param in params_flattened.iter().skip(1) {
+        for param in params_extracted_flattened.iter().skip(1) {
             let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
             bigger = get_bigger_type(bigger, right_type, annotator.index);
         }
@@ -758,8 +775,8 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_flattened.first().expect("Must exist")).clone();
-    let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+    let left = (*params_extracted_flattened.first().expect("Must exist")).clone();
+    let new_statement = params_extracted_flattened.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
 
