@@ -724,6 +724,84 @@ fn ref_builtin_function_reports_invalid_param_count() {
 }
 
 #[test]
+fn builtin_functions_named_arguments_invalid_parameter_names() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..5] OF INT;
+            a, b: INT;
+            sel: BOOL;
+        END_VAR
+            // SEL with wrong parameter names
+            a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+            a := SEL(G := sel, INVALID := a, IN1 := b);
+            
+            // MOVE with wrong parameter names  
+            MOVE(SOURCE := arr, INVALID := arr);
+            MOVE(WRONG := arr, DEST := arr);
+            
+            // SIZEOF with wrong parameter name
+            a := SIZEOF(INVALID := arr);
+            
+            // ADR with wrong parameter name
+            ADR(WRONG := arr);
+            
+            // REF with wrong parameter name
+            REF(INVALID := arr);
+            
+            // UPPER_BOUND with wrong parameter names
+            a := UPPER_BOUND(INVALID := arr, DIM := 1);
+            a := UPPER_BOUND(ARR := arr, WRONG := 1);
+            
+            // LOWER_BOUND with wrong parameter names
+            a := LOWER_BOUND(WRONG := arr, DIM := 1);
+            a := LOWER_BOUND(ARR := arr, INVALID := 1);
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn builtin_functions_named_arguments_type_mismatches() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..5] OF INT;
+            a, b: INT;
+            sel: BOOL;
+            str_val: STRING;
+        END_VAR
+            // SEL with type mismatches
+            a := SEL(G := str_val, IN0 := a, IN1 := b);  // wrong type for selector
+            
+            // MOVE with type mismatches
+            MOVE(IN := a, OUT := str_val);  // incompatible array types
+            
+            // SIZEOF - should work with any type, so no type mismatch possible
+            
+            // ADR - should work with any type, so no type mismatch possible
+            
+            // REF - should work with any type, so no type mismatch possible
+            
+            // UPPER_BOUND with type mismatches
+            a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+            a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+            
+            // LOWER_BOUND with type mismatches  
+            a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+            a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
 fn address_of_operations() {
     let diagnostics = parse_and_validate_buffered(
         "
