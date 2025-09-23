@@ -898,108 +898,73 @@ fn generate_variable_length_array_bound_function<'ink>(
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
-    let (actual_first_param, actual_second_param) = if params.len() == 2 {
-        let first_is_assignment = matches!(params[0].get_stmt(), AstStatement::Assignment(_));
-        let second_is_assignment = matches!(params[1].get_stmt(), AstStatement::Assignment(_));
+    if let &[vla, dim] = params {
+        let actual_vla = extract_actual_parameter(vla);
+        let actual_dim = extract_actual_parameter(dim);
 
-        if first_is_assignment && second_is_assignment {
-            // Named arguments - extract by parameter name
-            let mut vla_expr = None;
-            let mut dim_expr = None;
+        let data_type_information =
+            generator.annotations.get_type_or_void(actual_vla, generator.index).get_type_information();
 
-            for param in params.iter() {
-                if let AstStatement::Assignment(assignment) = param.get_stmt() {
-                    if let AstStatement::ReferenceExpr(ref_expr) = assignment.left.get_stmt() {
-                        if let ast::ReferenceAccess::Member(identifier) = &ref_expr.access {
-                            if let Some(identifier_name) = identifier.get_flat_reference_name() {
-                                match identifier_name {
-                                    "arr" => vla_expr = Some(assignment.right.as_ref()),
-                                    "dim" => dim_expr = Some(assignment.right.as_ref()),
-                                    _ => {}
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // TODO: most of the codegen errors should already be caught during validation.
+        // once we abort codegen on critical errors, revisit and change to unreachable where possible
+        if !data_type_information.is_vla() {
+            return Err(Diagnostic::codegen_error(
+                format!("Expected VLA type, received {}", data_type_information.get_name()),
+                location,
+            ));
+        };
 
-            match (vla_expr, dim_expr) {
-                (Some(vla), Some(dim)) => (vla, dim),
-                _ => {
-                    return Err(Diagnostic::codegen_error("Invalid structure for named arguments", location))
-                }
-            }
-        } else {
-            (extract_actual_parameter(params[0]), extract_actual_parameter(params[1]))
-        }
-    } else {
-        return Err(Diagnostic::codegen_error(
-            format!("Invalid parameter count. Expected 2 but got {}", params.len()),
-            location,
-        ));
-    };
+        let vla = generator.generate_lvalue(actual_vla).unwrap();
+        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
 
-    let data_type_information =
-        generator.annotations.get_type_or_void(actual_first_param, generator.index).get_type_information();
-
-    // TODO: most of the codegen errors should already be caught during validation.
-    // once we abort codegen on critical errors, revisit and change to unreachable where possible
-    if !data_type_information.is_vla() {
-        return Err(Diagnostic::codegen_error(
-            format!("Expected VLA type, received {}", data_type_information.get_name()),
-            location,
-        ));
-    };
-
-    let vla = generator.generate_lvalue(actual_first_param).unwrap();
-    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
-
-    let accessor = match actual_second_param.get_stmt() {
-        // e.g. LOWER_BOUND(arr, 1)
-        AstStatement::Literal(kind) => {
-            let AstLiteral::Integer(value) = kind else {
-                let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
-                    unreachable!("type cannot be VOID")
+        let accessor = match actual_dim.get_stmt() {
+            // e.g. LOWER_BOUND(arr, 1)
+            AstStatement::Literal(kind) => {
+                let AstLiteral::Integer(value) = kind else {
+                    let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
+                        unreachable!("type cannot be VOID")
+                    };
+                    return Err(Diagnostic::codegen_error(
+                        format!("Invalid literal type. Expected INT type, received {type_name} type"),
+                        location,
+                    ));
                 };
-                return Err(Diagnostic::codegen_error(
-                    format!("Invalid literal type. Expected INT type, received {type_name} type"),
-                    location,
-                ));
-            };
-            // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
-            // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
-            let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
-            llvm.i32_type().const_int(offset, false)
-        }
-        // e.g. LOWER_BOUND(arr, idx + 3)
-        _ => {
-            let expression_value = generator.generate_expression(actual_second_param)?;
-            if !expression_value.is_int_value() {
-                todo!()
-            };
-            // this operation mirrors the offset calculation of literal ints, but at runtime
-            let offset = builder.build_int_mul(
-                llvm.i32_type().const_int(2, false),
-                builder.build_int_sub(
-                    expression_value.into_int_value(),
-                    llvm.i32_type().const_int(1, false),
-                    "",
-                ),
-                "",
-            );
-            if !is_lower {
-                builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
-            } else {
-                offset
+                // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
+                // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
+                let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+                llvm.i32_type().const_int(offset, false)
             }
-        }
-    };
+            // e.g. LOWER_BOUND(arr, idx + 3)
+            _ => {
+                let expression_value = generator.generate_expression(actual_dim)?;
+                if !expression_value.is_int_value() {
+                    todo!()
+                };
+                // this operation mirrors the offset calculation of literal ints, but at runtime
+                let offset = builder.build_int_mul(
+                    llvm.i32_type().const_int(2, false),
+                    builder.build_int_sub(
+                        expression_value.into_int_value(),
+                        llvm.i32_type().const_int(1, false),
+                        "",
+                    ),
+                    "",
+                );
+                if !is_lower {
+                    builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
+                } else {
+                    offset
+                }
+            }
+        };
+        let gep_bound =
+            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
+        let bound = llvm.builder.build_load(gep_bound, "");
 
-    let gep_bound =
-        unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-    let bound = llvm.builder.build_load(gep_bound, "");
-
-    Ok(ExpressionValue::RValue(bound))
+        Ok(ExpressionValue::RValue(bound))
+    } else {
+        Err(Diagnostic::codegen_error("Invalid signature for LOWER_BOUND/UPPER_BOUND", location))
+    }
 }
 
 type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);
