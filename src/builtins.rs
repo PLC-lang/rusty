@@ -723,30 +723,29 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
 ) {
-    let params_extracted_flattened: Vec<_> = flatten_expression_list(parameters)
-        .into_iter()
-        .map(|it| extract_actual_parameter(it).clone())
-        .collect();
-
     let params = flatten_expression_list(parameters);
-    // loop params to add type hints for named arguments
-    for (original_param, actual_param) in params.iter().zip(params_extracted_flattened.iter()) {
-        // check if it's a named argument
-        if matches!(original_param.get_stmt(), AstStatement::Assignment(_)) {
+    let params_extracted: Vec<_> =
+        params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
+
+    // Add type hints (only named arguments)
+    params
+        .iter()
+        .zip(&params_extracted)
+        .filter(|(it, _)| matches!(it.get_stmt(), AstStatement::Assignment(_)))
+        .for_each(|(_, extracted)| {
             let param_type = annotator
                 .annotation_map
-                .get_type_or_void(actual_param, annotator.index)
+                .get_type_or_void(extracted, annotator.index)
                 .get_type_information()
                 .get_name()
                 .to_owned();
-            annotator.annotation_map.annotate_type_hint(actual_param, StatementAnnotation::value(param_type));
-        }
-    }
+            annotator.annotation_map.annotate_type_hint(extracted, StatementAnnotation::value(param_type));
+        });
 
-    if params_extracted_flattened.iter().any(|it| {
+    if params_extracted.iter().any(|param| {
         !annotator
             .annotation_map
-            .get_type_or_void(it, annotator.index)
+            .get_type_or_void(param, annotator.index)
             .has_nature(TypeNature::Num, annotator.index)
     }) {
         // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
@@ -758,12 +757,11 @@ fn annotate_arithmetic_function(
     // find biggest type to later annotate it as type hint. this is done in a closure to avoid a borrow-checker tantrum later on due to
     // mutable and immutable borrow of TypeAnnotator
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
-        let mut bigger = annotator.annotation_map.get_type_or_void(
-            params_extracted_flattened.first().expect("must have this parameter"),
-            annotator.index,
-        );
+        let mut bigger = annotator
+            .annotation_map
+            .get_type_or_void(params_extracted.first().expect("must have this parameter"), annotator.index);
 
-        for param in params_extracted_flattened.iter().skip(1) {
+        for param in params_extracted.iter().skip(1) {
             let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
             bigger = get_bigger_type(bigger, right_type, annotator.index);
         }
@@ -775,8 +773,8 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_extracted_flattened.first().expect("Must exist")).clone();
-    let new_statement = params_extracted_flattened.into_iter().skip(1).fold(left, |left, right| {
+    let left = (*params_extracted.first().expect("Must exist")).clone();
+    let new_statement = params_extracted.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
 
@@ -895,9 +893,37 @@ fn validate_argument_count(
     }
 }
 
-/// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
-/// For named arguments like `func(param := value)`, the AST contains an Assignment node where we need
-/// to extract the right-hand side (the actual value). For positional arguments, use the parameter directly.
+/// Extracts the actual parameter value from either named or positional arguments.
+///
+/// This function is essential for supporting named arguments in builtin functions. When a function
+/// is called with named arguments like `SEL(G := TRUE, IN0 := a, IN1 := b)`, the AST parser creates
+/// Assignment nodes where the left side is the parameter name and the right side is the actual value.
+/// For positional arguments, the parameter node directly contains the value.
+///
+/// # Parameters
+/// * `param` - The parameter node from the AST, which can be either:
+///   - An Assignment node for named arguments (e.g., `param := value`)
+///   - A direct expression node for positional arguments
+///
+/// # Returns
+/// * For named arguments: Returns the right-hand side of the assignment (the actual value)
+/// * For positional arguments: Returns the parameter node directly
+///
+/// # Examples
+/// ```rust
+/// // For named argument: func(param := 42)
+/// // param points to Assignment { left: "param", right: "42" }
+/// // extract_actual_parameter(param) returns pointer to "42"
+///
+/// // For positional argument: func(42)
+/// // param points directly to "42"
+/// // extract_actual_parameter(param) returns pointer to "42"
+/// ```
+///
+/// # Usage in Builtin Functions
+/// All builtin functions that support named arguments should use this function to extract
+/// parameter values before processing them. This ensures consistent handling of both named
+/// and positional argument styles.
 fn extract_actual_parameter(param: &AstNode) -> &AstNode {
     if let AstStatement::Assignment(assignment) = param.get_stmt() {
         // Named argument: extract the actual value from the right side of the assignment
