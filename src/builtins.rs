@@ -770,27 +770,23 @@ fn annotate_variable_length_array_bound_function(
     parameters: Option<&AstNode>,
 ) {
     let Some(parameters) = parameters else {
-        // caught during validation
         return;
     };
     let params = ast::flatten_expression_list(parameters);
-    let Some(vla) = params.first() else {
-        // caught during validation
-        return;
-    };
-    let vla_param = extract_actual_parameter(vla);
-    // if the VLA parameter is a VLA struct, annotate it as such
-    let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
-    let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
-        vla_type.get_name()
-    } else {
-        // otherwise annotate it with an internal, reserved VLA type
-        typesystem::__VLA_TYPE
-    };
-    annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
-
-    if params.len() == 2 {
-        let dim_param = extract_actual_parameter(params[1]);
+    if let Some(vla) = params.first() {
+        let vla_param = extract_actual_parameter(vla);
+        // if the VLA parameter is a VLA struct, annotate it as such
+        let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
+        let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+            vla_type.get_name()
+        } else {
+            // otherwise annotate it with an internal, reserved VLA type
+            typesystem::__VLA_TYPE
+        };
+        annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
+    }
+    if let Some(dim) = params.get(1) {
+        let dim_param = extract_actual_parameter(dim);
         let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
         if dim_type.get_name() != typesystem::VOID_TYPE {
             // Use the actual type of the dimension parameter
@@ -820,51 +816,43 @@ fn validate_variable_length_array_bound_function(
 
     let params = ast::flatten_expression_list(parameters);
 
-    if params.len() > 2 {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
-    }
+    if let &[vla, dim] = params.as_slice() {
+        let actual_vla = extract_actual_parameter(vla);
+        let actual_idx = extract_actual_parameter(dim);
 
-    match (params.first(), params.get(1)) {
-        (Some(vla), Some(idx)) => {
-            let actual_vla = extract_actual_parameter(vla);
-            let actual_idx = extract_actual_parameter(idx);
+        let idx_type = annotations.get_type_or_void(actual_idx, index);
 
-            let idx_type = annotations.get_type_or_void(actual_idx, index);
+        if !idx_type.has_nature(TypeNature::Int, index) {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid type nature for generic argument. {} is no {}",
+                    idx_type.get_name(),
+                    TypeNature::Int
+                ))
+                .with_error_code("E062")
+                .with_location(actual_idx),
+            )
+        }
 
-            if !idx_type.has_nature(TypeNature::Int, index) {
+        // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
+        if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = actual_idx.get_stmt() {
+            let dimension_idx = *dimension_idx as usize;
+
+            let Some(n_dimensions) =
+                annotations.get_type_or_void(actual_vla, index).get_type_information().get_dimension_count()
+            else {
+                // not a vla, validated via type nature
+                return;
+            };
+
+            if dimension_idx < 1 || dimension_idx > n_dimensions {
                 validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Invalid type nature for generic argument. {} is no {}",
-                        idx_type.get_name(),
-                        TypeNature::Int
-                    ))
-                    .with_error_code("E062")
-                    .with_location(actual_idx),
+                    Diagnostic::new("Index out of bound").with_error_code("E046").with_location(operator),
                 )
             }
-
-            // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
-            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = actual_idx.get_stmt() {
-                let dimension_idx = *dimension_idx as usize;
-
-                let Some(n_dimensions) = annotations
-                    .get_type_or_void(actual_vla, index)
-                    .get_type_information()
-                    .get_dimension_count()
-                else {
-                    // not a vla, validated via type nature
-                    return;
-                };
-
-                if dimension_idx < 1 || dimension_idx > n_dimensions {
-                    validator.push_diagnostic(
-                        Diagnostic::new("Index out of bound").with_error_code("E046").with_location(operator),
-                    )
-                }
-            };
-        }
-        (Some(_), None) => validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator)),
-        _ => unreachable!(),
+        };
+    } else {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
     }
 }
 
