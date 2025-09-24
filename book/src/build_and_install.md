@@ -38,18 +38,31 @@ To do so follow the [official documentation](https://apt.llvm.org/).
 
 ## MacOS
 
-On MacOS you need to install the [`Xcode Command Line Tools`](https://developer.apple.com/downloads/).
-
-Furthermore LLVM 14 is needed, which can be easily installed with [homebrew](https://brew.sh) :
+On MacOS you need to install the [`Xcode Command Line Tools`](https://developer.apple.com/downloads/) and the LLVM toolchain using [Homebrew](https://brew.sh):
 
 ```bash
 brew install llvm@14
-````
+```
 
-After the installation you have to add `/opt/homebrew/opt/llvm@14/bin` to your `$PATH` environment variable, e.g. with the following command:
+While optional, it is strongly recommended to also install `gnu-getopt` and `lit` so the helper scripts and integration tests work without extra steps:
+
+```bash
+brew install gnu-getopt lit
+```
+
+`gnu-getopt` is required by `./scripts/build.sh`, and `lit` is needed when running the integration tests via `./scripts/build.sh --lit`.
+
+After the installation, make sure the Homebrew binaries are discoverable for both LLVM and GNU getopt:
 
 ```bash
 echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' >> ~/.zshrc
+```
+
+The `lit` test suite expects `FileCheck-14` to be available. If `FileCheck-14` is not already present, create a symlink to the `FileCheck` binary:
+
+```bash
+ln -svf /opt/homebrew/opt/llvm@14/bin/FileCheck /opt/homebrew/opt/llvm@14/bin/FileCheck-14
 ```
 
 ## Windows
