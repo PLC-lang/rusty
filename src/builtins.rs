@@ -727,6 +727,7 @@ fn annotate_arithmetic_function(
         params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
 
     // Add type hints (only named arguments)
+    // TODO: cant we just annotate all parameters?
     params
         .iter()
         .zip(&params_extracted)
