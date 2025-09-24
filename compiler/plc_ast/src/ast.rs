@@ -16,6 +16,7 @@ use crate::{
     literals::{AstLiteral, StringValue},
     pre_processor,
     provider::IdProvider,
+    ser::AstSerializer,
 };
 
 use plc_source::source_location::*;
@@ -395,6 +396,14 @@ impl PouType {
     pub fn is_stateful(&self) -> bool {
         matches!(self, PouType::FunctionBlock | PouType::Program | PouType::Class)
     }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, PouType::Class)
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, PouType::FunctionBlock)
+    }
 }
 
 #[derive(Debug, PartialEq, Clone)]
@@ -504,6 +513,10 @@ pub struct VariableBlock {
 }
 
 impl VariableBlock {
+    pub fn global() -> Self {
+        VariableBlock::default().with_block_type(VariableBlockType::Global)
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
@@ -1306,6 +1319,10 @@ impl AstNode {
         matches!(node.get_stmt_peeled(), AstStatement::Super(Some(_)))
     }
 
+    pub fn is_super_or_super_deref(&self) -> bool {
+        self.is_super() || self.is_super_deref()
+    }
+
     pub fn has_super_metadata(&self) -> bool {
         self.get_metadata()
             .or_else(|| self.get_identifier().and_then(|it| it.get_metadata()))
@@ -1412,6 +1429,30 @@ impl AstNode {
         AstNode { metadata: Some(metadata), ..self }
     }
 
+    pub fn is_deref(&self) -> bool {
+        matches!(
+            self,
+            AstNode {
+                stmt: AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Deref, .. }),
+                ..
+            }
+        )
+    }
+
+    pub fn get_call_operator(&self) -> Option<&AstNode> {
+        match &self.stmt {
+            AstStatement::CallStatement(CallStatement { operator, .. }) => Some(operator),
+            _ => None,
+        }
+    }
+
+    pub fn get_ref_expr_mut(&mut self) -> Option<&mut ReferenceExpr> {
+        match &mut self.stmt {
+            AstStatement::ReferenceExpr(expr) => Some(expr),
+            _ => None,
+        }
+    }
+
     pub fn get_deref_expr(&self) -> Option<&ReferenceExpr> {
         match &self.stmt {
             AstStatement::ReferenceExpr(expr) => match expr {
@@ -1420,6 +1461,24 @@ impl AstNode {
             },
             _ => None,
         }
+    }
+
+    pub fn get_base_ref_expr(&self) -> Option<&AstNode> {
+        match &self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_ref()),
+            _ => None,
+        }
+    }
+
+    pub fn get_base_ref_expr_mut(&mut self) -> Option<&mut AstNode> {
+        match &mut self.stmt {
+            AstStatement::ReferenceExpr(ReferenceExpr { base: Some(base), .. }) => Some(base.as_mut()),
+            _ => None,
+        }
+    }
+
+    pub fn as_string(&self) -> String {
+        AstSerializer::format(self)
     }
 }
 
@@ -1451,9 +1510,17 @@ impl Display for Operator {
             Operator::Multiplication => "*",
             Operator::Division => "/",
             Operator::Equal => "=",
+            Operator::NotEqual => "<>",
             Operator::Modulo => "MOD",
+            Operator::Less => "<",
+            Operator::Greater => ">",
+            Operator::LessOrEqual => "<=",
+            Operator::GreaterOrEqual => ">=",
+            Operator::Not => "NOT",
+            Operator::And => "AND",
+            Operator::Or => "OR",
+            Operator::Xor => "XOR",
             Operator::Exponentiation => "**",
-            _ => unimplemented!(),
         };
         f.write_str(symbol)
     }
