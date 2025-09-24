@@ -1,0 +1,81 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: diagnostics
+---
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'BOOL'
+   ┌─ <internal>:10:22
+   │
+10 │             a := SEL(G := str_val, IN0 := a, IN1 := b);  // wrong type for selector
+   │                      ^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BOOL'
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:13:27
+   │
+13 │             MOVE(IN := a, OUT := str_val);  // incompatible array types
+   │                           ^^^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to OUT
+   ┌─ <internal>:13:27
+   │
+13 │             MOVE(IN := a, OUT := str_val);  // incompatible array types
+   │                           ^^^ Could not resolve reference to OUT
+
+error[E037]: Invalid assignment: cannot assign 'INT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:22:30
+   │
+22 │             a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+   │                              ^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'VARIABLE LENGTH ARRAY'
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:22:18
+   │
+22 │             a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E062]: Invalid type nature for generic argument. STRING is no ANY_INT
+   ┌─ <internal>:23:49
+   │
+23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+   │                                                 ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_INT
+
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:23:30
+   │
+23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+   │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:23:18
+   │
+23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:26:30
+   │
+26 │             a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+   │                              ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:26:18
+   │
+26 │             a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E062]: Invalid type nature for generic argument. BOOL is no ANY_INT
+   ┌─ <internal>:27:49
+   │
+27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+   │                                                 ^^^ Invalid type nature for generic argument. BOOL is no ANY_INT
+
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:27:30
+   │
+27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+   │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:27:18
+   │
+27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.

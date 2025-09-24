@@ -1,0 +1,177 @@
+---
+source: src/validation/tests/statement_validation_tests.rs
+expression: diagnostics
+---
+error[E089]: Invalid call parameters
+  ┌─ <internal>:9:22
+  │
+9 │             a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+  │                      ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to WRONG
+  ┌─ <internal>:9:22
+  │
+9 │             a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+  │                      ^^^^^ Could not resolve reference to WRONG
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:10:32
+   │
+10 │             a := SEL(G := sel, INVALID := a, IN1 := b);
+   │                                ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to INVALID
+   ┌─ <internal>:10:32
+   │
+10 │             a := SEL(G := sel, INVALID := a, IN1 := b);
+   │                                ^^^^^^^ Could not resolve reference to INVALID
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:13:18
+   │
+13 │             MOVE(SOURCE := arr, INVALID := arr);
+   │                  ^^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to SOURCE
+   ┌─ <internal>:13:18
+   │
+13 │             MOVE(SOURCE := arr, INVALID := arr);
+   │                  ^^^^^^ Could not resolve reference to SOURCE
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:14:18
+   │
+14 │             MOVE(WRONG := arr, DEST := arr);
+   │                  ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to WRONG
+   ┌─ <internal>:14:18
+   │
+14 │             MOVE(WRONG := arr, DEST := arr);
+   │                  ^^^^^ Could not resolve reference to WRONG
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:17:25
+   │
+17 │             a := SIZEOF(INVALID := arr);
+   │                         ^^^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to INVALID
+   ┌─ <internal>:17:25
+   │
+17 │             a := SIZEOF(INVALID := arr);
+   │                         ^^^^^^^ Could not resolve reference to INVALID
+
+warning[E067]: Implicit downcast from 'ULINT' to 'INT'.
+   ┌─ <internal>:17:18
+   │
+17 │             a := SIZEOF(INVALID := arr);
+   │                  ^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'INT'.
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:20:17
+   │
+20 │             ADR(WRONG := arr);
+   │                 ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to WRONG
+   ┌─ <internal>:20:17
+   │
+20 │             ADR(WRONG := arr);
+   │                 ^^^^^ Could not resolve reference to WRONG
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:23:17
+   │
+23 │             REF(INVALID := arr);
+   │                 ^^^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to INVALID
+   ┌─ <internal>:23:17
+   │
+23 │             REF(INVALID := arr);
+   │                 ^^^^^^^ Could not resolve reference to INVALID
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:26:30
+   │
+26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+   │                              ^^^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to INVALID
+   ┌─ <internal>:26:30
+   │
+26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+   │                              ^^^^^^^ Could not resolve reference to INVALID
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:26:18
+   │
+26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:27:30
+   │
+27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+   │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:27:42
+   │
+27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+   │                                          ^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to WRONG
+   ┌─ <internal>:27:42
+   │
+27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+   │                                          ^^^^^ Could not resolve reference to WRONG
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:27:18
+   │
+27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:30:30
+   │
+30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+   │                              ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to WRONG
+   ┌─ <internal>:30:30
+   │
+30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+   │                              ^^^^^ Could not resolve reference to WRONG
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:30:18
+   │
+30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+   ┌─ <internal>:31:30
+   │
+31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+   │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+error[E089]: Invalid call parameters
+   ┌─ <internal>:31:42
+   │
+31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+   │                                          ^^^^^^^^^^^^ Invalid call parameters
+
+error[E048]: Could not resolve reference to INVALID
+   ┌─ <internal>:31:42
+   │
+31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+   │                                          ^^^^^^^ Could not resolve reference to INVALID
+
+warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+   ┌─ <internal>:31:18
+   │
+31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+   │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
