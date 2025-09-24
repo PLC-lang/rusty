@@ -268,7 +268,6 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
-                        // Handle named arguments by extracting the actual parameter
                         let actual_param = extract_actual_parameter(params[0]);
                         generator.generate_expression(actual_param).map(ExpressionValue::RValue)
                     } else {
@@ -893,37 +892,9 @@ fn validate_argument_count(
     }
 }
 
-/// Extracts the actual parameter value from either named or positional arguments.
-///
-/// This function is essential for supporting named arguments in builtin functions. When a function
-/// is called with named arguments like `SEL(G := TRUE, IN0 := a, IN1 := b)`, the AST parser creates
-/// Assignment nodes where the left side is the parameter name and the right side is the actual value.
-/// For positional arguments, the parameter node directly contains the value.
-///
-/// # Parameters
-/// * `param` - The parameter node from the AST, which can be either:
-///   - An Assignment node for named arguments (e.g., `param := value`)
-///   - A direct expression node for positional arguments
-///
-/// # Returns
-/// * For named arguments: Returns the right-hand side of the assignment (the actual value)
-/// * For positional arguments: Returns the parameter node directly
-///
-/// # Examples
-/// ```rust
-/// // For named argument: func(param := 42)
-/// // param points to Assignment { left: "param", right: "42" }
-/// // extract_actual_parameter(param) returns pointer to "42"
-///
-/// // For positional argument: func(42)
-/// // param points directly to "42"
-/// // extract_actual_parameter(param) returns pointer to "42"
-/// ```
-///
-/// # Usage in Builtin Functions
-/// All builtin functions that support named arguments should use this function to extract
-/// parameter values before processing them. This ensures consistent handling of both named
-/// and positional argument styles.
+/// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
+/// For named arguments like `func(param := value)`, the AST contains an Assignment node where we need
+/// to extract the right-hand side (the actual value). For positional arguments, use the parameter directly.
 fn extract_actual_parameter(param: &AstNode) -> &AstNode {
     if let AstStatement::Assignment(assignment) = param.get_stmt() {
         // Named argument: extract the actual value from the right side of the assignment
