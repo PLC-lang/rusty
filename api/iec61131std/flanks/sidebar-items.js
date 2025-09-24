@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["F_TRIG","R_TRIG"],"struct":["Trigger"]};
+window.SIDEBAR_ITEMS = {"fn":["F_TRIG","R_TRIG"],"static":["__F_TRIG__init","__R_TRIG__init","__vtable_F_TRIG","__vtable_R_TRIG"],"struct":["Trigger","VTableTrigger"]};

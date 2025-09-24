@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["create_call_statement","create_member_reference_with_location"],"mod":["calls","property"],"struct":["InitVisitor"]};
+window.SIDEBAR_ITEMS = {"fn":["create_call_statement","create_member_reference_with_location"],"mod":["calls","polymorphism","property","vtable"],"struct":["InitVisitor"]};

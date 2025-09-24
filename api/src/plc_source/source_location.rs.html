@@ -413,7 +413,7 @@
 <a href=#413 id=413 data-nosnippet>413</a>    }
 <a href=#414 id=414 data-nosnippet>414</a>
 <a href=#415 id=415 data-nosnippet>415</a>    <span class="kw">pub fn </span>is_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
-<a href=#416 id=416 data-nosnippet>416</a>        <span class="self">self</span>.file.is_internal()
+<a href=#416 id=416 data-nosnippet>416</a>        <span class="macro">matches!</span>(<span class="self">self</span>.file, FileMarker::Internal(<span class="kw">_</span>)) | <span class="macro">matches!</span>(<span class="self">self</span>.span, CodeSpan::None)
 <a href=#417 id=417 data-nosnippet>417</a>    }
 <a href=#418 id=418 data-nosnippet>418</a>
 <a href=#419 id=419 data-nosnippet>419</a>    <span class="kw">pub fn </span>is_builtin_internal(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
@@ -424,7 +424,7 @@
 <a href=#424 id=424 data-nosnippet>424</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(filename) = <span class="self">self</span>.get_file_name() {
 <a href=#425 id=425 data-nosnippet>425</a>            filename == unit.as_ref()
 <a href=#426 id=426 data-nosnippet>426</a>        } <span class="kw">else </span>{
-<a href=#427 id=427 data-nosnippet>427</a>            <span class="comment">//Fallback, if no file is defined all files are local
+<a href=#427 id=427 data-nosnippet>427</a>            <span class="comment">// Fallback, if no file is defined all files are local
 <a href=#428 id=428 data-nosnippet>428</a>            </span><span class="bool-val">true
 <a href=#429 id=429 data-nosnippet>429</a>        </span>}
 <a href=#430 id=430 data-nosnippet>430</a>    }

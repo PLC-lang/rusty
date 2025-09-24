@@ -1,0 +1,92 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Lowering of method calls into indirect calls through virtual tables"><title>rusty::lowering::polymorphism - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="rusty" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../rusty/index.html">rusty</a><span class="version">0.2.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Module polymorphism</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#1-method-calls-within-methods-and-function-block-bodies" title="1. Method calls within methods (and function block bodies)">1. Method calls within methods (and function block bodies)</a></li><li><a href="#2-method-calls-through-a-pointer-variable-pointing-to-a-class-or-function-block" title="2. Method calls through a pointer variable pointing to a class or function block">2. Method calls through a pointer variable pointing to a class or function block</a></li></ul><h3><a href="#structs">Module Items</a></h3><ul class="block"><li><a href="#structs" title="Structs">Structs</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="../index.html">In rusty::<wbr>lowering</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">rusty</a>::<wbr><a href="../index.html">lowering</a></div><h1>Module <span>polymorphism</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/rusty/lowering/polymorphism.rs.html#1-1018">Source</a> </span></div><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Lowering of method calls into indirect calls through virtual tables</p>
+<p>This module is responsible for lowering / transforming method calls into method calls through the
+virtual table (for information regarding virtual tables refer to <a href="../vtable/index.html" title="mod rusty::lowering::vtable"><code>crate::lowering::vtable</code></a>). In a
+nutshell it will transform a method call such as <code>ptr^.foo()</code> into <code>__vtable_Fb#(ptr^.__vtable^).foo^(ptr^)</code>.</p>
+<p>However, not all method calls must be lowered but rather the following cases:</p>
+<h2 id="1-method-calls-within-methods-and-function-block-bodies"><a class="doc-anchor" href="#1-method-calls-within-methods-and-function-block-bodies">§</a>1. Method calls within methods (and function block bodies)</h2>
+<p>The reason we want to lower all method calls within (other) methods is for the fact that a non
+overridden method may make use of an overridden method. For example consider</p>
+<div class="example-wrap"><pre class="language-text"><code>FUNCTION_BLOCK A
+    METHOD getName: STRING
+        getName := &#39;A&#39;;
+    END_METHOD
+
+    METHOD printName
+        printf(&#39;name = %s$N&#39;, ADR(getName()));
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK B EXTENDS A
+    METHOD getName: STRING
+        getName := &#39;B&#39;;
+    END_METHOD
+
+    METHOD persistName
+        // Persist name to some file
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instanceA: A;
+        instanceB: B;
+
+        refInstanceA: POINTER TO A;
+    END_VAR
+
+    refInstanceA := ADR(instanceA);
+    refInstanceA^.printName(); // Calls `A::printName` which calls `A::getName` yielding &quot;name = A&quot;
+
+    refInstanceA := ADR(instanceB);
+    refInstanceA^.printName(); // Calls `A::printName` which calls `B::getName` yielding &quot;name = B&quot;
+END_FUNCTION</code></pre></div>
+<p>As described in the main function, the calls to <code>printName</code> must happen at runtime. Were that not the case
+then <code>printName</code> in A would resolve to <code>A::getName</code> at compile time, yielding an incorrect result for the
+second <code>refInstanceA^.printName()</code> call. Lowering the call to <code>printName</code> would result in
+<code>printf('name = %s$N', ADR(__vtable_A#(THIS^.__vtable^).getName^(THIS^))</code>.</p>
+<h2 id="2-method-calls-through-a-pointer-variable-pointing-to-a-class-or-function-block"><a class="doc-anchor" href="#2-method-calls-through-a-pointer-variable-pointing-to-a-class-or-function-block">§</a>2. Method calls through a pointer variable pointing to a class or function block</h2>
+<p>Essentially what is illustrated in 1. within the main function, consider:</p>
+<div class="example-wrap"><pre class="language-text"><code>FUNCTION main
+    VAR
+        name: STRING;
+        instanceA: A;
+        instanceB: B;
+
+        refInstanceA: POINTER TO A;
+    END_VAR
+
+    refInstanceA := ADR(instanceA);
+    name := refInstanceA^.getName(); // Calls `A::getName` yielding &quot;name = A&quot;
+
+    refInstanceA := ADR(instanceB);
+    name := refInstanceA^.getName(); // Calls `B::getName` yielding &quot;name = B&quot;
+END_FUNCTION</code></pre></div>
+<p>While this is a simple example, and in theory compilers would be able to derive the correct method calls
+at compile time with some statical analysis, our compiler today is not able to do that. Specifically it
+does not know that the second <code>refInstanceA</code> variable is pointing at <code>B</code> and the pointer call could be
+simplified into a direct call to <code>B::getName()</code>. Instead, it relies on dynamic dispatch for a correct code
+execution. Again, this is done by accessing the virtual table and calling the function pointer behind it.
+In terms of ST code we would transform the calls into <code>__vtable_A#(refInstanceA^.__vtable^).getName^(refInstanceA^)</code>.</p>
+<p>One final thing to note, while the casting of the virtual tables into concrete types is not really
+interesting per-se, the upcasting from a child to its parent virtual table should at least be mentioned.
+That is, as long as the virtual table definitions are compatible, upcasting can be performed without any
+issues. Compatible here refers to the fact that the order of the member fields must be constant. More
+specifically, the methods must be defined in “ancestral hierarchical order”. To illustrate with the
+previous examples, assume we have</p>
+<div class="example-wrap"><pre class="language-text"><code>TYPE __vtable_A:
+    STRUCT
+        getName: __FPOINTER TO A.getName := ADR(A.getName);
+        printName: __FPOINTER TO A.printName := ADR(A.printName);
+    END_STRUCT
+END_TYPE
+
+TYPE __vtable_B:
+    STRUCT
+        getName: __FPOINTER TO B.getName := ADR(B.getName);             // Overridden
+        printName: __FPOINTER TO A.printName := ADR(A.printName);       // Inherited
+        persistName: __FPOINTER TO B.persistName := ADR(B.persistName); // New
+    END_STRUCT</code></pre></div>
+<p>We can safely cast from B to A’s virtual table because the layout is compatible and it would result in
+<code>persistName</code> to be cut off in the cast. Were that not the case, e.g. if <code>getName</code> were to be swapped with
+<code>persistName</code> then the call to <code>getName</code> would silently result in calling <code>persistName</code>.</p>
+</div></details><h2 id="structs" class="section-header">Structs<a href="#structs" class="anchor">§</a></h2><dl class="item-table"><dt><a class="struct" href="struct.PolymorphicCallLowerer.html" title="struct rusty::lowering::polymorphism::PolymorphicCallLowerer">Polymorphic<wbr>Call<wbr>Lowerer</a></dt></dl></section></div></main></body></html>

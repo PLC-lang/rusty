@@ -197,209 +197,207 @@
 <a href=#197 id=197 data-nosnippet>197</a>}
 <a href=#198 id=198 data-nosnippet>198</a>
 <a href=#199 id=199 data-nosnippet>199</a><span class="kw">fn </span>process_var_config_variables(unit: <span class="kw-2">&amp;mut </span>CompilationUnit) {
-<a href=#200 id=200 data-nosnippet>200</a>    <span class="kw">let </span>block = get_internal_global_block(unit);
-<a href=#201 id=201 data-nosnippet>201</a>    <span class="kw">let </span>variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
-<a href=#202 id=202 data-nosnippet>202</a>        <span class="kw">let </span>AstStatement::HardwareAccess(hardware) = <span class="kw-2">&amp;</span>address.stmt <span class="kw">else </span>{
-<a href=#203 id=203 data-nosnippet>203</a>            <span class="macro">unreachable!</span>(<span class="string">"Must be parsed as hardware access"</span>)
-<a href=#204 id=204 data-nosnippet>204</a>        };
-<a href=#205 id=205 data-nosnippet>205</a>
-<a href=#206 id=206 data-nosnippet>206</a>        <span class="kw">if </span>hardware.is_template() {
-<a href=#207 id=207 data-nosnippet>207</a>            <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#208 id=208 data-nosnippet>208</a>        }
-<a href=#209 id=209 data-nosnippet>209</a>
-<a href=#210 id=210 data-nosnippet>210</a>        <span class="kw">let </span>name = hardware.get_mangled_variable_name();
-<a href=#211 id=211 data-nosnippet>211</a>        <span class="kw">if </span>block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
-<a href=#212 id=212 data-nosnippet>212</a>            <span class="kw">return </span><span class="prelude-val">None</span>;
-<a href=#213 id=213 data-nosnippet>213</a>        };
-<a href=#214 id=214 data-nosnippet>214</a>
-<a href=#215 id=215 data-nosnippet>215</a>        <span class="prelude-val">Some</span>(Variable {
-<a href=#216 id=216 data-nosnippet>216</a>            name,
-<a href=#217 id=217 data-nosnippet>217</a>            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
-<a href=#218 id=218 data-nosnippet>218</a>            initializer: <span class="prelude-val">None</span>,
-<a href=#219 id=219 data-nosnippet>219</a>            address: <span class="prelude-val">None</span>,
-<a href=#220 id=220 data-nosnippet>220</a>            location: address.get_location(),
-<a href=#221 id=221 data-nosnippet>221</a>        })
-<a href=#222 id=222 data-nosnippet>222</a>    });
-<a href=#223 id=223 data-nosnippet>223</a>
-<a href=#224 id=224 data-nosnippet>224</a>    update_generated_globals(unit, variables.collect())
-<a href=#225 id=225 data-nosnippet>225</a>}
-<a href=#226 id=226 data-nosnippet>226</a>
-<a href=#227 id=227 data-nosnippet>227</a><span class="kw">fn </span>update_generated_globals(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, mangled_globals: Vec&lt;Variable&gt;) {
-<a href=#228 id=228 data-nosnippet>228</a>    <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = unit
-<a href=#229 id=229 data-nosnippet>229</a>        .global_vars
-<a href=#230 id=230 data-nosnippet>230</a>        .iter()
-<a href=#231 id=231 data-nosnippet>231</a>        .position(|block| block.kind == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal())
-<a href=#232 id=232 data-nosnippet>232</a>    {
-<a href=#233 id=233 data-nosnippet>233</a>        unit.global_vars.remove(index)
-<a href=#234 id=234 data-nosnippet>234</a>    } <span class="kw">else </span>{
-<a href=#235 id=235 data-nosnippet>235</a>        VariableBlock::default().with_block_type(VariableBlockType::Global)
-<a href=#236 id=236 data-nosnippet>236</a>    };
-<a href=#237 id=237 data-nosnippet>237</a>    <span class="kw">for </span>var <span class="kw">in </span>mangled_globals {
-<a href=#238 id=238 data-nosnippet>238</a>        <span class="kw">if </span>!block.variables.contains(<span class="kw-2">&amp;</span>var) {
-<a href=#239 id=239 data-nosnippet>239</a>            block.variables.push(var);
-<a href=#240 id=240 data-nosnippet>240</a>        }
-<a href=#241 id=241 data-nosnippet>241</a>    }
-<a href=#242 id=242 data-nosnippet>242</a>
-<a href=#243 id=243 data-nosnippet>243</a>    unit.global_vars.push(block);
-<a href=#244 id=244 data-nosnippet>244</a>}
-<a href=#245 id=245 data-nosnippet>245</a>
-<a href=#246 id=246 data-nosnippet>246</a><span class="kw">fn </span>get_internal_global_block(unit: <span class="kw-2">&amp;</span>CompilationUnit) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>VariableBlock&gt; {
-<a href=#247 id=247 data-nosnippet>247</a>    unit.global_vars
-<a href=#248 id=248 data-nosnippet>248</a>        .iter()
-<a href=#249 id=249 data-nosnippet>249</a>        .position(|block| block.kind == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal())
-<a href=#250 id=250 data-nosnippet>250</a>        .and_then(|index| unit.global_vars.get(index))
-<a href=#251 id=251 data-nosnippet>251</a>}
-<a href=#252 id=252 data-nosnippet>252</a>
-<a href=#253 id=253 data-nosnippet>253</a><span class="kw">fn </span>build_enum_initializer(
-<a href=#254 id=254 data-nosnippet>254</a>    last_name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
-<a href=#255 id=255 data-nosnippet>255</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
-<a href=#256 id=256 data-nosnippet>256</a>    id_provider: <span class="kw-2">&amp;mut </span>IdProvider,
-<a href=#257 id=257 data-nosnippet>257</a>    enum_name: <span class="kw-2">&amp;mut </span>str,
-<a href=#258 id=258 data-nosnippet>258</a>) -&gt; AstNode {
-<a href=#259 id=259 data-nosnippet>259</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(last_element) = last_name.as_ref() {
-<a href=#260 id=260 data-nosnippet>260</a>        <span class="comment">// generate a `enum#last + 1` statement
-<a href=#261 id=261 data-nosnippet>261</a>        </span><span class="kw">let </span>enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
-<a href=#262 id=262 data-nosnippet>262</a>        <span class="kw">let </span>type_element = AstFactory::create_member_reference(
-<a href=#263 id=263 data-nosnippet>263</a>            AstFactory::create_identifier(enum_name, location, id_provider.next_id()),
-<a href=#264 id=264 data-nosnippet>264</a>            <span class="prelude-val">None</span>,
-<a href=#265 id=265 data-nosnippet>265</a>            id_provider.next_id(),
-<a href=#266 id=266 data-nosnippet>266</a>        );
-<a href=#267 id=267 data-nosnippet>267</a>        AstFactory::create_binary_expression(
-<a href=#268 id=268 data-nosnippet>268</a>            AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
-<a href=#269 id=269 data-nosnippet>269</a>            Operator::Plus,
-<a href=#270 id=270 data-nosnippet>270</a>            AstNode::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
-<a href=#271 id=271 data-nosnippet>271</a>            id_provider.next_id(),
-<a href=#272 id=272 data-nosnippet>272</a>        )
-<a href=#273 id=273 data-nosnippet>273</a>    } <span class="kw">else </span>{
-<a href=#274 id=274 data-nosnippet>274</a>        AstNode::new_literal(AstLiteral::new_integer(<span class="number">0</span>), id_provider.next_id(), location.clone())
-<a href=#275 id=275 data-nosnippet>275</a>    }
-<a href=#276 id=276 data-nosnippet>276</a>}
-<a href=#277 id=277 data-nosnippet>277</a>
-<a href=#278 id=278 data-nosnippet>278</a><span class="kw">fn </span>preprocess_generic_structs(pou: <span class="kw-2">&amp;mut </span>Pou) -&gt; Vec&lt;UserTypeDeclaration&gt; {
-<a href=#279 id=279 data-nosnippet>279</a>    <span class="kw">let </span><span class="kw-2">mut </span>generic_types = FxHashMap::default();
-<a href=#280 id=280 data-nosnippet>280</a>    <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
-<a href=#281 id=281 data-nosnippet>281</a>    <span class="kw">for </span>binding <span class="kw">in </span><span class="kw-2">&amp;</span>pou.generics {
-<a href=#282 id=282 data-nosnippet>282</a>        <span class="kw">let </span>new_name = <span class="macro">format!</span>(<span class="string">"__{}__{}"</span>, pou.name, binding.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-<a href=#283 id=283 data-nosnippet>283</a>
-<a href=#284 id=284 data-nosnippet>284</a>        //Generate a type for the generic
-<a href=#285 id=285 data-nosnippet>285</a>        </span><span class="kw">let </span>data_type = UserTypeDeclaration {
-<a href=#286 id=286 data-nosnippet>286</a>            data_type: DataType::GenericType {
-<a href=#287 id=287 data-nosnippet>287</a>                name: new_name.clone(),
-<a href=#288 id=288 data-nosnippet>288</a>                generic_symbol: binding.name.clone(),
-<a href=#289 id=289 data-nosnippet>289</a>                nature: binding.nature,
-<a href=#290 id=290 data-nosnippet>290</a>            },
-<a href=#291 id=291 data-nosnippet>291</a>            initializer: <span class="prelude-val">None</span>,
-<a href=#292 id=292 data-nosnippet>292</a>            scope: <span class="prelude-val">Some</span>(pou.name.clone()),
-<a href=#293 id=293 data-nosnippet>293</a>            location: pou.location.clone(),
-<a href=#294 id=294 data-nosnippet>294</a>        };
-<a href=#295 id=295 data-nosnippet>295</a>        types.push(data_type);
-<a href=#296 id=296 data-nosnippet>296</a>        generic_types.insert(binding.name.clone(), new_name);
-<a href=#297 id=297 data-nosnippet>297</a>    }
-<a href=#298 id=298 data-nosnippet>298</a>    <span class="kw">for </span>var <span class="kw">in </span>pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
-<a href=#299 id=299 data-nosnippet>299</a>        replace_generic_type_name(<span class="kw-2">&amp;mut </span>var.data_type_declaration, <span class="kw-2">&amp;</span>generic_types);
-<a href=#300 id=300 data-nosnippet>300</a>    }
-<a href=#301 id=301 data-nosnippet>301</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = pou.return_type.as_mut() {
-<a href=#302 id=302 data-nosnippet>302</a>        replace_generic_type_name(datatype, <span class="kw-2">&amp;</span>generic_types);
-<a href=#303 id=303 data-nosnippet>303</a>    };
-<a href=#304 id=304 data-nosnippet>304</a>    types
-<a href=#305 id=305 data-nosnippet>305</a>}
-<a href=#306 id=306 data-nosnippet>306</a>
-<a href=#307 id=307 data-nosnippet>307</a><span class="kw">fn </span>preprocess_return_type(pou: <span class="kw-2">&amp;mut </span>Pou, types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;) {
-<a href=#308 id=308 data-nosnippet>308</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="kw-2">&amp;</span>pou.return_type {
-<a href=#309 id=309 data-nosnippet>309</a>        <span class="kw">if </span>should_generate_implicit(return_type) {
-<a href=#310 id=310 data-nosnippet>310</a>            <span class="kw">let </span>type_name = <span class="macro">format!</span>(<span class="string">"__{}_return"</span>, <span class="kw-2">&amp;</span>pou.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-<a href=#311 id=311 data-nosnippet>311</a>            </span><span class="kw">let </span>type_ref = DataTypeDeclaration::Reference {
-<a href=#312 id=312 data-nosnippet>312</a>                referenced_type: type_name.clone(),
-<a href=#313 id=313 data-nosnippet>313</a>                location: return_type.get_location(),
-<a href=#314 id=314 data-nosnippet>314</a>            };
-<a href=#315 id=315 data-nosnippet>315</a>            <span class="kw">let </span>datatype = pou.return_type.replace(type_ref);
-<a href=#316 id=316 data-nosnippet>316</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location, scope }) = datatype {
-<a href=#317 id=317 data-nosnippet>317</a>                data_type.set_name(type_name);
-<a href=#318 id=318 data-nosnippet>318</a>                add_nested_datatypes(pou.name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>location);
-<a href=#319 id=319 data-nosnippet>319</a>                <span class="kw">let </span>data_type =
-<a href=#320 id=320 data-nosnippet>320</a>                    UserTypeDeclaration { data_type: <span class="kw-2">*</span>data_type, initializer: <span class="prelude-val">None</span>, location, scope };
-<a href=#321 id=321 data-nosnippet>321</a>                types.push(data_type);
-<a href=#322 id=322 data-nosnippet>322</a>            }
-<a href=#323 id=323 data-nosnippet>323</a>        }
-<a href=#324 id=324 data-nosnippet>324</a>    }
-<a href=#325 id=325 data-nosnippet>325</a>}
-<a href=#326 id=326 data-nosnippet>326</a>
-<a href=#327 id=327 data-nosnippet>327</a><span class="kw">fn </span>should_generate_implicit(datatype: <span class="kw-2">&amp;</span>DataTypeDeclaration) -&gt; bool {
-<a href=#328 id=328 data-nosnippet>328</a>    <span class="kw">match </span>datatype {
-<a href=#329 id=329 data-nosnippet>329</a>        DataTypeDeclaration::Reference { .. } | DataTypeDeclaration::Aggregate { .. } =&gt; <span class="bool-val">false</span>,
-<a href=#330 id=330 data-nosnippet>330</a>        DataTypeDeclaration::Definition { data_type, .. }
-<a href=#331 id=331 data-nosnippet>331</a>            <span class="kw">if </span><span class="macro">matches!</span>(data_type.as_ref(), DataType::VarArgs { .. }) =&gt;
-<a href=#332 id=332 data-nosnippet>332</a>        {
-<a href=#333 id=333 data-nosnippet>333</a>            <span class="bool-val">false
-<a href=#334 id=334 data-nosnippet>334</a>        </span>}
-<a href=#335 id=335 data-nosnippet>335</a>        DataTypeDeclaration::Definition { .. } =&gt; <span class="bool-val">true</span>,
-<a href=#336 id=336 data-nosnippet>336</a>    }
-<a href=#337 id=337 data-nosnippet>337</a>}
-<a href=#338 id=338 data-nosnippet>338</a>
-<a href=#339 id=339 data-nosnippet>339</a><span class="kw">fn </span>should_generate_implicit_type(variable: <span class="kw-2">&amp;</span>Variable) -&gt; bool {
-<a href=#340 id=340 data-nosnippet>340</a>    should_generate_implicit(<span class="kw-2">&amp;</span>variable.data_type_declaration)
-<a href=#341 id=341 data-nosnippet>341</a>}
-<a href=#342 id=342 data-nosnippet>342</a>
-<a href=#343 id=343 data-nosnippet>343</a><span class="kw">fn </span>pre_process_variable_data_type(
-<a href=#344 id=344 data-nosnippet>344</a>    container_name: <span class="kw-2">&amp;</span>str,
-<a href=#345 id=345 data-nosnippet>345</a>    variable: <span class="kw-2">&amp;mut </span>Variable,
-<a href=#346 id=346 data-nosnippet>346</a>    types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
-<a href=#347 id=347 data-nosnippet>347</a>) {
-<a href=#348 id=348 data-nosnippet>348</a>    <span class="kw">let </span>new_type_name = internal_type_name(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{container_name}_"</span>), <span class="kw-2">&amp;</span>variable.name);
-<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">if let </span>DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location, scope } =
-<a href=#350 id=350 data-nosnippet>350</a>        variable.replace_data_type_with_reference_to(new_type_name.clone())
-<a href=#351 id=351 data-nosnippet>351</a>    {
-<a href=#352 id=352 data-nosnippet>352</a>        <span class="comment">// create index entry
-<a href=#353 id=353 data-nosnippet>353</a>        </span>add_nested_datatypes(new_type_name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>location);
-<a href=#354 id=354 data-nosnippet>354</a>        data_type.set_name(new_type_name);
-<a href=#355 id=355 data-nosnippet>355</a>        types.push(UserTypeDeclaration { data_type: <span class="kw-2">*</span>data_type, initializer: <span class="prelude-val">None</span>, location, scope });
-<a href=#356 id=356 data-nosnippet>356</a>    }
-<a href=#357 id=357 data-nosnippet>357</a>    <span class="comment">//make sure it gets generated
-<a href=#358 id=358 data-nosnippet>358</a></span>}
-<a href=#359 id=359 data-nosnippet>359</a>
-<a href=#360 id=360 data-nosnippet>360</a><span class="kw">fn </span>add_nested_datatypes(
-<a href=#361 id=361 data-nosnippet>361</a>    container_name: <span class="kw-2">&amp;</span>str,
-<a href=#362 id=362 data-nosnippet>362</a>    datatype: <span class="kw-2">&amp;mut </span>DataType,
-<a href=#363 id=363 data-nosnippet>363</a>    types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
-<a href=#364 id=364 data-nosnippet>364</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
-<a href=#365 id=365 data-nosnippet>365</a>) {
-<a href=#366 id=366 data-nosnippet>366</a>    <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
-<a href=#367 id=367 data-nosnippet>367</a>    </span><span class="kw">let </span>new_type_name = <span class="macro">format!</span>(<span class="string">"{container_name}_"</span>);
-<a href=#368 id=368 data-nosnippet>368</a>    <span class="comment">// FIXME: When processing pointer-to-pointer types (e.g., alias variables pointing to existing pointers),
-<a href=#369 id=369 data-nosnippet>369</a>    // the inner type is already a DataTypeDeclaration::Reference, so replace_data_type_with_reference_to
-<a href=#370 id=370 data-nosnippet>370</a>    // returns None and nested type processing is skipped. This results in incomplete names like "__global_alias_var_"
-<a href=#371 id=371 data-nosnippet>371</a>    // (with trailing underscore but no suffix) when the inner pointer type should be processed.
-<a href=#372 id=372 data-nosnippet>372</a>    // We need to distinguish between pointer references (which should be processed) and other references
-<a href=#373 id=373 data-nosnippet>373</a>    // (which should return None) to properly handle nested pointer structures.
-<a href=#374 id=374 data-nosnippet>374</a>    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location: inner_location, scope }) =
-<a href=#375 id=375 data-nosnippet>375</a>        datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
-<a href=#376 id=376 data-nosnippet>376</a>    {
-<a href=#377 id=377 data-nosnippet>377</a>        data_type.set_name(new_type_name.clone());
-<a href=#378 id=378 data-nosnippet>378</a>        add_nested_datatypes(new_type_name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>inner_location);
-<a href=#379 id=379 data-nosnippet>379</a>        types.push(UserTypeDeclaration {
-<a href=#380 id=380 data-nosnippet>380</a>            data_type: <span class="kw-2">*</span>data_type,
-<a href=#381 id=381 data-nosnippet>381</a>            initializer: <span class="prelude-val">None</span>,
-<a href=#382 id=382 data-nosnippet>382</a>            location: location.clone(),
-<a href=#383 id=383 data-nosnippet>383</a>            scope,
-<a href=#384 id=384 data-nosnippet>384</a>        });
-<a href=#385 id=385 data-nosnippet>385</a>    }
-<a href=#386 id=386 data-nosnippet>386</a>}
-<a href=#387 id=387 data-nosnippet>387</a>
-<a href=#388 id=388 data-nosnippet>388</a><span class="kw">fn </span>replace_generic_type_name(dt: <span class="kw-2">&amp;mut </span>DataTypeDeclaration, generics: <span class="kw-2">&amp;</span>FxHashMap&lt;String, String&gt;) {
-<a href=#389 id=389 data-nosnippet>389</a>    <span class="kw">match </span>dt {
-<a href=#390 id=390 data-nosnippet>390</a>        DataTypeDeclaration::Definition { data_type, .. } =&gt; <span class="kw">match </span>data_type.as_mut() {
-<a href=#391 id=391 data-nosnippet>391</a>            DataType::ArrayType { referenced_type, .. }
-<a href=#392 id=392 data-nosnippet>392</a>            | DataType::PointerType { referenced_type, .. }
-<a href=#393 id=393 data-nosnippet>393</a>            | DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(referenced_type), .. } =&gt; {
-<a href=#394 id=394 data-nosnippet>394</a>                replace_generic_type_name(referenced_type.as_mut(), generics)
-<a href=#395 id=395 data-nosnippet>395</a>            }
-<a href=#396 id=396 data-nosnippet>396</a>            <span class="kw">_ </span>=&gt; {}
-<a href=#397 id=397 data-nosnippet>397</a>        },
-<a href=#398 id=398 data-nosnippet>398</a>        DataTypeDeclaration::Reference { referenced_type, .. } =&gt; {
-<a href=#399 id=399 data-nosnippet>399</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) = generics.get(referenced_type) {
-<a href=#400 id=400 data-nosnippet>400</a>                referenced_type.clone_from(type_name);
-<a href=#401 id=401 data-nosnippet>401</a>            }
-<a href=#402 id=402 data-nosnippet>402</a>        }
-<a href=#403 id=403 data-nosnippet>403</a>        DataTypeDeclaration::Aggregate { .. } =&gt; {} <span class="comment">//todo!(),
-<a href=#404 id=404 data-nosnippet>404</a>    </span>}
-<a href=#405 id=405 data-nosnippet>405</a>}</code></pre></div></section></main></body></html>
+<a href=#200 id=200 data-nosnippet>200</a>    <span class="kw">let </span>variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
+<a href=#201 id=201 data-nosnippet>201</a>        <span class="kw">let </span>AstStatement::HardwareAccess(hardware) = <span class="kw-2">&amp;</span>address.stmt <span class="kw">else </span>{
+<a href=#202 id=202 data-nosnippet>202</a>            <span class="macro">unreachable!</span>(<span class="string">"Must be parsed as hardware access"</span>)
+<a href=#203 id=203 data-nosnippet>203</a>        };
+<a href=#204 id=204 data-nosnippet>204</a>
+<a href=#205 id=205 data-nosnippet>205</a>        <span class="kw">if </span>hardware.is_template() {
+<a href=#206 id=206 data-nosnippet>206</a>            <span class="kw">return </span><span class="prelude-val">None</span>;
+<a href=#207 id=207 data-nosnippet>207</a>        }
+<a href=#208 id=208 data-nosnippet>208</a>
+<a href=#209 id=209 data-nosnippet>209</a>        <span class="comment">// Check if the mangled variable already exists in any of the global variable blocks
+<a href=#210 id=210 data-nosnippet>210</a>        // XXX: Not a fan of this, we should fix the underlying issue with variable block creation here...
+<a href=#211 id=211 data-nosnippet>211</a>        </span><span class="kw">let </span>name = hardware.get_mangled_variable_name();
+<a href=#212 id=212 data-nosnippet>212</a>        <span class="kw">if </span>find_mangled_variable(unit, <span class="kw-2">&amp;</span>name) {
+<a href=#213 id=213 data-nosnippet>213</a>            <span class="kw">return </span><span class="prelude-val">None</span>; <span class="comment">// Already exists, skip
+<a href=#214 id=214 data-nosnippet>214</a>        </span>}
+<a href=#215 id=215 data-nosnippet>215</a>
+<a href=#216 id=216 data-nosnippet>216</a>        <span class="prelude-val">Some</span>(Variable {
+<a href=#217 id=217 data-nosnippet>217</a>            name,
+<a href=#218 id=218 data-nosnippet>218</a>            data_type_declaration: data_type.get_inner_pointer_ty().unwrap_or(data_type.clone()),
+<a href=#219 id=219 data-nosnippet>219</a>            initializer: <span class="prelude-val">None</span>,
+<a href=#220 id=220 data-nosnippet>220</a>            address: <span class="prelude-val">None</span>,
+<a href=#221 id=221 data-nosnippet>221</a>            location: address.get_location(),
+<a href=#222 id=222 data-nosnippet>222</a>        })
+<a href=#223 id=223 data-nosnippet>223</a>    });
+<a href=#224 id=224 data-nosnippet>224</a>
+<a href=#225 id=225 data-nosnippet>225</a>    update_generated_globals(unit, variables.collect());
+<a href=#226 id=226 data-nosnippet>226</a>}
+<a href=#227 id=227 data-nosnippet>227</a>
+<a href=#228 id=228 data-nosnippet>228</a><span class="kw">fn </span>update_generated_globals(unit: <span class="kw-2">&amp;mut </span>CompilationUnit, mangled_globals: Vec&lt;Variable&gt;) {
+<a href=#229 id=229 data-nosnippet>229</a>    <span class="kw">let </span><span class="kw-2">mut </span>block = <span class="kw">if let </span><span class="prelude-val">Some</span>(index) = unit
+<a href=#230 id=230 data-nosnippet>230</a>        .global_vars
+<a href=#231 id=231 data-nosnippet>231</a>        .iter()
+<a href=#232 id=232 data-nosnippet>232</a>        .position(|block| block.kind == VariableBlockType::Global &amp;&amp; block.location.is_builtin_internal())
+<a href=#233 id=233 data-nosnippet>233</a>    {
+<a href=#234 id=234 data-nosnippet>234</a>        unit.global_vars.remove(index)
+<a href=#235 id=235 data-nosnippet>235</a>    } <span class="kw">else </span>{
+<a href=#236 id=236 data-nosnippet>236</a>        VariableBlock::default().with_block_type(VariableBlockType::Global)
+<a href=#237 id=237 data-nosnippet>237</a>    };
+<a href=#238 id=238 data-nosnippet>238</a>    <span class="kw">for </span>var <span class="kw">in </span>mangled_globals {
+<a href=#239 id=239 data-nosnippet>239</a>        <span class="kw">if </span>!block.variables.contains(<span class="kw-2">&amp;</span>var) {
+<a href=#240 id=240 data-nosnippet>240</a>            block.variables.push(var);
+<a href=#241 id=241 data-nosnippet>241</a>        }
+<a href=#242 id=242 data-nosnippet>242</a>    }
+<a href=#243 id=243 data-nosnippet>243</a>
+<a href=#244 id=244 data-nosnippet>244</a>    unit.global_vars.push(block);
+<a href=#245 id=245 data-nosnippet>245</a>}
+<a href=#246 id=246 data-nosnippet>246</a>
+<a href=#247 id=247 data-nosnippet>247</a><span class="kw">fn </span>find_mangled_variable(unit: <span class="kw-2">&amp;</span>CompilationUnit, name: <span class="kw-2">&amp;</span>str) -&gt; bool {
+<a href=#248 id=248 data-nosnippet>248</a>    unit.global_vars.iter().flat_map(|block| <span class="kw-2">&amp;</span>block.variables).any(|var| var.name == name)
+<a href=#249 id=249 data-nosnippet>249</a>}
+<a href=#250 id=250 data-nosnippet>250</a>
+<a href=#251 id=251 data-nosnippet>251</a><span class="kw">fn </span>build_enum_initializer(
+<a href=#252 id=252 data-nosnippet>252</a>    last_name: <span class="kw-2">&amp;</span><span class="prelude-ty">Option</span>&lt;String&gt;,
+<a href=#253 id=253 data-nosnippet>253</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
+<a href=#254 id=254 data-nosnippet>254</a>    id_provider: <span class="kw-2">&amp;mut </span>IdProvider,
+<a href=#255 id=255 data-nosnippet>255</a>    enum_name: <span class="kw-2">&amp;mut </span>str,
+<a href=#256 id=256 data-nosnippet>256</a>) -&gt; AstNode {
+<a href=#257 id=257 data-nosnippet>257</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(last_element) = last_name.as_ref() {
+<a href=#258 id=258 data-nosnippet>258</a>        <span class="comment">// generate a `enum#last + 1` statement
+<a href=#259 id=259 data-nosnippet>259</a>        </span><span class="kw">let </span>enum_ref = AstFactory::create_identifier(last_element, location, id_provider.next_id());
+<a href=#260 id=260 data-nosnippet>260</a>        <span class="kw">let </span>type_element = AstFactory::create_member_reference(
+<a href=#261 id=261 data-nosnippet>261</a>            AstFactory::create_identifier(enum_name, location, id_provider.next_id()),
+<a href=#262 id=262 data-nosnippet>262</a>            <span class="prelude-val">None</span>,
+<a href=#263 id=263 data-nosnippet>263</a>            id_provider.next_id(),
+<a href=#264 id=264 data-nosnippet>264</a>        );
+<a href=#265 id=265 data-nosnippet>265</a>        AstFactory::create_binary_expression(
+<a href=#266 id=266 data-nosnippet>266</a>            AstFactory::create_cast_statement(type_element, enum_ref, location, id_provider.next_id()),
+<a href=#267 id=267 data-nosnippet>267</a>            Operator::Plus,
+<a href=#268 id=268 data-nosnippet>268</a>            AstNode::new_literal(AstLiteral::new_integer(<span class="number">1</span>), id_provider.next_id(), location.clone()),
+<a href=#269 id=269 data-nosnippet>269</a>            id_provider.next_id(),
+<a href=#270 id=270 data-nosnippet>270</a>        )
+<a href=#271 id=271 data-nosnippet>271</a>    } <span class="kw">else </span>{
+<a href=#272 id=272 data-nosnippet>272</a>        AstNode::new_literal(AstLiteral::new_integer(<span class="number">0</span>), id_provider.next_id(), location.clone())
+<a href=#273 id=273 data-nosnippet>273</a>    }
+<a href=#274 id=274 data-nosnippet>274</a>}
+<a href=#275 id=275 data-nosnippet>275</a>
+<a href=#276 id=276 data-nosnippet>276</a><span class="kw">fn </span>preprocess_generic_structs(pou: <span class="kw-2">&amp;mut </span>Pou) -&gt; Vec&lt;UserTypeDeclaration&gt; {
+<a href=#277 id=277 data-nosnippet>277</a>    <span class="kw">let </span><span class="kw-2">mut </span>generic_types = FxHashMap::default();
+<a href=#278 id=278 data-nosnippet>278</a>    <span class="kw">let </span><span class="kw-2">mut </span>types = <span class="macro">vec!</span>[];
+<a href=#279 id=279 data-nosnippet>279</a>    <span class="kw">for </span>binding <span class="kw">in </span><span class="kw-2">&amp;</span>pou.generics {
+<a href=#280 id=280 data-nosnippet>280</a>        <span class="kw">let </span>new_name = <span class="macro">format!</span>(<span class="string">"__{}__{}"</span>, pou.name, binding.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+<a href=#281 id=281 data-nosnippet>281</a>
+<a href=#282 id=282 data-nosnippet>282</a>        //Generate a type for the generic
+<a href=#283 id=283 data-nosnippet>283</a>        </span><span class="kw">let </span>data_type = UserTypeDeclaration {
+<a href=#284 id=284 data-nosnippet>284</a>            data_type: DataType::GenericType {
+<a href=#285 id=285 data-nosnippet>285</a>                name: new_name.clone(),
+<a href=#286 id=286 data-nosnippet>286</a>                generic_symbol: binding.name.clone(),
+<a href=#287 id=287 data-nosnippet>287</a>                nature: binding.nature,
+<a href=#288 id=288 data-nosnippet>288</a>            },
+<a href=#289 id=289 data-nosnippet>289</a>            initializer: <span class="prelude-val">None</span>,
+<a href=#290 id=290 data-nosnippet>290</a>            scope: <span class="prelude-val">Some</span>(pou.name.clone()),
+<a href=#291 id=291 data-nosnippet>291</a>            location: pou.location.clone(),
+<a href=#292 id=292 data-nosnippet>292</a>        };
+<a href=#293 id=293 data-nosnippet>293</a>        types.push(data_type);
+<a href=#294 id=294 data-nosnippet>294</a>        generic_types.insert(binding.name.clone(), new_name);
+<a href=#295 id=295 data-nosnippet>295</a>    }
+<a href=#296 id=296 data-nosnippet>296</a>    <span class="kw">for </span>var <span class="kw">in </span>pou.variable_blocks.iter_mut().flat_map(|it| it.variables.iter_mut()) {
+<a href=#297 id=297 data-nosnippet>297</a>        replace_generic_type_name(<span class="kw-2">&amp;mut </span>var.data_type_declaration, <span class="kw-2">&amp;</span>generic_types);
+<a href=#298 id=298 data-nosnippet>298</a>    }
+<a href=#299 id=299 data-nosnippet>299</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(datatype) = pou.return_type.as_mut() {
+<a href=#300 id=300 data-nosnippet>300</a>        replace_generic_type_name(datatype, <span class="kw-2">&amp;</span>generic_types);
+<a href=#301 id=301 data-nosnippet>301</a>    };
+<a href=#302 id=302 data-nosnippet>302</a>    types
+<a href=#303 id=303 data-nosnippet>303</a>}
+<a href=#304 id=304 data-nosnippet>304</a>
+<a href=#305 id=305 data-nosnippet>305</a><span class="kw">fn </span>preprocess_return_type(pou: <span class="kw-2">&amp;mut </span>Pou, types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;) {
+<a href=#306 id=306 data-nosnippet>306</a>    <span class="kw">if let </span><span class="prelude-val">Some</span>(return_type) = <span class="kw-2">&amp;</span>pou.return_type {
+<a href=#307 id=307 data-nosnippet>307</a>        <span class="kw">if </span>should_generate_implicit(return_type) {
+<a href=#308 id=308 data-nosnippet>308</a>            <span class="kw">let </span>type_name = <span class="macro">format!</span>(<span class="string">"__{}_return"</span>, <span class="kw-2">&amp;</span>pou.name); <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+<a href=#309 id=309 data-nosnippet>309</a>            </span><span class="kw">let </span>type_ref = DataTypeDeclaration::Reference {
+<a href=#310 id=310 data-nosnippet>310</a>                referenced_type: type_name.clone(),
+<a href=#311 id=311 data-nosnippet>311</a>                location: return_type.get_location(),
+<a href=#312 id=312 data-nosnippet>312</a>            };
+<a href=#313 id=313 data-nosnippet>313</a>            <span class="kw">let </span>datatype = pou.return_type.replace(type_ref);
+<a href=#314 id=314 data-nosnippet>314</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location, scope }) = datatype {
+<a href=#315 id=315 data-nosnippet>315</a>                data_type.set_name(type_name);
+<a href=#316 id=316 data-nosnippet>316</a>                add_nested_datatypes(pou.name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>location);
+<a href=#317 id=317 data-nosnippet>317</a>                <span class="kw">let </span>data_type =
+<a href=#318 id=318 data-nosnippet>318</a>                    UserTypeDeclaration { data_type: <span class="kw-2">*</span>data_type, initializer: <span class="prelude-val">None</span>, location, scope };
+<a href=#319 id=319 data-nosnippet>319</a>                types.push(data_type);
+<a href=#320 id=320 data-nosnippet>320</a>            }
+<a href=#321 id=321 data-nosnippet>321</a>        }
+<a href=#322 id=322 data-nosnippet>322</a>    }
+<a href=#323 id=323 data-nosnippet>323</a>}
+<a href=#324 id=324 data-nosnippet>324</a>
+<a href=#325 id=325 data-nosnippet>325</a><span class="kw">fn </span>should_generate_implicit(datatype: <span class="kw-2">&amp;</span>DataTypeDeclaration) -&gt; bool {
+<a href=#326 id=326 data-nosnippet>326</a>    <span class="kw">match </span>datatype {
+<a href=#327 id=327 data-nosnippet>327</a>        DataTypeDeclaration::Reference { .. } | DataTypeDeclaration::Aggregate { .. } =&gt; <span class="bool-val">false</span>,
+<a href=#328 id=328 data-nosnippet>328</a>        DataTypeDeclaration::Definition { data_type, .. }
+<a href=#329 id=329 data-nosnippet>329</a>            <span class="kw">if </span><span class="macro">matches!</span>(data_type.as_ref(), DataType::VarArgs { .. }) =&gt;
+<a href=#330 id=330 data-nosnippet>330</a>        {
+<a href=#331 id=331 data-nosnippet>331</a>            <span class="bool-val">false
+<a href=#332 id=332 data-nosnippet>332</a>        </span>}
+<a href=#333 id=333 data-nosnippet>333</a>        DataTypeDeclaration::Definition { .. } =&gt; <span class="bool-val">true</span>,
+<a href=#334 id=334 data-nosnippet>334</a>    }
+<a href=#335 id=335 data-nosnippet>335</a>}
+<a href=#336 id=336 data-nosnippet>336</a>
+<a href=#337 id=337 data-nosnippet>337</a><span class="kw">fn </span>should_generate_implicit_type(variable: <span class="kw-2">&amp;</span>Variable) -&gt; bool {
+<a href=#338 id=338 data-nosnippet>338</a>    should_generate_implicit(<span class="kw-2">&amp;</span>variable.data_type_declaration)
+<a href=#339 id=339 data-nosnippet>339</a>}
+<a href=#340 id=340 data-nosnippet>340</a>
+<a href=#341 id=341 data-nosnippet>341</a><span class="kw">fn </span>pre_process_variable_data_type(
+<a href=#342 id=342 data-nosnippet>342</a>    container_name: <span class="kw-2">&amp;</span>str,
+<a href=#343 id=343 data-nosnippet>343</a>    variable: <span class="kw-2">&amp;mut </span>Variable,
+<a href=#344 id=344 data-nosnippet>344</a>    types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
+<a href=#345 id=345 data-nosnippet>345</a>) {
+<a href=#346 id=346 data-nosnippet>346</a>    <span class="kw">let </span>new_type_name = internal_type_name(<span class="kw-2">&amp;</span><span class="macro">format!</span>(<span class="string">"{container_name}_"</span>), <span class="kw-2">&amp;</span>variable.name);
+<a href=#347 id=347 data-nosnippet>347</a>    <span class="kw">if let </span>DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location, scope } =
+<a href=#348 id=348 data-nosnippet>348</a>        variable.replace_data_type_with_reference_to(new_type_name.clone())
+<a href=#349 id=349 data-nosnippet>349</a>    {
+<a href=#350 id=350 data-nosnippet>350</a>        <span class="comment">// create index entry
+<a href=#351 id=351 data-nosnippet>351</a>        </span>add_nested_datatypes(new_type_name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>location);
+<a href=#352 id=352 data-nosnippet>352</a>        data_type.set_name(new_type_name);
+<a href=#353 id=353 data-nosnippet>353</a>        types.push(UserTypeDeclaration { data_type: <span class="kw-2">*</span>data_type, initializer: <span class="prelude-val">None</span>, location, scope });
+<a href=#354 id=354 data-nosnippet>354</a>    }
+<a href=#355 id=355 data-nosnippet>355</a>    <span class="comment">//make sure it gets generated
+<a href=#356 id=356 data-nosnippet>356</a></span>}
+<a href=#357 id=357 data-nosnippet>357</a>
+<a href=#358 id=358 data-nosnippet>358</a><span class="kw">fn </span>add_nested_datatypes(
+<a href=#359 id=359 data-nosnippet>359</a>    container_name: <span class="kw-2">&amp;</span>str,
+<a href=#360 id=360 data-nosnippet>360</a>    datatype: <span class="kw-2">&amp;mut </span>DataType,
+<a href=#361 id=361 data-nosnippet>361</a>    types: <span class="kw-2">&amp;mut </span>Vec&lt;UserTypeDeclaration&gt;,
+<a href=#362 id=362 data-nosnippet>362</a>    location: <span class="kw-2">&amp;</span>SourceLocation,
+<a href=#363 id=363 data-nosnippet>363</a>) {
+<a href=#364 id=364 data-nosnippet>364</a>    <span class="comment">// TODO: Naming convention (see plc_util/src/convention.rs)
+<a href=#365 id=365 data-nosnippet>365</a>    </span><span class="kw">let </span>new_type_name = <span class="macro">format!</span>(<span class="string">"{container_name}_"</span>);
+<a href=#366 id=366 data-nosnippet>366</a>    <span class="comment">// FIXME: When processing pointer-to-pointer types (e.g., alias variables pointing to existing pointers),
+<a href=#367 id=367 data-nosnippet>367</a>    // the inner type is already a DataTypeDeclaration::Reference, so replace_data_type_with_reference_to
+<a href=#368 id=368 data-nosnippet>368</a>    // returns None and nested type processing is skipped. This results in incomplete names like "__global_alias_var_"
+<a href=#369 id=369 data-nosnippet>369</a>    // (with trailing underscore but no suffix) when the inner pointer type should be processed.
+<a href=#370 id=370 data-nosnippet>370</a>    // We need to distinguish between pointer references (which should be processed) and other references
+<a href=#371 id=371 data-nosnippet>371</a>    // (which should return None) to properly handle nested pointer structures.
+<a href=#372 id=372 data-nosnippet>372</a>    </span><span class="kw">if let </span><span class="prelude-val">Some</span>(DataTypeDeclaration::Definition { <span class="kw-2">mut </span>data_type, location: inner_location, scope }) =
+<a href=#373 id=373 data-nosnippet>373</a>        datatype.replace_data_type_with_reference_to(new_type_name.clone(), location)
+<a href=#374 id=374 data-nosnippet>374</a>    {
+<a href=#375 id=375 data-nosnippet>375</a>        data_type.set_name(new_type_name.clone());
+<a href=#376 id=376 data-nosnippet>376</a>        add_nested_datatypes(new_type_name.as_str(), <span class="kw-2">&amp;mut </span>data_type, types, <span class="kw-2">&amp;</span>inner_location);
+<a href=#377 id=377 data-nosnippet>377</a>        types.push(UserTypeDeclaration {
+<a href=#378 id=378 data-nosnippet>378</a>            data_type: <span class="kw-2">*</span>data_type,
+<a href=#379 id=379 data-nosnippet>379</a>            initializer: <span class="prelude-val">None</span>,
+<a href=#380 id=380 data-nosnippet>380</a>            location: location.clone(),
+<a href=#381 id=381 data-nosnippet>381</a>            scope,
+<a href=#382 id=382 data-nosnippet>382</a>        });
+<a href=#383 id=383 data-nosnippet>383</a>    }
+<a href=#384 id=384 data-nosnippet>384</a>}
+<a href=#385 id=385 data-nosnippet>385</a>
+<a href=#386 id=386 data-nosnippet>386</a><span class="kw">fn </span>replace_generic_type_name(dt: <span class="kw-2">&amp;mut </span>DataTypeDeclaration, generics: <span class="kw-2">&amp;</span>FxHashMap&lt;String, String&gt;) {
+<a href=#387 id=387 data-nosnippet>387</a>    <span class="kw">match </span>dt {
+<a href=#388 id=388 data-nosnippet>388</a>        DataTypeDeclaration::Definition { data_type, .. } =&gt; <span class="kw">match </span>data_type.as_mut() {
+<a href=#389 id=389 data-nosnippet>389</a>            DataType::ArrayType { referenced_type, .. }
+<a href=#390 id=390 data-nosnippet>390</a>            | DataType::PointerType { referenced_type, .. }
+<a href=#391 id=391 data-nosnippet>391</a>            | DataType::VarArgs { referenced_type: <span class="prelude-val">Some</span>(referenced_type), .. } =&gt; {
+<a href=#392 id=392 data-nosnippet>392</a>                replace_generic_type_name(referenced_type.as_mut(), generics)
+<a href=#393 id=393 data-nosnippet>393</a>            }
+<a href=#394 id=394 data-nosnippet>394</a>            <span class="kw">_ </span>=&gt; {}
+<a href=#395 id=395 data-nosnippet>395</a>        },
+<a href=#396 id=396 data-nosnippet>396</a>        DataTypeDeclaration::Reference { referenced_type, .. } =&gt; {
+<a href=#397 id=397 data-nosnippet>397</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(type_name) = generics.get(referenced_type) {
+<a href=#398 id=398 data-nosnippet>398</a>                referenced_type.clone_from(type_name);
+<a href=#399 id=399 data-nosnippet>399</a>            }
+<a href=#400 id=400 data-nosnippet>400</a>        }
+<a href=#401 id=401 data-nosnippet>401</a>        DataTypeDeclaration::Aggregate { .. } =&gt; {} <span class="comment">//todo!(),
+<a href=#402 id=402 data-nosnippet>402</a>    </span>}
+<a href=#403 id=403 data-nosnippet>403</a>}</code></pre></div></section></main></body></html>
