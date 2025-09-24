@@ -1778,98 +1778,12 @@ mod units_tests {
             .into();
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[2];
-        assert_debug_snapshot!(unit, @r#"
-        Implementation {
-            name: "foo2",
-            type_name: "foo2",
-            linkage: Internal,
-            pou_type: FunctionBlock,
-            statements: [
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "met1",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__foo",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                    parameters: Some(
-                        ExpressionList {
-                            expressions: [
-                                Assignment {
-                                    left: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "mandatoryInput",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    right: LiteralInteger {
-                                        value: 0,
-                                    },
-                                },
-                                Assignment {
-                                    left: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "optionalInput",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    right: LiteralInteger {
-                                        value: 0,
-                                    },
-                                },
-                                OutputAssignment {
-                                    left: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "outputValue",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                    right: EmptyStatement,
-                                },
-                            ],
-                        },
-                    ),
-                },
-            ],
-            location: SourceLocation {
-                span: Range(14:12 - 18:14),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            name_location: SourceLocation {
-                span: Range(13:23 - 13:27),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            end_location: SourceLocation {
-                span: Range(19:8 - 19:26),
-                file: Some(
-                    "<internal>",
-                ),
-            },
-            overriding: false,
-            generic: false,
-            access: None,
-        }
+
+        let statements = unit.statements.iter().map(|node| node.as_string()).collect::<Vec<_>>();
+        assert_debug_snapshot!(statements, @r#"
+        [
+            "__vtable_foo2#(THIS^.__foo.__vtable^).met1^(foo#(THIS^), mandatoryInput := 0, optionalInput := 0, outputValue => )",
+        ]
         "#);
     }
 
