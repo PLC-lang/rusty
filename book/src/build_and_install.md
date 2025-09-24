@@ -50,7 +50,7 @@ While optional, it is strongly recommended to also install `gnu-getopt` and `lit
 brew install gnu-getopt lit
 ```
 
-`gnu-getopt` is required by `./scripts/build.sh`, and `lit` is needed when running the integration tests via `./scripts/build.sh --lit`.
+`gnu-getopt` is required by the build scripts, and `lit` is needed for running integration tests via `./scripts/build.sh --lit`.
 
 After the installation, make sure the Homebrew binaries are discoverable for both LLVM and GNU getopt:
 
