@@ -609,7 +609,7 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         implementation_start: usize,
-    ) -> DISubprogram {
+    ) -> DISubprogram<'_> {
         let location = pou.get_location();
         let file = location
             .get_file_name()
@@ -757,6 +757,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                 .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
                 .unwrap_or(0);
             let location = &datatype.location;
+            log::trace!("Creating debug info for type {name} with size {size} and info {type_info:?}");
             match type_info {
                 DataTypeInformation::Struct { members, .. } => {
                     self.create_struct_type(name, members.as_slice(), location, index, types_index)
@@ -790,13 +791,18 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     self.create_string_type(name, length, *encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
-                | DataTypeInformation::Enum { name, referenced_type, .. } => {
+                | DataTypeInformation::Enum { name, referenced_type, .. }
+                | DataTypeInformation::SubRange { name, referenced_type, .. } => {
                     self.create_typedef_type(name, referenced_type, location, index, types_index)
                 }
                 // Other types are just derived basic types
-                _ => Ok(()),
+                _ => {
+                    log::debug!("Type {name} has unsupported debug info generation for {type_info:?}");
+                    Ok(())
+                }
             }
         } else {
+            log::trace!("Type {name} already has debug info");
             Ok(())
         }
     }

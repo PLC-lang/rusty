@@ -561,7 +561,7 @@ fn parse_return_type(lexer: &mut ParseSession) -> Option<DataTypeDeclaration> {
             }
 
             if let DataTypeDeclaration::Definition { data_type, .. } = &declaration {
-                if matches!(data_type, DataType::EnumType { .. } | DataType::StructType { .. }) {
+                if matches!(data_type.as_ref(), DataType::EnumType { .. } | DataType::StructType { .. }) {
                     let datatype_name = declaration
                         .get_location()
                         .to_range()
@@ -865,7 +865,7 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
 
             if let Some((DataTypeDeclaration::Definition { data_type, .. }, initializer)) = result {
                 declarations.push(UserTypeDeclaration {
-                    data_type,
+                    data_type: *data_type,
                     initializer,
                     location: name_location,
                     scope: lexer.scope.clone(),
@@ -888,7 +888,7 @@ fn parse_full_data_type_definition(
         if lexer.try_consume(KeywordDotDotDot) {
             Some((
                 DataTypeDeclaration::Definition {
-                    data_type: DataType::VarArgs { referenced_type: None, sized },
+                    data_type: Box::new(DataType::VarArgs { referenced_type: None, sized }),
                     location: lexer.last_location(),
                     scope: lexer.scope.clone(),
                 },
@@ -899,7 +899,10 @@ fn parse_full_data_type_definition(
                 if lexer.try_consume(KeywordDotDotDot) {
                     (
                         DataTypeDeclaration::Definition {
-                            data_type: DataType::VarArgs { referenced_type: Some(Box::new(type_def)), sized },
+                            data_type: Box::new(DataType::VarArgs {
+                                referenced_type: Some(Box::new(type_def)),
+                                sized,
+                            }),
                             location: lexer.last_location(),
                             scope: lexer.scope.clone(),
                         },
@@ -932,7 +935,7 @@ fn parse_data_type_definition(
         let variables = parse_variable_list(lexer);
         Some((
             DataTypeDeclaration::Definition {
-                data_type: DataType::StructType { name, variables },
+                data_type: Box::new(DataType::StructType { name, variables }),
                 location: start.span(&lexer.location()),
                 scope: lexer.scope.clone(),
             },
@@ -988,13 +991,13 @@ fn parse_pointer_definition(
     parse_data_type_definition(lexer, None).map(|(decl, initializer)| {
         (
             DataTypeDeclaration::Definition {
-                data_type: DataType::PointerType {
+                data_type: Box::new(DataType::PointerType {
                     name,
                     referenced_type: Box::new(decl),
                     auto_deref,
                     type_safe,
                     is_function,
-                },
+                }),
                 // FIXME: this currently includes the initializer in the sourcelocation, resulting in 'REF_TO A := B' when creating a slice
                 location: lexer.source_range_factory.create_range(start_pos..lexer.last_range.end),
                 scope: lexer.scope.clone(),
@@ -1040,11 +1043,11 @@ fn parse_type_reference_type_definition(
             Some(AstNode { stmt: AstStatement::ExpressionList(expressions), id, location, .. }) => {
                 //this is an enum
                 DataTypeDeclaration::Definition {
-                    data_type: DataType::EnumType {
+                    data_type: Box::new(DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
                         elements: AstFactory::create_expression_list(expressions, location, id),
-                    },
+                    }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
@@ -1055,18 +1058,18 @@ fn parse_type_reference_type_definition(
             }) => {
                 // a enum with just one element
                 DataTypeDeclaration::Definition {
-                    data_type: DataType::EnumType {
+                    data_type: Box::new(DataType::EnumType {
                         name,
                         numeric_type: referenced_type,
                         elements: bounds.unwrap(),
-                    },
+                    }),
                     location: lexer.source_range_factory.create_range(start..end),
                     scope: lexer.scope.clone(),
                 }
             }
             _ => DataTypeDeclaration::Definition {
                 //something else inside the brackets -> probably a subrange?
-                data_type: DataType::SubRangeType { name, referenced_type, bounds },
+                data_type: Box::new(DataType::SubRangeType { name, referenced_type, bounds }),
                 location: lexer.source_range_factory.create_range(start..end),
                 scope: lexer.scope.clone(),
             },
@@ -1130,16 +1133,16 @@ fn parse_string_type_definition(
 
     match (size, &name) {
         (Some(size), _) => Some(DataTypeDeclaration::Definition {
-            data_type: DataType::StringType { name, is_wide, size: Some(size) },
+            data_type: Box::new(DataType::StringType { name, is_wide, size: Some(size) }),
             location,
             scope: lexer.scope.clone(),
         }),
         (None, Some(name)) => Some(DataTypeDeclaration::Definition {
-            data_type: DataType::SubRangeType {
+            data_type: Box::new(DataType::SubRangeType {
                 name: Some(name.into()),
                 referenced_type: text,
                 bounds: None,
-            },
+            }),
             location,
             scope: lexer.scope.clone(),
         }),
@@ -1164,7 +1167,7 @@ fn parse_enum_type_definition(
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
-            data_type: DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() },
+            data_type: Box::new(DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
         },
@@ -1225,12 +1228,12 @@ fn parse_array_type_definition(
 
         (
             DataTypeDeclaration::Definition {
-                data_type: DataType::ArrayType {
+                data_type: Box::new(DataType::ArrayType {
                     name,
                     bounds: range,
                     referenced_type: Box::new(reference),
                     is_variable_length,
-                },
+                }),
                 location,
                 scope: lexer.scope.clone(),
             },
