@@ -121,7 +121,7 @@ impl VirtualTableGenerator {
                 variables: vec![Variable {
                     name: "__vtable".into(),
                     data_type_declaration: DataTypeDeclaration::Definition {
-                        data_type: DataType::PointerType {
+                        data_type: Box::new(DataType::PointerType {
                             name: None,
                             referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: VOID_INTERNAL_NAME.to_string(),
@@ -130,7 +130,7 @@ impl VirtualTableGenerator {
                             auto_deref: None,
                             type_safe: false,
                             is_function: false,
-                        },
+                        }),
                         location: location.clone(),
                         scope: None,
                     },
@@ -160,7 +160,10 @@ impl VirtualTableGenerator {
             let member = Variable {
                 name: String::from("__body"),
                 data_type_declaration: DataTypeDeclaration::Definition {
-                    data_type: helper::create_function_pointer(pou.name.clone(), pou.location.clone()),
+                    data_type: Box::new(helper::create_function_pointer(
+                        pou.name.clone(),
+                        pou.location.clone(),
+                    )),
                     location: location.clone(),
                     scope: None,
                 },
@@ -177,10 +180,10 @@ impl VirtualTableGenerator {
             let member = Variable {
                 name: method.get_call_name().to_string(),
                 data_type_declaration: DataTypeDeclaration::Definition {
-                    data_type: helper::create_function_pointer(
+                    data_type: Box::new(helper::create_function_pointer(
                         method.get_name().into(),
                         method.get_location().into(),
-                    ),
+                    )),
                     location: location.clone(),
                     scope: None,
                 },

@@ -330,21 +330,21 @@ impl PolymorphicCallLowerer {
     fn patch_instance_argument(&mut self, operator: &mut AstNode, parameters: &mut Option<Box<AstNode>>) {
         // foo.bar()
         // ^^^ base
-        let base = operator.get_base_ref_expr().unwrap(); // XXX: I think this might fail on `MyBlockRef^()`
+        let base = self.maybe_cast_instance(operator);
 
         match parameters {
             None => {
-                parameters.replace(Box::new(base.clone()));
+                parameters.replace(Box::new(base));
             }
 
             Some(ref mut expr) => match &mut expr.stmt {
                 AstStatement::ExpressionList(expressions) => {
-                    expressions.insert(0, base.clone());
+                    expressions.insert(0, base);
                 }
 
                 _ => {
                     let mut expressions = Box::new(AstFactory::create_expression_list(
-                        vec![base.clone(), std::mem::take(expr)],
+                        vec![base, std::mem::take(expr)],
                         SourceLocation::internal(),
                         self.ids.next_id(),
                     ));
@@ -408,6 +408,53 @@ impl PolymorphicCallLowerer {
         );
 
         std::mem::swap(node, &mut base_new);
+    }
+
+    /// Casts the instance argument to its concrete type, as defined by the method. While not strictly
+    /// necessary, because the code would compile without this step, it is required when generating IR using
+    /// the `--ir` flag. This is because some type-validation happens (afaik).
+    ///
+    /// For example `alpha(1, 2)` will be transformed into` `<...>.alpha^(A#(THIS^), 1, 2)` instead of
+    /// `<...>.alpha^(THIS^, 1, 2)`. The same would be true for `refInstance.alpha(1, 2)` which would become
+    /// `<...>.alpha^(A#(refInstance), 1, 2)`.
+    /// ```text
+    /// FUNCTION_BLOCK A
+    ///     METHOD alpha
+    ///         VAR_INPUT
+    ///             a, b: DINT;
+    ///         END_VAR
+    ///     END_METHOD
+    /// END_FUNCTION_BLOCK
+    ///
+    /// FUNCTION_BLOCK B EXTENDS A
+    ///     METHOD bravo
+    ///         alpha(1, 2);
+    ///     END_METHOD
+    /// END_FUNCTION_BLOCK
+    /// ```
+    fn maybe_cast_instance(&mut self, operator: &AstNode) -> AstNode {
+        let index = self.index.as_ref().unwrap();
+        let annotations = self.annotations.as_ref().unwrap();
+
+        let Some(method_owner) = annotations
+            .get_type(operator, index)
+            .map(DataType::get_type_information)
+            .and_then(DataTypeInformation::get_method_owner)
+        else {
+            return operator.get_base_ref_expr().unwrap().clone();
+        };
+
+        let base = operator.get_base_ref_expr().unwrap();
+        AstFactory::create_cast_statement(
+            AstFactory::create_member_reference(
+                AstFactory::create_identifier(method_owner, SourceLocation::internal(), self.ids.next_id()),
+                None,
+                self.ids.next_id(),
+            ),
+            AstFactory::create_paren_expression(base.clone(), SourceLocation::internal(), self.ids.next_id()),
+            &SourceLocation::internal(),
+            self.ids.next_id(),
+        )
     }
 }
 
@@ -612,19 +659,19 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["A"]), @r#"
         [
             "// Statements in A",
-            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, 1)",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, localIn)",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, in := 1)",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, in := localIn)",
-            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, 1, localOut)",
-            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, localIn, localOut)",
-            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, in := 1, out => localOut)",
-            "__vtable_A#(THIS^.__vtable^).charlie^(THIS^, in := localIn, out => localOut)",
-            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, 1, localOut, localInout)",
-            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, localIn, localOut, localInout)",
-            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, in := 1, out => localOut, inout := localInout)",
-            "__vtable_A#(THIS^.__vtable^).delta^(THIS^, inout := localInout, in := localIn, out => localOut)",
+            "__vtable_A#(THIS^.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^), 1)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^), localIn)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^), in := 1)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^), in := localIn)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(A#(THIS^), 1, localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(A#(THIS^), localIn, localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(A#(THIS^), in := 1, out => localOut)",
+            "__vtable_A#(THIS^.__vtable^).charlie^(A#(THIS^), in := localIn, out => localOut)",
+            "__vtable_A#(THIS^.__vtable^).delta^(A#(THIS^), 1, localOut, localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(A#(THIS^), localIn, localOut, localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(A#(THIS^), in := 1, out => localOut, inout := localInout)",
+            "__vtable_A#(THIS^.__vtable^).delta^(A#(THIS^), inout := localInout, in := localIn, out => localOut)",
         ]
         "#);
     }
@@ -649,12 +696,12 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["A", "A.alpha", "A.bravo"]), @r#"
         [
             "// Statements in A",
-            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^))",
             "// Statements in A.alpha",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^))",
             "// Statements in A.bravo",
-            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).alpha^(A#(THIS^))",
         ]
         "#);
     }
@@ -701,23 +748,23 @@ mod tests {
             @r#"
         [
             "// Statements in A",
-            "__vtable_A#(THIS^.__vtable^).alpha^(THIS^)",
+            "__vtable_A#(THIS^.__vtable^).alpha^(A#(THIS^))",
             "// Statements in A.alpha",
             "// Statements in B",
-            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
-            "__vtable_B#(THIS^.__A.__vtable^).bravo^(THIS^)",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_B#(THIS^.__A.__vtable^).bravo^(B#(THIS^))",
             "// Statements in B.bravo",
-            "__vtable_B#(THIS^.__A.__vtable^).alpha^(THIS^)",
+            "__vtable_B#(THIS^.__A.__vtable^).alpha^(A#(THIS^))",
             "// Statements in C",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(C#(THIS^))",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(C#(THIS^))",
             "// Statements in C.bravo",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).charlie^(C#(THIS^))",
             "// Statements in C.charlie",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(THIS^)",
-            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(THIS^)",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).alpha^(A#(THIS^))",
+            "__vtable_C#(THIS^.__B.__A.__vtable^).bravo^(C#(THIS^))",
         ]
         "#
         );
@@ -744,7 +791,7 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["A"]), @r#"
         [
             "// Statements in A",
-            "__vtable_A#(THIS^.__vtable^).bravo^(THIS^, __vtable_A#(THIS^.__vtable^).alpha^(THIS^))",
+            "__vtable_A#(THIS^.__vtable^).bravo^(A#(THIS^), __vtable_A#(THIS^.__vtable^).alpha^(A#(THIS^)))",
         ]
         "#);
     }
@@ -799,14 +846,14 @@ mod tests {
         insta::assert_debug_snapshot!(lower_statements(source, &["main", "operateOnA"]), @r#"
         [
             "// Statements in main",
-            "__vtable_A#(refInstanceA^.__vtable^).alpha^(refInstanceA^)",
-            "__vtable_B#(refInstanceB^.__A.__vtable^).bravo^(refInstanceB^)",
-            "__vtable_C#(refInstanceC^.__B.__A.__vtable^).charlie^(refInstanceC^)",
-            "__vtable_A#(refInstanceArrayA[1]^.__vtable^).alpha^(refInstanceArrayA[1]^)",
-            "__vtable_B#(refInstanceArrayB[1]^.__A.__vtable^).bravo^(refInstanceArrayB[1]^)",
-            "__vtable_C#(refInstanceArrayC[1]^.__B.__A.__vtable^).charlie^(refInstanceArrayC[1]^)",
+            "__vtable_A#(refInstanceA^.__vtable^).alpha^(A#(refInstanceA^))",
+            "__vtable_B#(refInstanceB^.__A.__vtable^).bravo^(B#(refInstanceB^))",
+            "__vtable_C#(refInstanceC^.__B.__A.__vtable^).charlie^(C#(refInstanceC^))",
+            "__vtable_A#(refInstanceArrayA[1]^.__vtable^).alpha^(A#(refInstanceArrayA[1]^))",
+            "__vtable_B#(refInstanceArrayB[1]^.__A.__vtable^).bravo^(B#(refInstanceArrayB[1]^))",
+            "__vtable_C#(refInstanceArrayC[1]^.__B.__A.__vtable^).charlie^(C#(refInstanceArrayC[1]^))",
             "// Statements in operateOnA",
-            "__vtable_A#(refInstanceA^.__vtable^).alpha^(refInstanceA^)",
+            "__vtable_A#(refInstanceA^.__vtable^).alpha^(A#(refInstanceA^))",
         ]
         "#);
     }

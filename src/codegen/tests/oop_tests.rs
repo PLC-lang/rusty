@@ -2244,17 +2244,24 @@ fn fb_extension_with_output() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %foo = type {}
+    %__vtable_foo = type { void (%foo*)*, i16 (%foo*, i16, i16, i16*)* }
+    %foo = type { i32* }
+    %__vtable_foo2 = type { void (%foo2*)*, i16 (%foo*, i16, i16, i16*)* }
     %foo2 = type { %foo }
 
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
+    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
+    @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2262,6 +2269,7 @@ fn fb_extension_with_output() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.met1 = alloca i16, align 2
       %mandatoryInput = alloca i16, align 2
       store i16 %1, i16* %mandatoryInput, align 2
@@ -2279,8 +2287,43 @@ fn fb_extension_with_output() {
       %this = alloca %foo2*, align 8
       store %foo2* %0, %foo2** %this, align 8
       %__foo = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
-      %1 = alloca i16, align 2
-      %call = call i16 @foo__met1(%foo* %__foo, i16 0, i16 0, i16* %1)
+      %deref = load %foo2*, %foo2** %this, align 8
+      %__foo1 = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo1, i32 0, i32 0
+      %deref2 = load i32*, i32** %__vtable, align 8
+      %cast = bitcast i32* %deref2 to %__vtable_foo2*
+      %met1 = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %cast, i32 0, i32 1
+      %1 = load i16 (%foo*, i16, i16, i16*)*, i16 (%foo*, i16, i16, i16*)** %met1, align 8
+      %deref3 = load %foo2*, %foo2** %this, align 8
+      %cast4 = bitcast %foo2* %deref3 to %foo*
+      %2 = alloca i16, align 2
+      %fnptr_call = call i16 %1(%foo* %cast4, i16 0, i16 0, i16* %2)
+      ret void
+    }
+
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %met1 = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
+      store i16 (%foo*, i16, i16, i16*)* @foo__met1, i16 (%foo*, i16, i16, i16*)** %met1, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo2(%__vtable_foo2* %0) {
+    entry:
+      %self = alloca %__vtable_foo2*, align 8
+      store %__vtable_foo2* %0, %__vtable_foo2** %self, align 8
+      %deref = load %__vtable_foo2*, %__vtable_foo2** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %deref, i32 0, i32 0
+      store void (%foo2*)* @foo2, void (%foo2*)** %__body, align 8
+      %deref1 = load %__vtable_foo2*, %__vtable_foo2** %self, align 8
+      %met1 = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %deref1, i32 0, i32 1
+      store i16 (%foo*, i16, i16, i16*)* @foo__met1, i16 (%foo*, i16, i16, i16*)** %met1, align 8
       ret void
     }
 
@@ -2288,6 +2331,9 @@ fn fb_extension_with_output() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2298,6 +2344,10 @@ fn fb_extension_with_output() {
       %deref = load %foo2*, %foo2** %self, align 8
       %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %foo2*, %foo2** %self, align 8
+      %__foo2 = getelementptr inbounds %foo2, %foo2* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo2* @__vtable_foo2_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2318,8 +2368,26 @@ fn fb_extension_with_output() {
       ret void
     }
 
+    define void @__user_init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init___vtable_foo2(%__vtable_foo2* %0) {
+    entry:
+      %self = alloca %__vtable_foo2*, align 8
+      store %__vtable_foo2* %0, %__vtable_foo2** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
+      call void @__init___vtable_foo2(%__vtable_foo2* @__vtable_foo2_instance)
+      call void @__user_init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
+      call void @__user_init___vtable_foo2(%__vtable_foo2* @__vtable_foo2_instance)
       ret void
     }
     "#);
@@ -2367,17 +2435,24 @@ fn function_with_output_used_in_main_by_extension() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
+    %__vtable_foo = type { void (%foo*)*, i16 (%foo*, i16, i16, i16*)* }
+    %foo = type { i32* }
+    %__vtable_foo2 = type { void (%foo2*)*, i16 (%foo*, i16, i16, i16*)* }
     %foo2 = type { %foo, i16 }
-    %foo = type {}
 
-    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
-    @__foo__init = unnamed_addr constant %foo zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @__foo__init = unnamed_addr constant %foo zeroinitializer
+    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
+    @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
+    @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
 
     define void @foo(%foo* %0) {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void
     }
 
@@ -2385,6 +2460,7 @@ fn function_with_output_used_in_main_by_extension() {
     entry:
       %this = alloca %foo*, align 8
       store %foo* %0, %foo** %this, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %foo.met1 = alloca i16, align 2
       %mandatoryInput = alloca i16, align 2
       store i16 %1, i16* %mandatoryInput, align 2
@@ -2440,6 +2516,32 @@ fn function_with_output_used_in_main_by_extension() {
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
 
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
+      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %met1 = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
+      store i16 (%foo*, i16, i16, i16*)* @foo__met1, i16 (%foo*, i16, i16, i16*)** %met1, align 8
+      ret void
+    }
+
+    define void @__init___vtable_foo2(%__vtable_foo2* %0) {
+    entry:
+      %self = alloca %__vtable_foo2*, align 8
+      store %__vtable_foo2* %0, %__vtable_foo2** %self, align 8
+      %deref = load %__vtable_foo2*, %__vtable_foo2** %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %deref, i32 0, i32 0
+      store void (%foo2*)* @foo2, void (%foo2*)** %__body, align 8
+      %deref1 = load %__vtable_foo2*, %__vtable_foo2** %self, align 8
+      %met1 = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %deref1, i32 0, i32 1
+      store i16 (%foo*, i16, i16, i16*)* @foo__met1, i16 (%foo*, i16, i16, i16*)** %met1, align 8
+      ret void
+    }
+
     define void @__init_foo2(%foo2* %0) {
     entry:
       %self = alloca %foo2*, align 8
@@ -2447,6 +2549,10 @@ fn function_with_output_used_in_main_by_extension() {
       %deref = load %foo2*, %foo2** %self, align 8
       %__foo = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
+      %deref1 = load %foo2*, %foo2** %self, align 8
+      %__foo2 = getelementptr inbounds %foo2, %foo2* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo2* @__vtable_foo2_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2454,6 +2560,9 @@ fn function_with_output_used_in_main_by_extension() {
     entry:
       %self = alloca %foo*, align 8
       store %foo* %0, %foo** %self, align 8
+      %deref = load %foo*, %foo** %self, align 8
+      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
@@ -2474,8 +2583,26 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
+    define void @__user_init___vtable_foo(%__vtable_foo* %0) {
+    entry:
+      %self = alloca %__vtable_foo*, align 8
+      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      ret void
+    }
+
+    define void @__user_init___vtable_foo2(%__vtable_foo2* %0) {
+    entry:
+      %self = alloca %__vtable_foo2*, align 8
+      store %__vtable_foo2* %0, %__vtable_foo2** %self, align 8
+      ret void
+    }
+
     define void @__init___Test() {
     entry:
+      call void @__init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
+      call void @__init___vtable_foo2(%__vtable_foo2* @__vtable_foo2_instance)
+      call void @__user_init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
+      call void @__user_init___vtable_foo2(%__vtable_foo2* @__vtable_foo2_instance)
       ret void
     }
 

@@ -1090,7 +1090,7 @@ fn super_access_with_interface_methods() {
     assert_debug_snapshot!(statements_str, @r#"
     [
         "__parent.increment()",
-        "__vtable_child#(THIS^.__parent.__vtable^).increment^(THIS^)",
+        "__vtable_child#(THIS^.__parent.__vtable^).increment^(child#(THIS^))",
         "double_increment := __parent.count",
     ]
     "#);
