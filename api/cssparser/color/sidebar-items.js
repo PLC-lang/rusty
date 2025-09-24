@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["OPAQUE"],"enum":["PredefinedColorSpace"],"fn":["all_named_colors","clamp_floor_256_f32","clamp_unit_f32","parse_hash_color","parse_named_color","serialize_color_alpha"]};

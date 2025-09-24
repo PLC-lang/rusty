@@ -1,0 +1,1 @@
+searchState.loadedDescShard("match_token", 0, "Implements the <code>match_token!()</code> macro for use by the HTML …")
