@@ -15,6 +15,10 @@ pub fn visit_data_type_declaration<T: AnnotationMap>(
     declaration: &DataTypeDeclaration,
     context: &ValidationContext<T>,
 ) {
+    if declaration.get_location().is_internal() {
+        return;
+    }
+
     match declaration {
         DataTypeDeclaration::Reference { referenced_type, location } => {
             if context.index.find_effective_type_by_name(referenced_type).is_none() {
@@ -55,6 +59,10 @@ pub fn visit_data_type<T: AnnotationMap>(
 }
 
 fn validate_data_type(validator: &mut Validator, data_type: &DataType, location: &SourceLocation) {
+    if location.is_internal() {
+        return;
+    }
+
     match data_type {
         DataType::StructType { variables, .. } => {
             if variables.is_empty() {

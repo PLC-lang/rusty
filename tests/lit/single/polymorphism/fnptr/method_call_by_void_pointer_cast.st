@@ -28,7 +28,7 @@ FUNCTION main
     END_VAR
 
     // Not a direct cast of a void pointer function but rather its virtual table, basically how the virtual
-    // table is also accessed in desugared code (though the access happens in the POU rather than a local
+    // table is also accessed in lowered code (though the access happens in the POU rather than a local
     // variable in the main function)
     // CHECK: value = 5
     // CHECK: value = 5

@@ -246,7 +246,7 @@ fn function_pointer_method_with_arguments() {
             unreachable!();
         };
         insta::assert_debug_snapshot!(annotations.get(&arguments[1]), @"None");
-        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        insta::assert_debug_snapshot!(annotations.get(left), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -259,7 +259,7 @@ fn function_pointer_method_with_arguments() {
             },
         )
         "#);
-        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        insta::assert_debug_snapshot!(annotations.get(right), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -283,7 +283,7 @@ fn function_pointer_method_with_arguments() {
             unreachable!();
         };
         insta::assert_debug_snapshot!(annotations.get(&arguments[2]), @"None");
-        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        insta::assert_debug_snapshot!(annotations.get(left), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -298,7 +298,7 @@ fn function_pointer_method_with_arguments() {
             },
         )
         "#);
-        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        insta::assert_debug_snapshot!(annotations.get(right), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -322,7 +322,7 @@ fn function_pointer_method_with_arguments() {
             unreachable!();
         };
         insta::assert_debug_snapshot!(annotations.get(&arguments[3]), @"None");
-        insta::assert_debug_snapshot!(annotations.get(&left), @r#"
+        insta::assert_debug_snapshot!(annotations.get(left), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -337,7 +337,7 @@ fn function_pointer_method_with_arguments() {
             },
         )
         "#);
-        insta::assert_debug_snapshot!(annotations.get(&right), @r#"
+        insta::assert_debug_snapshot!(annotations.get(right), @r#"
         Some(
             Variable {
                 resulting_type: "DINT",
@@ -451,14 +451,14 @@ fn void_pointer_casting() {
 
         // vtable_FbA#(instanceFbA.__vtable).foo^(instanceFbA);
         // ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-        insta::assert_debug_snapshot!(annotations.get(&node), @r#"
+        insta::assert_debug_snapshot!(annotations.get(node), @r#"
         Some(
             Value {
                 resulting_type: "DINT",
             },
         )
         "#);
-        insta::assert_debug_snapshot!(annotations.get_hint(&node), @"None");
+        insta::assert_debug_snapshot!(annotations.get_hint(node), @"None");
     }
 }
 

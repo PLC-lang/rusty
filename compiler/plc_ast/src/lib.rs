@@ -8,4 +8,5 @@ pub mod literals;
 pub mod mut_visitor;
 mod pre_processor;
 pub mod provider;
+pub mod ser;
 pub mod visitor;

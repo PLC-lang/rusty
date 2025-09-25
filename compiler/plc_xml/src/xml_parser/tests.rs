@@ -19,11 +19,11 @@ fn parse(content: &str) -> (CompilationUnit, Vec<Diagnostic>) {
     xml_parser::parse(&source_code, LinkageType::Internal, IdProvider::default())
 }
 
-fn visit(content: &str) -> Result<Project, crate::error::Error> {
+fn visit(content: &str) -> Result<Project<'_>, crate::error::Error> {
     xml_parser::visit(content)
 }
 
-fn visit_and_desugar(content: &str) -> Result<Project, Vec<Diagnostic>> {
+fn visit_and_desugar(content: &str) -> Result<Project<'_>, Vec<Diagnostic>> {
     let Ok(mut project) = visit(content) else { unreachable!() };
     let source_location_factory = SourceLocationFactory::for_source(&content.create_source("test"));
     project.desugar(&source_location_factory)?;

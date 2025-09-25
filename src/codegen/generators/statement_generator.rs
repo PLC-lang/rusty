@@ -607,7 +607,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         start: &AstNode,
         end: &AstNode,
         match_block: BasicBlock,
-    ) -> Result<BasicBlock, Diagnostic> {
+    ) -> Result<BasicBlock<'_>, Diagnostic> {
         let (builder, _, context) = self.get_llvm_deps();
 
         let range_then = context
@@ -678,7 +678,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         condition: &AstNode,
         body: &[AstNode],
         end_location: &SourceLocation,
-    ) -> Result<(BasicBlock, BasicBlock), Diagnostic> {
+    ) -> Result<(BasicBlock<'_>, BasicBlock<'_>), Diagnostic> {
         let (builder, current_function, context) = self.get_llvm_deps();
         let condition_check = context.append_basic_block(current_function, "condition_check");
         let while_body = context.append_basic_block(current_function, "while_body");
@@ -860,7 +860,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         Ok(())
     }
 
-    fn get_llvm_deps(&self) -> (&Builder, FunctionValue, &Context) {
+    fn get_llvm_deps(&self) -> (&Builder<'_>, FunctionValue<'_>, &Context) {
         (&self.llvm.builder, self.function_context.function, self.llvm.context)
     }
 }

@@ -344,29 +344,3 @@ fn string_size_correctly_set_in_dwarf_info() {
     // Note: 65 and not 64 because of the null terminator
     filtered_assert_snapshot!(result);
 }
-
-#[test]
-fn zero_sized_types_offset_and_size_are_correct() {
-    let result = codegen_with_debug(
-        "
-        PROGRAM mainProg
-        VAR
-            i : UINT;
-            arr1 : ARRAY [0..10] OF BYTE;
-            fb : zeroSize;
-            arr2 : ARRAY [0..10] OF BYTE;
-        END_VAR
-        END_PROGRAM
-
-        FUNCTION_BLOCK zeroSize
-            VAR
-            END_VAR
-        END_FUNCTION_BLOCK
-        ",
-    );
-    // We expect the element after the zero sized member to have the offset same offset as the zero sized member
-    assert!(result.contains(r#"!DIDerivedType(tag: DW_TAG_member, name: "fb", scope: !2, file: !2, line: 6, baseType: !13, align: 64, offset: 104, flags: DIFlagPublic)"#));
-    assert!(result.contains(r#"!DIDerivedType(tag: DW_TAG_member, name: "arr2", scope: !2, file: !2, line: 7, baseType: !8, size: 88, align: 8, offset: 104, flags: DIFlagPublic)"#));
-    // We also expect the zero sized type to not have a size set in the debug info
-    assert!(result.contains(r#"!DICompositeType(tag: DW_TAG_structure_type, name: "zeroSize", scope: !2, file: !2, line: 11, align: 64, flags: DIFlagPublic, elements: !14, identifier: "zeroSize")"#));
-}
