@@ -1,0 +1,20 @@
+---
+source: src/codegen/tests/expression_tests.rs
+expression: result
+---
+; ModuleID = '<internal>'
+source_filename = "<internal>"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+%main = type { i32, i64 }
+
+@main_instance = global %main zeroinitializer
+
+define void @main(%main* %0) {
+entry:
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
+  ret void
+}
