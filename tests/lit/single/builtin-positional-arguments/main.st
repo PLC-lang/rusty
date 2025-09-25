@@ -13,6 +13,9 @@
 // - REF: Both positional and named arguments (to verify equivalence)
 // - DIV: positional arguments
 // - SUB: positional arguments
+// - ADD: positional arguments
+// - MUL: positional arguments
+// - GT, LT, NE, LE, EQ, GE: positional comparison arguments
 //
 // For ADR and REF, both calling conventions are tested to verify they produce equivalent results.
 
@@ -35,6 +38,10 @@ VAR
     dividend    : DINT := 20;
     divisor     : DINT := 4;
     subtrahend  : DINT := 7;
+    multiplicand: DINT := 6;
+    multiplier  : DINT := 7;
+    addend1     : DINT := 17;
+    addend2     : DINT := 25;
 END_VAR
 
     // MOVE
@@ -77,6 +84,40 @@ END_VAR
     // SUB
     result := SUB(dividend, subtrahend);
     printf('%d$N', result);                 // CHECK: 13
+
+    // ADD - positional only
+    result := ADD(addend1, addend2);
+    printf('%d$N', result);                 // CHECK: 42
+
+    // MUL - positional only
+    result := MUL(multiplicand, multiplier);
+    printf('%d$N', result);                 // CHECK: 42
+
+    x := 5;
+    y := 10;
+    // GT - positional only >
+    result := GT(y, x);
+    printf('%d$N', result);                 // CHECK: 1
+
+    // LT - positional only <
+    result := LT(x, y);
+    printf('%d$N', result);                 // CHECK: 1
+
+    // EQ - positional only ==
+    result := EQ(b, b);
+    printf('%d$N', result);                 // CHECK: 1
+
+    // NE - positional only <>
+    result := NE(b, c);
+    printf('%d$N', result);                 // CHECK: 1
+
+    // GE - positional only >=
+    result := GE(y, x);
+    printf('%d$N', result);                 // CHECK: 1
+
+    // LE - positional only <=
+    result := LE(x, y);
+    printf('%d$N', result);                 // CHECK: 1
 
     test_bounds(myarray);
 
