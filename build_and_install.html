@@ -206,12 +206,19 @@ resulting binaries can be found at <code>target/debug/plc</code> and <code>targe
 <p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11.
 To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
 <h2 id="macos"><a class="header" href="#macos">MacOS</a></h2>
-<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a>.</p>
-<p>Furthermore LLVM 14 is needed, which can be easily installed with <a href="https://brew.sh">homebrew</a> :</p>
+<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a> and the LLVM toolchain using <a href="https://brew.sh">Homebrew</a>:</p>
 <pre><code class="language-bash">brew install llvm@14
 </code></pre>
-<p>After the installation you have to add <code>/opt/homebrew/opt/llvm@14/bin</code> to your <code>$PATH</code> environment variable, e.g. with the following command:</p>
+<p>While optional, it is strongly recommended to also install <code>gnu-getopt</code> and <code>lit</code> so the helper scripts and integration tests work without extra steps:</p>
+<pre><code class="language-bash">brew install gnu-getopt lit
+</code></pre>
+<p><code>gnu-getopt</code> is required by the build scripts, and <code>lit</code> is needed for running integration tests via <code>./scripts/build.sh --lit</code>.</p>
+<p>After the installation, make sure the Homebrew binaries are discoverable for both LLVM and GNU getopt:</p>
 <pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' &gt;&gt; ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zshrc
+</code></pre>
+<p>The <code>lit</code> test suite expects <code>FileCheck-14</code> to be available. If <code>FileCheck-14</code> is not already present, create a symlink to the <code>FileCheck</code> binary:</p>
+<pre><code class="language-bash">ln -svf /opt/homebrew/opt/llvm@14/bin/FileCheck /opt/homebrew/opt/llvm@14/bin/FileCheck-14
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
 <p>Compiling RuSTy on Windows requires three dependencies:</p>
