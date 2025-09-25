@@ -1,0 +1,106 @@
+// RUN: (%COMPILE %s && %RUN) | %CHECK %s
+
+FUNCTION_BLOCK A
+    VAR
+        localStateA: DINT;
+    END_VAR
+
+    METHOD updateState
+        localStateA := localStateA + 1;
+        printf('A::updateState, localStateA = %d$N', localStateA);
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK B EXTENDS A
+    VAR
+        localStateB: DINT := 0;
+    END_VAR
+
+    METHOD updateState
+        localStateA := localStateA + 1;
+        localStateB := localStateB + 2;
+        printf('B::updateState, localStateA = %d, localStateB = %d$N', localStateA, localStateB);
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK C EXTENDS B
+    VAR
+        localStateC: DINT := 0;
+    END_VAR
+
+    METHOD updateState
+        localStateA := localStateA + 1;
+        localStateB := localStateB + 2;
+        localStateC := localStateC + 3;
+        printf('C::updateState, localStateA = %d, localStateB = %d, localStateC = %d$N', localStateA, localStateB, localStateC);
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION main
+    VAR
+        instanceA: A;
+        instanceB: B;
+        instanceC: C;
+
+        refInstanceA: POINTER TO A;
+        refInstanceB: POINTER TO B;
+        refInstanceC: POINTER TO C;
+    END_VAR
+
+    // -- refInstanceA calls --
+
+    // CHECK: A::updateState, localStateA = 1
+    // CHECK: A::updateState, localStateA = 2
+    // CHECK: A::updateState, localStateA = 3
+    refInstanceA := ADR(instanceA);
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+
+    // CHECK: B::updateState, localStateA = 1, localStateB = 2
+    // CHECK: B::updateState, localStateA = 2, localStateB = 4
+    refInstanceA := ADR(instanceB);
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+
+    // CHECK: C::updateState, localStateA = 1, localStateB = 2, localStateC = 3
+    // CHECK: C::updateState, localStateA = 2, localStateB = 4, localStateC = 6
+    // CHECK: C::updateState, localStateA = 3, localStateB = 6, localStateC = 9
+    // CHECK: C::updateState, localStateA = 4, localStateB = 8, localStateC = 12
+    refInstanceA := ADR(instanceC);
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+    refInstanceA^.updateState();
+
+    // CHECK: A::updateState, localStateA = 4
+    refInstanceA := ADR(instanceA);
+    refInstanceA^.updateState();
+
+    // CHECK: B::updateState, localStateA = 3, localStateB = 6
+    refInstanceA := ADR(instanceB);
+    refInstanceA^.updateState();
+
+    // CHECK: C::updateState, localStateA = 5, localStateB = 10, localStateC = 15
+    refInstanceA := ADR(instanceC);
+    refInstanceA^.updateState();
+
+
+    // -- refInstanceB calls --
+
+    // CHECK: B::updateState, localStateA = 4, localStateB = 8
+    refInstanceB := ADR(instanceB);
+    refInstanceB^.updateState();
+
+    // CHECK: C::updateState, localStateA = 6, localStateB = 12, localStateC = 18
+    refInstanceB := ADR(instanceC);
+    refInstanceB^.updateState();
+
+
+
+    // -- refInstanceC calls --
+
+    // CHECK: C::updateState, localStateA = 7, localStateB = 14, localStateC = 21
+    refInstanceC := ADR(instanceC);
+    refInstanceC^.updateState();
+END_FUNCTION

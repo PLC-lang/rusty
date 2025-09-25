@@ -6038,19 +6038,19 @@ fn implicit_output_assignment_arguments_are_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]).unwrap(), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]).unwrap(), @r#"
     Argument {
         resulting_type: "DINT",
         position: 1,
     }
-    "###);
+    "#);
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]).unwrap(), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]).unwrap(), @r#"
     Argument {
         resulting_type: "BOOL",
         position: 2,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -6103,23 +6103,23 @@ fn explicit_output_assignment_arguments_are_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r#"
     Some(
         Argument {
             resulting_type: "DINT",
             position: 1,
         },
     )
-    "###);
+    "#);
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r#"
     Some(
         Argument {
             resulting_type: "BOOL",
             position: 3,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]

@@ -13,8 +13,12 @@ use std::{
 
 use ast::provider::IdProvider;
 use plc::{
-    codegen::GeneratedModule, lowering::calls::AggregateTypeLowerer, output::FormatOption, ConfigFormat,
-    OnlineChange, Target,
+    codegen::GeneratedModule,
+    lowering::{
+        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, vtable::VirtualTableGenerator,
+    },
+    output::FormatOption,
+    ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_lowering::inheritance::InheritanceLowerer;
@@ -279,5 +283,40 @@ impl PipelineParticipantMut for AggregateTypeLowerer {
             unresolvables: vec![],
         };
         indexed_project.annotate(self.id_provider.clone())
+    }
+}
+
+impl PipelineParticipantMut for VirtualTableGenerator {
+    fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
+        let IndexedProject { mut project, index, .. } = indexed_project;
+
+        let mut gen = VirtualTableGenerator::new(self.ids.clone());
+        gen.generate(&index, &mut project.units);
+
+        project.index(self.ids.clone())
+    }
+}
+
+impl PipelineParticipantMut for PolymorphicCallLowerer {
+    fn post_annotate(&mut self, annotated_project: AnnotatedProject) -> AnnotatedProject {
+        let AnnotatedProject { units, index, annotations } = annotated_project;
+        self.index = Some(index);
+        self.annotations = Some(annotations.annotation_map);
+
+        let units = units
+            .into_iter()
+            .map(|AnnotatedUnit { mut unit, .. }| {
+                self.lower_unit(&mut unit);
+                unit
+            })
+            .collect();
+
+        let indexed_project = IndexedProject {
+            project: ParsedProject { units },
+            index: self.index.take().expect("Index"),
+            unresolvables: vec![],
+        };
+
+        indexed_project.annotate(self.ids.clone())
     }
 }
