@@ -2381,23 +2381,21 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
                     }
                     AstLiteral::Real(value) => {
-                        // If we have a float literal in an initializer (lhs) context, we need to see if the context expects a double or float type.
+                        // XXX: if we have a float literal in an initializer (lhs) context, we need to see if the context expects a double or float type.
                         // This is due to `get_real_type_name_for` always returning `REAL_TYPE` for values within f32 range which leads to incorrect typing
                         // during initialization of double values.
-                        let Some(lhs_type) = ctx.lhs.as_ref().and_then(|lhs| {
-                            self.index
-                                .find_effective_type_by_name(lhs)
-                                .filter(|it| it.get_type_information().is_float())
-                        }) else {
-                            self.annotate(
-                                statement,
-                                StatementAnnotation::value(get_real_type_name_for(value)),
-                            );
-                            return;
-                        };
+                        let type_name = ctx
+                            .lhs
+                            .as_ref()
+                            .and_then(|lhs| {
+                                self.index
+                                    .find_effective_type_by_name(lhs)
+                                    .filter(|it| it.get_type_information().is_float())
+                            })
+                            .map(typesystem::DataType::get_name)
+                            .unwrap_or_else(|| get_real_type_name_for(value));
 
-                        log::trace!("Using expected type from context: {}", lhs_type.get_name());
-                        self.annotate(statement, StatementAnnotation::value(lhs_type.get_name()));
+                        self.annotate(statement, StatementAnnotation::value(type_name));
                     }
                     AstLiteral::Array(Array { elements: Some(elements), .. }) => {
                         self.visit_statement(ctx, elements.as_ref());
