@@ -4,7 +4,8 @@ use inkwell::{
     builder::Builder,
     types::{BasicType, BasicTypeEnum, FunctionType},
     values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, CallableValue, FloatValue, IntValue, PointerValue, ScalableVectorValue, StructValue, VectorValue
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, CallableValue,
+        FloatValue, IntValue, PointerValue, ScalableVectorValue, StructValue, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
@@ -27,7 +28,8 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type}, CodegenError,
+        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
+        CodegenError,
     },
     index::{
         const_expressions::ConstId, ArgumentType, ImplementationIndexEntry, ImplementationType, Index,
@@ -95,7 +97,11 @@ impl<'ink> ExpressionValue<'ink> {
 
     /// returns the given expression value as an r-value which means that it will load
     /// the pointer, if this is an l_value
-    pub fn as_r_value(&self, llvm: &Llvm<'ink>, load_name: Option<String>) -> Result<BasicValueEnum<'ink>, CodegenError> {
+    pub fn as_r_value(
+        &self,
+        llvm: &Llvm<'ink>,
+        load_name: Option<String>,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match self {
             ExpressionValue::LValue(it) => llvm.load_pointer(it, load_name.as_deref().unwrap_or("")),
             ExpressionValue::RValue(it) => Ok(it.to_owned()),
@@ -353,8 +359,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "",
                 )?;
                 ptr = self.llvm.load_pointer(&ptr, "")?.into_pointer_value();
-                let callable = CallableValue::try_from(ptr)
-                    .map_err(|_| CodegenError::new("Pointer was not a function pointer", SourceLocation::undefined()))?;
+                let callable = CallableValue::try_from(ptr).map_err(|_| {
+                    CodegenError::new("Pointer was not a function pointer", SourceLocation::undefined())
+                })?;
 
                 Ok(self.llvm.builder.build_call(callable, args, "call")?)
             })
@@ -431,7 +438,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         } else {
             Err(Diagnostic::new(format!("Cannot cast from {} to Integer Type", access_type.get_name()))
                 .with_error_code("E051")
-                .with_location(index).into())
+                .with_location(index)
+                .into())
         }
     }
 
@@ -552,9 +560,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_qualified_name(operator)
             .expect("Shouldn't have got this far without a name for the function");
         let function_type = function.get_type();
-        let call = self
-            .generate_got_call(qualified_name, &function_type, &arguments_list)?;
-        let call= if let Some(call) = call {
+        let call = self.generate_got_call(qualified_name, &function_type, &arguments_list)?;
+        let call = if let Some(call) = call {
             call
         } else {
             self.llvm.builder.build_call(function, &arguments_list, "call")?
@@ -620,11 +627,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // Generate the argument list; our assumption is function pointers are only supported for methods and
         // direct function block calls, hence we explicitly fetch the instance argument from the list. In
-        // terms of desugared ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
+        // terms of lowered ST code you can imagine something alike `fnPtr^(instanceFb, arg1, ..., argN)`
         let (instance, arguments_raw, arguments_llvm) = {
             let arguments = arguments.map(flatten_expression_list).unwrap_or_default();
             let (instance, arguments) = match arguments.len() {
-                0 => panic!("invalid desugared code, no instance argument found"),
+                0 => panic!("invalid lowered code, no instance argument found"),
                 1 => (self.generate_lvalue(arguments[0])?, Vec::new()),
                 _ => (self.generate_lvalue(arguments[0])?, arguments[1..].to_vec()),
             };
@@ -654,7 +661,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // Finally generate the function pointer call
         let callable = CallableValue::try_from(function_pointer_value).unwrap();
-        let call = self.llvm.builder.build_call(callable, &arguments_llvm, "fnptr_call").map_err(CodegenError::from)?;
+        let call = self
+            .llvm
+            .builder
+            .build_call(callable, &arguments_llvm, "fnptr_call")
+            .map_err(CodegenError::from)?;
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
@@ -757,7 +768,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             //       global context isn't passed into codegen
             Err(Diagnostic::new(format!("{element:?} not a direct access"))
                 .with_error_code("E055")
-                .with_location(*element).into())
+                .with_location(*element)
+                .into())
         }?;
         for element in direct_access {
             let rhs_next = if let AstStatement::DirectAccess(data, ..) = element.get_stmt() {
@@ -772,7 +784,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 //       global context isn't passed into codegen
                 Err(Diagnostic::new(format!("{element:?} not a direct access"))
                     .with_error_code("E055")
-                    .with_location(*element).into())
+                    .with_location(*element)
+                    .into())
             }?;
             index = self.llvm.builder.build_int_add(index, rhs_next, "")?;
         }
@@ -1462,7 +1475,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn generate_lvalue(&self, reference_statement: &AstNode) -> Result<PointerValue<'ink>, CodegenError> {
         self.generate_expression_value(reference_statement).and_then(|it| {
             let v: Result<PointerValue, _> = it.get_basic_value_enum().try_into();
-            v.map_err(|err| CodegenError::GenericError(format!("{err:?}"), reference_statement.get_location().clone()))
+            v.map_err(|err| {
+                CodegenError::GenericError(format!("{err:?}"), reference_statement.get_location().clone())
+            })
         })
     }
 
@@ -1494,11 +1509,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
-                        *qualifier,
-                        member_location,
-                        name
-                    )?;
+                    let gep: PointerValue<'_> =
+                        self.llvm.get_member_pointer_from_struct(*qualifier, member_location, name)?;
 
                     return Ok(gep);
                 }
@@ -1537,19 +1549,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     pub fn ptr_as_value(&self, ptr: PointerValue<'ink>) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_type = self.llvm.context.i64_type();
         Ok(if ptr.is_const() {
-                    ptr.const_to_int(int_type)
-                } else {
-                    self.llvm.builder.build_ptr_to_int(ptr, int_type, "")?
-                }
-                .as_basic_value_enum())
+            ptr.const_to_int(int_type)
+        } else {
+            self.llvm.builder.build_ptr_to_int(ptr, int_type, "")?
+        }
+        .as_basic_value_enum())
     }
 
     pub fn int_neg(&self, value: IntValue<'ink>) -> Result<IntValue<'ink>, CodegenError> {
-        Ok(if value.is_const() {
-                    value.const_neg()
-                } else {
-                    self.llvm.builder.build_int_neg(value, "")?
-                })
+        Ok(if value.is_const() { value.const_neg() } else { self.llvm.builder.build_int_neg(value, "")? })
     }
 
     /// automatically derefs an inout variable pointer so it can be used like a normal variable
@@ -1638,7 +1646,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .map_err(|msg| {
                             CodegenError::new(
                                 format!("Invalid array dimensions access: {msg}").as_str(),
-                                access
+                                access,
                             )
                         })?;
 
@@ -1695,8 +1703,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     // make sure we got an int-value
                     let index_access: IntValue = index_access.and_then(|it| {
-                        it.try_into()
-                            .map_err(|_| CodegenError::new("non-numeric index-access", access))
+                        it.try_into().map_err(|_| CodegenError::new("non-numeric index-access", access))
                     })?;
 
                     let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
@@ -1845,17 +1852,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     /// if the given `value` is a pointer value, it converts the pointer into an int_value to access the pointer's
     /// address, if the given `value` is already an IntValue it is returned as is
-    pub fn convert_to_int_value_if_pointer(&self, value: BasicValueEnum<'ink>) -> Result<IntValue<'ink>, CodegenError> {
+    pub fn convert_to_int_value_if_pointer(
+        &self,
+        value: BasicValueEnum<'ink>,
+    ) -> Result<IntValue<'ink>, CodegenError> {
         match value {
-                    BasicValueEnum::PointerValue(v) => Ok(self.ptr_as_value(v)?.into_int_value()),
-                    BasicValueEnum::IntValue(v) => Ok(v),
-                    _ => {
-                        Err(CodegenError::new(
-                            format!("Cannot convert {value} to int value"),
-                            SourceLocation::undefined(),
-                        ))
-                    }
-                }
+            BasicValueEnum::PointerValue(v) => Ok(self.ptr_as_value(v)?.into_int_value()),
+            BasicValueEnum::IntValue(v) => Ok(v),
+            _ => Err(CodegenError::new(
+                format!("Cannot convert {value} to int value"),
+                SourceLocation::undefined(),
+            )),
+        }
     }
 
     /// generates the result of an int/bool binary-expression (+, -, *, /, %, ==)
@@ -1930,7 +1938,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let value = match operator {
             Operator::Plus => self.llvm.builder.build_float_add(float_lvalue, float_rvalue, "tmpVar")?.into(),
-            Operator::Minus => self.llvm.builder.build_float_sub(float_lvalue, float_rvalue, "tmpVar")?.into(),
+            Operator::Minus => {
+                self.llvm.builder.build_float_sub(float_lvalue, float_rvalue, "tmpVar")?.into()
+            }
             Operator::Multiplication => {
                 self.llvm.builder.build_float_mul(float_lvalue, float_rvalue, "tmpVar")?.into()
             }
@@ -1944,27 +1954,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Equal => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::OEQ, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
             Operator::NotEqual => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::ONE, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
             Operator::Less => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::OLT, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
             Operator::Greater => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::OGT, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
             Operator::LessOrEqual => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::OLE, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
             Operator::GreaterOrEqual => self
                 .llvm
                 .builder
-                .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")?.into(),
+                .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")?
+                .into(),
 
             _ => Err(CodegenError::new(
                 format!("Operator '{operator}' unimplemented for float").as_str(),
@@ -1997,12 +2013,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// generates the literal statement and returns the resulting value
     ///
     /// - `literal_statement` one of LiteralBool, LiteralInteger, LiteralReal, LiteralString
-    pub fn generate_literal(&self, literal_statement: &AstNode) -> Result<ExpressionValue<'ink>, CodegenError> {
+    pub fn generate_literal(
+        &self,
+        literal_statement: &AstNode,
+    ) -> Result<ExpressionValue<'ink>, CodegenError> {
         let cannot_generate_literal = || {
-            CodegenError::new(
-                format!("Cannot generate Literal for {literal_statement:?}"),
-                literal_statement,
-            )
+            CodegenError::new(format!("Cannot generate Literal for {literal_statement:?}"), literal_statement)
         };
 
         let location = &literal_statement.get_location();
@@ -2136,7 +2152,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 expected_type.get_name()
             ))
             .with_error_code("E074")
-            .with_location(location).into()),
+            .with_location(location)
+            .into()),
         }
     }
 
@@ -2157,7 +2174,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
-                CodegenError::new(format!("no type hint available for {statement:#?}"), statement)
+                CodegenError::new(format!("no type hint available for {}", statement.as_string()), statement)
             })
     }
 
@@ -2231,15 +2248,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ))
             }
         } else {
-            Err(CodegenError::new(
-                format!("Expected Struct-literal, got {assignments:#?}"),
-                assignments,
-            ))
+            Err(CodegenError::new(format!("Expected Struct-literal, got {assignments:#?}"), assignments))
         }
     }
 
     /// generates an array literal with the given optional elements (represented as an ExpressionList)
-    pub fn generate_literal_array(&self, initializer: &AstNode) -> Result<BasicValueEnum<'ink>, CodegenError> {
+    pub fn generate_literal_array(
+        &self,
+        initializer: &AstNode,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let array_value = self.generate_literal_array_value(
             initializer,
             self.get_type_hint_info_for(initializer)?,
@@ -2312,25 +2329,28 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         //TODO Validation: fail with compile-error if value cannot be converted into... correctly
         let array_value = match llvm_type {
             BasicTypeEnum::ArrayType(_) => llvm_type.into_array_type().const_array(
-                        v.iter().map(|it| it.into_array_value()).collect::<Vec<ArrayValue>>().as_slice(),
-                    ),
+                v.iter().map(|it| it.into_array_value()).collect::<Vec<ArrayValue>>().as_slice(),
+            ),
             BasicTypeEnum::FloatType(_) => llvm_type.into_float_type().const_array(
-                        v.iter().map(|it| it.into_float_value()).collect::<Vec<FloatValue>>().as_slice(),
-                    ),
+                v.iter().map(|it| it.into_float_value()).collect::<Vec<FloatValue>>().as_slice(),
+            ),
             BasicTypeEnum::IntType(_) => llvm_type
-                        .into_int_type()
-                        .const_array(v.iter().map(|it| it.into_int_value()).collect::<Vec<IntValue>>().as_slice()),
+                .into_int_type()
+                .const_array(v.iter().map(|it| it.into_int_value()).collect::<Vec<IntValue>>().as_slice()),
             BasicTypeEnum::PointerType(_) => llvm_type.into_pointer_type().const_array(
-                        v.iter().map(|it| it.into_pointer_value()).collect::<Vec<PointerValue>>().as_slice(),
-                    ),
+                v.iter().map(|it| it.into_pointer_value()).collect::<Vec<PointerValue>>().as_slice(),
+            ),
             BasicTypeEnum::StructType(_) => llvm_type.into_struct_type().const_array(
-                        v.iter().map(|it| it.into_struct_value()).collect::<Vec<StructValue>>().as_slice(),
-                    ),
+                v.iter().map(|it| it.into_struct_value()).collect::<Vec<StructValue>>().as_slice(),
+            ),
             BasicTypeEnum::VectorType(_) => llvm_type.into_vector_type().const_array(
-                        v.iter().map(|it| it.into_vector_value()).collect::<Vec<VectorValue>>().as_slice(),
-                    ),
+                v.iter().map(|it| it.into_vector_value()).collect::<Vec<VectorValue>>().as_slice(),
+            ),
             BasicTypeEnum::ScalableVectorType(_) => llvm_type.into_scalable_vector_type().const_array(
-                v.iter().map(|it| it.into_scalable_vector_value()).collect::<Vec<ScalableVectorValue>>().as_slice(),
+                v.iter()
+                    .map(|it| it.into_scalable_vector_value())
+                    .collect::<Vec<ScalableVectorValue>>()
+                    .as_slice(),
             ),
         };
         Ok(array_value.as_basic_value_enum())
@@ -2542,9 +2562,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => unreachable!("memcpy is not used for non-aggregate types"),
         };
 
-        self.llvm
-            .builder
-            .build_memcpy(left, alignment, right, alignment, size).map_err(Into::into)
+        self.llvm.builder.build_memcpy(left, alignment, right, alignment, size).map_err(Into::into)
     }
 
     /// returns an optional name used for a temporary variable when loading a pointer represented by `expression`
@@ -2842,7 +2860,8 @@ pub fn get_implicit_call_parameter<'a>(
                     //TODO: use global context to get an expression slice
                     Diagnostic::new("Expression is not assignable")
                         .with_error_code("E050")
-                        .with_location(argument).into(),
+                        .with_location(argument)
+                        .into(),
                 );
             };
 
@@ -2864,7 +2883,9 @@ pub fn get_implicit_call_parameter<'a>(
 /// turns the given IntValue into an i1 by comparing it to 0 (of the same size)
 pub fn to_i1<'a>(value: IntValue<'a>, builder: &Builder<'a>) -> Result<IntValue<'a>, CodegenError> {
     if value.get_type().get_bit_width() > 1 {
-        builder.build_int_compare(IntPredicate::NE, value, value.get_type().const_int(0, false), "").map_err(Into::into)
+        builder
+            .build_int_compare(IntPredicate::NE, value, value.get_type().const_int(0, false), "")
+            .map_err(Into::into)
     } else {
         Ok(value)
     }
@@ -2895,9 +2916,9 @@ fn get_indices<'ink>(
                 )?,
             );
             Ok((
-                            llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str())?.into_int_value(),
-                            llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str())?.into_int_value(),
-                        ))
+                llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str())?.into_int_value(),
+                llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str())?.into_int_value(),
+            ))
         })
         .collect::<Result<Vec<_>, CodegenError>>()
 }
@@ -2913,7 +2934,9 @@ fn normalize_offsets<'ink>(
         .enumerate()
         .zip(offsets.iter().map(|(start, _)| start))
         .map(|((idx, accessor), start_offset)| {
-            llvm.builder.build_int_sub(*accessor, *start_offset, format!("adj_access{idx}").as_str()).map_err(Into::into)
+            llvm.builder
+                .build_int_sub(*accessor, *start_offset, format!("adj_access{idx}").as_str())
+                .map_err(Into::into)
         })
         .collect::<Result<Vec<_>, _>>()
 }
@@ -2926,16 +2949,21 @@ fn get_dimension_lengths<'ink>(
         .iter()
         .enumerate()
         .map(|(idx, (start, end))| {
-            llvm.builder.build_int_add(
-                llvm.i32_type().const_int(1, false),
-                llvm.builder.build_int_sub(*end, *start, "")?,
-                format!("len_dim{idx}").as_str(),
-            ).map_err(Into::into)
+            llvm.builder
+                .build_int_add(
+                    llvm.i32_type().const_int(1, false),
+                    llvm.builder.build_int_sub(*end, *start, "")?,
+                    format!("len_dim{idx}").as_str(),
+                )
+                .map_err(Into::into)
         })
         .collect::<Result<Vec<_>, _>>()
 }
 
-fn get_vla_accessor_factors<'ink>(llvm: &Llvm<'ink>, lengths: &[IntValue<'ink>]) -> Result<Vec<IntValue<'ink>>, CodegenError> {
+fn get_vla_accessor_factors<'ink>(
+    llvm: &Llvm<'ink>,
+    lengths: &[IntValue<'ink>],
+) -> Result<Vec<IntValue<'ink>>, CodegenError> {
     (0..lengths.len())
         .map(|idx| {
             if idx == lengths.len() - 1 {
@@ -2952,7 +2980,10 @@ fn get_vla_accessor_factors<'ink>(llvm: &Llvm<'ink>, lengths: &[IntValue<'ink>])
 /// Computes the product of all elements in a collection of IntValues
 ///
 /// a <- a * b
-fn int_value_product<'ink>(llvm: &Llvm<'ink>, values: &[IntValue<'ink>]) -> Result<IntValue<'ink>, CodegenError> {
+fn int_value_product<'ink>(
+    llvm: &Llvm<'ink>,
+    values: &[IntValue<'ink>],
+) -> Result<IntValue<'ink>, CodegenError> {
     // initialize the accumulator with 1
     let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum")?;
     llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false))?;
