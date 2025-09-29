@@ -30,7 +30,7 @@ generational-arena = "0.2.8"
 regex = "1"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
-lld_rs = "140.0.0"
+lld_rs = { git = "https://github.com/mun-lang/lld-rs", commit = "3798ace" }
 which = "4.2.5"
 thiserror.workspace = true
 log.workspace = true

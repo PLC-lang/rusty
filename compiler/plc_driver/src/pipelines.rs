@@ -791,7 +791,7 @@ impl AnnotatedProject {
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
         let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
             let tempdir = tempfile::tempdir().unwrap();
-            tempdir.into_path()
+            tempdir.keep()
         });
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
