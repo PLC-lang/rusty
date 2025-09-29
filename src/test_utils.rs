@@ -339,7 +339,9 @@ pub mod tests {
                     &got_layout,
                 )?;
 
-                code_generator.generate(context, &unit, &annotations, &index, llvm_index).map_err(Diagnostic::from)
+                code_generator
+                    .generate(context, &unit, &annotations, &index, llvm_index)
+                    .map_err(Diagnostic::from)
             })
             .collect::<Result<Vec<_>, Diagnostic>>()
     }

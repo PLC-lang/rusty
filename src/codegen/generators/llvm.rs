@@ -90,7 +90,11 @@ impl<'a> Llvm<'a> {
     ///
     /// - `name` the name of the local variable
     /// - `data_type` the variable's datatype
-    pub fn create_local_variable(&self, name: &str, data_type: &BasicTypeEnum<'a>) -> Result<PointerValue<'a>, CodegenError> {
+    pub fn create_local_variable(
+        &self,
+        name: &str,
+        data_type: &BasicTypeEnum<'a>,
+    ) -> Result<PointerValue<'a>, CodegenError> {
         self.builder.build_alloca(*data_type, name).map_err(Into::into)
     }
 
@@ -122,7 +126,11 @@ impl<'a> Llvm<'a> {
         accessor_sequence: &[IntValue<'a>],
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
-        unsafe { self.builder.build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name).map_err(Into::into) }
+        unsafe {
+            self.builder
+                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)
+                .map_err(Into::into)
+        }
     }
 
     /// creates a pointervalue that points to a member of a struct
@@ -144,7 +152,11 @@ impl<'a> Llvm<'a> {
     ///
     /// - `lvalue` the pointer and it's datatype
     /// - `name` the name of the temporary variable
-    pub fn load_pointer(&self, lvalue: &PointerValue<'a>, name: &str) -> Result<BasicValueEnum<'a>, CodegenError> {
+    pub fn load_pointer(
+        &self,
+        lvalue: &PointerValue<'a>,
+        name: &str,
+    ) -> Result<BasicValueEnum<'a>, CodegenError> {
         self.builder.build_load(lvalue.to_owned(), name).map_err(Into::into)
     }
 
@@ -361,23 +373,21 @@ impl<'a> Llvm<'a> {
             // we assume that we got a global variable with the initial value that we can copy from
             if value.is_pointer_value() {
                 // mem-copy from an global constant variable
-                self.builder
-                    .build_memcpy(
-                        variable_to_initialize,
-                        std::cmp::max(1, alignment),
-                        value.into_pointer_value(),
-                        std::cmp::max(1, alignment),
-                        type_size?,
-                    )?;
+                self.builder.build_memcpy(
+                    variable_to_initialize,
+                    std::cmp::max(1, alignment),
+                    value.into_pointer_value(),
+                    std::cmp::max(1, alignment),
+                    type_size?,
+                )?;
             } else if value.is_int_value() {
                 // mem-set the value (usually 0) over the whole memory-area
-                self.builder
-                    .build_memset(
-                        variable_to_initialize,
-                        std::cmp::max(1, alignment),
-                        value.into_int_value(),
-                        type_size?,
-                    )?;
+                self.builder.build_memset(
+                    variable_to_initialize,
+                    std::cmp::max(1, alignment),
+                    value.into_int_value(),
+                    type_size?,
+                )?;
             } else {
                 CodegenError::new("initializing an array should be memcpy-able or memset-able", location);
             };

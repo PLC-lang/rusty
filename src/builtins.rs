@@ -17,7 +17,10 @@ use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use rustc_hash::FxHashMap;
 
 use crate::{
-    codegen::{generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue}, CodegenError},
+    codegen::{
+        generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
+        CodegenError,
+    },
     index::Index,
     lexer, parser,
     resolver::{

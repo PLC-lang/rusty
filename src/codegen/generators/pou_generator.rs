@@ -10,7 +10,8 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        llvm_index::LlvmTypedIndex, CodegenError,
+        llvm_index::LlvmTypedIndex,
+        CodegenError,
     },
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
@@ -590,8 +591,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_parameter() {
-                let ptr_value =
-                                    params_iter.next().ok_or_else(|| CodegenError::from(Diagnostic::missing_function(&m.source_location)))?;
+                let ptr_value = params_iter
+                    .next()
+                    .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(&m.source_location)))?;
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
                 let ty = index.get_associated_type(member_type_name)?;
@@ -627,14 +629,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             .map_err(|err| CodegenError::new(err.as_str(), &m.source_location))?
                             as u64;
                         let char_width = encoding.get_bytes_per_char();
-                        self.llvm
-                            .builder
-                            .build_memset(
-                                bitcast,
-                                char_width,
-                                self.llvm.context.i8_type().const_zero(),
-                                self.llvm.context.i64_type().const_int(size * char_width as u64, true),
-                            )?;
+                        self.llvm.builder.build_memset(
+                            bitcast,
+                            char_width,
+                            self.llvm.context.i8_type().const_zero(),
+                            self.llvm.context.i64_type().const_int(size * char_width as u64, true),
+                        )?;
                         (
                             // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
@@ -650,9 +650,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         };
                         (size, 1)
                     };
-                    self.llvm
-                        .builder
-                        .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)?;
+                    self.llvm.builder.build_memcpy(
+                        bitcast,
+                        alignment,
+                        ptr_value.into_pointer_value(),
+                        alignment,
+                        size,
+                    )?;
                 } else {
                     self.llvm.builder.build_store(ptr, ptr_value)?;
                 };
@@ -682,10 +686,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<(), CodegenError> {
         let members = self.index.get_pou_members(type_name);
         let param_pointer = function_context
-                    .function
-                    .get_nth_param(0)
-                    .map(BasicValueEnum::into_pointer_value)
-                    .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
+            .function
+            .get_nth_param(0)
+            .map(BasicValueEnum::into_pointer_value)
+            .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
@@ -791,7 +795,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
                     &variable.source_location,
-                ).into());
+                )
+                .into());
             }
         }
         Ok(())
