@@ -2381,441 +2381,455 @@
 <a href=#2381 id=2381 data-nosnippet>2381</a>                        <span class="self">self</span>.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
 <a href=#2382 id=2382 data-nosnippet>2382</a>                    }
 <a href=#2383 id=2383 data-nosnippet>2383</a>                    AstLiteral::Real(value) =&gt; {
-<a href=#2384 id=2384 data-nosnippet>2384</a>                        <span class="self">self</span>.annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
-<a href=#2385 id=2385 data-nosnippet>2385</a>                    }
-<a href=#2386 id=2386 data-nosnippet>2386</a>                    AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements), .. }) =&gt; {
-<a href=#2387 id=2387 data-nosnippet>2387</a>                        <span class="self">self</span>.visit_statement(ctx, elements.as_ref());
-<a href=#2388 id=2388 data-nosnippet>2388</a>                        <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array
-<a href=#2389 id=2389 data-nosnippet>2389</a>                    </span>}
-<a href=#2390 id=2390 data-nosnippet>2390</a>                    <span class="kw">_ </span>=&gt; {} <span class="comment">// ignore literalNull, arrays (they are covered earlier)
-<a href=#2391 id=2391 data-nosnippet>2391</a>                </span>}
-<a href=#2392 id=2392 data-nosnippet>2392</a>            }
-<a href=#2393 id=2393 data-nosnippet>2393</a>            AstStatement::MultipliedStatement(data, ..) =&gt; {
-<a href=#2394 id=2394 data-nosnippet>2394</a>                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.element)
-<a href=#2395 id=2395 data-nosnippet>2395</a>                <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array
-<a href=#2396 id=2396 data-nosnippet>2396</a>            </span>}
-<a href=#2397 id=2397 data-nosnippet>2397</a>            <span class="kw">_ </span>=&gt; {}
-<a href=#2398 id=2398 data-nosnippet>2398</a>        }
-<a href=#2399 id=2399 data-nosnippet>2399</a>    }
-<a href=#2400 id=2400 data-nosnippet>2400</a>
-<a href=#2401 id=2401 data-nosnippet>2401</a>    <span class="kw">fn </span>annotate_to_pointer_size_if_necessary(
-<a href=#2402 id=2402 data-nosnippet>2402</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
-<a href=#2403 id=2403 data-nosnippet>2403</a>        value_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-<a href=#2404 id=2404 data-nosnippet>2404</a>        statement: <span class="kw-2">&amp;</span>AstNode,
-<a href=#2405 id=2405 data-nosnippet>2405</a>    ) {
-<a href=#2406 id=2406 data-nosnippet>2406</a>        <span class="comment">// pointer size is 64Bits matching LINT
-<a href=#2407 id=2407 data-nosnippet>2407</a>        // therefore get the bigger type of current and LINT to check if cast is necessary
-<a href=#2408 id=2408 data-nosnippet>2408</a>        </span><span class="kw">let </span>bigger_type = get_bigger_type(value_type, <span class="self">self</span>.index.get_type_or_panic(LINT_TYPE), <span class="self">self</span>.index);
-<a href=#2409 id=2409 data-nosnippet>2409</a>        <span class="kw">if </span>bigger_type != value_type {
-<a href=#2410 id=2410 data-nosnippet>2410</a>            <span class="kw">let </span>bigger_type = bigger_type.clone();
-<a href=#2411 id=2411 data-nosnippet>2411</a>            <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, statement);
+<a href=#2384 id=2384 data-nosnippet>2384</a>                        <span class="comment">// XXX: if we have a float literal in an initializer (lhs) context, we need to see if the context expects a double or float type.
+<a href=#2385 id=2385 data-nosnippet>2385</a>                        // This is due to `get_real_type_name_for` always returning `REAL_TYPE` for values within f32 range which leads to incorrect typing
+<a href=#2386 id=2386 data-nosnippet>2386</a>                        // during initialization of double values.
+<a href=#2387 id=2387 data-nosnippet>2387</a>                        </span><span class="kw">let </span>type_name = ctx
+<a href=#2388 id=2388 data-nosnippet>2388</a>                            .lhs
+<a href=#2389 id=2389 data-nosnippet>2389</a>                            .as_ref()
+<a href=#2390 id=2390 data-nosnippet>2390</a>                            .and_then(|lhs| {
+<a href=#2391 id=2391 data-nosnippet>2391</a>                                <span class="self">self</span>.index
+<a href=#2392 id=2392 data-nosnippet>2392</a>                                    .find_effective_type_by_name(lhs)
+<a href=#2393 id=2393 data-nosnippet>2393</a>                                    .filter(|it| it.get_type_information().is_float())
+<a href=#2394 id=2394 data-nosnippet>2394</a>                            })
+<a href=#2395 id=2395 data-nosnippet>2395</a>                            .map(typesystem::DataType::get_name)
+<a href=#2396 id=2396 data-nosnippet>2396</a>                            .unwrap_or_else(|| get_real_type_name_for(value));
+<a href=#2397 id=2397 data-nosnippet>2397</a>
+<a href=#2398 id=2398 data-nosnippet>2398</a>                        <span class="self">self</span>.annotate(statement, StatementAnnotation::value(type_name));
+<a href=#2399 id=2399 data-nosnippet>2399</a>                    }
+<a href=#2400 id=2400 data-nosnippet>2400</a>                    AstLiteral::Array(Array { elements: <span class="prelude-val">Some</span>(elements), .. }) =&gt; {
+<a href=#2401 id=2401 data-nosnippet>2401</a>                        <span class="self">self</span>.visit_statement(ctx, elements.as_ref());
+<a href=#2402 id=2402 data-nosnippet>2402</a>                        <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array
+<a href=#2403 id=2403 data-nosnippet>2403</a>                    </span>}
+<a href=#2404 id=2404 data-nosnippet>2404</a>                    <span class="kw">_ </span>=&gt; {} <span class="comment">// ignore literalNull, arrays (they are covered earlier)
+<a href=#2405 id=2405 data-nosnippet>2405</a>                </span>}
+<a href=#2406 id=2406 data-nosnippet>2406</a>            }
+<a href=#2407 id=2407 data-nosnippet>2407</a>            AstStatement::MultipliedStatement(data, ..) =&gt; {
+<a href=#2408 id=2408 data-nosnippet>2408</a>                <span class="self">self</span>.visit_statement(ctx, <span class="kw-2">&amp;</span>data.element)
+<a href=#2409 id=2409 data-nosnippet>2409</a>                <span class="comment">//TODO as of yet we have no way to derive a name that reflects a fixed size array
+<a href=#2410 id=2410 data-nosnippet>2410</a>            </span>}
+<a href=#2411 id=2411 data-nosnippet>2411</a>            <span class="kw">_ </span>=&gt; {}
 <a href=#2412 id=2412 data-nosnippet>2412</a>        }
 <a href=#2413 id=2413 data-nosnippet>2413</a>    }
-<a href=#2414 id=2414 data-nosnippet>2414</a>}
-<a href=#2415 id=2415 data-nosnippet>2415</a>
-<a href=#2416 id=2416 data-nosnippet>2416</a><span class="kw">fn </span>get_direct_access_type(access: <span class="kw-2">&amp;</span>DirectAccessType) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
-<a href=#2417 id=2417 data-nosnippet>2417</a>    <span class="kw">match </span>access {
-<a href=#2418 id=2418 data-nosnippet>2418</a>        DirectAccessType::Bit =&gt; BOOL_TYPE,
-<a href=#2419 id=2419 data-nosnippet>2419</a>        DirectAccessType::Byte =&gt; BYTE_TYPE,
-<a href=#2420 id=2420 data-nosnippet>2420</a>        DirectAccessType::Word =&gt; WORD_TYPE,
-<a href=#2421 id=2421 data-nosnippet>2421</a>        DirectAccessType::DWord =&gt; DWORD_TYPE,
-<a href=#2422 id=2422 data-nosnippet>2422</a>        DirectAccessType::LWord =&gt; LWORD_TYPE,
-<a href=#2423 id=2423 data-nosnippet>2423</a>        DirectAccessType::Template =&gt; VOID_TYPE,
-<a href=#2424 id=2424 data-nosnippet>2424</a>    }
-<a href=#2425 id=2425 data-nosnippet>2425</a>}
-<a href=#2426 id=2426 data-nosnippet>2426</a>
-<a href=#2427 id=2427 data-nosnippet>2427</a><span class="doccomment">/// adds a string-type to the given index and returns it's name
-<a href=#2428 id=2428 data-nosnippet>2428</a></span><span class="kw">fn </span>register_string_type(index: <span class="kw-2">&amp;mut </span>Index, is_wide: bool, len: usize) -&gt; String {
-<a href=#2429 id=2429 data-nosnippet>2429</a>    <span class="kw">let </span>prefix = <span class="kw">if </span>is_wide { <span class="string">"WSTRING_" </span>} <span class="kw">else </span>{ <span class="string">"STRING_" </span>};
-<a href=#2430 id=2430 data-nosnippet>2430</a>    <span class="kw">let </span>new_type_name = internal_type_name(prefix, len.to_string().as_str());
-<a href=#2431 id=2431 data-nosnippet>2431</a>
-<a href=#2432 id=2432 data-nosnippet>2432</a>    <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
-<a href=#2433 id=2433 data-nosnippet>2433</a>        index.register_type(<span class="kw">crate</span>::typesystem::DataType {
-<a href=#2434 id=2434 data-nosnippet>2434</a>            name: new_type_name.clone(),
-<a href=#2435 id=2435 data-nosnippet>2435</a>            initial_value: <span class="prelude-val">None</span>,
-<a href=#2436 id=2436 data-nosnippet>2436</a>            nature: TypeNature::String,
-<a href=#2437 id=2437 data-nosnippet>2437</a>            information: <span class="kw">crate</span>::typesystem::DataTypeInformation::String {
-<a href=#2438 id=2438 data-nosnippet>2438</a>                encoding: <span class="kw">if </span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 },
-<a href=#2439 id=2439 data-nosnippet>2439</a>                size: typesystem::TypeSize::LiteralInteger(len <span class="kw">as </span>i64 + <span class="number">1</span>),
-<a href=#2440 id=2440 data-nosnippet>2440</a>            },
-<a href=#2441 id=2441 data-nosnippet>2441</a>            location: SourceLocation::internal(),
-<a href=#2442 id=2442 data-nosnippet>2442</a>        });
-<a href=#2443 id=2443 data-nosnippet>2443</a>    }
-<a href=#2444 id=2444 data-nosnippet>2444</a>    new_type_name
-<a href=#2445 id=2445 data-nosnippet>2445</a>}
-<a href=#2446 id=2446 data-nosnippet>2446</a>
-<a href=#2447 id=2447 data-nosnippet>2447</a><span class="doccomment">/// adds a pointer to the given inner_type to the given index and return's its name
-<a href=#2448 id=2448 data-nosnippet>2448</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_pointer_type(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: String, type_safe: bool) -&gt; String {
-<a href=#2449 id=2449 data-nosnippet>2449</a>    <span class="kw">let </span>new_type_name = internal_type_name(<span class="string">"POINTER_TO_"</span>, inner_type_name.as_str());
-<a href=#2450 id=2450 data-nosnippet>2450</a>
-<a href=#2451 id=2451 data-nosnippet>2451</a>    <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
-<a href=#2452 id=2452 data-nosnippet>2452</a>        index.register_type(<span class="kw">crate</span>::typesystem::DataType {
-<a href=#2453 id=2453 data-nosnippet>2453</a>            name: new_type_name.clone(),
-<a href=#2454 id=2454 data-nosnippet>2454</a>            initial_value: <span class="prelude-val">None</span>,
-<a href=#2455 id=2455 data-nosnippet>2455</a>            nature: TypeNature::Any,
-<a href=#2456 id=2456 data-nosnippet>2456</a>            information: DataTypeInformation::Pointer {
-<a href=#2457 id=2457 data-nosnippet>2457</a>                name: new_type_name.clone(),
-<a href=#2458 id=2458 data-nosnippet>2458</a>                inner_type_name,
-<a href=#2459 id=2459 data-nosnippet>2459</a>                auto_deref: <span class="prelude-val">None</span>,
-<a href=#2460 id=2460 data-nosnippet>2460</a>                type_safe,
-<a href=#2461 id=2461 data-nosnippet>2461</a>                is_function: <span class="bool-val">false</span>,
-<a href=#2462 id=2462 data-nosnippet>2462</a>            },
-<a href=#2463 id=2463 data-nosnippet>2463</a>            location: SourceLocation::internal(),
-<a href=#2464 id=2464 data-nosnippet>2464</a>        });
-<a href=#2465 id=2465 data-nosnippet>2465</a>    }
-<a href=#2466 id=2466 data-nosnippet>2466</a>    new_type_name
-<a href=#2467 id=2467 data-nosnippet>2467</a>}
-<a href=#2468 id=2468 data-nosnippet>2468</a>
-<a href=#2469 id=2469 data-nosnippet>2469</a><span class="kw">fn </span>to_pou_annotation(p: <span class="kw-2">&amp;</span>PouIndexEntry, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
-<a href=#2470 id=2470 data-nosnippet>2470</a>    <span class="kw">match </span>p {
-<a href=#2471 id=2471 data-nosnippet>2471</a>        PouIndexEntry::Program { name, .. } =&gt; {
-<a href=#2472 id=2472 data-nosnippet>2472</a>            <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name: name.into() })
-<a href=#2473 id=2473 data-nosnippet>2473</a>        }
-<a href=#2474 id=2474 data-nosnippet>2474</a>        PouIndexEntry::Function { name, return_type, .. } =&gt; <span class="prelude-val">Some</span>(StatementAnnotation::Function {
-<a href=#2475 id=2475 data-nosnippet>2475</a>            return_type: return_type.into(),
-<a href=#2476 id=2476 data-nosnippet>2476</a>            qualified_name: name.into(),
-<a href=#2477 id=2477 data-nosnippet>2477</a>            generic_name: <span class="prelude-val">None</span>,
-<a href=#2478 id=2478 data-nosnippet>2478</a>            call_name: <span class="prelude-val">None</span>,
-<a href=#2479 id=2479 data-nosnippet>2479</a>        }),
-<a href=#2480 id=2480 data-nosnippet>2480</a>        PouIndexEntry::FunctionBlock { name, .. } =&gt; {
-<a href=#2481 id=2481 data-nosnippet>2481</a>            <span class="prelude-val">Some</span>(StatementAnnotation::Type { type_name: name.into() })
-<a href=#2482 id=2482 data-nosnippet>2482</a>        }
-<a href=#2483 id=2483 data-nosnippet>2483</a>        PouIndexEntry::Action { name, parent_name, .. } =&gt; <span class="kw">match </span>index.find_pou(parent_name) {
-<a href=#2484 id=2484 data-nosnippet>2484</a>            <span class="prelude-val">Some</span>(PouIndexEntry::Program { .. }) =&gt; {
-<a href=#2485 id=2485 data-nosnippet>2485</a>                <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name: name.into() })
-<a href=#2486 id=2486 data-nosnippet>2486</a>            }
-<a href=#2487 id=2487 data-nosnippet>2487</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#2488 id=2488 data-nosnippet>2488</a>        },
-<a href=#2489 id=2489 data-nosnippet>2489</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
-<a href=#2490 id=2490 data-nosnippet>2490</a>    }
-<a href=#2491 id=2491 data-nosnippet>2491</a>}
-<a href=#2492 id=2492 data-nosnippet>2492</a>
-<a href=#2493 id=2493 data-nosnippet>2493</a><span class="kw">fn </span>to_variable_annotation(
-<a href=#2494 id=2494 data-nosnippet>2494</a>    v: <span class="kw-2">&amp;</span>VariableIndexEntry,
-<a href=#2495 id=2495 data-nosnippet>2495</a>    index: <span class="kw-2">&amp;</span>Index,
-<a href=#2496 id=2496 data-nosnippet>2496</a>    constant_override: bool,
-<a href=#2497 id=2497 data-nosnippet>2497</a>) -&gt; StatementAnnotation {
-<a href=#2498 id=2498 data-nosnippet>2498</a>    <span class="kw">let </span>v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
-<a href=#2499 id=2499 data-nosnippet>2499</a>
-<a href=#2500 id=2500 data-nosnippet>2500</a>    <span class="comment">//see if this is an auto-deref variable
-<a href=#2501 id=2501 data-nosnippet>2501</a>    </span><span class="kw">let </span>(effective_type_name, kind) = <span class="kw">match </span>(v_type.get_type_information(), v.is_return()) {
-<a href=#2502 id=2502 data-nosnippet>2502</a>        (<span class="kw">_</span>, <span class="bool-val">true</span>) <span class="kw">if </span>v_type.is_aggregate_type() =&gt; {
-<a href=#2503 id=2503 data-nosnippet>2503</a>            <span class="comment">// treat a return-aggregate variable like an auto-deref pointer since it got
-<a href=#2504 id=2504 data-nosnippet>2504</a>            // passed by-ref
-<a href=#2505 id=2505 data-nosnippet>2505</a>            </span><span class="kw">let </span>kind =
-<a href=#2506 id=2506 data-nosnippet>2506</a>                v_type.get_type_information().get_auto_deref_type().map(|it| it.into()).unwrap_or_default();
-<a href=#2507 id=2507 data-nosnippet>2507</a>            (v_type.get_name().to_string(), <span class="prelude-val">Some</span>(kind))
-<a href=#2508 id=2508 data-nosnippet>2508</a>        }
-<a href=#2509 id=2509 data-nosnippet>2509</a>        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(deref), name, .. }, <span class="kw">_</span>) =&gt; {
-<a href=#2510 id=2510 data-nosnippet>2510</a>            <span class="comment">// real auto-deref pointer
-<a href=#2511 id=2511 data-nosnippet>2511</a>            </span><span class="kw">let </span>kind = <span class="kw">match </span>deref {
-<a href=#2512 id=2512 data-nosnippet>2512</a>                ast::AutoDerefType::Default =&gt; AutoDerefType::Default,
-<a href=#2513 id=2513 data-nosnippet>2513</a>                ast::AutoDerefType::Alias =&gt; AutoDerefType::Alias(name.to_owned()),
-<a href=#2514 id=2514 data-nosnippet>2514</a>                ast::AutoDerefType::Reference =&gt; AutoDerefType::Reference(name.to_owned()),
-<a href=#2515 id=2515 data-nosnippet>2515</a>            };
-<a href=#2516 id=2516 data-nosnippet>2516</a>
-<a href=#2517 id=2517 data-nosnippet>2517</a>            (inner_type_name.clone(), <span class="prelude-val">Some</span>(kind))
-<a href=#2518 id=2518 data-nosnippet>2518</a>        }
-<a href=#2519 id=2519 data-nosnippet>2519</a>        <span class="kw">_ </span>=&gt; (v_type.get_name().to_string(), <span class="prelude-val">None</span>),
-<a href=#2520 id=2520 data-nosnippet>2520</a>    };
-<a href=#2521 id=2521 data-nosnippet>2521</a>
-<a href=#2522 id=2522 data-nosnippet>2522</a>    StatementAnnotation::Variable {
-<a href=#2523 id=2523 data-nosnippet>2523</a>        qualified_name: v.get_qualified_name().into(),
-<a href=#2524 id=2524 data-nosnippet>2524</a>        resulting_type: effective_type_name,
-<a href=#2525 id=2525 data-nosnippet>2525</a>        constant: v.is_constant() || constant_override,
-<a href=#2526 id=2526 data-nosnippet>2526</a>        argument_type: v.get_declaration_type(),
-<a href=#2527 id=2527 data-nosnippet>2527</a>        auto_deref: kind,
-<a href=#2528 id=2528 data-nosnippet>2528</a>    }
-<a href=#2529 id=2529 data-nosnippet>2529</a>}
+<a href=#2414 id=2414 data-nosnippet>2414</a>
+<a href=#2415 id=2415 data-nosnippet>2415</a>    <span class="kw">fn </span>annotate_to_pointer_size_if_necessary(
+<a href=#2416 id=2416 data-nosnippet>2416</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,
+<a href=#2417 id=2417 data-nosnippet>2417</a>        value_type: <span class="kw-2">&amp;</span>typesystem::DataType,
+<a href=#2418 id=2418 data-nosnippet>2418</a>        statement: <span class="kw-2">&amp;</span>AstNode,
+<a href=#2419 id=2419 data-nosnippet>2419</a>    ) {
+<a href=#2420 id=2420 data-nosnippet>2420</a>        <span class="comment">// pointer size is 64Bits matching LINT
+<a href=#2421 id=2421 data-nosnippet>2421</a>        // therefore get the bigger type of current and LINT to check if cast is necessary
+<a href=#2422 id=2422 data-nosnippet>2422</a>        </span><span class="kw">let </span>bigger_type = get_bigger_type(value_type, <span class="self">self</span>.index.get_type_or_panic(LINT_TYPE), <span class="self">self</span>.index);
+<a href=#2423 id=2423 data-nosnippet>2423</a>        <span class="kw">if </span>bigger_type != value_type {
+<a href=#2424 id=2424 data-nosnippet>2424</a>            <span class="kw">let </span>bigger_type = bigger_type.clone();
+<a href=#2425 id=2425 data-nosnippet>2425</a>            <span class="self">self</span>.update_expected_types(<span class="kw-2">&amp;</span>bigger_type, statement);
+<a href=#2426 id=2426 data-nosnippet>2426</a>        }
+<a href=#2427 id=2427 data-nosnippet>2427</a>    }
+<a href=#2428 id=2428 data-nosnippet>2428</a>}
+<a href=#2429 id=2429 data-nosnippet>2429</a>
+<a href=#2430 id=2430 data-nosnippet>2430</a><span class="kw">fn </span>get_direct_access_type(access: <span class="kw-2">&amp;</span>DirectAccessType) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+<a href=#2431 id=2431 data-nosnippet>2431</a>    <span class="kw">match </span>access {
+<a href=#2432 id=2432 data-nosnippet>2432</a>        DirectAccessType::Bit =&gt; BOOL_TYPE,
+<a href=#2433 id=2433 data-nosnippet>2433</a>        DirectAccessType::Byte =&gt; BYTE_TYPE,
+<a href=#2434 id=2434 data-nosnippet>2434</a>        DirectAccessType::Word =&gt; WORD_TYPE,
+<a href=#2435 id=2435 data-nosnippet>2435</a>        DirectAccessType::DWord =&gt; DWORD_TYPE,
+<a href=#2436 id=2436 data-nosnippet>2436</a>        DirectAccessType::LWord =&gt; LWORD_TYPE,
+<a href=#2437 id=2437 data-nosnippet>2437</a>        DirectAccessType::Template =&gt; VOID_TYPE,
+<a href=#2438 id=2438 data-nosnippet>2438</a>    }
+<a href=#2439 id=2439 data-nosnippet>2439</a>}
+<a href=#2440 id=2440 data-nosnippet>2440</a>
+<a href=#2441 id=2441 data-nosnippet>2441</a><span class="doccomment">/// adds a string-type to the given index and returns it's name
+<a href=#2442 id=2442 data-nosnippet>2442</a></span><span class="kw">fn </span>register_string_type(index: <span class="kw-2">&amp;mut </span>Index, is_wide: bool, len: usize) -&gt; String {
+<a href=#2443 id=2443 data-nosnippet>2443</a>    <span class="kw">let </span>prefix = <span class="kw">if </span>is_wide { <span class="string">"WSTRING_" </span>} <span class="kw">else </span>{ <span class="string">"STRING_" </span>};
+<a href=#2444 id=2444 data-nosnippet>2444</a>    <span class="kw">let </span>new_type_name = internal_type_name(prefix, len.to_string().as_str());
+<a href=#2445 id=2445 data-nosnippet>2445</a>
+<a href=#2446 id=2446 data-nosnippet>2446</a>    <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
+<a href=#2447 id=2447 data-nosnippet>2447</a>        index.register_type(<span class="kw">crate</span>::typesystem::DataType {
+<a href=#2448 id=2448 data-nosnippet>2448</a>            name: new_type_name.clone(),
+<a href=#2449 id=2449 data-nosnippet>2449</a>            initial_value: <span class="prelude-val">None</span>,
+<a href=#2450 id=2450 data-nosnippet>2450</a>            nature: TypeNature::String,
+<a href=#2451 id=2451 data-nosnippet>2451</a>            information: <span class="kw">crate</span>::typesystem::DataTypeInformation::String {
+<a href=#2452 id=2452 data-nosnippet>2452</a>                encoding: <span class="kw">if </span>is_wide { StringEncoding::Utf16 } <span class="kw">else </span>{ StringEncoding::Utf8 },
+<a href=#2453 id=2453 data-nosnippet>2453</a>                size: typesystem::TypeSize::LiteralInteger(len <span class="kw">as </span>i64 + <span class="number">1</span>),
+<a href=#2454 id=2454 data-nosnippet>2454</a>            },
+<a href=#2455 id=2455 data-nosnippet>2455</a>            location: SourceLocation::internal(),
+<a href=#2456 id=2456 data-nosnippet>2456</a>        });
+<a href=#2457 id=2457 data-nosnippet>2457</a>    }
+<a href=#2458 id=2458 data-nosnippet>2458</a>    new_type_name
+<a href=#2459 id=2459 data-nosnippet>2459</a>}
+<a href=#2460 id=2460 data-nosnippet>2460</a>
+<a href=#2461 id=2461 data-nosnippet>2461</a><span class="doccomment">/// adds a pointer to the given inner_type to the given index and return's its name
+<a href=#2462 id=2462 data-nosnippet>2462</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>add_pointer_type(index: <span class="kw-2">&amp;mut </span>Index, inner_type_name: String, type_safe: bool) -&gt; String {
+<a href=#2463 id=2463 data-nosnippet>2463</a>    <span class="kw">let </span>new_type_name = internal_type_name(<span class="string">"POINTER_TO_"</span>, inner_type_name.as_str());
+<a href=#2464 id=2464 data-nosnippet>2464</a>
+<a href=#2465 id=2465 data-nosnippet>2465</a>    <span class="kw">if </span>index.find_effective_type_by_name(new_type_name.as_str()).is_none() {
+<a href=#2466 id=2466 data-nosnippet>2466</a>        index.register_type(<span class="kw">crate</span>::typesystem::DataType {
+<a href=#2467 id=2467 data-nosnippet>2467</a>            name: new_type_name.clone(),
+<a href=#2468 id=2468 data-nosnippet>2468</a>            initial_value: <span class="prelude-val">None</span>,
+<a href=#2469 id=2469 data-nosnippet>2469</a>            nature: TypeNature::Any,
+<a href=#2470 id=2470 data-nosnippet>2470</a>            information: DataTypeInformation::Pointer {
+<a href=#2471 id=2471 data-nosnippet>2471</a>                name: new_type_name.clone(),
+<a href=#2472 id=2472 data-nosnippet>2472</a>                inner_type_name,
+<a href=#2473 id=2473 data-nosnippet>2473</a>                auto_deref: <span class="prelude-val">None</span>,
+<a href=#2474 id=2474 data-nosnippet>2474</a>                type_safe,
+<a href=#2475 id=2475 data-nosnippet>2475</a>                is_function: <span class="bool-val">false</span>,
+<a href=#2476 id=2476 data-nosnippet>2476</a>            },
+<a href=#2477 id=2477 data-nosnippet>2477</a>            location: SourceLocation::internal(),
+<a href=#2478 id=2478 data-nosnippet>2478</a>        });
+<a href=#2479 id=2479 data-nosnippet>2479</a>    }
+<a href=#2480 id=2480 data-nosnippet>2480</a>    new_type_name
+<a href=#2481 id=2481 data-nosnippet>2481</a>}
+<a href=#2482 id=2482 data-nosnippet>2482</a>
+<a href=#2483 id=2483 data-nosnippet>2483</a><span class="kw">fn </span>to_pou_annotation(p: <span class="kw-2">&amp;</span>PouIndexEntry, index: <span class="kw-2">&amp;</span>Index) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+<a href=#2484 id=2484 data-nosnippet>2484</a>    <span class="kw">match </span>p {
+<a href=#2485 id=2485 data-nosnippet>2485</a>        PouIndexEntry::Program { name, .. } =&gt; {
+<a href=#2486 id=2486 data-nosnippet>2486</a>            <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name: name.into() })
+<a href=#2487 id=2487 data-nosnippet>2487</a>        }
+<a href=#2488 id=2488 data-nosnippet>2488</a>        PouIndexEntry::Function { name, return_type, .. } =&gt; <span class="prelude-val">Some</span>(StatementAnnotation::Function {
+<a href=#2489 id=2489 data-nosnippet>2489</a>            return_type: return_type.into(),
+<a href=#2490 id=2490 data-nosnippet>2490</a>            qualified_name: name.into(),
+<a href=#2491 id=2491 data-nosnippet>2491</a>            generic_name: <span class="prelude-val">None</span>,
+<a href=#2492 id=2492 data-nosnippet>2492</a>            call_name: <span class="prelude-val">None</span>,
+<a href=#2493 id=2493 data-nosnippet>2493</a>        }),
+<a href=#2494 id=2494 data-nosnippet>2494</a>        PouIndexEntry::FunctionBlock { name, .. } =&gt; {
+<a href=#2495 id=2495 data-nosnippet>2495</a>            <span class="prelude-val">Some</span>(StatementAnnotation::Type { type_name: name.into() })
+<a href=#2496 id=2496 data-nosnippet>2496</a>        }
+<a href=#2497 id=2497 data-nosnippet>2497</a>        PouIndexEntry::Action { name, parent_name, .. } =&gt; <span class="kw">match </span>index.find_pou(parent_name) {
+<a href=#2498 id=2498 data-nosnippet>2498</a>            <span class="prelude-val">Some</span>(PouIndexEntry::Program { .. }) =&gt; {
+<a href=#2499 id=2499 data-nosnippet>2499</a>                <span class="prelude-val">Some</span>(StatementAnnotation::Program { qualified_name: name.into() })
+<a href=#2500 id=2500 data-nosnippet>2500</a>            }
+<a href=#2501 id=2501 data-nosnippet>2501</a>            <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#2502 id=2502 data-nosnippet>2502</a>        },
+<a href=#2503 id=2503 data-nosnippet>2503</a>        <span class="kw">_ </span>=&gt; <span class="prelude-val">None</span>,
+<a href=#2504 id=2504 data-nosnippet>2504</a>    }
+<a href=#2505 id=2505 data-nosnippet>2505</a>}
+<a href=#2506 id=2506 data-nosnippet>2506</a>
+<a href=#2507 id=2507 data-nosnippet>2507</a><span class="kw">fn </span>to_variable_annotation(
+<a href=#2508 id=2508 data-nosnippet>2508</a>    v: <span class="kw-2">&amp;</span>VariableIndexEntry,
+<a href=#2509 id=2509 data-nosnippet>2509</a>    index: <span class="kw-2">&amp;</span>Index,
+<a href=#2510 id=2510 data-nosnippet>2510</a>    constant_override: bool,
+<a href=#2511 id=2511 data-nosnippet>2511</a>) -&gt; StatementAnnotation {
+<a href=#2512 id=2512 data-nosnippet>2512</a>    <span class="kw">let </span>v_type = index.get_effective_type_or_void_by_name(v.get_type_name());
+<a href=#2513 id=2513 data-nosnippet>2513</a>
+<a href=#2514 id=2514 data-nosnippet>2514</a>    <span class="comment">//see if this is an auto-deref variable
+<a href=#2515 id=2515 data-nosnippet>2515</a>    </span><span class="kw">let </span>(effective_type_name, kind) = <span class="kw">match </span>(v_type.get_type_information(), v.is_return()) {
+<a href=#2516 id=2516 data-nosnippet>2516</a>        (<span class="kw">_</span>, <span class="bool-val">true</span>) <span class="kw">if </span>v_type.is_aggregate_type() =&gt; {
+<a href=#2517 id=2517 data-nosnippet>2517</a>            <span class="comment">// treat a return-aggregate variable like an auto-deref pointer since it got
+<a href=#2518 id=2518 data-nosnippet>2518</a>            // passed by-ref
+<a href=#2519 id=2519 data-nosnippet>2519</a>            </span><span class="kw">let </span>kind =
+<a href=#2520 id=2520 data-nosnippet>2520</a>                v_type.get_type_information().get_auto_deref_type().map(|it| it.into()).unwrap_or_default();
+<a href=#2521 id=2521 data-nosnippet>2521</a>            (v_type.get_name().to_string(), <span class="prelude-val">Some</span>(kind))
+<a href=#2522 id=2522 data-nosnippet>2522</a>        }
+<a href=#2523 id=2523 data-nosnippet>2523</a>        (DataTypeInformation::Pointer { inner_type_name, auto_deref: <span class="prelude-val">Some</span>(deref), name, .. }, <span class="kw">_</span>) =&gt; {
+<a href=#2524 id=2524 data-nosnippet>2524</a>            <span class="comment">// real auto-deref pointer
+<a href=#2525 id=2525 data-nosnippet>2525</a>            </span><span class="kw">let </span>kind = <span class="kw">match </span>deref {
+<a href=#2526 id=2526 data-nosnippet>2526</a>                ast::AutoDerefType::Default =&gt; AutoDerefType::Default,
+<a href=#2527 id=2527 data-nosnippet>2527</a>                ast::AutoDerefType::Alias =&gt; AutoDerefType::Alias(name.to_owned()),
+<a href=#2528 id=2528 data-nosnippet>2528</a>                ast::AutoDerefType::Reference =&gt; AutoDerefType::Reference(name.to_owned()),
+<a href=#2529 id=2529 data-nosnippet>2529</a>            };
 <a href=#2530 id=2530 data-nosnippet>2530</a>
-<a href=#2531 id=2531 data-nosnippet>2531</a><span class="kw">fn </span>get_int_type_name_for(value: i128) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
-<a href=#2532 id=2532 data-nosnippet>2532</a>    <span class="kw">if </span>i32::MIN <span class="kw">as </span>i128 &lt;= value &amp;&amp; i32::MAX <span class="kw">as </span>i128 &gt;= value {
-<a href=#2533 id=2533 data-nosnippet>2533</a>        DINT_TYPE
-<a href=#2534 id=2534 data-nosnippet>2534</a>    } <span class="kw">else </span>{
-<a href=#2535 id=2535 data-nosnippet>2535</a>        LINT_TYPE
-<a href=#2536 id=2536 data-nosnippet>2536</a>    }
-<a href=#2537 id=2537 data-nosnippet>2537</a>}
-<a href=#2538 id=2538 data-nosnippet>2538</a>
-<a href=#2539 id=2539 data-nosnippet>2539</a><span class="kw">fn </span>get_real_type_name_for(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
-<a href=#2540 id=2540 data-nosnippet>2540</a>    <span class="kw">let </span>parsed = value.parse::&lt;f32&gt;().unwrap_or(f32::INFINITY);
-<a href=#2541 id=2541 data-nosnippet>2541</a>    <span class="kw">if </span>parsed.is_infinite() {
-<a href=#2542 id=2542 data-nosnippet>2542</a>        <span class="kw">return </span>LREAL_TYPE;
-<a href=#2543 id=2543 data-nosnippet>2543</a>    }
+<a href=#2531 id=2531 data-nosnippet>2531</a>            (inner_type_name.clone(), <span class="prelude-val">Some</span>(kind))
+<a href=#2532 id=2532 data-nosnippet>2532</a>        }
+<a href=#2533 id=2533 data-nosnippet>2533</a>        <span class="kw">_ </span>=&gt; (v_type.get_name().to_string(), <span class="prelude-val">None</span>),
+<a href=#2534 id=2534 data-nosnippet>2534</a>    };
+<a href=#2535 id=2535 data-nosnippet>2535</a>
+<a href=#2536 id=2536 data-nosnippet>2536</a>    StatementAnnotation::Variable {
+<a href=#2537 id=2537 data-nosnippet>2537</a>        qualified_name: v.get_qualified_name().into(),
+<a href=#2538 id=2538 data-nosnippet>2538</a>        resulting_type: effective_type_name,
+<a href=#2539 id=2539 data-nosnippet>2539</a>        constant: v.is_constant() || constant_override,
+<a href=#2540 id=2540 data-nosnippet>2540</a>        argument_type: v.get_declaration_type(),
+<a href=#2541 id=2541 data-nosnippet>2541</a>        auto_deref: kind,
+<a href=#2542 id=2542 data-nosnippet>2542</a>    }
+<a href=#2543 id=2543 data-nosnippet>2543</a>}
 <a href=#2544 id=2544 data-nosnippet>2544</a>
-<a href=#2545 id=2545 data-nosnippet>2545</a>    REAL_TYPE
-<a href=#2546 id=2546 data-nosnippet>2546</a>}
-<a href=#2547 id=2547 data-nosnippet>2547</a>
-<a href=#2548 id=2548 data-nosnippet>2548</a><span class="attr">#[derive(Clone, Debug)]
-<a href=#2549 id=2549 data-nosnippet>2549</a></span><span class="kw">struct </span>Scopes(Vec&lt;Scope&gt;);
-<a href=#2550 id=2550 data-nosnippet>2550</a>
-<a href=#2551 id=2551 data-nosnippet>2551</a><span class="kw">impl </span>Scopes {
-<a href=#2552 id=2552 data-nosnippet>2552</a>    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
-<a href=#2553 id=2553 data-nosnippet>2553</a>        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
-<a href=#2554 id=2554 data-nosnippet>2554</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-<a href=#2555 id=2555 data-nosnippet>2555</a>        container_name: <span class="kw-2">&amp;</span>str,
-<a href=#2556 id=2556 data-nosnippet>2556</a>        variable_name: <span class="kw-2">&amp;</span>str,
-<a href=#2557 id=2557 data-nosnippet>2557</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
-<a href=#2558 id=2558 data-nosnippet>2558</a>        <span class="self">self</span>.<span class="number">0</span>.iter().filter_map(|scope| scope.find_member(index, container_name, variable_name)).next()
-<a href=#2559 id=2559 data-nosnippet>2559</a>    }
-<a href=#2560 id=2560 data-nosnippet>2560</a>
-<a href=#2561 id=2561 data-nosnippet>2561</a>    <span class="kw">pub fn </span>enter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scope: Scope) {
-<a href=#2562 id=2562 data-nosnippet>2562</a>        <span class="self">self</span>.<span class="number">0</span>.push(scope)
-<a href=#2563 id=2563 data-nosnippet>2563</a>    }
+<a href=#2545 id=2545 data-nosnippet>2545</a><span class="kw">fn </span>get_int_type_name_for(value: i128) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+<a href=#2546 id=2546 data-nosnippet>2546</a>    <span class="kw">if </span>i32::MIN <span class="kw">as </span>i128 &lt;= value &amp;&amp; i32::MAX <span class="kw">as </span>i128 &gt;= value {
+<a href=#2547 id=2547 data-nosnippet>2547</a>        DINT_TYPE
+<a href=#2548 id=2548 data-nosnippet>2548</a>    } <span class="kw">else </span>{
+<a href=#2549 id=2549 data-nosnippet>2549</a>        LINT_TYPE
+<a href=#2550 id=2550 data-nosnippet>2550</a>    }
+<a href=#2551 id=2551 data-nosnippet>2551</a>}
+<a href=#2552 id=2552 data-nosnippet>2552</a>
+<a href=#2553 id=2553 data-nosnippet>2553</a><span class="kw">fn </span>get_real_type_name_for(value: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span><span class="lifetime">'static </span>str {
+<a href=#2554 id=2554 data-nosnippet>2554</a>    <span class="kw">let </span>parsed = value.parse::&lt;f32&gt;().unwrap_or(f32::INFINITY);
+<a href=#2555 id=2555 data-nosnippet>2555</a>    <span class="kw">if </span>parsed.is_infinite() {
+<a href=#2556 id=2556 data-nosnippet>2556</a>        <span class="kw">return </span>LREAL_TYPE;
+<a href=#2557 id=2557 data-nosnippet>2557</a>    }
+<a href=#2558 id=2558 data-nosnippet>2558</a>
+<a href=#2559 id=2559 data-nosnippet>2559</a>    REAL_TYPE
+<a href=#2560 id=2560 data-nosnippet>2560</a>}
+<a href=#2561 id=2561 data-nosnippet>2561</a>
+<a href=#2562 id=2562 data-nosnippet>2562</a><span class="attr">#[derive(Clone, Debug)]
+<a href=#2563 id=2563 data-nosnippet>2563</a></span><span class="kw">struct </span>Scopes(Vec&lt;Scope&gt;);
 <a href=#2564 id=2564 data-nosnippet>2564</a>
-<a href=#2565 id=2565 data-nosnippet>2565</a>    <span class="comment">//TODO: this is not accurate, we need to pop much more than the the top scope
-<a href=#2566 id=2566 data-nosnippet>2566</a>    </span><span class="attr">#[allow(dead_code)]
-<a href=#2567 id=2567 data-nosnippet>2567</a>    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Scope&gt; {
-<a href=#2568 id=2568 data-nosnippet>2568</a>        <span class="self">self</span>.<span class="number">0</span>.pop()
-<a href=#2569 id=2569 data-nosnippet>2569</a>    }
-<a href=#2570 id=2570 data-nosnippet>2570</a>
-<a href=#2571 id=2571 data-nosnippet>2571</a>    <span class="kw">fn </span>global() -&gt; Scopes {
-<a href=#2572 id=2572 data-nosnippet>2572</a>        Scopes(<span class="macro">vec!</span>[Scope::Global])
+<a href=#2565 id=2565 data-nosnippet>2565</a><span class="kw">impl </span>Scopes {
+<a href=#2566 id=2566 data-nosnippet>2566</a>    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
+<a href=#2567 id=2567 data-nosnippet>2567</a>        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+<a href=#2568 id=2568 data-nosnippet>2568</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+<a href=#2569 id=2569 data-nosnippet>2569</a>        container_name: <span class="kw-2">&amp;</span>str,
+<a href=#2570 id=2570 data-nosnippet>2570</a>        variable_name: <span class="kw-2">&amp;</span>str,
+<a href=#2571 id=2571 data-nosnippet>2571</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
+<a href=#2572 id=2572 data-nosnippet>2572</a>        <span class="self">self</span>.<span class="number">0</span>.iter().filter_map(|scope| scope.find_member(index, container_name, variable_name)).next()
 <a href=#2573 id=2573 data-nosnippet>2573</a>    }
-<a href=#2574 id=2574 data-nosnippet>2574</a>}
-<a href=#2575 id=2575 data-nosnippet>2575</a>
-<a href=#2576 id=2576 data-nosnippet>2576</a><span class="attr">#[derive(Clone, Debug)]
-<a href=#2577 id=2577 data-nosnippet>2577</a></span><span class="kw">enum </span>Scope {
-<a href=#2578 id=2578 data-nosnippet>2578</a>    <span class="comment">// Global scope relying on an index to find elements
-<a href=#2579 id=2579 data-nosnippet>2579</a>    </span>Global,
-<a href=#2580 id=2580 data-nosnippet>2580</a>    <span class="comment">// Local scope declared inline (alloca)
-<a href=#2581 id=2581 data-nosnippet>2581</a>    </span>Local(Box&lt;VariableIndexEntry&gt;),
-<a href=#2582 id=2582 data-nosnippet>2582</a>    <span class="comment">// A block scope like the body of an if or for
-<a href=#2583 id=2583 data-nosnippet>2583</a>    </span><span class="attr">#[allow(dead_code)]
-<a href=#2584 id=2584 data-nosnippet>2584</a>    </span>Block,
-<a href=#2585 id=2585 data-nosnippet>2585</a>}
-<a href=#2586 id=2586 data-nosnippet>2586</a>
-<a href=#2587 id=2587 data-nosnippet>2587</a><span class="kw">impl </span>Scope {
-<a href=#2588 id=2588 data-nosnippet>2588</a>    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
-<a href=#2589 id=2589 data-nosnippet>2589</a>        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
-<a href=#2590 id=2590 data-nosnippet>2590</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-<a href=#2591 id=2591 data-nosnippet>2591</a>        container_name: <span class="kw-2">&amp;</span>str,
-<a href=#2592 id=2592 data-nosnippet>2592</a>        variable_name: <span class="kw-2">&amp;</span>str,
-<a href=#2593 id=2593 data-nosnippet>2593</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
-<a href=#2594 id=2594 data-nosnippet>2594</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#2595 id=2595 data-nosnippet>2595</a>            Scope::Global =&gt; index.find_member(container_name, variable_name),
-<a href=#2596 id=2596 data-nosnippet>2596</a>            Scope::Local(entry) =&gt; {
-<a href=#2597 id=2597 data-nosnippet>2597</a>                <span class="kw">if </span>entry.get_name() == variable_name {
-<a href=#2598 id=2598 data-nosnippet>2598</a>                    <span class="prelude-val">Some</span>(entry)
-<a href=#2599 id=2599 data-nosnippet>2599</a>                } <span class="kw">else </span>{
-<a href=#2600 id=2600 data-nosnippet>2600</a>                    <span class="prelude-val">None
-<a href=#2601 id=2601 data-nosnippet>2601</a>                </span>}
-<a href=#2602 id=2602 data-nosnippet>2602</a>            }
-<a href=#2603 id=2603 data-nosnippet>2603</a>            Scope::Block =&gt; <span class="prelude-val">None</span>,
-<a href=#2604 id=2604 data-nosnippet>2604</a>        }
-<a href=#2605 id=2605 data-nosnippet>2605</a>    }
-<a href=#2606 id=2606 data-nosnippet>2606</a>}
-<a href=#2607 id=2607 data-nosnippet>2607</a>
-<a href=#2608 id=2608 data-nosnippet>2608</a><span class="attr">#[derive(Clone, Copy, PartialEq, Eq)]
-<a href=#2609 id=2609 data-nosnippet>2609</a></span><span class="kw">pub enum </span>ResolvingStrategy {
-<a href=#2610 id=2610 data-nosnippet>2610</a>    <span class="doccomment">/// try to resolve a variable
-<a href=#2611 id=2611 data-nosnippet>2611</a>    </span>Variable,
-<a href=#2612 id=2612 data-nosnippet>2612</a>
-<a href=#2613 id=2613 data-nosnippet>2613</a>    <span class="doccomment">/// try to resolve a global variable
-<a href=#2614 id=2614 data-nosnippet>2614</a>    </span>Global,
-<a href=#2615 id=2615 data-nosnippet>2615</a>
-<a href=#2616 id=2616 data-nosnippet>2616</a>    <span class="doccomment">/// try to resolve a POU
-<a href=#2617 id=2617 data-nosnippet>2617</a>    </span>POU,
-<a href=#2618 id=2618 data-nosnippet>2618</a>
-<a href=#2619 id=2619 data-nosnippet>2619</a>    <span class="doccomment">/// try to resolve a DataType
-<a href=#2620 id=2620 data-nosnippet>2620</a>    </span>DataType,
+<a href=#2574 id=2574 data-nosnippet>2574</a>
+<a href=#2575 id=2575 data-nosnippet>2575</a>    <span class="kw">pub fn </span>enter(<span class="kw-2">&amp;mut </span><span class="self">self</span>, scope: Scope) {
+<a href=#2576 id=2576 data-nosnippet>2576</a>        <span class="self">self</span>.<span class="number">0</span>.push(scope)
+<a href=#2577 id=2577 data-nosnippet>2577</a>    }
+<a href=#2578 id=2578 data-nosnippet>2578</a>
+<a href=#2579 id=2579 data-nosnippet>2579</a>    <span class="comment">//TODO: this is not accurate, we need to pop much more than the the top scope
+<a href=#2580 id=2580 data-nosnippet>2580</a>    </span><span class="attr">#[allow(dead_code)]
+<a href=#2581 id=2581 data-nosnippet>2581</a>    </span><span class="kw">pub fn </span>exit(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Scope&gt; {
+<a href=#2582 id=2582 data-nosnippet>2582</a>        <span class="self">self</span>.<span class="number">0</span>.pop()
+<a href=#2583 id=2583 data-nosnippet>2583</a>    }
+<a href=#2584 id=2584 data-nosnippet>2584</a>
+<a href=#2585 id=2585 data-nosnippet>2585</a>    <span class="kw">fn </span>global() -&gt; Scopes {
+<a href=#2586 id=2586 data-nosnippet>2586</a>        Scopes(<span class="macro">vec!</span>[Scope::Global])
+<a href=#2587 id=2587 data-nosnippet>2587</a>    }
+<a href=#2588 id=2588 data-nosnippet>2588</a>}
+<a href=#2589 id=2589 data-nosnippet>2589</a>
+<a href=#2590 id=2590 data-nosnippet>2590</a><span class="attr">#[derive(Clone, Debug)]
+<a href=#2591 id=2591 data-nosnippet>2591</a></span><span class="kw">enum </span>Scope {
+<a href=#2592 id=2592 data-nosnippet>2592</a>    <span class="comment">// Global scope relying on an index to find elements
+<a href=#2593 id=2593 data-nosnippet>2593</a>    </span>Global,
+<a href=#2594 id=2594 data-nosnippet>2594</a>    <span class="comment">// Local scope declared inline (alloca)
+<a href=#2595 id=2595 data-nosnippet>2595</a>    </span>Local(Box&lt;VariableIndexEntry&gt;),
+<a href=#2596 id=2596 data-nosnippet>2596</a>    <span class="comment">// A block scope like the body of an if or for
+<a href=#2597 id=2597 data-nosnippet>2597</a>    </span><span class="attr">#[allow(dead_code)]
+<a href=#2598 id=2598 data-nosnippet>2598</a>    </span>Block,
+<a href=#2599 id=2599 data-nosnippet>2599</a>}
+<a href=#2600 id=2600 data-nosnippet>2600</a>
+<a href=#2601 id=2601 data-nosnippet>2601</a><span class="kw">impl </span>Scope {
+<a href=#2602 id=2602 data-nosnippet>2602</a>    <span class="kw">pub fn </span>find_member&lt;<span class="lifetime">'idx</span>&gt;(
+<a href=#2603 id=2603 data-nosnippet>2603</a>        <span class="kw-2">&amp;</span><span class="lifetime">'idx </span><span class="self">self</span>,
+<a href=#2604 id=2604 data-nosnippet>2604</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+<a href=#2605 id=2605 data-nosnippet>2605</a>        container_name: <span class="kw-2">&amp;</span>str,
+<a href=#2606 id=2606 data-nosnippet>2606</a>        variable_name: <span class="kw-2">&amp;</span>str,
+<a href=#2607 id=2607 data-nosnippet>2607</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry&gt; {
+<a href=#2608 id=2608 data-nosnippet>2608</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#2609 id=2609 data-nosnippet>2609</a>            Scope::Global =&gt; index.find_member(container_name, variable_name),
+<a href=#2610 id=2610 data-nosnippet>2610</a>            Scope::Local(entry) =&gt; {
+<a href=#2611 id=2611 data-nosnippet>2611</a>                <span class="kw">if </span>entry.get_name() == variable_name {
+<a href=#2612 id=2612 data-nosnippet>2612</a>                    <span class="prelude-val">Some</span>(entry)
+<a href=#2613 id=2613 data-nosnippet>2613</a>                } <span class="kw">else </span>{
+<a href=#2614 id=2614 data-nosnippet>2614</a>                    <span class="prelude-val">None
+<a href=#2615 id=2615 data-nosnippet>2615</a>                </span>}
+<a href=#2616 id=2616 data-nosnippet>2616</a>            }
+<a href=#2617 id=2617 data-nosnippet>2617</a>            Scope::Block =&gt; <span class="prelude-val">None</span>,
+<a href=#2618 id=2618 data-nosnippet>2618</a>        }
+<a href=#2619 id=2619 data-nosnippet>2619</a>    }
+<a href=#2620 id=2620 data-nosnippet>2620</a>}
 <a href=#2621 id=2621 data-nosnippet>2621</a>
-<a href=#2622 id=2622 data-nosnippet>2622</a>    <span class="doccomment">/// only consider EnumTypes
-<a href=#2623 id=2623 data-nosnippet>2623</a>    </span>EnumTypeOnly,
-<a href=#2624 id=2624 data-nosnippet>2624</a>
-<a href=#2625 id=2625 data-nosnippet>2625</a>    <span class="doccomment">/// only consider functions
-<a href=#2626 id=2626 data-nosnippet>2626</a>    </span>FunctionsOnly,
-<a href=#2627 id=2627 data-nosnippet>2627</a>
-<a href=#2628 id=2628 data-nosnippet>2628</a>    <span class="doccomment">/// also consider references to properties before they are lowered to actual method calls
-<a href=#2629 id=2629 data-nosnippet>2629</a>    </span>Property,
-<a href=#2630 id=2630 data-nosnippet>2630</a>}
-<a href=#2631 id=2631 data-nosnippet>2631</a>
-<a href=#2632 id=2632 data-nosnippet>2632</a><span class="kw">impl </span>ResolvingStrategy {
-<a href=#2633 id=2633 data-nosnippet>2633</a>    <span class="doccomment">/// scopes that can be used for general references. Will resolve to local/global
-<a href=#2634 id=2634 data-nosnippet>2634</a>    /// variables, Pous or datatypes
-<a href=#2635 id=2635 data-nosnippet>2635</a>    </span><span class="kw">pub fn </span>default_scopes() -&gt; Vec&lt;<span class="self">Self</span>&gt; {
-<a href=#2636 id=2636 data-nosnippet>2636</a>        <span class="macro">vec!</span>[ResolvingStrategy::Variable, ResolvingStrategy::POU, ResolvingStrategy::DataType]
-<a href=#2637 id=2637 data-nosnippet>2637</a>    }
+<a href=#2622 id=2622 data-nosnippet>2622</a><span class="attr">#[derive(Clone, Copy, PartialEq, Eq)]
+<a href=#2623 id=2623 data-nosnippet>2623</a></span><span class="kw">pub enum </span>ResolvingStrategy {
+<a href=#2624 id=2624 data-nosnippet>2624</a>    <span class="doccomment">/// try to resolve a variable
+<a href=#2625 id=2625 data-nosnippet>2625</a>    </span>Variable,
+<a href=#2626 id=2626 data-nosnippet>2626</a>
+<a href=#2627 id=2627 data-nosnippet>2627</a>    <span class="doccomment">/// try to resolve a global variable
+<a href=#2628 id=2628 data-nosnippet>2628</a>    </span>Global,
+<a href=#2629 id=2629 data-nosnippet>2629</a>
+<a href=#2630 id=2630 data-nosnippet>2630</a>    <span class="doccomment">/// try to resolve a POU
+<a href=#2631 id=2631 data-nosnippet>2631</a>    </span>POU,
+<a href=#2632 id=2632 data-nosnippet>2632</a>
+<a href=#2633 id=2633 data-nosnippet>2633</a>    <span class="doccomment">/// try to resolve a DataType
+<a href=#2634 id=2634 data-nosnippet>2634</a>    </span>DataType,
+<a href=#2635 id=2635 data-nosnippet>2635</a>
+<a href=#2636 id=2636 data-nosnippet>2636</a>    <span class="doccomment">/// only consider EnumTypes
+<a href=#2637 id=2637 data-nosnippet>2637</a>    </span>EnumTypeOnly,
 <a href=#2638 id=2638 data-nosnippet>2638</a>
-<a href=#2639 id=2639 data-nosnippet>2639</a>    <span class="doccomment">/// scopes intended for call-statement-operators
-<a href=#2640 id=2640 data-nosnippet>2640</a>    </span><span class="kw">fn </span>call_operator_scopes() -&gt; Vec&lt;ResolvingStrategy&gt; {
-<a href=#2641 id=2641 data-nosnippet>2641</a>        <span class="kw">let </span><span class="kw-2">mut </span>strategy = <span class="macro">vec!</span>[ResolvingStrategy::FunctionsOnly];
-<a href=#2642 id=2642 data-nosnippet>2642</a>        strategy.extend(<span class="self">Self</span>::default_scopes());
-<a href=#2643 id=2643 data-nosnippet>2643</a>        strategy
-<a href=#2644 id=2644 data-nosnippet>2644</a>    }
+<a href=#2639 id=2639 data-nosnippet>2639</a>    <span class="doccomment">/// only consider functions
+<a href=#2640 id=2640 data-nosnippet>2640</a>    </span>FunctionsOnly,
+<a href=#2641 id=2641 data-nosnippet>2641</a>
+<a href=#2642 id=2642 data-nosnippet>2642</a>    <span class="doccomment">/// also consider references to properties before they are lowered to actual method calls
+<a href=#2643 id=2643 data-nosnippet>2643</a>    </span>Property,
+<a href=#2644 id=2644 data-nosnippet>2644</a>}
 <a href=#2645 id=2645 data-nosnippet>2645</a>
-<a href=#2646 id=2646 data-nosnippet>2646</a>    <span class="kw">fn </span>resolve_property(
-<a href=#2647 id=2647 data-nosnippet>2647</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#2648 id=2648 data-nosnippet>2648</a>        name: <span class="kw-2">&amp;</span>str,
-<a href=#2649 id=2649 data-nosnippet>2649</a>        qualifier: <span class="kw-2">&amp;</span>str,
-<a href=#2650 id=2650 data-nosnippet>2650</a>        property_set: bool,
-<a href=#2651 id=2651 data-nosnippet>2651</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
-<a href=#2652 id=2652 data-nosnippet>2652</a>        <span class="kw">let </span>accessor = <span class="kw">if </span>property_set { <span class="string">"set" </span>} <span class="kw">else </span>{ <span class="string">"get" </span>};
-<a href=#2653 id=2653 data-nosnippet>2653</a>        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"__{accessor}_{name}"</span>);
-<a href=#2654 id=2654 data-nosnippet>2654</a>
-<a href=#2655 id=2655 data-nosnippet>2655</a>        <span class="comment">// if our current context is a method or action, we need to look for the property in the parent
-<a href=#2656 id=2656 data-nosnippet>2656</a>        </span><span class="kw">let </span>qualifier =
-<a href=#2657 id=2657 data-nosnippet>2657</a>            index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
-<a href=#2658 id=2658 data-nosnippet>2658</a>
-<a href=#2659 id=2659 data-nosnippet>2659</a>        index.find_method(qualifier, <span class="kw-2">&amp;</span>name).map(|<span class="kw">_</span>| StatementAnnotation::Property { name })
-<a href=#2660 id=2660 data-nosnippet>2660</a>    }
-<a href=#2661 id=2661 data-nosnippet>2661</a>
-<a href=#2662 id=2662 data-nosnippet>2662</a>    <span class="doccomment">/// tries to resolve the given name using the reprsented scope
-<a href=#2663 id=2663 data-nosnippet>2663</a>    /// - `name` the name to resolve
-<a href=#2664 id=2664 data-nosnippet>2664</a>    /// - `qualifier` an optional qualifier to prefix to the name,
-<a href=#2665 id=2665 data-nosnippet>2665</a>    ///   if the qualifier is present, this method only resolves to targets with this qualifier
-<a href=#2666 id=2666 data-nosnippet>2666</a>    /// - `index` the index to perform the lookups on
-<a href=#2667 id=2667 data-nosnippet>2667</a>    </span><span class="kw">fn </span>resolve_name(
-<a href=#2668 id=2668 data-nosnippet>2668</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
-<a href=#2669 id=2669 data-nosnippet>2669</a>        name: <span class="kw-2">&amp;</span>str,
-<a href=#2670 id=2670 data-nosnippet>2670</a>        qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
-<a href=#2671 id=2671 data-nosnippet>2671</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#2672 id=2672 data-nosnippet>2672</a>        ctx: <span class="kw-2">&amp;</span>VisitorContext,
-<a href=#2673 id=2673 data-nosnippet>2673</a>        scopes: <span class="kw-2">&amp;</span>Scopes,
-<a href=#2674 id=2674 data-nosnippet>2674</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
-<a href=#2675 id=2675 data-nosnippet>2675</a>        <span class="kw">match </span><span class="self">self </span>{
-<a href=#2676 id=2676 data-nosnippet>2676</a>            <span class="comment">// try to resolve the name as a variable
-<a href=#2677 id=2677 data-nosnippet>2677</a>            </span>ResolvingStrategy::Variable =&gt; {
-<a href=#2678 id=2678 data-nosnippet>2678</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
-<a href=#2679 id=2679 data-nosnippet>2679</a>                    <span class="comment">// look for variable, enum with name "qualifier.name"
-<a href=#2680 id=2680 data-nosnippet>2680</a>                    </span>scopes
-<a href=#2681 id=2681 data-nosnippet>2681</a>                        <span class="comment">// instance.foo; // Resolver -&gt; referencexpr -&gt;
-<a href=#2682 id=2682 data-nosnippet>2682</a>                        </span>.find_member(index, qualifier, name)
-<a href=#2683 id=2683 data-nosnippet>2683</a>                        .or_else(|| index.find_enum_variant(qualifier, name))
-<a href=#2684 id=2684 data-nosnippet>2684</a>                        .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
-<a href=#2685 id=2685 data-nosnippet>2685</a>                } <span class="kw">else </span>{
-<a href=#2686 id=2686 data-nosnippet>2686</a>                    <span class="comment">// look for member variable with name "pou.name"
-<a href=#2687 id=2687 data-nosnippet>2687</a>                    // then try fopr a global variable called "name"
-<a href=#2688 id=2688 data-nosnippet>2688</a>                    </span>ctx.pou
-<a href=#2689 id=2689 data-nosnippet>2689</a>                        .and_then(|pou| scopes.find_member(index, pou, name))
-<a href=#2690 id=2690 data-nosnippet>2690</a>                        .or_else(|| index.find_global_variable(name))
-<a href=#2691 id=2691 data-nosnippet>2691</a>                        .map(|g| to_variable_annotation(g, index, g.is_constant()))
-<a href=#2692 id=2692 data-nosnippet>2692</a>                }
-<a href=#2693 id=2693 data-nosnippet>2693</a>            }
-<a href=#2694 id=2694 data-nosnippet>2694</a>            ResolvingStrategy::Global =&gt; {
-<a href=#2695 id=2695 data-nosnippet>2695</a>                index.find_global_variable(name).map(|g| to_variable_annotation(g, index, g.is_constant()))
-<a href=#2696 id=2696 data-nosnippet>2696</a>            }
-<a href=#2697 id=2697 data-nosnippet>2697</a>            <span class="comment">// try to resolve the name as POU/Action/Method
-<a href=#2698 id=2698 data-nosnippet>2698</a>            </span>ResolvingStrategy::POU =&gt; {
-<a href=#2699 id=2699 data-nosnippet>2699</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
-<a href=#2700 id=2700 data-nosnippet>2700</a>                    <span class="comment">// look for Pou/Action with name "qualifier.name"
-<a href=#2701 id=2701 data-nosnippet>2701</a>                    </span>index
-<a href=#2702 id=2702 data-nosnippet>2702</a>                        .find_pou(<span class="macro">format!</span>(<span class="string">"{qualifier}.{name}"</span>).as_str())
-<a href=#2703 id=2703 data-nosnippet>2703</a>                        .or_else(|| index.find_method(qualifier, name))
-<a href=#2704 id=2704 data-nosnippet>2704</a>                        .map(|action| action.into())
-<a href=#2705 id=2705 data-nosnippet>2705</a>                } <span class="kw">else </span>{
-<a href=#2706 id=2706 data-nosnippet>2706</a>                    <span class="comment">// look for Pou with name "name"
-<a href=#2707 id=2707 data-nosnippet>2707</a>                    </span>index.find_pou(name).and_then(|pou| to_pou_annotation(pou, index)).or_else(|| {
-<a href=#2708 id=2708 data-nosnippet>2708</a>                        ctx.pou.and_then(|pou|
-<a href=#2709 id=2709 data-nosnippet>2709</a>                                <span class="comment">// retry with local pou as qualifier
-<a href=#2710 id=2710 data-nosnippet>2710</a>                                //Use the type name of the pou in case we are resolving a
-<a href=#2711 id=2711 data-nosnippet>2711</a>                                //neighboring action
-<a href=#2712 id=2712 data-nosnippet>2712</a>                                </span>index.find_pou(pou).map(|pou| pou.get_container())
-<a href=#2713 id=2713 data-nosnippet>2713</a>                                .and_then(|pou|ResolvingStrategy::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx, scopes)))
-<a href=#2714 id=2714 data-nosnippet>2714</a>                    })
-<a href=#2715 id=2715 data-nosnippet>2715</a>                }
-<a href=#2716 id=2716 data-nosnippet>2716</a>            }
-<a href=#2717 id=2717 data-nosnippet>2717</a>            <span class="comment">// try to resolve the name as a datatype
-<a href=#2718 id=2718 data-nosnippet>2718</a>            </span>ResolvingStrategy::DataType =&gt; {
-<a href=#2719 id=2719 data-nosnippet>2719</a>                <span class="kw">if </span>qualifier.is_none() {
-<a href=#2720 id=2720 data-nosnippet>2720</a>                    <span class="comment">// look for datatype with name "name"
-<a href=#2721 id=2721 data-nosnippet>2721</a>                    </span>index
-<a href=#2722 id=2722 data-nosnippet>2722</a>                        .find_type(name)
-<a href=#2723 id=2723 data-nosnippet>2723</a>                        .map(|data_type| StatementAnnotation::data_type(data_type.get_name()))
-<a href=#2724 id=2724 data-nosnippet>2724</a>                } <span class="kw">else </span>{
-<a href=#2725 id=2725 data-nosnippet>2725</a>                    <span class="comment">// there are no qualified types
-<a href=#2726 id=2726 data-nosnippet>2726</a>                    </span><span class="prelude-val">None
-<a href=#2727 id=2727 data-nosnippet>2727</a>                </span>}
-<a href=#2728 id=2728 data-nosnippet>2728</a>            }
-<a href=#2729 id=2729 data-nosnippet>2729</a>            <span class="comment">// try to resolve the name as an enum-type
-<a href=#2730 id=2730 data-nosnippet>2730</a>            </span>ResolvingStrategy::EnumTypeOnly =&gt; {
-<a href=#2731 id=2731 data-nosnippet>2731</a>                <span class="kw">if </span>qualifier.is_none() {
-<a href=#2732 id=2732 data-nosnippet>2732</a>                    <span class="comment">// look for enum-tyoe with name "name"
-<a href=#2733 id=2733 data-nosnippet>2733</a>                    </span>index
-<a href=#2734 id=2734 data-nosnippet>2734</a>                        .find_type(name)
-<a href=#2735 id=2735 data-nosnippet>2735</a>                        .filter(|it| it.is_enum())
-<a href=#2736 id=2736 data-nosnippet>2736</a>                        .map(|enum_type| StatementAnnotation::data_type(enum_type.get_name()))
-<a href=#2737 id=2737 data-nosnippet>2737</a>                } <span class="kw">else </span>{
-<a href=#2738 id=2738 data-nosnippet>2738</a>                    <span class="comment">// there are no qualified types
-<a href=#2739 id=2739 data-nosnippet>2739</a>                    </span><span class="prelude-val">None
-<a href=#2740 id=2740 data-nosnippet>2740</a>                </span>}
-<a href=#2741 id=2741 data-nosnippet>2741</a>            }
-<a href=#2742 id=2742 data-nosnippet>2742</a>            <span class="comment">// try to resolve this name as a function
-<a href=#2743 id=2743 data-nosnippet>2743</a>            </span>ResolvingStrategy::FunctionsOnly =&gt; {
-<a href=#2744 id=2744 data-nosnippet>2744</a>                <span class="kw">if </span>qualifier.is_none() {
-<a href=#2745 id=2745 data-nosnippet>2745</a>                    <span class="comment">// look for function with name "name"
-<a href=#2746 id=2746 data-nosnippet>2746</a>                    </span>index.find_pou(name).filter(|it| it.is_function()).map(|pou| pou.into())
-<a href=#2747 id=2747 data-nosnippet>2747</a>                } <span class="kw">else </span>{
-<a href=#2748 id=2748 data-nosnippet>2748</a>                    <span class="comment">// there are no qualified functions
-<a href=#2749 id=2749 data-nosnippet>2749</a>                    </span><span class="prelude-val">None
-<a href=#2750 id=2750 data-nosnippet>2750</a>                </span>}
-<a href=#2751 id=2751 data-nosnippet>2751</a>            }
-<a href=#2752 id=2752 data-nosnippet>2752</a>            <span class="comment">// try to resolve this name as a property
-<a href=#2753 id=2753 data-nosnippet>2753</a>            </span>ResolvingStrategy::Property =&gt; qualifier
-<a href=#2754 id=2754 data-nosnippet>2754</a>                .or(ctx.pou)
-<a href=#2755 id=2755 data-nosnippet>2755</a>                .and_then(|qualifier| <span class="self">Self</span>::resolve_property(index, name, qualifier, ctx.property_set)),
-<a href=#2756 id=2756 data-nosnippet>2756</a>        }
-<a href=#2757 id=2757 data-nosnippet>2757</a>    }
-<a href=#2758 id=2758 data-nosnippet>2758</a>}
-<a href=#2759 id=2759 data-nosnippet>2759</a>
-<a href=#2760 id=2760 data-nosnippet>2760</a><span class="doccomment">/// registers the resulting string-literal if the given literal is a String with a different encoding than what is
-<a href=#2761 id=2761 data-nosnippet>2761</a>/// requested from given cast_type (e.g. STRING#"i am utf16", or WSTRING#'i am utf8')
-<a href=#2762 id=2762 data-nosnippet>2762</a></span><span class="kw">fn </span>accept_cast_string_literal(
-<a href=#2763 id=2763 data-nosnippet>2763</a>    literals: <span class="kw-2">&amp;mut </span>StringLiterals,
-<a href=#2764 id=2764 data-nosnippet>2764</a>    cast_type: <span class="kw-2">&amp;</span>typesystem::DataType,
-<a href=#2765 id=2765 data-nosnippet>2765</a>    literal: <span class="kw-2">&amp;</span>AstNode,
-<a href=#2766 id=2766 data-nosnippet>2766</a>) {
-<a href=#2767 id=2767 data-nosnippet>2767</a>    <span class="comment">// check if we need to register an additional string-literal
-<a href=#2768 id=2768 data-nosnippet>2768</a>    </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>AstLiteral::String(StringValue { <span class="kw-2">ref </span>value, is_wide })) = <span class="macro">try_from!</span>(literal, AstLiteral) <span class="kw">else </span>{
-<a href=#2769 id=2769 data-nosnippet>2769</a>        <span class="kw">return</span>;
-<a href=#2770 id=2770 data-nosnippet>2770</a>    };
-<a href=#2771 id=2771 data-nosnippet>2771</a>    <span class="kw">match </span>(cast_type.get_type_information(), is_wide) {
-<a href=#2772 id=2772 data-nosnippet>2772</a>        (DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }, <span class="bool-val">true</span>)
-<a href=#2773 id=2773 data-nosnippet>2773</a>        | (DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }, <span class="bool-val">false</span>) =&gt; {
-<a href=#2774 id=2774 data-nosnippet>2774</a>            <span class="comment">// re-register the string-literal in the opposite encoding
-<a href=#2775 id=2775 data-nosnippet>2775</a>            </span><span class="kw">if </span>is_wide {
-<a href=#2776 id=2776 data-nosnippet>2776</a>                literals.utf08.insert(value.into());
-<a href=#2777 id=2777 data-nosnippet>2777</a>            } <span class="kw">else </span>{
-<a href=#2778 id=2778 data-nosnippet>2778</a>                literals.utf16.insert(value.into());
-<a href=#2779 id=2779 data-nosnippet>2779</a>            }
-<a href=#2780 id=2780 data-nosnippet>2780</a>        }
-<a href=#2781 id=2781 data-nosnippet>2781</a>        <span class="kw">_ </span>=&gt; (),
-<a href=#2782 id=2782 data-nosnippet>2782</a>    }
-<a href=#2783 id=2783 data-nosnippet>2783</a>}
-<a href=#2784 id=2784 data-nosnippet>2784</a>
-<a href=#2785 id=2785 data-nosnippet>2785</a><span class="attr">#[cfg(test)]
-<a href=#2786 id=2786 data-nosnippet>2786</a></span><span class="kw">mod </span>resolver_tests {
-<a href=#2787 id=2787 data-nosnippet>2787</a>    <span class="kw">use super</span>::{get_int_type_name_for, get_real_type_name_for};
-<a href=#2788 id=2788 data-nosnippet>2788</a>
-<a href=#2789 id=2789 data-nosnippet>2789</a>    <span class="attr">#[test]
-<a href=#2790 id=2790 data-nosnippet>2790</a>    </span><span class="kw">fn </span>correct_int_type_names_for_numbers() {
-<a href=#2791 id=2791 data-nosnippet>2791</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(<span class="number">0</span>), <span class="string">"DINT"</span>);
-<a href=#2792 id=2792 data-nosnippet>2792</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">8</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
-<a href=#2793 id=2793 data-nosnippet>2793</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">8</span>)), <span class="string">"DINT"</span>);
-<a href=#2794 id=2794 data-nosnippet>2794</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">16</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
-<a href=#2795 id=2795 data-nosnippet>2795</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">16</span>)), <span class="string">"DINT"</span>);
-<a href=#2796 id=2796 data-nosnippet>2796</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">31</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
-<a href=#2797 id=2797 data-nosnippet>2797</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">31</span>)), <span class="string">"LINT"</span>);
-<a href=#2798 id=2798 data-nosnippet>2798</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">32</span>)), <span class="string">"LINT"</span>);
-<a href=#2799 id=2799 data-nosnippet>2799</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i64::MAX <span class="kw">as </span>i128), <span class="string">"LINT"</span>);
-<a href=#2800 id=2800 data-nosnippet>2800</a>    }
-<a href=#2801 id=2801 data-nosnippet>2801</a>
-<a href=#2802 id=2802 data-nosnippet>2802</a>    <span class="attr">#[test]
-<a href=#2803 id=2803 data-nosnippet>2803</a>    </span><span class="kw">fn </span>correct_real_type_names_for_numbers() {
-<a href=#2804 id=2804 data-nosnippet>2804</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f32::MIN.to_string()), <span class="string">"REAL"</span>);
-<a href=#2805 id=2805 data-nosnippet>2805</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f32::MAX.to_string()), <span class="string">"REAL"</span>);
-<a href=#2806 id=2806 data-nosnippet>2806</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f64::MIN.to_string()), <span class="string">"LREAL"</span>);
-<a href=#2807 id=2807 data-nosnippet>2807</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f64::MAX.to_string()), <span class="string">"LREAL"</span>);
-<a href=#2808 id=2808 data-nosnippet>2808</a>
-<a href=#2809 id=2809 data-nosnippet>2809</a>        <span class="comment">// f32 under- and overflows (MIN == -3.40282347E+38, MAX == 3.40282347E+38)
-<a href=#2810 id=2810 data-nosnippet>2810</a>        </span><span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 3.50282347E+38"</span>), <span class="string">"LREAL"</span>);
-<a href=#2811 id=2811 data-nosnippet>2811</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-3.50282347E+38"</span>), <span class="string">"LREAL"</span>);
-<a href=#2812 id=2812 data-nosnippet>2812</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 3.40282347E+39"</span>), <span class="string">"LREAL"</span>);
-<a href=#2813 id=2813 data-nosnippet>2813</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-3.40282347E+39"</span>), <span class="string">"LREAL"</span>);
-<a href=#2814 id=2814 data-nosnippet>2814</a>
-<a href=#2815 id=2815 data-nosnippet>2815</a>        <span class="comment">// f64 under- and overflows (MIN == -1.7976931348623157E+308, MAX == 1.7976931348623157E+308)
-<a href=#2816 id=2816 data-nosnippet>2816</a>        </span><span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 1.8976931348623157E+308"</span>), <span class="string">"LREAL"</span>);
-<a href=#2817 id=2817 data-nosnippet>2817</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-1.8976931348623157E+308"</span>), <span class="string">"LREAL"</span>);
-<a href=#2818 id=2818 data-nosnippet>2818</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
-<a href=#2819 id=2819 data-nosnippet>2819</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
-<a href=#2820 id=2820 data-nosnippet>2820</a>    }
-<a href=#2821 id=2821 data-nosnippet>2821</a>}</code></pre></div></section></main></body></html>
+<a href=#2646 id=2646 data-nosnippet>2646</a><span class="kw">impl </span>ResolvingStrategy {
+<a href=#2647 id=2647 data-nosnippet>2647</a>    <span class="doccomment">/// scopes that can be used for general references. Will resolve to local/global
+<a href=#2648 id=2648 data-nosnippet>2648</a>    /// variables, Pous or datatypes
+<a href=#2649 id=2649 data-nosnippet>2649</a>    </span><span class="kw">pub fn </span>default_scopes() -&gt; Vec&lt;<span class="self">Self</span>&gt; {
+<a href=#2650 id=2650 data-nosnippet>2650</a>        <span class="macro">vec!</span>[ResolvingStrategy::Variable, ResolvingStrategy::POU, ResolvingStrategy::DataType]
+<a href=#2651 id=2651 data-nosnippet>2651</a>    }
+<a href=#2652 id=2652 data-nosnippet>2652</a>
+<a href=#2653 id=2653 data-nosnippet>2653</a>    <span class="doccomment">/// scopes intended for call-statement-operators
+<a href=#2654 id=2654 data-nosnippet>2654</a>    </span><span class="kw">fn </span>call_operator_scopes() -&gt; Vec&lt;ResolvingStrategy&gt; {
+<a href=#2655 id=2655 data-nosnippet>2655</a>        <span class="kw">let </span><span class="kw-2">mut </span>strategy = <span class="macro">vec!</span>[ResolvingStrategy::FunctionsOnly];
+<a href=#2656 id=2656 data-nosnippet>2656</a>        strategy.extend(<span class="self">Self</span>::default_scopes());
+<a href=#2657 id=2657 data-nosnippet>2657</a>        strategy
+<a href=#2658 id=2658 data-nosnippet>2658</a>    }
+<a href=#2659 id=2659 data-nosnippet>2659</a>
+<a href=#2660 id=2660 data-nosnippet>2660</a>    <span class="kw">fn </span>resolve_property(
+<a href=#2661 id=2661 data-nosnippet>2661</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#2662 id=2662 data-nosnippet>2662</a>        name: <span class="kw-2">&amp;</span>str,
+<a href=#2663 id=2663 data-nosnippet>2663</a>        qualifier: <span class="kw-2">&amp;</span>str,
+<a href=#2664 id=2664 data-nosnippet>2664</a>        property_set: bool,
+<a href=#2665 id=2665 data-nosnippet>2665</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+<a href=#2666 id=2666 data-nosnippet>2666</a>        <span class="kw">let </span>accessor = <span class="kw">if </span>property_set { <span class="string">"set" </span>} <span class="kw">else </span>{ <span class="string">"get" </span>};
+<a href=#2667 id=2667 data-nosnippet>2667</a>        <span class="kw">let </span>name = <span class="macro">format!</span>(<span class="string">"__{accessor}_{name}"</span>);
+<a href=#2668 id=2668 data-nosnippet>2668</a>
+<a href=#2669 id=2669 data-nosnippet>2669</a>        <span class="comment">// if our current context is a method or action, we need to look for the property in the parent
+<a href=#2670 id=2670 data-nosnippet>2670</a>        </span><span class="kw">let </span>qualifier =
+<a href=#2671 id=2671 data-nosnippet>2671</a>            index.find_pou(qualifier).and_then(|pou| pou.get_parent_pou_name()).unwrap_or(qualifier);
+<a href=#2672 id=2672 data-nosnippet>2672</a>
+<a href=#2673 id=2673 data-nosnippet>2673</a>        index.find_method(qualifier, <span class="kw-2">&amp;</span>name).map(|<span class="kw">_</span>| StatementAnnotation::Property { name })
+<a href=#2674 id=2674 data-nosnippet>2674</a>    }
+<a href=#2675 id=2675 data-nosnippet>2675</a>
+<a href=#2676 id=2676 data-nosnippet>2676</a>    <span class="doccomment">/// tries to resolve the given name using the reprsented scope
+<a href=#2677 id=2677 data-nosnippet>2677</a>    /// - `name` the name to resolve
+<a href=#2678 id=2678 data-nosnippet>2678</a>    /// - `qualifier` an optional qualifier to prefix to the name,
+<a href=#2679 id=2679 data-nosnippet>2679</a>    ///   if the qualifier is present, this method only resolves to targets with this qualifier
+<a href=#2680 id=2680 data-nosnippet>2680</a>    /// - `index` the index to perform the lookups on
+<a href=#2681 id=2681 data-nosnippet>2681</a>    </span><span class="kw">fn </span>resolve_name(
+<a href=#2682 id=2682 data-nosnippet>2682</a>        <span class="kw-2">&amp;</span><span class="self">self</span>,
+<a href=#2683 id=2683 data-nosnippet>2683</a>        name: <span class="kw-2">&amp;</span>str,
+<a href=#2684 id=2684 data-nosnippet>2684</a>        qualifier: <span class="prelude-ty">Option</span>&lt;<span class="kw-2">&amp;</span>str&gt;,
+<a href=#2685 id=2685 data-nosnippet>2685</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#2686 id=2686 data-nosnippet>2686</a>        ctx: <span class="kw-2">&amp;</span>VisitorContext,
+<a href=#2687 id=2687 data-nosnippet>2687</a>        scopes: <span class="kw-2">&amp;</span>Scopes,
+<a href=#2688 id=2688 data-nosnippet>2688</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;StatementAnnotation&gt; {
+<a href=#2689 id=2689 data-nosnippet>2689</a>        <span class="kw">match </span><span class="self">self </span>{
+<a href=#2690 id=2690 data-nosnippet>2690</a>            <span class="comment">// try to resolve the name as a variable
+<a href=#2691 id=2691 data-nosnippet>2691</a>            </span>ResolvingStrategy::Variable =&gt; {
+<a href=#2692 id=2692 data-nosnippet>2692</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
+<a href=#2693 id=2693 data-nosnippet>2693</a>                    <span class="comment">// look for variable, enum with name "qualifier.name"
+<a href=#2694 id=2694 data-nosnippet>2694</a>                    </span>scopes
+<a href=#2695 id=2695 data-nosnippet>2695</a>                        <span class="comment">// instance.foo; // Resolver -&gt; referencexpr -&gt;
+<a href=#2696 id=2696 data-nosnippet>2696</a>                        </span>.find_member(index, qualifier, name)
+<a href=#2697 id=2697 data-nosnippet>2697</a>                        .or_else(|| index.find_enum_variant(qualifier, name))
+<a href=#2698 id=2698 data-nosnippet>2698</a>                        .map(|it| to_variable_annotation(it, index, it.is_constant() || ctx.constant))
+<a href=#2699 id=2699 data-nosnippet>2699</a>                } <span class="kw">else </span>{
+<a href=#2700 id=2700 data-nosnippet>2700</a>                    <span class="comment">// look for member variable with name "pou.name"
+<a href=#2701 id=2701 data-nosnippet>2701</a>                    // then try fopr a global variable called "name"
+<a href=#2702 id=2702 data-nosnippet>2702</a>                    </span>ctx.pou
+<a href=#2703 id=2703 data-nosnippet>2703</a>                        .and_then(|pou| scopes.find_member(index, pou, name))
+<a href=#2704 id=2704 data-nosnippet>2704</a>                        .or_else(|| index.find_global_variable(name))
+<a href=#2705 id=2705 data-nosnippet>2705</a>                        .map(|g| to_variable_annotation(g, index, g.is_constant()))
+<a href=#2706 id=2706 data-nosnippet>2706</a>                }
+<a href=#2707 id=2707 data-nosnippet>2707</a>            }
+<a href=#2708 id=2708 data-nosnippet>2708</a>            ResolvingStrategy::Global =&gt; {
+<a href=#2709 id=2709 data-nosnippet>2709</a>                index.find_global_variable(name).map(|g| to_variable_annotation(g, index, g.is_constant()))
+<a href=#2710 id=2710 data-nosnippet>2710</a>            }
+<a href=#2711 id=2711 data-nosnippet>2711</a>            <span class="comment">// try to resolve the name as POU/Action/Method
+<a href=#2712 id=2712 data-nosnippet>2712</a>            </span>ResolvingStrategy::POU =&gt; {
+<a href=#2713 id=2713 data-nosnippet>2713</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(qualifier) = qualifier {
+<a href=#2714 id=2714 data-nosnippet>2714</a>                    <span class="comment">// look for Pou/Action with name "qualifier.name"
+<a href=#2715 id=2715 data-nosnippet>2715</a>                    </span>index
+<a href=#2716 id=2716 data-nosnippet>2716</a>                        .find_pou(<span class="macro">format!</span>(<span class="string">"{qualifier}.{name}"</span>).as_str())
+<a href=#2717 id=2717 data-nosnippet>2717</a>                        .or_else(|| index.find_method(qualifier, name))
+<a href=#2718 id=2718 data-nosnippet>2718</a>                        .map(|action| action.into())
+<a href=#2719 id=2719 data-nosnippet>2719</a>                } <span class="kw">else </span>{
+<a href=#2720 id=2720 data-nosnippet>2720</a>                    <span class="comment">// look for Pou with name "name"
+<a href=#2721 id=2721 data-nosnippet>2721</a>                    </span>index.find_pou(name).and_then(|pou| to_pou_annotation(pou, index)).or_else(|| {
+<a href=#2722 id=2722 data-nosnippet>2722</a>                        ctx.pou.and_then(|pou|
+<a href=#2723 id=2723 data-nosnippet>2723</a>                                <span class="comment">// retry with local pou as qualifier
+<a href=#2724 id=2724 data-nosnippet>2724</a>                                //Use the type name of the pou in case we are resolving a
+<a href=#2725 id=2725 data-nosnippet>2725</a>                                //neighboring action
+<a href=#2726 id=2726 data-nosnippet>2726</a>                                </span>index.find_pou(pou).map(|pou| pou.get_container())
+<a href=#2727 id=2727 data-nosnippet>2727</a>                                .and_then(|pou|ResolvingStrategy::POU.resolve_name(name, <span class="prelude-val">Some</span>(pou), index, ctx, scopes)))
+<a href=#2728 id=2728 data-nosnippet>2728</a>                    })
+<a href=#2729 id=2729 data-nosnippet>2729</a>                }
+<a href=#2730 id=2730 data-nosnippet>2730</a>            }
+<a href=#2731 id=2731 data-nosnippet>2731</a>            <span class="comment">// try to resolve the name as a datatype
+<a href=#2732 id=2732 data-nosnippet>2732</a>            </span>ResolvingStrategy::DataType =&gt; {
+<a href=#2733 id=2733 data-nosnippet>2733</a>                <span class="kw">if </span>qualifier.is_none() {
+<a href=#2734 id=2734 data-nosnippet>2734</a>                    <span class="comment">// look for datatype with name "name"
+<a href=#2735 id=2735 data-nosnippet>2735</a>                    </span>index
+<a href=#2736 id=2736 data-nosnippet>2736</a>                        .find_type(name)
+<a href=#2737 id=2737 data-nosnippet>2737</a>                        .map(|data_type| StatementAnnotation::data_type(data_type.get_name()))
+<a href=#2738 id=2738 data-nosnippet>2738</a>                } <span class="kw">else </span>{
+<a href=#2739 id=2739 data-nosnippet>2739</a>                    <span class="comment">// there are no qualified types
+<a href=#2740 id=2740 data-nosnippet>2740</a>                    </span><span class="prelude-val">None
+<a href=#2741 id=2741 data-nosnippet>2741</a>                </span>}
+<a href=#2742 id=2742 data-nosnippet>2742</a>            }
+<a href=#2743 id=2743 data-nosnippet>2743</a>            <span class="comment">// try to resolve the name as an enum-type
+<a href=#2744 id=2744 data-nosnippet>2744</a>            </span>ResolvingStrategy::EnumTypeOnly =&gt; {
+<a href=#2745 id=2745 data-nosnippet>2745</a>                <span class="kw">if </span>qualifier.is_none() {
+<a href=#2746 id=2746 data-nosnippet>2746</a>                    <span class="comment">// look for enum-tyoe with name "name"
+<a href=#2747 id=2747 data-nosnippet>2747</a>                    </span>index
+<a href=#2748 id=2748 data-nosnippet>2748</a>                        .find_type(name)
+<a href=#2749 id=2749 data-nosnippet>2749</a>                        .filter(|it| it.is_enum())
+<a href=#2750 id=2750 data-nosnippet>2750</a>                        .map(|enum_type| StatementAnnotation::data_type(enum_type.get_name()))
+<a href=#2751 id=2751 data-nosnippet>2751</a>                } <span class="kw">else </span>{
+<a href=#2752 id=2752 data-nosnippet>2752</a>                    <span class="comment">// there are no qualified types
+<a href=#2753 id=2753 data-nosnippet>2753</a>                    </span><span class="prelude-val">None
+<a href=#2754 id=2754 data-nosnippet>2754</a>                </span>}
+<a href=#2755 id=2755 data-nosnippet>2755</a>            }
+<a href=#2756 id=2756 data-nosnippet>2756</a>            <span class="comment">// try to resolve this name as a function
+<a href=#2757 id=2757 data-nosnippet>2757</a>            </span>ResolvingStrategy::FunctionsOnly =&gt; {
+<a href=#2758 id=2758 data-nosnippet>2758</a>                <span class="kw">if </span>qualifier.is_none() {
+<a href=#2759 id=2759 data-nosnippet>2759</a>                    <span class="comment">// look for function with name "name"
+<a href=#2760 id=2760 data-nosnippet>2760</a>                    </span>index.find_pou(name).filter(|it| it.is_function()).map(|pou| pou.into())
+<a href=#2761 id=2761 data-nosnippet>2761</a>                } <span class="kw">else </span>{
+<a href=#2762 id=2762 data-nosnippet>2762</a>                    <span class="comment">// there are no qualified functions
+<a href=#2763 id=2763 data-nosnippet>2763</a>                    </span><span class="prelude-val">None
+<a href=#2764 id=2764 data-nosnippet>2764</a>                </span>}
+<a href=#2765 id=2765 data-nosnippet>2765</a>            }
+<a href=#2766 id=2766 data-nosnippet>2766</a>            <span class="comment">// try to resolve this name as a property
+<a href=#2767 id=2767 data-nosnippet>2767</a>            </span>ResolvingStrategy::Property =&gt; qualifier
+<a href=#2768 id=2768 data-nosnippet>2768</a>                .or(ctx.pou)
+<a href=#2769 id=2769 data-nosnippet>2769</a>                .and_then(|qualifier| <span class="self">Self</span>::resolve_property(index, name, qualifier, ctx.property_set)),
+<a href=#2770 id=2770 data-nosnippet>2770</a>        }
+<a href=#2771 id=2771 data-nosnippet>2771</a>    }
+<a href=#2772 id=2772 data-nosnippet>2772</a>}
+<a href=#2773 id=2773 data-nosnippet>2773</a>
+<a href=#2774 id=2774 data-nosnippet>2774</a><span class="doccomment">/// registers the resulting string-literal if the given literal is a String with a different encoding than what is
+<a href=#2775 id=2775 data-nosnippet>2775</a>/// requested from given cast_type (e.g. STRING#"i am utf16", or WSTRING#'i am utf8')
+<a href=#2776 id=2776 data-nosnippet>2776</a></span><span class="kw">fn </span>accept_cast_string_literal(
+<a href=#2777 id=2777 data-nosnippet>2777</a>    literals: <span class="kw-2">&amp;mut </span>StringLiterals,
+<a href=#2778 id=2778 data-nosnippet>2778</a>    cast_type: <span class="kw-2">&amp;</span>typesystem::DataType,
+<a href=#2779 id=2779 data-nosnippet>2779</a>    literal: <span class="kw-2">&amp;</span>AstNode,
+<a href=#2780 id=2780 data-nosnippet>2780</a>) {
+<a href=#2781 id=2781 data-nosnippet>2781</a>    <span class="comment">// check if we need to register an additional string-literal
+<a href=#2782 id=2782 data-nosnippet>2782</a>    </span><span class="kw">let </span><span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>AstLiteral::String(StringValue { <span class="kw-2">ref </span>value, is_wide })) = <span class="macro">try_from!</span>(literal, AstLiteral) <span class="kw">else </span>{
+<a href=#2783 id=2783 data-nosnippet>2783</a>        <span class="kw">return</span>;
+<a href=#2784 id=2784 data-nosnippet>2784</a>    };
+<a href=#2785 id=2785 data-nosnippet>2785</a>    <span class="kw">match </span>(cast_type.get_type_information(), is_wide) {
+<a href=#2786 id=2786 data-nosnippet>2786</a>        (DataTypeInformation::String { encoding: StringEncoding::Utf8, .. }, <span class="bool-val">true</span>)
+<a href=#2787 id=2787 data-nosnippet>2787</a>        | (DataTypeInformation::String { encoding: StringEncoding::Utf16, .. }, <span class="bool-val">false</span>) =&gt; {
+<a href=#2788 id=2788 data-nosnippet>2788</a>            <span class="comment">// re-register the string-literal in the opposite encoding
+<a href=#2789 id=2789 data-nosnippet>2789</a>            </span><span class="kw">if </span>is_wide {
+<a href=#2790 id=2790 data-nosnippet>2790</a>                literals.utf08.insert(value.into());
+<a href=#2791 id=2791 data-nosnippet>2791</a>            } <span class="kw">else </span>{
+<a href=#2792 id=2792 data-nosnippet>2792</a>                literals.utf16.insert(value.into());
+<a href=#2793 id=2793 data-nosnippet>2793</a>            }
+<a href=#2794 id=2794 data-nosnippet>2794</a>        }
+<a href=#2795 id=2795 data-nosnippet>2795</a>        <span class="kw">_ </span>=&gt; (),
+<a href=#2796 id=2796 data-nosnippet>2796</a>    }
+<a href=#2797 id=2797 data-nosnippet>2797</a>}
+<a href=#2798 id=2798 data-nosnippet>2798</a>
+<a href=#2799 id=2799 data-nosnippet>2799</a><span class="attr">#[cfg(test)]
+<a href=#2800 id=2800 data-nosnippet>2800</a></span><span class="kw">mod </span>resolver_tests {
+<a href=#2801 id=2801 data-nosnippet>2801</a>    <span class="kw">use super</span>::{get_int_type_name_for, get_real_type_name_for};
+<a href=#2802 id=2802 data-nosnippet>2802</a>
+<a href=#2803 id=2803 data-nosnippet>2803</a>    <span class="attr">#[test]
+<a href=#2804 id=2804 data-nosnippet>2804</a>    </span><span class="kw">fn </span>correct_int_type_names_for_numbers() {
+<a href=#2805 id=2805 data-nosnippet>2805</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(<span class="number">0</span>), <span class="string">"DINT"</span>);
+<a href=#2806 id=2806 data-nosnippet>2806</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">8</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
+<a href=#2807 id=2807 data-nosnippet>2807</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">8</span>)), <span class="string">"DINT"</span>);
+<a href=#2808 id=2808 data-nosnippet>2808</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">16</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
+<a href=#2809 id=2809 data-nosnippet>2809</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">16</span>)), <span class="string">"DINT"</span>);
+<a href=#2810 id=2810 data-nosnippet>2810</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">31</span>) - <span class="number">1</span>), <span class="string">"DINT"</span>);
+<a href=#2811 id=2811 data-nosnippet>2811</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">31</span>)), <span class="string">"LINT"</span>);
+<a href=#2812 id=2812 data-nosnippet>2812</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i128::pow(<span class="number">2</span>, <span class="number">32</span>)), <span class="string">"LINT"</span>);
+<a href=#2813 id=2813 data-nosnippet>2813</a>        <span class="macro">assert_eq!</span>(get_int_type_name_for(i64::MAX <span class="kw">as </span>i128), <span class="string">"LINT"</span>);
+<a href=#2814 id=2814 data-nosnippet>2814</a>    }
+<a href=#2815 id=2815 data-nosnippet>2815</a>
+<a href=#2816 id=2816 data-nosnippet>2816</a>    <span class="attr">#[test]
+<a href=#2817 id=2817 data-nosnippet>2817</a>    </span><span class="kw">fn </span>correct_real_type_names_for_numbers() {
+<a href=#2818 id=2818 data-nosnippet>2818</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f32::MIN.to_string()), <span class="string">"REAL"</span>);
+<a href=#2819 id=2819 data-nosnippet>2819</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f32::MAX.to_string()), <span class="string">"REAL"</span>);
+<a href=#2820 id=2820 data-nosnippet>2820</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f64::MIN.to_string()), <span class="string">"LREAL"</span>);
+<a href=#2821 id=2821 data-nosnippet>2821</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="kw-2">&amp;</span>f64::MAX.to_string()), <span class="string">"LREAL"</span>);
+<a href=#2822 id=2822 data-nosnippet>2822</a>
+<a href=#2823 id=2823 data-nosnippet>2823</a>        <span class="comment">// f32 under- and overflows (MIN == -3.40282347E+38, MAX == 3.40282347E+38)
+<a href=#2824 id=2824 data-nosnippet>2824</a>        </span><span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 3.50282347E+38"</span>), <span class="string">"LREAL"</span>);
+<a href=#2825 id=2825 data-nosnippet>2825</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-3.50282347E+38"</span>), <span class="string">"LREAL"</span>);
+<a href=#2826 id=2826 data-nosnippet>2826</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 3.40282347E+39"</span>), <span class="string">"LREAL"</span>);
+<a href=#2827 id=2827 data-nosnippet>2827</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-3.40282347E+39"</span>), <span class="string">"LREAL"</span>);
+<a href=#2828 id=2828 data-nosnippet>2828</a>
+<a href=#2829 id=2829 data-nosnippet>2829</a>        <span class="comment">// f64 under- and overflows (MIN == -1.7976931348623157E+308, MAX == 1.7976931348623157E+308)
+<a href=#2830 id=2830 data-nosnippet>2830</a>        </span><span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 1.8976931348623157E+308"</span>), <span class="string">"LREAL"</span>);
+<a href=#2831 id=2831 data-nosnippet>2831</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-1.8976931348623157E+308"</span>), <span class="string">"LREAL"</span>);
+<a href=#2832 id=2832 data-nosnippet>2832</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">" 1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
+<a href=#2833 id=2833 data-nosnippet>2833</a>        <span class="macro">assert_eq!</span>(get_real_type_name_for(<span class="string">"-1.7976931348623157E+309"</span>), <span class="string">"LREAL"</span>);
+<a href=#2834 id=2834 data-nosnippet>2834</a>    }
+<a href=#2835 id=2835 data-nosnippet>2835</a>}</code></pre></div></section></main></body></html>
