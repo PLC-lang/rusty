@@ -21,7 +21,6 @@ pub struct LlvmTypedIndex<'ink> {
     initial_value_associations: FxHashMap<String, BasicValueEnum<'ink>>,
     loaded_variable_associations: FxHashMap<String, PointerValue<'ink>>,
     implementations: FxHashMap<String, FunctionValue<'ink>>,
-    constants: FxHashMap<String, BasicValueEnum<'ink>>,
     utf08_literals: FxHashMap<String, GlobalValue<'ink>>,
     utf16_literals: FxHashMap<String, GlobalValue<'ink>>,
 }
@@ -73,7 +72,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
             initial_value_associations: FxHashMap::default(),
             loaded_variable_associations: FxHashMap::default(),
             implementations: FxHashMap::default(),
-            constants: FxHashMap::default(),
             utf08_literals: FxHashMap::default(),
             utf16_literals: FxHashMap::default(),
         }
@@ -104,7 +102,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
         for (name, implementation) in other.implementations.drain() {
             self.implementations.insert(name, implementation);
         }
-        self.constants.extend(other.constants);
         self.utf08_literals.extend(other.utf08_literals);
         self.utf16_literals.extend(other.utf16_literals);
     }
@@ -285,10 +282,6 @@ impl<'ink> LlvmTypedIndex<'ink> {
                 .filter(|it| it.is_pointer_value())
                 .map(BasicValueEnum::into_pointer_value)
         })
-    }
-
-    pub fn find_constant_value(&self, qualified_name: &str) -> Option<BasicValueEnum<'ink>> {
-        self.constants.get(qualified_name).copied()
     }
 
     pub fn find_utf08_literal_string(&self, literal: &str) -> Option<&GlobalValue<'ink>> {

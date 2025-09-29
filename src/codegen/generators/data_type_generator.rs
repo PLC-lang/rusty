@@ -123,14 +123,13 @@ pub fn generate_data_types<'ink>(
     // Now generate debug information for all types
     generator.generate_debug_types(&types_to_init)?;
 
-    /*
     let mut tries = 0;
     let mut errors = FxHashMap::default();
 
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {
-        //Take the current element,
+        //sTake the current element,
         if let Some((name, user_type)) = types_to_init.pop_front() {
             errors.remove(name);
             //try to resolve it
@@ -168,7 +167,6 @@ pub fn generate_data_types<'ink>(
             })
             .collect::<Vec<_>>();
         if !diags.is_empty() {
-            dbg!(&diags);
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
                 .with_error_code("E075")
@@ -176,7 +174,6 @@ pub fn generate_data_types<'ink>(
                 .into()); // FIXME: these sub-diagnostics aren't printed to the console
         }
     }
-    */
     Ok(generator.types_index)
 }
 
@@ -468,10 +465,10 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                     .map(|it| it.const_zero().as_basic_value_enum()));
             };
 
-            generator.generate_expression(initializer).map(Some).map_err(|e| {
-                dbg!(e);
-                Diagnostic::cannot_generate_initializer(qualified_name, initializer).into()
-            })
+            generator
+                .generate_expression(initializer)
+                .map(Some)
+                .map_err(|e| Diagnostic::cannot_generate_initializer(qualified_name, initializer).into())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index

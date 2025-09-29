@@ -14,6 +14,14 @@ pub static FRAC_PI_4_REAL: f32 = std::f32::consts::FRAC_PI_4;
 pub static E_REAL: f32 = std::f32::consts::E;
 #[no_mangle]
 pub static E_LREAL: f64 = std::f64::consts::E;
+#[no_mangle]
+pub static INF_REAL: f32 = f32::INFINITY;
+#[no_mangle]
+pub static INF_LREAL: f64 = f64::INFINITY;
+#[no_mangle]
+pub static NAN_REAL: f32 = f32::NAN;
+#[no_mangle]
+pub static NAN_LREAL: f64 = f64::NAN;
 
 /// .
 /// Calculates the square root of the given (f32) value

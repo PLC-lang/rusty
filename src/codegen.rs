@@ -712,6 +712,8 @@ impl From<CodegenError> for Diagnostic {
         if let CodegenError::DiagnosticError(diagnostic) = err {
             return diagnostic;
         }
+        let bt = std::backtrace::Backtrace::force_capture();
+        eprintln!("Codegen Error: {:?}\n{bt}", err);
         Diagnostic::new(format!("Builder error: {err}"))
             .with_error_code("E002")
             .with_internal_error(anyhow::anyhow!(err))
