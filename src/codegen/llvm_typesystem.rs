@@ -272,7 +272,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for IntValue<'ctx> {
         };
 
         match cast_data.target_type {
-            DataTypeInformation::Integer { size: lsize, .. } => {
+            DataTypeInformation::Integer { .. } => {
                 let target_type = cast_data
                     .llvm_type_index
                     .get_associated_type(cast_data.target_type.get_name())?

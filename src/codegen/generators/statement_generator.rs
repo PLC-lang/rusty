@@ -28,7 +28,7 @@ use plc_ast::{
         AstControlStatement, CaseStatement, ForLoopStatement, IfStatement, LoopStatement, ReturnStatement,
     },
 };
-use plc_diagnostics::diagnostics::INTERNAL_LLVM_ERROR;
+use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashMap;
 
@@ -195,10 +195,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*exit_block)?;
                     self.generate_buffer_block();
                 } else {
-                    return Err(CodegenError::new(
+                    return Err(Diagnostic::codegen_error(
                         "Cannot break out of loop when not inside a loop",
                         statement,
-                    ));
+                    )
+                    .into());
                 }
             }
             AstStatement::ContinueStatement(_) => {
@@ -206,7 +207,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                     self.llvm.builder.build_unconditional_branch(*cont_block)?;
                     self.generate_buffer_block();
                 } else {
-                    return Err(CodegenError::new("Cannot continue loop when not inside a loop", statement));
+                    return Err(Diagnostic::codegen_error(
+                        "Cannot continue loop when not inside a loop",
+                        statement,
+                    )
+                    .into());
                 }
             }
             AstStatement::ExpressionList(statements) => {

@@ -1,4 +1,3 @@
-use core::f32;
 use std::collections::VecDeque;
 
 use plc_ast::{

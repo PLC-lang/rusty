@@ -161,8 +161,8 @@ pub fn generate_data_types<'ink>(
             .into_iter()
             .map(|(name, ty)| {
                 errors
-                    .remove(dbg!(name))
-                    .map(|diag| Diagnostic::from(dbg!(diag)).with_secondary_location(&ty.location))
+                    .remove(name)
+                    .map(|diag| Diagnostic::from(diag).with_secondary_location(&ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, &ty.location))
             })
             .collect::<Vec<_>>();
@@ -170,7 +170,7 @@ pub fn generate_data_types<'ink>(
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
                 .with_error_code("E075")
-                .with_sub_diagnostics(dbg!(diags))
+                .with_sub_diagnostics(diags)
                 .into()); // FIXME: these sub-diagnostics aren't printed to the console
         }
     }
@@ -468,7 +468,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             generator
                 .generate_expression(initializer)
                 .map(Some)
-                .map_err(|e| Diagnostic::cannot_generate_initializer(qualified_name, initializer).into())
+                .map_err(|_| Diagnostic::cannot_generate_initializer(qualified_name, initializer).into())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index

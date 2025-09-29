@@ -1635,7 +1635,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     // make sure dimensions match statement list
                     let statements = access.get_as_list();
                     if statements.is_empty() || statements.len() != dimensions.len() {
-                        return Err(CodegenError::new("Invalid array access", access));
+                        return Err(Diagnostic::codegen_error("Invalid array access", access).into());
                     }
 
                     // e.g. an array like `ARRAY[0..3, 0..2, 0..1] OF ...` has the lengths [ 4 , 3 , 2 ]
@@ -1726,7 +1726,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     return Ok(pointer);
                 }
-                Err(CodegenError::new("Invalid array access", access))
+                Err(Diagnostic::codegen_error("Invalid array access", access).into())
             })
     }
 
@@ -1775,10 +1775,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     Ok(self.llvm.load_array_element(ptr, &[index], name.as_str())?.as_basic_value_enum())
                 } else {
-                    Err(CodegenError::new(
+                    Err(Diagnostic::codegen_error(
                         format!("'{operator}' operation must contain one int type").as_str(),
                         expression,
-                    ))
+                    )
+                    .into())
                 }
             }
             Operator::Equal => Ok(self
@@ -1841,10 +1842,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "tmpVar",
                 )?
                 .as_basic_value_enum()),
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("Operator '{operator}' unimplemented for pointers").as_str(),
                 expression,
-            )),
+            )
+            .into()),
         };
 
         result
@@ -1859,10 +1861,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         match value {
             BasicValueEnum::PointerValue(v) => Ok(self.ptr_as_value(v)?.into_int_value()),
             BasicValueEnum::IntValue(v) => Ok(v),
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("Cannot convert {value} to int value"),
                 SourceLocation::undefined(),
-            )),
+            )
+            .into()),
         }
     }
 
@@ -1913,7 +1916,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Xor => self.llvm.builder.build_xor(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::And => self.llvm.builder.build_and(int_lvalue, int_rvalue, "tmpVar")?,
             Operator::Or => self.llvm.builder.build_or(int_lvalue, int_rvalue, "tmpVar")?,
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("Operator '{operator}' unimplemented for int").as_str(),
                 SourceLocation::undefined(),
             ))?,
@@ -1982,7 +1985,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .build_float_compare(FloatPredicate::OGE, float_lvalue, float_rvalue, "tmpVar")?
                 .into(),
 
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("Operator '{operator}' unimplemented for float").as_str(),
                 SourceLocation::undefined(),
             ))?,
@@ -2018,7 +2021,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         literal_statement: &AstNode,
     ) -> Result<ExpressionValue<'ink>, CodegenError> {
         let cannot_generate_literal = || {
-            CodegenError::new(format!("Cannot generate Literal for {literal_statement:?}"), literal_statement)
+            Diagnostic::codegen_error(
+                format!("Cannot generate Literal for {literal_statement:?}"),
+                literal_statement,
+            )
         };
 
         let location = &literal_statement.get_location();
@@ -2070,7 +2076,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             // if there is just one assignment, this may be an struct-initialization (TODO this is not very elegant :-/ )
             AstStatement::Assignment { .. } => self.generate_literal_struct(literal_statement),
-            _ => Err(cannot_generate_literal()),
+            _ => Err(cannot_generate_literal().into()),
         }
     }
 
@@ -2201,16 +2207,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         uninitialized_members.remove(member);
                         member_values.push((index_in_parent, value));
                     } else {
-                        return Err(CodegenError::new(
+                        return Err(Diagnostic::codegen_error(
                             "struct member lvalue required as left operand of assignment",
                             data.left.as_ref(),
-                        ));
+                        )
+                        .into());
                     }
                 } else {
-                    return Err(CodegenError::new(
+                    return Err(Diagnostic::codegen_error(
                         "struct literal must consist of explicit assignments in the form of member := value",
                         assignment,
-                    ));
+                    )
+                    .into());
                 }
             }
 
@@ -2237,7 +2245,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     struct_type.const_named_struct(ordered_values.as_slice()).as_basic_value_enum(),
                 ))
             } else {
-                Err(CodegenError::new(
+                Err(Diagnostic::codegen_error(
                     format!(
                         "Expected {} fields for Struct {}, but found {}.",
                         struct_type.count_fields(),
@@ -2245,10 +2253,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         member_values.len()
                     ),
                     assignments,
-                ))
+                )
+                .into())
             }
         } else {
-            Err(CodegenError::new(format!("Expected Struct-literal, got {assignments:#?}"), assignments))
+            Err(Diagnostic::codegen_error(
+                format!("Expected Struct-literal, got {assignments:#?}"),
+                assignments,
+            )
+            .into())
         }
     }
 
@@ -2400,10 +2413,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     "",
                 )?
                 .as_basic_value_enum()),
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("illegal boolean expresspion for operator {operator:}").as_str(),
                 left.get_location().span(&right.get_location()),
-            )),
+            )
+            .into()),
         }
     }
 
@@ -2479,7 +2493,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // we trust that the validator only passed us valid parameters (so left & right should be same type)
             self.generate_expression(statement)
         } else {
-            Err(CodegenError::new(
+            Err(Diagnostic::codegen_error(
                 format!(
                     "Invalid types, cannot generate binary expression for {:?} and {:?}",
                     self.get_type_hint_for(left)?.get_name(),
@@ -2487,7 +2501,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )
                 .as_str(),
                 left,
-            ))
+            )
+            .into())
         }
     }
 

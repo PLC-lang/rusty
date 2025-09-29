@@ -133,16 +133,16 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
         } else {
-            let initial_value = if dbg!(global_variable
+            let initial_value = if global_variable
                 .initial_value
-                .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it)))
-            .is_some_and(|it| it.is_address_unresolvable())
+                .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it))
+                .is_some_and(|it| it.is_address_unresolvable())
             {
                 None
-            } else if let Some(initializer) = dbg!(self
+            } else if let Some(initializer) = self
                 .global_index
                 .get_const_expressions()
-                .maybe_get_constant_statement(&global_variable.initial_value))
+                .maybe_get_constant_statement(&global_variable.initial_value)
             {
                 let expr_generator = ExpressionCodeGenerator::new_context_free(
                     self.llvm,

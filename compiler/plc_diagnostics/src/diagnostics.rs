@@ -80,8 +80,6 @@ impl From<std::io::Error> for Diagnostic {
 /// Builder for Diagnostics
 impl Diagnostic {
     pub fn new(message: impl Into<String>) -> Self {
-        let bt = std::backtrace::Backtrace::force_capture();
-        eprintln!("{bt}");
         let inner = DiagnosticsInner {
             message: message.into(),
             primary_location: SourceLocation::undefined(),
