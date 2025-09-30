@@ -195,12 +195,12 @@ mod overflows {
                 max_ulint   : ULINT  := 18_446_744_073_709_551_616; // 18_446_744_073_709_551_615
 
                 // f32
-                min_real : REAL := -3.50282347E+38; // -3.40282347E+38
-                max_real : REAL :=  3.50282347E+38; //  3.40282347E+38
+                min_real : REAL := -3.50282347E+38; // -3.40282347E+38 // -inf is no overflow
+                max_real : REAL :=  3.50282347E+38; //  3.40282347E+38 //  inf is no overflow
 
                 // f64
-                min_lreal : LREAL := -1.8076931348623157E+308; // -1.7976931348623157E+308
-                max_lreal : LREAL :=  1.8076931348623157E+308; //  1.7976931348623157E+308
+                min_lreal : LREAL := -1.8076931348623157E+308; // -1.7976931348623157E+308 inf is no overflow
+                max_lreal : LREAL :=  1.8076931348623157E+308; //  1.7976931348623157E+308 inf is no overflow
             END_VAR
         END_FUNCTION
         ",
@@ -240,12 +240,12 @@ mod overflows {
                 max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
 
                 // f32
-                min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -3.40282347E+38
-                max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  3.40282347E+38
+                min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -inf is no overflow
+                max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  inf is no overflow
 
                 // f64
-                min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -1.7976931348623157E+308
-                max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  1.7976931348623157E+308
+                min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -inf is no overflow
+                max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  -inf is no overflow
             END_VAR
         END_FUNCTION
         ",
@@ -273,8 +273,8 @@ mod overflows {
         let diagnostics = parse_and_validate_buffered(
             "
         TYPE MyINT      : INT   := 60000; END_TYPE
-        TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE
-        TYPE MyLREAL    : LREAL := 1.8076931348623157E+308; END_TYPE
+        TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE // Not an overflow, but inf
+        TYPE MyLREAL    : LREAL := 1.8076931348623157E+308; END_TYPE // Not an overflow, but inf
         ",
         );
 
@@ -639,7 +639,7 @@ fn var_conf_template_variable_is_no_template() {
 fn only_constant_builtins_are_allowed_in_initializer() {
     let diagnostics = parse_and_validate_buffered(
         r#"
-        VAR_GLOBAL 
+        VAR_GLOBAL
             gb: BOOL;
             gb2: BOOL;
         END_VAR
@@ -668,7 +668,7 @@ fn only_constant_builtins_are_allowed_in_initializer() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
       │  
@@ -693,8 +693,7 @@ fn only_constant_builtins_are_allowed_in_initializer() {
        │
     25 │                 grault : BOOL := SEL(TRUE, gb, gb2); // is builtin but no const, should err
        │                                  ^^^^^^^^^^^^^^^^^^ Unresolved constant `grault` variable: Call-statement 'SEL' in initializer is not constant.
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1271,17 +1270,17 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
         // all of these assignments are okay in a function, since they are all stack-variables
         FUNCTION bar
             VAR
-                s1: REF_TO DINT := REF(t1);    
-                s2 AT t1 : DINT;               
+                s1: REF_TO DINT := REF(t1);
+                s2 AT t1 : DINT;
                 s3 : REFERENCE TO DINT REF= t1;
-                s4 AT s2 : DINT;               
-                s5 : REF_TO DINT := REF(s4);   
+                s4 AT s2 : DINT;
+                s5 : REF_TO DINT := REF(s4);
                 s6 : REFERENCE TO DINT REF= s5;
             END_VAR
             VAR_TEMP
                 t1 : DINT;
-                t2 : REF_TO DINT := REF(t1);   
-                t3 AT s1 : DINT;               
+                t2 : REF_TO DINT := REF(t1);
+                t3 AT s1 : DINT;
                 t4 : REFERENCE TO DINT REF= t3;
             END_VAR
         END_FUNCTION

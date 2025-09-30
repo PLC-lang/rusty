@@ -739,7 +739,7 @@ impl AnnotatedProject {
             .reduce(|a, b| {
                 let a = a?;
                 let b = b?;
-                a.merge(b)
+                a.merge(b).map_err(Into::into)
             })
         else {
             return Ok(None);
@@ -781,7 +781,7 @@ impl AnnotatedProject {
             &self.index,
             got_layout,
         )?;
-        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index)
+        code_generator.generate(context, unit, &self.annotations, &self.index, llvm_index).map_err(Into::into)
     }
 
     pub fn codegen_single_module<'ctx>(
@@ -791,7 +791,7 @@ impl AnnotatedProject {
     ) -> Result<Vec<GeneratedProject>, Diagnostic> {
         let compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
             let tempdir = tempfile::tempdir().unwrap();
-            tempdir.into_path()
+            tempdir.keep()
         });
         ensure_compile_dirs(targets, &compile_directory)?;
         let context = CodegenContext::create(); //Create a build location for the generated object files
@@ -914,7 +914,7 @@ impl GeneratedProject {
                     .ok_or_else(|| {
                         Diagnostic::codegen_error("Could not create bitcode", SourceLocation::undefined())
                     })??;
-                codegen.persist_to_bitcode(output_location)
+                codegen.persist_to_bitcode(output_location).map_err(Diagnostic::from)
             }
             FormatOption::IR => {
                 let context = CodegenContext::create();
@@ -938,7 +938,7 @@ impl GeneratedProject {
                     .ok_or_else(|| {
                         Diagnostic::codegen_error("Could not create ir", SourceLocation::undefined())
                     })??;
-                codegen.persist_to_ir(output_location)
+                codegen.persist_to_ir(output_location).map_err(Into::into)
             }
             FormatOption::Object if objects.is_empty() => {
                 //Just copy over the object file, no need for a linker

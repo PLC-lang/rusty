@@ -1480,6 +1480,10 @@ impl AstNode {
     pub fn as_string(&self) -> String {
         AstSerializer::format(self)
     }
+
+    pub fn is_real(&self) -> bool {
+        matches!(self.stmt, AstStatement::Literal(AstLiteral::Real(_), ..))
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

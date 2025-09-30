@@ -215,7 +215,7 @@ fn type_annotations_reflect_the_evaluation_result() {
 /// These Type-Hints work for all kinds of necessary casts or promotions, including:
 ///  - casting a variable due to an assignment to a differently-typed variable (e.g. `myInt := mySInt;`)
 ///  - casting a variable when passing it to a function that expects a different type (e.g. `foo(mySInt);` mySInt
-///         gets the type-hint of the 1st foo-parameter)
+///    gets the type-hint of the 1st foo-parameter)
 
 #[test]
 fn type_annotations_indicates_necessary_casts() {
