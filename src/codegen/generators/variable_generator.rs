@@ -152,16 +152,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 );
 
                 //see if this value was compile-time evaluated ...
-                if let Some(value) =
-                    self.types_index.find_constant_value(global_variable.get_qualified_name())
-                {
-                    Some(value)
-                } else {
-                    let value = expr_generator.generate_expression(initializer)?;
-                    let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
-                    let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
-                    Some(cast_if_needed!(expr_generator, target_type, value_type, value, None))
-                }
+                let value = expr_generator.generate_expression(initializer)?;
+                let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
+                let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
+                Some(cast_if_needed!(expr_generator, target_type, value_type, value, None)?)
             } else {
                 None
             };

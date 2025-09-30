@@ -569,6 +569,10 @@ pub fn compile_with_native<T: Compilable>(context: &CodegenContext, source: T) -
         ("FRAC_PI_4_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::FRAC_PI_4_LREAL) as usize),
         ("E_REAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_REAL) as usize),
         ("E_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::E_LREAL) as usize),
+        ("INF_REAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::INF_REAL) as usize),
+        ("INF_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::INF_LREAL) as usize),
+        ("NAN_REAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::NAN_REAL) as usize),
+        ("NAN_LREAL", std::ptr::addr_of!(iec61131std::arithmetic_functions::NAN_LREAL) as usize),
     ];
 
     let module = compile(context, source);

@@ -7,17 +7,3 @@ warning[E039]: This will overflow for type INT
   │
 2 │         TYPE MyINT      : INT   := 60000; END_TYPE
   │                                    ^^^^^ This will overflow for type INT
-
-warning[E039]: This will overflow for type REAL
-  ┌─ <internal>:3:36
-  │
-3 │         TYPE MyREAL     : REAL  := 3.50282347E+38; END_TYPE
-  │                                    ^^^^^^^^^^^^^^ This will overflow for type REAL
-
-warning[E039]: This will overflow for type LREAL
-  ┌─ <internal>:4:36
-  │
-4 │         TYPE MyLREAL    : LREAL := 1.8076931348623157E+308; END_TYPE
-  │                                    ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
-
-

@@ -12,6 +12,7 @@ use crate::{
         debug::{Debug, DebugBuilderEnum},
         generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
+        CodegenError,
     },
     index::{self, ImplementationType},
     resolver::{AstAnnotations, Dependency},
@@ -66,7 +67,7 @@ pub fn generate_implementation_stubs<'ink>(
     types_index: &LlvmTypedIndex<'ink>,
     debug: &mut DebugBuilderEnum<'ink>,
     online_change: &OnlineChange,
-) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut llvm_index = LlvmTypedIndex::default();
     let pou_generator = PouGenerator::new(llvm, index, annotations, types_index, online_change);
     let implementations = dependencies
@@ -100,7 +101,7 @@ pub fn generate_global_constants_for_pou_members<'ink>(
     annotations: &AstAnnotations,
     llvm_index: &LlvmTypedIndex<'ink>,
     location: &str,
-) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut local_llvm_index = LlvmTypedIndex::default();
     let implementations = dependencies
         .into_iter()
@@ -162,12 +163,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         PouGenerator { llvm, index, annotations, llvm_index, online_change }
     }
 
-    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, Diagnostic> {
+    fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, CodegenError> {
         let ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 
         let params = self.index.get_declared_parameters(implementation.get_call_name());
 
-        let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, Diagnostic> {
+        let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, CodegenError> {
             let ty = section_names::mangle_type(
                 self.index,
                 self.index.get_effective_type_by_name(&param.data_type_name)?,
@@ -202,7 +203,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         module: &Module<'ink>,
         debug: &mut DebugBuilderEnum<'ink>,
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
-    ) -> Result<FunctionValue<'ink>, Diagnostic> {
+    ) -> Result<FunctionValue<'ink>, CodegenError> {
         let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
         // if we are handling a method, take the first parameter as the instance
@@ -335,7 +336,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         module: &Module<'ink>,
         curr_f: FunctionValue<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         //Create a constructor struct
         let ctor_str = self.llvm.context.struct_type(
             &[
@@ -373,7 +374,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn collect_parameters_for_implementation(
         &self,
         implementation: &ImplementationIndexEntry,
-    ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, Diagnostic> {
+    ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, CodegenError> {
         if !implementation.implementation_type.is_function_method_or_init() {
             let mut parameters = vec![];
             let instance_struct_type: StructType = self
@@ -410,14 +411,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         &self,
         implementation: &Implementation,
         debug: &DebugBuilderEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let context = self.llvm.context;
         let mut local_index = LlvmTypedIndex::create_child(self.llvm_index);
 
         let pou_name = &implementation.name;
 
         let current_function = self.llvm_index.find_associated_implementation(pou_name).ok_or_else(|| {
-            Diagnostic::codegen_error(
+            CodegenError::new(
                 format!("Could not find generated stub for {pou_name}"),
                 &implementation.location,
             )
@@ -442,7 +443,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let function_context = FunctionContext {
             linking_context: self.index.find_implementation_by_name(&implementation.name).ok_or_else(
                 || {
-                    Diagnostic::codegen_error(
+                    CodegenError::new(
                         format!("Could not find implementation for {}", &implementation.name),
                         &implementation.location,
                     )
@@ -532,7 +533,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         parameters: Vec<BasicMetadataTypeEnum<'ink>>,
         variadic: Option<&'cg VariableIndexEntry>,
         return_type: Option<BasicTypeEnum<'ink>>,
-    ) -> Result<FunctionType<'ink>, Diagnostic> {
+    ) -> Result<FunctionType<'ink>, CodegenError> {
         // sized variadic is not considered a variadic function, but receives 2 extra parameters, size and a pointer
         let is_var_args = variadic
             .map(|it| it.get_varargs().map(|it| !it.is_sized()).unwrap_or_default())
@@ -563,7 +564,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             _ => Err(Diagnostic::codegen_error(
                 format!("Unsupported return type {return_type:?}"),
                 SourceLocation::undefined(),
-            )),
+            )
+            .into()),
         }
     }
 
@@ -574,7 +576,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         type_name: &str,
         function_context: &FunctionContext<'ink, '_>,
         debug: &DebugBuilderEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let members = self.index.get_pou_members(type_name);
         //Generate reference to parameter
         // cannot use index from members because return and temp variables may not be considered for index in build_struct_gep
@@ -586,7 +588,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
         if let Some(ret_v) = members.iter().find(|it| it.is_return()) {
             let return_type = index.get_associated_type(ret_v.get_type_name())?;
-            let return_variable = self.llvm.create_local_variable(type_name, &return_type);
+            let return_variable = self.llvm.create_local_variable(type_name, &return_type)?;
             index.associate_loaded_local_variable(type_name, ret_v.get_name(), return_variable)?;
         }
 
@@ -595,12 +597,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             let parameter_name = m.get_name();
 
             let (name, variable) = if m.is_parameter() {
-                let ptr_value =
-                    params_iter.next().ok_or_else(|| Diagnostic::missing_function(&m.source_location))?;
+                let ptr_value = params_iter
+                    .next()
+                    .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(&m.source_location)))?;
                 let member_type_name = m.get_type_name();
                 let type_info = self.index.get_type_information_or_void(member_type_name);
                 let ty = index.get_associated_type(member_type_name)?;
-                let ptr = self.llvm.create_local_variable(m.get_name(), &ty);
+                let ptr = self.llvm.create_local_variable(m.get_name(), &ty)?;
                 if let Some(block) = self.llvm.builder.get_insert_block() {
                     debug.add_variable_declaration(
                         m.get_qualified_name(),
@@ -623,24 +626,21 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     } else {
                         ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                     };
-                    let bitcast = self.llvm.builder.build_bitcast(ptr, ty, "bitcast").into_pointer_value();
+                    let bitcast = self.llvm.builder.build_bit_cast(ptr, ty, "bitcast")?.into_pointer_value();
                     let (size, alignment) = if let DataTypeInformation::String { size, encoding } = type_info
                     {
                         // since passed string args might be larger than the local acceptor, we need to first memset the local variable to 0
                         let size = size
                             .as_int_value(self.index)
-                            .map_err(|err| Diagnostic::codegen_error(err.as_str(), &m.source_location))?
+                            .map_err(|err| CodegenError::new(err.as_str(), &m.source_location))?
                             as u64;
                         let char_width = encoding.get_bytes_per_char();
-                        self.llvm
-                            .builder
-                            .build_memset(
-                                bitcast,
-                                char_width,
-                                self.llvm.context.i8_type().const_zero(),
-                                self.llvm.context.i64_type().const_int(size * char_width as u64, true),
-                            )
-                            .map_err(|e| Diagnostic::codegen_error(e, &m.source_location))?;
+                        self.llvm.builder.build_memset(
+                            bitcast,
+                            char_width,
+                            self.llvm.context.i8_type().const_zero(),
+                            self.llvm.context.i64_type().const_int(size * char_width as u64, true),
+                        )?;
                         (
                             // we then reduce the amount of bytes to be memcopied by the equivalent of one grapheme in bytes to preserve the null-terminator
                             self.llvm.context.i64_type().const_int((size - 1) * char_width as u64, true),
@@ -649,25 +649,28 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     } else {
                         let Some(size) = index.get_associated_type(member_type_name)?.size_of() else {
                             // XXX: can this still fail at this point? might be `unreachable`
-                            return Err(Diagnostic::codegen_error(
+                            return Err(CodegenError::new(
                                 "Unable to determine type size",
                                 &m.source_location,
                             ));
                         };
                         (size, 1)
                     };
-                    self.llvm
-                        .builder
-                        .build_memcpy(bitcast, alignment, ptr_value.into_pointer_value(), alignment, size)
-                        .map_err(|e| Diagnostic::codegen_error(e, &m.source_location))?;
+                    self.llvm.builder.build_memcpy(
+                        bitcast,
+                        alignment,
+                        ptr_value.into_pointer_value(),
+                        alignment,
+                        size,
+                    )?;
                 } else {
-                    self.llvm.builder.build_store(ptr, ptr_value);
+                    self.llvm.builder.build_store(ptr, ptr_value)?;
                 };
 
                 (parameter_name, ptr)
             } else {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
-                let value = self.llvm.create_local_variable(parameter_name, &temp_type);
+                let value = self.llvm.create_local_variable(parameter_name, &temp_type)?;
                 (parameter_name, value)
             };
 
@@ -686,13 +689,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         function_context: &FunctionContext<'ink, '_>,
         location: &SourceLocation,
         debug: &DebugBuilderEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let members = self.index.get_pou_members(type_name);
         let param_pointer = function_context
             .function
             .get_nth_param(0)
             .map(BasicValueEnum::into_pointer_value)
-            .ok_or_else(|| Diagnostic::missing_function(location))?;
+            .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
@@ -710,8 +713,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             || function_context.linking_context.get_implementation_type()
                 == &ImplementationType::FunctionBlock
         {
-            let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this");
-            self.llvm.builder.build_store(alloca, param_pointer);
+            let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this")?;
+            self.llvm.builder.build_store(alloca, param_pointer)?;
             index.associate_loaded_local_variable(type_name, "__THIS", alloca)?;
         }
 
@@ -723,7 +726,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             //TODO: this is not creating local variables
             let (name, variable) = if m.is_temp() || m.is_return() {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
-                (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type))
+                (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
                 let ptr = self
                     .llvm
@@ -751,7 +754,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         local_llvm_index: &LlvmTypedIndex,
         function_context: &FunctionContext,
         debug: &DebugBuilderEnum<'ink>,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         let variables_with_initializers =
             variables.iter().filter(|it| it.is_local() || it.is_temp() || it.is_return());
 
@@ -788,7 +791,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     self.llvm.builder.build_store(
                         left,
                         left.get_type().get_element_type().into_pointer_type().const_null(),
-                    );
+                    )?;
                     continue;
                 };
                 let right_stmt =
@@ -798,7 +801,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 return Err(Diagnostic::cannot_generate_initializer(
                     variable.get_qualified_name(),
                     &variable.source_location,
-                ));
+                )
+                .into());
             }
         }
         Ok(())
@@ -813,7 +817,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         variable_to_initialize: PointerValue,
         initializer_statement: Option<&AstNode>,
         exp_gen: &ExpressionCodeGenerator,
-    ) -> Result<(), Diagnostic> {
+    ) -> Result<(), CodegenError> {
         self.llvm.generate_variable_initializer(
             self.llvm_index,
             self.index,
@@ -863,7 +867,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
     }
 
-    fn get_section(&self, implementation: &ImplementationIndexEntry) -> Result<Option<String>, Diagnostic> {
+    fn get_section(&self, implementation: &ImplementationIndexEntry) -> Result<Option<String>, CodegenError> {
         if self.online_change.is_enabled() {
             self.mangle_function(implementation).map(Some)
         } else {
