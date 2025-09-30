@@ -1216,47 +1216,47 @@ fn array_of_string_parameter_with_stride_calculation() {
     ",
     );
 
-    filtered_assert_snapshot!(result, @r#"
-; ModuleID = '<internal>'
-source_filename = "<internal>"
-target datalayout = "[filtered]"
-target triple = "[filtered]"
+    filtered_assert_snapshot!(result, @r###"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
 
-@utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
-@utf08_literal_1 = private unnamed_addr constant [6 x i8] c"World\00"
+    @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
+    @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"World\00"
 
-define void @foo(i8* %0) {
-entry:
-  %strings = alloca i8*, align 8
-  store i8* %0, i8** %strings, align 8
-  %deref = load i8*, i8** %strings, align 8
-  %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-  %deref1 = load i8*, i8** %strings, align 8
-  %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 81
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
-  ret void
-}
+    define void @foo(i8* %0) {
+    entry:
+      %strings = alloca i8*, align 8
+      store i8* %0, i8** %strings, align 8
+      %deref = load i8*, i8** %strings, align 8
+      %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      %deref1 = load i8*, i8** %strings, align 8
+      %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 81
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
+      ret void
+    }
 
-define void @main() {
-entry:
-  %arr = alloca [2 x [81 x i8]], align 1
-  %0 = bitcast [2 x [81 x i8]]* %arr to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [81 x i8]]* getelementptr ([2 x [81 x i8]], [2 x [81 x i8]]* null, i32 1) to i64), i1 false)
-  %1 = bitcast [2 x [81 x i8]]* %arr to i8*
-  call void @foo(i8* %1)
-  ret void
-}
+    define void @main() {
+    entry:
+      %arr = alloca [2 x [81 x i8]], align 1
+      %0 = bitcast [2 x [81 x i8]]* %arr to i8*
+      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [81 x i8]]* getelementptr ([2 x [81 x i8]], [2 x [81 x i8]]* null, i32 1) to i64), i1 false)
+      %1 = bitcast [2 x [81 x i8]]* %arr to i8*
+      call void @foo(i8* %1)
+      ret void
+    }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
-attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-"#)
+    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    "###)
 }
 
 #[test]
