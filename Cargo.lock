@@ -3459,7 +3459,6 @@ dependencies = [
  "shell-words",
  "tempfile",
  "test_utils",
- "thiserror 2.0.17",
  "toml",
  "which",
 ]

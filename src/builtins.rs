@@ -135,10 +135,7 @@ lazy_static! {
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
-                        Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for REF",
-                        location, ).into()
-                        )
+                        Err(Diagnostic::codegen_error("Expected exactly one parameter for REF",location).into())
                     }
                 }
             },

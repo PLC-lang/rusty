@@ -129,7 +129,7 @@ pub fn generate_data_types<'ink>(
     // If the tries are equal to the number of types remaining, it means we failed to resolve
     // anything
     while tries < types_to_init.len() {
-        //sTake the current element,
+        //Take the current element,
         if let Some((name, user_type)) = types_to_init.pop_front() {
             errors.remove(name);
             //try to resolve it

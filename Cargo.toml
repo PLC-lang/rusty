@@ -32,7 +32,6 @@ shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
 lld_rs = { git = "https://github.com/mun-lang/lld-rs", rev = "3798ace" }
 which = "4.2.5"
-thiserror.workspace = true
 log.workspace = true
 inkwell.workspace = true
 chrono.workspace = true
@@ -97,4 +96,3 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 toml = "0.5"
 rustc-hash = "1.1.0"
-thiserror = "2"
