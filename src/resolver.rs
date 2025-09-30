@@ -315,7 +315,7 @@ impl TypeAnnotator<'_> {
             // `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and we do not skip the first argument. Then,
             // `instanceFB` will have a type-hint of "STRING" and `stringValue` will have a type-hint on
             // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
-            // better approach would be to desugar method calls from `fbInstance.echo('stringValue', 5)` to
+            // better approach would be to lower method calls from `fbInstance.echo('stringValue', 5)` to
             // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
             parameters[1..].iter()
         } else {
@@ -628,7 +628,7 @@ impl InheritanceAnnotationConverter for InterfaceIndexEntry {
             .iter()
             .filter(|method_name| {
                 derived_methods.iter().any(|derived_method| {
-                    derived_method.get_flat_reference_name()
+                    derived_method.get_call_name()
                         == method_name.rsplit_once(".").map(|(_, it)| it).unwrap_or_default()
                 })
             })
@@ -666,7 +666,7 @@ impl InheritanceAnnotationConverter for PouIndexEntry {
         };
 
         let mut overrides = vec![];
-        let method_name = self.get_flat_reference_name();
+        let method_name = self.get_call_name();
 
         // Annotate as concrete override if a super-class also defines this method
         if let Some(inherited_method) = index
@@ -690,7 +690,7 @@ impl InheritanceAnnotationConverter for PouIndexEntry {
                 interface
                     .get_methods(index)
                     .iter()
-                    .filter(|it| it.get_flat_reference_name() == method_name)
+                    .filter(|it| it.get_call_name() == method_name)
                     .for_each(|it| overrides.push(MethodDeclarationType::abstract_method(it.get_name())));
             }
         });
@@ -940,7 +940,7 @@ pub trait AnnotationMap {
 
 #[derive(Debug, Default)]
 pub struct AstAnnotations {
-    annotation_map: AnnotationMapImpl,
+    pub annotation_map: AnnotationMapImpl,
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
@@ -1301,7 +1301,7 @@ impl<'i> TypeAnnotator<'i> {
                         AstFactory::create_call_to_check_function_ast(
                             f.get_call_name(),
                             right_side.clone(),
-                            sub_range.clone(),
+                            *sub_range.clone(),
                             &annotated_left_side.get_location(),
                             ctx.id_provider.clone(),
                         )

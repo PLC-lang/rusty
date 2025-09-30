@@ -10,6 +10,7 @@ use inkwell::{
     },
     module::Module,
     targets::TargetData,
+    types::BasicTypeEnum,
     values::{BasicMetadataValueEnum, FunctionValue, GlobalValue, PointerValue},
 };
 use rustc_hash::FxHashMap;
@@ -20,7 +21,9 @@ use plc_source::source_location::SourceLocation;
 
 use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry},
-    typesystem::{DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, WCHAR_TYPE},
+    typesystem::{
+        DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, VOID_INTERNAL_NAME, WCHAR_TYPE,
+    },
     DebugLevel, OptimizationLevel,
 };
 
@@ -297,7 +300,11 @@ impl<'ink> DebugBuilder<'ink> {
         index: &Index,
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
-        //Create each type
+        if location.is_internal() {
+            return Ok(());
+        }
+
+        // Create each type
         let index_types = members
             .iter()
             .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
@@ -306,7 +313,11 @@ impl<'ink> DebugBuilder<'ink> {
                 index.get_type(type_name.as_ref()).map(|dt| (name, dt, location, is_constant))
             })
             .collect::<Result<Vec<_>, Diagnostic>>()?;
-        let struct_type = types_index.get_associated_type(name).map(|it| it.into_struct_type())?;
+
+        let struct_type = types_index.get_associated_type(name).map(|ty| match ty {
+            BasicTypeEnum::StructType(value) => value,
+            _ => self.context.opaque_struct_type(name),
+        })?;
 
         let file = location
             .get_file_name()
@@ -409,7 +420,21 @@ impl<'ink> DebugBuilder<'ink> {
         types_index: &LlvmTypedIndex,
     ) -> Result<(), Diagnostic> {
         let inner_type = index.get_type(inner_type)?;
-        let inner_type = self.get_or_create_debug_type(inner_type, index, types_index)?;
+        let inner_type = if inner_type.is_void() {
+            DebugType::Basic(
+                self.debug_info
+                    .create_basic_type(
+                        VOID_INTERNAL_NAME,
+                        0,
+                        DebugEncoding::DW_ATE_unsigned as u32,
+                        DIFlagsConstants::PUBLIC,
+                    )
+                    .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?,
+            )
+        } else {
+            self.get_or_create_debug_type(inner_type, index, types_index)?
+        };
+
         let llvm_type = types_index.get_associated_type(name)?;
         let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
         let pointer_type = self.debug_info.create_pointer_type(
@@ -584,7 +609,7 @@ impl<'ink> DebugBuilder<'ink> {
         return_type: Option<&DataType>,
         parameter_types: &[&DataType],
         implementation_start: usize,
-    ) -> DISubprogram {
+    ) -> DISubprogram<'_> {
         let location = pou.get_location();
         let file = location
             .get_file_name()
@@ -728,6 +753,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let type_info = datatype.get_type_information();
             let size = types_index
                 .find_associated_type(name)
+                .or_else(|| types_index.find_associated_pou_type(name))
                 .map(|llvm_type| self.target_data.get_bit_size(&llvm_type))
                 .unwrap_or(0);
             let location = &datatype.location;

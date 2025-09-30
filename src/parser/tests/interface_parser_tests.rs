@@ -239,7 +239,7 @@ fn pou_implementing_single_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.pous[0], @r###"
+    insta::assert_debug_snapshot!(unit.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -255,7 +255,7 @@ fn pou_implementing_single_interface() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -267,7 +267,7 @@ fn pou_implementing_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.pous[0], @r###"
+    insta::assert_debug_snapshot!(unit.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -295,7 +295,7 @@ fn pou_implementing_multiple_interfaces() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]

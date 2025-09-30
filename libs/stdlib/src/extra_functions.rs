@@ -285,7 +285,7 @@ mod test {
     #[test]
     fn lreal_to_string_conversion() {
         let lreal = 10230.2321123121;
-        let lreal_neg = lreal * -1.0;
+        let lreal_neg = -lreal;
         let pre_e_notation = 99_999_999_999_999.25;
         let e_notation = 123_456_789_123_456.13;
         let mut dest = [0_u8; 81];
