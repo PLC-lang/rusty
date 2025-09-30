@@ -37,7 +37,8 @@ use crate::{
     },
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
-        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension, StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE
+        self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
+        StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
 
@@ -1725,7 +1726,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                         let element_size = match inner_type.get_type_information() {
                             DataTypeInformation::String { size, .. } => {
-                                size.as_int_value(self.index).unwrap_or((DEFAULT_STRING_LEN + 1_u32).into()) as u64
+                                size.as_int_value(self.index).unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
+                                    as u64
                             }
                             DataTypeInformation::Array { dimensions, .. } => {
                                 // For nested arrays, calculate total size
