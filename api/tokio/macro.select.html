@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Waits on multiple concurrent branches, returning when the first branch completes, cancelling the remaining branches."><title>select in tokio - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tokio/index.html">tokio</a><span class="version">1.42.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">select</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#runtime-characteristics" title="Runtime characteristics">Runtime characteristics</a></li><li><a href="#fairness" title="Fairness">Fairness</a></li><li><a href="#panics" title="Panics">Panics</a></li><li><a href="#cancellation-safety" title="Cancellation safety">Cancellation safety</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#avoid-racy-if-preconditions" title="Avoid racy `if` preconditions">Avoid racy <code>if</code> preconditions</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate tokio</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">tokio</a></div><h1>Macro <span class="macro">select</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/tokio/macros/select.rs.html#408-422">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! select {
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Waits on multiple concurrent branches, returning when the first branch completes, cancelling the remaining branches."><title>select in tokio - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../" data-static-root-path="../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../static.files/favicon-044be391.svg"></head><body class="rustdoc macro"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../tokio/index.html">tokio</a><span class="version">1.47.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">select</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#runtime-characteristics" title="Runtime characteristics">Runtime characteristics</a></li><li><a href="#fairness" title="Fairness">Fairness</a></li><li><a href="#panics" title="Panics">Panics</a></li><li><a href="#cancellation-safety" title="Cancellation safety">Cancellation safety</a></li><li><a href="#examples" title="Examples">Examples</a><ul><li><a href="#avoid-racy-if-preconditions" title="Avoid racy `if` preconditions">Avoid racy <code>if</code> preconditions</a></li></ul></li><li><a href="#alternatives-from-the-ecosystem" title="Alternatives from the Ecosystem">Alternatives from the Ecosystem</a><ul><li><a href="#merging-streams" title="Merging Streams">Merging Streams</a></li><li><a href="#racing-futures" title="Racing Futures">Racing Futures</a></li></ul></li></ul></section><div id="rustdoc-modnav"><h2 class="in-crate"><a href="index.html">In crate tokio</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="index.html">tokio</a></div><h1>Macro <span class="macro">select</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../src/tokio/macros/select.rs.html#555-569">Source</a> </span></div><pre class="rust item-decl"><code>macro_rules! select {
     {
         $(
             biased;
@@ -348,6 +348,135 @@ run uninterrupted despite the sleep having elapsed.</p>
                 <span class="macro">println!</span>(<span class="string">"operation completed"</span>);
             }
         }
+    }
+}</code></pre></div>
+<h2 id="alternatives-from-the-ecosystem"><a class="doc-anchor" href="#alternatives-from-the-ecosystem">§</a>Alternatives from the Ecosystem</h2>
+<p>The <code>select!</code> macro is a powerful tool for managing multiple asynchronous
+branches, enabling tasks to run concurrently within the same thread. However,
+its use can introduce challenges, particularly around cancellation safety, which
+can lead to subtle and hard-to-debug errors. For many use cases, ecosystem
+alternatives may be preferable as they mitigate these concerns by offering
+clearer syntax, more predictable control flow, and reducing the need to manually
+handle issues like fuse semantics or cancellation safety.</p>
+<h3 id="merging-streams"><a class="doc-anchor" href="#merging-streams">§</a>Merging Streams</h3>
+<p>For cases where <code>loop { select! { ... } }</code> is used to poll multiple tasks,
+stream merging offers a concise alternative, inherently handle cancellation-safe
+processing, removing the risk of data loss. Libraries such as <a href="https://docs.rs/tokio-stream/latest/tokio_stream/"><code>tokio_stream</code></a>,
+<a href="https://docs.rs/futures/latest/futures/stream/"><code>futures::stream</code></a> and <a href="https://docs.rs/futures-concurrency/latest/futures_concurrency/"><code>futures_concurrency</code></a> provide tools for merging
+streams and handling their outputs sequentially.</p>
+<h4 id="example-with-select"><a class="doc-anchor" href="#example-with-select">§</a>Example with <code>select!</code></h4>
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">struct </span>File;
+<span class="kw">struct </span>Channel;
+<span class="kw">struct </span>Socket;
+
+<span class="kw">impl </span>Socket {
+    <span class="kw">async fn </span>read_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="macro">vec!</span>[]
+    }
+}
+
+<span class="kw">async fn </span>read_send(_file: <span class="kw-2">&amp;mut </span>File, _channel: <span class="kw-2">&amp;mut </span>Channel) {
+    <span class="comment">// do work that is not cancel safe
+</span>}
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() {
+    <span class="comment">// open our IO types
+    </span><span class="kw">let </span><span class="kw-2">mut </span>file = File;
+    <span class="kw">let </span><span class="kw-2">mut </span>channel = Channel;
+    <span class="kw">let </span><span class="kw-2">mut </span>socket = Socket;
+
+    <span class="kw">loop </span>{
+        <span class="macro">tokio::select!</span> {
+            <span class="kw">_ </span>= read_send(<span class="kw-2">&amp;mut </span>file, <span class="kw-2">&amp;mut </span>channel) =&gt; { <span class="comment">/* ... */ </span>},
+            _data = socket.read_packet() =&gt; { <span class="comment">/* ... */ </span>}
+            <span class="kw">_ </span>= futures::future::ready(()) =&gt; <span class="kw">break
+        </span>}
+    }
+}
+</code></pre></div>
+<h4 id="moving-to-merge"><a class="doc-anchor" href="#moving-to-merge">§</a>Moving to <code>merge</code></h4>
+<p>By using merge, you can unify multiple asynchronous tasks into a single stream,
+eliminating the need to manage tasks manually and reducing the risk of
+unintended behavior like data loss.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>std::pin::pin;
+
+<span class="kw">use </span>futures::stream::unfold;
+<span class="kw">use </span>tokio_stream::StreamExt;
+
+<span class="kw">struct </span>File;
+<span class="kw">struct </span>Channel;
+<span class="kw">struct </span>Socket;
+
+<span class="kw">impl </span>Socket {
+    <span class="kw">async fn </span>read_packet(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; Vec&lt;u8&gt; {
+        <span class="macro">vec!</span>[]
+    }
+}
+
+<span class="kw">async fn </span>read_send(_file: <span class="kw-2">&amp;mut </span>File, _channel: <span class="kw-2">&amp;mut </span>Channel) {
+    <span class="comment">// do work that is not cancel safe
+</span>}
+
+<span class="kw">enum </span>Message {
+    Stop,
+    Sent,
+    Data(Vec&lt;u8&gt;),
+}
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() {
+    <span class="comment">// open our IO types
+    </span><span class="kw">let </span>file = File;
+    <span class="kw">let </span>channel = Channel;
+    <span class="kw">let </span>socket = Socket;
+
+    <span class="kw">let </span>a = unfold((file, channel), |(<span class="kw-2">mut </span>file, <span class="kw-2">mut </span>channel)| <span class="kw">async </span>{
+        read_send(<span class="kw-2">&amp;mut </span>file, <span class="kw-2">&amp;mut </span>channel).<span class="kw">await</span>;
+        <span class="prelude-val">Some</span>((Message::Sent, (file, channel)))
+    });
+    <span class="kw">let </span>b = unfold(socket, |<span class="kw-2">mut </span>socket| <span class="kw">async </span>{
+        <span class="kw">let </span>data = socket.read_packet().<span class="kw">await</span>;
+        <span class="prelude-val">Some</span>((Message::Data(data), socket))
+    });
+    <span class="kw">let </span>c = tokio_stream::iter([Message::Stop]);
+
+    <span class="kw">let </span><span class="kw-2">mut </span>s = <span class="macro">pin!</span>(a.merge(b).merge(c));
+    <span class="kw">while let </span><span class="prelude-val">Some</span>(msg) = s.next().<span class="kw">await </span>{
+        <span class="kw">match </span>msg {
+            Message::Data(_data) =&gt; { <span class="comment">/* ... */ </span>}
+            Message::Sent =&gt; <span class="kw">continue</span>,
+            Message::Stop =&gt; <span class="kw">break</span>,
+        }
+    }
+}</code></pre></div>
+<h3 id="racing-futures"><a class="doc-anchor" href="#racing-futures">§</a>Racing Futures</h3>
+<p>If you need to wait for the first completion among several asynchronous tasks,
+ecosystem utilities such as
+<a href="https://docs.rs/futures/latest/futures/"><code>futures</code></a>,
+<a href="https://docs.rs/futures-lite/latest/futures_lite/"><code>futures-lite</code></a> or
+<a href="https://docs.rs/futures-concurrency/latest/futures_concurrency/"><code>futures-concurrency</code></a>
+provide streamlined syntax for racing futures:</p>
+<ul>
+<li><a href="https://docs.rs/futures-concurrency/latest/futures_concurrency/future/trait.Race.html"><code>futures_concurrency::future::Race</code></a></li>
+<li><a href="https://docs.rs/futures/latest/futures/macro.select.html"><code>futures::select</code></a></li>
+<li><a href="https://docs.rs/futures/latest/futures/stream/select_all/index.html"><code>futures::stream::select_all</code></a> (for streams)</li>
+<li><a href="https://docs.rs/futures-lite/latest/futures_lite/future/fn.or.html"><code>futures_lite::future::or</code></a></li>
+<li><a href="https://docs.rs/futures-lite/latest/futures_lite/future/fn.race.html"><code>futures_lite::future::race</code></a></li>
+</ul>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures_concurrency::future::Race;
+
+<span class="attr">#[tokio::main]
+</span><span class="kw">async fn </span>main() {
+    <span class="kw">let </span>task_a = <span class="kw">async </span>{ <span class="prelude-val">Ok</span>(<span class="string">"ok"</span>) };
+    <span class="kw">let </span>task_b = <span class="kw">async </span>{ <span class="prelude-val">Err</span>(<span class="string">"error"</span>) };
+    <span class="kw">let </span>result = (task_a, task_b).race().<span class="kw">await</span>;
+
+    <span class="kw">match </span>result {
+        <span class="prelude-val">Ok</span>(output) =&gt; <span class="macro">println!</span>(<span class="string">"First task completed with: {output}"</span>),
+        <span class="prelude-val">Err</span>(err) =&gt; <span class="macro">eprintln!</span>(<span class="string">"Error occurred: {err}"</span>),
     }
 }</code></pre></div>
 </div></details></section></div></main></body></html>

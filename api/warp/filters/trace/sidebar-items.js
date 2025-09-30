@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["named","request","trace"],"struct":["Info","Trace"]};

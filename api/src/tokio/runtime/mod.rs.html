@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.42.0/src/runtime/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The Tokio runtime.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/runtime/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/runtime/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The Tokio runtime.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! Unlike other Rust programs, asynchronous applications require runtime
 <a href=#4 id=4 data-nosnippet>4</a>//! support. In particular, the following runtime services are necessary:
@@ -36,7 +36,7 @@
 <a href=#36 id=36 data-nosnippet>36</a>//!             loop {
 <a href=#37 id=37 data-nosnippet>37</a>//!                 let n = match socket.read(&amp;mut buf).await {
 <a href=#38 id=38 data-nosnippet>38</a>//!                     // socket closed
-<a href=#39 id=39 data-nosnippet>39</a>//!                     Ok(n) if n == 0 =&gt; return,
+<a href=#39 id=39 data-nosnippet>39</a>//!                     Ok(0) =&gt; return,
 <a href=#40 id=40 data-nosnippet>40</a>//!                     Ok(n) =&gt; n,
 <a href=#41 id=41 data-nosnippet>41</a>//!                     Err(e) =&gt; {
 <a href=#42 id=42 data-nosnippet>42</a>//!                         println!("failed to read from socket; err = {:?}", e);
@@ -84,7 +84,7 @@
 <a href=#84 id=84 data-nosnippet>84</a>//!                 loop {
 <a href=#85 id=85 data-nosnippet>85</a>//!                     let n = match socket.read(&amp;mut buf).await {
 <a href=#86 id=86 data-nosnippet>86</a>//!                         // socket closed
-<a href=#87 id=87 data-nosnippet>87</a>//!                         Ok(n) if n == 0 =&gt; return,
+<a href=#87 id=87 data-nosnippet>87</a>//!                         Ok(0) =&gt; return,
 <a href=#88 id=88 data-nosnippet>88</a>//!                         Ok(n) =&gt; n,
 <a href=#89 id=89 data-nosnippet>89</a>//!                         Err(e) =&gt; {
 <a href=#90 id=90 data-nosnippet>90</a>//!                             println!("failed to read from socket; err = {:?}", e);
@@ -310,7 +310,7 @@
 <a href=#310 id=310 data-nosnippet>310</a>//! [`event_interval`]: crate::runtime::Builder::event_interval
 <a href=#311 id=311 data-nosnippet>311</a>//! [`disable_lifo_slot`]: crate::runtime::Builder::disable_lifo_slot
 <a href=#312 id=312 data-nosnippet>312</a>//! [the lifo slot optimization]: crate::runtime::Builder::disable_lifo_slot
-<a href=#313 id=313 data-nosnippet>313</a>//! [coop budget]: crate::task#cooperative-scheduling
+<a href=#313 id=313 data-nosnippet>313</a>//! [coop budget]: crate::task::coop#cooperative-scheduling
 <a href=#314 id=314 data-nosnippet>314</a>//! [`worker_mean_poll_time`]: crate::runtime::RuntimeMetrics::worker_mean_poll_time
 <a href=#315 id=315 data-nosnippet>315</a>
 <a href=#316 id=316 data-nosnippet>316</a></span><span class="comment">// At the top due to macros
@@ -321,105 +321,103 @@
 <a href=#321 id=321 data-nosnippet>321</a>
 <a href=#322 id=322 data-nosnippet>322</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>context;
 <a href=#323 id=323 data-nosnippet>323</a>
-<a href=#324 id=324 data-nosnippet>324</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>coop;
+<a href=#324 id=324 data-nosnippet>324</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>park;
 <a href=#325 id=325 data-nosnippet>325</a>
-<a href=#326 id=326 data-nosnippet>326</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>park;
+<a href=#326 id=326 data-nosnippet>326</a><span class="kw">mod </span>driver;
 <a href=#327 id=327 data-nosnippet>327</a>
-<a href=#328 id=328 data-nosnippet>328</a><span class="kw">mod </span>driver;
+<a href=#328 id=328 data-nosnippet>328</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>scheduler;
 <a href=#329 id=329 data-nosnippet>329</a>
-<a href=#330 id=330 data-nosnippet>330</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>scheduler;
-<a href=#331 id=331 data-nosnippet>331</a>
-<a href=#332 id=332 data-nosnippet>332</a><span class="macro">cfg_io_driver_impl!</span> {
-<a href=#333 id=333 data-nosnippet>333</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>io;
-<a href=#334 id=334 data-nosnippet>334</a>}
-<a href=#335 id=335 data-nosnippet>335</a>
-<a href=#336 id=336 data-nosnippet>336</a><span class="macro">cfg_process_driver!</span> {
-<a href=#337 id=337 data-nosnippet>337</a>    <span class="kw">mod </span>process;
-<a href=#338 id=338 data-nosnippet>338</a>}
-<a href=#339 id=339 data-nosnippet>339</a>
-<a href=#340 id=340 data-nosnippet>340</a><span class="macro">cfg_time!</span> {
-<a href=#341 id=341 data-nosnippet>341</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>time;
-<a href=#342 id=342 data-nosnippet>342</a>}
-<a href=#343 id=343 data-nosnippet>343</a>
-<a href=#344 id=344 data-nosnippet>344</a><span class="macro">cfg_signal_internal_and_unix!</span> {
-<a href=#345 id=345 data-nosnippet>345</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>signal;
-<a href=#346 id=346 data-nosnippet>346</a>}
-<a href=#347 id=347 data-nosnippet>347</a>
-<a href=#348 id=348 data-nosnippet>348</a><span class="macro">cfg_rt!</span> {
-<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>task;
-<a href=#350 id=350 data-nosnippet>350</a>
-<a href=#351 id=351 data-nosnippet>351</a>    <span class="kw">mod </span>config;
-<a href=#352 id=352 data-nosnippet>352</a>    <span class="kw">use </span>config::Config;
-<a href=#353 id=353 data-nosnippet>353</a>
-<a href=#354 id=354 data-nosnippet>354</a>    <span class="kw">mod </span>blocking;
-<a href=#355 id=355 data-nosnippet>355</a>    <span class="attr">#[cfg_attr(target_os = <span class="string">"wasi"</span>, allow(unused_imports))]
-<a href=#356 id=356 data-nosnippet>356</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::spawn_blocking;
-<a href=#357 id=357 data-nosnippet>357</a>
-<a href=#358 id=358 data-nosnippet>358</a>    <span class="macro">cfg_trace!</span> {
-<a href=#359 id=359 data-nosnippet>359</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::Mandatory;
-<a href=#360 id=360 data-nosnippet>360</a>    }
-<a href=#361 id=361 data-nosnippet>361</a>
-<a href=#362 id=362 data-nosnippet>362</a>    <span class="macro">cfg_fs!</span> {
-<a href=#363 id=363 data-nosnippet>363</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::spawn_mandatory_blocking;
-<a href=#364 id=364 data-nosnippet>364</a>    }
-<a href=#365 id=365 data-nosnippet>365</a>
-<a href=#366 id=366 data-nosnippet>366</a>    <span class="kw">mod </span>builder;
-<a href=#367 id=367 data-nosnippet>367</a>    <span class="kw">pub use </span><span class="self">self</span>::builder::Builder;
-<a href=#368 id=368 data-nosnippet>368</a>    <span class="macro">cfg_unstable!</span> {
-<a href=#369 id=369 data-nosnippet>369</a>        <span class="kw">mod </span>id;
-<a href=#370 id=370 data-nosnippet>370</a>        <span class="attr">#[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
-<a href=#371 id=371 data-nosnippet>371</a>        </span><span class="kw">pub use </span>id::Id;
-<a href=#372 id=372 data-nosnippet>372</a>
-<a href=#373 id=373 data-nosnippet>373</a>        <span class="kw">pub use </span><span class="self">self</span>::builder::UnhandledPanic;
-<a href=#374 id=374 data-nosnippet>374</a>        <span class="kw">pub use </span><span class="kw">crate</span>::util::rand::RngSeed;
-<a href=#375 id=375 data-nosnippet>375</a>
-<a href=#376 id=376 data-nosnippet>376</a>        <span class="kw">mod </span>local_runtime;
-<a href=#377 id=377 data-nosnippet>377</a>        <span class="kw">pub use </span>local_runtime::{LocalRuntime, LocalOptions};
-<a href=#378 id=378 data-nosnippet>378</a>    }
-<a href=#379 id=379 data-nosnippet>379</a>
-<a href=#380 id=380 data-nosnippet>380</a>    <span class="macro">cfg_taskdump!</span> {
-<a href=#381 id=381 data-nosnippet>381</a>        <span class="kw">pub mod </span>dump;
-<a href=#382 id=382 data-nosnippet>382</a>        <span class="kw">pub use </span>dump::Dump;
-<a href=#383 id=383 data-nosnippet>383</a>    }
-<a href=#384 id=384 data-nosnippet>384</a>
-<a href=#385 id=385 data-nosnippet>385</a>    <span class="kw">mod </span>task_hooks;
-<a href=#386 id=386 data-nosnippet>386</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>task_hooks::{TaskHooks, TaskCallback};
-<a href=#387 id=387 data-nosnippet>387</a>    <span class="macro">cfg_unstable!</span> {
-<a href=#388 id=388 data-nosnippet>388</a>        <span class="kw">pub use </span>task_hooks::TaskMeta;
-<a href=#389 id=389 data-nosnippet>389</a>    }
-<a href=#390 id=390 data-nosnippet>390</a>    <span class="attr">#[cfg(not(tokio_unstable))]
-<a href=#391 id=391 data-nosnippet>391</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>task_hooks::TaskMeta;
-<a href=#392 id=392 data-nosnippet>392</a>
-<a href=#393 id=393 data-nosnippet>393</a>    <span class="kw">mod </span>handle;
-<a href=#394 id=394 data-nosnippet>394</a>    <span class="kw">pub use </span>handle::{EnterGuard, Handle, TryCurrentError};
-<a href=#395 id=395 data-nosnippet>395</a>
-<a href=#396 id=396 data-nosnippet>396</a>    <span class="kw">mod </span>runtime;
-<a href=#397 id=397 data-nosnippet>397</a>    <span class="kw">pub use </span>runtime::{Runtime, RuntimeFlavor};
-<a href=#398 id=398 data-nosnippet>398</a>
-<a href=#399 id=399 data-nosnippet>399</a>    <span class="doccomment">/// Boundary value to prevent stack overflow caused by a large-sized
-<a href=#400 id=400 data-nosnippet>400</a>    /// Future being placed in the stack.
-<a href=#401 id=401 data-nosnippet>401</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BOX_FUTURE_THRESHOLD: usize = <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions)  {
-<a href=#402 id=402 data-nosnippet>402</a>        <span class="number">2048
-<a href=#403 id=403 data-nosnippet>403</a>    </span>} <span class="kw">else </span>{
-<a href=#404 id=404 data-nosnippet>404</a>        <span class="number">16384
-<a href=#405 id=405 data-nosnippet>405</a>    </span>};
-<a href=#406 id=406 data-nosnippet>406</a>
-<a href=#407 id=407 data-nosnippet>407</a>    <span class="kw">mod </span>thread_id;
-<a href=#408 id=408 data-nosnippet>408</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>thread_id::ThreadId;
-<a href=#409 id=409 data-nosnippet>409</a>
-<a href=#410 id=410 data-nosnippet>410</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>metrics;
-<a href=#411 id=411 data-nosnippet>411</a>    <span class="kw">pub use </span>metrics::RuntimeMetrics;
-<a href=#412 id=412 data-nosnippet>412</a>
-<a href=#413 id=413 data-nosnippet>413</a>    <span class="macro">cfg_unstable_metrics!</span> {
-<a href=#414 id=414 data-nosnippet>414</a>        <span class="kw">pub use </span>metrics::{HistogramScale, HistogramConfiguration, LogHistogram, LogHistogramBuilder, InvalidHistogramConfiguration} ;
-<a href=#415 id=415 data-nosnippet>415</a>
-<a href=#416 id=416 data-nosnippet>416</a>        <span class="macro">cfg_net!</span> {
-<a href=#417 id=417 data-nosnippet>417</a>            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>metrics::IoDriverMetrics;
-<a href=#418 id=418 data-nosnippet>418</a>        }
-<a href=#419 id=419 data-nosnippet>419</a>    }
+<a href=#330 id=330 data-nosnippet>330</a><span class="macro">cfg_io_driver_impl!</span> {
+<a href=#331 id=331 data-nosnippet>331</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>io;
+<a href=#332 id=332 data-nosnippet>332</a>}
+<a href=#333 id=333 data-nosnippet>333</a>
+<a href=#334 id=334 data-nosnippet>334</a><span class="macro">cfg_process_driver!</span> {
+<a href=#335 id=335 data-nosnippet>335</a>    <span class="kw">mod </span>process;
+<a href=#336 id=336 data-nosnippet>336</a>}
+<a href=#337 id=337 data-nosnippet>337</a>
+<a href=#338 id=338 data-nosnippet>338</a><span class="macro">cfg_time!</span> {
+<a href=#339 id=339 data-nosnippet>339</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>time;
+<a href=#340 id=340 data-nosnippet>340</a>}
+<a href=#341 id=341 data-nosnippet>341</a>
+<a href=#342 id=342 data-nosnippet>342</a><span class="macro">cfg_signal_internal_and_unix!</span> {
+<a href=#343 id=343 data-nosnippet>343</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>signal;
+<a href=#344 id=344 data-nosnippet>344</a>}
+<a href=#345 id=345 data-nosnippet>345</a>
+<a href=#346 id=346 data-nosnippet>346</a><span class="macro">cfg_rt!</span> {
+<a href=#347 id=347 data-nosnippet>347</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>task;
+<a href=#348 id=348 data-nosnippet>348</a>
+<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">mod </span>config;
+<a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">use </span>config::Config;
+<a href=#351 id=351 data-nosnippet>351</a>
+<a href=#352 id=352 data-nosnippet>352</a>    <span class="kw">mod </span>blocking;
+<a href=#353 id=353 data-nosnippet>353</a>    <span class="attr">#[cfg_attr(target_os = <span class="string">"wasi"</span>, allow(unused_imports))]
+<a href=#354 id=354 data-nosnippet>354</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::spawn_blocking;
+<a href=#355 id=355 data-nosnippet>355</a>
+<a href=#356 id=356 data-nosnippet>356</a>    <span class="macro">cfg_trace!</span> {
+<a href=#357 id=357 data-nosnippet>357</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::Mandatory;
+<a href=#358 id=358 data-nosnippet>358</a>    }
+<a href=#359 id=359 data-nosnippet>359</a>
+<a href=#360 id=360 data-nosnippet>360</a>    <span class="macro">cfg_fs!</span> {
+<a href=#361 id=361 data-nosnippet>361</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>blocking::spawn_mandatory_blocking;
+<a href=#362 id=362 data-nosnippet>362</a>    }
+<a href=#363 id=363 data-nosnippet>363</a>
+<a href=#364 id=364 data-nosnippet>364</a>    <span class="kw">mod </span>builder;
+<a href=#365 id=365 data-nosnippet>365</a>    <span class="kw">pub use </span><span class="self">self</span>::builder::Builder;
+<a href=#366 id=366 data-nosnippet>366</a>    <span class="macro">cfg_unstable!</span> {
+<a href=#367 id=367 data-nosnippet>367</a>        <span class="kw">mod </span>id;
+<a href=#368 id=368 data-nosnippet>368</a>        <span class="attr">#[cfg_attr(not(tokio_unstable), allow(unreachable_pub))]
+<a href=#369 id=369 data-nosnippet>369</a>        </span><span class="kw">pub use </span>id::Id;
+<a href=#370 id=370 data-nosnippet>370</a>
+<a href=#371 id=371 data-nosnippet>371</a>        <span class="kw">pub use </span><span class="self">self</span>::builder::UnhandledPanic;
+<a href=#372 id=372 data-nosnippet>372</a>        <span class="kw">pub use </span><span class="kw">crate</span>::util::rand::RngSeed;
+<a href=#373 id=373 data-nosnippet>373</a>
+<a href=#374 id=374 data-nosnippet>374</a>        <span class="kw">mod </span>local_runtime;
+<a href=#375 id=375 data-nosnippet>375</a>        <span class="kw">pub use </span>local_runtime::{LocalRuntime, LocalOptions};
+<a href=#376 id=376 data-nosnippet>376</a>    }
+<a href=#377 id=377 data-nosnippet>377</a>
+<a href=#378 id=378 data-nosnippet>378</a>    <span class="macro">cfg_taskdump!</span> {
+<a href=#379 id=379 data-nosnippet>379</a>        <span class="kw">pub mod </span>dump;
+<a href=#380 id=380 data-nosnippet>380</a>        <span class="kw">pub use </span>dump::Dump;
+<a href=#381 id=381 data-nosnippet>381</a>    }
+<a href=#382 id=382 data-nosnippet>382</a>
+<a href=#383 id=383 data-nosnippet>383</a>    <span class="kw">mod </span>task_hooks;
+<a href=#384 id=384 data-nosnippet>384</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>task_hooks::{TaskHooks, TaskCallback};
+<a href=#385 id=385 data-nosnippet>385</a>    <span class="macro">cfg_unstable!</span> {
+<a href=#386 id=386 data-nosnippet>386</a>        <span class="kw">pub use </span>task_hooks::TaskMeta;
+<a href=#387 id=387 data-nosnippet>387</a>    }
+<a href=#388 id=388 data-nosnippet>388</a>    <span class="attr">#[cfg(not(tokio_unstable))]
+<a href=#389 id=389 data-nosnippet>389</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>task_hooks::TaskMeta;
+<a href=#390 id=390 data-nosnippet>390</a>
+<a href=#391 id=391 data-nosnippet>391</a>    <span class="kw">mod </span>handle;
+<a href=#392 id=392 data-nosnippet>392</a>    <span class="kw">pub use </span>handle::{EnterGuard, Handle, TryCurrentError};
+<a href=#393 id=393 data-nosnippet>393</a>
+<a href=#394 id=394 data-nosnippet>394</a>    <span class="kw">mod </span>runtime;
+<a href=#395 id=395 data-nosnippet>395</a>    <span class="kw">pub use </span>runtime::{Runtime, RuntimeFlavor};
+<a href=#396 id=396 data-nosnippet>396</a>
+<a href=#397 id=397 data-nosnippet>397</a>    <span class="doccomment">/// Boundary value to prevent stack overflow caused by a large-sized
+<a href=#398 id=398 data-nosnippet>398</a>    /// Future being placed in the stack.
+<a href=#399 id=399 data-nosnippet>399</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>BOX_FUTURE_THRESHOLD: usize = <span class="kw">if </span><span class="macro">cfg!</span>(debug_assertions)  {
+<a href=#400 id=400 data-nosnippet>400</a>        <span class="number">2048
+<a href=#401 id=401 data-nosnippet>401</a>    </span>} <span class="kw">else </span>{
+<a href=#402 id=402 data-nosnippet>402</a>        <span class="number">16384
+<a href=#403 id=403 data-nosnippet>403</a>    </span>};
+<a href=#404 id=404 data-nosnippet>404</a>
+<a href=#405 id=405 data-nosnippet>405</a>    <span class="kw">mod </span>thread_id;
+<a href=#406 id=406 data-nosnippet>406</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>thread_id::ThreadId;
+<a href=#407 id=407 data-nosnippet>407</a>
+<a href=#408 id=408 data-nosnippet>408</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>metrics;
+<a href=#409 id=409 data-nosnippet>409</a>    <span class="kw">pub use </span>metrics::RuntimeMetrics;
+<a href=#410 id=410 data-nosnippet>410</a>
+<a href=#411 id=411 data-nosnippet>411</a>    <span class="macro">cfg_unstable_metrics!</span> {
+<a href=#412 id=412 data-nosnippet>412</a>        <span class="kw">pub use </span>metrics::{HistogramScale, HistogramConfiguration, LogHistogram, LogHistogramBuilder, InvalidHistogramConfiguration} ;
+<a href=#413 id=413 data-nosnippet>413</a>
+<a href=#414 id=414 data-nosnippet>414</a>        <span class="macro">cfg_net!</span> {
+<a href=#415 id=415 data-nosnippet>415</a>            <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>metrics::IoDriverMetrics;
+<a href=#416 id=416 data-nosnippet>416</a>        }
+<a href=#417 id=417 data-nosnippet>417</a>    }
+<a href=#418 id=418 data-nosnippet>418</a>
+<a href=#419 id=419 data-nosnippet>419</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>metrics::{MetricsBatch, SchedulerMetrics, WorkerMetrics, HistogramBuilder};
 <a href=#420 id=420 data-nosnippet>420</a>
-<a href=#421 id=421 data-nosnippet>421</a>    <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">use </span>metrics::{MetricsBatch, SchedulerMetrics, WorkerMetrics, HistogramBuilder};
-<a href=#422 id=422 data-nosnippet>422</a>
-<a href=#423 id=423 data-nosnippet>423</a>    <span class="doccomment">/// After thread starts / before thread stops
-<a href=#424 id=424 data-nosnippet>424</a>    </span><span class="kw">type </span>Callback = std::sync::Arc&lt;<span class="kw">dyn </span>Fn() + Send + Sync&gt;;
-<a href=#425 id=425 data-nosnippet>425</a>}</code></pre></div></section></main></body></html>
+<a href=#421 id=421 data-nosnippet>421</a>    <span class="doccomment">/// After thread starts / before thread stops
+<a href=#422 id=422 data-nosnippet>422</a>    </span><span class="kw">type </span>Callback = std::sync::Arc&lt;<span class="kw">dyn </span>Fn() + Send + Sync&gt;;
+<a href=#423 id=423 data-nosnippet>423</a>}</code></pre></div></section></main></body></html>

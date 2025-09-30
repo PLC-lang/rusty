@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.42.0/src/content/json.rs`."><title>json.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/content/</div>json.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::fmt::{Display, Write};
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.43.2/src/content/json.rs`."><title>json.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/content/</div>json.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::fmt::{Display, Write};
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span><span class="kw">crate</span>::content::Content;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -7,7 +7,7 @@
 <a href=#7 id=7 data-nosnippet>7</a></span><span class="kw">const </span>COMPACT_MAX_CHARS: usize = <span class="number">120</span>;
 <a href=#8 id=8 data-nosnippet>8</a>
 <a href=#9 id=9 data-nosnippet>9</a><span class="kw">pub fn </span>format_float&lt;T: Display&gt;(value: T) -&gt; String {
-<a href=#10 id=10 data-nosnippet>10</a>    <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="macro">format!</span>(<span class="string">"{}"</span>, value);
+<a href=#10 id=10 data-nosnippet>10</a>    <span class="kw">let </span><span class="kw-2">mut </span>rv = <span class="macro">format!</span>(<span class="string">"{value}"</span>);
 <a href=#11 id=11 data-nosnippet>11</a>    <span class="kw">if </span>!rv.contains(<span class="string">'.'</span>) {
 <a href=#12 id=12 data-nosnippet>12</a>        rv.push_str(<span class="string">".0"</span>);
 <a href=#13 id=13 data-nosnippet>13</a>    }
@@ -116,16 +116,16 @@
 <a href=#116 id=116 data-nosnippet>116</a>        <span class="kw">match </span>value {
 <a href=#117 id=117 data-nosnippet>117</a>            Content::Bool(<span class="bool-val">true</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">"true"</span>),
 <a href=#118 id=118 data-nosnippet>118</a>            Content::Bool(<span class="bool-val">false</span>) =&gt; <span class="self">self</span>.write_str(<span class="string">"false"</span>),
-<a href=#119 id=119 data-nosnippet>119</a>            Content::U8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#120 id=120 data-nosnippet>120</a>            Content::U16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#121 id=121 data-nosnippet>121</a>            Content::U32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#122 id=122 data-nosnippet>122</a>            Content::U64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#123 id=123 data-nosnippet>123</a>            Content::U128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#124 id=124 data-nosnippet>124</a>            Content::I8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#125 id=125 data-nosnippet>125</a>            Content::I16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#126 id=126 data-nosnippet>126</a>            Content::I32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#127 id=127 data-nosnippet>127</a>            Content::I64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
-<a href=#128 id=128 data-nosnippet>128</a>            Content::I128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{}"</span>, n).unwrap(),
+<a href=#119 id=119 data-nosnippet>119</a>            Content::U8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#120 id=120 data-nosnippet>120</a>            Content::U16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#121 id=121 data-nosnippet>121</a>            Content::U32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#122 id=122 data-nosnippet>122</a>            Content::U64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#123 id=123 data-nosnippet>123</a>            Content::U128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#124 id=124 data-nosnippet>124</a>            Content::I8(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#125 id=125 data-nosnippet>125</a>            Content::I16(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#126 id=126 data-nosnippet>126</a>            Content::I32(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#127 id=127 data-nosnippet>127</a>            Content::I64(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
+<a href=#128 id=128 data-nosnippet>128</a>            Content::I128(n) =&gt; <span class="macro">write!</span>(<span class="self">self</span>.out, <span class="string">"{n}"</span>).unwrap(),
 <a href=#129 id=129 data-nosnippet>129</a>            Content::F32(f) =&gt; {
 <a href=#130 id=130 data-nosnippet>130</a>                <span class="kw">if </span>f.is_finite() {
 <a href=#131 id=131 data-nosnippet>131</a>                    <span class="self">self</span>.write_str(<span class="kw-2">&amp;</span>format_float(f));
@@ -336,7 +336,7 @@
 <a href=#336 id=336 data-nosnippet>336</a>        (Content::from(<span class="string">"cmdline"</span>), Content::Seq(<span class="macro">vec!</span>[])),
 <a href=#337 id=337 data-nosnippet>337</a>        (Content::from(<span class="string">"extra"</span>), Content::Map(<span class="macro">vec!</span>[])),
 <a href=#338 id=338 data-nosnippet>338</a>    ]));
-<a href=#339 id=339 data-nosnippet>339</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"{"environments":["development","production"],"cmdline":[],"extra":{}}"###</span>);
+<a href=#339 id=339 data-nosnippet>339</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r#"{"environments":["development","production"],"cmdline":[],"extra":{}}"#</span>);
 <a href=#340 id=340 data-nosnippet>340</a>}
 <a href=#341 id=341 data-nosnippet>341</a>
 <a href=#342 id=342 data-nosnippet>342</a><span class="attr">#[test]
@@ -352,7 +352,7 @@
 <a href=#352 id=352 data-nosnippet>352</a>        (Content::from(<span class="string">"cmdline"</span>), Content::Seq(<span class="macro">vec!</span>[])),
 <a href=#353 id=353 data-nosnippet>353</a>        (Content::from(<span class="string">"extra"</span>), Content::Map(<span class="macro">vec!</span>[])),
 <a href=#354 id=354 data-nosnippet>354</a>    ]));
-<a href=#355 id=355 data-nosnippet>355</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
+<a href=#355 id=355 data-nosnippet>355</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r#"
 <a href=#356 id=356 data-nosnippet>356</a>    {
 <a href=#357 id=357 data-nosnippet>357</a>      "environments": [
 <a href=#358 id=358 data-nosnippet>358</a>        "development",
@@ -361,7 +361,7 @@
 <a href=#361 id=361 data-nosnippet>361</a>      "cmdline": [],
 <a href=#362 id=362 data-nosnippet>362</a>      "extra": {}
 <a href=#363 id=363 data-nosnippet>363</a>    }
-<a href=#364 id=364 data-nosnippet>364</a>    "###</span>);
+<a href=#364 id=364 data-nosnippet>364</a>    "#</span>);
 <a href=#365 id=365 data-nosnippet>365</a>}
 <a href=#366 id=366 data-nosnippet>366</a>
 <a href=#367 id=367 data-nosnippet>367</a><span class="attr">#[test]
@@ -371,12 +371,12 @@
 <a href=#371 id=371 data-nosnippet>371</a>        (Content::from(-<span class="number">23i32</span>), Content::from(<span class="bool-val">false</span>)),
 <a href=#372 id=372 data-nosnippet>372</a>    ]);
 <a href=#373 id=373 data-nosnippet>373</a>    <span class="kw">let </span>json = to_string_pretty(<span class="kw-2">&amp;</span>content);
-<a href=#374 id=374 data-nosnippet>374</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
+<a href=#374 id=374 data-nosnippet>374</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r#"
 <a href=#375 id=375 data-nosnippet>375</a>    {
 <a href=#376 id=376 data-nosnippet>376</a>      "42": true,
 <a href=#377 id=377 data-nosnippet>377</a>      "-23": false
 <a href=#378 id=378 data-nosnippet>378</a>    }
-<a href=#379 id=379 data-nosnippet>379</a>    "###</span>);
+<a href=#379 id=379 data-nosnippet>379</a>    "#</span>);
 <a href=#380 id=380 data-nosnippet>380</a>}
 <a href=#381 id=381 data-nosnippet>381</a>
 <a href=#382 id=382 data-nosnippet>382</a><span class="attr">#[test]
@@ -466,7 +466,7 @@
 <a href=#466 id=466 data-nosnippet>466</a>    ]);
 <a href=#467 id=467 data-nosnippet>467</a>    <span class="kw">let </span>json = to_string_pretty(<span class="kw-2">&amp;</span>content);
 <a href=#468 id=468 data-nosnippet>468</a>
-<a href=#469 id=469 data-nosnippet>469</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r###"
+<a href=#469 id=469 data-nosnippet>469</a>    <span class="macro">crate::assert_snapshot!</span>(<span class="kw-2">&amp;</span>json, @<span class="string">r##"
 <a href=#470 id=470 data-nosnippet>470</a>    {
 <a href=#471 id=471 data-nosnippet>471</a>      "is_alive": true,
 <a href=#472 id=472 data-nosnippet>472</a>      "newtype_variant": {
@@ -525,5 +525,5 @@
 <a href=#525 id=525 data-nosnippet>525</a>      "unit": null,
 <a href=#526 id=526 data-nosnippet>526</a>      "crazy_string": "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\b\t\n\u000b\f\r\u000e\u000f\u0010\u0011\u0012\u0013\u0014\u0015\u0016\u0017\u0018\u0019\u001a\u001b\u001c\u001d\u001e\u001f !\"#$%&amp;'()*+,-./0123456789:;&lt;=&gt;?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 <a href=#527 id=527 data-nosnippet>527</a>    }
-<a href=#528 id=528 data-nosnippet>528</a>    "###</span>);
+<a href=#528 id=528 data-nosnippet>528</a>    "##</span>);
 <a href=#529 id=529 data-nosnippet>529</a>}</code></pre></div></section></main></body></html>

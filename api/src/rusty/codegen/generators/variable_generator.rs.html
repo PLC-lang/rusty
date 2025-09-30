@@ -152,56 +152,50 @@
 <a href=#152 id=152 data-nosnippet>152</a>                );
 <a href=#153 id=153 data-nosnippet>153</a>
 <a href=#154 id=154 data-nosnippet>154</a>                <span class="comment">//see if this value was compile-time evaluated ...
-<a href=#155 id=155 data-nosnippet>155</a>                </span><span class="kw">if let </span><span class="prelude-val">Some</span>(value) =
-<a href=#156 id=156 data-nosnippet>156</a>                    <span class="self">self</span>.types_index.find_constant_value(global_variable.get_qualified_name())
-<a href=#157 id=157 data-nosnippet>157</a>                {
-<a href=#158 id=158 data-nosnippet>158</a>                    <span class="prelude-val">Some</span>(value)
-<a href=#159 id=159 data-nosnippet>159</a>                } <span class="kw">else </span>{
-<a href=#160 id=160 data-nosnippet>160</a>                    <span class="kw">let </span>value = expr_generator.generate_expression(initializer)<span class="question-mark">?</span>;
-<a href=#161 id=161 data-nosnippet>161</a>                    <span class="kw">let </span>target_type = <span class="self">self</span>.global_index.get_effective_type_or_void_by_name(type_name);
-<a href=#162 id=162 data-nosnippet>162</a>                    <span class="kw">let </span>value_type = <span class="self">self</span>.annotations.get_type_or_void(initializer, <span class="self">self</span>.global_index);
-<a href=#163 id=163 data-nosnippet>163</a>                    <span class="prelude-val">Some</span>(<span class="macro">cast_if_needed!</span>(expr_generator, target_type, value_type, value, <span class="prelude-val">None</span>))
-<a href=#164 id=164 data-nosnippet>164</a>                }
-<a href=#165 id=165 data-nosnippet>165</a>            } <span class="kw">else </span>{
-<a href=#166 id=166 data-nosnippet>166</a>                <span class="prelude-val">None
-<a href=#167 id=167 data-nosnippet>167</a>            </span>};
-<a href=#168 id=168 data-nosnippet>168</a>            <span class="kw">let </span>initial_value = initial_value
-<a href=#169 id=169 data-nosnippet>169</a>                <span class="comment">// 2nd try: find an associated default value for the declared type
-<a href=#170 id=170 data-nosnippet>170</a>                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_initial_value(type_name))
-<a href=#171 id=171 data-nosnippet>171</a>                <span class="comment">// 3rd try: get the compiler's default for the given type (zero-initializer)
-<a href=#172 id=172 data-nosnippet>172</a>                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_type(type_name).map(get_default_for));
-<a href=#173 id=173 data-nosnippet>173</a>            global_ir_variable.set_initial_value(initial_value, variable_type);
-<a href=#174 id=174 data-nosnippet>174</a>            <span class="kw">if </span>global_variable.is_constant() &amp;&amp; initial_value.is_none() {
-<a href=#175 id=175 data-nosnippet>175</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
-<a href=#176 id=176 data-nosnippet>176</a>                    <span class="string">"Cannot generate uninitialized constant"</span>,
-<a href=#177 id=177 data-nosnippet>177</a>                    <span class="kw-2">&amp;</span>global_variable.source_location,
-<a href=#178 id=178 data-nosnippet>178</a>                ));
-<a href=#179 id=179 data-nosnippet>179</a>            }
-<a href=#180 id=180 data-nosnippet>180</a>        }
-<a href=#181 id=181 data-nosnippet>181</a>
-<a href=#182 id=182 data-nosnippet>182</a>        <span class="kw">if </span>global_variable.is_constant() {
-<a href=#183 id=183 data-nosnippet>183</a>            global_ir_variable = global_ir_variable.make_constant();
+<a href=#155 id=155 data-nosnippet>155</a>                </span><span class="kw">let </span>value = expr_generator.generate_expression(initializer)<span class="question-mark">?</span>;
+<a href=#156 id=156 data-nosnippet>156</a>                <span class="kw">let </span>target_type = <span class="self">self</span>.global_index.get_effective_type_or_void_by_name(type_name);
+<a href=#157 id=157 data-nosnippet>157</a>                <span class="kw">let </span>value_type = <span class="self">self</span>.annotations.get_type_or_void(initializer, <span class="self">self</span>.global_index);
+<a href=#158 id=158 data-nosnippet>158</a>                <span class="prelude-val">Some</span>(<span class="macro">cast_if_needed!</span>(expr_generator, target_type, value_type, value, <span class="prelude-val">None</span>)<span class="question-mark">?</span>)
+<a href=#159 id=159 data-nosnippet>159</a>            } <span class="kw">else </span>{
+<a href=#160 id=160 data-nosnippet>160</a>                <span class="prelude-val">None
+<a href=#161 id=161 data-nosnippet>161</a>            </span>};
+<a href=#162 id=162 data-nosnippet>162</a>            <span class="kw">let </span>initial_value = initial_value
+<a href=#163 id=163 data-nosnippet>163</a>                <span class="comment">// 2nd try: find an associated default value for the declared type
+<a href=#164 id=164 data-nosnippet>164</a>                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_initial_value(type_name))
+<a href=#165 id=165 data-nosnippet>165</a>                <span class="comment">// 3rd try: get the compiler's default for the given type (zero-initializer)
+<a href=#166 id=166 data-nosnippet>166</a>                </span>.or_else(|| <span class="self">self</span>.types_index.find_associated_type(type_name).map(get_default_for));
+<a href=#167 id=167 data-nosnippet>167</a>            global_ir_variable.set_initial_value(initial_value, variable_type);
+<a href=#168 id=168 data-nosnippet>168</a>            <span class="kw">if </span>global_variable.is_constant() &amp;&amp; initial_value.is_none() {
+<a href=#169 id=169 data-nosnippet>169</a>                <span class="kw">return </span><span class="prelude-val">Err</span>(Diagnostic::codegen_error(
+<a href=#170 id=170 data-nosnippet>170</a>                    <span class="string">"Cannot generate uninitialized constant"</span>,
+<a href=#171 id=171 data-nosnippet>171</a>                    <span class="kw-2">&amp;</span>global_variable.source_location,
+<a href=#172 id=172 data-nosnippet>172</a>                ));
+<a href=#173 id=173 data-nosnippet>173</a>            }
+<a href=#174 id=174 data-nosnippet>174</a>        }
+<a href=#175 id=175 data-nosnippet>175</a>
+<a href=#176 id=176 data-nosnippet>176</a>        <span class="kw">if </span>global_variable.is_constant() {
+<a href=#177 id=177 data-nosnippet>177</a>            global_ir_variable = global_ir_variable.make_constant();
+<a href=#178 id=178 data-nosnippet>178</a>        };
+<a href=#179 id=179 data-nosnippet>179</a>
+<a href=#180 id=180 data-nosnippet>180</a>        <span class="kw">let </span>global_name = <span class="kw">if </span>global_variable.get_name().ends_with(<span class="string">"instance"</span>) {
+<a href=#181 id=181 data-nosnippet>181</a>            global_variable.get_name()
+<a href=#182 id=182 data-nosnippet>182</a>        } <span class="kw">else </span>{
+<a href=#183 id=183 data-nosnippet>183</a>            global_variable.get_qualified_name()
 <a href=#184 id=184 data-nosnippet>184</a>        };
-<a href=#185 id=185 data-nosnippet>185</a>
-<a href=#186 id=186 data-nosnippet>186</a>        <span class="kw">let </span>global_name = <span class="kw">if </span>global_variable.get_name().ends_with(<span class="string">"instance"</span>) {
-<a href=#187 id=187 data-nosnippet>187</a>            global_variable.get_name()
-<a href=#188 id=188 data-nosnippet>188</a>        } <span class="kw">else </span>{
-<a href=#189 id=189 data-nosnippet>189</a>            global_variable.get_qualified_name()
-<a href=#190 id=190 data-nosnippet>190</a>        };
-<a href=#191 id=191 data-nosnippet>191</a>        <span class="kw">let </span>global_name = global_name.to_lowercase();
-<a href=#192 id=192 data-nosnippet>192</a>
-<a href=#193 id=193 data-nosnippet>193</a>        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
-<a href=#194 id=194 data-nosnippet>194</a>            <span class="kw">let </span>section = SectionMangler::variable(
-<a href=#195 id=195 data-nosnippet>195</a>                global_name,
-<a href=#196 id=196 data-nosnippet>196</a>                section_names::mangle_type(
-<a href=#197 id=197 data-nosnippet>197</a>                    <span class="self">self</span>.global_index,
-<a href=#198 id=198 data-nosnippet>198</a>                    <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
-<a href=#199 id=199 data-nosnippet>199</a>                )<span class="question-mark">?</span>,
-<a href=#200 id=200 data-nosnippet>200</a>            )
-<a href=#201 id=201 data-nosnippet>201</a>            .mangle();
-<a href=#202 id=202 data-nosnippet>202</a>            global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
-<a href=#203 id=203 data-nosnippet>203</a>        }
-<a href=#204 id=204 data-nosnippet>204</a>
-<a href=#205 id=205 data-nosnippet>205</a>        <span class="prelude-val">Ok</span>(global_ir_variable)
-<a href=#206 id=206 data-nosnippet>206</a>    }
-<a href=#207 id=207 data-nosnippet>207</a>}</code></pre></div></section></main></body></html>
+<a href=#185 id=185 data-nosnippet>185</a>        <span class="kw">let </span>global_name = global_name.to_lowercase();
+<a href=#186 id=186 data-nosnippet>186</a>
+<a href=#187 id=187 data-nosnippet>187</a>        <span class="kw">if </span><span class="self">self</span>.online_change.is_enabled() {
+<a href=#188 id=188 data-nosnippet>188</a>            <span class="kw">let </span>section = SectionMangler::variable(
+<a href=#189 id=189 data-nosnippet>189</a>                global_name,
+<a href=#190 id=190 data-nosnippet>190</a>                section_names::mangle_type(
+<a href=#191 id=191 data-nosnippet>191</a>                    <span class="self">self</span>.global_index,
+<a href=#192 id=192 data-nosnippet>192</a>                    <span class="self">self</span>.global_index.get_effective_type_by_name(global_variable.get_type_name())<span class="question-mark">?</span>,
+<a href=#193 id=193 data-nosnippet>193</a>                )<span class="question-mark">?</span>,
+<a href=#194 id=194 data-nosnippet>194</a>            )
+<a href=#195 id=195 data-nosnippet>195</a>            .mangle();
+<a href=#196 id=196 data-nosnippet>196</a>            global_ir_variable.set_section(<span class="prelude-val">Some</span>(<span class="kw-2">&amp;</span>section));
+<a href=#197 id=197 data-nosnippet>197</a>        }
+<a href=#198 id=198 data-nosnippet>198</a>
+<a href=#199 id=199 data-nosnippet>199</a>        <span class="prelude-val">Ok</span>(global_ir_variable)
+<a href=#200 id=200 data-nosnippet>200</a>    }
+<a href=#201 id=201 data-nosnippet>201</a>}</code></pre></div></section></main></body></html>

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/inkwell-0.2.0/src/execution_engine.rs`."><title>execution_engine.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">inkwell/</div>execution_engine.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>libc::c_int;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/inkwell-0.6.0/src/execution_engine.rs`."><title>execution_engine.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="inkwell" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">inkwell/</div>execution_engine.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>libc::c_int;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>llvm_sys::execution_engine::{
 <a href=#3 id=3 data-nosnippet>3</a>    LLVMAddGlobalMapping, LLVMAddModule, LLVMDisposeExecutionEngine, LLVMExecutionEngineRef, LLVMFindFunction,
 <a href=#4 id=4 data-nosnippet>4</a>    LLVMFreeMachineCodeForFunction, LLVMGenericValueRef, LLVMGetExecutionEngineTargetData, LLVMGetFunctionAddress,
@@ -165,10 +165,10 @@
 <a href=#165 id=165 data-nosnippet>165</a>    /// let extf = module.add_function("sumf", ft.fn_type(&amp;[ft.into(), ft.into()], false), None);
 <a href=#166 id=166 data-nosnippet>166</a>    ///
 <a href=#167 id=167 data-nosnippet>167</a>    /// let argf = ft.const_float(64.);
-<a href=#168 id=168 data-nosnippet>168</a>    /// let call_site_value = builder.build_call(extf, &amp;[argf.into(), argf.into()], "retv");
+<a href=#168 id=168 data-nosnippet>168</a>    /// let call_site_value = builder.build_call(extf, &amp;[argf.into(), argf.into()], "retv").unwrap();
 <a href=#169 id=169 data-nosnippet>169</a>    /// let retv = call_site_value.try_as_basic_value().left().unwrap().into_float_value();
 <a href=#170 id=170 data-nosnippet>170</a>    ///
-<a href=#171 id=171 data-nosnippet>171</a>    /// builder.build_return(Some(&amp;retv));
+<a href=#171 id=171 data-nosnippet>171</a>    /// builder.build_return(Some(&amp;retv)).unwrap();
 <a href=#172 id=172 data-nosnippet>172</a>    ///
 <a href=#173 id=173 data-nosnippet>173</a>    /// let mut ee = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
 <a href=#174 id=174 data-nosnippet>174</a>    /// ee.add_global_mapping(&amp;extf, sumf as usize);
@@ -279,7 +279,7 @@
 <a href=#279 id=279 data-nosnippet>279</a>    ///
 <a href=#280 id=280 data-nosnippet>280</a>    /// // Insert a return statement
 <a href=#281 id=281 data-nosnippet>281</a>    /// let ret = double.const_float(64.0);
-<a href=#282 id=282 data-nosnippet>282</a>    /// builder.build_return(Some(&amp;ret));
+<a href=#282 id=282 data-nosnippet>282</a>    /// builder.build_return(Some(&amp;ret)).unwrap();
 <a href=#283 id=283 data-nosnippet>283</a>    ///
 <a href=#284 id=284 data-nosnippet>284</a>    /// // create the JIT engine
 <a href=#285 id=285 data-nosnippet>285</a>    /// let mut ee = module.create_jit_execution_engine(OptimizationLevel::None).unwrap();
@@ -332,9 +332,9 @@
 <a href=#332 id=332 data-nosnippet>332</a>    /// It is recommended to use `get_function` instead of this method when intending to call the function
 <a href=#333 id=333 data-nosnippet>333</a>    /// pointer so that you don't have to do error-prone transmutes yourself.
 <a href=#334 id=334 data-nosnippet>334</a>    </span><span class="kw">pub fn </span>get_function_address(<span class="kw-2">&amp;</span><span class="self">self</span>, fn_name: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, FunctionLookupError&gt; {
-<a href=#335 id=335 data-nosnippet>335</a>        <span class="comment">// LLVMGetFunctionAddress segfaults in llvm 5.0 -&gt; 8.0 when fn_name doesn't exist. This is a workaround
+<a href=#335 id=335 data-nosnippet>335</a>        <span class="comment">// LLVMGetFunctionAddress segfaults in llvm 8.0 when fn_name doesn't exist. This is a workaround
 <a href=#336 id=336 data-nosnippet>336</a>        // to see if it exists and avoid the segfault when it doesn't
-<a href=#337 id=337 data-nosnippet>337</a>        </span><span class="attr">#[cfg(any(feature = <span class="string">"llvm5-0"</span>, feature = <span class="string">"llvm6-0"</span>, feature = <span class="string">"llvm7-0"</span>, feature = <span class="string">"llvm8-0"</span>))]
+<a href=#337 id=337 data-nosnippet>337</a>        </span><span class="attr">#[cfg(feature = <span class="string">"llvm8-0"</span>)]
 <a href=#338 id=338 data-nosnippet>338</a>        </span><span class="self">self</span>.get_function_value(fn_name)<span class="question-mark">?</span>;
 <a href=#339 id=339 data-nosnippet>339</a>
 <a href=#340 id=340 data-nosnippet>340</a>        <span class="kw">let </span>c_string = to_c_str(fn_name);
@@ -406,7 +406,7 @@
 <a href=#406 id=406 data-nosnippet>406</a>        <span class="kw">let </span>cstring_args: Vec&lt;<span class="kw">_</span>&gt; = args.iter().map(|<span class="kw-2">&amp;</span>arg| to_c_str(arg)).collect();
 <a href=#407 id=407 data-nosnippet>407</a>        <span class="kw">let </span>raw_args: Vec&lt;<span class="kw-2">*const </span><span class="kw">_</span>&gt; = cstring_args.iter().map(|arg| arg.as_ptr()).collect();
 <a href=#408 id=408 data-nosnippet>408</a>
-<a href=#409 id=409 data-nosnippet>409</a>        <span class="kw">let </span>environment_variables = <span class="macro">vec!</span>[]; <span class="comment">// TODO: Support envp. Likely needs to be null terminated
+<a href=#409 id=409 data-nosnippet>409</a>        <span class="kw">let </span>environment_variables = []; <span class="comment">// TODO: Support envp. Likely needs to be null terminated
 <a href=#410 id=410 data-nosnippet>410</a>
 <a href=#411 id=411 data-nosnippet>411</a>        </span>LLVMRunFunctionAsMain(
 <a href=#412 id=412 data-nosnippet>412</a>            <span class="self">self</span>.execution_engine_inner(),
@@ -475,7 +475,7 @@
 <a href=#475 id=475 data-nosnippet>475</a>    <span class="kw">type </span>Target = LLVMExecutionEngineRef;
 <a href=#476 id=476 data-nosnippet>476</a>
 <a href=#477 id=477 data-nosnippet>477</a>    <span class="kw">fn </span>deref(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw-2">&amp;</span><span class="self">Self</span>::Target {
-<a href=#478 id=478 data-nosnippet>478</a>        <span class="kw-2">&amp;*</span><span class="self">self</span>.<span class="number">0
+<a href=#478 id=478 data-nosnippet>478</a>        <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="number">0
 <a href=#479 id=479 data-nosnippet>479</a>    </span>}
 <a href=#480 id=480 data-nosnippet>480</a>}
 <a href=#481 id=481 data-nosnippet>481</a>
@@ -487,7 +487,7 @@
 <a href=#487 id=487 data-nosnippet>487</a>    inner: F,
 <a href=#488 id=488 data-nosnippet>488</a>}
 <a href=#489 id=489 data-nosnippet>489</a>
-<a href=#490 id=490 data-nosnippet>490</a><span class="kw">impl</span>&lt;<span class="lifetime">'ctx</span>, F: Copy&gt; JitFunction&lt;<span class="lifetime">'ctx</span>, F&gt; {
+<a href=#490 id=490 data-nosnippet>490</a><span class="kw">impl</span>&lt;F: Copy&gt; JitFunction&lt;<span class="lifetime">'_</span>, F&gt; {
 <a href=#491 id=491 data-nosnippet>491</a>    <span class="doccomment">/// Returns the raw function pointer, consuming self in the process.
 <a href=#492 id=492 data-nosnippet>492</a>    /// This function is unsafe because the function pointer may dangle
 <a href=#493 id=493 data-nosnippet>493</a>    /// if the ExecutionEngine it came from is dropped. The caller is

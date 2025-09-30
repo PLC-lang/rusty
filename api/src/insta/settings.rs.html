@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.42.0/src/settings.rs`."><title>settings.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>settings.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>once_cell::sync::Lazy;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/insta-1.43.2/src/settings.rs`."><title>settings.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="insta" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">insta/</div>settings.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>once_cell::sync::Lazy;
 <a href=#2 id=2 data-nosnippet>2</a><span class="attr">#[cfg(feature = <span class="string">"serde"</span>)]
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>serde::{de::value::Error <span class="kw">as </span>ValueError, Serialize};
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::cell::RefCell;
@@ -424,7 +424,7 @@
 <a href=#424 id=424 data-nosnippet>424</a>    <span class="doccomment">/// Iterate over the redactions.
 <a href=#425 id=425 data-nosnippet>425</a>    </span><span class="attr">#[cfg(feature = <span class="string">"redactions"</span>)]
 <a href=#426 id=426 data-nosnippet>426</a>    #[cfg_attr(docsrs, doc(cfg(feature = <span class="string">"redactions"</span>)))]
-<a href=#427 id=427 data-nosnippet>427</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_redactions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>Selector, <span class="kw-2">&amp;</span>Redaction)&gt; {
+<a href=#427 id=427 data-nosnippet>427</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>iter_redactions(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="kw">impl </span>Iterator&lt;Item = (<span class="kw-2">&amp;</span>Selector&lt;<span class="lifetime">'_</span>&gt;, <span class="kw-2">&amp;</span>Redaction)&gt; {
 <a href=#428 id=428 data-nosnippet>428</a>        <span class="self">self</span>.inner.redactions.<span class="number">0</span>.iter().map(|(a, b)| (a, <span class="kw-2">&amp;**</span>b))
 <a href=#429 id=429 data-nosnippet>429</a>    }
 <a href=#430 id=430 data-nosnippet>430</a>
@@ -523,90 +523,97 @@
 <a href=#523 id=523 data-nosnippet>523</a>    /// # }
 <a href=#524 id=524 data-nosnippet>524</a>    /// ```
 <a href=#525 id=525 data-nosnippet>525</a>    </span><span class="kw">pub fn </span>bind_async&lt;F: Future&lt;Output = T&gt;, T&gt;(<span class="kw-2">&amp;</span><span class="self">self</span>, future: F) -&gt; <span class="kw">impl </span>Future&lt;Output = T&gt; {
-<a href=#526 id=526 data-nosnippet>526</a>        <span class="kw">struct </span>BindingFuture&lt;F&gt;(Arc&lt;ActualSettings&gt;, F);
-<a href=#527 id=527 data-nosnippet>527</a>
-<a href=#528 id=528 data-nosnippet>528</a>        <span class="kw">impl</span>&lt;F: Future&gt; Future <span class="kw">for </span>BindingFuture&lt;F&gt; {
-<a href=#529 id=529 data-nosnippet>529</a>            <span class="kw">type </span>Output = F::Output;
+<a href=#526 id=526 data-nosnippet>526</a>        <span class="kw">struct </span>BindingFuture&lt;F&gt; {
+<a href=#527 id=527 data-nosnippet>527</a>            settings: Arc&lt;ActualSettings&gt;,
+<a href=#528 id=528 data-nosnippet>528</a>            future: F,
+<a href=#529 id=529 data-nosnippet>529</a>        }
 <a href=#530 id=530 data-nosnippet>530</a>
-<a href=#531 id=531 data-nosnippet>531</a>            <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
-<a href=#532 id=532 data-nosnippet>532</a>                <span class="kw">let </span>inner = <span class="self">self</span>.<span class="number">0</span>.clone();
-<a href=#533 id=533 data-nosnippet>533</a>                <span class="kw">let </span>future = <span class="kw">unsafe </span>{ <span class="self">self</span>.map_unchecked_mut(|s| <span class="kw-2">&amp;mut </span>s.<span class="number">1</span>) };
-<a href=#534 id=534 data-nosnippet>534</a>                CURRENT_SETTINGS.with(|x| {
-<a href=#535 id=535 data-nosnippet>535</a>                    <span class="kw">let </span>old = {
-<a href=#536 id=536 data-nosnippet>536</a>                        <span class="kw">let </span><span class="kw-2">mut </span>current = x.borrow_mut();
-<a href=#537 id=537 data-nosnippet>537</a>                        <span class="kw">let </span>old = current.inner.clone();
-<a href=#538 id=538 data-nosnippet>538</a>                        current.inner = inner;
-<a href=#539 id=539 data-nosnippet>539</a>                        old
-<a href=#540 id=540 data-nosnippet>540</a>                    };
-<a href=#541 id=541 data-nosnippet>541</a>                    <span class="kw">let </span>rv = future.poll(cx);
-<a href=#542 id=542 data-nosnippet>542</a>                    <span class="kw">let </span><span class="kw-2">mut </span>current = x.borrow_mut();
-<a href=#543 id=543 data-nosnippet>543</a>                    current.inner = old;
-<a href=#544 id=544 data-nosnippet>544</a>                    rv
-<a href=#545 id=545 data-nosnippet>545</a>                })
-<a href=#546 id=546 data-nosnippet>546</a>            }
-<a href=#547 id=547 data-nosnippet>547</a>        }
-<a href=#548 id=548 data-nosnippet>548</a>
-<a href=#549 id=549 data-nosnippet>549</a>        BindingFuture(<span class="self">self</span>.inner.clone(), future)
-<a href=#550 id=550 data-nosnippet>550</a>    }
-<a href=#551 id=551 data-nosnippet>551</a>
-<a href=#552 id=552 data-nosnippet>552</a>    <span class="doccomment">/// Binds the settings to the current thread and resets when the drop
-<a href=#553 id=553 data-nosnippet>553</a>    /// guard is released.
-<a href=#554 id=554 data-nosnippet>554</a>    ///
-<a href=#555 id=555 data-nosnippet>555</a>    /// This is the recommended way to temporarily bind settings and replaces
-<a href=#556 id=556 data-nosnippet>556</a>    /// the earlier [`bind_to_scope`](Settings::bind_to_scope) and relies on
-<a href=#557 id=557 data-nosnippet>557</a>    /// drop guards.  An alternative is [`bind`](Settings::bind) which binds
-<a href=#558 id=558 data-nosnippet>558</a>    /// for the duration of the block it wraps.
-<a href=#559 id=559 data-nosnippet>559</a>    ///
-<a href=#560 id=560 data-nosnippet>560</a>    /// ```
-<a href=#561 id=561 data-nosnippet>561</a>    /// # use insta::Settings;
-<a href=#562 id=562 data-nosnippet>562</a>    /// let mut settings = Settings::clone_current();
-<a href=#563 id=563 data-nosnippet>563</a>    /// settings.set_sort_maps(true);
-<a href=#564 id=564 data-nosnippet>564</a>    /// let _guard = settings.bind_to_scope();
-<a href=#565 id=565 data-nosnippet>565</a>    /// // do stuff here
-<a href=#566 id=566 data-nosnippet>566</a>    /// ```
-<a href=#567 id=567 data-nosnippet>567</a>    </span><span class="kw">pub fn </span>bind_to_scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SettingsBindDropGuard {
-<a href=#568 id=568 data-nosnippet>568</a>        CURRENT_SETTINGS.with(|x| {
-<a href=#569 id=569 data-nosnippet>569</a>            <span class="kw">let </span><span class="kw-2">mut </span>x = x.borrow_mut();
-<a href=#570 id=570 data-nosnippet>570</a>            <span class="kw">let </span>old = mem::replace(<span class="kw-2">&amp;mut </span>x.inner, <span class="self">self</span>.inner.clone());
-<a href=#571 id=571 data-nosnippet>571</a>            SettingsBindDropGuard(<span class="prelude-val">Some</span>(old), std::marker::PhantomData)
-<a href=#572 id=572 data-nosnippet>572</a>        })
-<a href=#573 id=573 data-nosnippet>573</a>    }
-<a href=#574 id=574 data-nosnippet>574</a>
-<a href=#575 id=575 data-nosnippet>575</a>    <span class="doccomment">/// Runs a function with the current settings.
-<a href=#576 id=576 data-nosnippet>576</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with&lt;R, F: FnOnce(<span class="kw-2">&amp;</span>Settings) -&gt; R&gt;(f: F) -&gt; R {
-<a href=#577 id=577 data-nosnippet>577</a>        CURRENT_SETTINGS.with(|x| f(<span class="kw-2">&amp;</span>x.borrow()))
-<a href=#578 id=578 data-nosnippet>578</a>    }
-<a href=#579 id=579 data-nosnippet>579</a>}
-<a href=#580 id=580 data-nosnippet>580</a>
-<a href=#581 id=581 data-nosnippet>581</a><span class="doccomment">/// Returned from [`Settings::bind_to_scope`]
-<a href=#582 id=582 data-nosnippet>582</a>///
-<a href=#583 id=583 data-nosnippet>583</a>/// This type is not shareable between threads:
-<a href=#584 id=584 data-nosnippet>584</a>///
-<a href=#585 id=585 data-nosnippet>585</a>/// ```compile_fail E0277
-<a href=#586 id=586 data-nosnippet>586</a>/// let mut settings = insta::Settings::clone_current();
-<a href=#587 id=587 data-nosnippet>587</a>/// settings.set_snapshot_suffix("test drop guard");
-<a href=#588 id=588 data-nosnippet>588</a>/// let guard = settings.bind_to_scope();
+<a href=#531 id=531 data-nosnippet>531</a>        <span class="kw">impl</span>&lt;F: Future&gt; Future <span class="kw">for </span>BindingFuture&lt;F&gt; {
+<a href=#532 id=532 data-nosnippet>532</a>            <span class="kw">type </span>Output = F::Output;
+<a href=#533 id=533 data-nosnippet>533</a>
+<a href=#534 id=534 data-nosnippet>534</a>            <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context) -&gt; Poll&lt;<span class="self">Self</span>::Output&gt; {
+<a href=#535 id=535 data-nosnippet>535</a>                <span class="kw">let </span>inner = <span class="self">self</span>.settings.clone();
+<a href=#536 id=536 data-nosnippet>536</a>                <span class="comment">// SAFETY: This is okay because `future` is pinned when `self` is.
+<a href=#537 id=537 data-nosnippet>537</a>                </span><span class="kw">let </span>future = <span class="kw">unsafe </span>{ <span class="self">self</span>.map_unchecked_mut(|s| <span class="kw-2">&amp;mut </span>s.future) };
+<a href=#538 id=538 data-nosnippet>538</a>                CURRENT_SETTINGS.with(|x| {
+<a href=#539 id=539 data-nosnippet>539</a>                    <span class="kw">let </span>old = {
+<a href=#540 id=540 data-nosnippet>540</a>                        <span class="kw">let </span><span class="kw-2">mut </span>current = x.borrow_mut();
+<a href=#541 id=541 data-nosnippet>541</a>                        <span class="kw">let </span>old = current.inner.clone();
+<a href=#542 id=542 data-nosnippet>542</a>                        current.inner = inner;
+<a href=#543 id=543 data-nosnippet>543</a>                        old
+<a href=#544 id=544 data-nosnippet>544</a>                    };
+<a href=#545 id=545 data-nosnippet>545</a>                    <span class="kw">let </span>rv = future.poll(cx);
+<a href=#546 id=546 data-nosnippet>546</a>                    <span class="kw">let </span><span class="kw-2">mut </span>current = x.borrow_mut();
+<a href=#547 id=547 data-nosnippet>547</a>                    current.inner = old;
+<a href=#548 id=548 data-nosnippet>548</a>                    rv
+<a href=#549 id=549 data-nosnippet>549</a>                })
+<a href=#550 id=550 data-nosnippet>550</a>            }
+<a href=#551 id=551 data-nosnippet>551</a>        }
+<a href=#552 id=552 data-nosnippet>552</a>
+<a href=#553 id=553 data-nosnippet>553</a>        BindingFuture {
+<a href=#554 id=554 data-nosnippet>554</a>            settings: <span class="self">self</span>.inner.clone(),
+<a href=#555 id=555 data-nosnippet>555</a>            future,
+<a href=#556 id=556 data-nosnippet>556</a>        }
+<a href=#557 id=557 data-nosnippet>557</a>    }
+<a href=#558 id=558 data-nosnippet>558</a>
+<a href=#559 id=559 data-nosnippet>559</a>    <span class="doccomment">/// Binds the settings to the current thread and resets when the drop
+<a href=#560 id=560 data-nosnippet>560</a>    /// guard is released.
+<a href=#561 id=561 data-nosnippet>561</a>    ///
+<a href=#562 id=562 data-nosnippet>562</a>    /// This is the recommended way to temporarily bind settings and replaces
+<a href=#563 id=563 data-nosnippet>563</a>    /// the earlier [`bind_to_scope`](Settings::bind_to_scope) and relies on
+<a href=#564 id=564 data-nosnippet>564</a>    /// drop guards.  An alternative is [`bind`](Settings::bind) which binds
+<a href=#565 id=565 data-nosnippet>565</a>    /// for the duration of the block it wraps.
+<a href=#566 id=566 data-nosnippet>566</a>    ///
+<a href=#567 id=567 data-nosnippet>567</a>    /// ```
+<a href=#568 id=568 data-nosnippet>568</a>    /// # use insta::Settings;
+<a href=#569 id=569 data-nosnippet>569</a>    /// let mut settings = Settings::clone_current();
+<a href=#570 id=570 data-nosnippet>570</a>    /// settings.set_sort_maps(true);
+<a href=#571 id=571 data-nosnippet>571</a>    /// let _guard = settings.bind_to_scope();
+<a href=#572 id=572 data-nosnippet>572</a>    /// // do stuff here
+<a href=#573 id=573 data-nosnippet>573</a>    /// ```
+<a href=#574 id=574 data-nosnippet>574</a>    </span><span class="kw">pub fn </span>bind_to_scope(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; SettingsBindDropGuard {
+<a href=#575 id=575 data-nosnippet>575</a>        CURRENT_SETTINGS.with(|x| {
+<a href=#576 id=576 data-nosnippet>576</a>            <span class="kw">let </span><span class="kw-2">mut </span>x = x.borrow_mut();
+<a href=#577 id=577 data-nosnippet>577</a>            <span class="kw">let </span>old = mem::replace(<span class="kw-2">&amp;mut </span>x.inner, <span class="self">self</span>.inner.clone());
+<a href=#578 id=578 data-nosnippet>578</a>            SettingsBindDropGuard(<span class="prelude-val">Some</span>(old), std::marker::PhantomData)
+<a href=#579 id=579 data-nosnippet>579</a>        })
+<a href=#580 id=580 data-nosnippet>580</a>    }
+<a href=#581 id=581 data-nosnippet>581</a>
+<a href=#582 id=582 data-nosnippet>582</a>    <span class="doccomment">/// Runs a function with the current settings.
+<a href=#583 id=583 data-nosnippet>583</a>    </span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>with&lt;R, F: FnOnce(<span class="kw-2">&amp;</span>Settings) -&gt; R&gt;(f: F) -&gt; R {
+<a href=#584 id=584 data-nosnippet>584</a>        CURRENT_SETTINGS.with(|x| f(<span class="kw-2">&amp;</span>x.borrow()))
+<a href=#585 id=585 data-nosnippet>585</a>    }
+<a href=#586 id=586 data-nosnippet>586</a>}
+<a href=#587 id=587 data-nosnippet>587</a>
+<a href=#588 id=588 data-nosnippet>588</a><span class="doccomment">/// Returned from [`Settings::bind_to_scope`]
 <a href=#589 id=589 data-nosnippet>589</a>///
-<a href=#590 id=590 data-nosnippet>590</a>/// std::thread::spawn(move || { let guard = guard; }); // doesn't compile
-<a href=#591 id=591 data-nosnippet>591</a>/// ```
-<a href=#592 id=592 data-nosnippet>592</a>///
-<a href=#593 id=593 data-nosnippet>593</a>/// This is to ensure tests under async runtimes like `tokio` don't show unexpected results
-<a href=#594 id=594 data-nosnippet>594</a></span><span class="attr">#[must_use = <span class="string">"The guard is immediately dropped so binding has no effect. Use `let _guard = ...` to bind it."</span>]
-<a href=#595 id=595 data-nosnippet>595</a></span><span class="kw">pub struct </span>SettingsBindDropGuard(
-<a href=#596 id=596 data-nosnippet>596</a>    <span class="prelude-ty">Option</span>&lt;Arc&lt;ActualSettings&gt;&gt;,
-<a href=#597 id=597 data-nosnippet>597</a>    <span class="doccomment">/// A ZST that is not [`Send`] but is [`Sync`]
-<a href=#598 id=598 data-nosnippet>598</a>    ///
-<a href=#599 id=599 data-nosnippet>599</a>    /// This is necessary due to the lack of stable [negative impls](https://github.com/rust-lang/rust/issues/68318).
-<a href=#600 id=600 data-nosnippet>600</a>    ///
-<a href=#601 id=601 data-nosnippet>601</a>    /// Required as [`SettingsBindDropGuard`] modifies a thread local variable which would end up
-<a href=#602 id=602 data-nosnippet>602</a>    /// with unexpected results if sent to a different thread.
-<a href=#603 id=603 data-nosnippet>603</a>    </span>std::marker::PhantomData&lt;std::sync::MutexGuard&lt;<span class="lifetime">'static</span>, ()&gt;&gt;,
-<a href=#604 id=604 data-nosnippet>604</a>);
-<a href=#605 id=605 data-nosnippet>605</a>
-<a href=#606 id=606 data-nosnippet>606</a><span class="kw">impl </span>Drop <span class="kw">for </span>SettingsBindDropGuard {
-<a href=#607 id=607 data-nosnippet>607</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#608 id=608 data-nosnippet>608</a>        CURRENT_SETTINGS.with(|x| {
-<a href=#609 id=609 data-nosnippet>609</a>            x.borrow_mut().inner = <span class="self">self</span>.<span class="number">0</span>.take().unwrap();
-<a href=#610 id=610 data-nosnippet>610</a>        })
-<a href=#611 id=611 data-nosnippet>611</a>    }
-<a href=#612 id=612 data-nosnippet>612</a>}</code></pre></div></section></main></body></html>
+<a href=#590 id=590 data-nosnippet>590</a>/// This type is not shareable between threads:
+<a href=#591 id=591 data-nosnippet>591</a>///
+<a href=#592 id=592 data-nosnippet>592</a>/// ```compile_fail E0277
+<a href=#593 id=593 data-nosnippet>593</a>/// let mut settings = insta::Settings::clone_current();
+<a href=#594 id=594 data-nosnippet>594</a>/// settings.set_snapshot_suffix("test drop guard");
+<a href=#595 id=595 data-nosnippet>595</a>/// let guard = settings.bind_to_scope();
+<a href=#596 id=596 data-nosnippet>596</a>///
+<a href=#597 id=597 data-nosnippet>597</a>/// std::thread::spawn(move || { let guard = guard; }); // doesn't compile
+<a href=#598 id=598 data-nosnippet>598</a>/// ```
+<a href=#599 id=599 data-nosnippet>599</a>///
+<a href=#600 id=600 data-nosnippet>600</a>/// This is to ensure tests under async runtimes like `tokio` don't show unexpected results
+<a href=#601 id=601 data-nosnippet>601</a></span><span class="attr">#[must_use = <span class="string">"The guard is immediately dropped so binding has no effect. Use `let _guard = ...` to bind it."</span>]
+<a href=#602 id=602 data-nosnippet>602</a></span><span class="kw">pub struct </span>SettingsBindDropGuard(
+<a href=#603 id=603 data-nosnippet>603</a>    <span class="prelude-ty">Option</span>&lt;Arc&lt;ActualSettings&gt;&gt;,
+<a href=#604 id=604 data-nosnippet>604</a>    <span class="doccomment">/// A ZST that is not [`Send`] but is [`Sync`]
+<a href=#605 id=605 data-nosnippet>605</a>    ///
+<a href=#606 id=606 data-nosnippet>606</a>    /// This is necessary due to the lack of stable [negative impls](https://github.com/rust-lang/rust/issues/68318).
+<a href=#607 id=607 data-nosnippet>607</a>    ///
+<a href=#608 id=608 data-nosnippet>608</a>    /// Required as [`SettingsBindDropGuard`] modifies a thread local variable which would end up
+<a href=#609 id=609 data-nosnippet>609</a>    /// with unexpected results if sent to a different thread.
+<a href=#610 id=610 data-nosnippet>610</a>    </span>std::marker::PhantomData&lt;std::sync::MutexGuard&lt;<span class="lifetime">'static</span>, ()&gt;&gt;,
+<a href=#611 id=611 data-nosnippet>611</a>);
+<a href=#612 id=612 data-nosnippet>612</a>
+<a href=#613 id=613 data-nosnippet>613</a><span class="kw">impl </span>Drop <span class="kw">for </span>SettingsBindDropGuard {
+<a href=#614 id=614 data-nosnippet>614</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#615 id=615 data-nosnippet>615</a>        CURRENT_SETTINGS.with(|x| {
+<a href=#616 id=616 data-nosnippet>616</a>            x.borrow_mut().inner = <span class="self">self</span>.<span class="number">0</span>.take().unwrap();
+<a href=#617 id=617 data-nosnippet>617</a>        })
+<a href=#618 id=618 data-nosnippet>618</a>    }
+<a href=#619 id=619 data-nosnippet>619</a>}</code></pre></div></section></main></body></html>

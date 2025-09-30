@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["end","full","param","path","peek","tail"],"struct":["Exact","FullPath","Peek","Tail"]};

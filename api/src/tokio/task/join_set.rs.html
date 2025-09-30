@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.42.0/src/task/join_set.rs`."><title>join_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/task/</div>join_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A collection of tasks spawned on a Tokio runtime.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/task/join_set.rs`."><title>join_set.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/task/</div>join_set.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A collection of tasks spawned on a Tokio runtime.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! This module provides the [`JoinSet`] type, a collection which stores a set
 <a href=#4 id=4 data-nosnippet>4</a>//! of spawned tasks and allows asynchronously awaiting the output of those
@@ -395,9 +395,9 @@
 <a href=#395 id=395 data-nosnippet>395</a>    ///            tokio::time::sleep(Duration::from_secs(3 - i)).await;
 <a href=#396 id=396 data-nosnippet>396</a>    ///            i
 <a href=#397 id=397 data-nosnippet>397</a>    ///        });
-<a href=#398 id=398 data-nosnippet>398</a>    ///     }   
+<a href=#398 id=398 data-nosnippet>398</a>    ///     }
 <a href=#399 id=399 data-nosnippet>399</a>    ///
-<a href=#400 id=400 data-nosnippet>400</a>    ///     let output = set.join_all().await;  
+<a href=#400 id=400 data-nosnippet>400</a>    ///     let output = set.join_all().await;
 <a href=#401 id=401 data-nosnippet>401</a>    ///     assert_eq!(output, vec![2, 1, 0]);
 <a href=#402 id=402 data-nosnippet>402</a>    /// }
 <a href=#403 id=403 data-nosnippet>403</a>    /// ```
@@ -414,8 +414,8 @@
 <a href=#414 id=414 data-nosnippet>414</a>    ///
 <a href=#415 id=415 data-nosnippet>415</a>    ///     for i in 0..3 {
 <a href=#416 id=416 data-nosnippet>416</a>    ///        set.spawn(async move {i});
-<a href=#417 id=417 data-nosnippet>417</a>    ///     }   
-<a href=#418 id=418 data-nosnippet>418</a>    ///     
+<a href=#417 id=417 data-nosnippet>417</a>    ///     }
+<a href=#418 id=418 data-nosnippet>418</a>    ///
 <a href=#419 id=419 data-nosnippet>419</a>    ///     let mut output = Vec::new();
 <a href=#420 id=420 data-nosnippet>420</a>    ///     while let Some(res) = set.join_next().await{
 <a href=#421 id=421 data-nosnippet>421</a>    ///         match res {
@@ -472,17 +472,17 @@
 <a href=#472 id=472 data-nosnippet>472</a>    /// This function returns:
 <a href=#473 id=473 data-nosnippet>473</a>    ///
 <a href=#474 id=474 data-nosnippet>474</a>    ///  * `Poll::Pending` if the `JoinSet` is not empty but there is no task whose output is
-<a href=#475 id=475 data-nosnippet>475</a>    ///     available right now.
+<a href=#475 id=475 data-nosnippet>475</a>    ///    available right now.
 <a href=#476 id=476 data-nosnippet>476</a>    ///  * `Poll::Ready(Some(Ok(value)))` if one of the tasks in this `JoinSet` has completed.
-<a href=#477 id=477 data-nosnippet>477</a>    ///     The `value` is the return value of one of the tasks that completed.
+<a href=#477 id=477 data-nosnippet>477</a>    ///    The `value` is the return value of one of the tasks that completed.
 <a href=#478 id=478 data-nosnippet>478</a>    ///  * `Poll::Ready(Some(Err(err)))` if one of the tasks in this `JoinSet` has panicked or been
-<a href=#479 id=479 data-nosnippet>479</a>    ///     aborted. The `err` is the `JoinError` from the panicked/aborted task.
+<a href=#479 id=479 data-nosnippet>479</a>    ///    aborted. The `err` is the `JoinError` from the panicked/aborted task.
 <a href=#480 id=480 data-nosnippet>480</a>    ///  * `Poll::Ready(None)` if the `JoinSet` is empty.
 <a href=#481 id=481 data-nosnippet>481</a>    ///
 <a href=#482 id=482 data-nosnippet>482</a>    /// Note that this method may return `Poll::Pending` even if one of the tasks has completed.
 <a href=#483 id=483 data-nosnippet>483</a>    /// This can happen if the [coop budget] is reached.
 <a href=#484 id=484 data-nosnippet>484</a>    ///
-<a href=#485 id=485 data-nosnippet>485</a>    /// [coop budget]: crate::task#cooperative-scheduling
+<a href=#485 id=485 data-nosnippet>485</a>    /// [coop budget]: crate::task::coop#cooperative-scheduling
 <a href=#486 id=486 data-nosnippet>486</a>    </span><span class="kw">pub fn </span>poll_join_next(<span class="kw-2">&amp;mut </span><span class="self">self</span>, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Option</span>&lt;<span class="prelude-ty">Result</span>&lt;T, JoinError&gt;&gt;&gt; {
 <a href=#487 id=487 data-nosnippet>487</a>        <span class="comment">// The call to `pop_notified` moves the entry to the `idle` list. It is moved back to
 <a href=#488 id=488 data-nosnippet>488</a>        // the `notified` list if the waker is notified in the `poll` call below.
@@ -526,18 +526,18 @@
 <a href=#526 id=526 data-nosnippet>526</a>    /// This function returns:
 <a href=#527 id=527 data-nosnippet>527</a>    ///
 <a href=#528 id=528 data-nosnippet>528</a>    ///  * `Poll::Pending` if the `JoinSet` is not empty but there is no task whose output is
-<a href=#529 id=529 data-nosnippet>529</a>    ///     available right now.
+<a href=#529 id=529 data-nosnippet>529</a>    ///    available right now.
 <a href=#530 id=530 data-nosnippet>530</a>    ///  * `Poll::Ready(Some(Ok((id, value))))` if one of the tasks in this `JoinSet` has completed.
-<a href=#531 id=531 data-nosnippet>531</a>    ///     The `value` is the return value of one of the tasks that completed, and
+<a href=#531 id=531 data-nosnippet>531</a>    ///    The `value` is the return value of one of the tasks that completed, and
 <a href=#532 id=532 data-nosnippet>532</a>    ///    `id` is the [task ID] of that task.
 <a href=#533 id=533 data-nosnippet>533</a>    ///  * `Poll::Ready(Some(Err(err)))` if one of the tasks in this `JoinSet` has panicked or been
-<a href=#534 id=534 data-nosnippet>534</a>    ///     aborted. The `err` is the `JoinError` from the panicked/aborted task.
+<a href=#534 id=534 data-nosnippet>534</a>    ///    aborted. The `err` is the `JoinError` from the panicked/aborted task.
 <a href=#535 id=535 data-nosnippet>535</a>    ///  * `Poll::Ready(None)` if the `JoinSet` is empty.
 <a href=#536 id=536 data-nosnippet>536</a>    ///
 <a href=#537 id=537 data-nosnippet>537</a>    /// Note that this method may return `Poll::Pending` even if one of the tasks has completed.
 <a href=#538 id=538 data-nosnippet>538</a>    /// This can happen if the [coop budget] is reached.
 <a href=#539 id=539 data-nosnippet>539</a>    ///
-<a href=#540 id=540 data-nosnippet>540</a>    /// [coop budget]: crate::task#cooperative-scheduling
+<a href=#540 id=540 data-nosnippet>540</a>    /// [coop budget]: crate::task::coop#cooperative-scheduling
 <a href=#541 id=541 data-nosnippet>541</a>    /// [task ID]: crate::task::Id
 <a href=#542 id=542 data-nosnippet>542</a>    </span><span class="kw">pub fn </span>poll_join_next_with_id(
 <a href=#543 id=543 data-nosnippet>543</a>        <span class="kw-2">&amp;mut </span><span class="self">self</span>,

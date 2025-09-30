@@ -103,7 +103,7 @@
 <a href=#103 id=103 data-nosnippet>103</a>    </span><span class="kw">fn </span>ensure_compile_dirs(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;(), Diagnostic&gt; {
 <a href=#104 id=104 data-nosnippet>104</a>        <span class="kw">let </span>compile_directory = <span class="self">self</span>.compile_options.build_location.clone().unwrap_or_else(|| {
 <a href=#105 id=105 data-nosnippet>105</a>            <span class="kw">let </span>tempdir = tempfile::tempdir().expect(<span class="string">"Could not create tempdir"</span>);
-<a href=#106 id=106 data-nosnippet>106</a>            tempdir.into_path()
+<a href=#106 id=106 data-nosnippet>106</a>            tempdir.keep()
 <a href=#107 id=107 data-nosnippet>107</a>        });
 <a href=#108 id=108 data-nosnippet>108</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(name) = <span class="self">self</span>.target.try_get_name() {
 <a href=#109 id=109 data-nosnippet>109</a>            <span class="kw">let </span>dir = compile_directory.join(name);

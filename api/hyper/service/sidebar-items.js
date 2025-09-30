@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["make_service_fn","service_fn"],"trait":["Service"]};
+window.SIDEBAR_ITEMS = {"fn":["service_fn"],"trait":["HttpService","Service"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-automata-0.4.9/src/meta/wrappers.rs`."><title>wrappers.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">regex_automata/meta/</div>wrappers.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/*!
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/regex-automata-0.4.11/src/meta/wrappers.rs`."><title>wrappers.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="regex_automata" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">regex_automata/meta/</div>wrappers.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/*!
 <a href=#2 id=2 data-nosnippet>2</a>This module contains a boat load of wrappers around each of our internal regex
 <a href=#3 id=3 data-nosnippet>3</a>engines. They encapsulate a few things:
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -383,7 +383,7 @@
 <a href=#383 id=383 data-nosnippet>383</a>            // that we either have at least one explicit capturing group or
 <a href=#384 id=384 data-nosnippet>384</a>            // there's a Unicode word boundary somewhere. If we don't have
 <a href=#385 id=385 data-nosnippet>385</a>            // either of these things, then the lazy DFA will almost certainly
-<a href=#386 id=386 data-nosnippet>386</a>            // be useable and be much faster. The only case where it might
+<a href=#386 id=386 data-nosnippet>386</a>            // be usable and be much faster. The only case where it might
 <a href=#387 id=387 data-nosnippet>387</a>            // not is if the lazy DFA isn't utilizing its cache effectively,
 <a href=#388 id=388 data-nosnippet>388</a>            // but in those cases, the underlying regex is almost certainly
 <a href=#389 id=389 data-nosnippet>389</a>            // not one-pass or is too big to fit within the current one-pass
@@ -408,7 +408,7 @@
 <a href=#408 id=408 data-nosnippet>408</a>            <span class="kw">let </span>engine = <span class="kw">match </span>result {
 <a href=#409 id=409 data-nosnippet>409</a>                <span class="prelude-val">Ok</span>(engine) =&gt; engine,
 <a href=#410 id=410 data-nosnippet>410</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#411 id=411 data-nosnippet>411</a>                    <span class="macro">debug!</span>(<span class="string">"OnePass failed to build: {}"</span>, _err);
+<a href=#411 id=411 data-nosnippet>411</a>                    <span class="macro">debug!</span>(<span class="string">"OnePass failed to build: {_err}"</span>);
 <a href=#412 id=412 data-nosnippet>412</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#413 id=413 data-nosnippet>413</a>                }
 <a href=#414 id=414 data-nosnippet>414</a>            };
@@ -606,7 +606,7 @@
 <a href=#606 id=606 data-nosnippet>606</a>            <span class="kw">let </span>fwd = <span class="kw">match </span>result {
 <a href=#607 id=607 data-nosnippet>607</a>                <span class="prelude-val">Ok</span>(fwd) =&gt; fwd,
 <a href=#608 id=608 data-nosnippet>608</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#609 id=609 data-nosnippet>609</a>                    <span class="macro">debug!</span>(<span class="string">"forward lazy DFA failed to build: {}"</span>, _err);
+<a href=#609 id=609 data-nosnippet>609</a>                    <span class="macro">debug!</span>(<span class="string">"forward lazy DFA failed to build: {_err}"</span>);
 <a href=#610 id=610 data-nosnippet>610</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#611 id=611 data-nosnippet>611</a>                }
 <a href=#612 id=612 data-nosnippet>612</a>            };
@@ -622,7 +622,7 @@
 <a href=#622 id=622 data-nosnippet>622</a>            <span class="kw">let </span>rev = <span class="kw">match </span>result {
 <a href=#623 id=623 data-nosnippet>623</a>                <span class="prelude-val">Ok</span>(rev) =&gt; rev,
 <a href=#624 id=624 data-nosnippet>624</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#625 id=625 data-nosnippet>625</a>                    <span class="macro">debug!</span>(<span class="string">"reverse lazy DFA failed to build: {}"</span>, _err);
+<a href=#625 id=625 data-nosnippet>625</a>                    <span class="macro">debug!</span>(<span class="string">"reverse lazy DFA failed to build: {_err}"</span>);
 <a href=#626 id=626 data-nosnippet>626</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#627 id=627 data-nosnippet>627</a>                }
 <a href=#628 id=628 data-nosnippet>628</a>            };
@@ -886,7 +886,7 @@
 <a href=#886 id=886 data-nosnippet>886</a>                <span class="comment">// Enabling this is necessary for ensuring we can service any
 <a href=#887 id=887 data-nosnippet>887</a>                // kind of 'Input' search without error. For the full DFA, this
 <a href=#888 id=888 data-nosnippet>888</a>                // can be quite costly. But since we have such a small bound
-<a href=#889 id=889 data-nosnippet>889</a>                // on the size of the DFA, in practice, any multl-regexes are
+<a href=#889 id=889 data-nosnippet>889</a>                // on the size of the DFA, in practice, any multi-regexes are
 <a href=#890 id=890 data-nosnippet>890</a>                // probably going to blow the limit anyway.
 <a href=#891 id=891 data-nosnippet>891</a>                </span>.starts_for_each_pattern(<span class="bool-val">true</span>)
 <a href=#892 id=892 data-nosnippet>892</a>                .byte_classes(info.config().get_byte_classes())
@@ -900,7 +900,7 @@
 <a href=#900 id=900 data-nosnippet>900</a>            <span class="kw">let </span>fwd = <span class="kw">match </span>result {
 <a href=#901 id=901 data-nosnippet>901</a>                <span class="prelude-val">Ok</span>(fwd) =&gt; fwd,
 <a href=#902 id=902 data-nosnippet>902</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#903 id=903 data-nosnippet>903</a>                    <span class="macro">debug!</span>(<span class="string">"forward full DFA failed to build: {}"</span>, _err);
+<a href=#903 id=903 data-nosnippet>903</a>                    <span class="macro">debug!</span>(<span class="string">"forward full DFA failed to build: {_err}"</span>);
 <a href=#904 id=904 data-nosnippet>904</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#905 id=905 data-nosnippet>905</a>                }
 <a href=#906 id=906 data-nosnippet>906</a>            };
@@ -924,7 +924,7 @@
 <a href=#924 id=924 data-nosnippet>924</a>            <span class="kw">let </span>rev = <span class="kw">match </span>result {
 <a href=#925 id=925 data-nosnippet>925</a>                <span class="prelude-val">Ok</span>(rev) =&gt; rev,
 <a href=#926 id=926 data-nosnippet>926</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#927 id=927 data-nosnippet>927</a>                    <span class="macro">debug!</span>(<span class="string">"reverse full DFA failed to build: {}"</span>, _err);
+<a href=#927 id=927 data-nosnippet>927</a>                    <span class="macro">debug!</span>(<span class="string">"reverse full DFA failed to build: {_err}"</span>);
 <a href=#928 id=928 data-nosnippet>928</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#929 id=929 data-nosnippet>929</a>                }
 <a href=#930 id=930 data-nosnippet>930</a>            };
@@ -1132,7 +1132,7 @@
 <a href=#1132 id=1132 data-nosnippet>1132</a>            <span class="kw">let </span>rev = <span class="kw">match </span>result {
 <a href=#1133 id=1133 data-nosnippet>1133</a>                <span class="prelude-val">Ok</span>(rev) =&gt; rev,
 <a href=#1134 id=1134 data-nosnippet>1134</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#1135 id=1135 data-nosnippet>1135</a>                    <span class="macro">debug!</span>(<span class="string">"lazy reverse DFA failed to build: {}"</span>, _err);
+<a href=#1135 id=1135 data-nosnippet>1135</a>                    <span class="macro">debug!</span>(<span class="string">"lazy reverse DFA failed to build: {_err}"</span>);
 <a href=#1136 id=1136 data-nosnippet>1136</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#1137 id=1137 data-nosnippet>1137</a>                }
 <a href=#1138 id=1138 data-nosnippet>1138</a>            };
@@ -1299,7 +1299,7 @@
 <a href=#1299 id=1299 data-nosnippet>1299</a>            <span class="kw">let </span>rev = <span class="kw">match </span>result {
 <a href=#1300 id=1300 data-nosnippet>1300</a>                <span class="prelude-val">Ok</span>(rev) =&gt; rev,
 <a href=#1301 id=1301 data-nosnippet>1301</a>                <span class="prelude-val">Err</span>(_err) =&gt; {
-<a href=#1302 id=1302 data-nosnippet>1302</a>                    <span class="macro">debug!</span>(<span class="string">"full reverse DFA failed to build: {}"</span>, _err);
+<a href=#1302 id=1302 data-nosnippet>1302</a>                    <span class="macro">debug!</span>(<span class="string">"full reverse DFA failed to build: {_err}"</span>);
 <a href=#1303 id=1303 data-nosnippet>1303</a>                    <span class="kw">return </span><span class="prelude-val">None</span>;
 <a href=#1304 id=1304 data-nosnippet>1304</a>                }
 <a href=#1305 id=1305 data-nosnippet>1305</a>            };

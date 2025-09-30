@@ -739,7 +739,7 @@
 <a href=#739 id=739 data-nosnippet>739</a>            .reduce(|a, b| {
 <a href=#740 id=740 data-nosnippet>740</a>                <span class="kw">let </span>a = a<span class="question-mark">?</span>;
 <a href=#741 id=741 data-nosnippet>741</a>                <span class="kw">let </span>b = b<span class="question-mark">?</span>;
-<a href=#742 id=742 data-nosnippet>742</a>                a.merge(b)
+<a href=#742 id=742 data-nosnippet>742</a>                a.merge(b).map_err(Into::into)
 <a href=#743 id=743 data-nosnippet>743</a>            })
 <a href=#744 id=744 data-nosnippet>744</a>        <span class="kw">else </span>{
 <a href=#745 id=745 data-nosnippet>745</a>            <span class="kw">return </span><span class="prelude-val">Ok</span>(<span class="prelude-val">None</span>);
@@ -781,7 +781,7 @@
 <a href=#781 id=781 data-nosnippet>781</a>            <span class="kw-2">&amp;</span><span class="self">self</span>.index,
 <a href=#782 id=782 data-nosnippet>782</a>            got_layout,
 <a href=#783 id=783 data-nosnippet>783</a>        )<span class="question-mark">?</span>;
-<a href=#784 id=784 data-nosnippet>784</a>        code_generator.generate(context, unit, <span class="kw-2">&amp;</span><span class="self">self</span>.annotations, <span class="kw-2">&amp;</span><span class="self">self</span>.index, llvm_index)
+<a href=#784 id=784 data-nosnippet>784</a>        code_generator.generate(context, unit, <span class="kw-2">&amp;</span><span class="self">self</span>.annotations, <span class="kw-2">&amp;</span><span class="self">self</span>.index, llvm_index).map_err(Into::into)
 <a href=#785 id=785 data-nosnippet>785</a>    }
 <a href=#786 id=786 data-nosnippet>786</a>
 <a href=#787 id=787 data-nosnippet>787</a>    <span class="kw">pub fn </span>codegen_single_module&lt;<span class="lifetime">'ctx</span>&gt;(
@@ -791,7 +791,7 @@
 <a href=#791 id=791 data-nosnippet>791</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;Vec&lt;GeneratedProject&gt;, Diagnostic&gt; {
 <a href=#792 id=792 data-nosnippet>792</a>        <span class="kw">let </span>compile_directory = compile_options.build_location.clone().unwrap_or_else(|| {
 <a href=#793 id=793 data-nosnippet>793</a>            <span class="kw">let </span>tempdir = tempfile::tempdir().unwrap();
-<a href=#794 id=794 data-nosnippet>794</a>            tempdir.into_path()
+<a href=#794 id=794 data-nosnippet>794</a>            tempdir.keep()
 <a href=#795 id=795 data-nosnippet>795</a>        });
 <a href=#796 id=796 data-nosnippet>796</a>        ensure_compile_dirs(targets, <span class="kw-2">&amp;</span>compile_directory)<span class="question-mark">?</span>;
 <a href=#797 id=797 data-nosnippet>797</a>        <span class="kw">let </span>context = CodegenContext::create(); <span class="comment">//Create a build location for the generated object files
@@ -914,7 +914,7 @@
 <a href=#914 id=914 data-nosnippet>914</a>                    .ok_or_else(|| {
 <a href=#915 id=915 data-nosnippet>915</a>                        Diagnostic::codegen_error(<span class="string">"Could not create bitcode"</span>, SourceLocation::undefined())
 <a href=#916 id=916 data-nosnippet>916</a>                    })<span class="question-mark">??</span>;
-<a href=#917 id=917 data-nosnippet>917</a>                codegen.persist_to_bitcode(output_location)
+<a href=#917 id=917 data-nosnippet>917</a>                codegen.persist_to_bitcode(output_location).map_err(Diagnostic::from)
 <a href=#918 id=918 data-nosnippet>918</a>            }
 <a href=#919 id=919 data-nosnippet>919</a>            FormatOption::IR =&gt; {
 <a href=#920 id=920 data-nosnippet>920</a>                <span class="kw">let </span>context = CodegenContext::create();
@@ -938,7 +938,7 @@
 <a href=#938 id=938 data-nosnippet>938</a>                    .ok_or_else(|| {
 <a href=#939 id=939 data-nosnippet>939</a>                        Diagnostic::codegen_error(<span class="string">"Could not create ir"</span>, SourceLocation::undefined())
 <a href=#940 id=940 data-nosnippet>940</a>                    })<span class="question-mark">??</span>;
-<a href=#941 id=941 data-nosnippet>941</a>                codegen.persist_to_ir(output_location)
+<a href=#941 id=941 data-nosnippet>941</a>                codegen.persist_to_ir(output_location).map_err(Into::into)
 <a href=#942 id=942 data-nosnippet>942</a>            }
 <a href=#943 id=943 data-nosnippet>943</a>            FormatOption::Object <span class="kw">if </span>objects.is_empty() =&gt; {
 <a href=#944 id=944 data-nosnippet>944</a>                <span class="comment">//Just copy over the object file, no need for a linker

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.0/src/notify.rs`."><title>notify.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">event_listener/</div>notify.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The `Notification` trait for specifying notification.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/event-listener-5.4.1/src/notify.rs`."><title>notify.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="event_listener" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://raw.githubusercontent.com/smol-rs/smol/master/assets/images/logo_fullsize_transparent.png"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">event_listener/</div>notify.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! The `Notification` trait for specifying notification.
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span><span class="kw">crate</span>::sync::atomic::{<span class="self">self</span>, Ordering};
 <a href=#4 id=4 data-nosnippet>4</a><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
@@ -494,129 +494,133 @@
 <a href=#494 id=494 data-nosnippet>494</a>    /// event.notify(1.additional().tag(true));
 <a href=#495 id=495 data-nosnippet>495</a>    /// event.notify(1.additional().tag(false));
 <a href=#496 id=496 data-nosnippet>496</a>    ///
-<a href=#497 id=497 data-nosnippet>497</a>    /// assert_eq!(listener1.wait(), true);
-<a href=#498 id=498 data-nosnippet>498</a>    /// assert_eq!(listener2.wait(), false);
-<a href=#499 id=499 data-nosnippet>499</a>    /// ```
-<a href=#500 id=500 data-nosnippet>500</a>    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-<a href=#501 id=501 data-nosnippet>501</a>    </span><span class="kw">fn </span>tag&lt;T: Clone&gt;(<span class="self">self</span>, tag: T) -&gt; Tag&lt;<span class="self">Self</span>::Notify, T&gt;
-<a href=#502 id=502 data-nosnippet>502</a>    <span class="kw">where
-<a href=#503 id=503 data-nosnippet>503</a>        </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
-<a href=#504 id=504 data-nosnippet>504</a>    {
-<a href=#505 id=505 data-nosnippet>505</a>        Tag::new(tag, <span class="self">self</span>.into_notification())
-<a href=#506 id=506 data-nosnippet>506</a>    }
-<a href=#507 id=507 data-nosnippet>507</a>
-<a href=#508 id=508 data-nosnippet>508</a>    <span class="doccomment">/// Use a function to generate a tag with this notification.
-<a href=#509 id=509 data-nosnippet>509</a>    ///
-<a href=#510 id=510 data-nosnippet>510</a>    /// In many cases, it is desired to send additional information to the listener of the [`Event`]. For instance,
-<a href=#511 id=511 data-nosnippet>511</a>    /// it is possible to optimize a `Mutex` implementation by locking directly on the next listener, without
-<a href=#512 id=512 data-nosnippet>512</a>    /// needing to ever unlock the mutex at all.
-<a href=#513 id=513 data-nosnippet>513</a>    ///
-<a href=#514 id=514 data-nosnippet>514</a>    /// Tagging functions cannot be implemented efficiently for `no_std`, so this is only available
-<a href=#515 id=515 data-nosnippet>515</a>    /// when the `std` feature is enabled.
-<a href=#516 id=516 data-nosnippet>516</a>    ///
-<a href=#517 id=517 data-nosnippet>517</a>    /// # Examples
+<a href=#497 id=497 data-nosnippet>497</a>    /// # #[cfg(not(target_family = "wasm"))] { // Listener::wait is unavailable on WASM
+<a href=#498 id=498 data-nosnippet>498</a>    /// assert_eq!(listener1.wait(), true);
+<a href=#499 id=499 data-nosnippet>499</a>    /// assert_eq!(listener2.wait(), false);
+<a href=#500 id=500 data-nosnippet>500</a>    /// # }
+<a href=#501 id=501 data-nosnippet>501</a>    /// ```
+<a href=#502 id=502 data-nosnippet>502</a>    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+<a href=#503 id=503 data-nosnippet>503</a>    </span><span class="kw">fn </span>tag&lt;T: Clone&gt;(<span class="self">self</span>, tag: T) -&gt; Tag&lt;<span class="self">Self</span>::Notify, T&gt;
+<a href=#504 id=504 data-nosnippet>504</a>    <span class="kw">where
+<a href=#505 id=505 data-nosnippet>505</a>        </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
+<a href=#506 id=506 data-nosnippet>506</a>    {
+<a href=#507 id=507 data-nosnippet>507</a>        Tag::new(tag, <span class="self">self</span>.into_notification())
+<a href=#508 id=508 data-nosnippet>508</a>    }
+<a href=#509 id=509 data-nosnippet>509</a>
+<a href=#510 id=510 data-nosnippet>510</a>    <span class="doccomment">/// Use a function to generate a tag with this notification.
+<a href=#511 id=511 data-nosnippet>511</a>    ///
+<a href=#512 id=512 data-nosnippet>512</a>    /// In many cases, it is desired to send additional information to the listener of the [`Event`]. For instance,
+<a href=#513 id=513 data-nosnippet>513</a>    /// it is possible to optimize a `Mutex` implementation by locking directly on the next listener, without
+<a href=#514 id=514 data-nosnippet>514</a>    /// needing to ever unlock the mutex at all.
+<a href=#515 id=515 data-nosnippet>515</a>    ///
+<a href=#516 id=516 data-nosnippet>516</a>    /// Tagging functions cannot be implemented efficiently for `no_std`, so this is only available
+<a href=#517 id=517 data-nosnippet>517</a>    /// when the `std` feature is enabled.
 <a href=#518 id=518 data-nosnippet>518</a>    ///
-<a href=#519 id=519 data-nosnippet>519</a>    /// ```
-<a href=#520 id=520 data-nosnippet>520</a>    /// use event_listener::{IntoNotification, Listener, Event};
-<a href=#521 id=521 data-nosnippet>521</a>    ///
-<a href=#522 id=522 data-nosnippet>522</a>    /// let event = Event::&lt;bool&gt;::with_tag();
+<a href=#519 id=519 data-nosnippet>519</a>    /// # Examples
+<a href=#520 id=520 data-nosnippet>520</a>    ///
+<a href=#521 id=521 data-nosnippet>521</a>    /// ```
+<a href=#522 id=522 data-nosnippet>522</a>    /// use event_listener::{IntoNotification, Listener, Event};
 <a href=#523 id=523 data-nosnippet>523</a>    ///
-<a href=#524 id=524 data-nosnippet>524</a>    /// let mut listener1 = event.listen();
-<a href=#525 id=525 data-nosnippet>525</a>    /// let mut listener2 = event.listen();
-<a href=#526 id=526 data-nosnippet>526</a>    ///
-<a href=#527 id=527 data-nosnippet>527</a>    /// // Notify with `true` then `false`.
-<a href=#528 id=528 data-nosnippet>528</a>    /// event.notify(1.additional().tag_with(|| true));
-<a href=#529 id=529 data-nosnippet>529</a>    /// event.notify(1.additional().tag_with(|| false));
-<a href=#530 id=530 data-nosnippet>530</a>    ///
-<a href=#531 id=531 data-nosnippet>531</a>    /// assert_eq!(listener1.wait(), true);
-<a href=#532 id=532 data-nosnippet>532</a>    /// assert_eq!(listener2.wait(), false);
-<a href=#533 id=533 data-nosnippet>533</a>    /// ```
-<a href=#534 id=534 data-nosnippet>534</a>    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
-<a href=#535 id=535 data-nosnippet>535</a>    </span><span class="kw">fn </span>tag_with&lt;T, F&gt;(<span class="self">self</span>, tag: F) -&gt; TagWith&lt;<span class="self">Self</span>::Notify, F&gt;
-<a href=#536 id=536 data-nosnippet>536</a>    <span class="kw">where
-<a href=#537 id=537 data-nosnippet>537</a>        </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
-<a href=#538 id=538 data-nosnippet>538</a>        F: FnMut() -&gt; T,
-<a href=#539 id=539 data-nosnippet>539</a>    {
-<a href=#540 id=540 data-nosnippet>540</a>        TagWith::new(tag, <span class="self">self</span>.into_notification())
-<a href=#541 id=541 data-nosnippet>541</a>    }
-<a href=#542 id=542 data-nosnippet>542</a>}
-<a href=#543 id=543 data-nosnippet>543</a>
-<a href=#544 id=544 data-nosnippet>544</a><span class="kw">impl</span>&lt;N: Notification&gt; IntoNotification <span class="kw">for </span>N {
-<a href=#545 id=545 data-nosnippet>545</a>    <span class="kw">type </span>Tag = N::Tag;
-<a href=#546 id=546 data-nosnippet>546</a>    <span class="kw">type </span>Notify = N;
+<a href=#524 id=524 data-nosnippet>524</a>    /// let event = Event::&lt;bool&gt;::with_tag();
+<a href=#525 id=525 data-nosnippet>525</a>    ///
+<a href=#526 id=526 data-nosnippet>526</a>    /// let mut listener1 = event.listen();
+<a href=#527 id=527 data-nosnippet>527</a>    /// let mut listener2 = event.listen();
+<a href=#528 id=528 data-nosnippet>528</a>    ///
+<a href=#529 id=529 data-nosnippet>529</a>    /// // Notify with `true` then `false`.
+<a href=#530 id=530 data-nosnippet>530</a>    /// event.notify(1.additional().tag_with(|| true));
+<a href=#531 id=531 data-nosnippet>531</a>    /// event.notify(1.additional().tag_with(|| false));
+<a href=#532 id=532 data-nosnippet>532</a>    ///
+<a href=#533 id=533 data-nosnippet>533</a>    /// # #[cfg(not(target_family = "wasm"))] { // Listener::wait is unavailable on WASM
+<a href=#534 id=534 data-nosnippet>534</a>    /// assert_eq!(listener1.wait(), true);
+<a href=#535 id=535 data-nosnippet>535</a>    /// assert_eq!(listener2.wait(), false);
+<a href=#536 id=536 data-nosnippet>536</a>    /// # }
+<a href=#537 id=537 data-nosnippet>537</a>    /// ```
+<a href=#538 id=538 data-nosnippet>538</a>    </span><span class="attr">#[cfg(feature = <span class="string">"std"</span>)]
+<a href=#539 id=539 data-nosnippet>539</a>    </span><span class="kw">fn </span>tag_with&lt;T, F&gt;(<span class="self">self</span>, tag: F) -&gt; TagWith&lt;<span class="self">Self</span>::Notify, F&gt;
+<a href=#540 id=540 data-nosnippet>540</a>    <span class="kw">where
+<a href=#541 id=541 data-nosnippet>541</a>        </span><span class="self">Self</span>: Sized + IntoNotification&lt;Tag = ()&gt;,
+<a href=#542 id=542 data-nosnippet>542</a>        F: FnMut() -&gt; T,
+<a href=#543 id=543 data-nosnippet>543</a>    {
+<a href=#544 id=544 data-nosnippet>544</a>        TagWith::new(tag, <span class="self">self</span>.into_notification())
+<a href=#545 id=545 data-nosnippet>545</a>    }
+<a href=#546 id=546 data-nosnippet>546</a>}
 <a href=#547 id=547 data-nosnippet>547</a>
-<a href=#548 id=548 data-nosnippet>548</a>    <span class="kw">fn </span>into_notification(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Notify {
-<a href=#549 id=549 data-nosnippet>549</a>        <span class="self">self
-<a href=#550 id=550 data-nosnippet>550</a>    </span>}
-<a href=#551 id=551 data-nosnippet>551</a>}
-<a href=#552 id=552 data-nosnippet>552</a>
-<a href=#553 id=553 data-nosnippet>553</a><span class="macro">macro_rules!</span> impl_for_numeric_types {
-<a href=#554 id=554 data-nosnippet>554</a>    ($(<span class="macro-nonterminal">$ty</span>:ty)<span class="kw-2">*</span>) =&gt; {$(
-<a href=#555 id=555 data-nosnippet>555</a>        <span class="kw">impl </span>IntoNotification <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
-<a href=#556 id=556 data-nosnippet>556</a>            <span class="kw">type </span>Tag = ();
-<a href=#557 id=557 data-nosnippet>557</a>            <span class="kw">type </span>Notify = Notify;
-<a href=#558 id=558 data-nosnippet>558</a>
-<a href=#559 id=559 data-nosnippet>559</a>            <span class="attr">#[allow(unused_comparisons)]
-<a href=#560 id=560 data-nosnippet>560</a>            </span><span class="kw">fn </span>into_notification(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Notify {
-<a href=#561 id=561 data-nosnippet>561</a>                <span class="kw">if </span><span class="self">self </span>&lt; <span class="number">0 </span>{
-<a href=#562 id=562 data-nosnippet>562</a>                    <span class="macro">panic!</span>(<span class="string">"negative notification count"</span>);
-<a href=#563 id=563 data-nosnippet>563</a>                }
-<a href=#564 id=564 data-nosnippet>564</a>
-<a href=#565 id=565 data-nosnippet>565</a>                Notify::new(<span class="self">self</span>.try_into().expect(<span class="string">"overflow"</span>))
-<a href=#566 id=566 data-nosnippet>566</a>            }
-<a href=#567 id=567 data-nosnippet>567</a>        }
+<a href=#548 id=548 data-nosnippet>548</a><span class="kw">impl</span>&lt;N: Notification&gt; IntoNotification <span class="kw">for </span>N {
+<a href=#549 id=549 data-nosnippet>549</a>    <span class="kw">type </span>Tag = N::Tag;
+<a href=#550 id=550 data-nosnippet>550</a>    <span class="kw">type </span>Notify = N;
+<a href=#551 id=551 data-nosnippet>551</a>
+<a href=#552 id=552 data-nosnippet>552</a>    <span class="kw">fn </span>into_notification(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Notify {
+<a href=#553 id=553 data-nosnippet>553</a>        <span class="self">self
+<a href=#554 id=554 data-nosnippet>554</a>    </span>}
+<a href=#555 id=555 data-nosnippet>555</a>}
+<a href=#556 id=556 data-nosnippet>556</a>
+<a href=#557 id=557 data-nosnippet>557</a><span class="macro">macro_rules!</span> impl_for_numeric_types {
+<a href=#558 id=558 data-nosnippet>558</a>    ($(<span class="macro-nonterminal">$ty</span>:ty)<span class="kw-2">*</span>) =&gt; {$(
+<a href=#559 id=559 data-nosnippet>559</a>        <span class="kw">impl </span>IntoNotification <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{
+<a href=#560 id=560 data-nosnippet>560</a>            <span class="kw">type </span>Tag = ();
+<a href=#561 id=561 data-nosnippet>561</a>            <span class="kw">type </span>Notify = Notify;
+<a href=#562 id=562 data-nosnippet>562</a>
+<a href=#563 id=563 data-nosnippet>563</a>            <span class="attr">#[allow(unused_comparisons)]
+<a href=#564 id=564 data-nosnippet>564</a>            </span><span class="kw">fn </span>into_notification(<span class="self">self</span>) -&gt; <span class="self">Self</span>::Notify {
+<a href=#565 id=565 data-nosnippet>565</a>                <span class="kw">if </span><span class="self">self </span>&lt; <span class="number">0 </span>{
+<a href=#566 id=566 data-nosnippet>566</a>                    <span class="macro">panic!</span>(<span class="string">"negative notification count"</span>);
+<a href=#567 id=567 data-nosnippet>567</a>                }
 <a href=#568 id=568 data-nosnippet>568</a>
-<a href=#569 id=569 data-nosnippet>569</a>        <span class="kw">impl </span>__private::Sealed <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{}
-<a href=#570 id=570 data-nosnippet>570</a>    )<span class="kw-2">*</span>};
-<a href=#571 id=571 data-nosnippet>571</a>}
+<a href=#569 id=569 data-nosnippet>569</a>                Notify::new(<span class="self">self</span>.try_into().expect(<span class="string">"overflow"</span>))
+<a href=#570 id=570 data-nosnippet>570</a>            }
+<a href=#571 id=571 data-nosnippet>571</a>        }
 <a href=#572 id=572 data-nosnippet>572</a>
-<a href=#573 id=573 data-nosnippet>573</a><span class="macro">impl_for_numeric_types!</span> { usize u8 u16 u32 u64 u128 isize i8 i16 i32 i64 i128 }
-<a href=#574 id=574 data-nosnippet>574</a>
-<a href=#575 id=575 data-nosnippet>575</a><span class="doccomment">/// Equivalent to `atomic::fence(Ordering::SeqCst)`, but in some cases faster.
-<a href=#576 id=576 data-nosnippet>576</a></span><span class="attr">#[inline]
-<a href=#577 id=577 data-nosnippet>577</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>full_fence() {
-<a href=#578 id=578 data-nosnippet>578</a>    <span class="attr">#[cfg(all(any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>), not(miri), not(loom)))]
-<a href=#579 id=579 data-nosnippet>579</a>    </span>{
-<a href=#580 id=580 data-nosnippet>580</a>        <span class="kw">use </span>core::{arch::asm, cell::UnsafeCell};
-<a href=#581 id=581 data-nosnippet>581</a>        <span class="comment">// HACK(stjepang): On x86 architectures there are two different ways of executing
-<a href=#582 id=582 data-nosnippet>582</a>        // a `SeqCst` fence.
-<a href=#583 id=583 data-nosnippet>583</a>        //
-<a href=#584 id=584 data-nosnippet>584</a>        // 1. `atomic::fence(SeqCst)`, which compiles into a `mfence` instruction.
-<a href=#585 id=585 data-nosnippet>585</a>        // 2. A `lock &lt;op&gt;` instruction.
-<a href=#586 id=586 data-nosnippet>586</a>        //
-<a href=#587 id=587 data-nosnippet>587</a>        // Both instructions have the effect of a full barrier, but empirical benchmarks have shown
-<a href=#588 id=588 data-nosnippet>588</a>        // that the second one is sometimes a bit faster.
-<a href=#589 id=589 data-nosnippet>589</a>        </span><span class="kw">let </span>a = UnsafeCell::new(<span class="number">0_usize</span>);
-<a href=#590 id=590 data-nosnippet>590</a>        <span class="comment">// It is common to use `lock or` here, but when using a local variable, `lock not`, which
-<a href=#591 id=591 data-nosnippet>591</a>        // does not change the flag, should be slightly more efficient.
-<a href=#592 id=592 data-nosnippet>592</a>        // Refs: https://www.felixcloutier.com/x86/not
-<a href=#593 id=593 data-nosnippet>593</a>        </span><span class="kw">unsafe </span>{
-<a href=#594 id=594 data-nosnippet>594</a>            <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
-<a href=#595 id=595 data-nosnippet>595</a>            </span><span class="macro">asm!</span>(<span class="string">"lock not qword ptr [{0}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
-<a href=#596 id=596 data-nosnippet>596</a>            <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
-<a href=#597 id=597 data-nosnippet>597</a>            </span><span class="macro">asm!</span>(<span class="string">"lock not dword ptr [{0:e}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
-<a href=#598 id=598 data-nosnippet>598</a>        }
-<a href=#599 id=599 data-nosnippet>599</a>        <span class="kw">return</span>;
-<a href=#600 id=600 data-nosnippet>600</a>    }
-<a href=#601 id=601 data-nosnippet>601</a>    <span class="attr">#[allow(unreachable_code)]
-<a href=#602 id=602 data-nosnippet>602</a>    </span>{
-<a href=#603 id=603 data-nosnippet>603</a>        atomic::fence(Ordering::SeqCst);
+<a href=#573 id=573 data-nosnippet>573</a>        <span class="kw">impl </span>__private::Sealed <span class="kw">for </span><span class="macro-nonterminal">$ty </span>{}
+<a href=#574 id=574 data-nosnippet>574</a>    )<span class="kw-2">*</span>};
+<a href=#575 id=575 data-nosnippet>575</a>}
+<a href=#576 id=576 data-nosnippet>576</a>
+<a href=#577 id=577 data-nosnippet>577</a><span class="macro">impl_for_numeric_types!</span> { usize u8 u16 u32 u64 u128 isize i8 i16 i32 i64 i128 }
+<a href=#578 id=578 data-nosnippet>578</a>
+<a href=#579 id=579 data-nosnippet>579</a><span class="doccomment">/// Equivalent to `atomic::fence(Ordering::SeqCst)`, but in some cases faster.
+<a href=#580 id=580 data-nosnippet>580</a></span><span class="attr">#[inline]
+<a href=#581 id=581 data-nosnippet>581</a></span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>full_fence() {
+<a href=#582 id=582 data-nosnippet>582</a>    <span class="attr">#[cfg(all(any(target_arch = <span class="string">"x86"</span>, target_arch = <span class="string">"x86_64"</span>), not(miri), not(loom)))]
+<a href=#583 id=583 data-nosnippet>583</a>    </span>{
+<a href=#584 id=584 data-nosnippet>584</a>        <span class="kw">use </span>core::{arch::asm, cell::UnsafeCell};
+<a href=#585 id=585 data-nosnippet>585</a>        <span class="comment">// HACK(stjepang): On x86 architectures there are two different ways of executing
+<a href=#586 id=586 data-nosnippet>586</a>        // a `SeqCst` fence.
+<a href=#587 id=587 data-nosnippet>587</a>        //
+<a href=#588 id=588 data-nosnippet>588</a>        // 1. `atomic::fence(SeqCst)`, which compiles into a `mfence` instruction.
+<a href=#589 id=589 data-nosnippet>589</a>        // 2. A `lock &lt;op&gt;` instruction.
+<a href=#590 id=590 data-nosnippet>590</a>        //
+<a href=#591 id=591 data-nosnippet>591</a>        // Both instructions have the effect of a full barrier, but empirical benchmarks have shown
+<a href=#592 id=592 data-nosnippet>592</a>        // that the second one is sometimes a bit faster.
+<a href=#593 id=593 data-nosnippet>593</a>        </span><span class="kw">let </span>a = UnsafeCell::new(<span class="number">0_usize</span>);
+<a href=#594 id=594 data-nosnippet>594</a>        <span class="comment">// It is common to use `lock or` here, but when using a local variable, `lock not`, which
+<a href=#595 id=595 data-nosnippet>595</a>        // does not change the flag, should be slightly more efficient.
+<a href=#596 id=596 data-nosnippet>596</a>        // Refs: https://www.felixcloutier.com/x86/not
+<a href=#597 id=597 data-nosnippet>597</a>        </span><span class="kw">unsafe </span>{
+<a href=#598 id=598 data-nosnippet>598</a>            <span class="attr">#[cfg(target_pointer_width = <span class="string">"64"</span>)]
+<a href=#599 id=599 data-nosnippet>599</a>            </span><span class="macro">asm!</span>(<span class="string">"lock not qword ptr [{0}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
+<a href=#600 id=600 data-nosnippet>600</a>            <span class="attr">#[cfg(target_pointer_width = <span class="string">"32"</span>)]
+<a href=#601 id=601 data-nosnippet>601</a>            </span><span class="macro">asm!</span>(<span class="string">"lock not dword ptr [{0:e}]"</span>, <span class="kw">in</span>(reg) a.get(), options(nostack, preserves_flags));
+<a href=#602 id=602 data-nosnippet>602</a>        }
+<a href=#603 id=603 data-nosnippet>603</a>        <span class="kw">return</span>;
 <a href=#604 id=604 data-nosnippet>604</a>    }
-<a href=#605 id=605 data-nosnippet>605</a>}
-<a href=#606 id=606 data-nosnippet>606</a>
-<a href=#607 id=607 data-nosnippet>607</a><span class="kw">mod </span>__private {
-<a href=#608 id=608 data-nosnippet>608</a>    <span class="doccomment">/// Make sure the NotificationPrivate trait can't be implemented outside of this crate.
-<a href=#609 id=609 data-nosnippet>609</a>    </span><span class="attr">#[doc(hidden)]
-<a href=#610 id=610 data-nosnippet>610</a>    #[derive(Debug)]
-<a href=#611 id=611 data-nosnippet>611</a>    </span><span class="kw">pub struct </span>Internal(());
-<a href=#612 id=612 data-nosnippet>612</a>
-<a href=#613 id=613 data-nosnippet>613</a>    <span class="kw">impl </span>Internal {
-<a href=#614 id=614 data-nosnippet>614</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
-<a href=#615 id=615 data-nosnippet>615</a>            <span class="self">Self</span>(())
-<a href=#616 id=616 data-nosnippet>616</a>        }
-<a href=#617 id=617 data-nosnippet>617</a>    }
-<a href=#618 id=618 data-nosnippet>618</a>
-<a href=#619 id=619 data-nosnippet>619</a>    <span class="attr">#[doc(hidden)]
-<a href=#620 id=620 data-nosnippet>620</a>    </span><span class="kw">pub trait </span>Sealed {}
-<a href=#621 id=621 data-nosnippet>621</a>    <span class="kw">impl</span>&lt;N: <span class="kw">super</span>::NotificationPrivate + <span class="question-mark">?</span>Sized&gt; Sealed <span class="kw">for </span>N {}
-<a href=#622 id=622 data-nosnippet>622</a>}</code></pre></div></section></main></body></html>
+<a href=#605 id=605 data-nosnippet>605</a>    <span class="attr">#[allow(unreachable_code)]
+<a href=#606 id=606 data-nosnippet>606</a>    </span>{
+<a href=#607 id=607 data-nosnippet>607</a>        atomic::fence(Ordering::SeqCst);
+<a href=#608 id=608 data-nosnippet>608</a>    }
+<a href=#609 id=609 data-nosnippet>609</a>}
+<a href=#610 id=610 data-nosnippet>610</a>
+<a href=#611 id=611 data-nosnippet>611</a><span class="kw">mod </span>__private {
+<a href=#612 id=612 data-nosnippet>612</a>    <span class="doccomment">/// Make sure the NotificationPrivate trait can't be implemented outside of this crate.
+<a href=#613 id=613 data-nosnippet>613</a>    </span><span class="attr">#[doc(hidden)]
+<a href=#614 id=614 data-nosnippet>614</a>    #[derive(Debug)]
+<a href=#615 id=615 data-nosnippet>615</a>    </span><span class="kw">pub struct </span>Internal(());
+<a href=#616 id=616 data-nosnippet>616</a>
+<a href=#617 id=617 data-nosnippet>617</a>    <span class="kw">impl </span>Internal {
+<a href=#618 id=618 data-nosnippet>618</a>        <span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">fn </span>new() -&gt; <span class="self">Self </span>{
+<a href=#619 id=619 data-nosnippet>619</a>            <span class="self">Self</span>(())
+<a href=#620 id=620 data-nosnippet>620</a>        }
+<a href=#621 id=621 data-nosnippet>621</a>    }
+<a href=#622 id=622 data-nosnippet>622</a>
+<a href=#623 id=623 data-nosnippet>623</a>    <span class="attr">#[doc(hidden)]
+<a href=#624 id=624 data-nosnippet>624</a>    </span><span class="kw">pub trait </span>Sealed {}
+<a href=#625 id=625 data-nosnippet>625</a>    <span class="kw">impl</span>&lt;N: <span class="kw">super</span>::NotificationPrivate + <span class="question-mark">?</span>Sized&gt; Sealed <span class="kw">for </span>N {}
+<a href=#626 id=626 data-nosnippet>626</a>}</code></pre></div></section></main></body></html>

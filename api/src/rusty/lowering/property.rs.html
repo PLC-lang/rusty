@@ -968,7 +968,7 @@
 <a href=#968 id=968 data-nosnippet>968</a>                VAR
 <a href=#969 id=969 data-nosnippet>969</a>                    instance : fb;
 <a href=#970 id=970 data-nosnippet>970</a>                END_VAR
-<a href=#971 id=971 data-nosnippet>971</a>                
+<a href=#971 id=971 data-nosnippet>971</a>
 <a href=#972 id=972 data-nosnippet>972</a>                func(instance.foo, instance.foo, instance.foo);
 <a href=#973 id=973 data-nosnippet>973</a>                func(a := instance.foo, b =&gt; instance.foo, c := instance.foo);
 <a href=#974 id=974 data-nosnippet>974</a>            END_FUNCTION
@@ -981,9 +981,9 @@
 <a href=#981 id=981 data-nosnippet>981</a>            <span class="kw">let </span>CallStatement { parameters, .. } = <span class="macro">try_from!</span>(reference, CallStatement).unwrap();
 <a href=#982 id=982 data-nosnippet>982</a>            <span class="kw">let </span>parameters = <span class="macro">try_from!</span>(parameters.as_ref().unwrap(), Vec&lt;AstNode&gt;).unwrap();
 <a href=#983 id=983 data-nosnippet>983</a>
-<a href=#984 id=984 data-nosnippet>984</a>            <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..=<span class="number">2 </span>{
+<a href=#984 id=984 data-nosnippet>984</a>            <span class="kw">for </span>param <span class="kw">in </span>parameters.iter().take(<span class="number">3</span>) {
 <a href=#985 id=985 data-nosnippet>985</a>                <span class="macro">assert_eq!</span>(
-<a href=#986 id=986 data-nosnippet>986</a>                    annotations.get(<span class="kw-2">&amp;</span>parameters[idx]).unwrap(),
+<a href=#986 id=986 data-nosnippet>986</a>                    annotations.get(param).unwrap(),
 <a href=#987 id=987 data-nosnippet>987</a>                    <span class="kw-2">&amp;</span>StatementAnnotation::Property { name: <span class="string">"__get_foo"</span>.to_string() }
 <a href=#988 id=988 data-nosnippet>988</a>                );
 <a href=#989 id=989 data-nosnippet>989</a>            }
@@ -992,8 +992,8 @@
 <a href=#992 id=992 data-nosnippet>992</a>            <span class="kw">let </span>CallStatement { parameters, .. } = <span class="macro">try_from!</span>(reference, CallStatement).unwrap();
 <a href=#993 id=993 data-nosnippet>993</a>            <span class="kw">let </span>parameters = <span class="macro">try_from!</span>(parameters.as_ref().unwrap(), Vec&lt;AstNode&gt;).unwrap();
 <a href=#994 id=994 data-nosnippet>994</a>
-<a href=#995 id=995 data-nosnippet>995</a>            <span class="kw">for </span>idx <span class="kw">in </span><span class="number">0</span>..=<span class="number">2 </span>{
-<a href=#996 id=996 data-nosnippet>996</a>                <span class="kw">let </span>Assignment { right, .. } = <span class="macro">try_from!</span>(parameters[idx], Assignment).unwrap();
+<a href=#995 id=995 data-nosnippet>995</a>            <span class="kw">for </span>param <span class="kw">in </span>parameters.iter().take(<span class="number">3</span>) {
+<a href=#996 id=996 data-nosnippet>996</a>                <span class="kw">let </span>Assignment { right, .. } = <span class="macro">try_from!</span>(param, Assignment).unwrap();
 <a href=#997 id=997 data-nosnippet>997</a>                <span class="macro">assert_eq!</span>(
 <a href=#998 id=998 data-nosnippet>998</a>                    annotations.get(right).unwrap(),
 <a href=#999 id=999 data-nosnippet>999</a>                    <span class="kw-2">&amp;</span>StatementAnnotation::Property { name: <span class="string">"__get_foo"</span>.to_string() }
@@ -1024,7 +1024,7 @@
 <a href=#1024 id=1024 data-nosnippet>1024</a>                VAR
 <a href=#1025 id=1025 data-nosnippet>1025</a>                    instance : fb;
 <a href=#1026 id=1026 data-nosnippet>1026</a>                END_VAR
-<a href=#1027 id=1027 data-nosnippet>1027</a>                
+<a href=#1027 id=1027 data-nosnippet>1027</a>
 <a href=#1028 id=1028 data-nosnippet>1028</a>                printf('%d$N', instance.foo);
 <a href=#1029 id=1029 data-nosnippet>1029</a>            END_FUNCTION
 <a href=#1030 id=1030 data-nosnippet>1030</a>            "</span>;
@@ -1056,7 +1056,7 @@
 <a href=#1056 id=1056 data-nosnippet>1056</a>                    instance : fb;
 <a href=#1057 id=1057 data-nosnippet>1057</a>                    arr : ARRAY[1..5] OF DINT;
 <a href=#1058 id=1058 data-nosnippet>1058</a>                END_VAR
-<a href=#1059 id=1059 data-nosnippet>1059</a>                
+<a href=#1059 id=1059 data-nosnippet>1059</a>
 <a href=#1060 id=1060 data-nosnippet>1060</a>                arr[instance.foo];
 <a href=#1061 id=1061 data-nosnippet>1061</a>                arr[instance.foo + 1] := arr[instance.foo];
 <a href=#1062 id=1062 data-nosnippet>1062</a>            END_FUNCTION

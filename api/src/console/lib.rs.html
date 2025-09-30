@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.15.10/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">console/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! console is a library for Rust that provides access to various terminal
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/console-0.15.11/src/lib.rs`."><title>lib.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="console" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">console/</div>lib.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! console is a library for Rust that provides access to various terminal
 <a href=#2 id=2 data-nosnippet>2</a>//! features so you can build nicer looking command line interfaces.  It
 <a href=#3 id=3 data-nosnippet>3</a>//! comes with various tools and utilities for working with Terminals and
 <a href=#4 id=4 data-nosnippet>4</a>//! formatting text.
@@ -33,7 +33,7 @@
 <a href=#33 id=33 data-nosnippet>33</a>//!
 <a href=#34 id=34 data-nosnippet>34</a>//! # Colors and Styles
 <a href=#35 id=35 data-nosnippet>35</a>//!
-<a href=#36 id=36 data-nosnippet>36</a>//! `console` automaticaly detects when to use colors based on the tty flag.  It also
+<a href=#36 id=36 data-nosnippet>36</a>//! `console` automatically detects when to use colors based on the tty flag.  It also
 <a href=#37 id=37 data-nosnippet>37</a>//! provides higher level wrappers for styling text and other things that can be
 <a href=#38 id=38 data-nosnippet>38</a>//! displayed with the `style` function and utility types.
 <a href=#39 id=39 data-nosnippet>39</a>//!
@@ -56,7 +56,7 @@
 <a href=#56 id=56 data-nosnippet>56</a>//!
 <a href=#57 id=57 data-nosnippet>57</a>//! # Working with ANSI Codes
 <a href=#58 id=58 data-nosnippet>58</a>//!
-<a href=#59 id=59 data-nosnippet>59</a>//! The crate provids the function `strip_ansi_codes` to remove ANSI codes
+<a href=#59 id=59 data-nosnippet>59</a>//! The crate provides the function `strip_ansi_codes` to remove ANSI codes
 <a href=#60 id=60 data-nosnippet>60</a>//! from a string as well as `measure_text_width` to calculate the width of a
 <a href=#61 id=61 data-nosnippet>61</a>//! string as it would be displayed by the terminal.  Both of those together
 <a href=#62 id=62 data-nosnippet>62</a>//! are useful for more complex formatting.
@@ -76,29 +76,31 @@
 <a href=#76 id=76 data-nosnippet>76</a>//!   for stripping and taking ansi escape codes into account for length
 <a href=#77 id=77 data-nosnippet>77</a>//!   calculations).
 <a href=#78 id=78 data-nosnippet>78</a>
-<a href=#79 id=79 data-nosnippet>79</a></span><span class="kw">pub use </span><span class="kw">crate</span>::kb::Key;
-<a href=#80 id=80 data-nosnippet>80</a><span class="kw">pub use </span><span class="kw">crate</span>::term::{
-<a href=#81 id=81 data-nosnippet>81</a>    user_attended, user_attended_stderr, Term, TermFamily, TermFeatures, TermTarget,
-<a href=#82 id=82 data-nosnippet>82</a>};
-<a href=#83 id=83 data-nosnippet>83</a><span class="kw">pub use </span><span class="kw">crate</span>::utils::{
-<a href=#84 id=84 data-nosnippet>84</a>    colors_enabled, colors_enabled_stderr, measure_text_width, pad_str, pad_str_with,
-<a href=#85 id=85 data-nosnippet>85</a>    set_colors_enabled, set_colors_enabled_stderr, style, truncate_str, Alignment, Attribute,
-<a href=#86 id=86 data-nosnippet>86</a>    Color, Emoji, Style, StyledObject,
-<a href=#87 id=87 data-nosnippet>87</a>};
-<a href=#88 id=88 data-nosnippet>88</a>
-<a href=#89 id=89 data-nosnippet>89</a><span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
-<a href=#90 id=90 data-nosnippet>90</a></span><span class="kw">pub use </span><span class="kw">crate</span>::ansi::{strip_ansi_codes, AnsiCodeIterator};
-<a href=#91 id=91 data-nosnippet>91</a>
-<a href=#92 id=92 data-nosnippet>92</a><span class="kw">mod </span>common_term;
-<a href=#93 id=93 data-nosnippet>93</a><span class="kw">mod </span>kb;
-<a href=#94 id=94 data-nosnippet>94</a><span class="kw">mod </span>term;
-<a href=#95 id=95 data-nosnippet>95</a><span class="attr">#[cfg(all(unix, not(target_arch = <span class="string">"wasm32"</span>)))]
-<a href=#96 id=96 data-nosnippet>96</a></span><span class="kw">mod </span>unix_term;
-<a href=#97 id=97 data-nosnippet>97</a><span class="kw">mod </span>utils;
-<a href=#98 id=98 data-nosnippet>98</a><span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
-<a href=#99 id=99 data-nosnippet>99</a></span><span class="kw">mod </span>wasm_term;
-<a href=#100 id=100 data-nosnippet>100</a><span class="attr">#[cfg(windows)]
-<a href=#101 id=101 data-nosnippet>101</a></span><span class="kw">mod </span>windows_term;
-<a href=#102 id=102 data-nosnippet>102</a>
-<a href=#103 id=103 data-nosnippet>103</a><span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
-<a href=#104 id=104 data-nosnippet>104</a></span><span class="kw">mod </span>ansi;</code></pre></div></section></main></body></html>
+<a href=#79 id=79 data-nosnippet>79</a></span><span class="attr">#![warn(unreachable_pub)]
+<a href=#80 id=80 data-nosnippet>80</a>
+<a href=#81 id=81 data-nosnippet>81</a></span><span class="kw">pub use </span><span class="kw">crate</span>::kb::Key;
+<a href=#82 id=82 data-nosnippet>82</a><span class="kw">pub use </span><span class="kw">crate</span>::term::{
+<a href=#83 id=83 data-nosnippet>83</a>    user_attended, user_attended_stderr, Term, TermFamily, TermFeatures, TermTarget,
+<a href=#84 id=84 data-nosnippet>84</a>};
+<a href=#85 id=85 data-nosnippet>85</a><span class="kw">pub use </span><span class="kw">crate</span>::utils::{
+<a href=#86 id=86 data-nosnippet>86</a>    colors_enabled, colors_enabled_stderr, measure_text_width, pad_str, pad_str_with,
+<a href=#87 id=87 data-nosnippet>87</a>    set_colors_enabled, set_colors_enabled_stderr, style, truncate_str, Alignment, Attribute,
+<a href=#88 id=88 data-nosnippet>88</a>    Color, Emoji, Style, StyledObject,
+<a href=#89 id=89 data-nosnippet>89</a>};
+<a href=#90 id=90 data-nosnippet>90</a>
+<a href=#91 id=91 data-nosnippet>91</a><span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
+<a href=#92 id=92 data-nosnippet>92</a></span><span class="kw">pub use </span><span class="kw">crate</span>::ansi::{strip_ansi_codes, AnsiCodeIterator};
+<a href=#93 id=93 data-nosnippet>93</a>
+<a href=#94 id=94 data-nosnippet>94</a><span class="kw">mod </span>common_term;
+<a href=#95 id=95 data-nosnippet>95</a><span class="kw">mod </span>kb;
+<a href=#96 id=96 data-nosnippet>96</a><span class="kw">mod </span>term;
+<a href=#97 id=97 data-nosnippet>97</a><span class="attr">#[cfg(all(unix, not(target_arch = <span class="string">"wasm32"</span>)))]
+<a href=#98 id=98 data-nosnippet>98</a></span><span class="kw">mod </span>unix_term;
+<a href=#99 id=99 data-nosnippet>99</a><span class="kw">mod </span>utils;
+<a href=#100 id=100 data-nosnippet>100</a><span class="attr">#[cfg(target_arch = <span class="string">"wasm32"</span>)]
+<a href=#101 id=101 data-nosnippet>101</a></span><span class="kw">mod </span>wasm_term;
+<a href=#102 id=102 data-nosnippet>102</a><span class="attr">#[cfg(windows)]
+<a href=#103 id=103 data-nosnippet>103</a></span><span class="kw">mod </span>windows_term;
+<a href=#104 id=104 data-nosnippet>104</a>
+<a href=#105 id=105 data-nosnippet>105</a><span class="attr">#[cfg(feature = <span class="string">"ansi-parsing"</span>)]
+<a href=#106 id=106 data-nosnippet>106</a></span><span class="kw">mod </span>ansi;</code></pre></div></section></main></body></html>

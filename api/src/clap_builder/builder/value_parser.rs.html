@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_builder-4.5.24/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">clap_builder/builder/</div>value_parser.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::convert::TryInto;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/clap_builder-4.5.48/src/builder/value_parser.rs`."><title>value_parser.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="clap_builder" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">clap_builder/builder/</div>value_parser.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::convert::TryInto;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>std::ops::RangeBounds;
 <a href=#3 id=3 data-nosnippet>3</a>
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span><span class="kw">crate</span>::builder::Str;
@@ -2387,301 +2387,313 @@
 <a href=#2387 id=2387 data-nosnippet>2387</a>        RangedI64ValueParser::new()
 <a href=#2388 id=2388 data-nosnippet>2388</a>    }
 <a href=#2389 id=2389 data-nosnippet>2389</a>}
-<a href=#2390 id=2390 data-nosnippet>2390</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::num::Wrapping&lt;T&gt;
+<a href=#2390 id=2390 data-nosnippet>2390</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::num::Saturating&lt;T&gt;
 <a href=#2391 id=2391 data-nosnippet>2391</a><span class="kw">where
 <a href=#2392 id=2392 data-nosnippet>2392</a>    </span>T: ValueParserFactory,
 <a href=#2393 id=2393 data-nosnippet>2393</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
 <a href=#2394 id=2394 data-nosnippet>2394</a>    T: Send + Sync + Clone,
 <a href=#2395 id=2395 data-nosnippet>2395</a>{
-<a href=#2396 id=2396 data-nosnippet>2396</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::num::Wrapping&lt;T&gt;&gt;;
-<a href=#2397 id=2397 data-nosnippet>2397</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-<a href=#2398 id=2398 data-nosnippet>2398</a>        T::value_parser().map(std::num::Wrapping)
-<a href=#2399 id=2399 data-nosnippet>2399</a>    }
-<a href=#2400 id=2400 data-nosnippet>2400</a>}
-<a href=#2401 id=2401 data-nosnippet>2401</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>Box&lt;T&gt;
-<a href=#2402 id=2402 data-nosnippet>2402</a><span class="kw">where
-<a href=#2403 id=2403 data-nosnippet>2403</a>    </span>T: ValueParserFactory,
-<a href=#2404 id=2404 data-nosnippet>2404</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
-<a href=#2405 id=2405 data-nosnippet>2405</a>    T: Send + Sync + Clone,
-<a href=#2406 id=2406 data-nosnippet>2406</a>{
-<a href=#2407 id=2407 data-nosnippet>2407</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; Box&lt;T&gt;&gt;;
-<a href=#2408 id=2408 data-nosnippet>2408</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-<a href=#2409 id=2409 data-nosnippet>2409</a>        T::value_parser().map(Box::new)
-<a href=#2410 id=2410 data-nosnippet>2410</a>    }
-<a href=#2411 id=2411 data-nosnippet>2411</a>}
-<a href=#2412 id=2412 data-nosnippet>2412</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::sync::Arc&lt;T&gt;
-<a href=#2413 id=2413 data-nosnippet>2413</a><span class="kw">where
-<a href=#2414 id=2414 data-nosnippet>2414</a>    </span>T: ValueParserFactory,
-<a href=#2415 id=2415 data-nosnippet>2415</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
-<a href=#2416 id=2416 data-nosnippet>2416</a>    T: Send + Sync + Clone,
-<a href=#2417 id=2417 data-nosnippet>2417</a>{
-<a href=#2418 id=2418 data-nosnippet>2418</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::sync::Arc&lt;T&gt;&gt;;
-<a href=#2419 id=2419 data-nosnippet>2419</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
-<a href=#2420 id=2420 data-nosnippet>2420</a>        T::value_parser().map(std::sync::Arc::new)
-<a href=#2421 id=2421 data-nosnippet>2421</a>    }
-<a href=#2422 id=2422 data-nosnippet>2422</a>}
-<a href=#2423 id=2423 data-nosnippet>2423</a>
-<a href=#2424 id=2424 data-nosnippet>2424</a><span class="attr">#[doc(hidden)]
-<a href=#2425 id=2425 data-nosnippet>2425</a>#[derive(Debug)]
-<a href=#2426 id=2426 data-nosnippet>2426</a>#[allow(non_camel_case_types)]
-<a href=#2427 id=2427 data-nosnippet>2427</a></span><span class="kw">pub struct </span>_infer_ValueParser_for&lt;T&gt;(std::marker::PhantomData&lt;T&gt;);
-<a href=#2428 id=2428 data-nosnippet>2428</a>
-<a href=#2429 id=2429 data-nosnippet>2429</a><span class="kw">impl</span>&lt;T&gt; _infer_ValueParser_for&lt;T&gt; {
-<a href=#2430 id=2430 data-nosnippet>2430</a>    <span class="attr">#[doc(hidden)]
-<a href=#2431 id=2431 data-nosnippet>2431</a>    #[allow(clippy::new_without_default)]
-<a href=#2432 id=2432 data-nosnippet>2432</a>    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
-<a href=#2433 id=2433 data-nosnippet>2433</a>        <span class="self">Self</span>(Default::default())
-<a href=#2434 id=2434 data-nosnippet>2434</a>    }
-<a href=#2435 id=2435 data-nosnippet>2435</a>}
-<a href=#2436 id=2436 data-nosnippet>2436</a>
-<a href=#2437 id=2437 data-nosnippet>2437</a><span class="doccomment">/// Unstable [`ValueParser`]
-<a href=#2438 id=2438 data-nosnippet>2438</a>///
-<a href=#2439 id=2439 data-nosnippet>2439</a>/// Implementation may change to more specific instance in the future
-<a href=#2440 id=2440 data-nosnippet>2440</a></span><span class="attr">#[doc(hidden)]
-<a href=#2441 id=2441 data-nosnippet>2441</a>#[derive(Debug)]
-<a href=#2442 id=2442 data-nosnippet>2442</a></span><span class="kw">pub struct </span>_AnonymousValueParser(ValueParser);
-<a href=#2443 id=2443 data-nosnippet>2443</a>
-<a href=#2444 id=2444 data-nosnippet>2444</a><span class="attr">#[doc(hidden)]
-<a href=#2445 id=2445 data-nosnippet>2445</a></span><span class="kw">pub mod </span>impl_prelude {
-<a href=#2446 id=2446 data-nosnippet>2446</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#2447 id=2447 data-nosnippet>2447</a>
-<a href=#2448 id=2448 data-nosnippet>2448</a>    <span class="attr">#[doc(hidden)]
-<a href=#2449 id=2449 data-nosnippet>2449</a>    #[allow(non_camel_case_types)]
-<a href=#2450 id=2450 data-nosnippet>2450</a>    </span><span class="kw">pub trait </span>_impls_ValueParserFactory: private::_impls_ValueParserFactorySealed {
-<a href=#2451 id=2451 data-nosnippet>2451</a>        <span class="kw">type </span>Parser;
-<a href=#2452 id=2452 data-nosnippet>2452</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser;
-<a href=#2453 id=2453 data-nosnippet>2453</a>    }
-<a href=#2454 id=2454 data-nosnippet>2454</a>    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactory <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {
-<a href=#2455 id=2455 data-nosnippet>2455</a>        <span class="kw">type </span>Parser = P::Parser;
-<a href=#2456 id=2456 data-nosnippet>2456</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser {
-<a href=#2457 id=2457 data-nosnippet>2457</a>            P::value_parser()
-<a href=#2458 id=2458 data-nosnippet>2458</a>        }
-<a href=#2459 id=2459 data-nosnippet>2459</a>    }
-<a href=#2460 id=2460 data-nosnippet>2460</a>
-<a href=#2461 id=2461 data-nosnippet>2461</a>    <span class="attr">#[doc(hidden)]
-<a href=#2462 id=2462 data-nosnippet>2462</a>    #[allow(non_camel_case_types)]
-<a href=#2463 id=2463 data-nosnippet>2463</a>    </span><span class="kw">pub trait </span>_impls_ValueEnum: private::_impls_ValueEnumSealed {
-<a href=#2464 id=2464 data-nosnippet>2464</a>        <span class="kw">type </span>Output;
-<a href=#2465 id=2465 data-nosnippet>2465</a>
-<a href=#2466 id=2466 data-nosnippet>2466</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output;
-<a href=#2467 id=2467 data-nosnippet>2467</a>    }
-<a href=#2468 id=2468 data-nosnippet>2468</a>    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; _impls_ValueEnum
-<a href=#2469 id=2469 data-nosnippet>2469</a>        <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt;
-<a href=#2470 id=2470 data-nosnippet>2470</a>    {
-<a href=#2471 id=2471 data-nosnippet>2471</a>        <span class="kw">type </span>Output = EnumValueParser&lt;E&gt;;
+<a href=#2396 id=2396 data-nosnippet>2396</a>    <span class="kw">type </span>Parser =
+<a href=#2397 id=2397 data-nosnippet>2397</a>        MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::num::Saturating&lt;T&gt;&gt;;
+<a href=#2398 id=2398 data-nosnippet>2398</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+<a href=#2399 id=2399 data-nosnippet>2399</a>        T::value_parser().map(std::num::Saturating)
+<a href=#2400 id=2400 data-nosnippet>2400</a>    }
+<a href=#2401 id=2401 data-nosnippet>2401</a>}
+<a href=#2402 id=2402 data-nosnippet>2402</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::num::Wrapping&lt;T&gt;
+<a href=#2403 id=2403 data-nosnippet>2403</a><span class="kw">where
+<a href=#2404 id=2404 data-nosnippet>2404</a>    </span>T: ValueParserFactory,
+<a href=#2405 id=2405 data-nosnippet>2405</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+<a href=#2406 id=2406 data-nosnippet>2406</a>    T: Send + Sync + Clone,
+<a href=#2407 id=2407 data-nosnippet>2407</a>{
+<a href=#2408 id=2408 data-nosnippet>2408</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::num::Wrapping&lt;T&gt;&gt;;
+<a href=#2409 id=2409 data-nosnippet>2409</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+<a href=#2410 id=2410 data-nosnippet>2410</a>        T::value_parser().map(std::num::Wrapping)
+<a href=#2411 id=2411 data-nosnippet>2411</a>    }
+<a href=#2412 id=2412 data-nosnippet>2412</a>}
+<a href=#2413 id=2413 data-nosnippet>2413</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>Box&lt;T&gt;
+<a href=#2414 id=2414 data-nosnippet>2414</a><span class="kw">where
+<a href=#2415 id=2415 data-nosnippet>2415</a>    </span>T: ValueParserFactory,
+<a href=#2416 id=2416 data-nosnippet>2416</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+<a href=#2417 id=2417 data-nosnippet>2417</a>    T: Send + Sync + Clone,
+<a href=#2418 id=2418 data-nosnippet>2418</a>{
+<a href=#2419 id=2419 data-nosnippet>2419</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; Box&lt;T&gt;&gt;;
+<a href=#2420 id=2420 data-nosnippet>2420</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+<a href=#2421 id=2421 data-nosnippet>2421</a>        T::value_parser().map(Box::new)
+<a href=#2422 id=2422 data-nosnippet>2422</a>    }
+<a href=#2423 id=2423 data-nosnippet>2423</a>}
+<a href=#2424 id=2424 data-nosnippet>2424</a><span class="kw">impl</span>&lt;T&gt; ValueParserFactory <span class="kw">for </span>std::sync::Arc&lt;T&gt;
+<a href=#2425 id=2425 data-nosnippet>2425</a><span class="kw">where
+<a href=#2426 id=2426 data-nosnippet>2426</a>    </span>T: ValueParserFactory,
+<a href=#2427 id=2427 data-nosnippet>2427</a>    &lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser: TypedValueParser&lt;Value = T&gt;,
+<a href=#2428 id=2428 data-nosnippet>2428</a>    T: Send + Sync + Clone,
+<a href=#2429 id=2429 data-nosnippet>2429</a>{
+<a href=#2430 id=2430 data-nosnippet>2430</a>    <span class="kw">type </span>Parser = MapValueParser&lt;&lt;T <span class="kw">as </span>ValueParserFactory&gt;::Parser, <span class="kw">fn</span>(T) -&gt; std::sync::Arc&lt;T&gt;&gt;;
+<a href=#2431 id=2431 data-nosnippet>2431</a>    <span class="kw">fn </span>value_parser() -&gt; <span class="self">Self</span>::Parser {
+<a href=#2432 id=2432 data-nosnippet>2432</a>        T::value_parser().map(std::sync::Arc::new)
+<a href=#2433 id=2433 data-nosnippet>2433</a>    }
+<a href=#2434 id=2434 data-nosnippet>2434</a>}
+<a href=#2435 id=2435 data-nosnippet>2435</a>
+<a href=#2436 id=2436 data-nosnippet>2436</a><span class="attr">#[doc(hidden)]
+<a href=#2437 id=2437 data-nosnippet>2437</a>#[derive(Debug)]
+<a href=#2438 id=2438 data-nosnippet>2438</a>#[allow(non_camel_case_types)]
+<a href=#2439 id=2439 data-nosnippet>2439</a></span><span class="kw">pub struct </span>_infer_ValueParser_for&lt;T&gt;(std::marker::PhantomData&lt;T&gt;);
+<a href=#2440 id=2440 data-nosnippet>2440</a>
+<a href=#2441 id=2441 data-nosnippet>2441</a><span class="kw">impl</span>&lt;T&gt; _infer_ValueParser_for&lt;T&gt; {
+<a href=#2442 id=2442 data-nosnippet>2442</a>    <span class="attr">#[doc(hidden)]
+<a href=#2443 id=2443 data-nosnippet>2443</a>    #[allow(clippy::new_without_default)]
+<a href=#2444 id=2444 data-nosnippet>2444</a>    </span><span class="kw">pub fn </span>new() -&gt; <span class="self">Self </span>{
+<a href=#2445 id=2445 data-nosnippet>2445</a>        <span class="self">Self</span>(Default::default())
+<a href=#2446 id=2446 data-nosnippet>2446</a>    }
+<a href=#2447 id=2447 data-nosnippet>2447</a>}
+<a href=#2448 id=2448 data-nosnippet>2448</a>
+<a href=#2449 id=2449 data-nosnippet>2449</a><span class="doccomment">/// Unstable [`ValueParser`]
+<a href=#2450 id=2450 data-nosnippet>2450</a>///
+<a href=#2451 id=2451 data-nosnippet>2451</a>/// Implementation may change to more specific instance in the future
+<a href=#2452 id=2452 data-nosnippet>2452</a></span><span class="attr">#[doc(hidden)]
+<a href=#2453 id=2453 data-nosnippet>2453</a>#[derive(Debug)]
+<a href=#2454 id=2454 data-nosnippet>2454</a></span><span class="kw">pub struct </span>_AnonymousValueParser(ValueParser);
+<a href=#2455 id=2455 data-nosnippet>2455</a>
+<a href=#2456 id=2456 data-nosnippet>2456</a><span class="attr">#[doc(hidden)]
+<a href=#2457 id=2457 data-nosnippet>2457</a></span><span class="kw">pub mod </span>impl_prelude {
+<a href=#2458 id=2458 data-nosnippet>2458</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#2459 id=2459 data-nosnippet>2459</a>
+<a href=#2460 id=2460 data-nosnippet>2460</a>    <span class="attr">#[doc(hidden)]
+<a href=#2461 id=2461 data-nosnippet>2461</a>    #[allow(non_camel_case_types)]
+<a href=#2462 id=2462 data-nosnippet>2462</a>    </span><span class="kw">pub trait </span>_impls_ValueParserFactory: private::_impls_ValueParserFactorySealed {
+<a href=#2463 id=2463 data-nosnippet>2463</a>        <span class="kw">type </span>Parser;
+<a href=#2464 id=2464 data-nosnippet>2464</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser;
+<a href=#2465 id=2465 data-nosnippet>2465</a>    }
+<a href=#2466 id=2466 data-nosnippet>2466</a>    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactory <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {
+<a href=#2467 id=2467 data-nosnippet>2467</a>        <span class="kw">type </span>Parser = P::Parser;
+<a href=#2468 id=2468 data-nosnippet>2468</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Parser {
+<a href=#2469 id=2469 data-nosnippet>2469</a>            P::value_parser()
+<a href=#2470 id=2470 data-nosnippet>2470</a>        }
+<a href=#2471 id=2471 data-nosnippet>2471</a>    }
 <a href=#2472 id=2472 data-nosnippet>2472</a>
-<a href=#2473 id=2473 data-nosnippet>2473</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output {
-<a href=#2474 id=2474 data-nosnippet>2474</a>            EnumValueParser::&lt;E&gt;::new()
-<a href=#2475 id=2475 data-nosnippet>2475</a>        }
-<a href=#2476 id=2476 data-nosnippet>2476</a>    }
+<a href=#2473 id=2473 data-nosnippet>2473</a>    <span class="attr">#[doc(hidden)]
+<a href=#2474 id=2474 data-nosnippet>2474</a>    #[allow(non_camel_case_types)]
+<a href=#2475 id=2475 data-nosnippet>2475</a>    </span><span class="kw">pub trait </span>_impls_ValueEnum: private::_impls_ValueEnumSealed {
+<a href=#2476 id=2476 data-nosnippet>2476</a>        <span class="kw">type </span>Output;
 <a href=#2477 id=2477 data-nosnippet>2477</a>
-<a href=#2478 id=2478 data-nosnippet>2478</a>    <span class="attr">#[doc(hidden)]
-<a href=#2479 id=2479 data-nosnippet>2479</a>    #[allow(non_camel_case_types)]
-<a href=#2480 id=2480 data-nosnippet>2480</a>    </span><span class="kw">pub trait </span>_impls_From_OsString: private::_impls_From_OsStringSealed {
-<a href=#2481 id=2481 data-nosnippet>2481</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
-<a href=#2482 id=2482 data-nosnippet>2482</a>    }
-<a href=#2483 id=2483 data-nosnippet>2483</a>    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt;
-<a href=#2484 id=2484 data-nosnippet>2484</a>    <span class="kw">where
-<a href=#2485 id=2485 data-nosnippet>2485</a>        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2486 id=2486 data-nosnippet>2486</a>    {
-<a href=#2487 id=2487 data-nosnippet>2487</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
-<a href=#2488 id=2488 data-nosnippet>2488</a>            _AnonymousValueParser(
-<a href=#2489 id=2489 data-nosnippet>2489</a>                OsStringValueParser::new()
-<a href=#2490 id=2490 data-nosnippet>2490</a>                    .map(|s| FromOsString::from(s))
-<a href=#2491 id=2491 data-nosnippet>2491</a>                    .into(),
-<a href=#2492 id=2492 data-nosnippet>2492</a>            )
-<a href=#2493 id=2493 data-nosnippet>2493</a>        }
+<a href=#2478 id=2478 data-nosnippet>2478</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output;
+<a href=#2479 id=2479 data-nosnippet>2479</a>    }
+<a href=#2480 id=2480 data-nosnippet>2480</a>    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum + Clone + Send + Sync + <span class="lifetime">'static</span>&gt; _impls_ValueEnum
+<a href=#2481 id=2481 data-nosnippet>2481</a>        <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt;
+<a href=#2482 id=2482 data-nosnippet>2482</a>    {
+<a href=#2483 id=2483 data-nosnippet>2483</a>        <span class="kw">type </span>Output = EnumValueParser&lt;E&gt;;
+<a href=#2484 id=2484 data-nosnippet>2484</a>
+<a href=#2485 id=2485 data-nosnippet>2485</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self</span>::Output {
+<a href=#2486 id=2486 data-nosnippet>2486</a>            EnumValueParser::&lt;E&gt;::new()
+<a href=#2487 id=2487 data-nosnippet>2487</a>        }
+<a href=#2488 id=2488 data-nosnippet>2488</a>    }
+<a href=#2489 id=2489 data-nosnippet>2489</a>
+<a href=#2490 id=2490 data-nosnippet>2490</a>    <span class="attr">#[doc(hidden)]
+<a href=#2491 id=2491 data-nosnippet>2491</a>    #[allow(non_camel_case_types)]
+<a href=#2492 id=2492 data-nosnippet>2492</a>    </span><span class="kw">pub trait </span>_impls_From_OsString: private::_impls_From_OsStringSealed {
+<a href=#2493 id=2493 data-nosnippet>2493</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
 <a href=#2494 id=2494 data-nosnippet>2494</a>    }
-<a href=#2495 id=2495 data-nosnippet>2495</a>
-<a href=#2496 id=2496 data-nosnippet>2496</a>    <span class="attr">#[doc(hidden)]
-<a href=#2497 id=2497 data-nosnippet>2497</a>    #[allow(non_camel_case_types)]
-<a href=#2498 id=2498 data-nosnippet>2498</a>    </span><span class="kw">pub trait </span>_impls_From_OsStr: private::_impls_From_OsStrSealed {
-<a href=#2499 id=2499 data-nosnippet>2499</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
-<a href=#2500 id=2500 data-nosnippet>2500</a>    }
-<a href=#2501 id=2501 data-nosnippet>2501</a>    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt;
-<a href=#2502 id=2502 data-nosnippet>2502</a>    <span class="kw">where
-<a href=#2503 id=2503 data-nosnippet>2503</a>        </span>FromOsStr:
-<a href=#2504 id=2504 data-nosnippet>2504</a>            <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2505 id=2505 data-nosnippet>2505</a>    {
-<a href=#2506 id=2506 data-nosnippet>2506</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
-<a href=#2507 id=2507 data-nosnippet>2507</a>            _AnonymousValueParser(
-<a href=#2508 id=2508 data-nosnippet>2508</a>                OsStringValueParser::new()
-<a href=#2509 id=2509 data-nosnippet>2509</a>                    .map(|s| FromOsStr::from(<span class="kw-2">&amp;</span>s))
-<a href=#2510 id=2510 data-nosnippet>2510</a>                    .into(),
-<a href=#2511 id=2511 data-nosnippet>2511</a>            )
-<a href=#2512 id=2512 data-nosnippet>2512</a>        }
-<a href=#2513 id=2513 data-nosnippet>2513</a>    }
-<a href=#2514 id=2514 data-nosnippet>2514</a>
-<a href=#2515 id=2515 data-nosnippet>2515</a>    <span class="attr">#[doc(hidden)]
-<a href=#2516 id=2516 data-nosnippet>2516</a>    #[allow(non_camel_case_types)]
-<a href=#2517 id=2517 data-nosnippet>2517</a>    </span><span class="kw">pub trait </span>_impls_From_String: private::_impls_From_StringSealed {
-<a href=#2518 id=2518 data-nosnippet>2518</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
-<a href=#2519 id=2519 data-nosnippet>2519</a>    }
-<a href=#2520 id=2520 data-nosnippet>2520</a>    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_String <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt;
-<a href=#2521 id=2521 data-nosnippet>2521</a>    <span class="kw">where
-<a href=#2522 id=2522 data-nosnippet>2522</a>        </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2523 id=2523 data-nosnippet>2523</a>    {
-<a href=#2524 id=2524 data-nosnippet>2524</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
-<a href=#2525 id=2525 data-nosnippet>2525</a>            _AnonymousValueParser(StringValueParser::new().map(|s| FromString::from(s)).into())
-<a href=#2526 id=2526 data-nosnippet>2526</a>        }
-<a href=#2527 id=2527 data-nosnippet>2527</a>    }
-<a href=#2528 id=2528 data-nosnippet>2528</a>
-<a href=#2529 id=2529 data-nosnippet>2529</a>    <span class="attr">#[doc(hidden)]
-<a href=#2530 id=2530 data-nosnippet>2530</a>    #[allow(non_camel_case_types)]
-<a href=#2531 id=2531 data-nosnippet>2531</a>    </span><span class="kw">pub trait </span>_impls_From_str: private::_impls_From_strSealed {
-<a href=#2532 id=2532 data-nosnippet>2532</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
-<a href=#2533 id=2533 data-nosnippet>2533</a>    }
-<a href=#2534 id=2534 data-nosnippet>2534</a>    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_str <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt;
-<a href=#2535 id=2535 data-nosnippet>2535</a>    <span class="kw">where
-<a href=#2536 id=2536 data-nosnippet>2536</a>        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2537 id=2537 data-nosnippet>2537</a>    {
-<a href=#2538 id=2538 data-nosnippet>2538</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
-<a href=#2539 id=2539 data-nosnippet>2539</a>            _AnonymousValueParser(StringValueParser::new().map(|s| FromStr::from(<span class="kw-2">&amp;</span>s)).into())
-<a href=#2540 id=2540 data-nosnippet>2540</a>        }
-<a href=#2541 id=2541 data-nosnippet>2541</a>    }
-<a href=#2542 id=2542 data-nosnippet>2542</a>
-<a href=#2543 id=2543 data-nosnippet>2543</a>    <span class="attr">#[doc(hidden)]
-<a href=#2544 id=2544 data-nosnippet>2544</a>    #[allow(non_camel_case_types)]
-<a href=#2545 id=2545 data-nosnippet>2545</a>    </span><span class="kw">pub trait </span>_impls_FromStr: private::_impls_FromStrSealed {
-<a href=#2546 id=2546 data-nosnippet>2546</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
-<a href=#2547 id=2547 data-nosnippet>2547</a>    }
-<a href=#2548 id=2548 data-nosnippet>2548</a>    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStr <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
-<a href=#2549 id=2549 data-nosnippet>2549</a>    <span class="kw">where
-<a href=#2550 id=2550 data-nosnippet>2550</a>        </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2551 id=2551 data-nosnippet>2551</a>        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
-<a href=#2552 id=2552 data-nosnippet>2552</a>    {
-<a href=#2553 id=2553 data-nosnippet>2553</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
-<a href=#2554 id=2554 data-nosnippet>2554</a>            <span class="kw">let </span>func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Parse, &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err&gt; =
-<a href=#2555 id=2555 data-nosnippet>2555</a>                Parse::from_str;
-<a href=#2556 id=2556 data-nosnippet>2556</a>            _AnonymousValueParser(ValueParser::new(func))
-<a href=#2557 id=2557 data-nosnippet>2557</a>        }
-<a href=#2558 id=2558 data-nosnippet>2558</a>    }
-<a href=#2559 id=2559 data-nosnippet>2559</a>}
-<a href=#2560 id=2560 data-nosnippet>2560</a>
-<a href=#2561 id=2561 data-nosnippet>2561</a><span class="doccomment">/// Select a [`ValueParser`] implementation from the intended type
-<a href=#2562 id=2562 data-nosnippet>2562</a>///
-<a href=#2563 id=2563 data-nosnippet>2563</a>/// Supported types
-<a href=#2564 id=2564 data-nosnippet>2564</a>/// - [`ValueParserFactory` types][ValueParserFactory], including
-<a href=#2565 id=2565 data-nosnippet>2565</a>///   - [Native types][ValueParser]: `bool`, `String`, `OsString`, `PathBuf`
-<a href=#2566 id=2566 data-nosnippet>2566</a>///   - [Ranged numeric types][RangedI64ValueParser]: `u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64`
-<a href=#2567 id=2567 data-nosnippet>2567</a>/// - [`ValueEnum` types][crate::ValueEnum]
-<a href=#2568 id=2568 data-nosnippet>2568</a>/// - [`From&lt;OsString&gt;` types][std::convert::From] and [`From&lt;&amp;OsStr&gt;` types][std::convert::From]
-<a href=#2569 id=2569 data-nosnippet>2569</a>/// - [`From&lt;String&gt;` types][std::convert::From] and [`From&lt;&amp;str&gt;` types][std::convert::From]
-<a href=#2570 id=2570 data-nosnippet>2570</a>/// - [`FromStr` types][std::str::FromStr], including usize, isize
-<a href=#2571 id=2571 data-nosnippet>2571</a>///
-<a href=#2572 id=2572 data-nosnippet>2572</a>/// # Example
-<a href=#2573 id=2573 data-nosnippet>2573</a>///
-<a href=#2574 id=2574 data-nosnippet>2574</a>/// Usage:
-<a href=#2575 id=2575 data-nosnippet>2575</a>/// ```rust
-<a href=#2576 id=2576 data-nosnippet>2576</a>/// # use clap_builder as clap;
-<a href=#2577 id=2577 data-nosnippet>2577</a>/// # use std::path::PathBuf;
-<a href=#2578 id=2578 data-nosnippet>2578</a>/// # use std::path::Path;
-<a href=#2579 id=2579 data-nosnippet>2579</a>/// let mut cmd = clap::Command::new("raw")
-<a href=#2580 id=2580 data-nosnippet>2580</a>///     .arg(
-<a href=#2581 id=2581 data-nosnippet>2581</a>///         clap::Arg::new("output")
-<a href=#2582 id=2582 data-nosnippet>2582</a>///             .value_parser(clap::value_parser!(PathBuf))
-<a href=#2583 id=2583 data-nosnippet>2583</a>///             .required(true)
-<a href=#2584 id=2584 data-nosnippet>2584</a>///     );
+<a href=#2495 id=2495 data-nosnippet>2495</a>    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsString <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt;
+<a href=#2496 id=2496 data-nosnippet>2496</a>    <span class="kw">where
+<a href=#2497 id=2497 data-nosnippet>2497</a>        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2498 id=2498 data-nosnippet>2498</a>    {
+<a href=#2499 id=2499 data-nosnippet>2499</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+<a href=#2500 id=2500 data-nosnippet>2500</a>            _AnonymousValueParser(
+<a href=#2501 id=2501 data-nosnippet>2501</a>                OsStringValueParser::new()
+<a href=#2502 id=2502 data-nosnippet>2502</a>                    .map(|s| FromOsString::from(s))
+<a href=#2503 id=2503 data-nosnippet>2503</a>                    .into(),
+<a href=#2504 id=2504 data-nosnippet>2504</a>            )
+<a href=#2505 id=2505 data-nosnippet>2505</a>        }
+<a href=#2506 id=2506 data-nosnippet>2506</a>    }
+<a href=#2507 id=2507 data-nosnippet>2507</a>
+<a href=#2508 id=2508 data-nosnippet>2508</a>    <span class="attr">#[doc(hidden)]
+<a href=#2509 id=2509 data-nosnippet>2509</a>    #[allow(non_camel_case_types)]
+<a href=#2510 id=2510 data-nosnippet>2510</a>    </span><span class="kw">pub trait </span>_impls_From_OsStr: private::_impls_From_OsStrSealed {
+<a href=#2511 id=2511 data-nosnippet>2511</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
+<a href=#2512 id=2512 data-nosnippet>2512</a>    }
+<a href=#2513 id=2513 data-nosnippet>2513</a>    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStr <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt;
+<a href=#2514 id=2514 data-nosnippet>2514</a>    <span class="kw">where
+<a href=#2515 id=2515 data-nosnippet>2515</a>        </span>FromOsStr:
+<a href=#2516 id=2516 data-nosnippet>2516</a>            <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2517 id=2517 data-nosnippet>2517</a>    {
+<a href=#2518 id=2518 data-nosnippet>2518</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+<a href=#2519 id=2519 data-nosnippet>2519</a>            _AnonymousValueParser(
+<a href=#2520 id=2520 data-nosnippet>2520</a>                OsStringValueParser::new()
+<a href=#2521 id=2521 data-nosnippet>2521</a>                    .map(|s| FromOsStr::from(<span class="kw-2">&amp;</span>s))
+<a href=#2522 id=2522 data-nosnippet>2522</a>                    .into(),
+<a href=#2523 id=2523 data-nosnippet>2523</a>            )
+<a href=#2524 id=2524 data-nosnippet>2524</a>        }
+<a href=#2525 id=2525 data-nosnippet>2525</a>    }
+<a href=#2526 id=2526 data-nosnippet>2526</a>
+<a href=#2527 id=2527 data-nosnippet>2527</a>    <span class="attr">#[doc(hidden)]
+<a href=#2528 id=2528 data-nosnippet>2528</a>    #[allow(non_camel_case_types)]
+<a href=#2529 id=2529 data-nosnippet>2529</a>    </span><span class="kw">pub trait </span>_impls_From_String: private::_impls_From_StringSealed {
+<a href=#2530 id=2530 data-nosnippet>2530</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
+<a href=#2531 id=2531 data-nosnippet>2531</a>    }
+<a href=#2532 id=2532 data-nosnippet>2532</a>    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_String <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt;
+<a href=#2533 id=2533 data-nosnippet>2533</a>    <span class="kw">where
+<a href=#2534 id=2534 data-nosnippet>2534</a>        </span>FromString: From&lt;String&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2535 id=2535 data-nosnippet>2535</a>    {
+<a href=#2536 id=2536 data-nosnippet>2536</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+<a href=#2537 id=2537 data-nosnippet>2537</a>            _AnonymousValueParser(StringValueParser::new().map(|s| FromString::from(s)).into())
+<a href=#2538 id=2538 data-nosnippet>2538</a>        }
+<a href=#2539 id=2539 data-nosnippet>2539</a>    }
+<a href=#2540 id=2540 data-nosnippet>2540</a>
+<a href=#2541 id=2541 data-nosnippet>2541</a>    <span class="attr">#[doc(hidden)]
+<a href=#2542 id=2542 data-nosnippet>2542</a>    #[allow(non_camel_case_types)]
+<a href=#2543 id=2543 data-nosnippet>2543</a>    </span><span class="kw">pub trait </span>_impls_From_str: private::_impls_From_strSealed {
+<a href=#2544 id=2544 data-nosnippet>2544</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
+<a href=#2545 id=2545 data-nosnippet>2545</a>    }
+<a href=#2546 id=2546 data-nosnippet>2546</a>    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_str <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt;
+<a href=#2547 id=2547 data-nosnippet>2547</a>    <span class="kw">where
+<a href=#2548 id=2548 data-nosnippet>2548</a>        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2549 id=2549 data-nosnippet>2549</a>    {
+<a href=#2550 id=2550 data-nosnippet>2550</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+<a href=#2551 id=2551 data-nosnippet>2551</a>            _AnonymousValueParser(StringValueParser::new().map(|s| FromStr::from(<span class="kw-2">&amp;</span>s)).into())
+<a href=#2552 id=2552 data-nosnippet>2552</a>        }
+<a href=#2553 id=2553 data-nosnippet>2553</a>    }
+<a href=#2554 id=2554 data-nosnippet>2554</a>
+<a href=#2555 id=2555 data-nosnippet>2555</a>    <span class="attr">#[doc(hidden)]
+<a href=#2556 id=2556 data-nosnippet>2556</a>    #[allow(non_camel_case_types)]
+<a href=#2557 id=2557 data-nosnippet>2557</a>    </span><span class="kw">pub trait </span>_impls_FromStr: private::_impls_FromStrSealed {
+<a href=#2558 id=2558 data-nosnippet>2558</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser;
+<a href=#2559 id=2559 data-nosnippet>2559</a>    }
+<a href=#2560 id=2560 data-nosnippet>2560</a>    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStr <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
+<a href=#2561 id=2561 data-nosnippet>2561</a>    <span class="kw">where
+<a href=#2562 id=2562 data-nosnippet>2562</a>        </span>Parse: std::str::FromStr + std::any::Any + Clone + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2563 id=2563 data-nosnippet>2563</a>        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
+<a href=#2564 id=2564 data-nosnippet>2564</a>    {
+<a href=#2565 id=2565 data-nosnippet>2565</a>        <span class="kw">fn </span>value_parser(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; _AnonymousValueParser {
+<a href=#2566 id=2566 data-nosnippet>2566</a>            <span class="kw">let </span>func: <span class="kw">fn</span>(<span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;Parse, &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err&gt; =
+<a href=#2567 id=2567 data-nosnippet>2567</a>                Parse::from_str;
+<a href=#2568 id=2568 data-nosnippet>2568</a>            _AnonymousValueParser(ValueParser::new(func))
+<a href=#2569 id=2569 data-nosnippet>2569</a>        }
+<a href=#2570 id=2570 data-nosnippet>2570</a>    }
+<a href=#2571 id=2571 data-nosnippet>2571</a>}
+<a href=#2572 id=2572 data-nosnippet>2572</a>
+<a href=#2573 id=2573 data-nosnippet>2573</a><span class="doccomment">/// Select a [`ValueParser`] implementation from the intended type
+<a href=#2574 id=2574 data-nosnippet>2574</a>///
+<a href=#2575 id=2575 data-nosnippet>2575</a>/// Supported types
+<a href=#2576 id=2576 data-nosnippet>2576</a>/// - [`ValueParserFactory` types][ValueParserFactory], including
+<a href=#2577 id=2577 data-nosnippet>2577</a>///   - [Native types][ValueParser]: `bool`, `String`, `OsString`, `PathBuf`
+<a href=#2578 id=2578 data-nosnippet>2578</a>///   - [Ranged numeric types][RangedI64ValueParser]: `u8`, `i8`, `u16`, `i16`, `u32`, `i32`, `u64`, `i64`
+<a href=#2579 id=2579 data-nosnippet>2579</a>/// - [`ValueEnum` types][crate::ValueEnum]
+<a href=#2580 id=2580 data-nosnippet>2580</a>/// - [`From&lt;OsString&gt;` types][std::convert::From] and [`From&lt;&amp;OsStr&gt;` types][std::convert::From]
+<a href=#2581 id=2581 data-nosnippet>2581</a>/// - [`From&lt;String&gt;` types][std::convert::From] and [`From&lt;&amp;str&gt;` types][std::convert::From]
+<a href=#2582 id=2582 data-nosnippet>2582</a>/// - [`FromStr` types][std::str::FromStr], including usize, isize
+<a href=#2583 id=2583 data-nosnippet>2583</a>///
+<a href=#2584 id=2584 data-nosnippet>2584</a>/// # Example
 <a href=#2585 id=2585 data-nosnippet>2585</a>///
-<a href=#2586 id=2586 data-nosnippet>2586</a>/// let m = cmd.try_get_matches_from_mut(["cmd", "file.txt"]).unwrap();
-<a href=#2587 id=2587 data-nosnippet>2587</a>/// let port: &amp;PathBuf = m.get_one("output")
-<a href=#2588 id=2588 data-nosnippet>2588</a>///     .expect("required");
-<a href=#2589 id=2589 data-nosnippet>2589</a>/// assert_eq!(port, Path::new("file.txt"));
-<a href=#2590 id=2590 data-nosnippet>2590</a>/// ```
-<a href=#2591 id=2591 data-nosnippet>2591</a>///
-<a href=#2592 id=2592 data-nosnippet>2592</a>/// Example mappings:
-<a href=#2593 id=2593 data-nosnippet>2593</a>/// ```rust
-<a href=#2594 id=2594 data-nosnippet>2594</a>/// # use clap_builder as clap;
-<a href=#2595 id=2595 data-nosnippet>2595</a>/// # use clap::ColorChoice;
-<a href=#2596 id=2596 data-nosnippet>2596</a>/// // Built-in types
-<a href=#2597 id=2597 data-nosnippet>2597</a>/// let parser = clap::value_parser!(String);
-<a href=#2598 id=2598 data-nosnippet>2598</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::string");
-<a href=#2599 id=2599 data-nosnippet>2599</a>/// let parser = clap::value_parser!(std::ffi::OsString);
-<a href=#2600 id=2600 data-nosnippet>2600</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::os_string");
-<a href=#2601 id=2601 data-nosnippet>2601</a>/// let parser = clap::value_parser!(std::path::PathBuf);
-<a href=#2602 id=2602 data-nosnippet>2602</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::path_buf");
-<a href=#2603 id=2603 data-nosnippet>2603</a>/// clap::value_parser!(u16).range(3000..);
-<a href=#2604 id=2604 data-nosnippet>2604</a>/// clap::value_parser!(u64).range(3000..);
-<a href=#2605 id=2605 data-nosnippet>2605</a>///
-<a href=#2606 id=2606 data-nosnippet>2606</a>/// // FromStr types
-<a href=#2607 id=2607 data-nosnippet>2607</a>/// let parser = clap::value_parser!(usize);
-<a href=#2608 id=2608 data-nosnippet>2608</a>/// assert_eq!(format!("{parser:?}"), "_AnonymousValueParser(ValueParser::other(usize))");
-<a href=#2609 id=2609 data-nosnippet>2609</a>///
-<a href=#2610 id=2610 data-nosnippet>2610</a>/// // ValueEnum types
-<a href=#2611 id=2611 data-nosnippet>2611</a>/// clap::value_parser!(ColorChoice);
-<a href=#2612 id=2612 data-nosnippet>2612</a>/// ```
-<a href=#2613 id=2613 data-nosnippet>2613</a></span><span class="attr">#[macro_export]
-<a href=#2614 id=2614 data-nosnippet>2614</a></span><span class="macro">macro_rules!</span> value_parser {
-<a href=#2615 id=2615 data-nosnippet>2615</a>    (<span class="macro-nonterminal">$name</span>:ty) =&gt; {{
-<a href=#2616 id=2616 data-nosnippet>2616</a>        <span class="kw">use </span><span class="macro-nonterminal">$crate::builder::impl_prelude</span>::<span class="kw-2">*</span>;
-<a href=#2617 id=2617 data-nosnippet>2617</a>        <span class="kw">let </span>auto = <span class="macro-nonterminal">$crate::builder::_infer_ValueParser_for</span>::&lt;<span class="macro-nonterminal">$name</span>&gt;::new();
-<a href=#2618 id=2618 data-nosnippet>2618</a>        (&amp;&amp;&amp;&amp;&amp;&amp;auto).value_parser()
-<a href=#2619 id=2619 data-nosnippet>2619</a>    }};
-<a href=#2620 id=2620 data-nosnippet>2620</a>}
-<a href=#2621 id=2621 data-nosnippet>2621</a>
-<a href=#2622 id=2622 data-nosnippet>2622</a><span class="kw">mod </span>private {
-<a href=#2623 id=2623 data-nosnippet>2623</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#2624 id=2624 data-nosnippet>2624</a>
-<a href=#2625 id=2625 data-nosnippet>2625</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2626 id=2626 data-nosnippet>2626</a>    </span><span class="kw">pub trait </span>_impls_ValueParserFactorySealed {}
-<a href=#2627 id=2627 data-nosnippet>2627</a>    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {}
-<a href=#2628 id=2628 data-nosnippet>2628</a>
-<a href=#2629 id=2629 data-nosnippet>2629</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2630 id=2630 data-nosnippet>2630</a>    </span><span class="kw">pub trait </span>_impls_ValueEnumSealed {}
-<a href=#2631 id=2631 data-nosnippet>2631</a>    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum&gt; _impls_ValueEnumSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt; {}
-<a href=#2632 id=2632 data-nosnippet>2632</a>
-<a href=#2633 id=2633 data-nosnippet>2633</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2634 id=2634 data-nosnippet>2634</a>    </span><span class="kw">pub trait </span>_impls_From_OsStringSealed {}
-<a href=#2635 id=2635 data-nosnippet>2635</a>    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt; <span class="kw">where
-<a href=#2636 id=2636 data-nosnippet>2636</a>        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
-<a href=#2637 id=2637 data-nosnippet>2637</a>    </span>{
-<a href=#2638 id=2638 data-nosnippet>2638</a>    }
-<a href=#2639 id=2639 data-nosnippet>2639</a>
-<a href=#2640 id=2640 data-nosnippet>2640</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2641 id=2641 data-nosnippet>2641</a>    </span><span class="kw">pub trait </span>_impls_From_OsStrSealed {}
-<a href=#2642 id=2642 data-nosnippet>2642</a>    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt; <span class="kw">where
-<a href=#2643 id=2643 data-nosnippet>2643</a>        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
-<a href=#2644 id=2644 data-nosnippet>2644</a>    </span>{
-<a href=#2645 id=2645 data-nosnippet>2645</a>    }
-<a href=#2646 id=2646 data-nosnippet>2646</a>
-<a href=#2647 id=2647 data-nosnippet>2647</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2648 id=2648 data-nosnippet>2648</a>    </span><span class="kw">pub trait </span>_impls_From_StringSealed {}
-<a href=#2649 id=2649 data-nosnippet>2649</a>    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_StringSealed <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt; <span class="kw">where
-<a href=#2650 id=2650 data-nosnippet>2650</a>        </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
-<a href=#2651 id=2651 data-nosnippet>2651</a>    </span>{
-<a href=#2652 id=2652 data-nosnippet>2652</a>    }
-<a href=#2653 id=2653 data-nosnippet>2653</a>
-<a href=#2654 id=2654 data-nosnippet>2654</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2655 id=2655 data-nosnippet>2655</a>    </span><span class="kw">pub trait </span>_impls_From_strSealed {}
-<a href=#2656 id=2656 data-nosnippet>2656</a>    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_strSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt; <span class="kw">where
-<a href=#2657 id=2657 data-nosnippet>2657</a>        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
-<a href=#2658 id=2658 data-nosnippet>2658</a>    </span>{
-<a href=#2659 id=2659 data-nosnippet>2659</a>    }
-<a href=#2660 id=2660 data-nosnippet>2660</a>
-<a href=#2661 id=2661 data-nosnippet>2661</a>    <span class="attr">#[allow(non_camel_case_types)]
-<a href=#2662 id=2662 data-nosnippet>2662</a>    </span><span class="kw">pub trait </span>_impls_FromStrSealed {}
-<a href=#2663 id=2663 data-nosnippet>2663</a>    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStrSealed <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
-<a href=#2664 id=2664 data-nosnippet>2664</a>    <span class="kw">where
-<a href=#2665 id=2665 data-nosnippet>2665</a>        </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">'static</span>,
-<a href=#2666 id=2666 data-nosnippet>2666</a>        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
-<a href=#2667 id=2667 data-nosnippet>2667</a>    {
-<a href=#2668 id=2668 data-nosnippet>2668</a>    }
-<a href=#2669 id=2669 data-nosnippet>2669</a>}
-<a href=#2670 id=2670 data-nosnippet>2670</a>
-<a href=#2671 id=2671 data-nosnippet>2671</a><span class="attr">#[cfg(test)]
-<a href=#2672 id=2672 data-nosnippet>2672</a></span><span class="kw">mod </span>test {
-<a href=#2673 id=2673 data-nosnippet>2673</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#2674 id=2674 data-nosnippet>2674</a>
-<a href=#2675 id=2675 data-nosnippet>2675</a>    <span class="attr">#[test]
-<a href=#2676 id=2676 data-nosnippet>2676</a>    </span><span class="kw">fn </span>ensure_typed_applies_to_parse() {
-<a href=#2677 id=2677 data-nosnippet>2677</a>        <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, std::io::Error&gt; {
-<a href=#2678 id=2678 data-nosnippet>2678</a>            <span class="prelude-val">Ok</span>(<span class="number">10</span>)
-<a href=#2679 id=2679 data-nosnippet>2679</a>        }
-<a href=#2680 id=2680 data-nosnippet>2680</a>        <span class="kw">let </span>cmd = <span class="kw">crate</span>::Command::new(<span class="string">"cmd"</span>);
-<a href=#2681 id=2681 data-nosnippet>2681</a>        <span class="kw">let </span>arg = <span class="prelude-val">None</span>;
-<a href=#2682 id=2682 data-nosnippet>2682</a>        <span class="macro">assert_eq!</span>(
-<a href=#2683 id=2683 data-nosnippet>2683</a>            TypedValueParser::parse_ref(<span class="kw-2">&amp;</span>parse, <span class="kw-2">&amp;</span>cmd, arg, std::ffi::OsStr::new(<span class="string">"foo"</span>)).unwrap(),
-<a href=#2684 id=2684 data-nosnippet>2684</a>            <span class="number">10
-<a href=#2685 id=2685 data-nosnippet>2685</a>        </span>);
-<a href=#2686 id=2686 data-nosnippet>2686</a>    }
-<a href=#2687 id=2687 data-nosnippet>2687</a>}</code></pre></div></section></main></body></html>
+<a href=#2586 id=2586 data-nosnippet>2586</a>/// Usage:
+<a href=#2587 id=2587 data-nosnippet>2587</a>/// ```rust
+<a href=#2588 id=2588 data-nosnippet>2588</a>/// # use clap_builder as clap;
+<a href=#2589 id=2589 data-nosnippet>2589</a>/// # use std::path::PathBuf;
+<a href=#2590 id=2590 data-nosnippet>2590</a>/// # use std::path::Path;
+<a href=#2591 id=2591 data-nosnippet>2591</a>/// let mut cmd = clap::Command::new("raw")
+<a href=#2592 id=2592 data-nosnippet>2592</a>///     .arg(
+<a href=#2593 id=2593 data-nosnippet>2593</a>///         clap::Arg::new("output")
+<a href=#2594 id=2594 data-nosnippet>2594</a>///             .value_parser(clap::value_parser!(PathBuf))
+<a href=#2595 id=2595 data-nosnippet>2595</a>///             .required(true)
+<a href=#2596 id=2596 data-nosnippet>2596</a>///     );
+<a href=#2597 id=2597 data-nosnippet>2597</a>///
+<a href=#2598 id=2598 data-nosnippet>2598</a>/// let m = cmd.try_get_matches_from_mut(["cmd", "file.txt"]).unwrap();
+<a href=#2599 id=2599 data-nosnippet>2599</a>/// let port: &amp;PathBuf = m.get_one("output")
+<a href=#2600 id=2600 data-nosnippet>2600</a>///     .expect("required");
+<a href=#2601 id=2601 data-nosnippet>2601</a>/// assert_eq!(port, Path::new("file.txt"));
+<a href=#2602 id=2602 data-nosnippet>2602</a>/// ```
+<a href=#2603 id=2603 data-nosnippet>2603</a>///
+<a href=#2604 id=2604 data-nosnippet>2604</a>/// Example mappings:
+<a href=#2605 id=2605 data-nosnippet>2605</a>/// ```rust
+<a href=#2606 id=2606 data-nosnippet>2606</a>/// # use clap_builder as clap;
+<a href=#2607 id=2607 data-nosnippet>2607</a>/// # use clap::ColorChoice;
+<a href=#2608 id=2608 data-nosnippet>2608</a>/// // Built-in types
+<a href=#2609 id=2609 data-nosnippet>2609</a>/// let parser = clap::value_parser!(String);
+<a href=#2610 id=2610 data-nosnippet>2610</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::string");
+<a href=#2611 id=2611 data-nosnippet>2611</a>/// let parser = clap::value_parser!(std::ffi::OsString);
+<a href=#2612 id=2612 data-nosnippet>2612</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::os_string");
+<a href=#2613 id=2613 data-nosnippet>2613</a>/// let parser = clap::value_parser!(std::path::PathBuf);
+<a href=#2614 id=2614 data-nosnippet>2614</a>/// assert_eq!(format!("{parser:?}"), "ValueParser::path_buf");
+<a href=#2615 id=2615 data-nosnippet>2615</a>/// clap::value_parser!(u16).range(3000..);
+<a href=#2616 id=2616 data-nosnippet>2616</a>/// clap::value_parser!(u64).range(3000..);
+<a href=#2617 id=2617 data-nosnippet>2617</a>///
+<a href=#2618 id=2618 data-nosnippet>2618</a>/// // FromStr types
+<a href=#2619 id=2619 data-nosnippet>2619</a>/// let parser = clap::value_parser!(usize);
+<a href=#2620 id=2620 data-nosnippet>2620</a>/// assert_eq!(format!("{parser:?}"), "_AnonymousValueParser(ValueParser::other(usize))");
+<a href=#2621 id=2621 data-nosnippet>2621</a>///
+<a href=#2622 id=2622 data-nosnippet>2622</a>/// // ValueEnum types
+<a href=#2623 id=2623 data-nosnippet>2623</a>/// clap::value_parser!(ColorChoice);
+<a href=#2624 id=2624 data-nosnippet>2624</a>/// ```
+<a href=#2625 id=2625 data-nosnippet>2625</a></span><span class="attr">#[macro_export]
+<a href=#2626 id=2626 data-nosnippet>2626</a></span><span class="macro">macro_rules!</span> value_parser {
+<a href=#2627 id=2627 data-nosnippet>2627</a>    (<span class="macro-nonterminal">$name</span>:ty) =&gt; {{
+<a href=#2628 id=2628 data-nosnippet>2628</a>        <span class="kw">use </span><span class="macro-nonterminal">$crate::builder::impl_prelude</span>::<span class="kw-2">*</span>;
+<a href=#2629 id=2629 data-nosnippet>2629</a>        <span class="kw">let </span>auto = <span class="macro-nonterminal">$crate::builder::_infer_ValueParser_for</span>::&lt;<span class="macro-nonterminal">$name</span>&gt;::new();
+<a href=#2630 id=2630 data-nosnippet>2630</a>        (&amp;&amp;&amp;&amp;&amp;&amp;auto).value_parser()
+<a href=#2631 id=2631 data-nosnippet>2631</a>    }};
+<a href=#2632 id=2632 data-nosnippet>2632</a>}
+<a href=#2633 id=2633 data-nosnippet>2633</a>
+<a href=#2634 id=2634 data-nosnippet>2634</a><span class="kw">mod </span>private {
+<a href=#2635 id=2635 data-nosnippet>2635</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#2636 id=2636 data-nosnippet>2636</a>
+<a href=#2637 id=2637 data-nosnippet>2637</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2638 id=2638 data-nosnippet>2638</a>    </span><span class="kw">pub trait </span>_impls_ValueParserFactorySealed {}
+<a href=#2639 id=2639 data-nosnippet>2639</a>    <span class="kw">impl</span>&lt;P: ValueParserFactory&gt; _impls_ValueParserFactorySealed <span class="kw">for </span>&amp;&amp;&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;P&gt; {}
+<a href=#2640 id=2640 data-nosnippet>2640</a>
+<a href=#2641 id=2641 data-nosnippet>2641</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2642 id=2642 data-nosnippet>2642</a>    </span><span class="kw">pub trait </span>_impls_ValueEnumSealed {}
+<a href=#2643 id=2643 data-nosnippet>2643</a>    <span class="kw">impl</span>&lt;E: <span class="kw">crate</span>::ValueEnum&gt; _impls_ValueEnumSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;E&gt; {}
+<a href=#2644 id=2644 data-nosnippet>2644</a>
+<a href=#2645 id=2645 data-nosnippet>2645</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2646 id=2646 data-nosnippet>2646</a>    </span><span class="kw">pub trait </span>_impls_From_OsStringSealed {}
+<a href=#2647 id=2647 data-nosnippet>2647</a>    <span class="kw">impl</span>&lt;FromOsString&gt; _impls_From_OsStringSealed <span class="kw">for </span>&amp;&amp;&amp;&amp;_infer_ValueParser_for&lt;FromOsString&gt; <span class="kw">where
+<a href=#2648 id=2648 data-nosnippet>2648</a>        </span>FromOsString: From&lt;std::ffi::OsString&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
+<a href=#2649 id=2649 data-nosnippet>2649</a>    </span>{
+<a href=#2650 id=2650 data-nosnippet>2650</a>    }
+<a href=#2651 id=2651 data-nosnippet>2651</a>
+<a href=#2652 id=2652 data-nosnippet>2652</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2653 id=2653 data-nosnippet>2653</a>    </span><span class="kw">pub trait </span>_impls_From_OsStrSealed {}
+<a href=#2654 id=2654 data-nosnippet>2654</a>    <span class="kw">impl</span>&lt;FromOsStr&gt; _impls_From_OsStrSealed <span class="kw">for </span>&amp;&amp;<span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromOsStr&gt; <span class="kw">where
+<a href=#2655 id=2655 data-nosnippet>2655</a>        </span>FromOsStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>std::ffi::OsStr&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
+<a href=#2656 id=2656 data-nosnippet>2656</a>    </span>{
+<a href=#2657 id=2657 data-nosnippet>2657</a>    }
+<a href=#2658 id=2658 data-nosnippet>2658</a>
+<a href=#2659 id=2659 data-nosnippet>2659</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2660 id=2660 data-nosnippet>2660</a>    </span><span class="kw">pub trait </span>_impls_From_StringSealed {}
+<a href=#2661 id=2661 data-nosnippet>2661</a>    <span class="kw">impl</span>&lt;FromString&gt; _impls_From_StringSealed <span class="kw">for </span>&amp;&amp;_infer_ValueParser_for&lt;FromString&gt; <span class="kw">where
+<a href=#2662 id=2662 data-nosnippet>2662</a>        </span>FromString: From&lt;String&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
+<a href=#2663 id=2663 data-nosnippet>2663</a>    </span>{
+<a href=#2664 id=2664 data-nosnippet>2664</a>    }
+<a href=#2665 id=2665 data-nosnippet>2665</a>
+<a href=#2666 id=2666 data-nosnippet>2666</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2667 id=2667 data-nosnippet>2667</a>    </span><span class="kw">pub trait </span>_impls_From_strSealed {}
+<a href=#2668 id=2668 data-nosnippet>2668</a>    <span class="kw">impl</span>&lt;FromStr&gt; _impls_From_strSealed <span class="kw">for </span><span class="kw-2">&amp;</span>_infer_ValueParser_for&lt;FromStr&gt; <span class="kw">where
+<a href=#2669 id=2669 data-nosnippet>2669</a>        </span>FromStr: <span class="kw">for</span>&lt;<span class="lifetime">'s</span>&gt; From&lt;<span class="kw-2">&amp;</span><span class="lifetime">'s </span>str&gt; + std::any::Any + Send + Sync + <span class="lifetime">'static
+<a href=#2670 id=2670 data-nosnippet>2670</a>    </span>{
+<a href=#2671 id=2671 data-nosnippet>2671</a>    }
+<a href=#2672 id=2672 data-nosnippet>2672</a>
+<a href=#2673 id=2673 data-nosnippet>2673</a>    <span class="attr">#[allow(non_camel_case_types)]
+<a href=#2674 id=2674 data-nosnippet>2674</a>    </span><span class="kw">pub trait </span>_impls_FromStrSealed {}
+<a href=#2675 id=2675 data-nosnippet>2675</a>    <span class="kw">impl</span>&lt;Parse&gt; _impls_FromStrSealed <span class="kw">for </span>_infer_ValueParser_for&lt;Parse&gt;
+<a href=#2676 id=2676 data-nosnippet>2676</a>    <span class="kw">where
+<a href=#2677 id=2677 data-nosnippet>2677</a>        </span>Parse: std::str::FromStr + std::any::Any + Send + Sync + <span class="lifetime">'static</span>,
+<a href=#2678 id=2678 data-nosnippet>2678</a>        &lt;Parse <span class="kw">as </span>std::str::FromStr&gt;::Err: Into&lt;Box&lt;<span class="kw">dyn </span>std::error::Error + Send + Sync + <span class="lifetime">'static</span>&gt;&gt;,
+<a href=#2679 id=2679 data-nosnippet>2679</a>    {
+<a href=#2680 id=2680 data-nosnippet>2680</a>    }
+<a href=#2681 id=2681 data-nosnippet>2681</a>}
+<a href=#2682 id=2682 data-nosnippet>2682</a>
+<a href=#2683 id=2683 data-nosnippet>2683</a><span class="attr">#[cfg(test)]
+<a href=#2684 id=2684 data-nosnippet>2684</a></span><span class="kw">mod </span>test {
+<a href=#2685 id=2685 data-nosnippet>2685</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#2686 id=2686 data-nosnippet>2686</a>
+<a href=#2687 id=2687 data-nosnippet>2687</a>    <span class="attr">#[test]
+<a href=#2688 id=2688 data-nosnippet>2688</a>    </span><span class="kw">fn </span>ensure_typed_applies_to_parse() {
+<a href=#2689 id=2689 data-nosnippet>2689</a>        <span class="kw">fn </span>parse(<span class="kw">_</span>: <span class="kw-2">&amp;</span>str) -&gt; <span class="prelude-ty">Result</span>&lt;usize, std::io::Error&gt; {
+<a href=#2690 id=2690 data-nosnippet>2690</a>            <span class="prelude-val">Ok</span>(<span class="number">10</span>)
+<a href=#2691 id=2691 data-nosnippet>2691</a>        }
+<a href=#2692 id=2692 data-nosnippet>2692</a>        <span class="kw">let </span>cmd = <span class="kw">crate</span>::Command::new(<span class="string">"cmd"</span>);
+<a href=#2693 id=2693 data-nosnippet>2693</a>        <span class="kw">let </span>arg = <span class="prelude-val">None</span>;
+<a href=#2694 id=2694 data-nosnippet>2694</a>        <span class="macro">assert_eq!</span>(
+<a href=#2695 id=2695 data-nosnippet>2695</a>            TypedValueParser::parse_ref(<span class="kw-2">&amp;</span>parse, <span class="kw-2">&amp;</span>cmd, arg, std::ffi::OsStr::new(<span class="string">"foo"</span>)).unwrap(),
+<a href=#2696 id=2696 data-nosnippet>2696</a>            <span class="number">10
+<a href=#2697 id=2697 data-nosnippet>2697</a>        </span>);
+<a href=#2698 id=2698 data-nosnippet>2698</a>    }
+<a href=#2699 id=2699 data-nosnippet>2699</a>}</code></pre></div></section></main></body></html>

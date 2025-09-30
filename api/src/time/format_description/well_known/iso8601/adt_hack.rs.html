@@ -1,6 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.37/src/format_description/well_known/iso8601/adt_hack.rs`."><title>adt_hack.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/format_description/well_known/iso8601/</div>adt_hack.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Hackery to work around not being able to use ADTs in const generics on stable.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/time-0.3.44/src/format_description/well_known/iso8601/adt_hack.rs`."><title>adt_hack.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../../../" data-static-root-path="../../../../../static.files/" data-current-crate="time" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../../../static.files/src-script-813739b1.js"></script><script defer src="../../../../../src-files.js"></script><script defer src="../../../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../../../static.files/noscript-32bb7600.css"></noscript><link rel="icon" href="https://avatars0.githubusercontent.com/u/55999857"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">time/format_description/well_known/iso8601/</div>adt_hack.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Hackery to work around not being able to use ADTs in const generics on stable.
 <a href=#2 id=2 data-nosnippet>2</a>
-<a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>core::num::NonZeroU8;
+<a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>core::num::NonZero;
 <a href=#4 id=4 data-nosnippet>4</a>
 <a href=#5 id=5 data-nosnippet>5</a><span class="attr">#[cfg(feature = <span class="string">"formatting"</span>)]
 <a href=#6 id=6 data-nosnippet>6</a></span><span class="kw">use </span><span class="kw">super</span>::Iso8601;
@@ -65,8 +65,8 @@
 <a href=#65 id=65 data-nosnippet>65</a>            FC::DateTimeOffset =&gt; <span class="number">5</span>,
 <a href=#66 id=66 data-nosnippet>66</a>            FC::TimeOffset =&gt; <span class="number">6</span>,
 <a href=#67 id=67 data-nosnippet>67</a>        };
-<a href=#68 id=68 data-nosnippet>68</a>        bytes[<span class="number">1</span>] = <span class="self">self</span>.use_separators <span class="kw">as _</span>;
-<a href=#69 id=69 data-nosnippet>69</a>        bytes[<span class="number">2</span>] = <span class="self">self</span>.year_is_six_digits <span class="kw">as _</span>;
+<a href=#68 id=68 data-nosnippet>68</a>        bytes[<span class="number">1</span>] = <span class="self">self</span>.use_separators <span class="kw">as </span>u8;
+<a href=#69 id=69 data-nosnippet>69</a>        bytes[<span class="number">2</span>] = <span class="self">self</span>.year_is_six_digits <span class="kw">as </span>u8;
 <a href=#70 id=70 data-nosnippet>70</a>        bytes[<span class="number">3</span>] = <span class="kw">match </span><span class="self">self</span>.date_kind {
 <a href=#71 id=71 data-nosnippet>71</a>            DateKind::Calendar =&gt; <span class="number">0</span>,
 <a href=#72 id=72 data-nosnippet>72</a>            DateKind::Week =&gt; <span class="number">1</span>,
@@ -126,13 +126,13 @@
 <a href=#126 id=126 data-nosnippet>126</a>        };
 <a href=#127 id=127 data-nosnippet>127</a>        <span class="kw">let </span>time_precision = <span class="kw">match </span>bytes[<span class="number">4</span>] {
 <a href=#128 id=128 data-nosnippet>128</a>            <span class="number">0 </span>=&gt; TimePrecision::Hour {
-<a href=#129 id=129 data-nosnippet>129</a>                decimal_digits: NonZeroU8::new(bytes[<span class="number">5</span>]),
+<a href=#129 id=129 data-nosnippet>129</a>                decimal_digits: NonZero::new(bytes[<span class="number">5</span>]),
 <a href=#130 id=130 data-nosnippet>130</a>            },
 <a href=#131 id=131 data-nosnippet>131</a>            <span class="number">1 </span>=&gt; TimePrecision::Minute {
-<a href=#132 id=132 data-nosnippet>132</a>                decimal_digits: NonZeroU8::new(bytes[<span class="number">5</span>]),
+<a href=#132 id=132 data-nosnippet>132</a>                decimal_digits: NonZero::new(bytes[<span class="number">5</span>]),
 <a href=#133 id=133 data-nosnippet>133</a>            },
 <a href=#134 id=134 data-nosnippet>134</a>            <span class="number">2 </span>=&gt; TimePrecision::Second {
-<a href=#135 id=135 data-nosnippet>135</a>                decimal_digits: NonZeroU8::new(bytes[<span class="number">5</span>]),
+<a href=#135 id=135 data-nosnippet>135</a>                decimal_digits: NonZero::new(bytes[<span class="number">5</span>]),
 <a href=#136 id=136 data-nosnippet>136</a>            },
 <a href=#137 id=137 data-nosnippet>137</a>            <span class="kw">_ </span>=&gt; <span class="macro">panic!</span>(<span class="string">"invalid configuration"</span>),
 <a href=#138 id=138 data-nosnippet>138</a>        };
@@ -213,13 +213,13 @@
 <a href=#213 id=213 data-nosnippet>213</a>            decimal_digits: <span class="prelude-val">None</span>,
 <a href=#214 id=214 data-nosnippet>214</a>        }));
 <a href=#215 id=215 data-nosnippet>215</a>        <span class="macro">assert_roundtrip!</span>(Config::DEFAULT.set_time_precision(TimePrecision::Hour {
-<a href=#216 id=216 data-nosnippet>216</a>            decimal_digits: NonZeroU8::new(<span class="number">1</span>),
+<a href=#216 id=216 data-nosnippet>216</a>            decimal_digits: NonZero::new(<span class="number">1</span>),
 <a href=#217 id=217 data-nosnippet>217</a>        }));
 <a href=#218 id=218 data-nosnippet>218</a>        <span class="macro">assert_roundtrip!</span>(Config::DEFAULT.set_time_precision(TimePrecision::Minute {
-<a href=#219 id=219 data-nosnippet>219</a>            decimal_digits: NonZeroU8::new(<span class="number">1</span>),
+<a href=#219 id=219 data-nosnippet>219</a>            decimal_digits: NonZero::new(<span class="number">1</span>),
 <a href=#220 id=220 data-nosnippet>220</a>        }));
 <a href=#221 id=221 data-nosnippet>221</a>        <span class="macro">assert_roundtrip!</span>(Config::DEFAULT.set_time_precision(TimePrecision::Second {
-<a href=#222 id=222 data-nosnippet>222</a>            decimal_digits: NonZeroU8::new(<span class="number">1</span>),
+<a href=#222 id=222 data-nosnippet>222</a>            decimal_digits: NonZero::new(<span class="number">1</span>),
 <a href=#223 id=223 data-nosnippet>223</a>        }));
 <a href=#224 id=224 data-nosnippet>224</a>        <span class="macro">assert_roundtrip!</span>(Config::DEFAULT.set_offset_precision(OffsetPrecision::Hour));
 <a href=#225 id=225 data-nosnippet>225</a>        <span class="macro">assert_roundtrip!</span>(Config::DEFAULT.set_offset_precision(OffsetPrecision::Minute));

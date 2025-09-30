@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["keep_alive","last_event_id","reply"],"struct":["Event","KeepAlive"]};

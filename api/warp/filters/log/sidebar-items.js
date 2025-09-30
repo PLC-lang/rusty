@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["custom","log"],"struct":["Info","Log"]};

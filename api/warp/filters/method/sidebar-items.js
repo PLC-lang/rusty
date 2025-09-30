@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["delete","get","head","method","options","patch","post","put"]};

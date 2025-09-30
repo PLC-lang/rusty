@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["combinators"],"struct":["Collected","Data","Empty","Full","LengthLimitError","Limited","SizeHint","Trailers"],"trait":["Body"]};
+window.SIDEBAR_ITEMS = {"struct":["Frame","SizeHint"],"trait":["Body"]};

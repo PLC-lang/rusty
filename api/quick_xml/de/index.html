@@ -112,7 +112,7 @@ specified in the XML Schema specification for <a href="https://www.w3.org/TR/xml
   ...
 ]]&gt;&lt;/...&gt;</code></pre></div></td>
 <td>
-<p>Use any type that deserialized using <a href="../../serde/de/trait.Deserializer.html#tymethod.deserialize_seq" title="method serde::de::Deserializer::deserialize_seq"><code>deserialize_seq()</code></a> call, for example:</p>
+<p>Use any type that deserialized using <a href="../../serde_core/de/trait.Deserializer.html#tymethod.deserialize_seq" title="method serde_core::de::Deserializer::deserialize_seq"><code>deserialize_seq()</code></a> call, for example:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">type </span>List = Vec&lt;u32&gt;;</code></pre></div>
 <p>See the next row to learn where in your struct definition you should
@@ -1086,7 +1086,7 @@ helper module <a href="crate::serde_helpers::text_content"><code>text_content</c
 design (see <a href="https://github.com/serde-rs/serde/issues/1183">serde#1183</a> and <a href="https://github.com/tafia/quick-xml/issues/586">quick-xml#586</a>) and missing optimizations in
 Serde which could be useful for XML parsing (<a href="https://github.com/serde-rs/serde/issues/1495">serde#1495</a>). This can be worked
 around by manually implementing deserialize with <code>#[serde(deserialize_with = "func")]</code>
-or implementing <a href="../../serde/de/trait.Deserialize.html" title="trait serde::de::Deserialize"><code>Deserialize</code></a>, but this can get very tedious very fast for
+or implementing <a href="../../serde_core/de/trait.Deserialize.html" title="trait serde_core::de::Deserialize"><code>Deserialize</code></a>, but this can get very tedious very fast for
 files with large amounts of tagged enums. To help with this issue quick-xml
 provides a macro <a href="crate::impl_deserialize_for_internally_tagged_enum"><code>impl_deserialize_for_internally_tagged_enum!</code></a>. See the
 macro documentation for details.</p>

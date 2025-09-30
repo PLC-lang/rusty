@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["ws"],"struct":["Message","MissingConnectionUpgrade","WebSocket","Ws"]};

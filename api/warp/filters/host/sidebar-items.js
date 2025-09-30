@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["exact","optional"],"struct":["Authority"]};

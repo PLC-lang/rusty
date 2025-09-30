@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["addr","any","body","cookie","cors","ext","fs","header","host","log","method","path","query","reply","sse","trace","ws"],"struct":["BoxedFilter"]};

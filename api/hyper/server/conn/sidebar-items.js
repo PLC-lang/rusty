@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["AddrIncoming","AddrStream","Connecting","Connection","Http","Parts"]};
+window.SIDEBAR_ITEMS = {"mod":["http1"]};

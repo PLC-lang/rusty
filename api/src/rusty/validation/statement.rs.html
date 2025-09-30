@@ -1529,7 +1529,7 @@
 <a href=#1529 id=1529 data-nosnippet>1529</a>                    Diagnostic::new(<span class="string">"Invalid call parameters"</span>)
 <a href=#1530 id=1530 data-nosnippet>1530</a>                        .with_error_code(<span class="string">"E089"</span>)
 <a href=#1531 id=1531 data-nosnippet>1531</a>                        .with_location(<span class="kw-2">*</span>argument)
-<a href=#1532 id=1532 data-nosnippet>1532</a>                        .with_sub_diagnostic(err),
+<a href=#1532 id=1532 data-nosnippet>1532</a>                        .with_sub_diagnostic(err.into()),
 <a href=#1533 id=1533 data-nosnippet>1533</a>                );
 <a href=#1534 id=1534 data-nosnippet>1534</a>                <span class="kw">break</span>;
 <a href=#1535 id=1535 data-nosnippet>1535</a>            }

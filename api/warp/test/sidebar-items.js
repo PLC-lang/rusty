@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["request","ws"],"struct":["RequestBuilder","WsBuilder","WsClient","WsError"]};

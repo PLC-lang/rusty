@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"struct":["CodeGen","CodegenContext","GeneratedModule"]};
+window.SIDEBAR_ITEMS = {"enum":["CodegenError"],"struct":["CodeGen","CodegenContext","GeneratedModule"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tungstenite-0.21.0/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tungstenite/</div>error.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Error handling.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tungstenite-0.28.0/src/error.rs`."><title>error.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tungstenite" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tungstenite/</div>error.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Error handling.
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a></span><span class="kw">use </span>std::{io, result, str, string};
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -55,10 +55,10 @@
 <a href=#55 id=55 data-nosnippet>55</a>    </span>Protocol(<span class="attr">#[from] </span>ProtocolError),
 <a href=#56 id=56 data-nosnippet>56</a>    <span class="doccomment">/// Message write buffer is full.
 <a href=#57 id=57 data-nosnippet>57</a>    </span><span class="attr">#[error(<span class="string">"Write buffer is full"</span>)]
-<a href=#58 id=58 data-nosnippet>58</a>    </span>WriteBufferFull(Message),
+<a href=#58 id=58 data-nosnippet>58</a>    </span>WriteBufferFull(Box&lt;Message&gt;),
 <a href=#59 id=59 data-nosnippet>59</a>    <span class="doccomment">/// UTF coding error.
-<a href=#60 id=60 data-nosnippet>60</a>    </span><span class="attr">#[error(<span class="string">"UTF-8 encoding error"</span>)]
-<a href=#61 id=61 data-nosnippet>61</a>    </span>Utf8,
+<a href=#60 id=60 data-nosnippet>60</a>    </span><span class="attr">#[error(<span class="string">"UTF-8 encoding error: {0}"</span>)]
+<a href=#61 id=61 data-nosnippet>61</a>    </span>Utf8(String),
 <a href=#62 id=62 data-nosnippet>62</a>    <span class="doccomment">/// Attack attempt detected.
 <a href=#63 id=63 data-nosnippet>63</a>    </span><span class="attr">#[error(<span class="string">"Attack attempt detected"</span>)]
 <a href=#64 id=64 data-nosnippet>64</a>    </span>AttackAttempt,
@@ -68,7 +68,7 @@
 <a href=#68 id=68 data-nosnippet>68</a>    <span class="doccomment">/// HTTP error.
 <a href=#69 id=69 data-nosnippet>69</a>    </span><span class="attr">#[error(<span class="string">"HTTP error: {}"</span>, .<span class="number">0</span>.status())]
 <a href=#70 id=70 data-nosnippet>70</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
-<a href=#71 id=71 data-nosnippet>71</a>    </span>Http(Response&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt;),
+<a href=#71 id=71 data-nosnippet>71</a>    </span>Http(Box&lt;Response&lt;<span class="prelude-ty">Option</span>&lt;Vec&lt;u8&gt;&gt;&gt;&gt;),
 <a href=#72 id=72 data-nosnippet>72</a>    <span class="doccomment">/// HTTP format error.
 <a href=#73 id=73 data-nosnippet>73</a>    </span><span class="attr">#[error(<span class="string">"HTTP format error: {0}"</span>)]
 <a href=#74 id=74 data-nosnippet>74</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
@@ -76,14 +76,14 @@
 <a href=#76 id=76 data-nosnippet>76</a>}
 <a href=#77 id=77 data-nosnippet>77</a>
 <a href=#78 id=78 data-nosnippet>78</a><span class="kw">impl </span>From&lt;str::Utf8Error&gt; <span class="kw">for </span>Error {
-<a href=#79 id=79 data-nosnippet>79</a>    <span class="kw">fn </span>from(<span class="kw">_</span>: str::Utf8Error) -&gt; <span class="self">Self </span>{
-<a href=#80 id=80 data-nosnippet>80</a>        Error::Utf8
+<a href=#79 id=79 data-nosnippet>79</a>    <span class="kw">fn </span>from(err: str::Utf8Error) -&gt; <span class="self">Self </span>{
+<a href=#80 id=80 data-nosnippet>80</a>        Error::Utf8(err.to_string())
 <a href=#81 id=81 data-nosnippet>81</a>    }
 <a href=#82 id=82 data-nosnippet>82</a>}
 <a href=#83 id=83 data-nosnippet>83</a>
 <a href=#84 id=84 data-nosnippet>84</a><span class="kw">impl </span>From&lt;string::FromUtf8Error&gt; <span class="kw">for </span>Error {
-<a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">fn </span>from(<span class="kw">_</span>: string::FromUtf8Error) -&gt; <span class="self">Self </span>{
-<a href=#86 id=86 data-nosnippet>86</a>        Error::Utf8
+<a href=#85 id=85 data-nosnippet>85</a>    <span class="kw">fn </span>from(err: string::FromUtf8Error) -&gt; <span class="self">Self </span>{
+<a href=#86 id=86 data-nosnippet>86</a>        Error::Utf8(err.to_string())
 <a href=#87 id=87 data-nosnippet>87</a>    }
 <a href=#88 id=88 data-nosnippet>88</a>}
 <a href=#89 id=89 data-nosnippet>89</a>
@@ -103,8 +103,8 @@
 <a href=#103 id=103 data-nosnippet>103</a>
 <a href=#104 id=104 data-nosnippet>104</a><span class="attr">#[cfg(feature = <span class="string">"handshake"</span>)]
 <a href=#105 id=105 data-nosnippet>105</a></span><span class="kw">impl </span>From&lt;http::header::ToStrError&gt; <span class="kw">for </span>Error {
-<a href=#106 id=106 data-nosnippet>106</a>    <span class="kw">fn </span>from(<span class="kw">_</span>: http::header::ToStrError) -&gt; <span class="self">Self </span>{
-<a href=#107 id=107 data-nosnippet>107</a>        Error::Utf8
+<a href=#106 id=106 data-nosnippet>106</a>    <span class="kw">fn </span>from(err: http::header::ToStrError) -&gt; <span class="self">Self </span>{
+<a href=#107 id=107 data-nosnippet>107</a>        Error::Utf8(err.to_string())
 <a href=#108 id=108 data-nosnippet>108</a>    }
 <a href=#109 id=109 data-nosnippet>109</a>}
 <a href=#110 id=110 data-nosnippet>110</a>
@@ -149,133 +149,188 @@
 <a href=#149 id=149 data-nosnippet>149</a>    },
 <a href=#150 id=150 data-nosnippet>150</a>}
 <a href=#151 id=151 data-nosnippet>151</a>
-<a href=#152 id=152 data-nosnippet>152</a><span class="doccomment">/// Indicates the specific type/cause of a protocol error.
-<a href=#153 id=153 data-nosnippet>153</a></span><span class="attr">#[allow(missing_copy_implementations)]
-<a href=#154 id=154 data-nosnippet>154</a>#[derive(Error, Debug, PartialEq, Eq, Clone)]
-<a href=#155 id=155 data-nosnippet>155</a></span><span class="kw">pub enum </span>ProtocolError {
-<a href=#156 id=156 data-nosnippet>156</a>    <span class="doccomment">/// Use of the wrong HTTP method (the WebSocket protocol requires the GET method be used).
-<a href=#157 id=157 data-nosnippet>157</a>    </span><span class="attr">#[error(<span class="string">"Unsupported HTTP method used - only GET is allowed"</span>)]
-<a href=#158 id=158 data-nosnippet>158</a>    </span>WrongHttpMethod,
-<a href=#159 id=159 data-nosnippet>159</a>    <span class="doccomment">/// Wrong HTTP version used (the WebSocket protocol requires version 1.1 or higher).
-<a href=#160 id=160 data-nosnippet>160</a>    </span><span class="attr">#[error(<span class="string">"HTTP version must be 1.1 or higher"</span>)]
-<a href=#161 id=161 data-nosnippet>161</a>    </span>WrongHttpVersion,
-<a href=#162 id=162 data-nosnippet>162</a>    <span class="doccomment">/// Missing `Connection: upgrade` HTTP header.
-<a href=#163 id=163 data-nosnippet>163</a>    </span><span class="attr">#[error(<span class="string">"No \"Connection: upgrade\" header"</span>)]
-<a href=#164 id=164 data-nosnippet>164</a>    </span>MissingConnectionUpgradeHeader,
-<a href=#165 id=165 data-nosnippet>165</a>    <span class="doccomment">/// Missing `Upgrade: websocket` HTTP header.
-<a href=#166 id=166 data-nosnippet>166</a>    </span><span class="attr">#[error(<span class="string">"No \"Upgrade: websocket\" header"</span>)]
-<a href=#167 id=167 data-nosnippet>167</a>    </span>MissingUpgradeWebSocketHeader,
-<a href=#168 id=168 data-nosnippet>168</a>    <span class="doccomment">/// Missing `Sec-WebSocket-Version: 13` HTTP header.
-<a href=#169 id=169 data-nosnippet>169</a>    </span><span class="attr">#[error(<span class="string">"No \"Sec-WebSocket-Version: 13\" header"</span>)]
-<a href=#170 id=170 data-nosnippet>170</a>    </span>MissingSecWebSocketVersionHeader,
-<a href=#171 id=171 data-nosnippet>171</a>    <span class="doccomment">/// Missing `Sec-WebSocket-Key` HTTP header.
-<a href=#172 id=172 data-nosnippet>172</a>    </span><span class="attr">#[error(<span class="string">"No \"Sec-WebSocket-Key\" header"</span>)]
-<a href=#173 id=173 data-nosnippet>173</a>    </span>MissingSecWebSocketKey,
-<a href=#174 id=174 data-nosnippet>174</a>    <span class="doccomment">/// The `Sec-WebSocket-Accept` header is either not present or does not specify the correct key value.
-<a href=#175 id=175 data-nosnippet>175</a>    </span><span class="attr">#[error(<span class="string">"Key mismatch in \"Sec-WebSocket-Accept\" header"</span>)]
-<a href=#176 id=176 data-nosnippet>176</a>    </span>SecWebSocketAcceptKeyMismatch,
-<a href=#177 id=177 data-nosnippet>177</a>    <span class="doccomment">/// Garbage data encountered after client request.
-<a href=#178 id=178 data-nosnippet>178</a>    </span><span class="attr">#[error(<span class="string">"Junk after client request"</span>)]
-<a href=#179 id=179 data-nosnippet>179</a>    </span>JunkAfterRequest,
-<a href=#180 id=180 data-nosnippet>180</a>    <span class="doccomment">/// Custom responses must be unsuccessful.
-<a href=#181 id=181 data-nosnippet>181</a>    </span><span class="attr">#[error(<span class="string">"Custom response must not be successful"</span>)]
-<a href=#182 id=182 data-nosnippet>182</a>    </span>CustomResponseSuccessful,
-<a href=#183 id=183 data-nosnippet>183</a>    <span class="doccomment">/// Invalid header is passed. Or the header is missing in the request. Or not present at all. Check the request that you pass.
-<a href=#184 id=184 data-nosnippet>184</a>    </span><span class="attr">#[error(<span class="string">"Missing, duplicated or incorrect header {0}"</span>)]
-<a href=#185 id=185 data-nosnippet>185</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
-<a href=#186 id=186 data-nosnippet>186</a>    </span>InvalidHeader(HeaderName),
-<a href=#187 id=187 data-nosnippet>187</a>    <span class="doccomment">/// No more data while still performing handshake.
-<a href=#188 id=188 data-nosnippet>188</a>    </span><span class="attr">#[error(<span class="string">"Handshake not finished"</span>)]
-<a href=#189 id=189 data-nosnippet>189</a>    </span>HandshakeIncomplete,
-<a href=#190 id=190 data-nosnippet>190</a>    <span class="doccomment">/// Wrapper around a [`httparse::Error`] value.
-<a href=#191 id=191 data-nosnippet>191</a>    </span><span class="attr">#[error(<span class="string">"httparse error: {0}"</span>)]
-<a href=#192 id=192 data-nosnippet>192</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
-<a href=#193 id=193 data-nosnippet>193</a>    </span>HttparseError(<span class="attr">#[from] </span>httparse::Error),
-<a href=#194 id=194 data-nosnippet>194</a>    <span class="doccomment">/// Not allowed to send after having sent a closing frame.
-<a href=#195 id=195 data-nosnippet>195</a>    </span><span class="attr">#[error(<span class="string">"Sending after closing is not allowed"</span>)]
-<a href=#196 id=196 data-nosnippet>196</a>    </span>SendAfterClosing,
-<a href=#197 id=197 data-nosnippet>197</a>    <span class="doccomment">/// Remote sent data after sending a closing frame.
-<a href=#198 id=198 data-nosnippet>198</a>    </span><span class="attr">#[error(<span class="string">"Remote sent after having closed"</span>)]
-<a href=#199 id=199 data-nosnippet>199</a>    </span>ReceivedAfterClosing,
-<a href=#200 id=200 data-nosnippet>200</a>    <span class="doccomment">/// Reserved bits in frame header are non-zero.
-<a href=#201 id=201 data-nosnippet>201</a>    </span><span class="attr">#[error(<span class="string">"Reserved bits are non-zero"</span>)]
-<a href=#202 id=202 data-nosnippet>202</a>    </span>NonZeroReservedBits,
-<a href=#203 id=203 data-nosnippet>203</a>    <span class="doccomment">/// The server must close the connection when an unmasked frame is received.
-<a href=#204 id=204 data-nosnippet>204</a>    </span><span class="attr">#[error(<span class="string">"Received an unmasked frame from client"</span>)]
-<a href=#205 id=205 data-nosnippet>205</a>    </span>UnmaskedFrameFromClient,
-<a href=#206 id=206 data-nosnippet>206</a>    <span class="doccomment">/// The client must close the connection when a masked frame is received.
-<a href=#207 id=207 data-nosnippet>207</a>    </span><span class="attr">#[error(<span class="string">"Received a masked frame from server"</span>)]
-<a href=#208 id=208 data-nosnippet>208</a>    </span>MaskedFrameFromServer,
-<a href=#209 id=209 data-nosnippet>209</a>    <span class="doccomment">/// Control frames must not be fragmented.
-<a href=#210 id=210 data-nosnippet>210</a>    </span><span class="attr">#[error(<span class="string">"Fragmented control frame"</span>)]
-<a href=#211 id=211 data-nosnippet>211</a>    </span>FragmentedControlFrame,
-<a href=#212 id=212 data-nosnippet>212</a>    <span class="doccomment">/// Control frames must have a payload of 125 bytes or less.
-<a href=#213 id=213 data-nosnippet>213</a>    </span><span class="attr">#[error(<span class="string">"Control frame too big (payload must be 125 bytes or less)"</span>)]
-<a href=#214 id=214 data-nosnippet>214</a>    </span>ControlFrameTooBig,
-<a href=#215 id=215 data-nosnippet>215</a>    <span class="doccomment">/// Type of control frame not recognised.
-<a href=#216 id=216 data-nosnippet>216</a>    </span><span class="attr">#[error(<span class="string">"Unknown control frame type: {0}"</span>)]
-<a href=#217 id=217 data-nosnippet>217</a>    </span>UnknownControlFrameType(u8),
-<a href=#218 id=218 data-nosnippet>218</a>    <span class="doccomment">/// Type of data frame not recognised.
-<a href=#219 id=219 data-nosnippet>219</a>    </span><span class="attr">#[error(<span class="string">"Unknown data frame type: {0}"</span>)]
-<a href=#220 id=220 data-nosnippet>220</a>    </span>UnknownDataFrameType(u8),
-<a href=#221 id=221 data-nosnippet>221</a>    <span class="doccomment">/// Received a continue frame despite there being nothing to continue.
-<a href=#222 id=222 data-nosnippet>222</a>    </span><span class="attr">#[error(<span class="string">"Continue frame but nothing to continue"</span>)]
-<a href=#223 id=223 data-nosnippet>223</a>    </span>UnexpectedContinueFrame,
-<a href=#224 id=224 data-nosnippet>224</a>    <span class="doccomment">/// Received data while waiting for more fragments.
-<a href=#225 id=225 data-nosnippet>225</a>    </span><span class="attr">#[error(<span class="string">"While waiting for more fragments received: {0}"</span>)]
-<a href=#226 id=226 data-nosnippet>226</a>    </span>ExpectedFragment(Data),
-<a href=#227 id=227 data-nosnippet>227</a>    <span class="doccomment">/// Connection closed without performing the closing handshake.
-<a href=#228 id=228 data-nosnippet>228</a>    </span><span class="attr">#[error(<span class="string">"Connection reset without closing handshake"</span>)]
-<a href=#229 id=229 data-nosnippet>229</a>    </span>ResetWithoutClosingHandshake,
-<a href=#230 id=230 data-nosnippet>230</a>    <span class="doccomment">/// Encountered an invalid opcode.
-<a href=#231 id=231 data-nosnippet>231</a>    </span><span class="attr">#[error(<span class="string">"Encountered invalid opcode: {0}"</span>)]
-<a href=#232 id=232 data-nosnippet>232</a>    </span>InvalidOpcode(u8),
-<a href=#233 id=233 data-nosnippet>233</a>    <span class="doccomment">/// The payload for the closing frame is invalid.
-<a href=#234 id=234 data-nosnippet>234</a>    </span><span class="attr">#[error(<span class="string">"Invalid close sequence"</span>)]
-<a href=#235 id=235 data-nosnippet>235</a>    </span>InvalidCloseSequence,
-<a href=#236 id=236 data-nosnippet>236</a>}
-<a href=#237 id=237 data-nosnippet>237</a>
-<a href=#238 id=238 data-nosnippet>238</a><span class="doccomment">/// Indicates the specific type/cause of URL error.
-<a href=#239 id=239 data-nosnippet>239</a></span><span class="attr">#[derive(Error, Debug, PartialEq, Eq)]
-<a href=#240 id=240 data-nosnippet>240</a></span><span class="kw">pub enum </span>UrlError {
-<a href=#241 id=241 data-nosnippet>241</a>    <span class="doccomment">/// TLS is used despite not being compiled with the TLS feature enabled.
-<a href=#242 id=242 data-nosnippet>242</a>    </span><span class="attr">#[error(<span class="string">"TLS support not compiled in"</span>)]
-<a href=#243 id=243 data-nosnippet>243</a>    </span>TlsFeatureNotEnabled,
-<a href=#244 id=244 data-nosnippet>244</a>    <span class="doccomment">/// The URL does not include a host name.
-<a href=#245 id=245 data-nosnippet>245</a>    </span><span class="attr">#[error(<span class="string">"No host name in the URL"</span>)]
-<a href=#246 id=246 data-nosnippet>246</a>    </span>NoHostName,
-<a href=#247 id=247 data-nosnippet>247</a>    <span class="doccomment">/// Failed to connect with this URL.
-<a href=#248 id=248 data-nosnippet>248</a>    </span><span class="attr">#[error(<span class="string">"Unable to connect to {0}"</span>)]
-<a href=#249 id=249 data-nosnippet>249</a>    </span>UnableToConnect(String),
-<a href=#250 id=250 data-nosnippet>250</a>    <span class="doccomment">/// Unsupported URL scheme used (only `ws://` or `wss://` may be used).
-<a href=#251 id=251 data-nosnippet>251</a>    </span><span class="attr">#[error(<span class="string">"URL scheme not supported"</span>)]
-<a href=#252 id=252 data-nosnippet>252</a>    </span>UnsupportedUrlScheme,
-<a href=#253 id=253 data-nosnippet>253</a>    <span class="doccomment">/// The URL host name, though included, is empty.
-<a href=#254 id=254 data-nosnippet>254</a>    </span><span class="attr">#[error(<span class="string">"URL contains empty host name"</span>)]
-<a href=#255 id=255 data-nosnippet>255</a>    </span>EmptyHostName,
-<a href=#256 id=256 data-nosnippet>256</a>    <span class="doccomment">/// The URL does not include a path/query.
-<a href=#257 id=257 data-nosnippet>257</a>    </span><span class="attr">#[error(<span class="string">"No path/query in URL"</span>)]
-<a href=#258 id=258 data-nosnippet>258</a>    </span>NoPathOrQuery,
-<a href=#259 id=259 data-nosnippet>259</a>}
-<a href=#260 id=260 data-nosnippet>260</a>
-<a href=#261 id=261 data-nosnippet>261</a><span class="doccomment">/// TLS errors.
-<a href=#262 id=262 data-nosnippet>262</a>///
-<a href=#263 id=263 data-nosnippet>263</a>/// Note that even if you enable only the rustls-based TLS support, the error at runtime could still
-<a href=#264 id=264 data-nosnippet>264</a>/// be `Native`, as another crate in the dependency graph may enable native TLS support.
-<a href=#265 id=265 data-nosnippet>265</a></span><span class="attr">#[allow(missing_copy_implementations)]
-<a href=#266 id=266 data-nosnippet>266</a>#[derive(Error, Debug)]
-<a href=#267 id=267 data-nosnippet>267</a>#[non_exhaustive]
-<a href=#268 id=268 data-nosnippet>268</a></span><span class="kw">pub enum </span>TlsError {
-<a href=#269 id=269 data-nosnippet>269</a>    <span class="doccomment">/// Native TLS error.
-<a href=#270 id=270 data-nosnippet>270</a>    </span><span class="attr">#[cfg(feature = <span class="string">"native-tls"</span>)]
-<a href=#271 id=271 data-nosnippet>271</a>    #[error(<span class="string">"native-tls error: {0}"</span>)]
-<a href=#272 id=272 data-nosnippet>272</a>    </span>Native(<span class="attr">#[from] </span>native_tls_crate::Error),
-<a href=#273 id=273 data-nosnippet>273</a>    <span class="doccomment">/// Rustls error.
-<a href=#274 id=274 data-nosnippet>274</a>    </span><span class="attr">#[cfg(feature = <span class="string">"__rustls-tls"</span>)]
-<a href=#275 id=275 data-nosnippet>275</a>    #[error(<span class="string">"rustls error: {0}"</span>)]
-<a href=#276 id=276 data-nosnippet>276</a>    </span>Rustls(<span class="attr">#[from] </span>rustls::Error),
-<a href=#277 id=277 data-nosnippet>277</a>    <span class="doccomment">/// DNS name resolution error.
-<a href=#278 id=278 data-nosnippet>278</a>    </span><span class="attr">#[cfg(feature = <span class="string">"__rustls-tls"</span>)]
-<a href=#279 id=279 data-nosnippet>279</a>    #[error(<span class="string">"Invalid DNS name"</span>)]
-<a href=#280 id=280 data-nosnippet>280</a>    </span>InvalidDnsName,
-<a href=#281 id=281 data-nosnippet>281</a>}</code></pre></div></section></main></body></html>
+<a href=#152 id=152 data-nosnippet>152</a><span class="doccomment">/// Indicates the specific type/cause of a subprotocol header error.
+<a href=#153 id=153 data-nosnippet>153</a></span><span class="attr">#[derive(Error, Clone, PartialEq, Eq, Debug, Copy)]
+<a href=#154 id=154 data-nosnippet>154</a></span><span class="kw">pub enum </span>SubProtocolError {
+<a href=#155 id=155 data-nosnippet>155</a>    <span class="doccomment">/// The server sent a subprotocol to a client handshake request but none was requested
+<a href=#156 id=156 data-nosnippet>156</a>    </span><span class="attr">#[error(<span class="string">"Server sent a subprotocol but none was requested"</span>)]
+<a href=#157 id=157 data-nosnippet>157</a>    </span>ServerSentSubProtocolNoneRequested,
+<a href=#158 id=158 data-nosnippet>158</a>
+<a href=#159 id=159 data-nosnippet>159</a>    <span class="doccomment">/// The server sent an invalid subprotocol to a client handhshake request
+<a href=#160 id=160 data-nosnippet>160</a>    </span><span class="attr">#[error(<span class="string">"Server sent an invalid subprotocol"</span>)]
+<a href=#161 id=161 data-nosnippet>161</a>    </span>InvalidSubProtocol,
+<a href=#162 id=162 data-nosnippet>162</a>
+<a href=#163 id=163 data-nosnippet>163</a>    <span class="doccomment">/// The server sent no subprotocol to a client handshake request that requested one or more
+<a href=#164 id=164 data-nosnippet>164</a>    /// subprotocols
+<a href=#165 id=165 data-nosnippet>165</a>    </span><span class="attr">#[error(<span class="string">"Server sent no subprotocol"</span>)]
+<a href=#166 id=166 data-nosnippet>166</a>    </span>NoSubProtocol,
+<a href=#167 id=167 data-nosnippet>167</a>}
+<a href=#168 id=168 data-nosnippet>168</a>
+<a href=#169 id=169 data-nosnippet>169</a><span class="doccomment">/// Indicates the specific type/cause of a protocol error.
+<a href=#170 id=170 data-nosnippet>170</a></span><span class="attr">#[allow(missing_copy_implementations)]
+<a href=#171 id=171 data-nosnippet>171</a>#[derive(Error, Debug, PartialEq, Eq, Clone)]
+<a href=#172 id=172 data-nosnippet>172</a></span><span class="kw">pub enum </span>ProtocolError {
+<a href=#173 id=173 data-nosnippet>173</a>    <span class="doccomment">/// Use of the wrong HTTP method (the WebSocket protocol requires the GET method be used).
+<a href=#174 id=174 data-nosnippet>174</a>    </span><span class="attr">#[error(<span class="string">"Unsupported HTTP method used - only GET is allowed"</span>)]
+<a href=#175 id=175 data-nosnippet>175</a>    </span>WrongHttpMethod,
+<a href=#176 id=176 data-nosnippet>176</a>    <span class="doccomment">/// Wrong HTTP version used (the WebSocket protocol requires version 1.1 or higher).
+<a href=#177 id=177 data-nosnippet>177</a>    </span><span class="attr">#[error(<span class="string">"HTTP version must be 1.1 or higher"</span>)]
+<a href=#178 id=178 data-nosnippet>178</a>    </span>WrongHttpVersion,
+<a href=#179 id=179 data-nosnippet>179</a>    <span class="doccomment">/// Missing `Connection: upgrade` HTTP header.
+<a href=#180 id=180 data-nosnippet>180</a>    </span><span class="attr">#[error(<span class="string">"No \"Connection: upgrade\" header"</span>)]
+<a href=#181 id=181 data-nosnippet>181</a>    </span>MissingConnectionUpgradeHeader,
+<a href=#182 id=182 data-nosnippet>182</a>    <span class="doccomment">/// Missing `Upgrade: websocket` HTTP header.
+<a href=#183 id=183 data-nosnippet>183</a>    </span><span class="attr">#[error(<span class="string">"No \"Upgrade: websocket\" header"</span>)]
+<a href=#184 id=184 data-nosnippet>184</a>    </span>MissingUpgradeWebSocketHeader,
+<a href=#185 id=185 data-nosnippet>185</a>    <span class="doccomment">/// Missing `Sec-WebSocket-Version: 13` HTTP header.
+<a href=#186 id=186 data-nosnippet>186</a>    </span><span class="attr">#[error(<span class="string">"No \"Sec-WebSocket-Version: 13\" header"</span>)]
+<a href=#187 id=187 data-nosnippet>187</a>    </span>MissingSecWebSocketVersionHeader,
+<a href=#188 id=188 data-nosnippet>188</a>    <span class="doccomment">/// Missing `Sec-WebSocket-Key` HTTP header.
+<a href=#189 id=189 data-nosnippet>189</a>    </span><span class="attr">#[error(<span class="string">"No \"Sec-WebSocket-Key\" header"</span>)]
+<a href=#190 id=190 data-nosnippet>190</a>    </span>MissingSecWebSocketKey,
+<a href=#191 id=191 data-nosnippet>191</a>    <span class="doccomment">/// The `Sec-WebSocket-Accept` header is either not present or does not specify the correct key value.
+<a href=#192 id=192 data-nosnippet>192</a>    </span><span class="attr">#[error(<span class="string">"Key mismatch in \"Sec-WebSocket-Accept\" header"</span>)]
+<a href=#193 id=193 data-nosnippet>193</a>    </span>SecWebSocketAcceptKeyMismatch,
+<a href=#194 id=194 data-nosnippet>194</a>    <span class="doccomment">/// The `Sec-WebSocket-Protocol` header was invalid
+<a href=#195 id=195 data-nosnippet>195</a>    </span><span class="attr">#[error(<span class="string">"SubProtocol error: {0}"</span>)]
+<a href=#196 id=196 data-nosnippet>196</a>    </span>SecWebSocketSubProtocolError(SubProtocolError),
+<a href=#197 id=197 data-nosnippet>197</a>    <span class="doccomment">/// Garbage data encountered after client request.
+<a href=#198 id=198 data-nosnippet>198</a>    </span><span class="attr">#[error(<span class="string">"Junk after client request"</span>)]
+<a href=#199 id=199 data-nosnippet>199</a>    </span>JunkAfterRequest,
+<a href=#200 id=200 data-nosnippet>200</a>    <span class="doccomment">/// Custom responses must be unsuccessful.
+<a href=#201 id=201 data-nosnippet>201</a>    </span><span class="attr">#[error(<span class="string">"Custom response must not be successful"</span>)]
+<a href=#202 id=202 data-nosnippet>202</a>    </span>CustomResponseSuccessful,
+<a href=#203 id=203 data-nosnippet>203</a>    <span class="doccomment">/// Invalid header is passed. Or the header is missing in the request. Or not present at all. Check the request that you pass.
+<a href=#204 id=204 data-nosnippet>204</a>    </span><span class="attr">#[error(<span class="string">"Missing, duplicated or incorrect header {0}"</span>)]
+<a href=#205 id=205 data-nosnippet>205</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
+<a href=#206 id=206 data-nosnippet>206</a>    </span>InvalidHeader(Box&lt;HeaderName&gt;),
+<a href=#207 id=207 data-nosnippet>207</a>    <span class="doccomment">/// No more data while still performing handshake.
+<a href=#208 id=208 data-nosnippet>208</a>    </span><span class="attr">#[error(<span class="string">"Handshake not finished"</span>)]
+<a href=#209 id=209 data-nosnippet>209</a>    </span>HandshakeIncomplete,
+<a href=#210 id=210 data-nosnippet>210</a>    <span class="doccomment">/// Wrapper around a [`httparse::Error`] value.
+<a href=#211 id=211 data-nosnippet>211</a>    </span><span class="attr">#[error(<span class="string">"httparse error: {0}"</span>)]
+<a href=#212 id=212 data-nosnippet>212</a>    #[cfg(feature = <span class="string">"handshake"</span>)]
+<a href=#213 id=213 data-nosnippet>213</a>    </span>HttparseError(<span class="attr">#[from] </span>httparse::Error),
+<a href=#214 id=214 data-nosnippet>214</a>    <span class="doccomment">/// Not allowed to send after having sent a closing frame.
+<a href=#215 id=215 data-nosnippet>215</a>    </span><span class="attr">#[error(<span class="string">"Sending after closing is not allowed"</span>)]
+<a href=#216 id=216 data-nosnippet>216</a>    </span>SendAfterClosing,
+<a href=#217 id=217 data-nosnippet>217</a>    <span class="doccomment">/// Remote sent data after sending a closing frame.
+<a href=#218 id=218 data-nosnippet>218</a>    </span><span class="attr">#[error(<span class="string">"Remote sent after having closed"</span>)]
+<a href=#219 id=219 data-nosnippet>219</a>    </span>ReceivedAfterClosing,
+<a href=#220 id=220 data-nosnippet>220</a>    <span class="doccomment">/// Reserved bits in frame header are non-zero.
+<a href=#221 id=221 data-nosnippet>221</a>    </span><span class="attr">#[error(<span class="string">"Reserved bits are non-zero"</span>)]
+<a href=#222 id=222 data-nosnippet>222</a>    </span>NonZeroReservedBits,
+<a href=#223 id=223 data-nosnippet>223</a>    <span class="doccomment">/// The server must close the connection when an unmasked frame is received.
+<a href=#224 id=224 data-nosnippet>224</a>    </span><span class="attr">#[error(<span class="string">"Received an unmasked frame from client"</span>)]
+<a href=#225 id=225 data-nosnippet>225</a>    </span>UnmaskedFrameFromClient,
+<a href=#226 id=226 data-nosnippet>226</a>    <span class="doccomment">/// The client must close the connection when a masked frame is received.
+<a href=#227 id=227 data-nosnippet>227</a>    </span><span class="attr">#[error(<span class="string">"Received a masked frame from server"</span>)]
+<a href=#228 id=228 data-nosnippet>228</a>    </span>MaskedFrameFromServer,
+<a href=#229 id=229 data-nosnippet>229</a>    <span class="doccomment">/// Control frames must not be fragmented.
+<a href=#230 id=230 data-nosnippet>230</a>    </span><span class="attr">#[error(<span class="string">"Fragmented control frame"</span>)]
+<a href=#231 id=231 data-nosnippet>231</a>    </span>FragmentedControlFrame,
+<a href=#232 id=232 data-nosnippet>232</a>    <span class="doccomment">/// Control frames must have a payload of 125 bytes or less.
+<a href=#233 id=233 data-nosnippet>233</a>    </span><span class="attr">#[error(<span class="string">"Control frame too big (payload must be 125 bytes or less)"</span>)]
+<a href=#234 id=234 data-nosnippet>234</a>    </span>ControlFrameTooBig,
+<a href=#235 id=235 data-nosnippet>235</a>    <span class="doccomment">/// Type of control frame not recognised.
+<a href=#236 id=236 data-nosnippet>236</a>    </span><span class="attr">#[error(<span class="string">"Unknown control frame type: {0}"</span>)]
+<a href=#237 id=237 data-nosnippet>237</a>    </span>UnknownControlFrameType(u8),
+<a href=#238 id=238 data-nosnippet>238</a>    <span class="doccomment">/// Type of data frame not recognised.
+<a href=#239 id=239 data-nosnippet>239</a>    </span><span class="attr">#[error(<span class="string">"Unknown data frame type: {0}"</span>)]
+<a href=#240 id=240 data-nosnippet>240</a>    </span>UnknownDataFrameType(u8),
+<a href=#241 id=241 data-nosnippet>241</a>    <span class="doccomment">/// Received a continue frame despite there being nothing to continue.
+<a href=#242 id=242 data-nosnippet>242</a>    </span><span class="attr">#[error(<span class="string">"Continue frame but nothing to continue"</span>)]
+<a href=#243 id=243 data-nosnippet>243</a>    </span>UnexpectedContinueFrame,
+<a href=#244 id=244 data-nosnippet>244</a>    <span class="doccomment">/// Received data while waiting for more fragments.
+<a href=#245 id=245 data-nosnippet>245</a>    </span><span class="attr">#[error(<span class="string">"While waiting for more fragments received: {0}"</span>)]
+<a href=#246 id=246 data-nosnippet>246</a>    </span>ExpectedFragment(Data),
+<a href=#247 id=247 data-nosnippet>247</a>    <span class="doccomment">/// Connection closed without performing the closing handshake.
+<a href=#248 id=248 data-nosnippet>248</a>    </span><span class="attr">#[error(<span class="string">"Connection reset without closing handshake"</span>)]
+<a href=#249 id=249 data-nosnippet>249</a>    </span>ResetWithoutClosingHandshake,
+<a href=#250 id=250 data-nosnippet>250</a>    <span class="doccomment">/// Encountered an invalid opcode.
+<a href=#251 id=251 data-nosnippet>251</a>    </span><span class="attr">#[error(<span class="string">"Encountered invalid opcode: {0}"</span>)]
+<a href=#252 id=252 data-nosnippet>252</a>    </span>InvalidOpcode(u8),
+<a href=#253 id=253 data-nosnippet>253</a>    <span class="doccomment">/// The payload for the closing frame is invalid.
+<a href=#254 id=254 data-nosnippet>254</a>    </span><span class="attr">#[error(<span class="string">"Invalid close sequence"</span>)]
+<a href=#255 id=255 data-nosnippet>255</a>    </span>InvalidCloseSequence,
+<a href=#256 id=256 data-nosnippet>256</a>}
+<a href=#257 id=257 data-nosnippet>257</a>
+<a href=#258 id=258 data-nosnippet>258</a><span class="doccomment">/// Indicates the specific type/cause of URL error.
+<a href=#259 id=259 data-nosnippet>259</a></span><span class="attr">#[derive(Error, Debug, PartialEq, Eq)]
+<a href=#260 id=260 data-nosnippet>260</a></span><span class="kw">pub enum </span>UrlError {
+<a href=#261 id=261 data-nosnippet>261</a>    <span class="doccomment">/// TLS is used despite not being compiled with the TLS feature enabled.
+<a href=#262 id=262 data-nosnippet>262</a>    </span><span class="attr">#[error(<span class="string">"TLS support not compiled in"</span>)]
+<a href=#263 id=263 data-nosnippet>263</a>    </span>TlsFeatureNotEnabled,
+<a href=#264 id=264 data-nosnippet>264</a>    <span class="doccomment">/// The URL does not include a host name.
+<a href=#265 id=265 data-nosnippet>265</a>    </span><span class="attr">#[error(<span class="string">"No host name in the URL"</span>)]
+<a href=#266 id=266 data-nosnippet>266</a>    </span>NoHostName,
+<a href=#267 id=267 data-nosnippet>267</a>    <span class="doccomment">/// Failed to connect with this URL.
+<a href=#268 id=268 data-nosnippet>268</a>    </span><span class="attr">#[error(<span class="string">"Unable to connect to {0}"</span>)]
+<a href=#269 id=269 data-nosnippet>269</a>    </span>UnableToConnect(String),
+<a href=#270 id=270 data-nosnippet>270</a>    <span class="doccomment">/// Unsupported URL scheme used (only `ws://` or `wss://` may be used).
+<a href=#271 id=271 data-nosnippet>271</a>    </span><span class="attr">#[error(<span class="string">"URL scheme not supported"</span>)]
+<a href=#272 id=272 data-nosnippet>272</a>    </span>UnsupportedUrlScheme,
+<a href=#273 id=273 data-nosnippet>273</a>    <span class="doccomment">/// The URL host name, though included, is empty.
+<a href=#274 id=274 data-nosnippet>274</a>    </span><span class="attr">#[error(<span class="string">"URL contains empty host name"</span>)]
+<a href=#275 id=275 data-nosnippet>275</a>    </span>EmptyHostName,
+<a href=#276 id=276 data-nosnippet>276</a>    <span class="doccomment">/// The URL does not include a path/query.
+<a href=#277 id=277 data-nosnippet>277</a>    </span><span class="attr">#[error(<span class="string">"No path/query in URL"</span>)]
+<a href=#278 id=278 data-nosnippet>278</a>    </span>NoPathOrQuery,
+<a href=#279 id=279 data-nosnippet>279</a>}
+<a href=#280 id=280 data-nosnippet>280</a>
+<a href=#281 id=281 data-nosnippet>281</a><span class="doccomment">/// TLS errors.
+<a href=#282 id=282 data-nosnippet>282</a>///
+<a href=#283 id=283 data-nosnippet>283</a>/// Note that even if you enable only the rustls-based TLS support, the error at runtime could still
+<a href=#284 id=284 data-nosnippet>284</a>/// be `Native`, as another crate in the dependency graph may enable native TLS support.
+<a href=#285 id=285 data-nosnippet>285</a></span><span class="attr">#[allow(missing_copy_implementations)]
+<a href=#286 id=286 data-nosnippet>286</a>#[derive(Error, Debug)]
+<a href=#287 id=287 data-nosnippet>287</a>#[non_exhaustive]
+<a href=#288 id=288 data-nosnippet>288</a></span><span class="kw">pub enum </span>TlsError {
+<a href=#289 id=289 data-nosnippet>289</a>    <span class="doccomment">/// Native TLS error.
+<a href=#290 id=290 data-nosnippet>290</a>    </span><span class="attr">#[cfg(feature = <span class="string">"native-tls"</span>)]
+<a href=#291 id=291 data-nosnippet>291</a>    #[error(<span class="string">"native-tls error: {0}"</span>)]
+<a href=#292 id=292 data-nosnippet>292</a>    </span>Native(Box&lt;native_tls_crate::Error&gt;),
+<a href=#293 id=293 data-nosnippet>293</a>    <span class="doccomment">/// Rustls error.
+<a href=#294 id=294 data-nosnippet>294</a>    </span><span class="attr">#[cfg(feature = <span class="string">"__rustls-tls"</span>)]
+<a href=#295 id=295 data-nosnippet>295</a>    #[error(<span class="string">"rustls error: {0}"</span>)]
+<a href=#296 id=296 data-nosnippet>296</a>    </span>Rustls(Box&lt;rustls::Error&gt;),
+<a href=#297 id=297 data-nosnippet>297</a>    <span class="doccomment">/// DNS name resolution error.
+<a href=#298 id=298 data-nosnippet>298</a>    </span><span class="attr">#[cfg(feature = <span class="string">"__rustls-tls"</span>)]
+<a href=#299 id=299 data-nosnippet>299</a>    #[error(<span class="string">"Invalid DNS name"</span>)]
+<a href=#300 id=300 data-nosnippet>300</a>    </span>InvalidDnsName,
+<a href=#301 id=301 data-nosnippet>301</a>}
+<a href=#302 id=302 data-nosnippet>302</a>
+<a href=#303 id=303 data-nosnippet>303</a><span class="attr">#[cfg(feature = <span class="string">"native-tls"</span>)]
+<a href=#304 id=304 data-nosnippet>304</a></span><span class="kw">impl </span>From&lt;native_tls_crate::Error&gt; <span class="kw">for </span>TlsError {
+<a href=#305 id=305 data-nosnippet>305</a>    <span class="kw">fn </span>from(e: native_tls_crate::Error) -&gt; <span class="self">Self </span>{
+<a href=#306 id=306 data-nosnippet>306</a>        <span class="self">Self</span>::Native(e.into())
+<a href=#307 id=307 data-nosnippet>307</a>    }
+<a href=#308 id=308 data-nosnippet>308</a>}
+<a href=#309 id=309 data-nosnippet>309</a>
+<a href=#310 id=310 data-nosnippet>310</a><span class="attr">#[cfg(feature = <span class="string">"__rustls-tls"</span>)]
+<a href=#311 id=311 data-nosnippet>311</a></span><span class="kw">impl </span>From&lt;rustls::Error&gt; <span class="kw">for </span>TlsError {
+<a href=#312 id=312 data-nosnippet>312</a>    <span class="kw">fn </span>from(e: rustls::Error) -&gt; <span class="self">Self </span>{
+<a href=#313 id=313 data-nosnippet>313</a>        <span class="self">Self</span>::Rustls(e.into())
+<a href=#314 id=314 data-nosnippet>314</a>    }
+<a href=#315 id=315 data-nosnippet>315</a>}
+<a href=#316 id=316 data-nosnippet>316</a>
+<a href=#317 id=317 data-nosnippet>317</a><span class="attr">#[cfg(test)]
+<a href=#318 id=318 data-nosnippet>318</a></span><span class="kw">mod </span>test {
+<a href=#319 id=319 data-nosnippet>319</a>    <span class="attr">#[test]
+<a href=#320 id=320 data-nosnippet>320</a>    </span><span class="kw">fn </span>error_size() {
+<a href=#321 id=321 data-nosnippet>321</a>        <span class="kw">let </span>size = std::mem::size_of::&lt;<span class="kw">crate</span>::Error&gt;();
+<a href=#322 id=322 data-nosnippet>322</a>        <span class="macro">assert!</span>(size &lt;= <span class="number">32</span>, <span class="string">"Error is large: {size}"</span>);
+<a href=#323 id=323 data-nosnippet>323</a>    }
+<a href=#324 id=324 data-nosnippet>324</a>
+<a href=#325 id=325 data-nosnippet>325</a>    <span class="attr">#[test]
+<a href=#326 id=326 data-nosnippet>326</a>    </span><span class="kw">fn </span>tls_error_size() {
+<a href=#327 id=327 data-nosnippet>327</a>        <span class="kw">let </span>size = std::mem::size_of::&lt;<span class="kw">crate</span>::error::TlsError&gt;();
+<a href=#328 id=328 data-nosnippet>328</a>        <span class="macro">assert!</span>(size &lt;= <span class="number">16</span>, <span class="string">"TlsError is large: {size}"</span>);
+<a href=#329 id=329 data-nosnippet>329</a>    }
+<a href=#330 id=330 data-nosnippet>330</a>
+<a href=#331 id=331 data-nosnippet>331</a>    <span class="attr">#[test]
+<a href=#332 id=332 data-nosnippet>332</a>    </span><span class="kw">fn </span>protocol_error_size() {
+<a href=#333 id=333 data-nosnippet>333</a>        <span class="kw">let </span>size = std::mem::size_of::&lt;<span class="kw">crate</span>::error::ProtocolError&gt;();
+<a href=#334 id=334 data-nosnippet>334</a>        <span class="macro">assert!</span>(size &lt;= <span class="number">16</span>, <span class="string">"ProtocolError is large: {size}"</span>);
+<a href=#335 id=335 data-nosnippet>335</a>    }
+<a href=#336 id=336 data-nosnippet>336</a>}</code></pre></div></section></main></body></html>

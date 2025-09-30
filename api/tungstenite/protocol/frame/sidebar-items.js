@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["coding"],"struct":["CloseFrame","Frame","FrameHeader","FrameSocket"]};
+window.SIDEBAR_ITEMS = {"mod":["coding"],"struct":["CloseFrame","Frame","FrameHeader","FrameSocket","Utf8Bytes"]};

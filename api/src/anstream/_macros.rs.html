@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.18/src/_macros.rs`."><title>_macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">anstream/</div>_macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/// Prints to [`stdout`][crate::stdout].
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/anstream-0.6.20/src/_macros.rs`."><title>_macros.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="anstream" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="../../static.files/src-script-813739b1.js"></script><script defer src="../../src-files.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">anstream/</div>_macros.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">/// Prints to [`stdout`][crate::stdout].
 <a href=#2 id=2 data-nosnippet>2</a>///
 <a href=#3 id=3 data-nosnippet>3</a>/// Equivalent to the [`println!`] macro except that a newline is not printed at
 <a href=#4 id=4 data-nosnippet>4</a>/// the end of the message.
@@ -299,7 +299,7 @@
 <a href=#299 id=299 data-nosnippet>299</a>/// represent an anticipated runtime failure mode of that computation, `Err(E)`.
 <a href=#300 id=300 data-nosnippet>300</a>/// `Result` is used alongside user defined types which represent the various
 <a href=#301 id=301 data-nosnippet>301</a>/// anticipated runtime failure modes that the associated computation could
-<a href=#302 id=302 data-nosnippet>302</a>/// encounter. `Result` must be propagated manually, often with the the help of the
+<a href=#302 id=302 data-nosnippet>302</a>/// encounter. `Result` must be propagated manually, often with the help of the
 <a href=#303 id=303 data-nosnippet>303</a>/// `?` operator and `Try` trait, and they must be reported manually, often with
 <a href=#304 id=304 data-nosnippet>304</a>/// the help of the `Error` trait.
 <a href=#305 id=305 data-nosnippet>305</a>///
@@ -311,55 +311,54 @@
 <a href=#311 id=311 data-nosnippet>311</a>/// [`std::panic::set_hook()`]: ../std/panic/fn.set_hook.html
 <a href=#312 id=312 data-nosnippet>312</a>/// [`panic_any`]: ../std/panic/fn.panic_any.html
 <a href=#313 id=313 data-nosnippet>313</a>/// [`Box`]: ../std/boxed/struct.Box.html
-<a href=#314 id=314 data-nosnippet>314</a>/// [`Any`]: crate::any::Any
-<a href=#315 id=315 data-nosnippet>315</a>/// [`format!`]: ../std/macro.format.html
-<a href=#316 id=316 data-nosnippet>316</a>/// [book]: ../book/ch09-00-error-handling.html
-<a href=#317 id=317 data-nosnippet>317</a>/// [`std::result`]: ../std/result/index.html
-<a href=#318 id=318 data-nosnippet>318</a>///
-<a href=#319 id=319 data-nosnippet>319</a>/// # Current implementation
-<a href=#320 id=320 data-nosnippet>320</a>///
-<a href=#321 id=321 data-nosnippet>321</a>/// If the main thread panics it will terminate all your threads and end your
-<a href=#322 id=322 data-nosnippet>322</a>/// program with code `101`.
-<a href=#323 id=323 data-nosnippet>323</a>///
-<a href=#324 id=324 data-nosnippet>324</a>/// # Examples
-<a href=#325 id=325 data-nosnippet>325</a>///
-<a href=#326 id=326 data-nosnippet>326</a>/// ```should_panic
-<a href=#327 id=327 data-nosnippet>327</a>/// # #![allow(unreachable_code)]
-<a href=#328 id=328 data-nosnippet>328</a>/// use anstream::panic;
-<a href=#329 id=329 data-nosnippet>329</a>/// panic!();
-<a href=#330 id=330 data-nosnippet>330</a>/// panic!("this is a terrible mistake!");
-<a href=#331 id=331 data-nosnippet>331</a>/// panic!("this is a {} {message}", "fancy", message = "message");
-<a href=#332 id=332 data-nosnippet>332</a>/// ```
-<a href=#333 id=333 data-nosnippet>333</a></span><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
-<a href=#334 id=334 data-nosnippet>334</a>#[macro_export]
-<a href=#335 id=335 data-nosnippet>335</a></span><span class="macro">macro_rules!</span> panic {
-<a href=#336 id=336 data-nosnippet>336</a>    () =&gt; {
-<a href=#337 id=337 data-nosnippet>337</a>        <span class="macro">::std::panic!</span>()
-<a href=#338 id=338 data-nosnippet>338</a>    };
-<a href=#339 id=339 data-nosnippet>339</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {{
-<a href=#340 id=340 data-nosnippet>340</a>        <span class="kw">let </span>target_stream = std::io::stderr();
-<a href=#341 id=341 data-nosnippet>341</a>        <span class="kw">let </span>buffer = <span class="macro-nonterminal">$crate::_macros::to_adapted_string</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>), <span class="kw-2">&amp;</span>target_stream);
-<a href=#342 id=342 data-nosnippet>342</a>        <span class="macro">::std::panic!</span>(<span class="string">"{}"</span>, buffer)
-<a href=#343 id=343 data-nosnippet>343</a>    }};
-<a href=#344 id=344 data-nosnippet>344</a>}
-<a href=#345 id=345 data-nosnippet>345</a>
-<a href=#346 id=346 data-nosnippet>346</a><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
-<a href=#347 id=347 data-nosnippet>347</a></span><span class="kw">pub const </span>FEATURE_TEST_ACTIVATED: bool = <span class="macro">cfg!</span>(feature = <span class="string">"test"</span>);
-<a href=#348 id=348 data-nosnippet>348</a>
-<a href=#349 id=349 data-nosnippet>349</a><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
-<a href=#350 id=350 data-nosnippet>350</a></span><span class="kw">pub fn </span>to_adapted_string(
-<a href=#351 id=351 data-nosnippet>351</a>    display: <span class="kw-2">&amp;</span><span class="kw">dyn </span>std::fmt::Display,
-<a href=#352 id=352 data-nosnippet>352</a>    stream: <span class="kw-2">&amp;</span><span class="kw">impl </span><span class="kw">crate</span>::stream::RawStream,
-<a href=#353 id=353 data-nosnippet>353</a>) -&gt; String {
-<a href=#354 id=354 data-nosnippet>354</a>    <span class="kw">use </span>std::io::Write <span class="kw">as _</span>;
-<a href=#355 id=355 data-nosnippet>355</a>
-<a href=#356 id=356 data-nosnippet>356</a>    <span class="kw">let </span>choice = <span class="kw">crate</span>::AutoStream::choice(stream);
-<a href=#357 id=357 data-nosnippet>357</a>    <span class="kw">let </span>buffer = Vec::new();
-<a href=#358 id=358 data-nosnippet>358</a>    <span class="kw">let </span><span class="kw-2">mut </span>stream = <span class="kw">crate</span>::AutoStream::new(buffer, choice);
-<a href=#359 id=359 data-nosnippet>359</a>    <span class="comment">// Ignore errors rather than panic
-<a href=#360 id=360 data-nosnippet>360</a>    </span><span class="kw">let _ </span>= <span class="macro">::std::write!</span>(<span class="kw-2">&amp;mut </span>stream, <span class="string">"{display}"</span>);
-<a href=#361 id=361 data-nosnippet>361</a>    <span class="kw">let </span>buffer = stream.into_inner();
-<a href=#362 id=362 data-nosnippet>362</a>    <span class="comment">// Should be UTF-8 but not wanting to panic
-<a href=#363 id=363 data-nosnippet>363</a>    </span><span class="kw">let </span>buffer = String::from_utf8_lossy(<span class="kw-2">&amp;</span>buffer).into_owned();
-<a href=#364 id=364 data-nosnippet>364</a>    buffer
-<a href=#365 id=365 data-nosnippet>365</a>}</code></pre></div></section></main></body></html>
+<a href=#314 id=314 data-nosnippet>314</a>/// [`format!`]: ../std/macro.format.html
+<a href=#315 id=315 data-nosnippet>315</a>/// [book]: ../book/ch09-00-error-handling.html
+<a href=#316 id=316 data-nosnippet>316</a>/// [`std::result`]: ../std/result/index.html
+<a href=#317 id=317 data-nosnippet>317</a>///
+<a href=#318 id=318 data-nosnippet>318</a>/// # Current implementation
+<a href=#319 id=319 data-nosnippet>319</a>///
+<a href=#320 id=320 data-nosnippet>320</a>/// If the main thread panics it will terminate all your threads and end your
+<a href=#321 id=321 data-nosnippet>321</a>/// program with code `101`.
+<a href=#322 id=322 data-nosnippet>322</a>///
+<a href=#323 id=323 data-nosnippet>323</a>/// # Examples
+<a href=#324 id=324 data-nosnippet>324</a>///
+<a href=#325 id=325 data-nosnippet>325</a>/// ```should_panic
+<a href=#326 id=326 data-nosnippet>326</a>/// # #![allow(unreachable_code)]
+<a href=#327 id=327 data-nosnippet>327</a>/// use anstream::panic;
+<a href=#328 id=328 data-nosnippet>328</a>/// panic!();
+<a href=#329 id=329 data-nosnippet>329</a>/// panic!("this is a terrible mistake!");
+<a href=#330 id=330 data-nosnippet>330</a>/// panic!("this is a {} {message}", "fancy", message = "message");
+<a href=#331 id=331 data-nosnippet>331</a>/// ```
+<a href=#332 id=332 data-nosnippet>332</a></span><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
+<a href=#333 id=333 data-nosnippet>333</a>#[macro_export]
+<a href=#334 id=334 data-nosnippet>334</a></span><span class="macro">macro_rules!</span> panic {
+<a href=#335 id=335 data-nosnippet>335</a>    () =&gt; {
+<a href=#336 id=336 data-nosnippet>336</a>        <span class="macro">::std::panic!</span>()
+<a href=#337 id=337 data-nosnippet>337</a>    };
+<a href=#338 id=338 data-nosnippet>338</a>    ($(<span class="macro-nonterminal">$arg</span>:tt)<span class="kw-2">*</span>) =&gt; {{
+<a href=#339 id=339 data-nosnippet>339</a>        <span class="kw">let </span>target_stream = std::io::stderr();
+<a href=#340 id=340 data-nosnippet>340</a>        <span class="kw">let </span>buffer = <span class="macro-nonterminal">$crate::_macros::to_adapted_string</span>(<span class="kw-2">&amp;</span><span class="macro">format_args!</span>($(<span class="macro-nonterminal">$arg</span>)<span class="kw-2">*</span>), <span class="kw-2">&amp;</span>target_stream);
+<a href=#341 id=341 data-nosnippet>341</a>        <span class="macro">::std::panic!</span>(<span class="string">"{}"</span>, buffer)
+<a href=#342 id=342 data-nosnippet>342</a>    }};
+<a href=#343 id=343 data-nosnippet>343</a>}
+<a href=#344 id=344 data-nosnippet>344</a>
+<a href=#345 id=345 data-nosnippet>345</a><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
+<a href=#346 id=346 data-nosnippet>346</a></span><span class="kw">pub const </span>FEATURE_TEST_ACTIVATED: bool = <span class="macro">cfg!</span>(feature = <span class="string">"test"</span>);
+<a href=#347 id=347 data-nosnippet>347</a>
+<a href=#348 id=348 data-nosnippet>348</a><span class="attr">#[cfg(feature = <span class="string">"auto"</span>)]
+<a href=#349 id=349 data-nosnippet>349</a></span><span class="kw">pub fn </span>to_adapted_string(
+<a href=#350 id=350 data-nosnippet>350</a>    display: <span class="kw-2">&amp;</span><span class="kw">dyn </span>std::fmt::Display,
+<a href=#351 id=351 data-nosnippet>351</a>    stream: <span class="kw-2">&amp;</span><span class="kw">impl </span><span class="kw">crate</span>::stream::RawStream,
+<a href=#352 id=352 data-nosnippet>352</a>) -&gt; String {
+<a href=#353 id=353 data-nosnippet>353</a>    <span class="kw">use </span>std::io::Write <span class="kw">as _</span>;
+<a href=#354 id=354 data-nosnippet>354</a>
+<a href=#355 id=355 data-nosnippet>355</a>    <span class="kw">let </span>choice = <span class="kw">crate</span>::AutoStream::choice(stream);
+<a href=#356 id=356 data-nosnippet>356</a>    <span class="kw">let </span>buffer = Vec::new();
+<a href=#357 id=357 data-nosnippet>357</a>    <span class="kw">let </span><span class="kw-2">mut </span>stream = <span class="kw">crate</span>::AutoStream::new(buffer, choice);
+<a href=#358 id=358 data-nosnippet>358</a>    <span class="comment">// Ignore errors rather than panic
+<a href=#359 id=359 data-nosnippet>359</a>    </span><span class="kw">let _ </span>= <span class="macro">::std::write!</span>(<span class="kw-2">&amp;mut </span>stream, <span class="string">"{display}"</span>);
+<a href=#360 id=360 data-nosnippet>360</a>    <span class="kw">let </span>buffer = stream.into_inner();
+<a href=#361 id=361 data-nosnippet>361</a>    <span class="comment">// Should be UTF-8 but not wanting to panic
+<a href=#362 id=362 data-nosnippet>362</a>    </span><span class="kw">let </span>buffer = String::from_utf8_lossy(<span class="kw-2">&amp;</span>buffer).into_owned();
+<a href=#363 id=363 data-nosnippet>363</a>    buffer
+<a href=#364 id=364 data-nosnippet>364</a>}</code></pre></div></section></main></body></html>

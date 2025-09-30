@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["IndexVec","IndexVecIntoIter","IndexVecIter"],"fn":["sample","sample_weighted"]};
+window.SIDEBAR_ITEMS = {"enum":["IndexVec","IndexVecIntoIter","IndexVecIter"],"fn":["sample","sample_array","sample_weighted"]};

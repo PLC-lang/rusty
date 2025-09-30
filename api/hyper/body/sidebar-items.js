@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"fn":["aggregate","to_bytes"],"struct":["Body","Bytes","Sender","SizeHint"],"trait":["Buf","HttpBody"]};
+window.SIDEBAR_ITEMS = {"struct":["Bytes","Frame","Incoming","SizeHint"],"trait":["Body","Buf"]};

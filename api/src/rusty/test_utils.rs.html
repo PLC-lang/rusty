@@ -263,7 +263,7 @@
 <a href=#263 id=263 data-nosnippet>263</a>        <span class="kw">let </span>llvm_index = code_generator
 <a href=#264 id=264 data-nosnippet>264</a>            .generate_llvm_index(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>literals, <span class="kw-2">&amp;</span>dependencies, <span class="kw-2">&amp;</span>index, <span class="kw-2">&amp;</span>got_layout)
 <a href=#265 id=265 data-nosnippet>265</a>            .map_err(|err| {
-<a href=#266 id=266 data-nosnippet>266</a>                reporter.handle(<span class="kw-2">&amp;</span>[err]);
+<a href=#266 id=266 data-nosnippet>266</a>                reporter.handle(<span class="kw-2">&amp;</span>[err.into()]);
 <a href=#267 id=267 data-nosnippet>267</a>                reporter.buffer().unwrap()
 <a href=#268 id=268 data-nosnippet>268</a>            })<span class="question-mark">?</span>;
 <a href=#269 id=269 data-nosnippet>269</a>
@@ -271,7 +271,7 @@
 <a href=#271 id=271 data-nosnippet>271</a>            .generate(<span class="kw-2">&amp;</span>context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, llvm_index)
 <a href=#272 id=272 data-nosnippet>272</a>            .map(|module| module.persist_to_string())
 <a href=#273 id=273 data-nosnippet>273</a>            .map_err(|err| {
-<a href=#274 id=274 data-nosnippet>274</a>                reporter.handle(<span class="kw-2">&amp;</span>[err]);
+<a href=#274 id=274 data-nosnippet>274</a>                reporter.handle(<span class="kw-2">&amp;</span>[err.into()]);
 <a href=#275 id=275 data-nosnippet>275</a>                reporter.buffer().unwrap()
 <a href=#276 id=276 data-nosnippet>276</a>            })
 <a href=#277 id=277 data-nosnippet>277</a>    }
@@ -339,25 +339,27 @@
 <a href=#339 id=339 data-nosnippet>339</a>                    <span class="kw-2">&amp;</span>got_layout,
 <a href=#340 id=340 data-nosnippet>340</a>                )<span class="question-mark">?</span>;
 <a href=#341 id=341 data-nosnippet>341</a>
-<a href=#342 id=342 data-nosnippet>342</a>                code_generator.generate(context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, llvm_index)
-<a href=#343 id=343 data-nosnippet>343</a>            })
-<a href=#344 id=344 data-nosnippet>344</a>            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()
-<a href=#345 id=345 data-nosnippet>345</a>    }
-<a href=#346 id=346 data-nosnippet>346</a>
-<a href=#347 id=347 data-nosnippet>347</a>    <span class="kw">pub fn </span>codegen_multi&lt;T: Compilable&gt;(sources: T, debug_level: DebugLevel) -&gt; Vec&lt;String&gt;
-<a href=#348 id=348 data-nosnippet>348</a>    <span class="kw">where
-<a href=#349 id=349 data-nosnippet>349</a>        </span>SourceCode: From&lt;&lt;T <span class="kw">as </span>Compilable&gt;::T&gt;,
-<a href=#350 id=350 data-nosnippet>350</a>    {
-<a href=#351 id=351 data-nosnippet>351</a>        <span class="kw">let </span>context = CodegenContext::create();
-<a href=#352 id=352 data-nosnippet>352</a>        codegen_into_modules(<span class="kw-2">&amp;</span>context, sources, debug_level)
-<a href=#353 id=353 data-nosnippet>353</a>            .unwrap()
-<a href=#354 id=354 data-nosnippet>354</a>            .into_iter()
-<a href=#355 id=355 data-nosnippet>355</a>            .map(|module| module.persist_to_string())
-<a href=#356 id=356 data-nosnippet>356</a>            .collect()
-<a href=#357 id=357 data-nosnippet>357</a>    }
-<a href=#358 id=358 data-nosnippet>358</a>
-<a href=#359 id=359 data-nosnippet>359</a>    <span class="kw">pub fn </span>generate_with_empty_program(src: <span class="kw-2">&amp;</span>str) -&gt; String {
-<a href=#360 id=360 data-nosnippet>360</a>        <span class="kw">let </span>source = <span class="macro">format!</span>(<span class="string">"{} {}"</span>, <span class="string">"PROGRAM main END_PROGRAM"</span>, src);
-<a href=#361 id=361 data-nosnippet>361</a>        codegen(source.as_str())
-<a href=#362 id=362 data-nosnippet>362</a>    }
-<a href=#363 id=363 data-nosnippet>363</a>}</code></pre></div></section></main></body></html>
+<a href=#342 id=342 data-nosnippet>342</a>                code_generator
+<a href=#343 id=343 data-nosnippet>343</a>                    .generate(context, <span class="kw-2">&amp;</span>unit, <span class="kw-2">&amp;</span>annotations, <span class="kw-2">&amp;</span>index, llvm_index)
+<a href=#344 id=344 data-nosnippet>344</a>                    .map_err(Diagnostic::from)
+<a href=#345 id=345 data-nosnippet>345</a>            })
+<a href=#346 id=346 data-nosnippet>346</a>            .collect::&lt;<span class="prelude-ty">Result</span>&lt;Vec&lt;<span class="kw">_</span>&gt;, Diagnostic&gt;&gt;()
+<a href=#347 id=347 data-nosnippet>347</a>    }
+<a href=#348 id=348 data-nosnippet>348</a>
+<a href=#349 id=349 data-nosnippet>349</a>    <span class="kw">pub fn </span>codegen_multi&lt;T: Compilable&gt;(sources: T, debug_level: DebugLevel) -&gt; Vec&lt;String&gt;
+<a href=#350 id=350 data-nosnippet>350</a>    <span class="kw">where
+<a href=#351 id=351 data-nosnippet>351</a>        </span>SourceCode: From&lt;&lt;T <span class="kw">as </span>Compilable&gt;::T&gt;,
+<a href=#352 id=352 data-nosnippet>352</a>    {
+<a href=#353 id=353 data-nosnippet>353</a>        <span class="kw">let </span>context = CodegenContext::create();
+<a href=#354 id=354 data-nosnippet>354</a>        codegen_into_modules(<span class="kw-2">&amp;</span>context, sources, debug_level)
+<a href=#355 id=355 data-nosnippet>355</a>            .unwrap()
+<a href=#356 id=356 data-nosnippet>356</a>            .into_iter()
+<a href=#357 id=357 data-nosnippet>357</a>            .map(|module| module.persist_to_string())
+<a href=#358 id=358 data-nosnippet>358</a>            .collect()
+<a href=#359 id=359 data-nosnippet>359</a>    }
+<a href=#360 id=360 data-nosnippet>360</a>
+<a href=#361 id=361 data-nosnippet>361</a>    <span class="kw">pub fn </span>generate_with_empty_program(src: <span class="kw-2">&amp;</span>str) -&gt; String {
+<a href=#362 id=362 data-nosnippet>362</a>        <span class="kw">let </span>source = <span class="macro">format!</span>(<span class="string">"{} {}"</span>, <span class="string">"PROGRAM main END_PROGRAM"</span>, src);
+<a href=#363 id=363 data-nosnippet>363</a>        codegen(source.as_str())
+<a href=#364 id=364 data-nosnippet>364</a>    }
+<a href=#365 id=365 data-nosnippet>365</a>}</code></pre></div></section></main></body></html>
