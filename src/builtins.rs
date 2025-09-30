@@ -76,8 +76,8 @@ lazy_static! {
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
-                        Err(CodegenError::new(
-                            "Expected exactly one parameter for REF", location)
+                        Err(Diagnostic::codegen_error(
+                            "Expected exactly one parameter for REF", location).into()
                         )
                     }
                 }
@@ -135,9 +135,10 @@ lazy_static! {
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
-                        Err(CodegenError::new(
+                        Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for REF",
-                        location, ))
+                        location, ).into()
+                        )
                     }
                 }
             },
@@ -166,7 +167,7 @@ lazy_static! {
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
                         let type_hint = params.first()
-                        .ok_or_else(|| CodegenError::new("Invalid signature for MUX", location))
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                         .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
@@ -193,7 +194,7 @@ lazy_static! {
                         builder.position_at_end(continue_block);
                         Ok(ExpressionValue::LValue(result_var))
                     } else {
-                        Err(CodegenError::new("Invalid signature for MUX", location))
+                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                     }
                 }
             },
@@ -238,7 +239,7 @@ lazy_static! {
                             Ok(ExpressionValue::RValue(sel))
                         }
                     } else {
-                        Err(CodegenError::new("Invalid signature for SEL", location))
+                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location).into())
                     }
 
                 }
@@ -259,7 +260,7 @@ lazy_static! {
                     if params.len() == 1 {
                         generator.generate_expression(params[0]).map(ExpressionValue::RValue)
                     } else {
-                        Err(CodegenError::new("MOVE expects exactly one parameter", location))
+                        Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location).into())
                     }
                 }
             }
@@ -287,14 +288,14 @@ lazy_static! {
                         // return size of llvm type
                         let size = generator.llvm_index
                             .get_associated_type(type_name)?.size_of()
-                            .ok_or_else(|| CodegenError::new("Parameter type is not sized.", location))?
+                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location))?
                             .as_basic_value_enum();
                             Ok(ExpressionValue::RValue(size))
                     } else {
-                        Err(CodegenError::new(
+                        Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for SIZEOF",
                             location
-                        ))
+                        ).into())
                     }
                 }
             }

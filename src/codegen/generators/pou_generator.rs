@@ -556,10 +556,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 Ok(enum_type.into_struct_type().fn_type(&params, is_var_args))
             }
             None => Ok(self.llvm.context.void_type().fn_type(&params, is_var_args)),
-            _ => Err(CodegenError::new(
+            _ => Err(Diagnostic::codegen_error(
                 format!("Unsupported return type {return_type:?}"),
                 SourceLocation::undefined(),
-            )),
+            )
+            .into()),
         }
     }
 

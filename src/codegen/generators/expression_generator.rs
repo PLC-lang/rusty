@@ -479,7 +479,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .build_int_neg(generated_exp.into_int_value(), "tmpVar")?
                         .as_basic_value_enum())
                 } else {
-                    Err(CodegenError::new("Negated expression must be numeric", expression))
+                    Err(Diagnostic::codegen_error("Negated expression must be numeric", expression).into())
                 }
             }
             Operator::Plus => self.generate_expression(expression),
@@ -1644,10 +1644,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .map(|d| d.get_length(self.index))
                         .collect::<Result<Vec<_>, _>>()
                         .map_err(|msg| {
-                            CodegenError::new(
+                            CodegenError::from(Diagnostic::codegen_error(
                                 format!("Invalid array dimensions access: {msg}").as_str(),
                                 access,
-                            )
+                            ))
                         })?;
 
                     // the portion indicates how many elements are represented by the corresponding dimension
@@ -1703,7 +1703,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     // make sure we got an int-value
                     let index_access: IntValue = index_access.and_then(|it| {
-                        it.try_into().map_err(|_| CodegenError::new("non-numeric index-access", access))
+                        it.try_into()
+                            .map_err(|_| Diagnostic::codegen_error("non-numeric index-access", access).into())
                     })?;
 
                     let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
@@ -2039,17 +2040,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 }
                 AstLiteral::Date(d) => d
                     .value()
-                    .map_err(|op| CodegenError::new(op.as_str(), location))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::DateAndTime(dt) => dt
                     .value()
-                    .map_err(|op| CodegenError::new(op.as_str(), location))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::TimeOfDay(tod) => tod
                     .value()
-                    .map_err(|op| CodegenError::new(op.as_str(), location))
+                    .map_err(|op| Diagnostic::codegen_error(op.as_str(), location).into())
                     .and_then(|ns| self.create_const_int(ns))
                     .map(ExpressionValue::RValue),
                 AstLiteral::Time(t) => self.create_const_int(t.value()).map(ExpressionValue::RValue),
@@ -2180,7 +2181,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_type_hint(statement, self.index)
             .or_else(|| self.annotations.get_type(statement, self.index))
             .ok_or_else(|| {
-                CodegenError::new(format!("no type hint available for {}", statement.as_string()), statement)
+                Diagnostic::codegen_error(
+                    format!("no type hint available for {}", statement.as_string()),
+                    statement,
+                )
+                .into()
             })
     }
 
@@ -2446,10 +2451,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             Operator::Or => builder.build_conditional_branch(lhs, continue_branch, right_branch)?,
             Operator::And => builder.build_conditional_branch(lhs, right_branch, continue_branch)?,
             _ => {
-                return Err(CodegenError::new(
+                return Err(Diagnostic::codegen_error(
                     format!("Cannot generate phi-expression for operator {operator:}"),
                     left,
-                ));
+                )
+                .into());
             }
         };
 
@@ -2724,7 +2730,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                 if let AstStatement::DirectAccess(data) = member.as_ref().get_stmt() {
                     let (Some(base), Some(base_value)) = (base, base_value) else {
-                        return Err(CodegenError::new("Cannot generate DirectAccess without base value.", original_expression));
+                        return Err(Diagnostic::codegen_error("Cannot generate DirectAccess without base value.", original_expression).into());
                     };
                     self.generate_direct_access_expression(base, &base_value, member, &data.access, &data.index)
                 } else {
@@ -2805,10 +2811,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             | (ReferenceAccess::Cast(_), None)  // INT#;
             | (ReferenceAccess::Deref, None)    // ^;
             | (ReferenceAccess::Address, None)  // &;
-            => Err(CodegenError::new(
+            => Err(Diagnostic::codegen_error(
                 "Expected a base expression, but found none",
                 original_expression,
-            ))
+            ).into())
         }
     }
 

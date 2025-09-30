@@ -170,7 +170,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         None
                     }
                 }) else {
-                    return Err(CodegenError::new("Could not find label for {statement:?}", statement));
+                    return Err(Diagnostic::codegen_error(
+                        "Could not find label for {statement:?}",
+                        statement,
+                    )
+                    .into());
                 };
                 //Set current location as else block
                 let current_block = self.llvm.builder.get_insert_block().expect(INTERNAL_LLVM_ERROR);

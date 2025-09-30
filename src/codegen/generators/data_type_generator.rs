@@ -497,10 +497,11 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 );
                 Ok(Some(generator.generate_literal(initializer)?.get_basic_value_enum()))
             } else {
-                Err(CodegenError::new(
+                Err(Diagnostic::codegen_error(
                     format!("Expected {expected_ast} but found {initializer:?}"),
                     initializer,
-                ))
+                )
+                .into())
             }
         } else {
             Ok(None)

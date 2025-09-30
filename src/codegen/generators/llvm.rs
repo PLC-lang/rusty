@@ -202,13 +202,15 @@ impl<'a> Llvm<'a> {
         match target_type {
             BasicTypeEnum::IntType { 0: int_type } => int_type
                 .const_int_from_string(value, StringRadix::Decimal)
-                .ok_or_else(|| CodegenError::new(format!("Cannot parse {value} as int"), location))
+                .ok_or_else(|| {
+                    Diagnostic::codegen_error(format!("Cannot parse {value} as int"), location).into()
+                })
                 .map(BasicValueEnum::IntValue),
             BasicTypeEnum::FloatType { 0: float_type } => {
                 let value = unsafe { float_type.const_float_from_string(value) };
                 Ok(BasicValueEnum::FloatValue(value))
             }
-            _ => Err(CodegenError::new("expected numeric type", location)),
+            _ => Err(Diagnostic::codegen_error("expected numeric type", location).into()),
         }
     }
 
@@ -337,7 +339,7 @@ impl<'a> Llvm<'a> {
 
         let type_size = variable_llvm_type
             .size_of()
-            .ok_or_else(|| CodegenError::new("Couldn't determine type size", location.clone()));
+            .ok_or_else(|| Diagnostic::codegen_error("Couldn't determine type size", location));
 
         // initialize the variable with the initial_value
         let variable_data_type = index.get_effective_type_or_void_by_name(type_name);
@@ -389,7 +391,10 @@ impl<'a> Llvm<'a> {
                     type_size?,
                 )?;
             } else {
-                CodegenError::new("initializing an array should be memcpy-able or memset-able", location);
+                Err(Diagnostic::codegen_error(
+                    "initializing an array should be memcpy-able or memset-able",
+                    location,
+                ))?;
             };
         } else {
             self.builder.build_store(variable_to_initialize, value)?;
