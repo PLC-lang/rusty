@@ -103,7 +103,7 @@ impl<T: SourceContainer> CodegenParticipant<T> {
     fn ensure_compile_dirs(&mut self) -> Result<(), Diagnostic> {
         let compile_directory = self.compile_options.build_location.clone().unwrap_or_else(|| {
             let tempdir = tempfile::tempdir().expect("Could not create tempdir");
-            tempdir.into_path()
+            tempdir.keep()
         });
         if let Some(name) = self.target.try_get_name() {
             let dir = compile_directory.join(name);

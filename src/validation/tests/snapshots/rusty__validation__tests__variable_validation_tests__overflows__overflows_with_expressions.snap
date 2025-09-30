@@ -97,29 +97,3 @@ warning[E039]: This will overflow for type ULINT
    │
 26 │                 max_ulint   : ULINT  := ((18_446_744_073_709_551_615 * 1) * 2); // 18_446_744_073_709_551_615
    │                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type ULINT
-
-warning[E039]: This will overflow for type REAL
-   ┌─ <internal>:29:39
-   │
-29 │                 min_real : REAL := ((-3.40282347E+38 * 1) * 2); // -3.40282347E+38
-   │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
-
-warning[E039]: This will overflow for type REAL
-   ┌─ <internal>:30:39
-   │
-30 │                 max_real : REAL := (( 3.40282347E+38 * 1) * 2); //  3.40282347E+38
-   │                                       ^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type REAL
-
-warning[E039]: This will overflow for type LREAL
-   ┌─ <internal>:33:41
-   │
-33 │                 min_lreal : LREAL := ((-1.7976931348623157E+308 * 1) * 2); // -1.7976931348623157E+308
-   │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
-
-warning[E039]: This will overflow for type LREAL
-   ┌─ <internal>:34:41
-   │
-34 │                 max_lreal : LREAL := (( 1.7976931348623157E+308 * 1) * 2); //  1.7976931348623157E+308
-   │                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ This will overflow for type LREAL
-
-
