@@ -402,3 +402,36 @@ impl<'a> Llvm<'a> {
         Ok(())
     }
 }
+
+/// A trait to get the fundamental element type from nested arrays
+pub(crate) trait FundamentalElementType<'a> {
+    fn into_fundamental_type(self) -> BasicTypeEnum<'a>;
+}
+
+impl<'a> FundamentalElementType<'a> for PointerValue<'a> {
+    /// Gets the fundamental element type from a pointer to nested arrays
+    ///
+    /// For example: `[2 x [81 x i8]]*` -> `i8`, `[3 x i32]*` -> `i32`
+    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
+        let element_type = self.get_type().get_element_type();
+        if element_type.is_array_type() {
+            element_type.into_array_type().into_fundamental_type()
+        } else {
+            element_type.try_into().expect("Expected basic type")
+        }
+    }
+}
+
+impl<'a> FundamentalElementType<'a> for ArrayType<'a> {
+    /// Recursively gets the fundamental element type from nested arrays
+    ///
+    /// For example: `[2 x [81 x i8]` -> `i8`, `[3 x i32]` -> `i32`
+    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
+        let element_type = self.get_element_type();
+        if element_type.is_array_type() {
+            element_type.into_array_type().into_fundamental_type()
+        } else {
+            element_type
+        }
+    }
+}

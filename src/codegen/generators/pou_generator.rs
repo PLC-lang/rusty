@@ -10,6 +10,7 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
+        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
         CodegenError,
     },
@@ -219,14 +220,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                         // parameters by ref will always be a pointer
                         p.into_pointer_type().get_element_type().is_array_type() =>
                     {
-                        // for by-ref array types we will generate a pointer to the arrays element type
+                        // for by-ref array types we will generate a pointer to the fundamental element type
                         // not a pointer to array
-                        let ty = p
+                        let fundamental_element_type = p
                             .into_pointer_type()
                             .get_element_type()
                             .into_array_type()
-                            .get_element_type()
-                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+                            .into_fundamental_type();
+
+                        let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
 
                         // set the new type for further codegen
                         let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
@@ -245,11 +247,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                     .into_struct_type()
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                     .into(),
-                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => p
-                                    .into_array_type()
-                                    .get_element_type()
-                                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                                    .into(),
+                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => {
+                                    // For arrays, get the fundamental element type
+                                    let fundamental_element_type =
+                                        p.into_array_type().into_fundamental_type();
+                                    fundamental_element_type
+                                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                                        .into()
+                                }
                                 _ => *p,
                             }
                         })
