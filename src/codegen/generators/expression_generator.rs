@@ -27,6 +27,7 @@ use plc_util::convention::qualified_name;
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
+        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
         CodegenError,
@@ -38,7 +39,7 @@ use crate::{
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
-        StringEncoding, VarArgs, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+        StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
     },
 };
 
@@ -1168,14 +1169,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
         if value.get_type().get_element_type().is_array_type() {
+            let fundamental_element_type = value.into_fundamental_type();
             let res = self.llvm.builder.build_bit_cast(
                 value,
-                value
-                    .get_type()
-                    .get_element_type()
-                    .into_array_type()
-                    .get_element_type()
-                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                 "",
             )?;
 
@@ -1629,7 +1626,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array { dimensions, .. } =
+                if let DataTypeInformation::Array { dimensions, inner_type_name, .. } =
                     self.get_type_hint_info_for(reference)?
                 {
                     // make sure dimensions match statement list
@@ -1708,17 +1705,60 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     })?;
 
                     let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
-                        // e.g.: [81 x i32]*
+                        // For typed array pointers (e.g.: [81 x i32]*):
                         // the first index (0) will point to the array -> [81 x i32]
                         // the second index (index_access) will point to the element in the array
                         vec![self.llvm.i32_type().const_zero(), index_access]
-                    } else {
-                        // lvalue is a pointer to type -> e.g.: i32*
-                        // only one index (index_access) is needed to access the element
+                    } else if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
+                        matches!(
+                            it.get_type_information(),
+                            DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
+                        )
+                    }) {
+                        // For flattened array-of-array parameters (fundamental element pointer):
+                        // Calculate proper stride: index * element_size
+                        // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
+                        let DataTypeInformation::Array { inner_type_name, .. } =
+                            self.get_type_hint_info_for(reference)?
+                        else {
+                            log::error!("Uncaught resolve error for inner type of nested array");
+                            return Err(Diagnostic::codegen_error(
+                                "Expected inner type to be resolvable",
+                                reference,
+                            )
+                            .into());
+                        };
 
-                        // IGNORE the additional first index (0)
-                        // it would point to -> i32
-                        // we can't access any element of i32
+                        // Get the size of the inner type (STRING or nested array)
+                        // TODO: use `if let Some(...) if <guard>` once rust is updated and get rid of "is_nested_array" above
+                        let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) else {
+                            unreachable!("type must exist in index due to previous checks")
+                        };
+
+                        let element_size = match inner_type.get_type_information() {
+                            DataTypeInformation::String { size, .. } => {
+                                size.as_int_value(self.index).unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
+                                    as u64
+                            }
+                            DataTypeInformation::Array { dimensions, .. } => {
+                                // For nested arrays, calculate total size
+                                dimensions
+                                    .iter()
+                                    .map(|d| d.get_length(self.index).unwrap_or(1) as u64)
+                                    .product()
+                            }
+                            _ => unreachable!("Must be STRING or ARRAY type due to previous checks"),
+                        };
+
+                        let byte_offset = self.llvm.builder.build_int_mul(
+                            index_access,
+                            self.llvm.i32_type().const_int(element_size, false),
+                            "array_stride_offset",
+                        )?;
+                        vec![byte_offset]
+                    } else {
+                        // lvalue is a simple pointer to type -> e.g.: i32*
+                        // only one index (index_access) is needed to access the element
                         vec![index_access]
                     };
 
