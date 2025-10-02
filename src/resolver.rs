@@ -1582,44 +1582,52 @@ impl<'i> TypeAnnotator<'i> {
     fn get_datatype_dependencies(
         &self,
         datatype_name: &str,
-        resolved: FxIndexSet<Dependency>,
+        mut resolved: FxIndexSet<Dependency>,
     ) -> FxIndexSet<Dependency> {
-        let mut resolved_names = resolved;
         let Some(datatype) = self
             .index
             .find_type(datatype_name)
             .or_else(|| self.annotation_map.new_index.find_type(datatype_name))
         else {
-            return resolved_names;
+            return resolved;
         };
-        if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
-            match datatype.get_type_information() {
-                DataTypeInformation::Struct { members, source, .. } => {
-                    for member in members {
-                        resolved_names =
-                            self.get_datatype_dependencies(member.get_type_name(), resolved_names);
-                    }
 
-                    if let StructSource::Pou(PouType::Method { parent, .. }) = source {
-                        resolved_names = self.get_datatype_dependencies(parent, resolved_names);
-                    }
+        // Return if the datatype has already been visited
+        if !resolved.insert(Dependency::Datatype(datatype.get_name().to_string())) {
+            return resolved;
+        };
 
-                    resolved_names
+        match datatype.get_type_information() {
+            DataTypeInformation::Struct { members, source, .. } => {
+                for member in members {
+                    resolved = self.get_datatype_dependencies(member.get_type_name(), resolved);
                 }
-                DataTypeInformation::Array { inner_type_name, .. }
-                | DataTypeInformation::Pointer { inner_type_name, .. } => {
-                    resolved_names
-                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
-                    self.get_datatype_dependencies(inner_type_name, resolved_names)
-                }
-                _ => {
-                    let name =
-                        self.index.get_intrinsic_type_information(datatype.get_type_information()).get_name();
-                    self.get_datatype_dependencies(name, resolved_names)
+
+                match source {
+                    StructSource::Pou(PouType::Class | PouType::FunctionBlock) => {
+                        // While the members of a struct such as a class or function block are visited
+                        // recursively, the vtable itself is declared as a VOID pointer. Thus, when landing
+                        // in the pointer variant branch of this function, a datatype dependency of VOID will
+                        // be returned. However, the actual vtable is a struct with all the function pointers
+                        // of a POU. Therefore, we need to explicitly visit the `__vtable_...` datatype here.
+                        let name = format!("__vtable_{}", datatype.get_name());
+                        self.get_datatype_dependencies(&name, resolved)
+                    }
+                    StructSource::Pou(PouType::Method { parent, .. }) => {
+                        self.get_datatype_dependencies(parent, resolved)
+                    }
+                    _ => resolved,
                 }
             }
-        } else {
-            resolved_names
+            DataTypeInformation::Array { inner_type_name, .. }
+            | DataTypeInformation::Pointer { inner_type_name, .. } => {
+                resolved.insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
+                self.get_datatype_dependencies(inner_type_name, resolved)
+            }
+            _ => {
+                let dt_info = self.index.get_intrinsic_type_information(datatype.get_type_information());
+                self.get_datatype_dependencies(dt_info.get_name(), resolved)
+            }
         }
     }
 

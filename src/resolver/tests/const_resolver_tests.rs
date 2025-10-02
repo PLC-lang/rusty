@@ -1419,6 +1419,5 @@ fn leading_unary_plus_in_global_const_reference_is_resolvable() {
     );
 
     let (_, unresolvable) = evaluate_constants(index);
-    dbg!(&unresolvable);
     assert_eq!(unresolvable.len(), 0);
 }

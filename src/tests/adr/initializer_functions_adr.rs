@@ -756,10 +756,10 @@ fn generating_init_functions() {
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @s = global %myStruct zeroinitializer
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
+    @s = global %myStruct zeroinitializer
+    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
 
     define void @foo(%foo* %0) {
