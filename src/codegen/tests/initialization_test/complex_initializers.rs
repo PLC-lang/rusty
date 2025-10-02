@@ -414,10 +414,10 @@ fn nested_initializer_pous() {
     %foo = type { i32*, [81 x i8]*, %bar }
     %bar = type { i32*, %baz }
     %baz = type { i32*, [81 x i8]* }
-    %sideProg = type { [81 x i8]*, %foo }
-    %__vtable_foo = type { void (%foo*)* }
-    %__vtable_bar = type { void (%bar*)* }
     %__vtable_baz = type { void (%baz*)* }
+    %__vtable_bar = type { void (%bar*)* }
+    %__vtable_foo = type { void (%foo*)* }
+    %sideProg = type { [81 x i8]*, %foo }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
@@ -425,12 +425,12 @@ fn nested_initializer_pous() {
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__baz__init = unnamed_addr constant %baz zeroinitializer
-    @sideProg_instance = global %sideProg zeroinitializer
-    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
-    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @____vtable_baz__init = unnamed_addr constant %__vtable_baz zeroinitializer
+    @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @sideProg_instance = global %sideProg zeroinitializer
+    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @__vtable_baz_instance = global %__vtable_baz zeroinitializer
 
     define void @foo(%foo* %0) {
@@ -1321,8 +1321,8 @@ fn global_instance() {
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @fb = global %foo zeroinitializer
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @fb = global %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
 
     define void @foo(%foo* %0) {
@@ -1448,8 +1448,8 @@ fn aliased_types() {
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @global_alias = global %foo zeroinitializer
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @global_alias = global %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
 
     define void @foo(%foo* %0) {
@@ -3174,8 +3174,8 @@ fn user_fb_init_in_global_struct() {
     @prog_instance = global %prog zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
-    @str = global %bar zeroinitializer
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @str = global %bar zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
 
     define void @foo(%foo* %0) {

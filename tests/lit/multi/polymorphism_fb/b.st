@@ -1,0 +1,5 @@
+FUNCTION_BLOCK FbB EXTENDS FbA
+    METHOD bravo
+        printf('FbB::bravo$N');
+    END_METHOD
+END_FUNCTION_BLOCK
