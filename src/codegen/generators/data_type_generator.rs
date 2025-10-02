@@ -1,6 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use crate::codegen::debug::Debug;
 use crate::codegen::llvm_index::TypeHelper;
+use crate::codegen::CodegenError;
 use crate::index::{FxIndexSet, Index, PouIndexEntry, VariableIndexEntry, VariableType};
 use crate::resolver::{AstAnnotations, Dependency};
 use crate::typesystem::{self, DataTypeInformation, Dimension, StringEncoding, StructSource};
@@ -56,7 +57,7 @@ pub fn generate_data_types<'ink>(
     dependencies: &FxIndexSet<Dependency>,
     index: &Index,
     annotations: &AstAnnotations,
-) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
     let mut types = vec![];
     let mut pou_types = vec![];
 
@@ -161,7 +162,7 @@ pub fn generate_data_types<'ink>(
             .map(|(name, ty)| {
                 errors
                     .remove(name)
-                    .map(|diag| diag.with_secondary_location(&ty.location))
+                    .map(|diag| Diagnostic::from(diag).with_secondary_location(&ty.location))
                     .unwrap_or_else(|| Diagnostic::cannot_generate_initializer(name, &ty.location))
             })
             .collect::<Vec<_>>();
@@ -169,7 +170,8 @@ pub fn generate_data_types<'ink>(
             //Report the operation failure
             return Err(Diagnostic::new("Some initial values were not generated")
                 .with_error_code("E075")
-                .with_sub_diagnostics(diags)); // FIXME: these sub-diagnostics aren't printed to the console
+                .with_sub_diagnostics(diags)
+                .into()); // FIXME: these sub-diagnostics aren't printed to the console
         }
     }
     Ok(generator.types_index)
@@ -177,14 +179,14 @@ pub fn generate_data_types<'ink>(
 
 impl<'ink> DataTypeGenerator<'ink, '_> {
     /// generates the members of an opaque struct and associates its initial values
-    fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), Diagnostic> {
+    fn expand_opaque_types(&mut self, data_type: &DataType) -> Result<(), CodegenError> {
         let information = data_type.get_type_information();
         if let DataTypeInformation::Struct { source, members, .. } = information {
             let members = members
                 .iter()
                 .filter(|it| !(it.is_temp() || it.is_return() || it.is_var_external()))
                 .map(|m| self.types_index.get_associated_type(m.get_type_name()))
-                .collect::<Result<Vec<BasicTypeEnum>, Diagnostic>>()?;
+                .collect::<Result<Vec<BasicTypeEnum>, _>>()?;
 
             let struct_type = match source {
                 StructSource::Pou(..) => self.types_index.get_associated_pou_type(data_type.get_name()),
@@ -202,7 +204,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     /// Creates an llvm type to be associated with the given data type.
     /// Generates only an opaque type for structs.
     /// Eagerly generates but does not associate nested array and referenced aliased types
-    fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<AnyTypeEnum<'ink>, Diagnostic> {
+    fn create_type(&mut self, name: &str, data_type: &DataType) -> Result<AnyTypeEnum<'ink>, CodegenError> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, .. } => match source {
@@ -229,6 +231,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 } else {
                     self.index
                         .get_effective_type_by_name(inner_type_name)
+                        .map_err(Into::into)
                         .and_then(|inner_type| self.create_type(inner_type_name, inner_type))
                         .and_then(|inner_type| self.create_nested_array_type(inner_type, dimensions))
                         .map(|it| it.as_any_type_enum())
@@ -246,7 +249,8 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                         "Invalid type nature for generic argument. {} is no `ANY_INT`.",
                         effective_type.get_name()
                     ))
-                    .with_error_code("E062"))
+                    .with_error_code("E062")
+                    .into())
                 }
             }
             DataTypeInformation::Float { size, .. } => {
@@ -269,6 +273,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             | DataTypeInformation::Alias { referenced_type, .. } => self
                 .index
                 .get_effective_type_by_name(referenced_type)
+                .map_err(Into::into)
                 .and_then(|data_type| self.create_type(name, data_type)),
             DataTypeInformation::Void => Ok(get_llvm_int_type(self.llvm.context, 32, "Void").into()),
             DataTypeInformation::Pointer { inner_type_name, .. } => {
@@ -339,7 +344,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             AnyTypeEnum::StructType(value) => value.fn_type(parameter_types.as_slice(), false),
             AnyTypeEnum::VectorType(value) => value.fn_type(parameter_types.as_slice(), false),
             AnyTypeEnum::VoidType(value) => value.fn_type(parameter_types.as_slice(), false),
-
+            AnyTypeEnum::ScalableVectorType(value) => value.fn_type(parameter_types.as_slice(), false),
             AnyTypeEnum::FunctionType(_) => unreachable!(),
         };
 
@@ -349,7 +354,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     fn generate_initial_value(
         &mut self,
         data_type: &DataType,
-    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let information = data_type.get_type_information();
         match information {
             DataTypeInformation::Struct { source, members, .. } => {
@@ -366,7 +371,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                                 .map(|v| (it.get_qualified_name(), v)),
                         })
                     })
-                    .collect::<Result<Vec<(&str, BasicValueEnum)>, Diagnostic>>()?;
+                    .collect::<Result<Vec<(&str, BasicValueEnum)>, _>>()?;
 
                 let mut member_values: Vec<BasicValueEnum> = Vec::new();
                 for (name, v) in &member_names_and_initializers {
@@ -412,7 +417,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
     fn generate_initial_value_for_variable(
         &mut self,
         variable: &VariableIndexEntry,
-    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let initializer = variable
             .initial_value
             .and_then(|it| self.index.get_const_expressions().get_constant_statement(&it));
@@ -426,7 +431,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         &mut self,
         data_type: &DataType,
         referenced_type: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         self.generate_initializer(
             data_type.get_name(),
             self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value),
@@ -443,7 +448,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         qualified_name: &str,
         initializer: Option<&AstNode>,
         data_type_name: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         if let Some(initializer) = initializer {
             let generator = ExpressionCodeGenerator::new_context_free(
                 self.llvm,
@@ -463,11 +468,12 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             generator
                 .generate_expression(initializer)
                 .map(Some)
-                .map_err(|_| Diagnostic::cannot_generate_initializer(qualified_name, initializer))
+                .map_err(|_| Diagnostic::cannot_generate_initializer(qualified_name, initializer).into())
         } else {
             // if there's no initializer defined for this alias, we go and check the aliased type for an initial value
             self.index
                 .get_type(data_type_name)
+                .map_err(Into::into)
                 .and_then(|referenced_data_type| self.generate_initial_value(referenced_data_type))
         }
     }
@@ -478,7 +484,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         data_type: &DataType,
         predicate: fn(&AstNode) -> bool,
         expected_ast: &str,
-    ) -> Result<Option<BasicValueEnum<'ink>>, Diagnostic> {
+    ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         if let Some(initializer) =
             self.index.get_const_expressions().maybe_get_constant_statement(&data_type.initial_value)
         {
@@ -494,7 +500,8 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 Err(Diagnostic::codegen_error(
                     format!("Expected {expected_ast} but found {initializer:?}"),
                     initializer,
-                ))
+                )
+                .into())
             }
         } else {
             Ok(None)
@@ -511,7 +518,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         &self,
         inner_type: AnyTypeEnum<'ink>,
         dimensions: &[Dimension],
-    ) -> Result<AnyTypeEnum<'ink>, Diagnostic> {
+    ) -> Result<AnyTypeEnum<'ink>, CodegenError> {
         let len = dimensions
             .iter()
             .map(|dimension| {
@@ -533,6 +540,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             AnyTypeEnum::ArrayType(ty) => ty.array_type(len),
             AnyTypeEnum::PointerType(ty) => ty.array_type(len),
             AnyTypeEnum::VectorType(ty) => ty.array_type(len),
+            AnyTypeEnum::ScalableVectorType(ty) => ty.array_type(len),
 
             AnyTypeEnum::FunctionType(_) => unimplemented!("function types are not supported in arrays"),
             AnyTypeEnum::VoidType(_) => unimplemented!("void types not supported in arrays"),
@@ -542,7 +550,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
         Ok(result)
     }
 
-    fn generate_debug_types(&mut self, types: &VecDeque<(&str, &DataType)>) -> Result<(), Diagnostic> {
+    fn generate_debug_types(&mut self, types: &VecDeque<(&str, &DataType)>) -> Result<(), CodegenError> {
         for (_, data_type) in types.iter().filter(|(_, data_type)| data_type.is_backed_by_struct()) {
             self.debug.register_debug_type(data_type.get_name(), data_type, self.index, &self.types_index)?;
         }
@@ -559,5 +567,6 @@ pub fn get_default_for(basic_type: BasicTypeEnum) -> BasicValueEnum {
         BasicTypeEnum::PointerType(t) => t.const_zero().into(),
         BasicTypeEnum::StructType(t) => t.const_zero().into(),
         BasicTypeEnum::VectorType(t) => t.const_zero().into(),
+        BasicTypeEnum::ScalableVectorType(t) => t.const_zero().into(),
     }
 }
