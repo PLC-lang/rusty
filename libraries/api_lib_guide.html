@@ -204,6 +204,9 @@ END_FUNCTION
 </code></pre>
 <p>In contrast, a <code>FUNCTION_BLOCK</code> is backed by a struct and is globally accessible by a defined instance.
 To declare a <code>FUNCTION_BLOCK</code>, a backing struct has to be declared and passed as a reference to the function block implementation.</p>
+<blockquote>
+<p><strong><em>NOTE:</em></strong> Due to OOP polymorphism features, all function blocks <strong>must</strong> include a <code>__vtable</code> parameter as the first field in their C struct representation. This vtable (virtual table) pointer enables dynamic method dispatch and polymorphic behavior. Since structured text does not support a <code>virtual</code> keyword, all function blocks have this vtable parameter regardless of whether they use inheritance or polymorphism. When interfacing with C code, this parameter must be included in the struct definition.</p>
+</blockquote>
 <pre><code class="language-iecst">FUNCTION_BLOCK myFb
 VAR_INPUT
   x  : DINT;
@@ -211,6 +214,7 @@ END_VAR
 END_FUNCTION_BLOCK
 </code></pre>
 <pre><code class="language-c">typedef struct {
+  void* __vtable;
   int32_t x;
 } myFunctStr;
 
@@ -257,6 +261,7 @@ END_FUNCTION_BLOCK
 </code></pre>
 <pre><code class="language-c">
 typedef struct {
+  void* __vtable;
   int32_t myInt;
   char myString[256];
   int32_t* myInOutInt;
@@ -276,6 +281,7 @@ END_FUNCTION_BLOCK
 </code></pre>
 <pre><code class="language-c">
 typedef struct {
+  void* __vtable;
   int32_t current;
 } CountStruct;
 
@@ -332,6 +338,7 @@ END_FUNCTION
 </code></pre>
 <p>The C interface would look like:</p>
 <pre><code class="language-c">typedef struct {
+  void* __vtable;
   int32_t x;
   int32_t* y;
   int32_t myOut;
@@ -408,6 +415,9 @@ To stay standard compliant, an API/Library should try and follow these guideline
 <p>Struct alignment in plc follows the default behaviour of <code>C</code>.
 When developing a library in <code>C</code> a normal struct can be declared.
 In langugages other than <code>C</code> the struct has to be <code>C</code> compatible. For example in <code>rust</code> the <code>#[repr(C)]</code> can be used to make the struct <code>C</code> compatible.</p>
+<blockquote>
+<p><strong><em>IMPORTANT:</em></strong> All <code>FUNCTION_BLOCK</code> structs must include a <code>__vtable</code> parameter as the first field. This is required for the OOP polymorphism implementation. The vtable is a <code>void*</code> pointer that points to the virtual function table for the function block instance. This affects struct layout and alignment when interfacing with external code.</p>
+</blockquote>
 <p>Example:</p>
 <pre><code class="language-iecst">TYPE myStruct:
 STRUCT
@@ -420,6 +430,7 @@ END_TYPE
 <p>The <code>C</code> struct would look like:</p>
 <pre><code class="language-c">
 typedef struct {
+  void* __vtable;
   int32_t x;
   int32_t* y;
   char z[256];
@@ -430,8 +441,11 @@ typedef struct {
 <p>The <code>rust</code> struct would look like</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
-</span>#[repr(C)]
+</span>use std::ffi::{c_void, c_char};
+
+#[repr(C)]
 pub struct myStruct {
+    __vtable: *mut c_void,
     x: i32,
     y: *mut i32,
     z: [c_char; 256],
@@ -447,6 +461,7 @@ pub struct myStruct {
 <li>Define a struct that matches your <code>FUNCTION_BLOCK</code> variables:</li>
 </ol>
 <pre><code class="language-c">typedef struct {
+    void* __vtable;
     int a;
     int b;
     // Other members as needed
