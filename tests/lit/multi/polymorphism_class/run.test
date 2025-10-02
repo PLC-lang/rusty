@@ -1,0 +1,20 @@
+RUN: %COMPILE %S/main.st %S/a.st %S/b.st %S/c.st %S/d.st && %RUN | %CHECK %s
+CHECK: ClassA::alpha
+CHECK-NEXT: ClassA::bravo
+CHECK-NEXT: ClassA::charlie
+CHECK-NEXT: ClassA::delta
+
+CHECK-NEXT: ClassA::alpha
+CHECK-NEXT: ClassB::bravo
+CHECK-NEXT: ClassA::charlie
+CHECK-NEXT: ClassA::delta
+
+CHECK-NEXT: ClassA::alpha
+CHECK-NEXT: ClassB::bravo
+CHECK-NEXT: ClassC::charlie
+CHECK-NEXT: ClassA::delta
+
+CHECK-NEXT: ClassD::alpha
+CHECK-NEXT: ClassD::bravo
+CHECK-NEXT: ClassD::charlie
+CHECK-NEXT: ClassD::delta

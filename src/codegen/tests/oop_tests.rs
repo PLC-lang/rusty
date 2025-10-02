@@ -1344,8 +1344,8 @@ fn pass_this_to_method() {
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
-    @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
     @____vtable_FB_Test2__init = unnamed_addr constant %__vtable_FB_Test2 zeroinitializer
+    @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
     @__vtable_FB_Test2_instance = global %__vtable_FB_Test2 zeroinitializer
 
     define void @FB_Test(%FB_Test* %0) {
