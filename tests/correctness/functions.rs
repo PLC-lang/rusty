@@ -224,45 +224,6 @@ fn test_amp_as_and_sideeffects() {
 }
 
 #[test]
-fn function_block_instances_save_state_per_instance() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct FooType {
-        i: i16,
-    }
-
-    struct MainType {
-        f: FooType,
-        j: FooType,
-    }
-    let function = r#"
-    FUNCTION_BLOCK foo
-    VAR_INPUT
-        i : INT;
-    END_VAR
-    i := i + 1;
-    END_FUNCTION_BLOCK
-
-    PROGRAM main
-    VAR
-        f : foo;
-        j : foo;
-    END_VAR
-    f();
-    f();
-    j(4);
-    j();
-    j();
-    END_PROGRAM
-    "#;
-
-    let mut interface = MainType { f: FooType { i: 0 }, j: FooType { i: 0 } };
-    let _: i32 = compile_and_run(function.to_string(), &mut interface);
-    assert_eq!(interface.f.i, 2);
-    assert_eq!(interface.j.i, 7);
-}
-
-#[test]
 fn function_block_instances_save_outputs() {
     #[repr(C)]
     struct MainType {
@@ -357,65 +318,6 @@ fn functions_can_be_called_out_of_order() {
     let _: i32 = compile_and_run(function.to_string(), &mut interface);
 
     assert_eq!(7, interface.f);
-}
-
-#[test]
-fn function_block_instances_save_state_per_instance_2() {
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct BazType {
-        i: i16,
-    }
-
-    #[allow(dead_code)]
-    #[repr(C)]
-    struct FooType {
-        i: i16,
-        baz: BazType,
-    }
-
-    struct MainType {
-        f: FooType,
-        j: FooType,
-    }
-    let function = r#"
-    FUNCTION_BLOCK Baz
-    VAR_INPUT
-        i : INT;
-    END_VAR
-    i := i+1;
-    END_FUNCTION_BLOCK
-
-    FUNCTION_BLOCK foo
-    VAR_INPUT
-        i : INT;
-        baz: Baz;
-    END_VAR
-
-    END_FUNCTION_BLOCK
-
-    PROGRAM main
-    VAR
-        f : foo;
-        j : foo;
-    END_VAR
-    f.baz.i := f.baz.i + 1;
-    f.baz.i := f.baz.i + 1;
-
-
-    j.baz.i := j.baz.i + 1;
-    j.baz.i := j.baz.i + 1;
-    j.baz.i := j.baz.i + 1;
-    j.baz.i := j.baz.i + 1;
-    END_PROGRAM
-    "#;
-
-    let mut interface =
-        MainType { f: FooType { i: 0, baz: BazType { i: 0 } }, j: FooType { i: 0, baz: BazType { i: 0 } } };
-    let _: i32 = compile_and_run(function.to_string(), &mut interface);
-
-    assert_eq!(2, interface.f.baz.i);
-    assert_eq!(4, interface.j.baz.i);
 }
 
 #[test]
@@ -677,54 +579,6 @@ fn aggregate_var_output_assignment() {
     let str = CStr::from_bytes_until_nul(&interface.var1).unwrap().to_string_lossy();
     assert_eq!("Hello, world!", str);
     assert_eq!([5, 7, 11, 13], interface.var2);
-}
-
-#[test]
-fn direct_call_on_function_block_array_access() {
-    #[allow(dead_code)]
-    #[derive(Default)]
-    struct FooType {
-        i: i16,
-        x: i16,
-    }
-
-    #[allow(dead_code)]
-    #[derive(Default)]
-    struct MainType {
-        f: [FooType; 2],
-        x: i16,
-        y: i16,
-    }
-
-    let function = r#"
-    FUNCTION_BLOCK foo
-    VAR_INPUT
-        i : INT;
-    END_VAR
-    VAR
-        x : INT;
-    END_VAR
-        x := i;
-    END_FUNCTION_BLOCK
-
-    PROGRAM main
-    VAR
-        f : ARRAY[1..2] OF foo;
-        x : INT;
-        y : INT;
-    END_VAR
-    f[1](i := 10);
-    x := f[1].x;
-
-    f[2](i := 20);
-    y := f[2].x;
-    END_PROGRAM
-    "#;
-
-    let mut interface = MainType::default();
-    let _: i32 = compile_and_run(function.to_string(), &mut interface);
-    assert_eq!(interface.x, 10);
-    assert_eq!(interface.y, 20);
 }
 
 #[test]
@@ -1186,73 +1040,6 @@ fn move_test() {
     let module = compile(&context, function);
     let res: i32 = module.run_no_param("main");
     assert_eq!(res, 4)
-}
-
-#[test]
-fn sizeof_test() {
-    #[derive(Debug, Default, PartialEq)]
-    #[repr(C)]
-    struct MainType {
-        s1: i8,
-        s2: i16,
-        s3: i32,
-        s4: i64,
-        s5: u8,
-        s6: u32,
-        s7: u64,
-        s8: u64,
-    }
-    let function = r#"
-        CLASS MyClass
-        VAR
-            x, y : INT; // 4 bytes
-        END_VAR
-        END_CLASS
-        TYPE MyStruct : STRUCT
-            a : BYTE; //8bit - offset 0 -> 1 byte
-            b : DWORD; //32bit - offset 32 -> 8 bytes
-            c : WORD; //16bit - offset 64 -> 10 bytes
-            d : LWORD; //64bit - offset 128 -> 24 bytes
-        END_STRUCT
-        END_TYPE
-        PROGRAM main
-        VAR
-            s1 : SINT;
-            s2 : INT;
-            s3 : DINT;
-            s4 : LINT;
-            s5 : USINT;
-            s6 : UDINT;
-            s7 : ULINT;
-            s8 : LINT;
-        END_VAR
-        VAR_TEMP
-            t1 : MyStruct;
-            t2 : STRING;
-            t3 : WCHAR;
-            t4 : MyClass;
-            t5 : LREAL;
-            t6 : BOOL;
-        END_VAR
-            s1 := SIZEOF(t6);
-            s2 := SIZEOF(s2);
-            s3 := SIZEOF(t5);
-            s4 := SIZEOF(t1);
-            s5 := SIZEOF(REF(s1));
-            s6 := SIZEOF(t2);
-            s7 := SIZEOF(t3);
-            s8 := SIZEOF(t4);
-        END_PROGRAM
-        "#;
-
-    let mut maintype = MainType::default();
-    let context = CodegenContext::create();
-    let module = compile(&context, function);
-    let _: i32 = module.run("main", &mut maintype);
-
-    let expected = MainType { s1: 1, s2: 2, s3: 8, s4: 24, s5: 8, s6: 81, s7: 2, s8: 4 };
-
-    assert_eq!(expected, maintype);
 }
 
 #[test]

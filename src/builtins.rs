@@ -17,7 +17,10 @@ use plc_source::source_location::{SourceLocation, SourceLocationFactory};
 use rustc_hash::FxHashMap;
 
 use crate::{
-    codegen::generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
+    codegen::{
+        generators::expression_generator::{self, ExpressionCodeGenerator, ExpressionValue},
+        CodegenError,
+    },
     index::Index,
     lexer, parser,
     resolver::{
@@ -75,9 +78,8 @@ lazy_static! {
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
                         Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for ADR",
-                            location,
-                        ))
+                            "Expected exactly one parameter for REF", location).into()
+                        )
                     }
                 }
             },
@@ -140,10 +142,7 @@ lazy_static! {
                             .generate_lvalue(reference)
                             .map(|it| ExpressionValue::RValue(it.as_basic_value_enum()))
                     } else {
-                        Err(Diagnostic::codegen_error(
-                            "Expected exactly one parameter for REF",
-                            location,
-                        ))
+                        Err(Diagnostic::codegen_error("Expected exactly one parameter for REF",location).into())
                     }
                 }
             },
@@ -172,11 +171,11 @@ lazy_static! {
                     //Generate an access from the first param
                     if let (&[k], params) = params.split_at(1) {
                         let type_hint = params.first()
-                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", &location))
+                        .ok_or_else(|| Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                         .and_then(|it| generator.get_type_hint_info_for(it))?;
                         //Create a temp var
                         let result_type = generator.llvm_index.get_associated_type(type_hint.get_name())?;
-                        let result_var = generator.llvm.create_local_variable("", &result_type);
+                        let result_var = generator.llvm.create_local_variable("", &result_type)?;
                         let k = generator.generate_expression(k)?;
 
                         let mut blocks = vec![];
@@ -186,20 +185,20 @@ lazy_static! {
                         }
 
                         let continue_block = context.append_basic_block(function_context.function, "continue_block");
-                        let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), Diagnostic>, _>(|(index, (it, block))| {
+                        let cases = blocks.into_iter().enumerate().map::<Result<(IntValue, BasicBlock), CodegenError>, _>(|(index, (it, block))| {
                             let value = context.i32_type().const_int(index as u64, false);
                             builder.position_at_end(block);
                             generator.generate_store(result_var, type_hint.get_type_information(), it)?;
-                            builder.build_unconditional_branch(continue_block);
+                            builder.build_unconditional_branch(continue_block)?;
                             Ok((value,block))
                         }).collect::<Result<Vec<_>,_>>()?;
 
                         builder.position_at_end(insert_block);
-                        builder.build_switch(k.into_int_value(), continue_block, &cases);
+                        builder.build_switch(k.into_int_value(), continue_block, &cases)?;
                         builder.position_at_end(continue_block);
                         Ok(ExpressionValue::LValue(result_var))
                     } else {
-                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location))
+                        Err(Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                     }
                 }
             },
@@ -226,7 +225,7 @@ lazy_static! {
                         let actual_in1 = extract_actual_parameter(in1);
 
                         // evaluate the parameters
-                        let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder);
+                        let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
                         // for aggregate types we need a ptr to perform memcpy
                         // use generate_expression_value(), this will return a gep
                         // generate_expression() would load the ptr
@@ -241,7 +240,7 @@ lazy_static! {
                             generator.generate_expression(actual_in1)?
                         };
                         // generate an llvm select instruction
-                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "");
+                        let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
 
                         if sel.is_pointer_value(){
                             Ok(ExpressionValue::LValue(sel.into_pointer_value()))
@@ -249,7 +248,7 @@ lazy_static! {
                             Ok(ExpressionValue::RValue(sel))
                         }
                     } else {
-                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location))
+                        Err(Diagnostic::codegen_error("Invalid signature for SEL", location).into())
                     }
 
                 }
@@ -271,7 +270,7 @@ lazy_static! {
                         let actual_param = extract_actual_parameter(params[0]);
                         generator.generate_expression(actual_param).map(ExpressionValue::RValue)
                     } else {
-                        Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location))
+                        Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location).into())
                     }
                 }
             }
@@ -299,17 +298,15 @@ lazy_static! {
 
                         // return size of llvm type
                         let size = generator.llvm_index
-                            .get_associated_type(type_name)
-                            .map_err(|_| Diagnostic::codegen_error(format!("Could not find associated data type: {type_name}"), &location)
-                            )?.size_of()
-                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", &location))?
+                            .get_associated_type(type_name)?.size_of()
+                            .ok_or_else(|| Diagnostic::codegen_error("Parameter type is not sized.", location))?
                             .as_basic_value_enum();
                             Ok(ExpressionValue::RValue(size))
                     } else {
                         Err(Diagnostic::codegen_error(
                             "Expected exactly one parameter for SIZEOF",
-                            location,
-                        ))
+                            location
+                        ).into())
                     }
                 }
             }
@@ -913,7 +910,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     params: &[&AstNode],
     is_lower: bool,
     location: SourceLocation,
-) -> Result<ExpressionValue<'ink>, Diagnostic> {
+) -> Result<ExpressionValue<'ink>, CodegenError> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
 
@@ -927,7 +924,7 @@ fn generate_variable_length_array_bound_function<'ink>(
         // TODO: most of the codegen errors should already be caught during validation.
         // once we abort codegen on critical errors, revisit and change to unreachable where possible
         if !data_type_information.is_vla() {
-            return Err(Diagnostic::codegen_error(
+            return Err(CodegenError::GenericError(
                 format!("Expected VLA type, received {}", data_type_information.get_name()),
                 location,
             ));
@@ -943,7 +940,7 @@ fn generate_variable_length_array_bound_function<'ink>(
                     let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
                         unreachable!("type cannot be VOID")
                     };
-                    return Err(Diagnostic::codegen_error(
+                    return Err(CodegenError::GenericError(
                         format!("Invalid literal type. Expected INT type, received {type_name} type"),
                         location,
                     ));
@@ -966,23 +963,27 @@ fn generate_variable_length_array_bound_function<'ink>(
                         expression_value.into_int_value(),
                         llvm.i32_type().const_int(1, false),
                         "",
-                    ),
+                    )?,
                     "",
-                );
+                )?;
                 if !is_lower {
-                    builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")
+                    builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")?
                 } else {
                     offset
                 }
             }
         };
         let gep_bound =
-            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") };
-        let bound = llvm.builder.build_load(gep_bound, "");
+            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") }?;
+        let bound = llvm.builder.build_load(gep_bound, "")?;
 
         Ok(ExpressionValue::RValue(bound))
     } else {
-        Err(Diagnostic::codegen_error("Invalid signature for LOWER_BOUND/UPPER_BOUND", location))
+        // Err(Diagnostic::codegen_error("Invalid signature for LOWER_BOUND/UPPER_BOUND", location))
+        return Err(CodegenError::GenericError(
+            format!("Invalid signature for LOWER_BOUND/UPPER_BOUND"),
+            location,
+        ));
     }
 }
 
@@ -992,7 +993,7 @@ type CodegenFunction = for<'ink, 'b> fn(
     &'b ExpressionCodeGenerator<'ink, 'b>,
     &[&AstNode],
     SourceLocation,
-) -> Result<ExpressionValue<'ink>, Diagnostic>;
+) -> Result<ExpressionValue<'ink>, CodegenError>;
 type ValidationFunction = fn(&mut Validator, &AstNode, Option<&AstNode>, &dyn AnnotationMap, &Index);
 
 pub struct BuiltIn {
@@ -1009,7 +1010,7 @@ impl BuiltIn {
         generator: &'b ExpressionCodeGenerator<'ink, 'b>,
         params: &[&AstNode],
         location: SourceLocation,
-    ) -> Result<ExpressionValue<'ink>, Diagnostic> {
+    ) -> Result<ExpressionValue<'ink>, CodegenError> {
         (self.code)(generator, params, location)
     }
     pub(crate) fn get_annotation(&self) -> Option<AnnotationFunction> {

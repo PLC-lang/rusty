@@ -36,6 +36,8 @@ int32_t myFunc(int32_t);
 In contrast, a `FUNCTION_BLOCK` is backed by a struct and is globally accessible by a defined instance.
 To declare a `FUNCTION_BLOCK`, a backing struct has to be declared and passed as a reference to the function block implementation.
 
+> **_NOTE:_** Due to OOP polymorphism features, all function blocks **must** include a `__vtable` parameter as the first field in their C struct representation. This vtable (virtual table) pointer enables dynamic method dispatch and polymorphic behavior. Since structured text does not support a `virtual` keyword, all function blocks have this vtable parameter regardless of whether they use inheritance or polymorphism. When interfacing with C code, this parameter must be included in the struct definition.
+
 ```iecst
 FUNCTION_BLOCK myFb
 VAR_INPUT
@@ -46,6 +48,7 @@ END_FUNCTION_BLOCK
 
 ```c
 typedef struct {
+  void* __vtable;
   int32_t x;
 } myFunctStr;
 
@@ -107,6 +110,7 @@ END_FUNCTION_BLOCK
 ```c
 
 typedef struct {
+  void* __vtable;
   int32_t myInt;
   char myString[256];
   int32_t* myInOutInt;
@@ -134,6 +138,7 @@ END_FUNCTION_BLOCK
 ```c
 
 typedef struct {
+  void* __vtable;
   int32_t current;
 } CountStruct;
 
@@ -213,6 +218,7 @@ The C interface would look like:
 
 ```c
 typedef struct {
+  void* __vtable;
   int32_t x;
   int32_t* y;
   int32_t myOut;
@@ -296,6 +302,8 @@ Struct alignment in plc follows the default behaviour of `C`.
 When developing a library in `C` a normal struct can be declared.
 In langugages other than `C` the struct has to be `C` compatible. For example in `rust` the `#[repr(C)]` can be used to make the struct `C` compatible.
 
+> **_IMPORTANT:_** All `FUNCTION_BLOCK` structs must include a `__vtable` parameter as the first field. This is required for the OOP polymorphism implementation. The vtable is a `void*` pointer that points to the virtual function table for the function block instance. This affects struct layout and alignment when interfacing with external code.
+
 Example:
 
 ```iecst
@@ -313,6 +321,7 @@ The `C` struct would look like:
 ```c
 
 typedef struct {
+  void* __vtable;
   int32_t x;
   int32_t* y;
   char z[256];
@@ -323,8 +332,11 @@ typedef struct {
 
 The `rust` struct would look like
 ```rust
+use std::ffi::{c_void, c_char};
+
 #[repr(C)]
 pub struct myStruct {
+    __vtable: *mut c_void,
     x: i32,
     y: *mut i32,
     z: [c_char; 256],
@@ -347,6 +359,7 @@ For a C implementation:
 
 ```c
 typedef struct {
+    void* __vtable;
     int a;
     int b;
     // Other members as needed

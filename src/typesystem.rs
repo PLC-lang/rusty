@@ -139,6 +139,10 @@ impl DataType {
         type_nature.derives_from(nature)
     }
 
+    pub fn is_method(&self) -> bool {
+        self.information.is_method()
+    }
+
     pub fn is_void(&self) -> bool {
         self.information.is_void()
     }
@@ -559,6 +563,22 @@ impl DataTypeInformation {
         )
     }
 
+    pub fn is_function(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Function), .. })
+    }
+
+    pub fn is_method(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Method { .. }), .. })
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::Class), .. })
+    }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. })
+    }
+
     pub fn get_dimension_count(&self) -> Option<usize> {
         match self {
             DataTypeInformation::Array { dimensions, .. } => Some(dimensions.len()),
@@ -795,8 +815,18 @@ impl DataTypeInformation {
         None
     }
 
-    pub fn is_function_block(&self) -> bool {
-        matches!(self, DataTypeInformation::Struct { source: StructSource::Pou(PouType::FunctionBlock), .. })
+    pub fn get_struct_source(&self) -> Option<StructSource> {
+        match &self.get_type_information() {
+            DataTypeInformation::Struct { source, .. } => Some(source.clone()),
+            _ => None,
+        }
+    }
+
+    pub fn get_method_owner(&self) -> Option<String> {
+        match self.get_struct_source() {
+            Some(StructSource::Pou(PouType::Method { parent, .. })) => Some(parent),
+            _ => None,
+        }
     }
 }
 

@@ -315,7 +315,7 @@ impl TypeAnnotator<'_> {
             // `fnPtrToMyFbEcho^(instanceFb, 'stringValue', 5)` and we do not skip the first argument. Then,
             // `instanceFB` will have a type-hint of "STRING" and `stringValue` will have a type-hint on
             // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
-            // better approach would be to desugar method calls from `fbInstance.echo('stringValue', 5)` to
+            // better approach would be to lower method calls from `fbInstance.echo('stringValue', 5)` to
             // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
             parameters[1..].iter()
         } else {
@@ -628,7 +628,7 @@ impl InheritanceAnnotationConverter for InterfaceIndexEntry {
             .iter()
             .filter(|method_name| {
                 derived_methods.iter().any(|derived_method| {
-                    derived_method.get_flat_reference_name()
+                    derived_method.get_call_name()
                         == method_name.rsplit_once(".").map(|(_, it)| it).unwrap_or_default()
                 })
             })
@@ -666,7 +666,7 @@ impl InheritanceAnnotationConverter for PouIndexEntry {
         };
 
         let mut overrides = vec![];
-        let method_name = self.get_flat_reference_name();
+        let method_name = self.get_call_name();
 
         // Annotate as concrete override if a super-class also defines this method
         if let Some(inherited_method) = index
@@ -690,7 +690,7 @@ impl InheritanceAnnotationConverter for PouIndexEntry {
                 interface
                     .get_methods(index)
                     .iter()
-                    .filter(|it| it.get_flat_reference_name() == method_name)
+                    .filter(|it| it.get_call_name() == method_name)
                     .for_each(|it| overrides.push(MethodDeclarationType::abstract_method(it.get_name())));
             }
         });
@@ -940,7 +940,7 @@ pub trait AnnotationMap {
 
 #[derive(Debug, Default)]
 pub struct AstAnnotations {
-    annotation_map: AnnotationMapImpl,
+    pub annotation_map: AnnotationMapImpl,
     bool_id: AstId,
 
     bool_annotation: StatementAnnotation,
@@ -1582,44 +1582,52 @@ impl<'i> TypeAnnotator<'i> {
     fn get_datatype_dependencies(
         &self,
         datatype_name: &str,
-        resolved: FxIndexSet<Dependency>,
+        mut resolved: FxIndexSet<Dependency>,
     ) -> FxIndexSet<Dependency> {
-        let mut resolved_names = resolved;
         let Some(datatype) = self
             .index
             .find_type(datatype_name)
             .or_else(|| self.annotation_map.new_index.find_type(datatype_name))
         else {
-            return resolved_names;
+            return resolved;
         };
-        if resolved_names.insert(Dependency::Datatype(datatype.get_name().to_string())) {
-            match datatype.get_type_information() {
-                DataTypeInformation::Struct { members, source, .. } => {
-                    for member in members {
-                        resolved_names =
-                            self.get_datatype_dependencies(member.get_type_name(), resolved_names);
-                    }
 
-                    if let StructSource::Pou(PouType::Method { parent, .. }) = source {
-                        resolved_names = self.get_datatype_dependencies(parent, resolved_names);
-                    }
+        // Return if the datatype has already been visited
+        if !resolved.insert(Dependency::Datatype(datatype.get_name().to_string())) {
+            return resolved;
+        };
 
-                    resolved_names
+        match datatype.get_type_information() {
+            DataTypeInformation::Struct { members, source, .. } => {
+                for member in members {
+                    resolved = self.get_datatype_dependencies(member.get_type_name(), resolved);
                 }
-                DataTypeInformation::Array { inner_type_name, .. }
-                | DataTypeInformation::Pointer { inner_type_name, .. } => {
-                    resolved_names
-                        .insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
-                    self.get_datatype_dependencies(inner_type_name, resolved_names)
-                }
-                _ => {
-                    let name =
-                        self.index.get_intrinsic_type_information(datatype.get_type_information()).get_name();
-                    self.get_datatype_dependencies(name, resolved_names)
+
+                match source {
+                    StructSource::Pou(PouType::Class | PouType::FunctionBlock) => {
+                        // While the members of a struct such as a class or function block are visited
+                        // recursively, the vtable itself is declared as a VOID pointer. Thus, when landing
+                        // in the pointer variant branch of this function, a datatype dependency of VOID will
+                        // be returned. However, the actual vtable is a struct with all the function pointers
+                        // of a POU. Therefore, we need to explicitly visit the `__vtable_...` datatype here.
+                        let name = format!("__vtable_{}", datatype.get_name());
+                        self.get_datatype_dependencies(&name, resolved)
+                    }
+                    StructSource::Pou(PouType::Method { parent, .. }) => {
+                        self.get_datatype_dependencies(parent, resolved)
+                    }
+                    _ => resolved,
                 }
             }
-        } else {
-            resolved_names
+            DataTypeInformation::Array { inner_type_name, .. }
+            | DataTypeInformation::Pointer { inner_type_name, .. } => {
+                resolved.insert(Dependency::Datatype(datatype.get_type_information().get_name().to_string()));
+                self.get_datatype_dependencies(inner_type_name, resolved)
+            }
+            _ => {
+                let dt_info = self.index.get_intrinsic_type_information(datatype.get_type_information());
+                self.get_datatype_dependencies(dt_info.get_name(), resolved)
+            }
         }
     }
 
@@ -2381,7 +2389,21 @@ impl<'i> TypeAnnotator<'i> {
                         self.annotate(statement, StatementAnnotation::value(DATE_AND_TIME_TYPE));
                     }
                     AstLiteral::Real(value) => {
-                        self.annotate(statement, StatementAnnotation::value(get_real_type_name_for(value)));
+                        // XXX: if we have a float literal in an initializer (lhs) context, we need to see if the context expects a double or float type.
+                        // This is due to `get_real_type_name_for` always returning `REAL_TYPE` for values within f32 range which leads to incorrect typing
+                        // during initialization of double values.
+                        let type_name = ctx
+                            .lhs
+                            .as_ref()
+                            .and_then(|lhs| {
+                                self.index
+                                    .find_effective_type_by_name(lhs)
+                                    .filter(|it| it.get_type_information().is_float())
+                            })
+                            .map(typesystem::DataType::get_name)
+                            .unwrap_or_else(|| get_real_type_name_for(value));
+
+                        self.annotate(statement, StatementAnnotation::value(type_name));
                     }
                     AstLiteral::Array(Array { elements: Some(elements), .. }) => {
                         self.visit_statement(ctx, elements.as_ref());

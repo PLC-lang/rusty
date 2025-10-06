@@ -413,7 +413,7 @@ impl SourceLocation {
     }
 
     pub fn is_internal(&self) -> bool {
-        self.file.is_internal()
+        matches!(self.file, FileMarker::Internal(_)) | matches!(self.span, CodeSpan::None)
     }
 
     pub fn is_builtin_internal(&self) -> bool {
@@ -424,7 +424,7 @@ impl SourceLocation {
         if let Some(filename) = self.get_file_name() {
             filename == unit.as_ref()
         } else {
-            //Fallback, if no file is defined all files are local
+            // Fallback, if no file is defined all files are local
             true
         }
     }

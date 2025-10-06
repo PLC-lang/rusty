@@ -10,6 +10,10 @@ VAR_GLOBAL
     FRAC_PI_4_LREAL : LREAL;
     E_REAL : REAL;
     E_LREAL : LREAL;
+    INF_REAL: REAL;
+    INF_LREAL: LREAL;
+    NAN_REAL: REAL;
+    NAN_LREAL: LREAL;
 END_VAR
 
 (********************

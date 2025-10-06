@@ -1,6 +1,4 @@
 // RUN: (%COMPILE %s && %RUN) | %CHECK %s
-// XFAIL: *
-// failing because of #1389
 FUNCTION_BLOCK fb_with_method
 VAR_TEMP
     ret : ARRAY[0..1] OF STRING;

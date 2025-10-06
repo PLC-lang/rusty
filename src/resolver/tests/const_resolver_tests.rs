@@ -691,10 +691,10 @@ fn division_by_0_should_fail() {
             zero_int : INT := 0;
             zero_real : REAL := 0.0;
 
-            a : REAL := 5 / zero_int;
-            b : REAL := 5 / zero_real;
-            c : REAL := 5.0 / zero_int;
-            d : REAL := 5.0 / zero_real;
+            a : REAL := 5 / zero_int; //invalid (div by 0)
+            b : REAL := 5 / zero_real; //valid (inf)
+            c : REAL := 5.0 / zero_int; //valid (inf)
+            d : REAL := 5.0 / zero_real; //valid (inf)
 
             aa : REAL := 5 MOD zero_int;
             bb : REAL := 5 MOD zero_real;
@@ -710,9 +710,6 @@ fn division_by_0_should_fail() {
     debug_assert_eq!(
         vec![
             UnresolvableConstant::new(global!(&index, "a"), "Attempt to divide by zero"),
-            UnresolvableConstant::new(global!(&index, "b"), "Attempt to divide by zero"),
-            UnresolvableConstant::new(global!(&index, "c"), "Attempt to divide by zero"),
-            UnresolvableConstant::new(global!(&index, "d"), "Attempt to divide by zero"),
             UnresolvableConstant::new(
                 global!(&index, "aa"),
                 "Attempt to calculate the remainder with a divisor of zero"
@@ -733,11 +730,8 @@ fn division_by_0_should_fail() {
         unresolvable
     );
 
-    // AND the real divisions are unresolved (= Binary Expressions)
+    // AND the invalid real divisions are unresolved (= Binary Expressions)
     assert!(find_constant_value(&index, "a").unwrap().is_binary_expression());
-    assert!(find_constant_value(&index, "b").unwrap().is_binary_expression());
-    assert!(find_constant_value(&index, "c").unwrap().is_binary_expression());
-    assert!(find_constant_value(&index, "d").unwrap().is_binary_expression());
 
     assert!(find_constant_value(&index, "aa").unwrap().is_binary_expression());
     assert!(find_constant_value(&index, "bb").unwrap().is_binary_expression());
@@ -1419,6 +1413,5 @@ fn leading_unary_plus_in_global_const_reference_is_resolvable() {
     );
 
     let (_, unresolvable) = evaluate_constants(index);
-    dbg!(&unresolvable);
     assert_eq!(unresolvable.len(), 0);
 }
