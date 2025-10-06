@@ -2,6 +2,7 @@
 use std::{
     cell::RefCell,
     collections::HashMap,
+    fmt::Display,
     ops::Deref,
     path::{Path, PathBuf},
     sync::Mutex,
@@ -27,9 +28,11 @@ use crate::{
 use super::index::*;
 
 use inkwell::{
+    builder::BuilderError,
     context::Context,
     execution_engine::{ExecutionEngine, JitFunction},
     memory_buffer::MemoryBuffer,
+    support::LLVMString,
     types::BasicType,
     values::BasicValue,
     AddressSpace,
@@ -144,7 +147,7 @@ impl<'ink> CodeGen<'ink> {
         dependencies: &FxIndexSet<Dependency>,
         global_index: &Index,
         got_layout: &Mutex<HashMap<String, u64>>,
-    ) -> Result<LlvmTypedIndex<'ink>, Diagnostic> {
+    ) -> Result<LlvmTypedIndex<'ink>, CodegenError> {
         let llvm = Llvm::new(context, context.create_builder());
         let mut index = LlvmTypedIndex::default();
         //Generate types index, and any global variables associated with them.
@@ -324,7 +327,7 @@ impl<'ink> CodeGen<'ink> {
         annotations: &AstAnnotations,
         global_index: &Index,
         llvm_index: LlvmTypedIndex<'ink>,
-    ) -> Result<GeneratedModule<'ink>, Diagnostic> {
+    ) -> Result<GeneratedModule<'ink>, CodegenError> {
         //generate all pous
         let llvm = Llvm::new(context, context.create_builder());
         let pou_generator =
@@ -347,10 +350,11 @@ impl<'ink> CodeGen<'ink> {
 
         #[cfg(feature = "verify")]
         {
-            self.module
-                .verify()
-                .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))
-                .map(|_| GeneratedModule { module: self.module, location, engine: RefCell::new(None) })
+            self.module.verify().map_err(|it| CodegenError::from(it)).map(|_| GeneratedModule {
+                module: self.module,
+                location,
+                engine: RefCell::new(None),
+            })
         }
 
         #[cfg(not(feature = "verify"))]
@@ -359,9 +363,8 @@ impl<'ink> CodeGen<'ink> {
 }
 
 impl<'ink> GeneratedModule<'ink> {
-    pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
-        let module = Module::parse_bitcode_from_path(path, context.deref())
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+    pub fn try_from_bitcode(context: &'ink CodegenContext, path: &Path) -> Result<Self, CodegenError> {
+        let module = Module::parse_bitcode_from_path(path, context.deref())?;
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
@@ -369,28 +372,22 @@ impl<'ink> GeneratedModule<'ink> {
         context: &'ink CodegenContext,
         buffer: &MemoryBuffer,
         path: &Path,
-    ) -> Result<Self, Diagnostic> {
-        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+    ) -> Result<Self, CodegenError> {
+        let module = Module::parse_bitcode_from_buffer(buffer, context.deref())?;
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
-    pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, Diagnostic> {
-        let buffer = MemoryBuffer::create_from_file(path)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
-        let module = context
-            .create_module_from_ir(buffer)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+    pub fn try_from_ir(context: &'ink CodegenContext, path: &Path) -> Result<Self, CodegenError> {
+        let buffer = MemoryBuffer::create_from_file(path)?;
+        let module = context.create_module_from_ir(buffer)?;
 
         log::trace!("{}", module.to_string());
 
         Ok(GeneratedModule { module, location: path.into(), engine: RefCell::new(None) })
     }
 
-    pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, Diagnostic> {
-        self.module
-            .link_in_module(other.module)
-            .map_err(|it| Diagnostic::new(it.to_string_lossy()).with_error_code("E071"))?;
+    pub fn merge(self, other: GeneratedModule<'ink>) -> Result<Self, CodegenError> {
+        self.module.link_in_module(other.module)?;
         log::trace!("Merged: {}", self.module.to_string());
 
         Ok(self)
@@ -405,7 +402,7 @@ impl<'ink> GeneratedModule<'ink> {
         format: FormatOption,
         target: &Target,
         optimization_level: OptimizationLevel,
-    ) -> Result<PathBuf, Diagnostic> {
+    ) -> Result<PathBuf, CodegenError> {
         let output = Self::get_output_file(output_dir, output_name, target);
         //ensure output exists
         if let Some(parent) = output.parent() {
@@ -447,18 +444,13 @@ impl<'ink> GeneratedModule<'ink> {
         reloc: RelocMode,
         target: &Target,
         optimization_level: OptimizationLevel,
-    ) -> Result<PathBuf, Diagnostic> {
+    ) -> Result<PathBuf, CodegenError> {
         let initialization_config = &InitializationConfig::default();
         inkwell::targets::Target::initialize_all(initialization_config);
 
         let triple = target.get_target_triple();
 
-        let target = inkwell::targets::Target::from_triple(&triple).map_err(|it| {
-            Diagnostic::codegen_error(
-                format!("Invalid target-tripple '{triple}' - {it:?}"),
-                SourceLocation::undefined(),
-            )
-        })?;
+        let target = inkwell::targets::Target::from_triple(&triple)?;
         let machine = target
             .create_target_machine(
                 &triple,
@@ -469,9 +461,7 @@ impl<'ink> GeneratedModule<'ink> {
                 reloc,
                 CodeModel::Default,
             )
-            .ok_or_else(|| {
-                Diagnostic::codegen_error("Cannot create target machine.", SourceLocation::undefined())
-            });
+            .ok_or_else(|| CodegenError::new("Cannot create target machine.", SourceLocation::undefined()));
 
         //Make sure all parents exist
         if let Some(parent) = output.parent() {
@@ -482,13 +472,9 @@ impl<'ink> GeneratedModule<'ink> {
             .and_then(|it| {
                 self.module
                     .run_passes(optimization_level.opt_params(), &it, PassBuilderOptions::create())
-                    .map_err(|it| {
-                        Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
-                    })
+                    .map_err(Into::into)
                     .and_then(|_| {
-                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(|it| {
-                            Diagnostic::llvm_error(output.to_str().unwrap_or_default(), &it.to_string_lossy())
-                        })
+                        it.write_to_file(&self.module, FileType::Object, output.as_path()).map_err(Into::into)
                     })
             })
             .map(|_| output)
@@ -506,7 +492,7 @@ impl<'ink> GeneratedModule<'ink> {
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
-    ) -> Result<PathBuf, Diagnostic> {
+    ) -> Result<PathBuf, CodegenError> {
         self.persist_to_obj(output, RelocMode::Default, target, optimization_level)
     }
 
@@ -522,7 +508,7 @@ impl<'ink> GeneratedModule<'ink> {
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
-    ) -> Result<PathBuf, Diagnostic> {
+    ) -> Result<PathBuf, CodegenError> {
         self.persist_to_obj(output, RelocMode::PIC, target, optimization_level)
     }
 
@@ -538,7 +524,7 @@ impl<'ink> GeneratedModule<'ink> {
         output: PathBuf,
         target: &Target,
         optimization_level: OptimizationLevel,
-    ) -> Result<PathBuf, Diagnostic> {
+    ) -> Result<PathBuf, CodegenError> {
         self.persist_to_obj(output, RelocMode::DynamicNoPic, target, optimization_level)
     }
 
@@ -549,15 +535,15 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - the genated LLVM module to persist
     /// * `output` - the location on disk to save the output
-    pub fn persist_to_bitcode(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
+    pub fn persist_to_bitcode(&self, output: PathBuf) -> Result<PathBuf, CodegenError> {
         if self.module.write_bitcode_to_path(&output) {
             Ok(output)
         } else {
-            Err(Diagnostic::codegen_error("Could not write bitcode to file", SourceLocation::undefined()))
+            Err(CodegenError::new("Could not write bitcode to file", SourceLocation::undefined()))
         }
     }
 
-    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, Diagnostic> {
+    pub fn to_in_memory_bitcode(&self) -> Result<MemoryBuffer, CodegenError> {
         Ok(self.module.write_bitcode_to_memory())
     }
 
@@ -568,21 +554,11 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     /// * `codegen` - The generated LLVM module to be persisted
     /// * `output`  - The location to save the generated ir file
-    pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, Diagnostic> {
+    pub fn persist_to_ir(&self, output: PathBuf) -> Result<PathBuf, CodegenError> {
         log::trace!("Output location: {}", output.to_string_lossy());
         log::trace!("{}", self.persist_to_string());
 
-        self.module
-            .print_to_file(&output)
-            .map_err(|err| {
-                Diagnostic::new(format!(
-                    "Cannot write file {} {}",
-                    output.to_str().unwrap_or_default(),
-                    err.to_string()
-                ))
-                .with_error_code("E002")
-            })
-            .map(|_| output)
+        self.module.print_to_file(&output).map_err(Into::into).map(|_| output)
     }
 
     ///
@@ -657,6 +633,97 @@ impl<'ink> GeneratedModule<'ink> {
     pub fn set_name(&self, name: &str) {
         self.module.set_name(name);
         self.module.set_source_file_name(name);
+    }
+}
+
+#[derive(Debug)]
+pub enum CodegenError {
+    GenericError(String, SourceLocation),
+    IoError(std::io::Error),
+    DiagnosticError(Diagnostic),
+    BuilderError(BuilderError),
+}
+
+impl From<BuilderError> for CodegenError {
+    fn from(err: BuilderError) -> Self {
+        CodegenError::BuilderError(err)
+    }
+}
+
+impl From<std::io::Error> for CodegenError {
+    fn from(err: std::io::Error) -> Self {
+        CodegenError::IoError(err)
+    }
+}
+
+impl From<Diagnostic> for CodegenError {
+    fn from(err: Diagnostic) -> Self {
+        CodegenError::DiagnosticError(err)
+    }
+}
+
+impl From<String> for CodegenError {
+    fn from(err: String) -> Self {
+        CodegenError::GenericError(err, SourceLocation::undefined())
+    }
+}
+
+impl CodegenError {
+    pub fn new<T, U>(msg: T, location: U) -> Self
+    where
+        T: Into<String>,
+        U: Into<SourceLocation>,
+    {
+        CodegenError::GenericError(msg.into(), location.into())
+    }
+
+    fn missing_function(location: SourceLocation) -> Self {
+        CodegenError::new("Cannot generate code outside of function context.", location)
+    }
+}
+
+impl From<LLVMString> for CodegenError {
+    fn from(err: LLVMString) -> Self {
+        CodegenError::GenericError(err.to_string_lossy().to_string(), SourceLocation::undefined())
+    }
+}
+
+impl Display for CodegenError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CodegenError::GenericError(err, location) => {
+                write!(f, "{}", err)?;
+                if !location.is_undefined() {
+                    write!(f, " at {}", location)?;
+                }
+                Ok(())
+            }
+            CodegenError::DiagnosticError(err) => write!(f, "{}", err),
+            CodegenError::BuilderError(err) => write!(f, "{}", err),
+            CodegenError::IoError(err) => write!(f, "{}", err),
+        }
+    }
+}
+
+impl From<CodegenError> for Diagnostic {
+    fn from(err: CodegenError) -> Self {
+        if let CodegenError::DiagnosticError(diagnostic) = err {
+            return diagnostic;
+        }
+        Diagnostic::new(format!("Builder error: {err}"))
+            .with_error_code("E002")
+            .with_internal_error(anyhow::anyhow!(err))
+    }
+}
+
+impl std::error::Error for CodegenError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            CodegenError::GenericError(_, _) => None,
+            CodegenError::BuilderError(err) => Some(err),
+            CodegenError::DiagnosticError(err) => Some(err),
+            CodegenError::IoError(err) => Some(err),
+        }
     }
 }
 

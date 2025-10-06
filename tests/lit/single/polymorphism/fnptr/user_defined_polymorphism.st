@@ -79,7 +79,7 @@ FUNCTION main
     // CHECK: FbA::printNumber: localStateA = 5, in = 5
     refInstanceFbA := ADR(instanceFbA);
     UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 5);
-    
+
     // CHECK: FbA::printNumber: localStateA = 5, in = 10
     refInstanceFbA := ADR(instanceFbB);
     UserVT_FbA#(refInstanceFbA^.vt^).printNumber^(refInstanceFbA^, 10);

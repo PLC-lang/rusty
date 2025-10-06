@@ -555,6 +555,10 @@ fn validate_reference<T: AnnotationMap>(
     location: &SourceLocation,
     context: &ValidationContext<T>,
 ) {
+    if location.is_internal() {
+        return;
+    }
+
     // unresolved reference
     if !context.annotations.has_type_annotation(statement) {
         if base.is_some_and(|it| it.has_super_metadata() || it.is_super()) {
@@ -975,6 +979,10 @@ pub fn validate_assignment_mismatch<T>(
             ));
         }
     } else if type_info_lhs != type_info_rhs {
+        if is_related_to(context, type_info_lhs.get_name(), type_info_rhs.get_name()) {
+            return;
+        }
+
         let type_name_lhs = validator.get_type_name_or_slice(type_lhs);
         let type_name_rhs = validator.get_type_name_or_slice(type_rhs);
 
@@ -983,6 +991,32 @@ pub fn validate_assignment_mismatch<T>(
             &type_name_lhs,
             assignment_location,
         ));
+    }
+}
+
+/// Returns true if the right POU is a direct or indirect child of the left POU
+fn is_related_to<T>(context: &ValidationContext<T>, pou_name_lhs: &str, pou_name_rhs: &str) -> bool
+where
+    T: AnnotationMap,
+{
+    let Some(pou_lhs) = context.index.find_pou(pou_name_lhs) else {
+        return false;
+    };
+
+    let Some(pou_rhs) = context.index.find_pou(pou_name_rhs) else {
+        return false;
+    };
+
+    match pou_rhs.get_super_class() {
+        Some(parent) => {
+            if pou_lhs.get_name() == parent {
+                true
+            } else {
+                is_related_to(context, pou_name_lhs, parent)
+            }
+        }
+
+        None => false,
     }
 }
 
@@ -1495,7 +1529,7 @@ fn validate_call<T: AnnotationMap>(
                     Diagnostic::new("Invalid call parameters")
                         .with_error_code("E089")
                         .with_location(*argument)
-                        .with_sub_diagnostic(err),
+                        .with_sub_diagnostic(err.into()),
                 );
                 break;
             }

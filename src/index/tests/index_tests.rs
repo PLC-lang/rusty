@@ -929,7 +929,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: literal_int(7)..literal_int(1000),
+        sub_range: Box::new(literal_int(7)..literal_int(1000)),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
@@ -2188,7 +2188,7 @@ fn pou_with_two_types_not_considered_recursive() {
             METHOD x : fb
             END_METHOD
         END_PROGRAM
-        
+
         ACTION p.y
         END_ACTION",
     );
@@ -2212,4 +2212,64 @@ fn pou_with_recursive_type_fails() {
 
     let pou_type = index.find_pou_type("fb").unwrap();
     assert!(pou_type.get_type_information().get_size(&index).is_err());
+}
+
+#[test]
+fn fixed_order() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK A
+            METHOD foo
+            END_METHOD
+
+            METHOD bar
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK B EXTENDS A
+            METHOD bar
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK C EXTENDS A
+            METHOD qux
+            END_METHOD
+
+            METHOD foo
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+
+            METHOD whateverComesAfterQux
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK D EXTENDS C
+            METHOD idk
+            END_METHOD
+
+            METHOD baz
+            END_METHOD
+
+            METHOD qux
+            END_METHOD
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let methods_a = index.get_methods_in_fixed_order("A").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_a, vec!["A.foo", "A.bar", "A.baz"]);
+
+    let methods_b = index.get_methods_in_fixed_order("B").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_b, vec!["A.foo", "B.bar", "A.baz"]);
+
+    let methods_c = index.get_methods_in_fixed_order("C").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_c, vec!["C.foo", "A.bar", "C.baz", "C.qux", "C.whateverComesAfterQux"]);
+
+    let methods_d = index.get_methods_in_fixed_order("D").iter().map(|p| p.get_name()).collect::<Vec<_>>();
+    assert_eq!(methods_d, vec!["C.foo", "A.bar", "D.baz", "D.qux", "C.whateverComesAfterQux", "D.idk"]);
 }

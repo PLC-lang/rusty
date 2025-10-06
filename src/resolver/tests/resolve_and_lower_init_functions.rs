@@ -27,12 +27,12 @@ fn function_block_init_fn_created() {
     assert!(index.find_pou("__init_foo").is_some());
     // AND we expect a new function to be created for it
     let init_foo = &units[1];
-    let implementation = &init_foo.implementations[0];
+    let implementation = &init_foo.implementations[1];
     assert_eq!(implementation.name, "__init_foo");
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[1].variable_blocks[0].variables[0], @r###"
     Variable {
         name: "self",
         data_type: DataTypeReference {
@@ -41,58 +41,98 @@ fn function_block_init_fn_created() {
     }
     "###);
 
-    // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
-    assert_eq!(statements.len(), 1);
-    assert_debug_snapshot!(statements[0], @r#"
-    Assignment {
-        left: ReferenceExpr {
-            kind: Member(
-                Identifier {
-                    name: "ps",
-                },
-            ),
-            base: Some(
-                ReferenceExpr {
+    assert_eq!(statements.len(), 2);
+    assert_debug_snapshot!(statements, @r#"
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__vtable",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "self",
+                            name: "ADR",
                         },
                     ),
                     base: None,
                 },
-            ),
-        },
-        right: CallStatement {
-            operator: ReferenceExpr {
-                kind: Member(
-                    Identifier {
-                        name: "REF",
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__vtable_foo_instance",
+                            },
+                        ),
+                        base: None,
                     },
                 ),
-                base: None,
             },
-            parameters: Some(
-                ReferenceExpr {
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "ps",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "self",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "s",
+                            name: "REF",
                         },
                     ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "self",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
+                    base: None,
                 },
-            ),
+                parameters: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "s",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "self",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
         },
-    }
+    ]
     "#);
 }
 
@@ -236,9 +276,8 @@ fn init_wrapper_function_created() {
 
     // we expect to the body to have 3 statements
     let statements = &implementation.statements;
-    assert_eq!(statements.len(), 3);
 
-    assert_debug_snapshot!(statements, @r###"
+    assert_debug_snapshot!(statements, @r#"
     [
         CallStatement {
             operator: ReferenceExpr {
@@ -254,6 +293,26 @@ fn init_wrapper_function_created() {
                     kind: Member(
                         Identifier {
                             name: "foo",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__init___vtable_bar",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__vtable_bar_instance",
                         },
                     ),
                     base: None,
@@ -310,11 +369,31 @@ fn init_wrapper_function_created() {
                 },
             ),
         },
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "__user_init___vtable_bar",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "__vtable_bar_instance",
+                        },
+                    ),
+                    base: None,
+                },
+            ),
+        },
     ]
-    "###);
+    "#);
 
     // since `foo` has a member-instance of `bar`, we expect its initializer to call/propagate to `__init_bar` with its local member
-    let init_foo = &units[1].implementations[1];
+    let init_foo = &units[1].implementations[2];
     assert_debug_snapshot!(init_foo.statements[0], @r###"
     CallStatement {
         operator: ReferenceExpr {

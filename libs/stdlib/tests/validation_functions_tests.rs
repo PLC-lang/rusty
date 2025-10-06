@@ -20,8 +20,8 @@ fn is_valid_real() {
     VAR_GLOBAL
         MAX : REAL := 3.4028235e38;
         MIN : REAL := -3.4028235e38;
-        INF : REAL := 1.0 / 0.0;
-        NaN : REAL := 0.0 / 0.0;
+        INF : REAL := 1.0 / 0.0; // INF_REAL;
+        NaN : REAL := 0.0 / 0.0; // NAN_REAL;
     END_VAR
 
     PROGRAM main
@@ -38,7 +38,7 @@ fn is_valid_real() {
         inf_ := IS_VALID(INF);
         nan_ := IS_VALID(NaN);
     END_PROGRAM";
-    let sources = add_std!(src, "validation_functions.st");
+    let sources = add_std!(src, "validation_functions.st", "arithmetic_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
     // MIN valid
@@ -59,8 +59,8 @@ fn is_valid_lreal() {
     VAR_GLOBAL
         MAX : LREAL := 1.7976931348623157e308;
         MIN : LREAL := LREAL#-1.7976931348623157e308;
-        INF : LREAL := 1.0 / 0.0;
-        NaN : LREAL := 0.0 / 0.0;
+        INF : LREAL := 1.0 / 0.0; // INF_LREAL;
+        NaN : LREAL := 0.0 / 0.0; // NAN_LREAL;
     END_VAR
 
     PROGRAM main
@@ -77,7 +77,7 @@ fn is_valid_lreal() {
         inf_ := IS_VALID(INF);
         nan_ := IS_VALID(NaN);
     END_PROGRAM";
-    let sources = add_std!(src, "validation_functions.st");
+    let sources = add_std!(src, "validation_functions.st", "arithmetic_functions.st");
     let mut maintype = MainType::default();
     let _: i64 = compile_and_run(sources, &mut maintype);
     // MIN valid

@@ -147,7 +147,7 @@ impl UserTypeIndexer<'_, '_> {
                 // define internal vla members
                 (
                     DataTypeDeclaration::Definition {
-                        data_type: DataType::PointerType {
+                        data_type: Box::new(DataType::PointerType {
                             name: Some(member_array_name),
                             referenced_type: Box::new(DataTypeDeclaration::Reference {
                                 referenced_type: dummy_array_name,
@@ -156,12 +156,12 @@ impl UserTypeIndexer<'_, '_> {
                             auto_deref: None,
                             type_safe: true,
                             is_function: false,
-                        },
+                        }),
                         location: SourceLocation::internal(),
                         scope: None,
                     },
                     DataTypeDeclaration::Definition {
-                        data_type: DataType::ArrayType {
+                        data_type: Box::new(DataType::ArrayType {
                             name: Some(member_dimensions_name),
                             bounds: AstNode::new(
                                 AstStatement::ExpressionList(
@@ -191,7 +191,7 @@ impl UserTypeIndexer<'_, '_> {
                                 location: SourceLocation::internal(),
                             }),
                             is_variable_length: false,
-                        },
+                        }),
                         location: SourceLocation::internal(),
                         scope: None,
                     },
@@ -331,7 +331,7 @@ impl UserTypeIndexer<'_, '_> {
             DataTypeInformation::SubRange {
                 name: name.into(),
                 referenced_type: referenced_type.into(),
-                sub_range: (*start.clone()..*end.clone()),
+                sub_range: Box::new(*start.clone()..*end.clone()),
             }
         } else {
             DataTypeInformation::Alias { name: name.into(), referenced_type: referenced_type.into() }

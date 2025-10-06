@@ -61,7 +61,8 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     if let DataTypeDeclaration::Definition { mut data_type, location, scope } = *datatype {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
-                        let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
+                        let data_type =
+                            UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope };
                         new_types.push(data_type);
                     }
                 }
@@ -196,7 +197,6 @@ fn process_global_variables(unit: &mut CompilationUnit, id_provider: &mut IdProv
 }
 
 fn process_var_config_variables(unit: &mut CompilationUnit) {
-    let block = get_internal_global_block(unit);
     let variables = unit.var_config.iter().filter_map(|ConfigVariable { data_type, address, .. }| {
         let AstStatement::HardwareAccess(hardware) = &address.stmt else {
             unreachable!("Must be parsed as hardware access")
@@ -206,10 +206,12 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
             return None;
         }
 
+        // Check if the mangled variable already exists in any of the global variable blocks
+        // XXX: Not a fan of this, we should fix the underlying issue with variable block creation here...
         let name = hardware.get_mangled_variable_name();
-        if block.is_some_and(|it| it.variables.iter().any(|v| v.name == name)) {
-            return None;
-        };
+        if find_mangled_variable(unit, &name) {
+            return None; // Already exists, skip
+        }
 
         Some(Variable {
             name,
@@ -220,7 +222,7 @@ fn process_var_config_variables(unit: &mut CompilationUnit) {
         })
     });
 
-    update_generated_globals(unit, variables.collect())
+    update_generated_globals(unit, variables.collect());
 }
 
 fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Variable>) {
@@ -242,11 +244,8 @@ fn update_generated_globals(unit: &mut CompilationUnit, mangled_globals: Vec<Var
     unit.global_vars.push(block);
 }
 
-fn get_internal_global_block(unit: &CompilationUnit) -> Option<&VariableBlock> {
-    unit.global_vars
-        .iter()
-        .position(|block| block.kind == VariableBlockType::Global && block.location.is_builtin_internal())
-        .and_then(|index| unit.global_vars.get(index))
+fn find_mangled_variable(unit: &CompilationUnit, name: &str) -> bool {
+    unit.global_vars.iter().flat_map(|block| &block.variables).any(|var| var.name == name)
 }
 
 fn build_enum_initializer(
@@ -311,11 +310,12 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
                 referenced_type: type_name.clone(),
                 location: return_type.get_location(),
             };
-            let datatype = std::mem::replace(&mut pou.return_type, Some(type_ref));
+            let datatype = pou.return_type.replace(type_ref);
             if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope }) = datatype {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
-                let data_type = UserTypeDeclaration { data_type, initializer: None, location, scope };
+                let data_type =
+                    UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope };
                 types.push(data_type);
             }
         }
@@ -325,7 +325,11 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
 fn should_generate_implicit(datatype: &DataTypeDeclaration) -> bool {
     match datatype {
         DataTypeDeclaration::Reference { .. } | DataTypeDeclaration::Aggregate { .. } => false,
-        DataTypeDeclaration::Definition { data_type: DataType::VarArgs { .. }, .. } => false,
+        DataTypeDeclaration::Definition { data_type, .. }
+            if matches!(data_type.as_ref(), DataType::VarArgs { .. }) =>
+        {
+            false
+        }
         DataTypeDeclaration::Definition { .. } => true,
     }
 }
@@ -346,7 +350,7 @@ fn pre_process_variable_data_type(
         // create index entry
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
         data_type.set_name(new_type_name);
-        types.push(UserTypeDeclaration { data_type, initializer: None, location, scope });
+        types.push(UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope });
     }
     //make sure it gets generated
 }
@@ -370,13 +374,18 @@ fn add_nested_datatypes(
     {
         data_type.set_name(new_type_name.clone());
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &inner_location);
-        types.push(UserTypeDeclaration { data_type, initializer: None, location: location.clone(), scope });
+        types.push(UserTypeDeclaration {
+            data_type: *data_type,
+            initializer: None,
+            location: location.clone(),
+            scope,
+        });
     }
 }
 
 fn replace_generic_type_name(dt: &mut DataTypeDeclaration, generics: &FxHashMap<String, String>) {
     match dt {
-        DataTypeDeclaration::Definition { data_type, .. } => match data_type {
+        DataTypeDeclaration::Definition { data_type, .. } => match data_type.as_mut() {
             DataType::ArrayType { referenced_type, .. }
             | DataType::PointerType { referenced_type, .. }
             | DataType::VarArgs { referenced_type: Some(referenced_type), .. } => {

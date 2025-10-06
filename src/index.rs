@@ -1138,7 +1138,7 @@ impl PouIndexEntry {
         name.split('.').collect::<Vec<_>>()
     }
     /// Returns the POU's identifier without the qualifier
-    pub fn get_flat_reference_name(&self) -> &str {
+    pub fn get_call_name(&self) -> &str {
         self.get_qualified_name().into_iter().next_back().unwrap_or_default()
     }
 }
@@ -1196,9 +1196,29 @@ impl TypeIndex {
     /// Retrieves the "Effective" type behind this datatype
     /// An effective type will be any end type i.e. Structs, Integers, Floats, String and Array
     pub fn find_effective_type<'ret>(&'ret self, data_type: &'ret DataType) -> Option<&'ret DataType> {
+        self.find_effective_type_recursive(data_type, &mut FxHashSet::default())
+    }
+
+    fn find_effective_type_recursive<'ret>(
+        &'ret self,
+        data_type: &'ret DataType,
+        seen: &mut FxHashSet<&'ret str>,
+    ) -> Option<&'ret DataType> {
         match data_type.get_type_information() {
             DataTypeInformation::Alias { referenced_type, .. } => {
-                self.find_type(referenced_type).and_then(|it| self.find_effective_type(it))
+                // Check for cycles in type aliases
+                if !seen.insert(data_type.get_name()) {
+                    // Cycle detected, return None to indicate error
+                    return None;
+                }
+
+                let result = self
+                    .find_type(referenced_type)
+                    .and_then(|it| self.find_effective_type_recursive(it, seen));
+
+                // Remove from seen set when backtracking
+                seen.remove(data_type.get_name());
+                result
             }
             _ => Some(data_type),
         }
@@ -2078,7 +2098,7 @@ impl Index {
     }
 
     /// Creates an iterator over all instances in the index
-    pub fn find_instances(&self) -> InstanceIterator {
+    pub fn find_instances(&self) -> InstanceIterator<'_> {
         InstanceIterator::new(self)
     }
 
@@ -2088,7 +2108,7 @@ impl Index {
     pub fn filter_instances(
         &self,
         inner_filter: fn(&VariableIndexEntry, &Index) -> bool,
-    ) -> InstanceIterator {
+    ) -> InstanceIterator<'_> {
         InstanceIterator::with_filter(self, inner_filter)
     }
 
@@ -2195,11 +2215,7 @@ impl Index {
                 .values()
                 .filter(|it| it.is_method())
                 .filter(|it| it.get_parent_pou_name().is_some_and(|it| it == container))
-                .filter(|it| {
-                    !current_methods
-                        .iter()
-                        .any(|m| m.get_flat_reference_name() == it.get_flat_reference_name())
-                })
+                .filter(|it| !current_methods.iter().any(|m| m.get_call_name() == it.get_call_name()))
                 .collect::<Vec<_>>();
             res.extend(current_methods);
             if let Some(super_class) = pou.get_super_class() {
@@ -2213,6 +2229,56 @@ impl Index {
         } else {
             current_methods
         }
+    }
+
+    /// Returns all methods defined in a container, including methods from super "classes". Thereby the result
+    /// is in fixed traversal order, meaning that the methods of the super class are always positioned before
+    /// the methods of any child class. This ordering is neccessary for virtual tables, where bitcasting them
+    /// from one type to another requires such an order to ensure that the correct method is called.
+    ///
+    /// For example, if class `A` has a method `foo` and class `B` inherits from `A` but adds another method
+    /// `bar` then the virtual table must have the form [`A.foo`] and [`B.foo`, `B.bar`] such that upcasting
+    /// `B` to `A` will still call method `foo` rather than `bar`. If not, e.g. [`B.bar`, `B.foo`] is used,
+    /// the upcasting to `A` would result calling `B.bar` when we have a call such as `reInstance^.foo()`
+    pub fn get_methods_in_fixed_order(&self, container: &str) -> Vec<&PouIndexEntry> {
+        let res = self.get_methods_recursive_in_fixed_order(
+            container,
+            FxIndexMap::default(),
+            &mut FxHashSet::default(),
+        );
+        res.into_values().collect()
+    }
+
+    /// See [`Index::get_methods_in_fixed_order`]
+    fn get_methods_recursive_in_fixed_order<'b>(
+        &'b self,
+        container: &str,
+        mut collected: FxIndexMap<&'b str, &'b PouIndexEntry>,
+        seen: &mut FxHashSet<&'b str>,
+    ) -> FxIndexMap<&'b str, &'b PouIndexEntry> {
+        if let Some(pou) = self.find_pou(container) {
+            if let Some(super_class) = pou.get_super_class() {
+                if !seen.insert(super_class) {
+                    return collected;
+                }
+
+                // We want to recursively climb up the inheritance chain before collecting methods
+                collected = self.get_methods_recursive_in_fixed_order(super_class, collected, seen);
+            }
+
+            let methods = self
+                .get_pous()
+                .values()
+                .filter(|pou| pou.is_method())
+                .filter(|pou| pou.get_parent_pou_name().is_some_and(|opt| opt == container));
+
+            for method in methods {
+                let name = method.get_name().split_once('.').unwrap().1;
+                collected.insert(name, method);
+            }
+        }
+
+        collected
     }
 }
 

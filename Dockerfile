@@ -1,4 +1,8 @@
-FROM ghcr.io/plc-lang/rust-llvm:latest
+ARG LLVM_VER=14
+ARG RUST_VER=1.90
+ARG CONTAINER_VERSION=$LLVM_VER-$RUST_VER
+ARG BASE_IMAGE=ghcr.io/plc-lang/rust-llvm:$CONTAINER_VERSION
+FROM $BASE_IMAGE
 
 # Allow invoking `plc` from anywhere
 ENV PLCLOC="/opt/rusty"

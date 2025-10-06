@@ -1,0 +1,20 @@
+RUN: %COMPILE %S/main.st %S/a.st %S/b.st %S/c.st %S/d.st && %RUN | %CHECK %s
+CHECK: FbA::alpha
+CHECK-NEXT: FbA::bravo
+CHECK-NEXT: FbA::charlie
+CHECK-NEXT: FbA::delta
+
+CHECK-NEXT: FbA::alpha
+CHECK-NEXT: FbB::bravo
+CHECK-NEXT: FbA::charlie
+CHECK-NEXT: FbA::delta
+
+CHECK-NEXT: FbA::alpha
+CHECK-NEXT: FbB::bravo
+CHECK-NEXT: FbC::charlie
+CHECK-NEXT: FbA::delta
+
+CHECK-NEXT: FbD::alpha
+CHECK-NEXT: FbD::bravo
+CHECK-NEXT: FbD::charlie
+CHECK-NEXT: FbD::delta

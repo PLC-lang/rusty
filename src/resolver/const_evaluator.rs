@@ -305,15 +305,8 @@ fn does_overflow(literal: &AstNode, dti: Option<&DataTypeInformation>) -> bool {
             }
         }
 
-        DataTypeInformation::Float { size, .. } => match (kind, size) {
-            (AstLiteral::Real(value), 32) => value.parse::<f32>().map(f32::is_infinite).unwrap_or(false),
-            (AstLiteral::Real(value), 64) => value.parse::<f64>().map(f64::is_infinite).unwrap_or(false),
-
-            // XXX: Returning an error might be a better idea, as we'll be catching edge-cases we missed?
-            _ => false,
-        },
-
-        // Only interested in integers and floats
+        // Only interested in integers. Floats can be infinite or nan which is _technically_ not
+        // an overflow.
         _ => false,
     }
 }
@@ -451,7 +444,7 @@ fn evaluate_with_target_hint(
                     Operator::Plus => arithmetic_expression!(left, +, right, "+", id)?,
                     Operator::Minus => arithmetic_expression!(left, -, right, "-", id)?,
                     Operator::Multiplication => arithmetic_expression!(left, *, right, "*", id)?,
-                    Operator::Division if right.is_zero() => {
+                    Operator::Division if !(right.is_real() || left.is_real()) && right.is_zero() => {
                         return Err(UnresolvableKind::Misc("Attempt to divide by zero".to_string()))
                     }
                     Operator::Division => arithmetic_expression!(left, /, right, "/", id)?,

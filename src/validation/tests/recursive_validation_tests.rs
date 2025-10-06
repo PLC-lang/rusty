@@ -739,7 +739,7 @@ mod inheritance {
             ",
         );
 
-        assert_snapshot!(diagnostics, @r###"
+        assert_snapshot!(diagnostics, @r"
         error[E029]: Recursive data structure `foo -> bar -> foo` has infinite size
           ┌─ <internal>:2:28
           │
@@ -751,7 +751,7 @@ mod inheritance {
           ·
         5 │             FUNCTION_BLOCK bar EXTENDS foo
           │                            --- see also
-        "###);
+        ");
     }
 
     #[test]
@@ -763,7 +763,7 @@ mod inheritance {
                 x : X;
             END_VAR
             END_FUNCTION_BLOCK
-            
+
             FUNCTION_BLOCK bar EXTENDS foo
             END_FUNCTION_BLOCK
 
@@ -881,6 +881,158 @@ mod inheritance {
            ·
         11 │             INTERFACE qux EXTENDS baz, bar, foo
            │                       --- see also
+        ");
+    }
+}
+
+mod type_aliases {
+    use crate::test_utils::tests::parse_and_validate_buffered;
+
+    #[test]
+    fn recursive_type_aliases_aba() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : type1; END_TYPE
+            ",
+        );
+
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E121]: Recursive type alias `type1 -> type2 -> type1`
+          ┌─ <internal>:2:18
+          │
+        2 │             TYPE type1 : type2; END_TYPE
+          │                  ^^^^^ Recursive type alias `type1 -> type2 -> type1`
+        3 │             TYPE type2 : type1; END_TYPE
+          │                  ----- see also
+
+        error[E121]: Recursive type alias `type2 -> type1 -> type2`
+          ┌─ <internal>:3:18
+          │
+        2 │             TYPE type1 : type2; END_TYPE
+          │                  ----- see also
+        3 │             TYPE type2 : type1; END_TYPE
+          │                  ^^^^^ Recursive type alias `type2 -> type1 -> type2`
+        ");
+    }
+
+    #[test]
+    fn recursive_type_alias_self() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE self_type : self_type; END_TYPE
+            ",
+        );
+
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E121]: Recursive type alias `self_type -> self_type`
+          ┌─ <internal>:2:18
+          │
+        2 │             TYPE self_type : self_type; END_TYPE
+          │                  ^^^^^^^^^ Recursive type alias `self_type -> self_type`
+        ");
+    }
+
+    #[test]
+    fn recursive_type_aliases_longer_chain() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE type1 : type2; END_TYPE
+            TYPE type2 : type3; END_TYPE
+            TYPE type3 : type1; END_TYPE
+            ",
+        );
+
+        insta::assert_snapshot!(diagnostics, @r"
+        error[E121]: Recursive type alias `type1 -> type2 -> type3 -> type1`
+          ┌─ <internal>:2:18
+          │
+        2 │             TYPE type1 : type2; END_TYPE
+          │                  ^^^^^ Recursive type alias `type1 -> type2 -> type3 -> type1`
+        3 │             TYPE type2 : type3; END_TYPE
+          │                  ----- see also
+        4 │             TYPE type3 : type1; END_TYPE
+          │                  ----- see also
+
+        error[E121]: Recursive type alias `type2 -> type3 -> type1 -> type2`
+          ┌─ <internal>:3:18
+          │
+        2 │             TYPE type1 : type2; END_TYPE
+          │                  ----- see also
+        3 │             TYPE type2 : type3; END_TYPE
+          │                  ^^^^^ Recursive type alias `type2 -> type3 -> type1 -> type2`
+        4 │             TYPE type3 : type1; END_TYPE
+          │                  ----- see also
+
+        error[E121]: Recursive type alias `type3 -> type1 -> type2 -> type3`
+          ┌─ <internal>:4:18
+          │
+        2 │             TYPE type1 : type2; END_TYPE
+          │                  ----- see also
+        3 │             TYPE type2 : type3; END_TYPE
+          │                  ----- see also
+        4 │             TYPE type3 : type1; END_TYPE
+          │                  ^^^^^ Recursive type alias `type3 -> type1 -> type2 -> type3`
+        ");
+    }
+
+    #[test]
+    fn non_recursive_type_alias() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE my_int : DINT; END_TYPE
+            TYPE my_alias : my_int; END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty());
+    }
+
+    #[test]
+    fn self_referential_struct_with_reference_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : REFERENCE TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "Self-referential struct with REFERENCE TO should be valid");
+    }
+
+    #[test]
+    fn self_referential_struct_with_ref_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : REF_TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        assert!(diagnostics.is_empty(), "Self-referential struct with REF_TO should be valid");
+    }
+
+    #[test]
+    fn self_referential_struct_with_pointer_to() {
+        let diagnostics = parse_and_validate_buffered(
+            "
+            TYPE Node : STRUCT
+                data : DINT;
+                next : POINTER TO Node;
+            END_STRUCT END_TYPE
+            ",
+        );
+
+        insta::assert_snapshot!(diagnostics, @r"
+        warning[E015]: `POINTER TO` is type-unsafe, consider using `REF_TO` instead
+          ┌─ <internal>:4:24
+          │
+        4 │                 next : POINTER TO Node;
+          │                        ^^^^^^^ `POINTER TO` is type-unsafe, consider using `REF_TO` instead
         ");
     }
 }

@@ -2,12 +2,7 @@
 
 /// offers operations to generate global variables
 use crate::{
-    codegen::{
-        const_expressions::{ConstExpression, UnresolvableKind},
-        debug::Debug,
-        llvm_index::LlvmTypedIndex,
-        llvm_typesystem::cast_if_needed,
-    },
+    codegen::{debug::Debug, llvm_index::LlvmTypedIndex, llvm_typesystem::cast_if_needed},
     index::{get_initializer_name, Index, PouIndexEntry, VariableIndexEntry},
     resolver::{AnnotationMap, AstAnnotations, Dependency},
     OnlineChange,
@@ -138,12 +133,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         if linkage == LinkageType::External {
             global_ir_variable = global_ir_variable.make_external();
         } else {
-            let initial_value = if let Some(ConstExpression::Unresolvable {
-                reason: UnresolvableKind::Address { .. },
-                ..
-            }) = global_variable
+            let initial_value = if global_variable
                 .initial_value
                 .and_then(|it| self.global_index.get_const_expressions().find_const_expression(&it))
+                .is_some_and(|it| it.is_address_unresolvable())
             {
                 None
             } else if let Some(initializer) = self
@@ -159,16 +152,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                 );
 
                 //see if this value was compile-time evaluated ...
-                if let Some(value) =
-                    self.types_index.find_constant_value(global_variable.get_qualified_name())
-                {
-                    Some(value)
-                } else {
-                    let value = expr_generator.generate_expression(initializer)?;
-                    let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
-                    let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
-                    Some(cast_if_needed!(expr_generator, target_type, value_type, value, None))
-                }
+                let value = expr_generator.generate_expression(initializer)?;
+                let target_type = self.global_index.get_effective_type_or_void_by_name(type_name);
+                let value_type = self.annotations.get_type_or_void(initializer, self.global_index);
+                Some(cast_if_needed!(expr_generator, target_type, value_type, value, None)?)
             } else {
                 None
             };

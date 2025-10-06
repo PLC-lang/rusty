@@ -1,0 +1,18 @@
+RUN: %COMPILE %S/base_types.dt %S/typedef_chains.dt %S/array_types.dt %S/pointer_types.dt %S/complex_types.dt %S/nested_combinations.dt %S/main.st && %RUN | %CHECK %s
+CHECK: 1337
+CHECK: 3.14
+CHECK: 7331
+CHECK: 2.71
+CHECK: 9001
+CHECK: 1
+CHECK: 75
+CHECK: 1.23
+CHECK: 4.56
+CHECK: 42
+CHECK: 84
+CHECK: 1000
+CHECK: 2.5
+CHECK: 123
+CHECK: 2000
+CHECK: 5.0
+CHECK: 456
