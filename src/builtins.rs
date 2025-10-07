@@ -220,9 +220,7 @@ lazy_static! {
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
                         // Handle named arguments by extracting actual parameters
-                        let actual_g = extract_actual_parameter(g);
-                        let actual_in0 = extract_actual_parameter(in0);
-                        let actual_in1 = extract_actual_parameter(in1);
+                        let [actual_g, actual_in0, actual_in1] = [g, in0, in1].map(extract_actual_parameter);
 
                         // evaluate the parameters
                         let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
@@ -833,8 +831,7 @@ fn validate_variable_length_array_bound_function(
     let params = ast::flatten_expression_list(parameters);
 
     if let &[vla, dim] = params.as_slice() {
-        let actual_vla = extract_actual_parameter(vla);
-        let actual_idx = extract_actual_parameter(dim);
+        let [actual_vla, actual_idx] = [vla, dim].map(extract_actual_parameter);
 
         let idx_type = annotations.get_type_or_void(actual_idx, index);
 
@@ -915,8 +912,7 @@ fn generate_variable_length_array_bound_function<'ink>(
     let builder = &generator.llvm.builder;
 
     if let &[vla, dim] = params {
-        let actual_vla = extract_actual_parameter(vla);
-        let actual_dim = extract_actual_parameter(dim);
+        let [actual_vla, actual_dim] = [vla, dim].map(extract_actual_parameter);
 
         let data_type_information =
             generator.annotations.get_type_or_void(actual_vla, generator.index).get_type_information();
