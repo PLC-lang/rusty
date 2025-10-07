@@ -975,7 +975,6 @@ fn generate_variable_length_array_bound_function<'ink>(
 
         Ok(ExpressionValue::RValue(bound))
     } else {
-        // Err(Diagnostic::codegen_error("Invalid signature for LOWER_BOUND/UPPER_BOUND", location))
         return Err(CodegenError::GenericError(
             format!("Invalid signature for LOWER_BOUND/UPPER_BOUND"),
             location,
