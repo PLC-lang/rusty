@@ -1161,6 +1161,7 @@ fn parse_enum_type_definition(
     let start = lexer.last_location();
 
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| parse_enum_elements(lexer))?;
+    let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
 
     Some((
         DataTypeDeclaration::Definition {
@@ -1168,7 +1169,7 @@ fn parse_enum_type_definition(
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
         },
-        None,
+        initializer,
     ))
 }
 
