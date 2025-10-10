@@ -33,7 +33,7 @@ use crate::{
 
 use self::{
     control_parser::parse_control_statement,
-    expressions_parser::{parse_expression, parse_strict_literal_integer},
+    expressions_parser::{parse_expression, parse_range_statement},
 };
 
 mod control_parser;
@@ -1160,7 +1160,7 @@ fn parse_enum_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.last_location();
 
-    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| parse_enum_elements(lexer))?;
+    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements(lexer))?;
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
 
     Some((
@@ -1204,27 +1204,19 @@ fn parse_enum_elements(lexer: &mut ParseSession) -> Option<AstNode> {
 fn parse_enum_element(lexer: &mut ParseSession) -> Option<AstNode> {
     let start = lexer.location();
 
-    if lexer.token != Identifier {
-        lexer.accept_diagnostic(Diagnostic::unexpected_token_found(
-            "Identifier",
-            lexer.slice(),
-            lexer.location(),
-        ));
-        lexer.advance();
-        return Some(AstFactory::create_empty_statement(start, lexer.next_id()));
-    }
+    let idfr = parse_identifier(lexer)?;
 
-    let id_str = parse_identifier(lexer).unwrap().0;
-
-    let identifier_node = AstFactory::create_identifier(&id_str, start, lexer.next_id());
+    let identifier_node = AstFactory::create_identifier(&idfr.0, start, lexer.next_id());
 
     if lexer.try_consume(KeywordAssignment) {
-        let value = parse_strict_literal_integer(lexer)?;
+        let value = parse_range_statement(lexer);
         let result = AstFactory::create_assignment(identifier_node, value, lexer.next_id());
         return Some(result);
     }
 
-    Some(identifier_node)
+    let ref_expr = AstFactory::create_member_reference(identifier_node, None, lexer.next_id());
+
+    Some(ref_expr)
 }
 
 fn parse_array_type_definition(
