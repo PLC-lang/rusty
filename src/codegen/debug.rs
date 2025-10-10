@@ -445,24 +445,44 @@ impl<'ink> DebugBuilder<'ink> {
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
 
-        // Handle auto-dereferencing pointers by creating a typedef if needed. This ensures
-        // that the DWARF information accurately reflects the intended usage (deref semantics) of the pointer type.
-        let ty = if let DataTypeInformation::Pointer { auto_deref: Some(_), .. } =
-            index.get_type(name).map(|it| it.get_type_information())?
-        {
-            let file = self.compile_unit.get_file();
-            let typedef_name = format!("__AUTO_DEREF__{name}");
-            self.debug_info.create_typedef(
-                pointer_type.as_type(),
-                &typedef_name,
-                file,
-                0, // Line 0 for built-in types
-                file.as_debug_info_scope(),
-                align_bits,
-            )
-        } else {
-            pointer_type
+        // let ty = if let DataTypeInformation::Pointer { auto_deref: Some(_), .. } =
+        //     index.get_type(name).map(|it| it.get_type_information())?
+        // {
+            //     let file = self.compile_unit.get_file();
+            //     let typedef_name = format!("__AUTO_DEREF__{name}");
+        //     self.debug_info.create_typedef(
+        //         pointer_type.as_type(),
+        //         &typedef_name,
+        //         file,
+        //         0, // Line 0 for built-in types
+        //         file.as_debug_info_scope(),
+        //         align_bits,
+        //     )
+        // } else {
+        //     pointer_type
+        // };
+
+        // Create a typedef for pointer types to ensure
+        // that the DWARF information accurately reflects the intended usage (deref semantics, type safety) of the pointer type.
+        let typedef_name = match index.get_type(name).map(|it| it.get_type_information())? {
+            DataTypeInformation::Pointer { auto_deref: Some(_), .. } => {
+                format!("__AUTO_DEREF__{name}")
+            }
+            DataTypeInformation::Pointer { type_safe, ..  } => {
+                type_safe.then_some(format!("__REF_TO__{name}")).unwrap_or_else(|| format!("__POINTER_TO__{name}"))
+            }
+            _ => unreachable!("Only pointer types reach this"),
         };
+
+        let file = self.compile_unit.get_file();
+        let ty = self.debug_info.create_typedef(
+            pointer_type.as_type(),
+            &typedef_name,
+            file,
+            0, // Line 0 for built-in types
+            file.as_debug_info_scope(),
+            align_bits,
+        );
 
         self.register_concrete_type(name, DebugType::Derived(ty));
 
