@@ -33,7 +33,7 @@ use crate::{
 
 use self::{
     control_parser::parse_control_statement,
-    expressions_parser::{parse_expression, parse_expression_list},
+    expressions_parser::{parse_expression, parse_range_statement},
 };
 
 mod control_parser;
@@ -1176,17 +1176,8 @@ fn parse_enum_type_definition(
     name: Option<String>,
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.last_location();
-    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
-        // Parse Enum - we expect at least one element
-        let elements = parse_expression_list(lexer);
-        Some(elements)
-    })?;
 
-    // Check for Codesys-style type specification after the enum list
-    // TYPE COLOR : (...) DWORD;
-    let numeric_type =
-        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
-
+    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements(lexer))?;
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
@@ -1196,6 +1187,52 @@ fn parse_enum_type_definition(
         },
         initializer,
     ))
+}
+
+/// Parse comma-separated enum elements (identifier or identifier := literal)
+fn parse_enum_elements(lexer: &mut ParseSession) -> Option<AstNode> {
+    let start = lexer.location();
+    let mut elements = vec![];
+
+    loop {
+        let element = parse_enum_element(lexer)?;
+        elements.push(element);
+
+        // check for comma
+        if !lexer.try_consume(KeywordComma) {
+            break;
+        }
+
+        // check for trailing comma
+        if lexer.closes_open_region(&lexer.token) {
+            break;
+        }
+    }
+
+    if elements.len() == 1 {
+        return Some(elements.into_iter().next().unwrap());
+    }
+
+    Some(AstFactory::create_expression_list(elements, start.span(&lexer.last_location()), lexer.next_id()))
+}
+
+/// Parse a single enum element: identifier or identifier := literal
+fn parse_enum_element(lexer: &mut ParseSession) -> Option<AstNode> {
+    let start = lexer.location();
+
+    let idfr = parse_identifier(lexer)?;
+
+    let identifier_node = AstFactory::create_identifier(&idfr.0, start, lexer.next_id());
+
+    if lexer.try_consume(KeywordAssignment) {
+        let value = parse_range_statement(lexer);
+        let result = AstFactory::create_assignment(identifier_node, value, lexer.next_id());
+        return Some(result);
+    }
+
+    let ref_expr = AstFactory::create_member_reference(identifier_node, None, lexer.next_id());
+
+    Some(ref_expr)
 }
 
 fn parse_array_type_definition(
