@@ -6,8 +6,7 @@ use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
-    HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyBlock, PropertyKind, TypeNature,
+    AstId, AstNode, AstStatement, AutoDerefType, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding, HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyBlock, PropertyKind, TypeNature
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -1632,7 +1631,7 @@ impl Index {
 
         match var.get_type_information() {
             DataTypeInformation::Enum { variants, .. } => variants.iter().collect(),
-            DataTypeInformation::Pointer { name, inner_type_name, .. } => {
+            DataTypeInformation::Pointer { name: _, inner_type_name, auto_deref: Some(_), .. } => {
                 let Some(inner_type) = self.type_index.find_type(inner_type_name) else { return vec![] };
                 let DataTypeInformation::Enum { variants, .. } = inner_type.get_type_information() else {
                     return vec![];
@@ -1655,7 +1654,16 @@ impl Index {
     pub fn get_enum_variants_in_pou(&self, pou: &str) -> Vec<&VariableIndexEntry> {
         let mut hs: FxHashSet<&VariableIndexEntry> = FxHashSet::default();
         for member in self.get_pou_members(pou) {
-            if self.type_index.find_type(member.get_type_name()).is_some_and(|it| it.is_enum()) {
+            let Some(data_type) = self.type_index.find_type(member.get_type_name()) else { continue; };
+            let is_enum = match data_type.get_type_information() {
+                DataTypeInformation::Enum { .. } => true,
+                DataTypeInformation::Pointer { inner_type_name, auto_deref:Some(AutoDerefType::Default), .. } => {
+                    self.type_index.find_type(inner_type_name).is_some_and(|it| it.is_enum())
+                }
+                _ => false
+            };
+
+            if is_enum {
                 hs.insert(member);
             }
         }
