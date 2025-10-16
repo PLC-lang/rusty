@@ -324,7 +324,7 @@ pub enum SubCommands {
 
         #[clap(subcommand)]
         option: GenerateOption,
-    }
+    },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -367,7 +367,7 @@ pub enum GenerateOption {
             help = "The prefix for the generated header file(s). Will default to the project name if not supplied."
         )]
         prefix: Option<String>,
-    }
+    },
 }
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
@@ -542,7 +542,9 @@ impl CompileParameters {
     fn has_config(&self) -> Result<bool, Diagnostic> {
         let res = match &self.commands {
             None | Some(SubCommands::Explain { .. }) => false,
-            Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) | Some(SubCommands::Generate { .. }) => true,
+            Some(SubCommands::Build { .. })
+            | Some(SubCommands::Check { .. })
+            | Some(SubCommands::Generate { .. }) => true,
             Some(SubCommands::Config { build_config, .. }) => {
                 let current_dir = env::current_dir()?;
                 build_config.is_some() || super::get_config(&current_dir).exists()
@@ -948,19 +950,14 @@ mod cli_tests {
 
     #[test]
     fn generate_subcommand() {
-        let parameters = CompileParameters::parse(vec_of_strings!(
-            "generate",
-            "src/ProjectPlc.json",
-            "headers"
-        ))
-        .unwrap();
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("generate", "src/ProjectPlc.json", "headers")).unwrap();
         if let Some(commands) = parameters.commands {
             match commands {
                 SubCommands::Generate { build_config, option, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     match option {
-                        GenerateOption::Headers { include_stubs, language, .. } =>
-                        {
+                        GenerateOption::Headers { include_stubs, language, .. } => {
                             assert_eq!(include_stubs, false);
                             assert_eq!(language, GenerateLanguage::C);
                         }
@@ -988,8 +985,7 @@ mod cli_tests {
                 SubCommands::Generate { build_config, option, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     match option {
-                        GenerateOption::Headers { include_stubs, language, output, prefix } =>
-                        {
+                        GenerateOption::Headers { include_stubs, language, output, prefix } => {
                             assert_eq!(include_stubs, true);
                             assert_eq!(language, GenerateLanguage::Rust);
                             assert_eq!(output, Some("some_dir".to_string()));

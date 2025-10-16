@@ -13,7 +13,7 @@ fn generate_header_for_empty_project() {
         &get_test_file("empty_proj/conf/plc.json"),
         "headers",
         "--header-output",
-        &header_dir
+        &header_dir,
     ];
     compile(parameters).unwrap();
 

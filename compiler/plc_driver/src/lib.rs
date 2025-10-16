@@ -109,7 +109,7 @@ impl Default for GenerateHeaderOptions {
             include_stubs: false,
             language: GenerateLanguage::C,
             output_path: PathBuf::from(String::new()),
-            prefix: String::new()
+            prefix: String::new(),
         }
     }
 }

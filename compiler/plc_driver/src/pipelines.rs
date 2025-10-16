@@ -9,7 +9,8 @@ use std::{
 };
 
 use crate::{
-    cli::{self, CompileParameters, ConfigOption, GenerateLanguage, GenerateOption, SubCommands}, get_project, CompileOptions, GenerateHeaderOptions, LinkOptions, LinkerScript
+    cli::{self, CompileParameters, ConfigOption, GenerateLanguage, GenerateOption, SubCommands},
+    get_project, CompileOptions, GenerateHeaderOptions, LinkOptions, LinkerScript,
 };
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
@@ -27,7 +28,7 @@ use plc::{
         calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
         vtable::VirtualTableGenerator, InitVisitor,
     },
-    output::{FormatOption},
+    output::FormatOption,
     parser::parse_file,
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
@@ -227,15 +228,17 @@ impl<T: SourceContainer> BuildPipeline<T> {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
             let project_name = self.project.get_name();
             match params.commands.as_ref().unwrap() {
-                SubCommands::Generate { option, .. } => {
-                    match option {
-                        GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
-                            GenerateHeaderOptions {
-                                include_stubs: *include_stubs,
-                                language: *language,
-                                output_path: if output.is_some() { PathBuf::from(output.clone().unwrap()) } else { location.clone().unwrap_or(PathBuf::from(String::new())) },
-                                prefix: prefix.clone().unwrap_or_else(|| project_name.to_string()),
-                            }
+                SubCommands::Generate { option, .. } => match option {
+                    GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
+                        GenerateHeaderOptions {
+                            include_stubs: *include_stubs,
+                            language: *language,
+                            output_path: if output.is_some() {
+                                PathBuf::from(output.clone().unwrap())
+                            } else {
+                                location.clone().unwrap_or(PathBuf::from(String::new()))
+                            },
+                            prefix: prefix.clone().unwrap_or_else(|| project_name.to_string()),
                         }
                     }
                 },
