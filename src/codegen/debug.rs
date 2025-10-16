@@ -445,31 +445,17 @@ impl<'ink> DebugBuilder<'ink> {
             inkwell::AddressSpace::from(ADDRESS_SPACE_GLOBAL),
         );
 
-        // let ty = if let DataTypeInformation::Pointer { auto_deref: Some(_), .. } =
-        //     index.get_type(name).map(|it| it.get_type_information())?
-        // {
-            //     let file = self.compile_unit.get_file();
-            //     let typedef_name = format!("__AUTO_DEREF__{name}");
-        //     self.debug_info.create_typedef(
-        //         pointer_type.as_type(),
-        //         &typedef_name,
-        //         file,
-        //         0, // Line 0 for built-in types
-        //         file.as_debug_info_scope(),
-        //         align_bits,
-        //     )
-        // } else {
-        //     pointer_type
-        // };
-
-        // Create a typedef for pointer types to ensure
-        // that the DWARF information accurately reflects the intended usage (deref semantics, type safety) of the pointer type.
+        // For pointer types, we create a typedef to represent the pointer type in DWARF.
+        // This allows other tools to distinguish between different kinds of pointer semantics (e.g., reference vs. auto-deref, type-safety, ...)
+        // XXX: This is a workaround - gdb will show the mangled type name in the debugger, which is not ideal
         let typedef_name = match index.get_type(name).map(|it| it.get_type_information())? {
-            DataTypeInformation::Pointer { auto_deref: Some(_), .. } => {
-                format!("__AUTO_DEREF__{name}")
+            DataTypeInformation::Pointer { auto_deref: Some(auto_deref), .. } => {
+                matches!(auto_deref, plc_ast::ast::AutoDerefType::Reference)
+                    .then_some(format!("__REFERENCE_TO__{name}"))
+                    .unwrap_or(format!("__AUTO_DEREF__{name}"))
             }
-            DataTypeInformation::Pointer { type_safe, ..  } => {
-                type_safe.then_some(format!("__REF_TO__{name}")).unwrap_or_else(|| format!("__POINTER_TO__{name}"))
+            DataTypeInformation::Pointer { type_safe, .. } => {
+                type_safe.then_some(format!("__REF_TO__{name}")).unwrap_or(format!("__POINTER_TO__{name}"))
             }
             _ => unreachable!("Only pointer types reach this"),
         };
