@@ -1,6 +1,6 @@
 use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgGroup, Parser, Subcommand};
+use clap::{ArgEnum, ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
@@ -311,6 +311,20 @@ pub enum SubCommands {
         #[clap(help = "Error code to explain, for example `E001`")]
         error: String,
     },
+
+    /// Generates code for a given project
+    ///
+    /// Sub-command(s):
+    ///     Header : Generates the Header files
+    Generate {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+
+        #[clap(subcommand)]
+        option: GenerateOption,
+    }
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -321,11 +335,54 @@ pub enum ConfigOption {
     Diagnostics,
 }
 
+#[derive(Debug, Subcommand)]
+pub enum GenerateOption {
+    Headers {
+        #[clap(
+            name = "include-stubs",
+            long,
+            help = "Whether or not to include generated code stubs for the library."
+        )]
+        include_stubs: bool,
+
+        #[clap(
+            name = "header-language",
+            long,
+            arg_enum,
+            help = "The language used to generate the header file. Currently supported language(s) are: C",
+            default_value = "c"
+        )]
+        language: GenerateLanguage,
+
+        #[clap(
+            name = "header-output",
+            long,
+            help = "The output folder where generated headers and stubs will be placed."
+        )]
+        output: Option<String>,
+
+        #[clap(
+            name = "header-prefix",
+            long,
+            help = "The prefix for the generated header file(s). Will default to the project name if not supplied."
+        )]
+        prefix: Option<String>,
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
+pub enum GenerateLanguage {
+    #[default]
+    C,
+    Rust,
+}
+
 impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
         let (SubCommands::Build { build_config, .. }
         | SubCommands::Check { build_config }
-        | SubCommands::Config { build_config, .. }) = self
+        | SubCommands::Config { build_config, .. }
+        | SubCommands::Generate { build_config, .. }) = self
         else {
             return None;
         };
@@ -414,6 +471,11 @@ impl CompileParameters {
         self.check_only || matches!(self.commands, Some(SubCommands::Check { .. }))
     }
 
+    /// If set, header files will be generated
+    pub fn is_header_generator(&self) -> bool {
+        matches!(self.commands, Some(SubCommands::Generate { option: GenerateOption::Headers { .. }, .. }))
+    }
+
     /// return the selected output format, or the default if none.
     #[cfg(test)]
     pub fn output_format_or_default(&self) -> FormatOption {
@@ -480,7 +542,7 @@ impl CompileParameters {
     fn has_config(&self) -> Result<bool, Diagnostic> {
         let res = match &self.commands {
             None | Some(SubCommands::Explain { .. }) => false,
-            Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) => true,
+            Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) | Some(SubCommands::Generate { .. }) => true,
             Some(SubCommands::Config { build_config, .. }) => {
                 let current_dir = env::current_dir()?;
                 build_config.is_some() || super::get_config(&current_dir).exists()
@@ -506,7 +568,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use crate::cli::ConfigOption;
+    use crate::cli::{ConfigOption, GenerateLanguage, GenerateOption};
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
@@ -878,6 +940,62 @@ mod cli_tests {
                     assert_eq!(build_config, None);
                     assert_eq!(option, ConfigOption::Schema);
                     assert_eq!(format, ConfigFormat::TOML)
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+    }
+
+    #[test]
+    fn generate_subcommand() {
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "generate",
+            "src/ProjectPlc.json",
+            "headers"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, .. } =>
+                        {
+                            assert_eq!(include_stubs, false);
+                            assert_eq!(language, GenerateLanguage::C);
+                        }
+                    }
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "generate",
+            "src/ProjectPlc.json",
+            "headers",
+            "--include-stubs",
+            "--header-language",
+            "rust",
+            "--header-output",
+            "some_dir",
+            "--header-prefix",
+            "myLib"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, output, prefix } =>
+                        {
+                            assert_eq!(include_stubs, true);
+                            assert_eq!(language, GenerateLanguage::Rust);
+                            assert_eq!(output, Some("some_dir".to_string()));
+                            assert_eq!(prefix, Some("myLib".to_string()));
+                        }
+                    }
                 }
                 _ => panic!("Unexpected command"),
             };

@@ -9,8 +9,7 @@ use std::{
 };
 
 use crate::{
-    cli::{self, CompileParameters, ConfigOption, SubCommands},
-    get_project, CompileOptions, LinkOptions, LinkerScript,
+    cli::{self, CompileParameters, ConfigOption, GenerateLanguage, GenerateOption, SubCommands}, get_project, CompileOptions, GenerateHeaderOptions, LinkOptions, LinkerScript
 };
 use ast::{
     ast::{pre_process, CompilationUnit, LinkageType},
@@ -28,7 +27,7 @@ use plc::{
         calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
         vtable::VirtualTableGenerator, InitVisitor,
     },
-    output::FormatOption,
+    output::{FormatOption},
     parser::parse_file,
     resolver::{
         const_evaluator::UnresolvableConstant, AnnotationMapImpl, AstAnnotations, Dependency, StringLiterals,
@@ -74,6 +73,7 @@ pub trait Pipeline {
     fn index(&mut self, project: ParsedProject) -> Result<IndexedProject, Diagnostic>;
     fn annotate(&mut self, project: IndexedProject) -> Result<AnnotatedProject, Diagnostic>;
     fn generate(&mut self, context: &CodegenContext, project: AnnotatedProject) -> Result<(), Diagnostic>;
+    fn generate_headers(&mut self, project: AnnotatedProject) -> Result<(), Diagnostic>;
 }
 
 impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
@@ -222,6 +222,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
         })
     }
 
+    pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
+        self.compile_parameters.as_ref().map(|params| {
+            let location = &self.project.get_location().map(|it| it.to_path_buf());
+            let project_name = self.project.get_name();
+            match params.commands.as_ref().unwrap() {
+                SubCommands::Generate { option, .. } => {
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
+                            GenerateHeaderOptions {
+                                include_stubs: *include_stubs,
+                                language: *language,
+                                output_path: if output.is_some() { PathBuf::from(output.clone().unwrap()) } else { location.clone().unwrap_or(PathBuf::from(String::new())) },
+                                prefix: prefix.clone().unwrap_or_else(|| project_name.to_string()),
+                            }
+                        }
+                    }
+                },
+                _ => GenerateHeaderOptions::default(),
+            }
+        })
+    }
+
     fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
         match option {
             cli::ConfigOption::Schema => {
@@ -333,11 +355,17 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             annotated_project.generate_hardware_information(format, location)?;
         }
 
-        // 5. Codegen
+        // Skip code-gen if it is check
         if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_check) {
             return Ok(());
         }
 
+        // Generate Header files
+        if self.compile_parameters.as_ref().is_some_and(CompileParameters::is_header_generator) {
+            return self.generate_headers(annotated_project);
+        }
+
+        // 5. Codegen
         self.generate(&CodegenContext::create(), annotated_project)
     }
 
@@ -428,6 +456,35 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             .reduce(|prev, curr| prev.and(curr))
             .unwrap_or(Ok(()))?;
         Ok(())
+    }
+
+    fn generate_headers(&mut self, _project: AnnotatedProject) -> Result<(), Diagnostic> {
+        let Some(generate_header_options) = self.get_generate_header_options() else {
+            log::debug!("No generate header options provided!");
+            return Ok(());
+        };
+
+        // TODO: Load template file and perform content replacement to inject various items to the header
+        let contents = "No content yet...";
+
+        // TODO: Should we split the header into multiple files? If so, then this should be modified.
+        let (header_path, header_dir) = match generate_header_options.language {
+            GenerateLanguage::C => {
+                let mut output_path = generate_header_options.output_path.clone();
+                let output_dir = generate_header_options.output_path.clone();
+
+                output_path.push(format!("{}.h", generate_header_options.prefix));
+
+                (output_path, output_dir)
+            }
+            language => {
+                log::debug!("{language:?} language not yet supported!");
+                return Ok(());
+            }
+        };
+
+        fs::create_dir_all(header_dir)?;
+        fs::write(header_path, contents).map_err(|_| Diagnostic::new("Unable to generate header file..."))
     }
 }
 
