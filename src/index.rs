@@ -1629,9 +1629,7 @@ impl Index {
 
     /// Returns all enum variants of the given variable.
     pub fn get_enum_variants_by_variable(&self, variable: &VariableIndexEntry) -> Vec<&VariableIndexEntry> {
-        let Some(datatype) = self.type_index.find_type(&variable.data_type_name) else {
-            return vec![]
-        };
+        let Some(datatype) = self.type_index.find_type(&variable.data_type_name) else { return vec![] };
 
         self.get_enum_variants(datatype)
     }
@@ -1640,9 +1638,7 @@ impl Index {
         match datatype.get_type_information() {
             DataTypeInformation::Enum { variants, .. } => variants.iter().collect(),
             DataTypeInformation::Pointer { name: _, inner_type_name, auto_deref: Some(_), .. } => {
-                let Some(inner_type) = self.type_index.find_type(inner_type_name) else {
-                    return vec![]
-                };
+                let Some(inner_type) = self.type_index.find_type(inner_type_name) else { return vec![] };
 
                 self.get_enum_variants(inner_type)
             }
