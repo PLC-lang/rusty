@@ -286,41 +286,6 @@ fn builtin_function_call_adr() {
             b : DINT;
         END_VAR
             a := ADR(b);
-        END_PROGRAM
-        ",
-    );
-    // WHEN compiled
-    // We expect the same behaviour as if REF was called, due to the assignee being a pointer
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { i32*, i32 }
-
-    @main_instance = global %main zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32* %b, i32** %a, align 8
-      ret void
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_adr_with_named_argument() {
-    // GIVEN some nested call statements
-    let result = codegen(
-        "
-        PROGRAM main
-        VAR
-            a : REF_TO DINT;
-            b : DINT;
-        END_VAR
             a := ADR(IN := b);
         END_PROGRAM
         ",
@@ -342,6 +307,7 @@ fn builtin_function_call_adr_with_named_argument() {
       %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
       store i32* %b, i32** %a, align 8
+      store i32* %b, i32** %a, align 8
       ret void
     }
     "#);
@@ -358,41 +324,6 @@ fn builtin_function_call_ref() {
             b : DINT;
         END_VAR
             a := REF(b);
-        END_PROGRAM
-        ",
-    );
-    // WHEN compiled
-    // We expect a direct conversion and subsequent assignment to pointer(no call)
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { i32*, i32 }
-
-    @main_instance = global %main zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32* %b, i32** %a, align 8
-      ret void
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_ref_with_named_argument() {
-    // GIVEN some nested call statements
-    let result = codegen(
-        "
-        PROGRAM main
-        VAR
-            a : REF_TO DINT;
-            b : DINT;
-        END_VAR
             a := REF(IN := b);
         END_PROGRAM
         ",
@@ -413,6 +344,7 @@ fn builtin_function_call_ref_with_named_argument() {
     entry:
       %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      store i32* %b, i32** %a, align 8
       store i32* %b, i32** %a, align 8
       ret void
     }
@@ -455,40 +387,6 @@ fn builtin_function_call_sel() {
             a,b,c : DINT;
         END_VAR
             a := SEL(TRUE, b,c);
-        END_PROGRAM",
-    );
-
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { i32, i32, i32 }
-
-    @main_instance = global %main zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %c = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-      %load_b = load i32, i32* %b, align 4
-      %load_c = load i32, i32* %c, align 4
-      %1 = select i1 true, i32 %load_c, i32 %load_b
-      store i32 %1, i32* %a, align 4
-      ret void
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_sel_with_named_argument() {
-    let result = codegen(
-        "PROGRAM main
-        VAR
-            a,b,c : DINT;
-        END_VAR
             a := SEL(G := TRUE, IN0 := b, IN1 := c);
         END_PROGRAM",
     );
@@ -512,6 +410,10 @@ fn builtin_function_call_sel_with_named_argument() {
       %load_c = load i32, i32* %c, align 4
       %1 = select i1 true, i32 %load_c, i32 %load_b
       store i32 %1, i32* %a, align 4
+      %load_b1 = load i32, i32* %b, align 4
+      %load_c2 = load i32, i32* %c, align 4
+      %2 = select i1 true, i32 %load_c2, i32 %load_b1
+      store i32 %2, i32* %a, align 4
       ret void
     }
     "#);
@@ -539,37 +441,6 @@ fn builtin_function_call_move() {
             a,b : DINT;
         END_VAR
             a := MOVE(b);
-        END_PROGRAM",
-    );
-
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { i32, i32 }
-
-    @main_instance = global %main zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %load_b = load i32, i32* %b, align 4
-      store i32 %load_b, i32* %a, align 4
-      ret void
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_move_with_named_argument() {
-    let result = codegen(
-        "PROGRAM main
-        VAR
-            a,b : DINT;
-        END_VAR
             a := MOVE(IN := b);
         END_PROGRAM",
     );
@@ -590,6 +461,8 @@ fn builtin_function_call_move_with_named_argument() {
       %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
       %load_b = load i32, i32* %b, align 4
       store i32 %load_b, i32* %a, align 4
+      %load_b1 = load i32, i32* %b, align 4
+      store i32 %load_b1, i32* %a, align 4
       ret void
     }
     "#);
@@ -604,37 +477,6 @@ fn builtin_function_call_sizeof() {
             b: LINT;
         END_VAR
             a := SIZEOF(b);
-        END_PROGRAM",
-    );
-
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { i32, i64 }
-
-    @main_instance = global %main zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
-      ret void
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_sizeof_with_named_argument() {
-    let result = codegen(
-        "PROGRAM main
-        VAR
-            a: DINT;
-            b: LINT;
-        END_VAR
             a := SIZEOF(IN := b);
         END_PROGRAM",
     );
@@ -653,6 +495,7 @@ fn builtin_function_call_sizeof_with_named_argument() {
     entry:
       %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
       store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
       ret void
     }
@@ -675,74 +518,6 @@ fn builtin_function_call_lower_bound() {
             vla: ARRAY[*] OF DINT;
         END_VAR
             foo := LOWER_BOUND(vla, 1);
-        END_VAR
-        END_FUNCTION
-        ",
-    );
-
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { [2 x i32], i32 }
-    %__foo_vla = type { i32*, [2 x i32] }
-
-    @main_instance = global %main zeroinitializer
-    @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %auto_deref = load [2 x i32], [2 x i32]* %a, align 4
-      %outer_arr_gep = getelementptr inbounds [2 x i32], [2 x i32]* %a, i32 0, i32 0
-      %vla_struct = alloca %__foo_vla, align 8
-      %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
-      %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-      store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
-      store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-      %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-      %vla_struct_ptr = alloca %__foo_vla, align 8
-      store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
-      %call = call i32 @foo(%__foo_vla* %vla_struct_ptr)
-      store i32 %call, i32* %b, align 4
-      ret void
-    }
-
-    define i32 @foo(%__foo_vla* %0) {
-    entry:
-      %foo = alloca i32, align 4
-      %vla = alloca %__foo_vla*, align 8
-      store %__foo_vla* %0, %__foo_vla** %vla, align 8
-      store i32 0, i32* %foo, align 4
-      %deref = load %__foo_vla*, %__foo_vla** %vla, align 8
-      %dim = getelementptr inbounds %__foo_vla, %__foo_vla* %deref, i32 0, i32 1
-      %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 0
-      %2 = load i32, i32* %1, align 4
-      store i32 %2, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
-      ret i32 %foo_ret
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_lower_bound_with_named_arguments() {
-    let result = codegen(
-        "PROGRAM main
-        VAR
-            a: ARRAY[0..1] OF DINT;
-            b: DINT;
-        END_VAR
-            b := foo(a);
-        END_PROGRAM
-
-        FUNCTION foo : DINT
-        VAR_IN_OUT
-            vla: ARRAY[*] OF DINT;
-        END_VAR
             foo := LOWER_BOUND(arr := vla, dim := 1);
         END_VAR
         END_FUNCTION
@@ -791,6 +566,11 @@ fn builtin_function_call_lower_bound_with_named_arguments() {
       %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 0
       %2 = load i32, i32* %1, align 4
       store i32 %2, i32* %foo, align 4
+      %deref1 = load %__foo_vla*, %__foo_vla** %vla, align 8
+      %dim2 = getelementptr inbounds %__foo_vla, %__foo_vla* %deref1, i32 0, i32 1
+      %3 = getelementptr inbounds [2 x i32], [2 x i32]* %dim2, i32 0, i32 0
+      %4 = load i32, i32* %3, align 4
+      store i32 %4, i32* %foo, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }
@@ -798,7 +578,7 @@ fn builtin_function_call_lower_bound_with_named_arguments() {
 }
 
 #[test]
-fn builtin_function_call_upper_bound_with_named_argument() {
+fn builtin_function_call_upper_bound() {
     let result = codegen(
         "PROGRAM main
         VAR
@@ -812,6 +592,7 @@ fn builtin_function_call_upper_bound_with_named_argument() {
         VAR_IN_OUT
             vla: ARRAY[*] OF DINT;
         END_VAR
+            foo := UPPER_BOUND(vla, 1);
             foo := UPPER_BOUND(arr := vla, dim := 1);
         END_VAR
         END_FUNCTION
@@ -860,75 +641,11 @@ fn builtin_function_call_upper_bound_with_named_argument() {
       %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 1
       %2 = load i32, i32* %1, align 4
       store i32 %2, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
-      ret i32 %foo_ret
-    }
-    "#);
-}
-
-#[test]
-fn builtin_function_call_upper_bound() {
-    let result = codegen(
-        "PROGRAM main
-        VAR
-            a: ARRAY[0..1] OF DINT;
-            b: DINT;
-        END_VAR
-            b := foo(a);
-        END_PROGRAM
-
-        FUNCTION foo : DINT
-        VAR_IN_OUT
-            vla: ARRAY[*] OF DINT;
-        END_VAR
-            foo := UPPER_BOUND(vla, 1);
-        END_VAR
-        END_FUNCTION
-        ",
-    );
-
-    filtered_assert_snapshot!(result, @r#"
-    ; ModuleID = '<internal>'
-    source_filename = "<internal>"
-    target datalayout = "[filtered]"
-    target triple = "[filtered]"
-
-    %main = type { [2 x i32], i32 }
-    %__foo_vla = type { i32*, [2 x i32] }
-
-    @main_instance = global %main zeroinitializer
-    @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
-
-    define void @main(%main* %0) {
-    entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %auto_deref = load [2 x i32], [2 x i32]* %a, align 4
-      %outer_arr_gep = getelementptr inbounds [2 x i32], [2 x i32]* %a, i32 0, i32 0
-      %vla_struct = alloca %__foo_vla, align 8
-      %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
-      %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-      store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
-      store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-      %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-      %vla_struct_ptr = alloca %__foo_vla, align 8
-      store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
-      %call = call i32 @foo(%__foo_vla* %vla_struct_ptr)
-      store i32 %call, i32* %b, align 4
-      ret void
-    }
-
-    define i32 @foo(%__foo_vla* %0) {
-    entry:
-      %foo = alloca i32, align 4
-      %vla = alloca %__foo_vla*, align 8
-      store %__foo_vla* %0, %__foo_vla** %vla, align 8
-      store i32 0, i32* %foo, align 4
-      %deref = load %__foo_vla*, %__foo_vla** %vla, align 8
-      %dim = getelementptr inbounds %__foo_vla, %__foo_vla* %deref, i32 0, i32 1
-      %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 1
-      %2 = load i32, i32* %1, align 4
-      store i32 %2, i32* %foo, align 4
+      %deref1 = load %__foo_vla*, %__foo_vla** %vla, align 8
+      %dim2 = getelementptr inbounds %__foo_vla, %__foo_vla* %deref1, i32 0, i32 1
+      %3 = getelementptr inbounds [2 x i32], [2 x i32]* %dim2, i32 0, i32 1
+      %4 = load i32, i32* %3, align 4
+      store i32 %4, i32* %foo, align 4
       %foo_ret = load i32, i32* %foo, align 4
       ret i32 %foo_ret
     }

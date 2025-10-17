@@ -100,7 +100,7 @@ lazy_static! {
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
                     let input = flatten_expression_list(params);
-                    let actual_input = extract_actual_parameter(input.first().expect("Exactly one parameter required"));
+                    let actual_input = extract_actual_parameter(input.first().expect("must exist; covered by validation"));
                     let input_type = annotator.annotation_map
                                             .get_type_or_void(actual_input, annotator.index)
                                             .get_type_information()
@@ -113,9 +113,7 @@ lazy_static! {
                         true,
                     );
 
-                    if input.first().is_some_and(|it| {
-                        matches!(it.get_stmt(), AstStatement::Assignment(_))
-                    }){
+                    if input.first().is_some_and(|opt| opt.is_assignment()){
                         annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
                     }
                     annotator.annotate(
@@ -722,7 +720,6 @@ fn annotate_arithmetic_function(
         params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
 
     // Add type hints (only named arguments)
-    // TODO: cant we just annotate all parameters?
     params
         .iter()
         .zip(&params_extracted)
@@ -787,22 +784,21 @@ fn annotate_variable_length_array_bound_function(
         return;
     };
     let params = ast::flatten_expression_list(parameters);
-    if let Some(vla) = params.first() {
-        let vla_param = extract_actual_parameter(vla);
-        // if the VLA parameter is a VLA struct, annotate it as such
-        let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
-        let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
-            vla_type.get_name()
-        } else {
-            // otherwise annotate it with an internal, reserved VLA type
-            typesystem::__VLA_TYPE
-        };
-        annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
-    }
+    let vla = params.first().expect("must exist; covered by validation");
+    let vla_param = extract_actual_parameter(vla);
+    // if the VLA parameter is a VLA struct, annotate it as such
+    let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
+    let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
+        vla_type.get_name()
+    } else {
+        // otherwise annotate it with an internal, reserved VLA type
+        typesystem::__VLA_TYPE
+    };
+    annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
     if let Some(dim) = params.get(1) {
         let dim_param = extract_actual_parameter(dim);
         let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
-        if dim_type.get_name() != typesystem::VOID_TYPE {
+        if !dim_type.is_void() {
             // Use the actual type of the dimension parameter
             annotator
                 .annotation_map
