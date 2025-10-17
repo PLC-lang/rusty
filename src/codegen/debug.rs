@@ -449,11 +449,10 @@ impl<'ink> DebugBuilder<'ink> {
         // This allows other tools to distinguish between different kinds of pointer semantics (e.g., reference vs. auto-deref, type-safety, ...)
         // XXX: This is a workaround - gdb will show the mangled type name in the debugger, which is not ideal
         let typedef_name = match index.get_type(name).map(|it| it.get_type_information())? {
-            DataTypeInformation::Pointer { auto_deref: Some(auto_deref), .. } => {
-                matches!(auto_deref, plc_ast::ast::AutoDerefType::Reference)
-                    .then_some(format!("__REFERENCE_TO__{name}"))
-                    .unwrap_or(format!("__AUTO_DEREF__{name}"))
-            }
+            DataTypeInformation::Pointer { auto_deref: Some(auto_deref), .. } => match auto_deref {
+                plc_ast::ast::AutoDerefType::Reference => format!("__REFERENCE_TO__{name}"),
+                _ => format!("__AUTO_DEREF__{name}"),
+            },
             DataTypeInformation::Pointer { type_safe, .. } => {
                 type_safe.then_some(format!("__REF_TO__{name}")).unwrap_or(format!("__POINTER_TO__{name}"))
             }
