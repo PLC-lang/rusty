@@ -2273,3 +2273,271 @@ fn fixed_order() {
     let methods_d = index.get_methods_in_fixed_order("D").iter().map(|p| p.get_name()).collect::<Vec<_>>();
     assert_eq!(methods_d, vec!["C.foo", "A.bar", "D.baz", "D.qux", "C.whateverComesAfterQux", "D.idk"]);
 }
+
+#[test]
+fn enum_ensure_standard_variable_can_be_assigned_in_function_block() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION_BLOCK fb
+        VAR
+            myVar	: EnumType;
+        END_VAR
+        myVar := red;
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fb").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fb", "myVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fb", "red").is_some());
+    assert_eq!(index.find_local_member("fb", "red").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_output_variable_can_be_assigned_in_function_block() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION_BLOCK fb
+        VAR_OUTPUT
+            outVar	: EnumType;
+        END_VAR
+        outVar := green;
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fb").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fb", "outVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fb", "green").is_some());
+    assert_eq!(index.find_local_member("fb", "green").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_in_out_variable_can_be_assigned_in_function_block() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION_BLOCK fb
+        VAR_IN_OUT
+            inOutVar	: EnumType;
+        END_VAR
+        inOutVar := blue;
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fb").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fb", "inOutVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fb", "blue").is_some());
+    assert_eq!(index.find_local_member("fb", "blue").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_a_combination_of_variables_can_be_assigned_in_function_block() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION_BLOCK fb
+        VAR
+            myVar	: EnumType;
+        END_VAR
+        VAR_OUTPUT
+            outVar	: EnumType;
+        END_VAR
+        VAR_IN_OUT
+            inOutVar	: EnumType;
+        END_VAR
+        myVar := red;
+        outVar := green;
+        inOutVar := blue;
+        END_FUNCTION_BLOCK
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fb").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fb", "myVar").is_some());
+    assert!(index.find_local_member("fb", "outVar").is_some());
+    assert!(index.find_local_member("fb", "inOutVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fb", "red").is_some());
+    assert_eq!(index.find_local_member("fb", "red").unwrap().data_type_name, "EnumType");
+    assert!(index.find_local_member("fb", "green").is_some());
+    assert_eq!(index.find_local_member("fb", "green").unwrap().data_type_name, "EnumType");
+    assert!(index.find_local_member("fb", "blue").is_some());
+    assert_eq!(index.find_local_member("fb", "blue").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_standard_variable_can_be_assigned_in_function() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION fn : INT
+        VAR
+            myVar	: EnumType;
+        END_VAR
+        myVar := red;
+        END_FUNCTION
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fn").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fn", "myVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fn", "red").is_some());
+    assert_eq!(index.find_local_member("fn", "red").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_output_variable_can_be_assigned_in_function() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION fn : INT
+        VAR_OUTPUT
+            outVar	: EnumType;
+        END_VAR
+        outVar := green;
+        END_FUNCTION
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fn").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fn", "outVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fn", "green").is_some());
+    assert_eq!(index.find_local_member("fn", "green").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_in_out_variable_can_be_assigned_in_function() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION fn : INT
+        VAR_IN_OUT
+            inOutVar	: EnumType;
+        END_VAR
+        inOutVar := blue;
+        END_FUNCTION
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fn").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fn", "inOutVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fn", "blue").is_some());
+    assert_eq!(index.find_local_member("fn", "blue").unwrap().data_type_name, "EnumType");
+}
+
+#[test]
+fn enum_ensure_a_combination_of_variables_can_be_assigned_in_function() {
+    let (_, index) = index(
+        r#"
+        TYPE EnumType : (
+                red,
+                green,
+                blue
+            );
+        END_TYPE
+
+        FUNCTION fn : INT
+        VAR
+            myVar	: EnumType;
+        END_VAR
+        VAR_OUTPUT
+            outVar	: EnumType;
+        END_VAR
+        VAR_IN_OUT
+            inOutVar	: EnumType;
+        END_VAR
+        myVar := red;
+        outVar := green;
+        inOutVar := blue;
+        END_FUNCTION
+        "#,
+    );
+
+    let pou_type = index.find_pou_type("fn").unwrap();
+    assert!(pou_type.get_type_information().get_size(&index).is_ok());
+
+    assert!(index.find_local_member("fn", "myVar").is_some());
+    assert!(index.find_local_member("fn", "outVar").is_some());
+    assert!(index.find_local_member("fn", "inOutVar").is_some());
+
+    // Evaluate the enum reference
+    assert!(index.find_local_member("fn", "red").is_some());
+    assert_eq!(index.find_local_member("fn", "red").unwrap().data_type_name, "EnumType");
+    assert!(index.find_local_member("fn", "green").is_some());
+    assert_eq!(index.find_local_member("fn", "green").unwrap().data_type_name, "EnumType");
+    assert!(index.find_local_member("fn", "blue").is_some());
+    assert_eq!(index.find_local_member("fn", "blue").unwrap().data_type_name, "EnumType");
+}
