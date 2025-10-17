@@ -6,9 +6,8 @@ use itertools::Itertools;
 use rustc_hash::{FxHashMap, FxHashSet, FxHasher};
 
 use plc_ast::ast::{
-    AstId, AstNode, AstStatement, AutoDerefType, ConfigVariable, DeclarationKind, DirectAccessType,
-    GenericBinding, HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyBlock,
-    PropertyKind, TypeNature,
+    AstId, AstNode, AstStatement, ConfigVariable, DeclarationKind, DirectAccessType, GenericBinding,
+    HardwareAccessType, Identifier, Interface, LinkageType, PouType, PropertyBlock, PropertyKind, TypeNature,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
@@ -1663,11 +1662,9 @@ impl Index {
             };
             let is_enum = match data_type.get_type_information() {
                 DataTypeInformation::Enum { .. } => true,
-                DataTypeInformation::Pointer {
-                    inner_type_name,
-                    auto_deref: Some(AutoDerefType::Default),
-                    ..
-                } => self.type_index.find_type(inner_type_name).is_some_and(|it| it.is_enum()),
+                DataTypeInformation::Pointer { inner_type_name, auto_deref: Some(_), .. } => {
+                    self.type_index.find_type(inner_type_name).is_some_and(|it| it.is_enum())
+                }
                 _ => false,
             };
 
