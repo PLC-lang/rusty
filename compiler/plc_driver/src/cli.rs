@@ -1,8 +1,9 @@
 use anyhow::{bail, Result};
 // Copyright (c) 2021 Ghaith Hachem and Mathias Rieder
-use clap::{ArgEnum, ArgGroup, Parser, Subcommand};
+use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::output::FormatOption;
@@ -368,13 +369,6 @@ pub enum GenerateOption {
         )]
         prefix: Option<String>,
     },
-}
-
-#[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
-pub enum GenerateLanguage {
-    #[default]
-    C,
-    Rust,
 }
 
 impl SubCommands {

@@ -10,13 +10,16 @@ fn generate_header_for_empty_project() {
     let parameters = &[
         "plc",
         "generate",
-        &get_test_file("empty_proj/conf/plc.json"),
+        &get_test_file("var_proj/conf/plc.json"),
         "headers",
         "--header-output",
         &header_dir,
     ];
     compile(parameters).unwrap();
 
-    println!("{}", dir.path().join("headers").join("EmptyProject.h").to_str().unwrap());
-    assert!(dir.path().join("headers").join("EmptyProject.h").is_file());
+    println!("{}", dir.path().join("headers").join("my_test_interface.h").to_str().unwrap());
+    println!("{}", dir.path().join("headers").join("my_test_interface_2.h").to_str().unwrap());
+
+    assert!(dir.path().join("headers").join("my_test_interface.h").is_file());
+    assert!(dir.path().join("headers").join("my_test_interface_2.h").is_file());
 }

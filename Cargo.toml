@@ -78,6 +78,7 @@ members = [
     "compiler/plc_index",
     "compiler/section_mangler",
     "compiler/plc_lowering",
+    "compiler/plc_header_generator",
     "tests/test_utils",
 ]
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]

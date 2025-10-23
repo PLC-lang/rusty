@@ -1,0 +1,85 @@
+VAR_GLOBAL
+    varBool: BOOL;
+
+    varSInt: SINT;
+    varInt: INT;
+    varDInt: DINT;
+    varLInt: LINT;
+
+    varByte: BYTE;
+    varWord: WORD;
+    varDWord: DWORD;
+    varLWord: LWORD;
+
+    varReal: REAL;
+    varLReal: LREAL;
+
+    varDate: DATE;
+    varDateAndTime: DATE_AND_TIME;
+END_VAR
+
+(********************
+*
+* Converts DT/LDT to DATE
+*
+*********************)
+{external}
+FUNCTION DATE_AND_TIME_TO_DATE : DATE
+VAR_INPUT
+    in : DT;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Converts DT/LDT to TOD/LTOD
+*
+*********************)
+{external}
+FUNCTION DATE_AND_TIME_TO_TIME_OF_DAY : TOD
+VAR_INPUT
+    in : DT;
+END_VAR
+END_FUNCTION
+
+{external}
+FUNCTION IamAWeIrdLYCaSEdFunCTIon: INT
+VAR_INPUT
+    varRealInputToFunc: REAL;
+    varIntInputToFunc: INT;
+    varDateAndTimeInputToFunc: DATE_AND_TIME;
+END_VAR
+VAR_IN_OUT
+    varRealInOutFunc: REAL;
+END_VAR
+VAR_OUTPUT
+    varIntOutputFunc: INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION IAmAVoidFunction
+VAR_INPUT
+    varIntInput: INT;
+END_VAR
+END_FUNCTION
+
+(********************
+*
+* Basic Struct with Primitive Types
+*
+*********************)
+TYPE StructWithPrimitiveTypes:
+    STRUCT
+        Field1 : BYTE;
+        Field2 : INT;
+        Field3 : DINT;
+        Field4 : STRING[255];
+        Field5 : WSTRING[6000];
+    END_STRUCT
+END_TYPE
+
+FUNCTION fnThatUsesStructWithPrimitiveTypes: StructWithPrimitiveTypes
+VAR_INPUT
+    varStruct: StructWithPrimitiveTypes;
+END_VAR
+END_FUNCTION

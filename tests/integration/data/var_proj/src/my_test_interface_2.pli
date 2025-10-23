@@ -1,0 +1,19 @@
+VAR_GLOBAL
+    varBool2: BOOL;
+
+    varSInt2: SINT;
+    varInt2: INT;
+    varDInt2: DINT;
+    varLInt2: LINT;
+
+    varByte2: BYTE;
+    varWord2: WORD;
+    varDWord2: DWORD;
+    varLWord2: LWORD;
+
+    varReal2: REAL;
+    varLReal2: LREAL;
+
+    varDate2: DATE;
+    varDateAndTime2: DATE_AND_TIME;
+END_VAR

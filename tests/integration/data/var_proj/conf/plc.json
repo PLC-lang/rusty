@@ -1,0 +1,11 @@
+{
+	"name" : "VariableProject",
+	"files" : [
+		"../src/**/*.pli"
+	],
+	"compile_type" : "Shared",
+	"output" : "prog.so",
+	"libraries" : [
+	]
+}
+
