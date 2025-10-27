@@ -1685,250 +1685,251 @@
 <a href=#1685 id=1685 data-nosnippet>1685</a>        <span class="kw">if let </span>DataTypeInformation::Generic { generic_symbol, nature, .. } = type_hint.get_type_information()
 <a href=#1686 id=1686 data-nosnippet>1686</a>        {
 <a href=#1687 id=1687 data-nosnippet>1687</a>            <span class="comment">// we might be validating an identifier of a formal parameter assignment (FOO(x := 0))
-<a href=#1688 id=1688 data-nosnippet>1688</a>            </span><span class="kw">if let </span>AstStatement::Identifier(<span class="kw">_</span>) = statement.get_stmt() {
-<a href=#1689 id=1689 data-nosnippet>1689</a>                <span class="kw">return</span>;
-<a href=#1690 id=1690 data-nosnippet>1690</a>            }
-<a href=#1691 id=1691 data-nosnippet>1691</a>            validator.push_diagnostic(
-<a href=#1692 id=1692 data-nosnippet>1692</a>                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Could not resolve generic type {generic_symbol} with {nature}"</span>))
-<a href=#1693 id=1693 data-nosnippet>1693</a>                    .with_error_code(<span class="string">"E064"</span>)
-<a href=#1694 id=1694 data-nosnippet>1694</a>                    .with_location(statement),
-<a href=#1695 id=1695 data-nosnippet>1695</a>            );
-<a href=#1696 id=1696 data-nosnippet>1696</a>        } <span class="kw">else if let </span><span class="prelude-val">Some</span>((actual_type, generic_nature)) = context
-<a href=#1697 id=1697 data-nosnippet>1697</a>            .annotations
-<a href=#1698 id=1698 data-nosnippet>1698</a>            .get_type(statement, context.index)
-<a href=#1699 id=1699 data-nosnippet>1699</a>            .zip(context.annotations.get_generic_nature(statement))
-<a href=#1700 id=1700 data-nosnippet>1700</a>        {
-<a href=#1701 id=1701 data-nosnippet>1701</a>            <span class="comment">// check if type_hint and actual_type is compatible
-<a href=#1702 id=1702 data-nosnippet>1702</a>            // should be handled by assignment validation
-<a href=#1703 id=1703 data-nosnippet>1703</a>            </span><span class="kw">if </span>!(actual_type.has_nature(<span class="kw-2">*</span>generic_nature, context.index)
-<a href=#1704 id=1704 data-nosnippet>1704</a>                <span class="comment">// INT parameter for REAL is allowed
-<a href=#1705 id=1705 data-nosnippet>1705</a>                </span>| (type_hint.is_real() &amp; actual_type.is_numerical()))
-<a href=#1706 id=1706 data-nosnippet>1706</a>            {
-<a href=#1707 id=1707 data-nosnippet>1707</a>                validator.push_diagnostic(
-<a href=#1708 id=1708 data-nosnippet>1708</a>                    Diagnostic::new(<span class="macro">format!</span>(
-<a href=#1709 id=1709 data-nosnippet>1709</a>                        <span class="string">"Invalid type nature for generic argument. {} is no {}"</span>,
-<a href=#1710 id=1710 data-nosnippet>1710</a>                        actual_type.get_name(),
-<a href=#1711 id=1711 data-nosnippet>1711</a>                        generic_nature
-<a href=#1712 id=1712 data-nosnippet>1712</a>                    ))
-<a href=#1713 id=1713 data-nosnippet>1713</a>                    .with_error_code(<span class="string">"E062"</span>)
-<a href=#1714 id=1714 data-nosnippet>1714</a>                    .with_location(statement),
-<a href=#1715 id=1715 data-nosnippet>1715</a>                );
-<a href=#1716 id=1716 data-nosnippet>1716</a>            }
-<a href=#1717 id=1717 data-nosnippet>1717</a>        }
-<a href=#1718 id=1718 data-nosnippet>1718</a>    }
-<a href=#1719 id=1719 data-nosnippet>1719</a>}
-<a href=#1720 id=1720 data-nosnippet>1720</a>
-<a href=#1721 id=1721 data-nosnippet>1721</a><span class="kw">fn </span>validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
-<a href=#1722 id=1722 data-nosnippet>1722</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
-<a href=#1723 id=1723 data-nosnippet>1723</a>    left: <span class="kw-2">&amp;</span>DataType,
-<a href=#1724 id=1724 data-nosnippet>1724</a>    right: <span class="kw-2">&amp;</span>AstNode,
-<a href=#1725 id=1725 data-nosnippet>1725</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-<a href=#1726 id=1726 data-nosnippet>1726</a>) {
-<a href=#1727 id=1727 data-nosnippet>1727</a>    <span class="kw">fn </span>get_expression_types_and_locations&lt;<span class="lifetime">'b</span>, T: AnnotationMap&gt;(
-<a href=#1728 id=1728 data-nosnippet>1728</a>        expression: <span class="kw-2">&amp;</span>AstNode,
-<a href=#1729 id=1729 data-nosnippet>1729</a>        context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>ValidationContext&lt;T&gt;,
-<a href=#1730 id=1730 data-nosnippet>1730</a>        lhs_is_signed_int: bool,
-<a href=#1731 id=1731 data-nosnippet>1731</a>        is_builtin_call: bool,
-<a href=#1732 id=1732 data-nosnippet>1732</a>    ) -&gt; FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>DataType, Vec&lt;SourceLocation&gt;&gt; {
-<a href=#1733 id=1733 data-nosnippet>1733</a>        <span class="kw">let </span><span class="kw-2">mut </span>map: FxHashMap&lt;<span class="kw-2">&amp;</span>DataType, Vec&lt;SourceLocation&gt;&gt; = FxHashMap::default();
-<a href=#1734 id=1734 data-nosnippet>1734</a>        <span class="kw">match </span>expression.get_stmt_peeled() {
-<a href=#1735 id=1735 data-nosnippet>1735</a>            AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
-<a href=#1736 id=1736 data-nosnippet>1736</a>                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
-<a href=#1737 id=1737 data-nosnippet>1737</a>            {
-<a href=#1738 id=1738 data-nosnippet>1738</a>                get_expression_types_and_locations(left, context, lhs_is_signed_int, <span class="bool-val">false</span>)
-<a href=#1739 id=1739 data-nosnippet>1739</a>                    .into_iter()
-<a href=#1740 id=1740 data-nosnippet>1740</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-<a href=#1741 id=1741 data-nosnippet>1741</a>                <span class="comment">// the RHS type in a MOD expression has no impact on the resulting value type
-<a href=#1742 id=1742 data-nosnippet>1742</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(operator, Operator::Modulo) {
-<a href=#1743 id=1743 data-nosnippet>1743</a>                    <span class="kw">return </span>map
-<a href=#1744 id=1744 data-nosnippet>1744</a>                };
-<a href=#1745 id=1745 data-nosnippet>1745</a>                get_expression_types_and_locations(right, context, lhs_is_signed_int, <span class="bool-val">false</span>)
-<a href=#1746 id=1746 data-nosnippet>1746</a>                    .into_iter()
-<a href=#1747 id=1747 data-nosnippet>1747</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-<a href=#1748 id=1748 data-nosnippet>1748</a>            }
-<a href=#1749 id=1749 data-nosnippet>1749</a>            AstStatement::UnaryExpression(UnaryExpression { operator, value })
-<a href=#1750 id=1750 data-nosnippet>1750</a>                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
-<a href=#1751 id=1751 data-nosnippet>1751</a>            {
-<a href=#1752 id=1752 data-nosnippet>1752</a>                get_expression_types_and_locations(value, context, lhs_is_signed_int, <span class="bool-val">false</span>)
-<a href=#1753 id=1753 data-nosnippet>1753</a>                    .into_iter()
-<a href=#1754 id=1754 data-nosnippet>1754</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-<a href=#1755 id=1755 data-nosnippet>1755</a>            }
-<a href=#1756 id=1756 data-nosnippet>1756</a>            <span class="comment">// `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
-<a href=#1757 id=1757 data-nosnippet>1757</a>            </span>AstStatement::Literal(lit) <span class="kw">if </span>!<span class="macro">matches!</span>(lit, <span class="kw-2">&amp;</span>AstLiteral::Real(<span class="kw">_</span>)) =&gt; {
-<a href=#1758 id=1758 data-nosnippet>1758</a>                <span class="kw">if </span>!lit.is_numerical() {
-<a href=#1759 id=1759 data-nosnippet>1759</a>                    <span class="kw">return </span>map
-<a href=#1760 id=1760 data-nosnippet>1760</a>                }
-<a href=#1761 id=1761 data-nosnippet>1761</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
-<a href=#1762 id=1762 data-nosnippet>1762</a>                    .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
-<a href=#1763 id=1763 data-nosnippet>1763</a>                {
-<a href=#1764 id=1764 data-nosnippet>1764</a>                    map.entry(dt).or_default().push(expression.get_location());
-<a href=#1765 id=1765 data-nosnippet>1765</a>                }
-<a href=#1766 id=1766 data-nosnippet>1766</a>            }
-<a href=#1767 id=1767 data-nosnippet>1767</a>            AstStatement::CallStatement(CallStatement { operator, parameters })
-<a href=#1768 id=1768 data-nosnippet>1768</a>                <span class="comment">// special handling for builtin selector functions MUX and SEL
-<a href=#1769 id=1769 data-nosnippet>1769</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(operator.get_flat_reference_name().unwrap_or_default(), <span class="string">"MUX" </span>| <span class="string">"SEL"</span>) =&gt;
-<a href=#1770 id=1770 data-nosnippet>1770</a>            {
-<a href=#1771 id=1771 data-nosnippet>1771</a>                <span class="kw">let </span><span class="prelude-val">Some</span>(args) = parameters <span class="kw">else </span>{
-<a href=#1772 id=1772 data-nosnippet>1772</a>                    <span class="kw">return </span>map
-<a href=#1773 id=1773 data-nosnippet>1773</a>                };
-<a href=#1774 id=1774 data-nosnippet>1774</a>                <span class="kw">if let </span>AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
-<a href=#1775 id=1775 data-nosnippet>1775</a>                    <span class="comment">// skip the selector argument since it will never be assigned to the target type
-<a href=#1776 id=1776 data-nosnippet>1776</a>                    </span>list.iter().skip(<span class="number">1</span>).flat_map(|arg| {
-<a href=#1777 id=1777 data-nosnippet>1777</a>                        get_expression_types_and_locations(arg, context, lhs_is_signed_int, <span class="bool-val">true</span>)
-<a href=#1778 id=1778 data-nosnippet>1778</a>                    })
-<a href=#1779 id=1779 data-nosnippet>1779</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
-<a href=#1780 id=1780 data-nosnippet>1780</a>                };
-<a href=#1781 id=1781 data-nosnippet>1781</a>            }
-<a href=#1782 id=1782 data-nosnippet>1782</a>            <span class="kw">_ </span>=&gt; {
-<a href=#1783 id=1783 data-nosnippet>1783</a>                <span class="kw">if </span>!(context.annotations.get_generic_nature(expression).is_none() || is_builtin_call) {
-<a href=#1784 id=1784 data-nosnippet>1784</a>                    <span class="kw">return </span>map
-<a href=#1785 id=1785 data-nosnippet>1785</a>                };
-<a href=#1786 id=1786 data-nosnippet>1786</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = context.annotations.get_type(expression, context.index) {
-<a href=#1787 id=1787 data-nosnippet>1787</a>                    map.entry(dt).or_default().push(expression.get_location());
-<a href=#1788 id=1788 data-nosnippet>1788</a>                }
-<a href=#1789 id=1789 data-nosnippet>1789</a>            }
-<a href=#1790 id=1790 data-nosnippet>1790</a>        };
-<a href=#1791 id=1791 data-nosnippet>1791</a>        map
-<a href=#1792 id=1792 data-nosnippet>1792</a>    }
-<a href=#1793 id=1793 data-nosnippet>1793</a>
-<a href=#1794 id=1794 data-nosnippet>1794</a>    <span class="kw">let </span>lhs = left.get_type_information();
-<a href=#1795 id=1795 data-nosnippet>1795</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(lhs_size) = lhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
-<a href=#1796 id=1796 data-nosnippet>1796</a>    <span class="kw">let </span>results_in_truncation = |rhs: <span class="kw-2">&amp;</span>DataType| {
-<a href=#1797 id=1797 data-nosnippet>1797</a>        <span class="kw">let </span>rhs = rhs.get_type_information();
-<a href=#1798 id=1798 data-nosnippet>1798</a>        <span class="kw">let </span><span class="prelude-val">Ok</span>(rhs_size) = rhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span><span class="bool-val">false </span>};
-<a href=#1799 id=1799 data-nosnippet>1799</a>        lhs_size &lt; rhs_size
-<a href=#1800 id=1800 data-nosnippet>1800</a>            || (lhs_size == rhs_size
-<a href=#1801 id=1801 data-nosnippet>1801</a>                &amp;&amp; ((lhs.is_signed_int() &amp;&amp; rhs.is_unsigned_int()) || (lhs.is_int() &amp;&amp; rhs.is_float())))
-<a href=#1802 id=1802 data-nosnippet>1802</a>    };
-<a href=#1803 id=1803 data-nosnippet>1803</a>
-<a href=#1804 id=1804 data-nosnippet>1804</a>    get_expression_types_and_locations(right, context, lhs.is_signed_int(), <span class="bool-val">false</span>)
-<a href=#1805 id=1805 data-nosnippet>1805</a>        .into_iter()
-<a href=#1806 id=1806 data-nosnippet>1806</a>        .filter(|(dt, <span class="kw">_</span>)| !dt.is_aggregate_type() &amp;&amp; results_in_truncation(dt))
-<a href=#1807 id=1807 data-nosnippet>1807</a>        .for_each(|(dt, location)| {
-<a href=#1808 id=1808 data-nosnippet>1808</a>            location.into_iter().for_each(|loc| {
-<a href=#1809 id=1809 data-nosnippet>1809</a>                validator.push_diagnostic(
-<a href=#1810 id=1810 data-nosnippet>1810</a>                    Diagnostic::new(<span class="macro">format!</span>(
-<a href=#1811 id=1811 data-nosnippet>1811</a>                        <span class="string">"Implicit downcast from '{}' to '{}'."</span>,
-<a href=#1812 id=1812 data-nosnippet>1812</a>                        validator.get_type_name_or_slice(dt),
-<a href=#1813 id=1813 data-nosnippet>1813</a>                        validator.get_type_name_or_slice(left)
-<a href=#1814 id=1814 data-nosnippet>1814</a>                    ))
-<a href=#1815 id=1815 data-nosnippet>1815</a>                    .with_error_code(<span class="string">"E067"</span>)
-<a href=#1816 id=1816 data-nosnippet>1816</a>                    .with_location(loc),
-<a href=#1817 id=1817 data-nosnippet>1817</a>                );
-<a href=#1818 id=1818 data-nosnippet>1818</a>            })
-<a href=#1819 id=1819 data-nosnippet>1819</a>        });
-<a href=#1820 id=1820 data-nosnippet>1820</a>}
-<a href=#1821 id=1821 data-nosnippet>1821</a>
-<a href=#1822 id=1822 data-nosnippet>1822</a><span class="doccomment">/// Validates if a POU call has the correct number of arguments. Specifically, for functions,
-<a href=#1823 id=1823 data-nosnippet>1823</a>/// the argument count must be equal to the required count unless the interface is variadic,
-<a href=#1824 id=1824 data-nosnippet>1824</a>/// in which case the argument count may be greater than or equal to the required count. For stateful
-<a href=#1825 id=1825 data-nosnippet>1825</a>/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and
-<a href=#1826 id=1826 data-nosnippet>1826</a>/// VAR_OUTPUT arguments are optional.
-<a href=#1827 id=1827 data-nosnippet>1827</a></span><span class="kw">fn </span>validate_argument_count&lt;T: AnnotationMap&gt;(
-<a href=#1828 id=1828 data-nosnippet>1828</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-<a href=#1829 id=1829 data-nosnippet>1829</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
-<a href=#1830 id=1830 data-nosnippet>1830</a>    pou: <span class="kw-2">&amp;</span>PouIndexEntry,
-<a href=#1831 id=1831 data-nosnippet>1831</a>    arguments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
-<a href=#1832 id=1832 data-nosnippet>1832</a>    operator_location: <span class="kw-2">&amp;</span>SourceLocation,
-<a href=#1833 id=1833 data-nosnippet>1833</a>) {
-<a href=#1834 id=1834 data-nosnippet>1834</a>    <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
-<a href=#1835 id=1835 data-nosnippet>1835</a>    <span class="kw">let </span>has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
-<a href=#1836 id=1836 data-nosnippet>1836</a>
-<a href=#1837 id=1837 data-nosnippet>1837</a>    <span class="kw">let </span>argument_count_is_incorrect = <span class="kw">match </span>pou {
-<a href=#1838 id=1838 data-nosnippet>1838</a>        PouIndexEntry::Function { .. } =&gt; {
-<a href=#1839 id=1839 data-nosnippet>1839</a>            <span class="comment">// parameters with default values are optional, so the argument count can be less than
-<a href=#1840 id=1840 data-nosnippet>1840</a>            // the parameter count. This only works if the parameters with default values are at the end
-<a href=#1841 id=1841 data-nosnippet>1841</a>            </span><span class="kw">let </span>optional_parameters =
-<a href=#1842 id=1842 data-nosnippet>1842</a>                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
-<a href=#1843 id=1843 data-nosnippet>1843</a>            <span class="kw">let </span>min_required_parameters = parameters.len() - optional_parameters;
-<a href=#1844 id=1844 data-nosnippet>1844</a>            arguments.len() &lt; min_required_parameters
-<a href=#1845 id=1845 data-nosnippet>1845</a>                || (!has_variadic_parameter &amp;&amp; arguments.len() &gt; parameters.len())
-<a href=#1846 id=1846 data-nosnippet>1846</a>        }
-<a href=#1847 id=1847 data-nosnippet>1847</a>
-<a href=#1848 id=1848 data-nosnippet>1848</a>        PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } =&gt; {
-<a href=#1849 id=1849 data-nosnippet>1849</a>            arguments.len() &gt; parameters.len() &amp;&amp; !has_variadic_parameter
-<a href=#1850 id=1850 data-nosnippet>1850</a>        }
-<a href=#1851 id=1851 data-nosnippet>1851</a>
-<a href=#1852 id=1852 data-nosnippet>1852</a>        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
-<a href=#1853 id=1853 data-nosnippet>1853</a>    };
-<a href=#1854 id=1854 data-nosnippet>1854</a>
-<a href=#1855 id=1855 data-nosnippet>1855</a>    <span class="kw">if </span>argument_count_is_incorrect {
-<a href=#1856 id=1856 data-nosnippet>1856</a>        validator.push_diagnostic(Diagnostic::invalid_argument_count(
-<a href=#1857 id=1857 data-nosnippet>1857</a>            parameters.len(),
-<a href=#1858 id=1858 data-nosnippet>1858</a>            arguments.len(),
-<a href=#1859 id=1859 data-nosnippet>1859</a>            operator_location,
-<a href=#1860 id=1860 data-nosnippet>1860</a>        ));
-<a href=#1861 id=1861 data-nosnippet>1861</a>    }
-<a href=#1862 id=1862 data-nosnippet>1862</a>}
-<a href=#1863 id=1863 data-nosnippet>1863</a>
-<a href=#1864 id=1864 data-nosnippet>1864</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>helper {
-<a href=#1865 id=1865 data-nosnippet>1865</a>    <span class="kw">use </span>std::ops::Range;
-<a href=#1866 id=1866 data-nosnippet>1866</a>
-<a href=#1867 id=1867 data-nosnippet>1867</a>    <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
-<a href=#1868 id=1868 data-nosnippet>1868</a>
-<a href=#1869 id=1869 data-nosnippet>1869</a>    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
-<a href=#1870 id=1870 data-nosnippet>1870</a>    <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
-<a href=#1871 id=1871 data-nosnippet>1871</a>    <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
-<a href=#1872 id=1872 data-nosnippet>1872</a>    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
-<a href=#1873 id=1873 data-nosnippet>1873</a>
-<a href=#1874 id=1874 data-nosnippet>1874</a>    <span class="doccomment">/// Returns true if the current index is in the range for the given type
-<a href=#1875 id=1875 data-nosnippet>1875</a>    </span><span class="kw">pub fn </span>is_in_range(
-<a href=#1876 id=1876 data-nosnippet>1876</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
-<a href=#1877 id=1877 data-nosnippet>1877</a>        access_index: u64,
-<a href=#1878 id=1878 data-nosnippet>1878</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-<a href=#1879 id=1879 data-nosnippet>1879</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#1880 id=1880 data-nosnippet>1880</a>    ) -&gt; bool {
-<a href=#1881 id=1881 data-nosnippet>1881</a>        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64
-<a href=#1882 id=1882 data-nosnippet>1882</a>    }
-<a href=#1883 id=1883 data-nosnippet>1883</a>
-<a href=#1884 id=1884 data-nosnippet>1884</a>    <span class="doccomment">/// Returns the range from 0 for the given data type
-<a href=#1885 id=1885 data-nosnippet>1885</a>    </span><span class="kw">pub fn </span>get_range(
-<a href=#1886 id=1886 data-nosnippet>1886</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
-<a href=#1887 id=1887 data-nosnippet>1887</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
-<a href=#1888 id=1888 data-nosnippet>1888</a>        index: <span class="kw-2">&amp;</span>Index,
-<a href=#1889 id=1889 data-nosnippet>1889</a>    ) -&gt; Range&lt;u64&gt; {
-<a href=#1890 id=1890 data-nosnippet>1890</a>        <span class="number">0</span>..((data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
-<a href=#1891 id=1891 data-nosnippet>1891</a>    }
-<a href=#1892 id=1892 data-nosnippet>1892</a>
-<a href=#1893 id=1893 data-nosnippet>1893</a>    <span class="doccomment">/// Returns true if the direct access can be used for the given type
-<a href=#1894 id=1894 data-nosnippet>1894</a>    </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
-<a href=#1895 id=1895 data-nosnippet>1895</a>        data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
-<a href=#1896 id=1896 data-nosnippet>1896</a>    }
-<a href=#1897 id=1897 data-nosnippet>1897</a>
-<a href=#1898 id=1898 data-nosnippet>1898</a>    <span class="kw">pub fn </span>get_literal_int_or_const_expr_value&lt;T&gt;(
-<a href=#1899 id=1899 data-nosnippet>1899</a>        right: <span class="kw-2">&amp;</span>AstNode,
-<a href=#1900 id=1900 data-nosnippet>1900</a>        context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
-<a href=#1901 id=1901 data-nosnippet>1901</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt;
-<a href=#1902 id=1902 data-nosnippet>1902</a>    <span class="kw">where
-<a href=#1903 id=1903 data-nosnippet>1903</a>        </span>T: AnnotationMap,
-<a href=#1904 id=1904 data-nosnippet>1904</a>    {
-<a href=#1905 id=1905 data-nosnippet>1905</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = right.get_literal_integer_value() {
-<a href=#1906 id=1906 data-nosnippet>1906</a>            <span class="kw">return </span><span class="prelude-val">Some</span>(value);
-<a href=#1907 id=1907 data-nosnippet>1907</a>        }
-<a href=#1908 id=1908 data-nosnippet>1908</a>
-<a href=#1909 id=1909 data-nosnippet>1909</a>        <span class="kw">let </span>path = right.get_flat_reference_name().unwrap_or_default();
-<a href=#1910 id=1910 data-nosnippet>1910</a>        <span class="kw">let </span>element = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[path])<span class="question-mark">?</span>;
-<a href=#1911 id=1911 data-nosnippet>1911</a>
-<a href=#1912 id=1912 data-nosnippet>1912</a>        context
-<a href=#1913 id=1913 data-nosnippet>1913</a>            .index
-<a href=#1914 id=1914 data-nosnippet>1914</a>            .get_const_expressions()
-<a href=#1915 id=1915 data-nosnippet>1915</a>            .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
-<a href=#1916 id=1916 data-nosnippet>1916</a>            .and_then(AstNode::get_literal_integer_value)
-<a href=#1917 id=1917 data-nosnippet>1917</a>    }
-<a href=#1918 id=1918 data-nosnippet>1918</a>
-<a href=#1919 id=1919 data-nosnippet>1919</a>    <span class="kw">pub fn </span>get_enum_variant_values&lt;<span class="lifetime">'idx</span>&gt;(
-<a href=#1920 id=1920 data-nosnippet>1920</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
-<a href=#1921 id=1921 data-nosnippet>1921</a>        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
-<a href=#1922 id=1922 data-nosnippet>1922</a>    ) -&gt; Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry, i128)&gt; {
-<a href=#1923 id=1923 data-nosnippet>1923</a>        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
-<a href=#1924 id=1924 data-nosnippet>1924</a>        <span class="kw">for </span>variant <span class="kw">in </span>index.get_enum_variants_by_variable(variable) {
-<a href=#1925 id=1925 data-nosnippet>1925</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
-<a href=#1926 id=1926 data-nosnippet>1926</a>                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
-<a href=#1927 id=1927 data-nosnippet>1927</a>                    variant_const_values.push((variant, init));
-<a href=#1928 id=1928 data-nosnippet>1928</a>                }
-<a href=#1929 id=1929 data-nosnippet>1929</a>            }
-<a href=#1930 id=1930 data-nosnippet>1930</a>        }
-<a href=#1931 id=1931 data-nosnippet>1931</a>
-<a href=#1932 id=1932 data-nosnippet>1932</a>        variant_const_values
-<a href=#1933 id=1933 data-nosnippet>1933</a>    }
-<a href=#1934 id=1934 data-nosnippet>1934</a>}</code></pre></div></section></main></body></html>
+<a href=#1688 id=1688 data-nosnippet>1688</a>            // This includes both Identifier and ReferenceExpr nodes for named arguments
+<a href=#1689 id=1689 data-nosnippet>1689</a>            </span><span class="kw">if let </span>AstStatement::Identifier(<span class="kw">_</span>) | AstStatement::ReferenceExpr(<span class="kw">_</span>) = statement.get_stmt() {
+<a href=#1690 id=1690 data-nosnippet>1690</a>                <span class="kw">return</span>;
+<a href=#1691 id=1691 data-nosnippet>1691</a>            }
+<a href=#1692 id=1692 data-nosnippet>1692</a>            validator.push_diagnostic(
+<a href=#1693 id=1693 data-nosnippet>1693</a>                Diagnostic::new(<span class="macro">format!</span>(<span class="string">"Could not resolve generic type {generic_symbol} with {nature}"</span>))
+<a href=#1694 id=1694 data-nosnippet>1694</a>                    .with_error_code(<span class="string">"E064"</span>)
+<a href=#1695 id=1695 data-nosnippet>1695</a>                    .with_location(statement),
+<a href=#1696 id=1696 data-nosnippet>1696</a>            );
+<a href=#1697 id=1697 data-nosnippet>1697</a>        } <span class="kw">else if let </span><span class="prelude-val">Some</span>((actual_type, generic_nature)) = context
+<a href=#1698 id=1698 data-nosnippet>1698</a>            .annotations
+<a href=#1699 id=1699 data-nosnippet>1699</a>            .get_type(statement, context.index)
+<a href=#1700 id=1700 data-nosnippet>1700</a>            .zip(context.annotations.get_generic_nature(statement))
+<a href=#1701 id=1701 data-nosnippet>1701</a>        {
+<a href=#1702 id=1702 data-nosnippet>1702</a>            <span class="comment">// check if type_hint and actual_type is compatible
+<a href=#1703 id=1703 data-nosnippet>1703</a>            // should be handled by assignment validation
+<a href=#1704 id=1704 data-nosnippet>1704</a>            </span><span class="kw">if </span>!(actual_type.has_nature(<span class="kw-2">*</span>generic_nature, context.index)
+<a href=#1705 id=1705 data-nosnippet>1705</a>                <span class="comment">// INT parameter for REAL is allowed
+<a href=#1706 id=1706 data-nosnippet>1706</a>                </span>| (type_hint.is_real() &amp; actual_type.is_numerical()))
+<a href=#1707 id=1707 data-nosnippet>1707</a>            {
+<a href=#1708 id=1708 data-nosnippet>1708</a>                validator.push_diagnostic(
+<a href=#1709 id=1709 data-nosnippet>1709</a>                    Diagnostic::new(<span class="macro">format!</span>(
+<a href=#1710 id=1710 data-nosnippet>1710</a>                        <span class="string">"Invalid type nature for generic argument. {} is no {}"</span>,
+<a href=#1711 id=1711 data-nosnippet>1711</a>                        actual_type.get_name(),
+<a href=#1712 id=1712 data-nosnippet>1712</a>                        generic_nature
+<a href=#1713 id=1713 data-nosnippet>1713</a>                    ))
+<a href=#1714 id=1714 data-nosnippet>1714</a>                    .with_error_code(<span class="string">"E062"</span>)
+<a href=#1715 id=1715 data-nosnippet>1715</a>                    .with_location(statement),
+<a href=#1716 id=1716 data-nosnippet>1716</a>                );
+<a href=#1717 id=1717 data-nosnippet>1717</a>            }
+<a href=#1718 id=1718 data-nosnippet>1718</a>        }
+<a href=#1719 id=1719 data-nosnippet>1719</a>    }
+<a href=#1720 id=1720 data-nosnippet>1720</a>}
+<a href=#1721 id=1721 data-nosnippet>1721</a>
+<a href=#1722 id=1722 data-nosnippet>1722</a><span class="kw">fn </span>validate_assignment_type_sizes&lt;T: AnnotationMap&gt;(
+<a href=#1723 id=1723 data-nosnippet>1723</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
+<a href=#1724 id=1724 data-nosnippet>1724</a>    left: <span class="kw-2">&amp;</span>DataType,
+<a href=#1725 id=1725 data-nosnippet>1725</a>    right: <span class="kw-2">&amp;</span>AstNode,
+<a href=#1726 id=1726 data-nosnippet>1726</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+<a href=#1727 id=1727 data-nosnippet>1727</a>) {
+<a href=#1728 id=1728 data-nosnippet>1728</a>    <span class="kw">fn </span>get_expression_types_and_locations&lt;<span class="lifetime">'b</span>, T: AnnotationMap&gt;(
+<a href=#1729 id=1729 data-nosnippet>1729</a>        expression: <span class="kw-2">&amp;</span>AstNode,
+<a href=#1730 id=1730 data-nosnippet>1730</a>        context: <span class="kw-2">&amp;</span><span class="lifetime">'b </span>ValidationContext&lt;T&gt;,
+<a href=#1731 id=1731 data-nosnippet>1731</a>        lhs_is_signed_int: bool,
+<a href=#1732 id=1732 data-nosnippet>1732</a>        is_builtin_call: bool,
+<a href=#1733 id=1733 data-nosnippet>1733</a>    ) -&gt; FxHashMap&lt;<span class="kw-2">&amp;</span><span class="lifetime">'b </span>DataType, Vec&lt;SourceLocation&gt;&gt; {
+<a href=#1734 id=1734 data-nosnippet>1734</a>        <span class="kw">let </span><span class="kw-2">mut </span>map: FxHashMap&lt;<span class="kw-2">&amp;</span>DataType, Vec&lt;SourceLocation&gt;&gt; = FxHashMap::default();
+<a href=#1735 id=1735 data-nosnippet>1735</a>        <span class="kw">match </span>expression.get_stmt_peeled() {
+<a href=#1736 id=1736 data-nosnippet>1736</a>            AstStatement::BinaryExpression(BinaryExpression { operator, left, right, .. })
+<a href=#1737 id=1737 data-nosnippet>1737</a>                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
+<a href=#1738 id=1738 data-nosnippet>1738</a>            {
+<a href=#1739 id=1739 data-nosnippet>1739</a>                get_expression_types_and_locations(left, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+<a href=#1740 id=1740 data-nosnippet>1740</a>                    .into_iter()
+<a href=#1741 id=1741 data-nosnippet>1741</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+<a href=#1742 id=1742 data-nosnippet>1742</a>                <span class="comment">// the RHS type in a MOD expression has no impact on the resulting value type
+<a href=#1743 id=1743 data-nosnippet>1743</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(operator, Operator::Modulo) {
+<a href=#1744 id=1744 data-nosnippet>1744</a>                    <span class="kw">return </span>map
+<a href=#1745 id=1745 data-nosnippet>1745</a>                };
+<a href=#1746 id=1746 data-nosnippet>1746</a>                get_expression_types_and_locations(right, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+<a href=#1747 id=1747 data-nosnippet>1747</a>                    .into_iter()
+<a href=#1748 id=1748 data-nosnippet>1748</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+<a href=#1749 id=1749 data-nosnippet>1749</a>            }
+<a href=#1750 id=1750 data-nosnippet>1750</a>            AstStatement::UnaryExpression(UnaryExpression { operator, value })
+<a href=#1751 id=1751 data-nosnippet>1751</a>                <span class="kw">if </span>!operator.is_comparison_operator() =&gt;
+<a href=#1752 id=1752 data-nosnippet>1752</a>            {
+<a href=#1753 id=1753 data-nosnippet>1753</a>                get_expression_types_and_locations(value, context, lhs_is_signed_int, <span class="bool-val">false</span>)
+<a href=#1754 id=1754 data-nosnippet>1754</a>                    .into_iter()
+<a href=#1755 id=1755 data-nosnippet>1755</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+<a href=#1756 id=1756 data-nosnippet>1756</a>            }
+<a href=#1757 id=1757 data-nosnippet>1757</a>            <span class="comment">// `get_literal_actual_signed_type_name` will always return `LREAL` for FP literals, so they will be handled by the fall-through case according to their annotated type
+<a href=#1758 id=1758 data-nosnippet>1758</a>            </span>AstStatement::Literal(lit) <span class="kw">if </span>!<span class="macro">matches!</span>(lit, <span class="kw-2">&amp;</span>AstLiteral::Real(<span class="kw">_</span>)) =&gt; {
+<a href=#1759 id=1759 data-nosnippet>1759</a>                <span class="kw">if </span>!lit.is_numerical() {
+<a href=#1760 id=1760 data-nosnippet>1760</a>                    <span class="kw">return </span>map
+<a href=#1761 id=1761 data-nosnippet>1761</a>                }
+<a href=#1762 id=1762 data-nosnippet>1762</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = get_literal_actual_signed_type_name(lit, lhs_is_signed_int)
+<a href=#1763 id=1763 data-nosnippet>1763</a>                    .map(|name| context.index.get_type(name).unwrap_or(context.index.get_void_type()))
+<a href=#1764 id=1764 data-nosnippet>1764</a>                {
+<a href=#1765 id=1765 data-nosnippet>1765</a>                    map.entry(dt).or_default().push(expression.get_location());
+<a href=#1766 id=1766 data-nosnippet>1766</a>                }
+<a href=#1767 id=1767 data-nosnippet>1767</a>            }
+<a href=#1768 id=1768 data-nosnippet>1768</a>            AstStatement::CallStatement(CallStatement { operator, parameters })
+<a href=#1769 id=1769 data-nosnippet>1769</a>                <span class="comment">// special handling for builtin selector functions MUX and SEL
+<a href=#1770 id=1770 data-nosnippet>1770</a>                </span><span class="kw">if </span><span class="macro">matches!</span>(operator.get_flat_reference_name().unwrap_or_default(), <span class="string">"MUX" </span>| <span class="string">"SEL"</span>) =&gt;
+<a href=#1771 id=1771 data-nosnippet>1771</a>            {
+<a href=#1772 id=1772 data-nosnippet>1772</a>                <span class="kw">let </span><span class="prelude-val">Some</span>(args) = parameters <span class="kw">else </span>{
+<a href=#1773 id=1773 data-nosnippet>1773</a>                    <span class="kw">return </span>map
+<a href=#1774 id=1774 data-nosnippet>1774</a>                };
+<a href=#1775 id=1775 data-nosnippet>1775</a>                <span class="kw">if let </span>AstStatement::ExpressionList(list) = args.get_stmt_peeled() {
+<a href=#1776 id=1776 data-nosnippet>1776</a>                    <span class="comment">// skip the selector argument since it will never be assigned to the target type
+<a href=#1777 id=1777 data-nosnippet>1777</a>                    </span>list.iter().skip(<span class="number">1</span>).flat_map(|arg| {
+<a href=#1778 id=1778 data-nosnippet>1778</a>                        get_expression_types_and_locations(arg, context, lhs_is_signed_int, <span class="bool-val">true</span>)
+<a href=#1779 id=1779 data-nosnippet>1779</a>                    })
+<a href=#1780 id=1780 data-nosnippet>1780</a>                    .for_each(|(k, v)| map.entry(k).or_default().extend(v));
+<a href=#1781 id=1781 data-nosnippet>1781</a>                };
+<a href=#1782 id=1782 data-nosnippet>1782</a>            }
+<a href=#1783 id=1783 data-nosnippet>1783</a>            <span class="kw">_ </span>=&gt; {
+<a href=#1784 id=1784 data-nosnippet>1784</a>                <span class="kw">if </span>!(context.annotations.get_generic_nature(expression).is_none() || is_builtin_call) {
+<a href=#1785 id=1785 data-nosnippet>1785</a>                    <span class="kw">return </span>map
+<a href=#1786 id=1786 data-nosnippet>1786</a>                };
+<a href=#1787 id=1787 data-nosnippet>1787</a>                <span class="kw">if let </span><span class="prelude-val">Some</span>(dt) = context.annotations.get_type(expression, context.index) {
+<a href=#1788 id=1788 data-nosnippet>1788</a>                    map.entry(dt).or_default().push(expression.get_location());
+<a href=#1789 id=1789 data-nosnippet>1789</a>                }
+<a href=#1790 id=1790 data-nosnippet>1790</a>            }
+<a href=#1791 id=1791 data-nosnippet>1791</a>        };
+<a href=#1792 id=1792 data-nosnippet>1792</a>        map
+<a href=#1793 id=1793 data-nosnippet>1793</a>    }
+<a href=#1794 id=1794 data-nosnippet>1794</a>
+<a href=#1795 id=1795 data-nosnippet>1795</a>    <span class="kw">let </span>lhs = left.get_type_information();
+<a href=#1796 id=1796 data-nosnippet>1796</a>    <span class="kw">let </span><span class="prelude-val">Ok</span>(lhs_size) = lhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span>};
+<a href=#1797 id=1797 data-nosnippet>1797</a>    <span class="kw">let </span>results_in_truncation = |rhs: <span class="kw-2">&amp;</span>DataType| {
+<a href=#1798 id=1798 data-nosnippet>1798</a>        <span class="kw">let </span>rhs = rhs.get_type_information();
+<a href=#1799 id=1799 data-nosnippet>1799</a>        <span class="kw">let </span><span class="prelude-val">Ok</span>(rhs_size) = rhs.get_size(context.index) <span class="kw">else </span>{ <span class="kw">return </span><span class="bool-val">false </span>};
+<a href=#1800 id=1800 data-nosnippet>1800</a>        lhs_size &lt; rhs_size
+<a href=#1801 id=1801 data-nosnippet>1801</a>            || (lhs_size == rhs_size
+<a href=#1802 id=1802 data-nosnippet>1802</a>                &amp;&amp; ((lhs.is_signed_int() &amp;&amp; rhs.is_unsigned_int()) || (lhs.is_int() &amp;&amp; rhs.is_float())))
+<a href=#1803 id=1803 data-nosnippet>1803</a>    };
+<a href=#1804 id=1804 data-nosnippet>1804</a>
+<a href=#1805 id=1805 data-nosnippet>1805</a>    get_expression_types_and_locations(right, context, lhs.is_signed_int(), <span class="bool-val">false</span>)
+<a href=#1806 id=1806 data-nosnippet>1806</a>        .into_iter()
+<a href=#1807 id=1807 data-nosnippet>1807</a>        .filter(|(dt, <span class="kw">_</span>)| !dt.is_aggregate_type() &amp;&amp; results_in_truncation(dt))
+<a href=#1808 id=1808 data-nosnippet>1808</a>        .for_each(|(dt, location)| {
+<a href=#1809 id=1809 data-nosnippet>1809</a>            location.into_iter().for_each(|loc| {
+<a href=#1810 id=1810 data-nosnippet>1810</a>                validator.push_diagnostic(
+<a href=#1811 id=1811 data-nosnippet>1811</a>                    Diagnostic::new(<span class="macro">format!</span>(
+<a href=#1812 id=1812 data-nosnippet>1812</a>                        <span class="string">"Implicit downcast from '{}' to '{}'."</span>,
+<a href=#1813 id=1813 data-nosnippet>1813</a>                        validator.get_type_name_or_slice(dt),
+<a href=#1814 id=1814 data-nosnippet>1814</a>                        validator.get_type_name_or_slice(left)
+<a href=#1815 id=1815 data-nosnippet>1815</a>                    ))
+<a href=#1816 id=1816 data-nosnippet>1816</a>                    .with_error_code(<span class="string">"E067"</span>)
+<a href=#1817 id=1817 data-nosnippet>1817</a>                    .with_location(loc),
+<a href=#1818 id=1818 data-nosnippet>1818</a>                );
+<a href=#1819 id=1819 data-nosnippet>1819</a>            })
+<a href=#1820 id=1820 data-nosnippet>1820</a>        });
+<a href=#1821 id=1821 data-nosnippet>1821</a>}
+<a href=#1822 id=1822 data-nosnippet>1822</a>
+<a href=#1823 id=1823 data-nosnippet>1823</a><span class="doccomment">/// Validates if a POU call has the correct number of arguments. Specifically, for functions,
+<a href=#1824 id=1824 data-nosnippet>1824</a>/// the argument count must be equal to the required count unless the interface is variadic,
+<a href=#1825 id=1825 data-nosnippet>1825</a>/// in which case the argument count may be greater than or equal to the required count. For stateful
+<a href=#1826 id=1826 data-nosnippet>1826</a>/// POUs, the argument count can be less than or equal to the required count since VAR_INPUT and
+<a href=#1827 id=1827 data-nosnippet>1827</a>/// VAR_OUTPUT arguments are optional.
+<a href=#1828 id=1828 data-nosnippet>1828</a></span><span class="kw">fn </span>validate_argument_count&lt;T: AnnotationMap&gt;(
+<a href=#1829 id=1829 data-nosnippet>1829</a>    context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+<a href=#1830 id=1830 data-nosnippet>1830</a>    validator: <span class="kw-2">&amp;mut </span>Validator,
+<a href=#1831 id=1831 data-nosnippet>1831</a>    pou: <span class="kw-2">&amp;</span>PouIndexEntry,
+<a href=#1832 id=1832 data-nosnippet>1832</a>    arguments: <span class="kw-2">&amp;</span>[<span class="kw-2">&amp;</span>AstNode],
+<a href=#1833 id=1833 data-nosnippet>1833</a>    operator_location: <span class="kw-2">&amp;</span>SourceLocation,
+<a href=#1834 id=1834 data-nosnippet>1834</a>) {
+<a href=#1835 id=1835 data-nosnippet>1835</a>    <span class="kw">let </span>parameters = context.index.get_declared_parameters(pou.get_name());
+<a href=#1836 id=1836 data-nosnippet>1836</a>    <span class="kw">let </span>has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
+<a href=#1837 id=1837 data-nosnippet>1837</a>
+<a href=#1838 id=1838 data-nosnippet>1838</a>    <span class="kw">let </span>argument_count_is_incorrect = <span class="kw">match </span>pou {
+<a href=#1839 id=1839 data-nosnippet>1839</a>        PouIndexEntry::Function { .. } =&gt; {
+<a href=#1840 id=1840 data-nosnippet>1840</a>            <span class="comment">// parameters with default values are optional, so the argument count can be less than
+<a href=#1841 id=1841 data-nosnippet>1841</a>            // the parameter count. This only works if the parameters with default values are at the end
+<a href=#1842 id=1842 data-nosnippet>1842</a>            </span><span class="kw">let </span>optional_parameters =
+<a href=#1843 id=1843 data-nosnippet>1843</a>                parameters.iter().rev().take_while(|p| p.initial_value.is_some()).count();
+<a href=#1844 id=1844 data-nosnippet>1844</a>            <span class="kw">let </span>min_required_parameters = parameters.len() - optional_parameters;
+<a href=#1845 id=1845 data-nosnippet>1845</a>            arguments.len() &lt; min_required_parameters
+<a href=#1846 id=1846 data-nosnippet>1846</a>                || (!has_variadic_parameter &amp;&amp; arguments.len() &gt; parameters.len())
+<a href=#1847 id=1847 data-nosnippet>1847</a>        }
+<a href=#1848 id=1848 data-nosnippet>1848</a>
+<a href=#1849 id=1849 data-nosnippet>1849</a>        PouIndexEntry::Program { .. } | PouIndexEntry::FunctionBlock { .. } =&gt; {
+<a href=#1850 id=1850 data-nosnippet>1850</a>            arguments.len() &gt; parameters.len() &amp;&amp; !has_variadic_parameter
+<a href=#1851 id=1851 data-nosnippet>1851</a>        }
+<a href=#1852 id=1852 data-nosnippet>1852</a>
+<a href=#1853 id=1853 data-nosnippet>1853</a>        <span class="kw">_ </span>=&gt; <span class="bool-val">false</span>,
+<a href=#1854 id=1854 data-nosnippet>1854</a>    };
+<a href=#1855 id=1855 data-nosnippet>1855</a>
+<a href=#1856 id=1856 data-nosnippet>1856</a>    <span class="kw">if </span>argument_count_is_incorrect {
+<a href=#1857 id=1857 data-nosnippet>1857</a>        validator.push_diagnostic(Diagnostic::invalid_argument_count(
+<a href=#1858 id=1858 data-nosnippet>1858</a>            parameters.len(),
+<a href=#1859 id=1859 data-nosnippet>1859</a>            arguments.len(),
+<a href=#1860 id=1860 data-nosnippet>1860</a>            operator_location,
+<a href=#1861 id=1861 data-nosnippet>1861</a>        ));
+<a href=#1862 id=1862 data-nosnippet>1862</a>    }
+<a href=#1863 id=1863 data-nosnippet>1863</a>}
+<a href=#1864 id=1864 data-nosnippet>1864</a>
+<a href=#1865 id=1865 data-nosnippet>1865</a><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">mod </span>helper {
+<a href=#1866 id=1866 data-nosnippet>1866</a>    <span class="kw">use </span>std::ops::Range;
+<a href=#1867 id=1867 data-nosnippet>1867</a>
+<a href=#1868 id=1868 data-nosnippet>1868</a>    <span class="kw">use </span>plc_ast::ast::{AstNode, DirectAccessType};
+<a href=#1869 id=1869 data-nosnippet>1869</a>
+<a href=#1870 id=1870 data-nosnippet>1870</a>    <span class="kw">use </span><span class="kw">crate</span>::index::VariableIndexEntry;
+<a href=#1871 id=1871 data-nosnippet>1871</a>    <span class="kw">use </span><span class="kw">crate</span>::resolver::AnnotationMap;
+<a href=#1872 id=1872 data-nosnippet>1872</a>    <span class="kw">use </span><span class="kw">crate</span>::validation::ValidationContext;
+<a href=#1873 id=1873 data-nosnippet>1873</a>    <span class="kw">use crate</span>::{index::Index, typesystem::DataTypeInformation};
+<a href=#1874 id=1874 data-nosnippet>1874</a>
+<a href=#1875 id=1875 data-nosnippet>1875</a>    <span class="doccomment">/// Returns true if the current index is in the range for the given type
+<a href=#1876 id=1876 data-nosnippet>1876</a>    </span><span class="kw">pub fn </span>is_in_range(
+<a href=#1877 id=1877 data-nosnippet>1877</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
+<a href=#1878 id=1878 data-nosnippet>1878</a>        access_index: u64,
+<a href=#1879 id=1879 data-nosnippet>1879</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+<a href=#1880 id=1880 data-nosnippet>1880</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#1881 id=1881 data-nosnippet>1881</a>    ) -&gt; bool {
+<a href=#1882 id=1882 data-nosnippet>1882</a>        (access.get_bit_width() * access_index) &lt; data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64
+<a href=#1883 id=1883 data-nosnippet>1883</a>    }
+<a href=#1884 id=1884 data-nosnippet>1884</a>
+<a href=#1885 id=1885 data-nosnippet>1885</a>    <span class="doccomment">/// Returns the range from 0 for the given data type
+<a href=#1886 id=1886 data-nosnippet>1886</a>    </span><span class="kw">pub fn </span>get_range(
+<a href=#1887 id=1887 data-nosnippet>1887</a>        access: <span class="kw-2">&amp;</span>DirectAccessType,
+<a href=#1888 id=1888 data-nosnippet>1888</a>        data_type: <span class="kw-2">&amp;</span>DataTypeInformation,
+<a href=#1889 id=1889 data-nosnippet>1889</a>        index: <span class="kw-2">&amp;</span>Index,
+<a href=#1890 id=1890 data-nosnippet>1890</a>    ) -&gt; Range&lt;u64&gt; {
+<a href=#1891 id=1891 data-nosnippet>1891</a>        <span class="number">0</span>..((data_type.get_size_in_bits(index).unwrap_or_default() <span class="kw">as </span>u64 / access.get_bit_width()) - <span class="number">1</span>)
+<a href=#1892 id=1892 data-nosnippet>1892</a>    }
+<a href=#1893 id=1893 data-nosnippet>1893</a>
+<a href=#1894 id=1894 data-nosnippet>1894</a>    <span class="doccomment">/// Returns true if the direct access can be used for the given type
+<a href=#1895 id=1895 data-nosnippet>1895</a>    </span><span class="kw">pub fn </span>is_compatible(access: <span class="kw-2">&amp;</span>DirectAccessType, data_type: <span class="kw-2">&amp;</span>DataTypeInformation, index: <span class="kw-2">&amp;</span>Index) -&gt; bool {
+<a href=#1896 id=1896 data-nosnippet>1896</a>        data_type.get_semantic_size(index) <span class="kw">as </span>u64 &gt; access.get_bit_width()
+<a href=#1897 id=1897 data-nosnippet>1897</a>    }
+<a href=#1898 id=1898 data-nosnippet>1898</a>
+<a href=#1899 id=1899 data-nosnippet>1899</a>    <span class="kw">pub fn </span>get_literal_int_or_const_expr_value&lt;T&gt;(
+<a href=#1900 id=1900 data-nosnippet>1900</a>        right: <span class="kw-2">&amp;</span>AstNode,
+<a href=#1901 id=1901 data-nosnippet>1901</a>        context: <span class="kw-2">&amp;</span>ValidationContext&lt;T&gt;,
+<a href=#1902 id=1902 data-nosnippet>1902</a>    ) -&gt; <span class="prelude-ty">Option</span>&lt;i128&gt;
+<a href=#1903 id=1903 data-nosnippet>1903</a>    <span class="kw">where
+<a href=#1904 id=1904 data-nosnippet>1904</a>        </span>T: AnnotationMap,
+<a href=#1905 id=1905 data-nosnippet>1905</a>    {
+<a href=#1906 id=1906 data-nosnippet>1906</a>        <span class="kw">if let </span><span class="prelude-val">Some</span>(value) = right.get_literal_integer_value() {
+<a href=#1907 id=1907 data-nosnippet>1907</a>            <span class="kw">return </span><span class="prelude-val">Some</span>(value);
+<a href=#1908 id=1908 data-nosnippet>1908</a>        }
+<a href=#1909 id=1909 data-nosnippet>1909</a>
+<a href=#1910 id=1910 data-nosnippet>1910</a>        <span class="kw">let </span>path = right.get_flat_reference_name().unwrap_or_default();
+<a href=#1911 id=1911 data-nosnippet>1911</a>        <span class="kw">let </span>element = context.index.find_variable(context.qualifier, <span class="kw-2">&amp;</span>[path])<span class="question-mark">?</span>;
+<a href=#1912 id=1912 data-nosnippet>1912</a>
+<a href=#1913 id=1913 data-nosnippet>1913</a>        context
+<a href=#1914 id=1914 data-nosnippet>1914</a>            .index
+<a href=#1915 id=1915 data-nosnippet>1915</a>            .get_const_expressions()
+<a href=#1916 id=1916 data-nosnippet>1916</a>            .maybe_get_constant_statement(<span class="kw-2">&amp;</span>element.initial_value)
+<a href=#1917 id=1917 data-nosnippet>1917</a>            .and_then(AstNode::get_literal_integer_value)
+<a href=#1918 id=1918 data-nosnippet>1918</a>    }
+<a href=#1919 id=1919 data-nosnippet>1919</a>
+<a href=#1920 id=1920 data-nosnippet>1920</a>    <span class="kw">pub fn </span>get_enum_variant_values&lt;<span class="lifetime">'idx</span>&gt;(
+<a href=#1921 id=1921 data-nosnippet>1921</a>        index: <span class="kw-2">&amp;</span><span class="lifetime">'idx </span>Index,
+<a href=#1922 id=1922 data-nosnippet>1922</a>        variable: <span class="kw-2">&amp;</span>VariableIndexEntry,
+<a href=#1923 id=1923 data-nosnippet>1923</a>    ) -&gt; Vec&lt;(<span class="kw-2">&amp;</span><span class="lifetime">'idx </span>VariableIndexEntry, i128)&gt; {
+<a href=#1924 id=1924 data-nosnippet>1924</a>        <span class="kw">let </span><span class="kw-2">mut </span>variant_const_values = Vec::new();
+<a href=#1925 id=1925 data-nosnippet>1925</a>        <span class="kw">for </span>variant <span class="kw">in </span>index.get_enum_variants_by_variable(variable) {
+<a href=#1926 id=1926 data-nosnippet>1926</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(<span class="kw-2">ref </span>const_id) = variant.initial_value {
+<a href=#1927 id=1927 data-nosnippet>1927</a>                <span class="kw">if let </span><span class="prelude-val">Ok</span>(init) = index.get_const_expressions().get_constant_int_statement_value(const_id) {
+<a href=#1928 id=1928 data-nosnippet>1928</a>                    variant_const_values.push((variant, init));
+<a href=#1929 id=1929 data-nosnippet>1929</a>                }
+<a href=#1930 id=1930 data-nosnippet>1930</a>            }
+<a href=#1931 id=1931 data-nosnippet>1931</a>        }
+<a href=#1932 id=1932 data-nosnippet>1932</a>
+<a href=#1933 id=1933 data-nosnippet>1933</a>        variant_const_values
+<a href=#1934 id=1934 data-nosnippet>1934</a>    }
+<a href=#1935 id=1935 data-nosnippet>1935</a>}</code></pre></div></section></main></body></html>
