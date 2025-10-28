@@ -327,15 +327,22 @@ impl TypeAnnotator<'_> {
         let operator_qualifier = &self.get_call_name(operator);
         let implementation = self.index.find_implementation_by_name(operator_qualifier);
         let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
-        for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
+        let mut declared_parameters =
+            self.index.get_declared_parameters_with_paths(operator_qualifier).into_iter();
+        while let Some((position_path, member)) = declared_parameters.next() {
             if let Some(p) = parameters.next() {
-                let type_name = m.get_type_name();
+                let type_name = member.get_type_name();
                 if let Some((key, candidate)) =
                     TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
                 {
                     generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
                 } else {
-                    params.push((p, type_name.to_string(), m.get_location_in_parent()))
+                    params.push((
+                        p,
+                        type_name.to_string(),
+                        position_path,
+                        Some(member.get_qualified_name().to_string()),
+                    ));
                 }
             }
         }
@@ -398,7 +405,8 @@ impl TypeAnnotator<'_> {
                             params.push((
                                 parameter,
                                 type_name.to_string(),
-                                variadic.get_location_in_parent(),
+                                vec![variadic.get_location_in_parent() as usize],
+                                None,
                             ));
                         }
                     }
@@ -407,8 +415,8 @@ impl TypeAnnotator<'_> {
             _ => {}
         }
 
-        for (p, name, position) in params {
-            self.annotate_parameters(p, &name, position as usize);
+        for (p, name, position, parameter_name) in params {
+            self.annotate_parameters(p, &name, position, parameter_name);
         }
 
         // Attempt to resolve the generic signature here
@@ -461,7 +469,11 @@ pub enum StatementAnnotation {
         resulting_type: String,
 
         /// The position of the parameter this argument is assigned to
-        position: usize,
+        /// represented as a path into the enclosing aggregate
+        position: Vec<usize>,
+
+        /// The fully qualified name of the parameter this argument targets
+        parameter: Option<String>,
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
     Variable {
@@ -787,15 +799,24 @@ impl StatementAnnotation {
     ///     c : DINT;
     /// END_VAR`
     /// ```
-    pub(crate) fn get_location_in_parent(&self) -> Option<u32> {
+    pub(crate) fn get_location_in_parent(&self) -> Option<Vec<u32>> {
         match self {
-            StatementAnnotation::Argument { position, .. } => Some(*position as u32),
+            StatementAnnotation::Argument { position, .. } => {
+                Some(position.iter().map(|&idx| idx as u32).collect())
+            }
             _ => None,
         }
     }
 
     pub fn is_fnptr(&self) -> bool {
         matches!(self, StatementAnnotation::FunctionPointer { .. })
+    }
+
+    pub fn get_parameter_qualified_name(&self) -> Option<&str> {
+        match self {
+            StatementAnnotation::Argument { parameter: Some(name), .. } => Some(name.as_str()),
+            _ => None,
+        }
     }
 }
 
@@ -2336,7 +2357,13 @@ impl<'i> TypeAnnotator<'i> {
         operator_qualifier
     }
 
-    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str, position: usize) {
+    pub(crate) fn annotate_parameters(
+        &mut self,
+        p: &AstNode,
+        type_name: &str,
+        position: Vec<usize>,
+        parameter_name: Option<String>,
+    ) {
         if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
             //update the type hint
             // self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
@@ -2345,6 +2372,7 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Argument {
                     resulting_type: effective_member_type.get_name().to_string(),
                     position,
+                    parameter: parameter_name,
                 },
             );
         }

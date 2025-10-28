@@ -73,9 +73,97 @@ struct CallParameterAssignment<'a, 'b> {
     /// the name of the function we're calling
     function_name: &'b str,
     /// the position of the argument in the POU's argument's list
-    index: u32,
+    index: Vec<u32>,
     /// a pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
+    /// the fully qualified name of the targeted parameter, if known
+    parameter_name: Option<String>,
+}
+
+impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
+    fn resolve_pou_type_name<'a>(&'a self, pou_name: &'a str) -> Option<&'a str> {
+        if self.index.find_pou_type(pou_name).is_some() {
+            Some(pou_name)
+        } else {
+            self.index
+                .find_implementation_by_name(pou_name)
+                .map(|implementation| implementation.get_type_name())
+        }
+    }
+
+    fn gep_for_path(&self, base: PointerValue<'ink>, path: &[u32]) -> Result<PointerValue<'ink>, ()> {
+        let mut current = base;
+        for index in path {
+            current = self.llvm.builder.build_struct_gep(current, *index, "").map_err(|_| ())?;
+        }
+        Ok(current)
+    }
+
+    fn find_parameter_by_name<'a>(
+        &'a self,
+        pou_name: &str,
+        qualified_name: &str,
+    ) -> Option<&'a VariableIndexEntry> {
+        let pou_type_name = self.resolve_pou_type_name(pou_name)?;
+        self.index
+            .get_declared_parameters(pou_type_name)
+            .into_iter()
+            .find(|param| param.get_qualified_name().eq_ignore_ascii_case(qualified_name))
+    }
+
+    fn find_parameter_struct_path(&self, pou_name: &str, qualified_name: &str) -> Option<Vec<u32>> {
+        let pou_type_name = self.resolve_pou_type_name(pou_name)?;
+        let pou = self.index.find_pou(pou_type_name)?;
+        let struct_type = pou.find_instance_struct_type(self.index)?;
+        if let DataTypeInformation::Struct { members, .. } = &struct_type.information {
+            return self.find_parameter_struct_path_recursive(
+                members,
+                qualified_name,
+                &mut FxHashSet::default(),
+            );
+        }
+        None
+    }
+
+    fn find_parameter_struct_path_recursive(
+        &self,
+        members: &[VariableIndexEntry],
+        qualified_name: &str,
+        visited: &mut FxHashSet<String>,
+    ) -> Option<Vec<u32>> {
+        for member in members {
+            let current_index = member.get_location_in_parent();
+            if member.get_qualified_name().eq_ignore_ascii_case(qualified_name) {
+                return Some(vec![current_index]);
+            }
+
+            if member.get_name().starts_with("__") && self.index.find_pou(member.get_type_name()).is_some() {
+                if visited.insert(member.get_type_name().to_string()) {
+                    if let Some(effective_type) =
+                        self.index.find_effective_type_by_name(member.get_type_name())
+                    {
+                        if let DataTypeInformation::Struct { members: inner_members, .. } =
+                            effective_type.get_type_information()
+                        {
+                            if let Some(mut nested_path) = self.find_parameter_struct_path_recursive(
+                                inner_members,
+                                qualified_name,
+                                visited,
+                            ) {
+                                let mut path = vec![current_index];
+                                path.append(&mut nested_path);
+                                visited.remove(member.get_type_name());
+                                return Some(path);
+                            }
+                        }
+                    }
+                    visited.remove(member.get_type_name());
+                }
+            }
+        }
+
+        None
+    }
 }
 
 #[derive(Debug)]
@@ -702,16 +790,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
-                self.assign_output_value(&CallParameterAssignment {
-                    assignment: assignment_statement,
-                    function_name,
-                    index: self
-                        .annotations
-                        .get_hint(assignment_statement)
-                        .and_then(StatementAnnotation::get_location_in_parent)
-                        .expect("arguments must have a type hint"),
-                    parameter_struct,
-                })?
+                if let Some(annotation) = self.annotations.get_hint(assignment_statement) {
+                    let index = annotation.get_location_in_parent().expect("arguments must have a type hint");
+                    let parameter_name = annotation.get_parameter_qualified_name().map(str::to_string);
+                    self.assign_output_value(&CallParameterAssignment {
+                        assignment: assignment_statement,
+                        function_name,
+                        index,
+                        parameter_struct,
+                        parameter_name,
+                    })?
+                }
             }
         }
 
@@ -840,7 +929,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), CodegenError> {
-        let &CallParameterAssignment { assignment: expr, function_name, index, parameter_struct } = context;
+        let expr = context.assignment;
+        let function_name = context.function_name;
+        let parameter_struct = context.parameter_struct;
+        let fallback_path = &context.index;
         let builder = &self.llvm.builder;
 
         // We don't want to generate any code if the right side of an assignment is empty, e.g. `foo(out =>)`
@@ -848,17 +940,28 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(());
         }
 
-        let parameter = self.index.get_declared_parameter(function_name, index).expect("must exist");
+        let parameter = if let Some(name) = context.parameter_name.as_deref() {
+            self.find_parameter_by_name(function_name, name)
+        } else {
+            None
+        }
+        .or_else(|| {
+            fallback_path.first().and_then(|idx| self.index.get_declared_parameter(function_name, *idx))
+        })
+        .expect("parameter must exist");
+
+        let pointer_indices = context
+            .parameter_name
+            .as_deref()
+            .and_then(|name| self.find_parameter_struct_path(function_name, name))
+            .unwrap_or_else(|| fallback_path.clone());
 
         match expr.get_stmt() {
             AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
-                let rhs_type = {
-                    let pou = self.index.find_pou(function_name).unwrap();
-                    let pou_struct = &pou.find_instance_struct_type(self.index).unwrap().information;
-                    let DataTypeInformation::Struct { members, .. } = pou_struct else { unreachable!() };
-
-                    self.index.find_effective_type_by_name(&members[index as usize].data_type_name).unwrap()
-                };
+                let rhs_type = self
+                    .index
+                    .find_effective_type_by_name(parameter.get_type_name())
+                    .expect("effective type must exist");
 
                 let AstStatement::ReferenceExpr(ReferenceExpr {
                     access: ReferenceAccess::Member(member),
@@ -874,7 +977,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let (base, _) = collect_base_and_direct_access_for_assignment(base).unwrap();
 
                     let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
-                    let rhs = self.llvm.builder.build_struct_gep(parameter_struct, index, "").unwrap();
+                    let rhs = self.gep_for_path(parameter_struct, &pointer_indices).map_err(|_| {
+                        Diagnostic::codegen_error(
+                            format!("Cannot build generate parameter: {parameter:#?}"),
+                            &parameter.source_location,
+                        )
+                    })?;
 
                     self.generate_output_assignment_with_direct_access(
                         expr,
@@ -889,7 +997,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-                let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+                let output = self.gep_for_path(parameter_struct, &pointer_indices).map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {parameter:#?}"),
                         &parameter.source_location,
@@ -930,13 +1038,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.as_ref()))?;
-            let index = parameter.get_location_in_parent();
+            let path = vec![parameter.get_location_in_parent()];
 
             self.generate_output_assignment(&CallParameterAssignment {
                 assignment: right,
                 function_name,
-                index,
+                index: path,
                 parameter_struct,
+                parameter_name: Some(parameter.get_qualified_name().to_string()),
             })?
         };
 
@@ -1280,15 +1389,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
         for argument in arguments.iter() {
+            let Some(annotation) = self.annotations.get_hint(argument) else {
+                panic!("arguments must have a type hint");
+            };
+            let index = annotation.get_location_in_parent().expect("arguments must have a type hint");
+            let parameter_name = annotation.get_parameter_qualified_name().map(str::to_string);
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
-                index: self
-                    .annotations
-                    .get_hint(argument)
-                    .and_then(StatementAnnotation::get_location_in_parent)
-                    .expect("arguments must have a type hint"),
+                index,
                 parameter_struct,
+                parameter_name,
             })?;
             if let Some(parameter) = parameter {
                 result.push(parameter.into());
@@ -1379,10 +1490,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let builder = &self.llvm.builder;
         let function_name = param_context.function_name;
-        let index = param_context.index;
+        let fallback_path = &param_context.index;
         let parameter_struct = param_context.parameter_struct;
         let expression = param_context.assignment;
-        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
+        let parameter = if let Some(name) = param_context.parameter_name.as_deref() {
+            self.find_parameter_by_name(function_name, name)
+        } else {
+            None
+        }
+        .or_else(|| {
+            fallback_path.first().and_then(|idx| self.index.get_declared_parameter(function_name, *idx))
+        });
+
+        if let Some(parameter) = parameter {
             // this happens before the pou call
             // before the call statement we may only consider inputs and inouts
             // after the call we need to copy the output values to the correct assigned variables
@@ -1390,7 +1510,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let pointer_to_param = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
+            let pointer_indices = param_context
+                .parameter_name
+                .as_deref()
+                .and_then(|name| self.find_parameter_struct_path(function_name, name))
+                .unwrap_or_else(|| fallback_path.clone());
+            let pointer_to_param = self.gep_for_path(parameter_struct, &pointer_indices).map_err(|_| {
                 Diagnostic::codegen_error(
                     format!("Cannot build generate parameter: {expression:#?}"),
                     expression,
@@ -1399,8 +1524,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             let parameter = self
                 .index
-                .find_parameter(function_name, index)
-                .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
+                .find_effective_type_by_name(parameter.get_type_name())
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
 
@@ -1444,7 +1568,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left))?;
-            let index = parameter.get_location_in_parent();
+            let path = vec![parameter.get_location_in_parent()];
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
@@ -1458,8 +1582,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
                     function_name,
-                    index,
+                    index: path,
                     parameter_struct,
+                    parameter_name: Some(parameter.get_qualified_name().to_string()),
                 })?;
             };
         }

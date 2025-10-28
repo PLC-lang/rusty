@@ -6041,14 +6041,24 @@ fn implicit_output_assignment_arguments_are_annotated() {
     insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]).unwrap(), @r#"
     Argument {
         resulting_type: "DINT",
-        position: 1,
+        position: [
+            1,
+        ],
+        parameter: Some(
+            "fb.x",
+        ),
     }
     "#);
 
     insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]).unwrap(), @r#"
     Argument {
         resulting_type: "BOOL",
-        position: 2,
+        position: [
+            2,
+        ],
+        parameter: Some(
+            "fb.y",
+        ),
     }
     "#);
 }
@@ -6107,7 +6117,12 @@ fn explicit_output_assignment_arguments_are_annotated() {
     Some(
         Argument {
             resulting_type: "DINT",
-            position: 1,
+            position: [
+                1,
+            ],
+            parameter: Some(
+                "QUUX.x",
+            ),
         },
     )
     "#);
@@ -6116,7 +6131,12 @@ fn explicit_output_assignment_arguments_are_annotated() {
     Some(
         Argument {
             resulting_type: "BOOL",
-            position: 3,
+            position: [
+                3,
+            ],
+            parameter: Some(
+                "QUUX.Q",
+            ),
         },
     )
     "#);
@@ -6178,7 +6198,12 @@ fn program_call_declared_as_variable_is_annotated() {
     Some(
         Argument {
             resulting_type: "DINT",
-            position: 1,
+            position: [
+                1,
+            ],
+            parameter: Some(
+                "ridiculous_chaining.x",
+            ),
         },
     )
     "###);
@@ -6187,10 +6212,79 @@ fn program_call_declared_as_variable_is_annotated() {
     Some(
         Argument {
             resulting_type: "DINT",
-            position: 2,
+            position: [
+                2,
+            ],
+            parameter: Some(
+                "ridiculous_chaining.y",
+            ),
         },
     )
     "###);
+}
+
+#[test]
+fn function_block_call_supports_parent_arguments() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK FbA
+        VAR_INPUT
+            inA: DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+        VAR_INPUT
+            inB: DINT;
+        END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+        VAR
+            instanceB: FbB;
+        END_VAR
+
+        instanceB(inA := 5, inB := 10);
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+
+    let implementation = unit
+        .implementations
+        .iter()
+        .find(|implementation| {
+            implementation
+                .statements
+                .iter()
+                .any(|statement| matches!(statement.get_stmt(), AstStatement::CallStatement(_)))
+        })
+        .expect("call implementation exists");
+
+    let AstStatement::CallStatement(CallStatement { parameters: Some(params), .. }) =
+        implementation.statements[0].get_stmt()
+    else {
+        unreachable!()
+    };
+
+    let expressions = flatten_expression_list(params);
+    let first_annotation = annotations.get_hint(&expressions[0]).unwrap();
+    let second_annotation = annotations.get_hint(&expressions[1]).unwrap();
+
+    if let StatementAnnotation::Argument { parameter, .. } = first_annotation {
+        assert_eq!(parameter.as_deref(), Some("FbA.inA"));
+    } else {
+        panic!("expected argument annotation for inherited parameter");
+    }
+
+    if let StatementAnnotation::Argument { parameter, .. } = second_annotation {
+        assert_eq!(parameter.as_deref(), Some("FbB.inB"));
+    } else {
+        panic!("expected argument annotation for local parameter");
+    }
 }
 
 #[test]

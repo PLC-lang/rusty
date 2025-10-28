@@ -1701,11 +1701,112 @@ impl Index {
         self.get_pou_types().get(&pou_name.to_lowercase())
     }
 
-    pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
-        self.get_pou_members(pou_name)
+    pub fn get_declared_parameters_with_paths(
+        &self,
+        pou_name: &str,
+    ) -> Vec<(Vec<usize>, &VariableIndexEntry)> {
+        let mut result = Vec::new();
+        let mut visited = FxHashSet::default();
+
+        if let Some(pou) = self.find_pou(pou_name) {
+            if let Some(struct_type) = pou.find_instance_struct_type(self) {
+                if let DataTypeInformation::Struct { members, .. } = &struct_type.information {
+                    self.collect_instance_parameter_paths(
+                        members,
+                        &mut Vec::new(),
+                        &mut visited,
+                        &mut result,
+                    );
+                }
+            }
+        } else if let Some(struct_type) = self.find_pou_type(pou_name) {
+            if let DataTypeInformation::Struct { members, .. } = &struct_type.information {
+                self.collect_instance_parameter_paths(members, &mut Vec::new(), &mut visited, &mut result);
+            }
+        }
+
+        let mut fallback = Vec::new();
+        self.collect_declared_parameters_logical(pou_name, &mut Vec::new(), &mut fallback);
+
+        if result.is_empty() || fallback.len() > result.len() {
+            result = fallback;
+        } else {
+            let existing: FxHashSet<String> = result
+                .iter()
+                .map(|(_, entry)| entry.get_qualified_name().to_string())
+                .collect();
+            for entry in fallback {
+                if !existing.contains(entry.1.get_qualified_name()) {
+                    result.push(entry);
+                }
+            }
+        }
+
+        result
+    }
+
+    fn collect_instance_parameter_paths<'idx>(
+        &'idx self,
+        members: &'idx [VariableIndexEntry],
+        prefix: &mut Vec<usize>,
+        visited: &mut FxHashSet<String>,
+        out: &mut Vec<(Vec<usize>, &'idx VariableIndexEntry)>,
+    ) {
+        for member in members {
+            let location = member.get_location_in_parent() as usize;
+            prefix.push(location);
+
+            if member.is_parameter() && !member.is_variadic() {
+                out.push((prefix.clone(), member));
+                prefix.pop();
+                continue;
+            }
+
+            if member.get_name().starts_with("__") && self.find_pou(member.get_type_name()).is_some() {
+                if visited.insert(member.get_type_name().to_string()) {
+                    if let Some(effective_type) = self
+                        .find_effective_type_by_name(member.get_type_name())
+                        .map(DataType::get_type_information)
+                    {
+                        if let DataTypeInformation::Struct { members: inner_members, .. } = effective_type {
+                            self.collect_instance_parameter_paths(inner_members, prefix, visited, out);
+                        }
+                    }
+                    visited.remove(member.get_type_name());
+                }
+            }
+
+            prefix.pop();
+        }
+    }
+
+    fn collect_declared_parameters_logical<'idx>(
+        &'idx self,
+        pou_name: &str,
+        prefix: &mut Vec<usize>,
+        out: &mut Vec<(Vec<usize>, &'idx VariableIndexEntry)>,
+    ) {
+        if let Some(pou) = self.find_pou(pou_name) {
+            if let Some(parent) = pou.get_super_class() {
+                prefix.push(0);
+                self.collect_declared_parameters_logical(parent, prefix, out);
+                prefix.pop();
+            }
+        }
+
+        for parameter in self
+            .get_pou_members(pou_name)
             .iter()
-            .filter(|it| it.is_parameter() && !it.is_variadic())
-            .collect::<Vec<_>>()
+            .filter(|member| member.is_parameter() && !member.is_variadic())
+        {
+            let mut path = prefix.clone();
+            path.push(parameter.get_location_in_parent() as usize);
+            out.push((path, parameter));
+        }
+    }
+
+    pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
+        self.get_declared_parameters_with_paths(pou_name).into_iter().map(|(_, param)| param).collect()
     }
 
     pub fn has_variadic_parameter(&self, pou_name: &str) -> bool {
