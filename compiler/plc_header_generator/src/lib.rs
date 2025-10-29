@@ -2,8 +2,10 @@ use std::path::PathBuf;
 
 use clap::ArgEnum;
 
+pub mod file_manager;
 pub mod header_generator;
-pub mod type_map;
+pub mod template_manager;
+pub mod type_manager;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
 pub enum GenerateLanguage {

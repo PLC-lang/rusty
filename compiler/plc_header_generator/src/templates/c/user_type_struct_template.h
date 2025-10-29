@@ -1,3 +1,3 @@
 typedef struct {
     {{ variables }}
-} {{ name }};
+} {{ name }}

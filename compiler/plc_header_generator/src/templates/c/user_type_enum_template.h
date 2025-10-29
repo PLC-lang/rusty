@@ -1,0 +1,3 @@
+typedef enum {
+    {{ variables }}
+} {{ name }}

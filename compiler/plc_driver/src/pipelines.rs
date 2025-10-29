@@ -41,7 +41,7 @@ use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
-use plc_header_generator::{header_generator, GenerateHeaderOptions};
+use plc_header_generator::{header_generator::GeneratedHeader, GenerateHeaderOptions};
 use plc_index::GlobalContext;
 use plc_lowering::inheritance::InheritanceLowerer;
 use project::{
@@ -225,24 +225,22 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
-        self.compile_parameters.as_ref().map(|params| {
-            match params.commands.as_ref().unwrap() {
-                SubCommands::Generate { option, .. } => match option {
-                    GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
-                        GenerateHeaderOptions {
-                            include_stubs: *include_stubs,
-                            language: *language,
-                            output_path: if output.is_some() {
-                                PathBuf::from(output.clone().unwrap())
-                            } else {
-                                PathBuf::from(String::new())
-                            },
-                            prefix: prefix.clone().unwrap_or(String::new()),
-                        }
+        self.compile_parameters.as_ref().map(|params| match params.commands.as_ref().unwrap() {
+            SubCommands::Generate { option, .. } => match option {
+                GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
+                    GenerateHeaderOptions {
+                        include_stubs: *include_stubs,
+                        language: *language,
+                        output_path: if output.is_some() {
+                            PathBuf::from(output.clone().unwrap())
+                        } else {
+                            PathBuf::from(String::new())
+                        },
+                        prefix: prefix.clone().unwrap_or(String::new()),
                     }
-                },
-                _ => GenerateHeaderOptions::default(),
-            }
+                }
+            },
+            _ => GenerateHeaderOptions::default(),
         })
     }
 
@@ -466,8 +464,22 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             return Ok(());
         };
 
+        let mut generated_headers: Vec<GeneratedHeader> = Vec::new();
+
         for unit in project.units {
-            header_generator::generate_headers(&generate_header_options, unit.unit)?;
+            let mut generated_header = GeneratedHeader::new();
+            generated_header.generate_headers(&generate_header_options, unit.unit)?;
+            generated_headers.push(generated_header);
+        }
+
+        for generated_header in generated_headers {
+            if !generated_header.is_empty() {
+                // Create the directories to the output path
+                fs::create_dir_all(generated_header.directory)?;
+
+                // Write the header file
+                fs::write(generated_header.path, generated_header.contents)?;
+            }
         }
 
         Ok(())

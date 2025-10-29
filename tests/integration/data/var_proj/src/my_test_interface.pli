@@ -1,22 +1,46 @@
 VAR_GLOBAL
-    varBool: BOOL;
+    gVarBool: BOOL;
 
-    varSInt: SINT;
-    varInt: INT;
-    varDInt: DINT;
-    varLInt: LINT;
+    gVarSInt: SINT;
+    gVarInt: INT;
+    gVarDInt: DINT;
+    gVarLInt: LINT;
 
-    varByte: BYTE;
-    varWord: WORD;
-    varDWord: DWORD;
-    varLWord: LWORD;
+    gVarByte: BYTE;
+    gVarWord: WORD;
+    gVarDWord: DWORD;
+    gVarLWord: LWORD;
 
-    varReal: REAL;
-    varLReal: LREAL;
+    gVarReal: REAL;
+    gVarLReal: LREAL;
 
-    varDate: DATE;
-    varDateAndTime: DATE_AND_TIME;
+    gVarDate: DATE;
+    gVarDateAndTime: DATE_AND_TIME;
+
+    gVarString: STRING[255];
+    gVarWString: WSTRING[6000];
+
+    gVarIntArray: ARRAY[0..11] OF INT;
+
+    gVarRefToInt: REFERENCE TO INT;
+    gVarPointerToInt: REF_TO INT;
+    gVarRefToDate: REFERENCE TO DATE;
+    gVarPointerToDate: REF_TO DATE;
 END_VAR
+
+TYPE SimpleEnumType : (
+        red,
+        green,
+        blue
+    );
+END_TYPE
+
+TYPE ComplexEnumType : (
+        orange := 10,
+        yellow := 20,
+        purple := 30
+    );
+END_TYPE
 
 (********************
 *
@@ -73,13 +97,47 @@ TYPE StructWithPrimitiveTypes:
         Field1 : BYTE;
         Field2 : INT;
         Field3 : DINT;
-        Field4 : STRING[255];
-        Field5 : WSTRING[6000];
+    END_STRUCT
+END_TYPE
+
+(********************
+*
+* Basic Struct with Complex Types
+*
+*********************)
+TYPE StructWithComplexTypes:
+    STRUCT
+        byteField : BYTE;
+        intField : INT;
+        dIntField : DINT;
+        stringField : STRING[255];
+        wStringField : WSTRING[6000];
+        complexEnumTypeField : ComplexEnumType;
+        intArrayField: ARRAY[0..9] OF INT;
     END_STRUCT
 END_TYPE
 
 FUNCTION fnThatUsesStructWithPrimitiveTypes: StructWithPrimitiveTypes
 VAR_INPUT
     varStruct: StructWithPrimitiveTypes;
+END_VAR
+END_FUNCTION
+
+FUNCTION fnThatUsesStructWithComplexTypes: StructWithComplexTypes
+VAR_INPUT
+    varStruct: StructWithComplexTypes;
+    varEnum: ComplexEnumType;
+    varString: STRING[200];
+    varIntArray: ARRAY[0..14] OF INT;
+END_VAR
+END_FUNCTION
+
+FUNCTION fnThatUsesPrimitiveTypesAndReferences
+VAR_INPUT
+    varInt: INT;
+    varRefToInt: REFERENCE TO INT;
+    varPointerToInt: REF_TO INT;
+    varRefToDate: REFERENCE TO DATE;
+    varPointerToDate: REF_TO DATE;
 END_VAR
 END_FUNCTION
