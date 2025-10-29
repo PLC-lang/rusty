@@ -1,8 +1,8 @@
 [package]
 name = "rusty"
-version = "0.2.0"
+version = "0.3.0"
 authors = [
-    "Ghaith Hachem <ghaith.hachem@gmail.com>",
+    "Ghaith Hachem <rusty@mail.hachem.at>",
     "Mathias Rieder <mathias.rieder@gmail.com>",
 ]
 edition = "2021"
@@ -80,7 +80,7 @@ members = [
     "compiler/plc_lowering",
     "tests/test_utils",
 ]
-default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
+default-members = ["compiler/plc_driver"]
 
 [workspace.dependencies]
 insta = { version = "1.31.0", features = ["filters"] }

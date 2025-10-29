@@ -26,7 +26,16 @@ jobs:
 
   test-linux:
     name: Test Linux
-    runs-on: ubuntu-latest
+    runs-on: ${matrix.config.os}
+    strategy:
+      matrix:
+        config:
+          - {
+            os: "ubuntu-latest"
+          }
+          - {
+            os: "ubuntu-24.04-arm"
+          }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
@@ -40,6 +49,18 @@ jobs:
   package-linux:
     name: Package Linux
     runs-on: ubuntu-latest
+    runs-on: ${matrix.config.os}
+    strategy:
+      matrix:
+        config:
+          - {
+            os: "ubuntu-latest",
+            arch: "x86_64"
+          }
+          - {
+            os: "ubuntu-24.04-arm",
+            arch: "aarch64"
+          }
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
@@ -49,8 +70,7 @@ jobs:
         run: |
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package \
-          --target x86_64-linux-gnu,aarch64-linux-gnu, \
-          x86_64-unknown-linux-gnu,aarch64-unknown-linux-gnu
+          --target ${matrix.config.arch}-linux-gnu
 
       - uses: actions/upload-artifact@master
         with:
@@ -78,6 +98,11 @@ jobs:
             os: "ubuntu-latest",
             version: "linux",
             arch: "x86_64"
+          }
+          - {
+            os: "ubuntu-24.04-arm",
+            version: "linux",
+            arch: "aarch64"
           }
     permissions:
       packages: write
@@ -152,7 +177,7 @@ jobs:
           echo IMAGE_NAME=$IMAGE_NAME
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID:$VERSION-x86_64
+          docker manifest create $IMAGE_ID:$VERSION $IMAGE_ID$VERSION-aarch64 $IMAGE_ID:$VERSION-x86_64
           docker manifest push $IMAGE_ID:$VERSION
 
   style:

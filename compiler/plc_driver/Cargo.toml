@@ -1,8 +1,18 @@
 [package]
 name = "plc_driver"
-version = "0.1.0"
+version = "0.3.0"
 edition = "2021"
 build = "build.rs"
+readme = "../../README.md"
+repository = "https://github.com/ghaith/rusty/"
+license = "LGPL-3.0-or-later"
+keywords = ["iec61131", "st", "Structued_Text"]
+categories = ["development-tools::build-utils"]
+description = "IEC61131-3 Compiler for Structured Text and CFC"
+authors = [
+    "Ghaith Hachem <rusty@mail.hachem.at>",
+    "Mathias Rieder <mathias.rieder@gmail.com>",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
