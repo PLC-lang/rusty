@@ -48,7 +48,6 @@ jobs:
 
   package-linux:
     name: Package Linux
-    runs-on: ubuntu-latest
     runs-on: ${matrix.config.os}
     strategy:
       matrix:
