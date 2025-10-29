@@ -26,7 +26,7 @@ jobs:
 
   test-linux:
     name: Test Linux
-    runs-on: ${matrix.config.os}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
         config:
@@ -48,7 +48,7 @@ jobs:
 
   package-linux:
     name: Package Linux
-    runs-on: ${matrix.config.os}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
         config:

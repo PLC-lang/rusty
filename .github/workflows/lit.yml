@@ -12,7 +12,7 @@ on:
 jobs:
   lit-linux-debug:
     name: lit tests (Linux, debug build)
-    runs-on: ${matrix.config.os}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
         config:
@@ -33,7 +33,7 @@ jobs:
 
   lit-linux-release:
     name: lit tests (Linux, release build)
-    runs-on: ${matrix.config.os}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       matrix:
         config:
