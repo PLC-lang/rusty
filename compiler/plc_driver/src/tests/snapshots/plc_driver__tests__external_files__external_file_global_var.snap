@@ -1,7 +1,6 @@
 ---
-source: compiler/plc_driver/./src/tests/external_files.rs
+source: compiler/plc_driver/src/tests/external_files.rs
 expression: "results.join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'main.st'
 source_filename = "main.st"
@@ -40,6 +39,7 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___TestProject, i8* null }]
+@llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___TestProject to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
 
 define void @__init___TestProject() {
 entry:

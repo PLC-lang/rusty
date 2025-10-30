@@ -364,6 +364,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
         });
 
+        // Prevent removal by optimizer
+        let i8_ptr = self.llvm.context.i8_type().ptr_type(AddressSpace::default());
+        let used_array = i8_ptr.const_array(&[
+            curr_f.as_global_value().as_pointer_value().const_cast(i8_ptr),
+            global_ctors.as_pointer_value().const_cast(i8_ptr),
+        ]);
+
+        let used = module.add_global(used_array.get_type(), None, "llvm.used");
+        used.set_initializer(&used_array);
+        used.set_linkage(Linkage::Appending);
+
         global_ctors.set_initializer(&arr);
         global_ctors.set_linkage(Linkage::Appending);
         Ok(())

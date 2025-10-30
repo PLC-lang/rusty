@@ -657,7 +657,7 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -669,6 +669,7 @@ fn generating_init_functions() {
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -702,7 +703,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of
@@ -752,6 +753,7 @@ fn generating_init_functions() {
     %__vtable_bar = type { void (%bar*)* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @baz_instance = global %baz zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
@@ -957,6 +959,7 @@ fn intializing_temporary_variables() {
     @ps2 = global [81 x i8] zeroinitializer
     @ps = global [81 x i8] zeroinitializer
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -1074,6 +1077,7 @@ fn initializing_method_variables() {
     %foo = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -1182,6 +1186,7 @@ fn initializing_method_variables() {
 
     @y = global i32 0
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo { i32* null, i32 5 }
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
@@ -1294,6 +1299,7 @@ fn initializing_method_variables() {
     %foo = type { i32*, i32 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo { i32* null, i32 5 }
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer

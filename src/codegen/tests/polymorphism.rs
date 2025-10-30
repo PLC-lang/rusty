@@ -57,6 +57,7 @@ fn simple_overridden_method() {
     %B = type { %A, i16, i16 }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -277,6 +278,7 @@ fn method_call_within_method() {
     %A = type { i32* }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -420,6 +422,7 @@ fn this_is_untouched() {
     %C = type { %A }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -704,6 +707,7 @@ fn super_is_untouched() {
     %B = type { %A }
 
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
