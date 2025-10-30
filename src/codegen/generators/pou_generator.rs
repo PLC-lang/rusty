@@ -33,7 +33,7 @@ use index::VariableType;
 use inkwell::{
     module::{Linkage, Module},
     types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
-    values::{BasicValue, BasicValueEnum, FunctionValue},
+    values::{BasicValueEnum, FunctionValue},
     AddressSpace,
 };
 use inkwell::{
@@ -337,46 +337,24 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         module: &Module<'ink>,
         curr_f: FunctionValue<'ink>,
     ) -> Result<(), CodegenError> {
-        //Create a constructor struct
-        let ctor_str = self.llvm.context.struct_type(
-            &[
-                //Priority
-                self.llvm.context.i32_type().as_basic_type_enum(),
-                // Function pointer
-                curr_f.as_global_value().as_basic_value_enum().get_type(),
-                //Data
-                self.llvm.context.i8_type().ptr_type(AddressSpace::default()).as_basic_type_enum(),
-            ],
-            false,
-        );
-
-        //Create an entry for the global constructor of the project
-        let str_value = ctor_str.const_named_struct(&[
-            self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
-            curr_f.as_global_value().as_basic_value_enum(),
-            self.llvm.context.i8_type().ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
-        ]);
-        //Create an array with the global constructor as an entry
-        let arr = ctor_str.const_array(&[str_value]);
-        //Create the global constructors variable or fetch it and append to it if already
-        //availabe
-        let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
-            module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
-        });
+        let fn_ptr_type = curr_f.get_type().ptr_type(AddressSpace::default());
+        let init_array_entry = module.add_global(fn_ptr_type, None, "");
+        init_array_entry.set_section(Some(".init_array"));
+        init_array_entry.set_linkage(Linkage::Internal);
+        init_array_entry.set_unnamed_addr(true);
+        init_array_entry.set_initializer(&curr_f.as_global_value().as_pointer_value());
 
         // Prevent removal by optimizer
         let i8_ptr = self.llvm.context.i8_type().ptr_type(AddressSpace::default());
         let used_array = i8_ptr.const_array(&[
             curr_f.as_global_value().as_pointer_value().const_cast(i8_ptr),
-            global_ctors.as_pointer_value().const_cast(i8_ptr),
+            init_array_entry.as_pointer_value().const_cast(i8_ptr),
         ]);
 
         let used = module.add_global(used_array.get_type(), None, "llvm.used");
         used.set_initializer(&used_array);
         used.set_linkage(Linkage::Appending);
 
-        global_ctors.set_initializer(&arr);
-        global_ctors.set_linkage(Linkage::Appending);
         Ok(())
     }
     /// creates and returns all parameters for the given implementation
