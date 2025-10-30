@@ -344,8 +344,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         } else {
             ".init_array" // Linux/Unix Constructor
         };
+        let entry_name = format!("__init_array_entry_{}", curr_f.get_name().to_string_lossy());
         let fn_ptr_type = curr_f.get_type().ptr_type(AddressSpace::default());
-        let init_array_entry = module.add_global(fn_ptr_type, None, "");
+        let init_array_entry = module.add_global(fn_ptr_type, None, &entry_name);
         init_array_entry.set_section(Some(section_name));
         init_array_entry.set_linkage(Linkage::Internal);
         init_array_entry.set_unnamed_addr(true);

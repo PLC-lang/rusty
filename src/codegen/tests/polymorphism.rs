@@ -56,14 +56,14 @@ fn simple_overridden_method() {
     %__vtable_B = type { void (%B*)*, i16 (%B*, i32)* }
     %B = type { %A, i16, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @____vtable_B__init = unnamed_addr constant %__vtable_B zeroinitializer
     @__B__init = unnamed_addr constant %B zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
+    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @A(%A* %0) {
     entry:
@@ -277,11 +277,11 @@ fn method_call_within_method() {
     %__vtable_A = type { void (%A*)*, i16 (%A*, i32)*, void (%A*)* }
     %A = type { i32* }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
+    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @A(%A* %0) {
     entry:
@@ -421,8 +421,7 @@ fn this_is_untouched() {
     %__vtable_C = type { void (%C*)*, i16 (%C*, i32)*, void (%C*)* }
     %C = type { %A }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -432,6 +431,7 @@ fn this_is_untouched() {
     @____vtable_C__init = unnamed_addr constant %__vtable_C zeroinitializer
     @__C__init = unnamed_addr constant %C zeroinitializer
     @__vtable_C_instance = global %__vtable_C zeroinitializer
+    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @A(%A* %0) {
     entry:
@@ -706,14 +706,14 @@ fn super_is_untouched() {
     %__vtable_B = type { void (%B*)*, i16 (%B*, i32)*, void (%B*)* }
     %B = type { %A }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
+    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
     @____vtable_B__init = unnamed_addr constant %__vtable_B zeroinitializer
     @__B__init = unnamed_addr constant %B zeroinitializer
     @__vtable_B_instance = global %__vtable_B zeroinitializer
+    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @A(%A* %0) {
     entry:

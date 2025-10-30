@@ -10,10 +10,10 @@ target triple = "[filtered]"
 %myStruct = type { i32, double, [11 x i32] }
 
 @b = global [11 x %myStruct] zeroinitializer, !dbg !0
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
-@llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast ([1 x { i32, void ()*, i8* }]* @llvm.global_ctors to i8*)]
+@llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !14
 @gStruct = global %myStruct zeroinitializer, !dbg !17
+@__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
 define void @__init_mystruct(%myStruct* %0) {
 entry:
