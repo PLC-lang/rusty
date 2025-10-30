@@ -18,7 +18,6 @@ use ast::{
 };
 
 use itertools::Itertools;
-use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -51,7 +50,6 @@ use rayon::prelude::*;
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
-use tempfile::NamedTempFile;
 use toml;
 
 pub mod participant;
@@ -202,12 +200,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 .collect();
 
             library_paths.extend_from_slice(self.project.get_library_paths());
-            //Get the specified linker script or load the default linker script in a temp file
-            let linker_script = if params.no_linker_script {
-                LinkerScript::None
-            } else {
-                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-            };
+            //Get the specified linker script if any
+            let linker_script = params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default();
 
             LinkOptions {
                 libraries,
@@ -979,31 +973,10 @@ impl GeneratedProject {
                     linker.add_lib_path(&loc.to_string_lossy());
                 }
 
-                //HACK: Create a temp file that would contain the bultin linker script
-                //FIXME: This has to be done regardless if the file is used or not because it has
-                //to be in scope by the time we call the linker
-                let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
-                    LinkerScript::Builtin => {
-                        let target = self.target.get_target_triple().to_string();
-                        //Only do this on linux systems
-                        if target.contains("linux") {
-                            if target.contains("x86_64") {
-                                let content = include_str!("../../../scripts/linker/x86_64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.contains("aarch64") {
-                                let content = include_str!("../../../scripts/linker/aarch64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else {
-                                debug!("No script for target : {target}");
-                            }
-                        } else {
-                            debug!("No script for target : {target}");
-                        }
-                    }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
+                    #[allow(deprecated)]
+                    LinkerScript::Builtin => {}
                     LinkerScript::None => {}
                 };
 

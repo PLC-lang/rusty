@@ -120,9 +120,10 @@ pub struct CompileParameters {
         name = "no-linker-script",
         long,
         global = true,
-        group = "linker_script",
+        // group = "linker_script",
         help = "Specify that no linker script should be used"
     )]
+    #[deprecated = "Default is not to have a linker script, if script is specified it will be used instead"]
     pub no_linker_script: bool,
 
     #[clap(
