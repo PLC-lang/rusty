@@ -29,53 +29,53 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %t1 = alloca i64, align 8
-  %t2 = alloca i64, align 8
-  %lt1 = alloca i64, align 8
-  %lt2 = alloca i64, align 8
-  %d1 = alloca i64, align 8
-  %d2 = alloca i64, align 8
-  %ld1 = alloca i64, align 8
-  %ld2 = alloca i64, align 8
-  %tod1 = alloca i64, align 8
-  %tod2 = alloca i64, align 8
-  %ltod1 = alloca i64, align 8
-  %ltod2 = alloca i64, align 8
-  %dt1 = alloca i64, align 8
-  %dt2 = alloca i64, align 8
-  %ldt1 = alloca i64, align 8
-  %ldt2 = alloca i64, align 8
-  store i64 0, ptr %t1, align 8
-  store i64 0, ptr %t2, align 8
-  store i64 0, ptr %lt1, align 8
-  store i64 0, ptr %lt2, align 8
-  store i64 0, ptr %d1, align 8
-  store i64 0, ptr %d2, align 8
-  store i64 0, ptr %ld1, align 8
-  store i64 0, ptr %ld2, align 8
-  store i64 0, ptr %tod1, align 8
-  store i64 0, ptr %tod2, align 8
-  store i64 0, ptr %ltod1, align 8
-  store i64 0, ptr %ltod2, align 8
-  store i64 0, ptr %dt1, align 8
-  store i64 0, ptr %dt2, align 8
-  store i64 0, ptr %ldt1, align 8
-  store i64 0, ptr %ldt2, align 8
-  store i64 1000000000, ptr %t1, align 8
-  store i64 1000000000, ptr %t2, align 8
-  store i64 1000000000000, ptr %lt1, align 8
-  store i64 1000000000000, ptr %lt2, align 8
-  store i64 0, ptr %d1, align 8
-  store i64 161308800000000000, ptr %d2, align 8
-  store i64 161308800000000000, ptr %ld1, align 8
-  store i64 161308800000000000, ptr %ld2, align 8
-  store i64 0, ptr %tod1, align 8
-  store i64 0, ptr %tod2, align 8
-  store i64 86399999999999, ptr %ltod1, align 8
-  store i64 86399999999999, ptr %ltod2, align 8
-  store i64 172799000000000, ptr %dt1, align 8
-  store i64 172799000000000, ptr %dt2, align 8
-  store i64 172799123000000, ptr %ldt1, align 8
-  store i64 172799123000000, ptr %ldt2, align 8
+  %t1 = alloca i64, align [filtered]
+  %t2 = alloca i64, align [filtered]
+  %lt1 = alloca i64, align [filtered]
+  %lt2 = alloca i64, align [filtered]
+  %d1 = alloca i64, align [filtered]
+  %d2 = alloca i64, align [filtered]
+  %ld1 = alloca i64, align [filtered]
+  %ld2 = alloca i64, align [filtered]
+  %tod1 = alloca i64, align [filtered]
+  %tod2 = alloca i64, align [filtered]
+  %ltod1 = alloca i64, align [filtered]
+  %ltod2 = alloca i64, align [filtered]
+  %dt1 = alloca i64, align [filtered]
+  %dt2 = alloca i64, align [filtered]
+  %ldt1 = alloca i64, align [filtered]
+  %ldt2 = alloca i64, align [filtered]
+  store i64 0, ptr %t1, align [filtered]
+  store i64 0, ptr %t2, align [filtered]
+  store i64 0, ptr %lt1, align [filtered]
+  store i64 0, ptr %lt2, align [filtered]
+  store i64 0, ptr %d1, align [filtered]
+  store i64 0, ptr %d2, align [filtered]
+  store i64 0, ptr %ld1, align [filtered]
+  store i64 0, ptr %ld2, align [filtered]
+  store i64 0, ptr %tod1, align [filtered]
+  store i64 0, ptr %tod2, align [filtered]
+  store i64 0, ptr %ltod1, align [filtered]
+  store i64 0, ptr %ltod2, align [filtered]
+  store i64 0, ptr %dt1, align [filtered]
+  store i64 0, ptr %dt2, align [filtered]
+  store i64 0, ptr %ldt1, align [filtered]
+  store i64 0, ptr %ldt2, align [filtered]
+  store i64 1000000000, ptr %t1, align [filtered]
+  store i64 1000000000, ptr %t2, align [filtered]
+  store i64 1000000000000, ptr %lt1, align [filtered]
+  store i64 1000000000000, ptr %lt2, align [filtered]
+  store i64 0, ptr %d1, align [filtered]
+  store i64 161308800000000000, ptr %d2, align [filtered]
+  store i64 161308800000000000, ptr %ld1, align [filtered]
+  store i64 161308800000000000, ptr %ld2, align [filtered]
+  store i64 0, ptr %tod1, align [filtered]
+  store i64 0, ptr %tod2, align [filtered]
+  store i64 86399999999999, ptr %ltod1, align [filtered]
+  store i64 86399999999999, ptr %ltod2, align [filtered]
+  store i64 172799000000000, ptr %dt1, align [filtered]
+  store i64 172799000000000, ptr %dt2, align [filtered]
+  store i64 172799123000000, ptr %ldt1, align [filtered]
+  store i64 172799123000000, ptr %ldt2, align [filtered]
   ret void
 }

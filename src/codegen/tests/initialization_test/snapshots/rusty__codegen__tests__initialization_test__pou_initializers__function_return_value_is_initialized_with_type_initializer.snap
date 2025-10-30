@@ -14,11 +14,11 @@ target triple = "[filtered]"
 
 define void @target(ptr %0) {
 entry:
-  %target = alloca ptr, align 8
-  store ptr %0, ptr %target, align 8
-  %deref = load ptr, ptr %target, align 8
+  %target = alloca ptr, align [filtered]
+  store ptr %0, ptr %target, align [filtered]
+  %deref = load ptr, ptr %target, align [filtered]
   %tmpVar = getelementptr inbounds [4 x i32], ptr %deref, i32 0, i32 2
-  store i32 7, ptr %tmpVar, align 4
+  store i32 7, ptr %tmpVar, align [filtered]
   ret void
 }
 
@@ -26,11 +26,11 @@ define void @main(ptr %0) {
 entry:
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %__target0 = alloca [4 x i32], align 4
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %__target0, ptr align 1 @__myArray__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
+  %__target0 = alloca [4 x i32], align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %__target0, ptr align [filtered] @__myArray__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
   call void @target(ptr %__target0)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 %__target0, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %y, ptr align 1 %x, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %x, ptr align [filtered] %__target0, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %y, ptr align [filtered] %x, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
   ret void
 }
 

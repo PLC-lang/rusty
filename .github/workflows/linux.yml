@@ -26,7 +26,12 @@ jobs:
 
   test-linux:
     name: Test Linux
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - { os: "ubuntu-latest" }
+          - { os: "ubuntu-24.04-arm" }
     steps:
       - name: Free up disk space on runner
         uses: jlumbroso/free-disk-space@main

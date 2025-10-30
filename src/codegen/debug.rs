@@ -220,7 +220,7 @@ impl<'ink> DebugBuilderEnum<'ink> {
 
                 let path = Path::new(module.get_source_file_name().to_str().unwrap_or("")).to_path_buf();
                 let root = root.unwrap_or_else(|| Path::new(""));
-                let filename = &path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
+                let filename = path.strip_prefix(root).unwrap_or(&path).to_str().unwrap_or_default();
                 let (debug_info, compile_unit) = module.create_debug_info_builder(
                     true,
                     inkwell::debug_info::DWARFSourceLanguage::C, //TODO: Own lang
@@ -787,8 +787,20 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
         if matches!(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
+            log::debug!(
+                "Skipping pou {}, linkage: {:?}, location: {:?}",
+                pou.get_name(),
+                pou.get_linkage(),
+                pou.get_location()
+            );
             return;
         }
+        log::debug!(
+            "Registering pou {}, linkage: {:?}, location: {:?}",
+            pou.get_name(),
+            pou.get_linkage(),
+            pou.get_location()
+        );
         let file = pou
             .get_location()
             .get_file_name()

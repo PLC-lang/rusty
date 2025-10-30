@@ -13,21 +13,21 @@ target triple = "[filtered]"
 
 define i32 @bar() {
 entry:
-  %bar = alloca i32, align 4
-  store i32 0, ptr %bar, align 4
-  store i32 1, ptr %bar, align 4
-  %bar_ret = load i32, ptr %bar, align 4
+  %bar = alloca i32, align [filtered]
+  store i32 0, ptr %bar, align [filtered]
+  store i32 1, ptr %bar, align [filtered]
+  %bar_ret = load i32, ptr %bar, align [filtered]
   ret i32 %bar_ret
 }
 
 define i32 @foo(i32 %0) {
 entry:
-  %foo = alloca i32, align 4
-  %in = alloca i32, align 4
-  store i32 %0, ptr %in, align 4
-  store i32 0, ptr %foo, align 4
-  store i32 1, ptr %foo, align 4
-  %foo_ret = load i32, ptr %foo, align 4
+  %foo = alloca i32, align [filtered]
+  %in = alloca i32, align [filtered]
+  store i32 %0, ptr %in, align [filtered]
+  store i32 0, ptr %foo, align [filtered]
+  store i32 1, ptr %foo, align [filtered]
+  %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }
 
@@ -36,6 +36,6 @@ entry:
   %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %call = call i32 @bar()
   %call1 = call i32 @foo(i32 %call)
-  store i32 %call1, ptr %x, align 4
+  store i32 %call1, ptr %x, align [filtered]
   ret void
 }

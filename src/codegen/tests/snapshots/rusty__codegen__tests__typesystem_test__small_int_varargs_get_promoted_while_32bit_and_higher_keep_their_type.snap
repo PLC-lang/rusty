@@ -14,27 +14,27 @@ declare i32 @printf(ptr, ...)
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %out1 = alloca i16, align 2
-  %out2 = alloca i32, align 4
-  %out3 = alloca i64, align 8
-  %out4 = alloca i32, align 4
-  store i16 -1, ptr %out1, align 2
-  store i32 -1, ptr %out2, align 4
-  store i64 -1, ptr %out3, align 8
-  store i32 -1, ptr %out4, align 4
-  store i32 0, ptr %main, align 4
-  %load_out1 = load i16, ptr %out1, align 2
+  %main = alloca i32, align [filtered]
+  %out1 = alloca i16, align [filtered]
+  %out2 = alloca i32, align [filtered]
+  %out3 = alloca i64, align [filtered]
+  %out4 = alloca i32, align [filtered]
+  store i16 -1, ptr %out1, align [filtered]
+  store i32 -1, ptr %out2, align [filtered]
+  store i64 -1, ptr %out3, align [filtered]
+  store i32 -1, ptr %out4, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %load_out1 = load i16, ptr %out1, align [filtered]
   %0 = sext i16 %load_out1 to i32
-  %load_out2 = load i32, ptr %out2, align 4
-  %load_out3 = load i64, ptr %out3, align 8
-  %load_out4 = load i32, ptr %out4, align 4
+  %load_out2 = load i32, ptr %out2, align [filtered]
+  %load_out3 = load i64, ptr %out3, align [filtered]
+  %load_out4 = load i32, ptr %out4, align [filtered]
   %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %load_out2, i64 %load_out3, i32 %load_out4)
-  %load_out11 = load i16, ptr %out1, align 2
+  %load_out11 = load i16, ptr %out1, align [filtered]
   %1 = sext i16 %load_out11 to i32
-  %load_out22 = load i32, ptr %out2, align 4
-  %load_out33 = load i64, ptr %out3, align 8
+  %load_out22 = load i32, ptr %out2, align [filtered]
+  %load_out33 = load i64, ptr %out3, align [filtered]
   %call4 = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, i32 %1, i32 %load_out22, i64 %load_out33)
-  %main_ret = load i32, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

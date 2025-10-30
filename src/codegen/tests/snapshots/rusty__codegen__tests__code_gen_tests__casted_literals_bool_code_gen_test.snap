@@ -14,9 +14,9 @@ target triple = "[filtered]"
 define void @prg(ptr %0) {
 entry:
   %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
-  store i8 1, ptr %z, align 1
-  store i8 0, ptr %z, align 1
-  store i8 1, ptr %z, align 1
-  store i8 0, ptr %z, align 1
+  store i8 1, ptr %z, align [filtered]
+  store i8 0, ptr %z, align [filtered]
+  store i8 1, ptr %z, align [filtered]
+  store i8 0, ptr %z, align [filtered]
   ret void
 }
