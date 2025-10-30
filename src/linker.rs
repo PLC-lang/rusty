@@ -88,6 +88,8 @@ impl Linker {
     /// Set the output file and run the linker to generate a shared object
     pub fn build_shared_obj(&mut self, path: PathBuf) -> Result<PathBuf, LinkerError> {
         if let Some(file) = self.get_str_from_path(&path) {
+            // Runtime expects to find dependent libs next to the produced artifact, so bake in $ORIGIN.
+            self.linker.add_origin_rpath();
             self.linker.build_shared_object(file);
             self.linker.finalize()?;
         }
@@ -179,6 +181,11 @@ impl LinkerInterface for LdLinker {
         self.args.push(value)
     }
 
+    fn add_origin_rpath(&mut self) {
+        // ld.lld accepts -rpath directly; no need for -Wl indirection.
+        self.add_arg("-rpath=$ORIGIN".into());
+    }
+
     fn get_build_command(&self) -> Result<String, LinkerError> {
         Ok(format!("ld.lld {}", self.args.join(" ")))
     }
@@ -213,6 +220,12 @@ trait LinkerInterface {
     fn add_arg(&mut self, value: String);
     fn get_build_command(&self) -> Result<String, LinkerError>;
     fn finalize(&mut self) -> Result<(), LinkerError>;
+
+    // TODO: macOS linkers might want @loader_path instead of $ORIGIN; double-check and add target-aware logic if so.
+    fn add_origin_rpath(&mut self) {
+        // Default variant suitable for cc-like drivers that expect -Wl forwarding.
+        self.add_arg("-Wl,-rpath,$ORIGIN".into());
+    }
 
     fn add_obj(&mut self, path: &str) {
         self.add_arg(path.into());
