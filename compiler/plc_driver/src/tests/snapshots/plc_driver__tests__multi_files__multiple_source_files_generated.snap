@@ -1,7 +1,6 @@
 ---
-source: compiler/plc_driver/./src/tests/multi_files.rs
+source: compiler/plc_driver/src/tests/multi_files.rs
 expression: "results.join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'external_file1.st'
 source_filename = "external_file1.st"
@@ -70,7 +69,7 @@ target triple = "[filtered]"
 %mainProg = type {}
 
 @mainProg_instance = external global %mainProg
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___TestProject, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___TestProject, i8* null }]
 
 define void @__init___TestProject() {
 entry:

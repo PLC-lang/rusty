@@ -56,7 +56,7 @@ fn simple_overridden_method() {
     %__vtable_B = type { void (%B*)*, i16 (%B*, i32)* }
     %B = type { %A, i16, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -276,7 +276,7 @@ fn method_call_within_method() {
     %__vtable_A = type { void (%A*)*, i16 (%A*, i32)*, void (%A*)* }
     %A = type { i32* }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -419,7 +419,7 @@ fn this_is_untouched() {
     %__vtable_C = type { void (%C*)*, i16 (%C*, i32)*, void (%C*)* }
     %C = type { %A }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer
@@ -703,7 +703,7 @@ fn super_is_untouched() {
     %__vtable_B = type { void (%B*)*, i16 (%B*, i32)*, void (%B*)* }
     %B = type { %A }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_A__init = unnamed_addr constant %__vtable_A zeroinitializer
     @__A__init = unnamed_addr constant %A zeroinitializer
     @__vtable_A_instance = global %__vtable_A zeroinitializer

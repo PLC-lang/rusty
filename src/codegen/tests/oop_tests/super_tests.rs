@@ -28,7 +28,7 @@ fn super_keyword_basic_access() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -171,7 +171,7 @@ fn super_without_deref() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent, %parent* }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -321,7 +321,7 @@ fn super_in_method_calls() {
     %__vtable_child = type { void (%child*)*, i16 (%child*)*, i16 (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -519,7 +519,7 @@ fn super_in_complex_expressions() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10, i16 20 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -673,7 +673,7 @@ fn super_with_array_access() {
     %child = type { %parent, i16 }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -841,7 +841,7 @@ fn super_in_multi_level_inheritance() {
     %__vtable_child = type { void (%child*)*, i16 (%grandparent*)*, i16 (%parent*)*, i16 (%child*)* }
     %child = type { %parent, i16 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent { i32* null, i16 10 }
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -1104,7 +1104,7 @@ fn super_with_pointer_operations() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10, i16* null }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -1267,7 +1267,7 @@ fn super_in_conditionals() {
     %__vtable_child = type { void (%child*)*, void (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 50, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -1463,7 +1463,7 @@ fn super_with_const_variables() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 100, i16 50 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -1621,7 +1621,7 @@ fn super_as_function_parameter() {
     %__vtable_child = type { void (%child*)*, void (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -1812,7 +1812,7 @@ fn super_with_deeply_nested_expressions() {
     %__vtable_child = type { void (%child*)*, i16 (%parent*)*, i16 (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 1, i16 2, i16 3 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -2044,7 +2044,7 @@ fn super_in_loop_constructs() {
     %child = type { %parent }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
@@ -2328,7 +2328,7 @@ fn super_with_method_overrides_in_three_levels() {
     %__vtable_child = type { void (%child*)*, i16 (%child*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -2639,7 +2639,7 @@ fn super_with_structured_types() {
 
     @__parent.data__init = unnamed_addr constant %Complex_Type { i16 10, i16 20, float 3.050000e+01 }
     @__parent.arr_data__init = unnamed_addr constant [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, %Complex_Type { i16 10, i16 20, float 3.050000e+01 }, [2 x %Complex_Type] [%Complex_Type { i16 1, i16 2, float 3.500000e+00 }, %Complex_Type { i16 4, i16 5, float 6.500000e+00 }] }
     @__Complex_Type__init = unnamed_addr constant %Complex_Type zeroinitializer
@@ -2858,7 +2858,7 @@ fn super_in_action_blocks() {
     %__vtable_child = type { void (%child*)*, void (%parent*)* }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
     @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
