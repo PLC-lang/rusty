@@ -7,10 +7,11 @@ target triple = "[filtered]"
 %__vtable_conditional_return = type { void (%conditional_return*)* }
 %conditional_return = type { i32*, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___plc to i8*), i8* bitcast (void ()** @__init_array_entry___init___plc to i8*)]
 @____vtable_conditional_return__init = unnamed_addr constant %__vtable_conditional_return zeroinitializer
 @__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer
 @__vtable_conditional_return_instance = global %__vtable_conditional_return zeroinitializer
+@__init_array_entry___init___plc = internal unnamed_addr global void ()* @__init___plc, section ".init_array"
 
 define i32 @main() {
 entry:
