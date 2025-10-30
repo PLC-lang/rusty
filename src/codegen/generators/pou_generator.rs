@@ -337,9 +337,16 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         module: &Module<'ink>,
         curr_f: FunctionValue<'ink>,
     ) -> Result<(), CodegenError> {
+        let triple = module.get_triple();
+        // TODO: this is hacky..
+        let section_name = if triple.as_str().to_str().expect("Tripple is well formatted").contains("msvc") {
+            ".CRT$XCU" //Windows constructor
+        } else {
+            ".init_array" // Linux/Unix Constructor
+        };
         let fn_ptr_type = curr_f.get_type().ptr_type(AddressSpace::default());
         let init_array_entry = module.add_global(fn_ptr_type, None, "");
-        init_array_entry.set_section(Some(".init_array"));
+        init_array_entry.set_section(Some(section_name));
         init_array_entry.set_linkage(Linkage::Internal);
         init_array_entry.set_unnamed_addr(true);
         init_array_entry.set_initializer(&curr_f.as_global_value().as_pointer_value());
