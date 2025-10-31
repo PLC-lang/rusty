@@ -26,6 +26,8 @@ VAR_GLOBAL
     gVarPointerToInt: REF_TO INT;
     gVarRefToDate: REFERENCE TO DATE;
     gVarPointerToDate: REF_TO DATE;
+
+    gVarIntWithRange: INT(0..100);
 END_VAR
 
 TYPE SimpleEnumType : (
@@ -141,3 +143,73 @@ VAR_INPUT
     varPointerToDate: REF_TO DATE;
 END_VAR
 END_FUNCTION
+
+FUNCTION fnThatHasIntWithRange
+VAR_INPUT
+    varIntWithRange: INT(0..99);
+END_VAR
+END_FUNCTION
+
+FUNCTION fnThatHasVariadicIntInput
+VAR_INPUT
+    varIntInput: INT;
+    varVariadicInt: {sized} INT...;
+END_VAR
+END_FUNCTION
+
+FUNCTION fnThatHasVariadicStringInput
+VAR_INPUT
+    varIntInput: INT;
+    varVariadicString: {sized} STRING...;
+END_VAR
+END_FUNCTION
+
+FUNCTION fnThatHasVariadicComplexTypeInput
+VAR_INPUT
+    varIntInput: INT;
+    varVariadicStruct: {sized} StructWithPrimitiveTypes...;
+END_VAR
+END_FUNCTION
+
+FUNCTION_BLOCK fbThatHasSimpleTypes
+VAR
+    varInt : INT;
+END_VAR
+VAR_OUTPUT
+    outVarInt : INT;
+END_VAR
+VAR_IN_OUT
+    inOutVarInt : INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK fbGreatGrandParent
+VAR
+    varGreatGrandParent: INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK fbGrandParent extends fbGreatGrandParent
+VAR
+    varGrandParent: INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK fbParent extends fbGrandParent
+VAR
+    varParentInt: INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+FUNCTION_BLOCK fbChild extends fbParent
+VAR
+    varChildInt: INT;
+END_VAR
+END_FUNCTION_BLOCK
+
+PROGRAM prog
+VAR
+    inOutVar : ComplexEnumType;
+    outVar: ComplexEnumType;
+END_VAR
+END_PROGRAM

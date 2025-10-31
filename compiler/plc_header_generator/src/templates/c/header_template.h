@@ -11,8 +11,5 @@
 // User-defined data types
 {{ user_defined_data_types }}
 
-// Functions
+// Functions, Function Blocks and Programs
 {{ functions }}
-
-// TODO: Function blocks
-{{ function_blocks }}
