@@ -5,6 +5,7 @@ use std::{
 
 use anyhow::{Context, Result};
 use glob::glob;
+use regex::Regex;
 
 use crate::{
     build_config::{LinkageInfo, ProjectConfig},
@@ -134,20 +135,26 @@ impl Project<PathBuf> {
                 // Use the linkage type to find the library from the given name
                 // TODO: We should allow for a fix name in the configuration if the library does not follow the unix convention
                 // TODO: We should also allow a way to define objects based on the architecture
-                let object_name = match linkage {
-                    Linkage::Static => format! {"lib{}.a", &conf.name},
-                    Linkage::Shared(_) => format! {"lib{}.so", &conf.name},
+                let file_suffix_regex = match linkage {
+                    Linkage::Static => Regex::new(r"\.a$").unwrap(),
+                    Linkage::Shared(_) => Regex::new(r"\.so(\.\d+)*$").unwrap(),
                 };
 
-                let lib_file = lib_path.join(object_name);
                 let mut objects = vec![];
-                if lib_file.exists() {
-                    objects.push(lib_file.into());
+                for entry in std::fs::read_dir(&lib_path)?.flatten() {
+                    let file_name = entry.file_name();
+                    let file_name_str = file_name.to_string_lossy();
+
+                    if file_suffix_regex.is_match(&file_name_str) {
+                        objects.push(entry.path().into());
+                    }
                 }
+
                 let compiled_library = CompiledLibrary {
                     objects,
                     headers: resolve_file_paths(Some(&lib_path), conf.include_path)?,
                 };
+
                 Ok(LibraryInformation {
                     name: conf.name,
                     location: Some(lib_path),
