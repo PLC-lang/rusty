@@ -80,29 +80,35 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
     type Error = anyhow::Error;
 
     fn try_from(compile_parameters: CompileParameters) -> Result<Self, Self::Error> {
+        //Create the project that will be compiled
         let project = get_project(&compile_parameters)?;
-
-        if let Some(location) = project.get_location().map(|it| it.to_path_buf()) {
+        let location = project.get_location().map(|it| it.to_path_buf());
+        if let Some(location) = &location {
+            log::debug!("PROJECT_ROOT={}", location.to_string_lossy());
             env::set_var("PROJECT_ROOT", location);
         }
-
-        if let Some(location) = compile_parameters.get_build_location() {
+        let build_location = compile_parameters.get_build_location();
+        if let Some(location) = &build_location {
+            log::debug!("BUILD_LOCATION={}", location.to_string_lossy());
             env::set_var("BUILD_LOCATION", location);
         }
-
-        if let Some(location) = compile_parameters.get_lib_location() {
+        let lib_location = compile_parameters.get_lib_location();
+        if let Some(location) = &lib_location {
+            log::debug!("LIB_LOCATION={}", location.to_string_lossy());
             env::set_var("LIB_LOCATION", location);
         }
-
+        //Create diagnostics registry
+        //Create a diagnostican with the specified registry
+        //Use diagnostican
         let diagnostician = match compile_parameters.error_format {
             ErrorFormat::Rich => Diagnostician::default(),
             ErrorFormat::Clang => Diagnostician::clang_format_diagnostician(),
             ErrorFormat::None => Diagnostician::null_diagnostician(),
         };
-
-        let diagnostician = match compile_parameters.get_error_configuration()? {
-            Some(configuration) => diagnostician.with_configuration(configuration),
-            None => diagnostician,
+        let diagnostician = if let Some(configuration) = compile_parameters.get_error_configuration()? {
+            diagnostician.with_configuration(configuration)
+        } else {
+            diagnostician
         };
 
         // TODO: This can be improved quite a bit, e.g. `GlobalContext::new(project);`, to do that see the
@@ -120,7 +126,6 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
                 None,
             )?;
 
-        log::debug!("Compiling with {compile_parameters:?}");
         let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
             context,
@@ -153,7 +158,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn register_participant(&mut self, participant: Box<dyn PipelineParticipant>) {
         self.participants.push(participant)
     }
-
     pub fn get_compile_options(&self) -> Option<CompileOptions> {
         self.compile_parameters.as_ref().map(|params| {
             let location = &self.project.get_location().map(|it| it.to_path_buf());
@@ -189,7 +193,6 @@ impl<T: SourceContainer> BuildPipeline<T> {
                 .map(LibraryInformation::get_link_name)
                 .map(str::to_string)
                 .collect();
-
             let mut library_paths: Vec<PathBuf> = self
                 .project
                 .get_libraries()

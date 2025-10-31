@@ -203,16 +203,6 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
                 for obj in library.get_objects() {
                     let path = obj.get_path();
                     if let Some(name) = path.file_name() {
-                        if let Some(name_str) = name.to_str() {
-                            if name_str.ends_with(".so") {
-                                if let Some(dir) = path.parent() {
-                                    copy_shared_library_variants(dir, name_str, lib_location)?;
-                                } else {
-                                    std::fs::copy(path, lib_location.join(name))?;
-                                }
-                                continue;
-                            }
-                        }
                         std::fs::copy(path, lib_location.join(name))?;
                     }
                 }
@@ -220,27 +210,6 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
         }
         Ok(())
     }
-}
-
-fn copy_shared_library_variants(dir: &Path, base_name: &str, destination: &Path) -> std::io::Result<()> {
-    let mut copied_any = false;
-    // Preserve versioned siblings (e.g. libfoo.so.3) so SONAME lookups succeed at runtime.
-    let prefix = format!("{base_name}.");
-    for entry in fs::read_dir(dir)? {
-        let entry = entry?;
-        let entry_name = entry.file_name();
-        let entry_name_str = entry_name.to_string_lossy();
-        if entry_name_str == base_name || entry_name_str.starts_with(&prefix) {
-            fs::copy(entry.path(), destination.join(&entry_name))?;
-            copied_any = true;
-        }
-    }
-
-    if !copied_any {
-        // Fallback to copying the base file if no variants were matched (e.g. missing directory entries)
-        fs::copy(dir.join(base_name), destination.join(base_name))?;
-    }
-    Ok(())
 }
 
 pub struct InitParticipant {
