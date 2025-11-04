@@ -292,18 +292,82 @@ impl TypeAnnotator<'_> {
             ))
     }
 
+    fn annotate_named_arguments(
+        &mut self,
+        operator: &AstNode,
+        arguments: Vec<&AstNode>,
+        arguments_node: Option<&AstNode>,
+
+        ctx: &VisitorContext,
+    ) {
+        let pou_name = {
+            let name = self.get_call_name(operator);
+            let implementation = self.index.find_implementation_by_name(&name);
+            implementation.map(|it| it.get_type_name().to_string()).unwrap_or(name)
+        };
+
+        let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
+        for argument in arguments {
+            let Some(var_name) = argument.get_name_of_lhs_of_assignment() else {
+                continue;
+            };
+
+            let Some((name, entry, depth)) = self.index.find_member_with_path(&pou_name, var_name) else {
+                continue;
+            };
+
+            if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
+                self.index,
+                &self.annotation_map,
+                entry.get_type_name(),
+                argument,
+            ) {
+                generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                continue;
+            }
+
+            self.annotation_map.annotate_type_hint(
+                argument,
+                StatementAnnotation::Argument {
+                    resulting_type: entry.get_type_name().to_string(),
+                    position: entry.get_location_in_parent() as usize,
+                    depth: depth as usize,
+                    pou: name,
+                },
+            );
+        }
+
+        // Attempt to resolve the generic signature here
+        self.update_generic_call_statement(
+            generics_candidates,
+            &pou_name,
+            operator,
+            arguments_node,
+            ctx.to_owned(),
+        );
+    }
+
     pub fn annotate_call_statement(
         &mut self,
         operator: &AstNode,
-        parameters_stmt: Option<&AstNode>,
+        arguments_node: Option<&AstNode>,
         ctx: &VisitorContext,
     ) {
-        let parameters = if let Some(parameters) = parameters_stmt {
+        let operator_qualifier = &self.get_call_name(operator);
+        let implementation = self.index.find_implementation_by_name(operator_qualifier);
+        let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
+
+        let arguments = if let Some(parameters) = arguments_node {
             self.visit_statement(ctx, parameters);
             flatten_expression_list(parameters)
         } else {
             vec![]
         };
+
+        if arguments.iter().any(|arg| arg.is_assignment() | arg.is_output_assignment()) {
+            self.annotate_named_arguments(operator, arguments, arguments_node, ctx);
+            return;
+        }
 
         let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
         let mut params = vec![];
@@ -317,16 +381,13 @@ impl TypeAnnotator<'_> {
             // `DINT`. This then results in an error in the codegen. Somewhat "ugly" I have to admit and a
             // better approach would be to lower method calls from `fbInstance.echo('stringValue', 5)` to
             // `fbInstance.echo(fbInstance, 'stringValue', 5)` but this has to do for now
-            parameters[1..].iter()
+            arguments[1..].iter()
         } else {
-            parameters.iter()
+            arguments.iter()
         };
 
         // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
         // to annotate them with the correct type hint.
-        let operator_qualifier = &self.get_call_name(operator);
-        let implementation = self.index.find_implementation_by_name(operator_qualifier);
-        let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
         for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
             if let Some(p) = parameters.next() {
                 let type_name = m.get_type_name();
@@ -408,7 +469,7 @@ impl TypeAnnotator<'_> {
         }
 
         for (p, name, position) in params {
-            self.annotate_parameters(p, &name, position as usize);
+            self.annotate_parameters(p, &name, position as usize, operator_qualifier);
         }
 
         // Attempt to resolve the generic signature here
@@ -416,7 +477,7 @@ impl TypeAnnotator<'_> {
             generics_candidates,
             operator_qualifier,
             operator,
-            parameters_stmt,
+            arguments_node,
             ctx.to_owned(),
         );
     }
@@ -460,8 +521,25 @@ pub enum StatementAnnotation {
         /// The resulting type of this argument
         resulting_type: String,
 
-        /// The position of the parameter this argument is assigned to
+        /// The position of the parameter within its declared POU.
         position: usize,
+
+        /// The depth between where the arguments parameter is declared versus where it is being called from.
+        ///
+        /// Given an inheritance chain `A <- B <- C` and `instanceC(inA := 1, inB := 2, inC := 3)`:
+        /// - `inA := 1` will have a depth of 2 (declared in grandparent A)
+        /// - `inB := 2` will have a depth of 1 (declared in parent B)
+        /// - `inC := 3` will have a depth of 0 (declared in C itself)
+        depth: usize,
+
+        /// The POU name where this arguments parameter is declared, which may differ from the actual POU
+        /// being called.
+        ///
+        /// Given an inheritance chain `A <- B <- C` and `instanceC(inA := 1, inB := 2, inC := 3)`:
+        /// - `inA := 1` will have a POU name of `A`
+        /// - `inB := 2` will have a POU name of `B`
+        /// - `inC := 3` will have a POU name of `C`
+        pou: String,
     },
     /// a reference that resolves to a declared variable (e.g. `a` --> `PLC_PROGRAM.a`)
     Variable {
@@ -769,27 +847,6 @@ impl StatementAnnotation {
             | StatementAnnotation::FunctionPointer { qualified_name, .. }
             | StatementAnnotation::Program { qualified_name } => Some(qualified_name.as_str()),
 
-            _ => None,
-        }
-    }
-
-    /// Returns the location of a parameter in some POU the argument is assigned to, for example
-    /// `foo(a, b, c)` will return `0` for `a`, `1` for `b` and `3` for c if `foo` has the following variable
-    /// blocks
-    /// ```text
-    /// VAR_INPUT
-    ///     a, b : DINT;
-    /// END_VAR
-    /// VAR
-    ///     placeholder: DINT;
-    /// END_VAR
-    /// VAR_INPUT
-    ///     c : DINT;
-    /// END_VAR`
-    /// ```
-    pub(crate) fn get_location_in_parent(&self) -> Option<u32> {
-        match self {
-            StatementAnnotation::Argument { position, .. } => Some(*position as u32),
             _ => None,
         }
     }
@@ -2336,7 +2393,7 @@ impl<'i> TypeAnnotator<'i> {
         operator_qualifier
     }
 
-    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str, position: usize) {
+    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str, position: usize, pou: &str) {
         if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
             //update the type hint
             // self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
@@ -2345,6 +2402,8 @@ impl<'i> TypeAnnotator<'i> {
                 StatementAnnotation::Argument {
                     resulting_type: effective_member_type.get_name().to_string(),
                     position,
+                    depth: 0,
+                    pou: pou.to_string(),
                 },
             );
         }

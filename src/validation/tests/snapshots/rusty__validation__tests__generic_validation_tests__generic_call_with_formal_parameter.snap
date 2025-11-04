@@ -25,5 +25,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'USINT'
    │
 21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
    │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'USINT'
-
-

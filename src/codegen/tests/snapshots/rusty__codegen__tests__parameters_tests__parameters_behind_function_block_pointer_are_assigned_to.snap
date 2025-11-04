@@ -19,7 +19,7 @@ entry:
   %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   store %file_t* %file, %file_t** %FileOpen, align 8
   %deref = load %file_t*, %file_t** %FileOpen, align 8
-  %1 = getelementptr inbounds %file_t, %file_t* %deref, i32 0, i32 1
+  %1 = getelementptr %file_t, %file_t* %deref, i32 0, i32 1
   store i8 1, i8* %1, align 1
   call void @file_t(%file_t* %deref)
   ret void

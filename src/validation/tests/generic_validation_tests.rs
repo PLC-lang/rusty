@@ -1627,5 +1627,29 @@ fn generic_call_with_formal_parameter() {
 ";
 
     let diagnostics = parse_and_validate_buffered(src);
-    insta::assert_snapshot!(diagnostics);
+    insta::assert_snapshot!(diagnostics, @r"
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:20:30
+       │
+    20 │         myLocalNumber := FOO(y := 0); // unresolved reference
+       │                              ^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to y
+       ┌─ <internal>:20:30
+       │
+    20 │         myLocalNumber := FOO(y := 0); // unresolved reference
+       │                              ^ Could not resolve reference to y
+
+    error[E062]: Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+       ┌─ <internal>:21:35
+       │
+    21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+       │                                   ^^^^^^^^^^^^^^^^^^^^^ Invalid type nature for generic argument. __STRING_19 is no ANY_NUMBER
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'USINT'
+       ┌─ <internal>:21:30
+       │
+    21 │         myLocalNumber := FOO(x := 'INVALID TYPE NATURE'); // invalid type nature
+       │                              ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'USINT'
+    ");
 }

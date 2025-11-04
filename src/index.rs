@@ -1551,6 +1551,36 @@ impl Index {
             })
     }
 
+    fn truly_find_local_member(&self, pou: &str, name: &str) -> Option<&VariableIndexEntry> {
+        self.type_index.find_type(pou).and_then(|it| it.find_member(name))
+    }
+
+    // TODO: Own type?
+    /// Given some POU name and one of its members' name, returns the member and the position including its
+    /// inheritance level. For example If we have `A { localVarA }, B extends A { localVarB }`, then
+    /// `find_member_with_path("B", "localVarA")` will return `(localVarA, 0, 1)`
+    pub fn find_member_with_path(&self, pou: &str, name: &str) -> Option<(String, &VariableIndexEntry, u32)> {
+        // Check if the POU has the member locally
+        if let Some(entry) = self.truly_find_local_member(pou, name) {
+            return Some((pou.to_string(), entry, 0));
+        }
+
+        // ..and if not walk the inheritance chain and re-try
+        let mut level = 1;
+        let mut current_pou = pou;
+
+        while let Some(parent) = self.find_pou(current_pou).and_then(|it| it.get_super_class()) {
+            if let Some(entry) = self.truly_find_local_member(parent, name) {
+                return Some((parent.to_string(), entry, level));
+            }
+
+            level += 1;
+            current_pou = parent;
+        }
+
+        None
+    }
+
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
     pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
         self.find_method_recursive(container_name, method_name, &mut FxHashSet::default())
@@ -1706,6 +1736,19 @@ impl Index {
             .iter()
             .filter(|it| it.is_parameter() && !it.is_variadic())
             .collect::<Vec<_>>()
+    }
+
+    /// Returns all declared parameters of a POU, including those defined in super-classes
+    pub fn get_declared_parameters_2nd(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        let mut pou = pou;
+        let mut parameters = self.get_declared_parameters(pou);
+
+        while let Some(parent) = self.find_pou(pou).and_then(PouIndexEntry::get_super_class) {
+            parameters.extend(self.get_declared_parameters(parent));
+            pou = parent;
+        }
+
+        parameters
     }
 
     pub fn has_variadic_parameter(&self, pou_name: &str) -> bool {

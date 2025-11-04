@@ -1484,6 +1484,15 @@ impl AstNode {
     pub fn is_real(&self) -> bool {
         matches!(self.stmt, AstStatement::Literal(AstLiteral::Real(_), ..))
     }
+
+    pub fn get_name_of_lhs_of_assignment(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::Assignment(Assignment { left, .. })
+            | AstStatement::OutputAssignment(Assignment { left, .. })
+            | AstStatement::RefAssignment(Assignment { left, .. }) => left.get_flat_reference_name(),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
