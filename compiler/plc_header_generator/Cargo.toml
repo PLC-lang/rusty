@@ -11,3 +11,8 @@ plc_source = { path = "../plc_source/" }
 tera = "1"
 clap = { version = "3.0", features = ["derive"] }
 log.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+serde_json.workspace = true
+serde.workspace = true

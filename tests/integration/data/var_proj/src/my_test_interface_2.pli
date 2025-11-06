@@ -1,19 +1,36 @@
 VAR_GLOBAL
-    varBool2: BOOL;
-
-    varSInt2: SINT;
-    varInt2: INT;
-    varDInt2: DINT;
-    varLInt2: LINT;
-
-    varByte2: BYTE;
-    varWord2: WORD;
-    varDWord2: DWORD;
-    varLWord2: LWORD;
-
-    varReal2: REAL;
-    varLReal2: LREAL;
-
-    varDate2: DATE;
-    varDateAndTime2: DATE_AND_TIME;
+    globalCounter: INT;
 END_VAR
+
+TYPE RGB : (
+        red,
+        green,
+        blue
+    );
+END_TYPE
+
+TYPE ColourInfo:
+    STRUCT
+        timesPicked : INT;
+        primaryColour : RGB;
+    END_STRUCT
+END_TYPE
+
+FUNCTION PrintStatistics
+VAR_INPUT
+    runCount: INT;
+    colours: {sized} ColourInfo...;
+END_VAR
+END_FUNCTION
+
+FUNCTION_BLOCK ColourTracker
+VAR
+    internalCount : INT;
+END_VAR
+VAR_OUTPUT
+    printedInfo : STRING;
+END_VAR
+VAR_IN_OUT
+    colour : ColourInfo;
+END_VAR
+END_FUNCTION_BLOCK

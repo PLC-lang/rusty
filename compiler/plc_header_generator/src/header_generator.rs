@@ -80,7 +80,7 @@ impl GeneratedHeader {
     pub fn generate_headers(
         &mut self,
         generate_header_options: &GenerateHeaderOptions,
-        compilation_unit: CompilationUnit,
+        compilation_unit: &CompilationUnit,
     ) -> Result<(), Diagnostic> {
         // Setup managers
         self.template_manager.language = generate_header_options.language;
@@ -89,7 +89,7 @@ impl GeneratedHeader {
         self.symbol_manager.language = generate_header_options.language;
 
         // If the directories could not be configured with an acceptable outcome, then we exit without performing generation for this compilation unit
-        if !self.file_manager.prepare_file_and_directory(generate_header_options, &compilation_unit)? {
+        if !self.file_manager.prepare_file_and_directory(generate_header_options, compilation_unit)? {
             return Ok(());
         }
 
@@ -107,15 +107,15 @@ impl GeneratedHeader {
         let builtin_types = get_builtin_types();
 
         // 1 - Add global variables
-        let global_variables = self.build_global_variables(&compilation_unit, &builtin_types);
+        let global_variables = self.build_global_variables(compilation_unit, &builtin_types);
         context.insert("global_variables", &global_variables);
 
         // 2 - Add pous (functions, function blocks and programs)
-        let functions = self.build_pous(&compilation_unit, &builtin_types);
+        let functions = self.build_pous(compilation_unit, &builtin_types);
         context.insert("functions", &functions);
 
         // 3 - Add user-defined data types
-        let user_defined_data_types = self.build_user_types(&compilation_unit, &builtin_types);
+        let user_defined_data_types = self.build_user_types(compilation_unit, &builtin_types);
         context.insert("user_defined_data_types", &user_defined_data_types);
 
         // Set the outputs
@@ -185,7 +185,7 @@ impl GeneratedHeader {
                     let program_name = pou.name.to_string();
                     let data_type = format!("{program_name}_type");
 
-                    let template = self.get_and_prepare_variable_template(
+                    let template = self.prepare_and_get_tera_variable_template(
                         &mut tera,
                         &mut context,
                         &data_type,
@@ -260,13 +260,13 @@ impl GeneratedHeader {
         );
 
         let template =
-            self.get_and_prepare_tera_user_type_struct_template(tera, context, &data_type, &input_variables);
+            self.prepare_and_get_tera_user_type_struct_template(tera, context, &data_type, &input_variables);
 
         let content = tera.render(&template.name, context).unwrap().trim().to_string();
         functions.push(content);
 
         // Create the template for the function block function
-        let template = self.get_and_prepare_tera_param_struct_template(
+        let template = self.prepare_and_get_tera_param_struct_template(
             tera,
             context,
             Some(&String::from("self")),
@@ -345,7 +345,7 @@ impl GeneratedHeader {
                             &GenerationSource::Struct,
                         );
 
-                        self.get_and_prepare_tera_user_type_struct_template(
+                        self.prepare_and_get_tera_user_type_struct_template(
                             &mut tera,
                             &mut context,
                             &coalesce_optional_strings_with_default(name, field_name_override),
@@ -353,7 +353,7 @@ impl GeneratedHeader {
                         )
                     }
                     GenerationSource::Struct | GenerationSource::FunctionParameter => self
-                        .get_and_prepare_tera_param_struct_template(
+                        .prepare_and_get_tera_param_struct_template(
                             &mut tera,
                             &mut context,
                             field_name_override,
@@ -412,41 +412,20 @@ impl GeneratedHeader {
                 let template = match generation_source {
                     GenerationSource::GlobalVariable
                     | GenerationSource::Struct
-                    | GenerationSource::UserType => {
-                        let template = self
-                            .template_manager
-                            .get_template(TemplateType::UserTypeArray)
-                            .expect("Unable to find the 'user type array' template!");
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'user type array' template to tera!");
-
-                        let string_size = extract_string_size(size);
-                        context.insert(
-                            "name",
-                            &coalesce_optional_strings_with_default(name, field_name_override),
-                        );
-                        context.insert("data_type", &self.type_manager.get_type_name_for_string(is_wide));
-                        context.insert("size", &string_size);
-
-                        template
-                    }
-                    GenerationSource::FunctionParameter => {
-                        let template = self
-                            .template_manager
-                            .get_template(TemplateType::ParamArray)
-                            .expect("Unable to find the 'param array' template!");
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'param array' template to tera!");
-
-                        context.insert(
-                            "name",
-                            &field_name_override
-                                .expect("Field name expected for generation source type: 'Parameter'!"),
-                        );
-                        context.insert("data_type", &self.type_manager.get_type_name_for_string(is_wide));
-
-                        template
-                    }
+                    | GenerationSource::UserType => self.prepare_and_get_tera_user_type_array_template(
+                        &mut tera,
+                        &mut context,
+                        &self.type_manager.get_type_name_for_string(is_wide),
+                        &coalesce_optional_strings_with_default(name, field_name_override),
+                        &extract_string_size(size),
+                    ),
+                    GenerationSource::FunctionParameter => self.prepare_and_get_tera_param_array_template(
+                        &mut tera,
+                        &mut context,
+                        &self.type_manager.get_type_name_for_string(is_wide),
+                        field_name_override
+                            .expect("Field name expected for generation source type: 'Parameter'!"),
+                    ),
                 };
 
                 Some(tera.render(&template.name, &context).unwrap().trim().to_string())
@@ -456,19 +435,6 @@ impl GeneratedHeader {
                     GenerationSource::GlobalVariable
                     | GenerationSource::Struct
                     | GenerationSource::UserType => {
-                        let template = self
-                            .template_manager
-                            .get_template(TemplateType::UserTypeArray)
-                            .expect("Unable to find the 'user type array' template!");
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'user type array' template to tera!");
-
-                        let string_size = extract_array_size(bounds);
-                        context.insert(
-                            "name",
-                            &coalesce_optional_strings_with_default(name, field_name_override),
-                        );
-
                         let type_info = self.type_manager.get_type_name_for_type(
                             &ExtendedTypeName {
                                 type_name: referenced_type.get_name().unwrap().to_string(),
@@ -476,25 +442,16 @@ impl GeneratedHeader {
                             },
                             builtin_types,
                         );
-                        context.insert("data_type", &type_info.name);
-                        context.insert("size", &string_size);
 
-                        template
+                        self.prepare_and_get_tera_user_type_array_template(
+                            &mut tera,
+                            &mut context,
+                            &type_info.name,
+                            &coalesce_optional_strings_with_default(name, field_name_override),
+                            &extract_array_size(bounds),
+                        )
                     }
                     GenerationSource::FunctionParameter => {
-                        let template = self
-                            .template_manager
-                            .get_template(TemplateType::ParamArray)
-                            .expect("Unable to find the 'param array' template!");
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'param array' template to tera!");
-
-                        context.insert(
-                            "name",
-                            &field_name_override
-                                .expect("Field name expected for generation source type: 'Parameter'!"),
-                        );
-
                         let type_info = self.type_manager.get_type_name_for_type(
                             &ExtendedTypeName {
                                 type_name: referenced_type.get_name().unwrap().to_string(),
@@ -502,24 +459,20 @@ impl GeneratedHeader {
                             },
                             builtin_types,
                         );
-                        context.insert("data_type", &type_info.name);
 
-                        template
+                        self.prepare_and_get_tera_param_array_template(
+                            &mut tera,
+                            &mut context,
+                            &type_info.name,
+                            field_name_override
+                                .expect("Field name expected for generation source type: 'Parameter'!"),
+                        )
                     }
                 };
 
                 Some(tera.render(&template.name, &context).unwrap().trim().to_string())
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
-                let template = self
-                    .template_manager
-                    .get_template(TemplateType::Variable)
-                    .expect("Unable to find the 'variable' template!");
-                tera.add_raw_template(&template.name, &template.content)
-                    .expect("Unable to add the 'variable' template to tera!");
-
-                context.insert("name", &coalesce_optional_strings_with_default(name, field_name_override));
-
                 let type_info = self.type_manager.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap().to_string(),
@@ -527,27 +480,30 @@ impl GeneratedHeader {
                     },
                     builtin_types,
                 );
-                context.insert("data_type", &type_info.name);
-                context.insert("reference_symbol", &self.symbol_manager.get_reference_symbol());
+
+                let template = self.prepare_and_get_tera_variable_template(
+                    &mut tera,
+                    &mut context,
+                    &type_info.name,
+                    &coalesce_optional_strings_with_default(name, field_name_override),
+                    &self.symbol_manager.get_reference_symbol(),
+                );
 
                 Some(tera.render(&template.name, &context).unwrap().trim().to_string())
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
-                let template = self
-                    .template_manager
-                    .get_template(TemplateType::Variable)
-                    .expect("Unable to find the 'variable' template!");
-                tera.add_raw_template(&template.name, &template.content)
-                    .expect("Unable to add the 'variable' template to tera!");
-
-                context.insert("name", &coalesce_optional_strings_with_default(name, field_name_override));
-
                 let type_info = self.type_manager.get_type_name_for_type(
                     &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
                     builtin_types,
                 );
-                context.insert("data_type", &type_info.name);
-                context.insert("reference_symbol", "");
+
+                let template = self.prepare_and_get_tera_variable_template(
+                    &mut tera,
+                    &mut context,
+                    &type_info.name,
+                    &coalesce_optional_strings_with_default(name, field_name_override),
+                    &String::new(),
+                );
 
                 Some(tera.render(&template.name, &context).unwrap().trim().to_string())
             }
@@ -662,7 +618,7 @@ impl GeneratedHeader {
                             variables.push(value);
                         }
                     } else {
-                        let template = self.get_and_prepare_variable_template(
+                        let template = self.prepare_and_get_tera_variable_template(
                             &mut tera,
                             &mut context,
                             &type_info.name,
@@ -677,7 +633,7 @@ impl GeneratedHeader {
                     variables.push(self.symbol_manager.get_variadic_symbol());
                 }
                 TypeAttribute::Other => {
-                    let template = self.get_and_prepare_variable_template(
+                    let template = self.prepare_and_get_tera_variable_template(
                         &mut tera,
                         &mut context,
                         &type_info.name,
@@ -694,7 +650,7 @@ impl GeneratedHeader {
     }
 
     // -- Template Preparation -- \\
-    fn get_and_prepare_tera_user_type_struct_template(
+    fn prepare_and_get_tera_user_type_struct_template(
         &mut self,
         tera: &mut Tera,
         context: &mut Context,
@@ -714,7 +670,7 @@ impl GeneratedHeader {
         template
     }
 
-    fn get_and_prepare_tera_param_struct_template(
+    fn prepare_and_get_tera_param_struct_template(
         &mut self,
         tera: &mut Tera,
         context: &mut Context,
@@ -734,7 +690,7 @@ impl GeneratedHeader {
         template
     }
 
-    fn get_and_prepare_variable_template(
+    fn prepare_and_get_tera_variable_template(
         &mut self,
         tera: &mut Tera,
         context: &mut Context,
@@ -752,6 +708,48 @@ impl GeneratedHeader {
         context.insert("data_type", data_type);
         context.insert("name", name);
         context.insert("reference_symbol", reference_symbol);
+
+        template
+    }
+
+    fn prepare_and_get_tera_param_array_template(
+        &mut self,
+        tera: &mut Tera,
+        context: &mut Context,
+        data_type: &String,
+        name: &String,
+    ) -> Template {
+        let template = self
+            .template_manager
+            .get_template(TemplateType::ParamArray)
+            .expect("Unable to find the 'param array' template!");
+        tera.add_raw_template(&template.name, &template.content)
+            .expect("Unable to add the 'param array' template to tera!");
+
+        context.insert("data_type", data_type);
+        context.insert("name", name);
+
+        template
+    }
+
+    fn prepare_and_get_tera_user_type_array_template(
+        &mut self,
+        tera: &mut Tera,
+        context: &mut Context,
+        data_type: &String,
+        name: &String,
+        size: &String,
+    ) -> Template {
+        let template = self
+            .template_manager
+            .get_template(TemplateType::UserTypeArray)
+            .expect("Unable to find the 'user type array' template!");
+        tera.add_raw_template(&template.name, &template.content)
+            .expect("Unable to add the 'user type array' template to tera!");
+
+        context.insert("data_type", data_type);
+        context.insert("name", name);
+        context.insert("size", size);
 
         template
     }
@@ -856,3 +854,257 @@ fn extract_array_size(bounds: &AstNode) -> String {
         _ => String::new(),
     }
 }
+
+/*
+    Refactor Notes:
+
+    ---------------------------------------------
+    -- Struct return type for header rendering --
+    ---------------------------------------------
+
+    {
+        "global_variables": [
+            {
+                "data_type": "some-data-type", // Could include the reference
+                "name": "some-field-name",
+                "size": null
+            },
+            ...
+        ],
+        "user_defined_data_types": {
+            "structs": [
+                {
+                    "name": "some-struct-name",
+                    "variables": [
+                        {
+                            "data_type": "some-data-type",
+                            "name": "some-field-name"
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ],
+            "enums": [
+                {
+                    "name": "some-enum-name",
+                    "variables": [
+                        {
+                            "name": "some-enum-field-name",
+                            "value": null
+                        },
+                        ...
+                    ]
+                },
+                ...
+            ]
+        },
+        "functions": [
+            {
+                "return_type": "some-data-type",
+                "name": "some-function-name",
+                "parameters": [
+                    {
+                        "data_type": "some-data-type",
+                        "name": "some-field-name"
+                    },
+                    ...
+                ],
+                "is_variadic": false
+            },
+            ...
+        ]
+    }
+
+    -------------
+    -- EXAMPLE --
+    -------------
+    The following ST interface (.pli file):
+    ```st
+    VAR_GLOBAL
+        globalCounter: INT;
+    END_VAR
+
+    TYPE RGB : (
+            red,
+            green,
+            blue
+        );
+    END_TYPE
+
+    TYPE ColourInfo:
+        STRUCT
+            timesPicked : INT;
+            primaryColour : RGB;
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION PrintStatistics
+    VAR_INPUT
+        runCount: INT;
+        colours: {sized} ColourInfo...;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION_BLOCK ColourTracker
+    VAR
+        internalCount : INT;
+    END_VAR
+    VAR_OUTPUT
+        printedInfo : STRING;
+    END_VAR
+    VAR_IN_OUT
+        colour : ColourInfo;
+    END_VAR
+    END_FUNCTION_BLOCK
+    ```
+
+    ... will result in the following struct:
+    ```json
+    {
+        "global_variables": [
+            {
+                "data_type": "int16_t",
+                "name": "globalCounter",
+                "is_reference": false,
+                "size": null
+            }
+        ],
+        "user_defined_data_types": {
+            "structs": [
+                {
+                    "name": "ColourInfo",
+                    "variables": [
+                        {
+                            "data_type": "int16_t",
+                            "name": "timesPicked"
+                        },
+                        {
+                            "data_type": "RGB",
+                            "name": "primaryColour"
+                        }
+                    ]
+                },
+                {
+                    "name": "ColourTracker_type",
+                    "variables": [
+                        {
+                            "data_type": "uint64_t*",
+                            "name": "__vtable"
+                        },
+                        {
+                            "data_type": "int16_t",
+                            "name": "internalCount"
+                        },
+                        {
+                            "data_type": "char*",
+                            "name": "printedInfo"
+                        },
+                        {
+                            "data_type": "ColourInfo*",
+                            "name": "colour"
+                        }
+                    ]
+                }
+            ],
+            "enums": [
+                {
+                    "name": "eRGB",
+                    "variables": [
+                        {
+                            "name": "red",
+                            "value": "0"
+                        },
+                        {
+                            "name": "green",
+                            "value": null
+                        },
+                        {
+                            "name": "blue",
+                            "value": null
+                        }
+                    ]
+                }
+            ]
+        },
+        "functions": [
+            {
+                "return_type": "void",
+                "name": "PrintStatistics",
+                "parameters": [
+                    {
+                        "data_type": "int16_t",
+                        "name": "runCount"
+                    }
+                ],
+                "is_variadic": true
+            },
+            {
+                "return_type": "void",
+                "name": "ColourTracker",
+                "parameters": [
+                    {
+                        "data_type": "ColourTracker_type*",
+                        "name": "self"
+                    }
+                ],
+                "is_variadic": false
+            }
+        ]
+    }
+    ```
+
+    ... and that will result in the follow C header:
+    ```c
+    extern int16_t globalCounter;
+
+    typedef enum eRGB {
+        red = 0,
+        green,
+        blue
+    } RGB;
+
+    typedef struct {
+        int16_t timesPicked;
+        RGB primaryColour;
+    } ColourInfo;
+
+    typedef struct {
+        uint64_t* __vtable;
+        int16_t internalCount;
+        char* printedInfo;
+        ColourInfo* colour;
+    } ColourTracker_type;
+
+    void PrintStatistics(int16_t runCount, ...);
+
+    void ColourTracker(ColourTracker_type* self);
+    ```
+*/
+
+/*
+    enum DataType {
+        Struct,
+        Enum,
+        Array,
+        Pointer(String),
+        Reference(String),
+    }
+
+    struct Variable;
+
+    struct Function;
+
+    struct Model {
+        types: HashMap<String, DataType>,
+        variables: HashMap<String, Variable>,
+        functions: HashMap<String, Function>,
+    }
+
+    trait Declare {
+        fn declare_var(&self) -> String;
+        fn declare_type(&self) -> String;
+        fn declare_func(&self) -> String;
+    }
+
+*/

@@ -1,0 +1,22 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].contents"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#include <dependencies.plc.h>
+
+
+
+
+
+
+// Functions, Function Blocks and Programs
+void fnThatIsVoid(int16_t varIntInput);
+
+int16_t fnThatReturnsInt(float_t varRealInputToFunc, int16_t varIntInputToFunc, time_t varDateAndTimeInputToFunc, float_t* varRealInOutFunc, int16_t* varIntOutputFunc);
+
+time_t fnThatReturnsTimeOfDay(time_t varDateTimeInput);

@@ -50,10 +50,6 @@ impl FileManager {
             generate_header_options.output_path.clone()
         };
 
-        if output_path.as_os_str().is_empty() {
-            return Err(Diagnostic::new("Unable to determine an output path!"));
-        }
-
         let output_dir = output_path.clone();
         let output_name = if generate_header_options.prefix.is_empty() {
             let file_name = get_file_name_from_path_buf_without_extension(file_path);
@@ -67,8 +63,8 @@ impl FileManager {
         };
 
         if output_name.is_empty() {
-            // TODO: I'm not sure how I feel about swallowing this...
-            // This means this compilation unit is not associated with a file in this case we aren't interested in drilling into it
+            // This means this compilation unit is not associated with a file.
+            // In this case we aren't interested in drilling into it.
             return Ok(false);
         }
 

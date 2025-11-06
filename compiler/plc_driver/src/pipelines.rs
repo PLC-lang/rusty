@@ -49,6 +49,7 @@ use project::{
     project::{LibraryInformation, Project},
 };
 use rayon::prelude::*;
+use serde::{Deserialize, Serialize};
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
@@ -468,14 +469,16 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
 
         for unit in project.units {
             let mut generated_header = GeneratedHeader::new();
-            generated_header.generate_headers(&generate_header_options, unit.unit)?;
+            generated_header.generate_headers(&generate_header_options, &unit.unit)?;
             generated_headers.push(generated_header);
         }
 
         for generated_header in generated_headers {
             if !generated_header.is_empty() {
-                // Create the directories to the output path
-                fs::create_dir_all(generated_header.directory)?;
+                // Create the directories to the output path (if it is necessary to do so)
+                if !generated_header.directory.is_empty() {
+                    fs::create_dir_all(generated_header.directory)?;
+                }
 
                 // Write the header file
                 fs::write(generated_header.path, generated_header.contents)?;
@@ -522,6 +525,8 @@ fn write_got_layout(
 ///Represents a parsed project
 ///For this struct to be built, the project would have been parsed correctly and an AST would have
 ///been generated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ParsedProject {
     units: Vec<CompilationUnit>,
 }
@@ -623,6 +628,8 @@ impl ParsedProject {
 
 ///A project that has also been indexed
 /// Units inside an index project are ready be resolved and annotated
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct IndexedProject {
     project: ParsedProject,
     index: Index,
@@ -675,7 +682,8 @@ impl IndexedProject {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedUnit {
     unit: CompilationUnit,
     dependencies: FxIndexSet<Dependency>,
@@ -703,6 +711,8 @@ impl From<AnnotatedUnit> for CompilationUnit {
 }
 
 /// A project that has been annotated with information about different types and used units
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotatedProject {
     pub units: Vec<AnnotatedUnit>,
     pub index: Index,

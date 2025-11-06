@@ -1,0 +1,1089 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: json
+---
+[
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [],
+    "implementations": [],
+    "interfaces": [],
+    "user_types": [
+      {
+        "data_type": {
+          "EnumType": {
+            "name": "SimpleEnumType",
+            "numeric_type": "DINT",
+            "elements": {
+              "stmt": {
+                "ExpressionList": [
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "red"
+                                  },
+                                  "id": 52,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 2,
+                                          "column": 12,
+                                          "offset": 41
+                                        },
+                                        "end": {
+                                          "line": 2,
+                                          "column": 15,
+                                          "offset": 44
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 53,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 2,
+                                  "column": 12,
+                                  "offset": 41
+                                },
+                                "end": {
+                                  "line": 2,
+                                  "column": 15,
+                                  "offset": 44
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "Literal": {
+                              "Integer": 0
+                            }
+                          },
+                          "id": 1,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 2,
+                                  "column": 12,
+                                  "offset": 41
+                                },
+                                "end": {
+                                  "line": 2,
+                                  "column": 15,
+                                  "offset": 44
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 54,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 2,
+                            "column": 12,
+                            "offset": 41
+                          },
+                          "end": {
+                            "line": 2,
+                            "column": 15,
+                            "offset": 44
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "green"
+                                  },
+                                  "id": 55,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 3,
+                                          "column": 12,
+                                          "offset": 58
+                                        },
+                                        "end": {
+                                          "line": 3,
+                                          "column": 17,
+                                          "offset": 63
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 56,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 3,
+                                  "column": 12,
+                                  "offset": 58
+                                },
+                                "end": {
+                                  "line": 3,
+                                  "column": 17,
+                                  "offset": 63
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "BinaryExpression": {
+                              "operator": "Plus",
+                              "left": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Cast": {
+                                        "stmt": {
+                                          "Identifier": "red"
+                                        },
+                                        "id": 5,
+                                        "location": {
+                                          "span": {
+                                            "Range": {
+                                              "start": {
+                                                "line": 3,
+                                                "column": 12,
+                                                "offset": 58
+                                              },
+                                              "end": {
+                                                "line": 3,
+                                                "column": 17,
+                                                "offset": 63
+                                              }
+                                            }
+                                          },
+                                          "file": {
+                                            "File": "enum_types.pli"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": {
+                                      "stmt": {
+                                        "ReferenceExpr": {
+                                          "access": {
+                                            "Member": {
+                                              "stmt": {
+                                                "Identifier": "SimpleEnumType"
+                                              },
+                                              "id": 6,
+                                              "location": {
+                                                "span": {
+                                                  "Range": {
+                                                    "start": {
+                                                      "line": 3,
+                                                      "column": 12,
+                                                      "offset": 58
+                                                    },
+                                                    "end": {
+                                                      "line": 3,
+                                                      "column": 17,
+                                                      "offset": 63
+                                                    }
+                                                  }
+                                                },
+                                                "file": {
+                                                  "File": "enum_types.pli"
+                                                }
+                                              },
+                                              "metadata": null
+                                            }
+                                          },
+                                          "base": null
+                                        }
+                                      },
+                                      "id": 7,
+                                      "location": {
+                                        "span": {
+                                          "Range": {
+                                            "start": {
+                                              "line": 3,
+                                              "column": 12,
+                                              "offset": 58
+                                            },
+                                            "end": {
+                                              "line": 3,
+                                              "column": 17,
+                                              "offset": 63
+                                            }
+                                          }
+                                        },
+                                        "file": {
+                                          "File": "enum_types.pli"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  }
+                                },
+                                "id": 8,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 3,
+                                        "column": 12,
+                                        "offset": 58
+                                      },
+                                      "end": {
+                                        "line": 3,
+                                        "column": 17,
+                                        "offset": 63
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "enum_types.pli"
+                                  }
+                                },
+                                "metadata": null
+                              },
+                              "right": {
+                                "stmt": {
+                                  "Literal": {
+                                    "Integer": 1
+                                  }
+                                },
+                                "id": 9,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 3,
+                                        "column": 12,
+                                        "offset": 58
+                                      },
+                                      "end": {
+                                        "line": 3,
+                                        "column": 17,
+                                        "offset": 63
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "enum_types.pli"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 10,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 3,
+                                  "column": 12,
+                                  "offset": 58
+                                },
+                                "end": {
+                                  "line": 3,
+                                  "column": 17,
+                                  "offset": 63
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 57,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 3,
+                            "column": 12,
+                            "offset": 58
+                          },
+                          "end": {
+                            "line": 3,
+                            "column": 17,
+                            "offset": 63
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "blue"
+                                  },
+                                  "id": 58,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 4,
+                                          "column": 12,
+                                          "offset": 77
+                                        },
+                                        "end": {
+                                          "line": 4,
+                                          "column": 16,
+                                          "offset": 81
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 59,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 4,
+                                  "column": 12,
+                                  "offset": 77
+                                },
+                                "end": {
+                                  "line": 4,
+                                  "column": 16,
+                                  "offset": 81
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "BinaryExpression": {
+                              "operator": "Plus",
+                              "left": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Cast": {
+                                        "stmt": {
+                                          "Identifier": "green"
+                                        },
+                                        "id": 14,
+                                        "location": {
+                                          "span": {
+                                            "Range": {
+                                              "start": {
+                                                "line": 4,
+                                                "column": 12,
+                                                "offset": 77
+                                              },
+                                              "end": {
+                                                "line": 4,
+                                                "column": 16,
+                                                "offset": 81
+                                              }
+                                            }
+                                          },
+                                          "file": {
+                                            "File": "enum_types.pli"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": {
+                                      "stmt": {
+                                        "ReferenceExpr": {
+                                          "access": {
+                                            "Member": {
+                                              "stmt": {
+                                                "Identifier": "SimpleEnumType"
+                                              },
+                                              "id": 15,
+                                              "location": {
+                                                "span": {
+                                                  "Range": {
+                                                    "start": {
+                                                      "line": 4,
+                                                      "column": 12,
+                                                      "offset": 77
+                                                    },
+                                                    "end": {
+                                                      "line": 4,
+                                                      "column": 16,
+                                                      "offset": 81
+                                                    }
+                                                  }
+                                                },
+                                                "file": {
+                                                  "File": "enum_types.pli"
+                                                }
+                                              },
+                                              "metadata": null
+                                            }
+                                          },
+                                          "base": null
+                                        }
+                                      },
+                                      "id": 16,
+                                      "location": {
+                                        "span": {
+                                          "Range": {
+                                            "start": {
+                                              "line": 4,
+                                              "column": 12,
+                                              "offset": 77
+                                            },
+                                            "end": {
+                                              "line": 4,
+                                              "column": 16,
+                                              "offset": 81
+                                            }
+                                          }
+                                        },
+                                        "file": {
+                                          "File": "enum_types.pli"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  }
+                                },
+                                "id": 17,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 4,
+                                        "column": 12,
+                                        "offset": 77
+                                      },
+                                      "end": {
+                                        "line": 4,
+                                        "column": 16,
+                                        "offset": 81
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "enum_types.pli"
+                                  }
+                                },
+                                "metadata": null
+                              },
+                              "right": {
+                                "stmt": {
+                                  "Literal": {
+                                    "Integer": 1
+                                  }
+                                },
+                                "id": 18,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 4,
+                                        "column": 12,
+                                        "offset": 77
+                                      },
+                                      "end": {
+                                        "line": 4,
+                                        "column": 16,
+                                        "offset": 81
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "enum_types.pli"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 19,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 4,
+                                  "column": 12,
+                                  "offset": 77
+                                },
+                                "end": {
+                                  "line": 4,
+                                  "column": 16,
+                                  "offset": 81
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 60,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 4,
+                            "column": 12,
+                            "offset": 77
+                          },
+                          "end": {
+                            "line": 4,
+                            "column": 16,
+                            "offset": 81
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  }
+                ]
+              },
+              "id": 61,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 2,
+                      "column": 12,
+                      "offset": 41
+                    },
+                    "end": {
+                      "line": 4,
+                      "column": 16,
+                      "offset": 81
+                    }
+                  }
+                },
+                "file": {
+                  "File": "enum_types.pli"
+                }
+              },
+              "metadata": null
+            }
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 9,
+                "offset": 10
+              },
+              "end": {
+                "line": 1,
+                "column": 23,
+                "offset": 24
+              }
+            }
+          },
+          "file": {
+            "File": "enum_types.pli"
+          }
+        },
+        "scope": null
+      },
+      {
+        "data_type": {
+          "EnumType": {
+            "name": "ComplexEnumType",
+            "numeric_type": "DINT",
+            "elements": {
+              "stmt": {
+                "ExpressionList": [
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "orange"
+                                  },
+                                  "id": 62,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 9,
+                                          "column": 12,
+                                          "offset": 148
+                                        },
+                                        "end": {
+                                          "line": 9,
+                                          "column": 24,
+                                          "offset": 160
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 63,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 9,
+                                  "column": 12,
+                                  "offset": 148
+                                },
+                                "end": {
+                                  "line": 9,
+                                  "column": 24,
+                                  "offset": 160
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "Literal": {
+                              "Integer": 10
+                            }
+                          },
+                          "id": 10,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 9,
+                                  "column": 22,
+                                  "offset": 158
+                                },
+                                "end": {
+                                  "line": 9,
+                                  "column": 24,
+                                  "offset": 160
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 64,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 9,
+                            "column": 12,
+                            "offset": 148
+                          },
+                          "end": {
+                            "line": 9,
+                            "column": 24,
+                            "offset": 160
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "yellow"
+                                  },
+                                  "id": 65,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 10,
+                                          "column": 12,
+                                          "offset": 174
+                                        },
+                                        "end": {
+                                          "line": 10,
+                                          "column": 24,
+                                          "offset": 186
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 66,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 10,
+                                  "column": 12,
+                                  "offset": 174
+                                },
+                                "end": {
+                                  "line": 10,
+                                  "column": 24,
+                                  "offset": 186
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "Literal": {
+                              "Integer": 20
+                            }
+                          },
+                          "id": 14,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 10,
+                                  "column": 22,
+                                  "offset": 184
+                                },
+                                "end": {
+                                  "line": 10,
+                                  "column": 24,
+                                  "offset": 186
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 67,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 10,
+                            "column": 12,
+                            "offset": 174
+                          },
+                          "end": {
+                            "line": 10,
+                            "column": 24,
+                            "offset": 186
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  {
+                    "stmt": {
+                      "Assignment": {
+                        "left": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "purple"
+                                  },
+                                  "id": 68,
+                                  "location": {
+                                    "span": {
+                                      "Range": {
+                                        "start": {
+                                          "line": 11,
+                                          "column": 12,
+                                          "offset": 200
+                                        },
+                                        "end": {
+                                          "line": 11,
+                                          "column": 24,
+                                          "offset": 212
+                                        }
+                                      }
+                                    },
+                                    "file": {
+                                      "File": "enum_types.pli"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 69,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 11,
+                                  "column": 12,
+                                  "offset": 200
+                                },
+                                "end": {
+                                  "line": 11,
+                                  "column": 24,
+                                  "offset": 212
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "right": {
+                          "stmt": {
+                            "Literal": {
+                              "Integer": 30
+                            }
+                          },
+                          "id": 18,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 11,
+                                  "column": 22,
+                                  "offset": 210
+                                },
+                                "end": {
+                                  "line": 11,
+                                  "column": 24,
+                                  "offset": 212
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "enum_types.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 70,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 11,
+                            "column": 12,
+                            "offset": 200
+                          },
+                          "end": {
+                            "line": 11,
+                            "column": 24,
+                            "offset": 212
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "enum_types.pli"
+                      }
+                    },
+                    "metadata": null
+                  }
+                ]
+              },
+              "id": 71,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 9,
+                      "column": 12,
+                      "offset": 148
+                    },
+                    "end": {
+                      "line": 11,
+                      "column": 24,
+                      "offset": 212
+                    }
+                  }
+                },
+                "file": {
+                  "File": "enum_types.pli"
+                }
+              },
+              "metadata": null
+            }
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 116
+              },
+              "end": {
+                "line": 8,
+                "column": 24,
+                "offset": 131
+              }
+            }
+          },
+          "file": {
+            "File": "enum_types.pli"
+          }
+        },
+        "scope": null
+      }
+    ],
+    "file": {
+      "File": "enum_types.pli"
+    }
+  }
+]

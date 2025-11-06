@@ -8,6 +8,9 @@ pub mod symbol_manager;
 pub mod template_manager;
 pub mod type_manager;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
 pub enum GenerateLanguage {
     #[default]

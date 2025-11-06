@@ -6,6 +6,7 @@
 //! records all resulting types associated with the statement's id.
 
 use rustc_hash::{FxHashMap, FxHashSet};
+use serde::{Deserialize, Serialize};
 use std::{fmt::Debug, hash::Hash};
 
 use plc_ast::{
@@ -422,7 +423,7 @@ impl TypeAnnotator<'_> {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Default)]
+#[derive(Clone, Debug, PartialEq, Default, Serialize, Deserialize)]
 pub enum AutoDerefType {
     #[default]
     Default,
@@ -449,7 +450,8 @@ impl From<ast::AutoDerefType> for AutoDerefType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum StatementAnnotation {
     /// an expression that resolves to a certain type (e.g. `a + b` --> `INT`)
     Value {
@@ -542,7 +544,7 @@ pub enum StatementAnnotation {
 
 type QualifiedName = String;
 
-#[derive(Debug, Hash, Clone, PartialEq)]
+#[derive(Debug, Hash, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MethodDeclarationType {
     Abstract(QualifiedName),
     Concrete(QualifiedName),
@@ -830,7 +832,7 @@ impl From<&PouIndexEntry> for StatementAnnotation {
     }
 }
 
-#[derive(Hash, Eq, PartialEq, Debug, Clone)]
+#[derive(Hash, Eq, PartialEq, Debug, Clone, Serialize, Deserialize)]
 pub enum Dependency {
     Datatype(String),
     Call(String),
@@ -938,7 +940,8 @@ pub trait AnnotationMap {
     fn import(&mut self, other: AnnotationMapImpl);
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AstAnnotations {
     pub annotation_map: AnnotationMapImpl,
     bool_id: AstId,
@@ -990,7 +993,8 @@ impl AstAnnotations {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AnnotationMapImpl {
     /// maps a statement to the type it resolves to
     type_map: FxIndexMap<AstId, StatementAnnotation>,
@@ -1095,7 +1099,7 @@ impl AnnotationMap for AnnotationMapImpl {
     }
 }
 
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Serialize, Deserialize)]
 pub struct StringLiterals {
     pub utf08: FxHashSet<String>,
     pub utf16: FxHashSet<String>,

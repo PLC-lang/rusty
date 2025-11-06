@@ -74,22 +74,42 @@ impl SymbolManager {
 }
 
 fn format_global_variables_in_c(variables: &[String]) -> String {
+    if variables.is_empty() {
+        return String::new();
+    }
+
     format!("extern {};", variables.join(";\nextern "))
 }
 
 fn format_function_parameters_in_c(parameters: &[String]) -> String {
+    if parameters.is_empty() {
+        return String::new();
+    }
+
     parameters.join(", ")
 }
 
 fn format_functions_or_user_types_in_c(functions_or_user_types: &[String]) -> String {
+    if functions_or_user_types.is_empty() {
+        return String::new();
+    }
+
     format!("{};", functions_or_user_types.join(";\n\n"))
 }
 
 fn format_struct_fields_in_c(struct_fields: &[String]) -> String {
+    if struct_fields.is_empty() {
+        return String::new();
+    }
+
     format!("{};", struct_fields.join(";\n\t"))
 }
 
 fn format_enum_fields_in_c(enum_fields: &[String]) -> String {
+    if enum_fields.is_empty() {
+        return String::new();
+    }
+
     enum_fields.join(",\n\t")
 }
 

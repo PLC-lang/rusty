@@ -8,6 +8,7 @@ use plc_ast::{
     literals::{Array, AstLiteral, StringValue},
 };
 use plc_source::source_location::SourceLocation;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     index::{
@@ -19,7 +20,8 @@ use crate::{
 
 /// a wrapper for an unresolvable const-expression with the reason
 /// why it could not be resolved
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct UnresolvableConstant {
     pub id: ConstId,
     pub kind: Option<UnresolvableKind>,

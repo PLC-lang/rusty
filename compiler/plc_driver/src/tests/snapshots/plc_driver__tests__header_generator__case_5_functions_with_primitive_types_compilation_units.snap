@@ -1,0 +1,1004 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: json
+---
+[
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 1,
+        "name": "fnThatIsVoid",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varIntInput",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 3,
+                            "column": 21,
+                            "offset": 62
+                          },
+                          "end": {
+                            "line": 3,
+                            "column": 24,
+                            "offset": 65
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 3,
+                        "column": 8,
+                        "offset": 49
+                      },
+                      "end": {
+                        "line": 3,
+                        "column": 19,
+                        "offset": 60
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 2,
+                    "column": 4,
+                    "offset": 31
+                  },
+                  "end": {
+                    "line": 2,
+                    "column": 13,
+                    "offset": 40
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 4,
+                "offset": 5
+              },
+              "end": {
+                "line": 5,
+                "column": 16,
+                "offset": 95
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 13,
+                "offset": 14
+              },
+              "end": {
+                "line": 1,
+                "column": 25,
+                "offset": 26
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 2,
+        "name": "fnThatReturnsInt",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varRealInputToFunc",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "REAL",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 9,
+                            "column": 28,
+                            "offset": 174
+                          },
+                          "end": {
+                            "line": 9,
+                            "column": 32,
+                            "offset": 178
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 9,
+                        "column": 8,
+                        "offset": 154
+                      },
+                      "end": {
+                        "line": 9,
+                        "column": 26,
+                        "offset": 172
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              },
+              {
+                "name": "varIntInputToFunc",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 10,
+                            "column": 27,
+                            "offset": 207
+                          },
+                          "end": {
+                            "line": 10,
+                            "column": 30,
+                            "offset": 210
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 10,
+                        "column": 8,
+                        "offset": 188
+                      },
+                      "end": {
+                        "line": 10,
+                        "column": 25,
+                        "offset": 205
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              },
+              {
+                "name": "varDateAndTimeInputToFunc",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DATE_AND_TIME",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 11,
+                            "column": 35,
+                            "offset": 247
+                          },
+                          "end": {
+                            "line": 11,
+                            "column": 48,
+                            "offset": 260
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 11,
+                        "column": 8,
+                        "offset": 220
+                      },
+                      "end": {
+                        "line": 11,
+                        "column": 33,
+                        "offset": 245
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 8,
+                    "column": 4,
+                    "offset": 136
+                  },
+                  "end": {
+                    "line": 8,
+                    "column": 13,
+                    "offset": 145
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varRealInOutFunc",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "REAL",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 14,
+                            "column": 26,
+                            "offset": 315
+                          },
+                          "end": {
+                            "line": 14,
+                            "column": 30,
+                            "offset": 319
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 14,
+                        "column": 8,
+                        "offset": 297
+                      },
+                      "end": {
+                        "line": 14,
+                        "column": 24,
+                        "offset": 313
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 13,
+                    "column": 4,
+                    "offset": 278
+                  },
+                  "end": {
+                    "line": 13,
+                    "column": 14,
+                    "offset": 288
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varIntOutputFunc",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 17,
+                            "column": 26,
+                            "offset": 374
+                          },
+                          "end": {
+                            "line": 17,
+                            "column": 29,
+                            "offset": 377
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 17,
+                        "column": 8,
+                        "offset": 356
+                      },
+                      "end": {
+                        "line": 17,
+                        "column": 24,
+                        "offset": 372
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "Output",
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 16,
+                    "column": 4,
+                    "offset": 337
+                  },
+                  "end": {
+                    "line": 16,
+                    "column": 14,
+                    "offset": 347
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          }
+        ],
+        "return_type": {
+          "Reference": {
+            "referenced_type": "INT",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 7,
+                    "column": 31,
+                    "offset": 128
+                  },
+                  "end": {
+                    "line": 7,
+                    "column": 34,
+                    "offset": 131
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          }
+        },
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 7,
+                "column": 4,
+                "offset": 101
+              },
+              "end": {
+                "line": 19,
+                "column": 16,
+                "offset": 407
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 7,
+                "column": 13,
+                "offset": 110
+              },
+              "end": {
+                "line": 7,
+                "column": 29,
+                "offset": 126
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 3,
+        "name": "fnThatReturnsTimeOfDay",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varDateTimeInput",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 23,
+                            "column": 27,
+                            "offset": 492
+                          },
+                          "end": {
+                            "line": 23,
+                            "column": 29,
+                            "offset": 494
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_primitive_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 23,
+                        "column": 8,
+                        "offset": 473
+                      },
+                      "end": {
+                        "line": 23,
+                        "column": 24,
+                        "offset": 489
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_primitive_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 22,
+                    "column": 4,
+                    "offset": 455
+                  },
+                  "end": {
+                    "line": 22,
+                    "column": 13,
+                    "offset": 464
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          }
+        ],
+        "return_type": {
+          "Reference": {
+            "referenced_type": "TOD",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 21,
+                    "column": 38,
+                    "offset": 447
+                  },
+                  "end": {
+                    "line": 21,
+                    "column": 41,
+                    "offset": 450
+                  }
+                }
+              },
+              "file": {
+                "File": "functions_with_primitive_types.pli"
+              }
+            }
+          }
+        },
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 21,
+                "column": 4,
+                "offset": 413
+              },
+              "end": {
+                "line": 25,
+                "column": 16,
+                "offset": 524
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 21,
+                "column": 13,
+                "offset": 422
+              },
+              "end": {
+                "line": 21,
+                "column": 35,
+                "offset": 444
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "fnThatIsVoid",
+        "type_name": "fnThatIsVoid",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 5,
+                "column": 4,
+                "offset": 83
+              },
+              "end": {
+                "line": 4,
+                "column": 11,
+                "offset": 78
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 13,
+                "offset": 14
+              },
+              "end": {
+                "line": 1,
+                "column": 25,
+                "offset": 26
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 5,
+                "column": 4,
+                "offset": 83
+              },
+              "end": {
+                "line": 5,
+                "column": 16,
+                "offset": 95
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "fnThatReturnsInt",
+        "type_name": "fnThatReturnsInt",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 19,
+                "column": 4,
+                "offset": 395
+              },
+              "end": {
+                "line": 18,
+                "column": 11,
+                "offset": 390
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 7,
+                "column": 13,
+                "offset": 110
+              },
+              "end": {
+                "line": 7,
+                "column": 29,
+                "offset": 126
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 19,
+                "column": 4,
+                "offset": 395
+              },
+              "end": {
+                "line": 19,
+                "column": 16,
+                "offset": 407
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "fnThatReturnsTimeOfDay",
+        "type_name": "fnThatReturnsTimeOfDay",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 25,
+                "column": 4,
+                "offset": 512
+              },
+              "end": {
+                "line": 24,
+                "column": 11,
+                "offset": 507
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 21,
+                "column": 13,
+                "offset": 422
+              },
+              "end": {
+                "line": 21,
+                "column": 35,
+                "offset": 444
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 25,
+                "column": 4,
+                "offset": 512
+              },
+              "end": {
+                "line": 25,
+                "column": 16,
+                "offset": 524
+              }
+            }
+          },
+          "file": {
+            "File": "functions_with_primitive_types.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "File": "functions_with_primitive_types.pli"
+    }
+  },
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 19,
+        "name": "__init___TestProject",
+        "kind": "ProjectInit",
+        "variable_blocks": [],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "__init___TestProject",
+        "type_name": "__init___TestProject",
+        "linkage": "Internal",
+        "pou_type": "ProjectInit",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "Internal": "__init___TestProject"
+    }
+  }
+]

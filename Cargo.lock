@@ -1334,6 +1334,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "877e94aff08e743b651baaea359664321055749b398adff8740a7399af7796e7"
 dependencies = [
  "cfg-if",
+ "serde",
 ]
 
 [[package]]
@@ -1908,6 +1909,8 @@ checksum = "4b0f83760fb341a774ed326568e19f5a863af4a952def8c39f9ab92fd95b88e5"
 dependencies = [
  "equivalent",
  "hashbrown 0.16.0",
+ "serde",
+ "serde_core",
 ]
 
 [[package]]
@@ -2987,11 +2990,14 @@ name = "plc_header_generator"
 version = "0.1.0"
 dependencies = [
  "clap 3.2.25",
+ "insta",
  "log",
  "plc_ast",
  "plc_diagnostics",
  "plc_source",
  "rusty",
+ "serde",
+ "serde_json",
  "tera",
 ]
 
@@ -3044,6 +3050,8 @@ dependencies = [
  "encoding_rs",
  "encoding_rs_io",
  "insta",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
