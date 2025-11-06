@@ -1,5 +1,5 @@
 FUNCTION_BLOCK baseFb
-    VAR
+    VAR_OUTPUT
         x : DINT;
         y : REFERENCE TO DINT;
     END_VAR

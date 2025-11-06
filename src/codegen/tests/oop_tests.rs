@@ -30,14 +30,13 @@ fn members_from_base_class_are_available_in_subclasses() {
     %__vtable_bar = type { void (%bar*)* }
     %bar = type { %foo }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @foo(%foo* %0) {
     entry:
@@ -180,7 +179,7 @@ fn write_to_parent_variable_qualified_access() {
     %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, %fb2 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
@@ -190,7 +189,6 @@ fn write_to_parent_variable_qualified_access() {
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @fb(%fb* %0) {
     entry:
@@ -390,14 +388,13 @@ fn write_to_parent_variable_in_instance() {
 
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"world\00"
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @foo(%foo* %0) {
     entry:
@@ -599,7 +596,7 @@ fn array_in_parent_generated() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -609,7 +606,6 @@ fn array_in_parent_generated() {
     @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
     @__child__init = unnamed_addr constant %child zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @grandparent(%grandparent* %0) {
     entry:
@@ -847,7 +843,7 @@ fn complex_array_access_generated() {
     %__vtable_child = type { void (%child*)* }
     %child = type { %parent, [11 x i16] }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_grandparent__init = unnamed_addr constant %__vtable_grandparent zeroinitializer
     @__grandparent__init = unnamed_addr constant %grandparent zeroinitializer
     @__vtable_grandparent_instance = global %__vtable_grandparent zeroinitializer
@@ -857,7 +853,6 @@ fn complex_array_access_generated() {
     @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
     @__child__init = unnamed_addr constant %child zeroinitializer
     @__vtable_child_instance = global %__vtable_child zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @grandparent(%grandparent* %0) {
     entry:
@@ -1116,11 +1111,10 @@ fn this_in_method_call_chain() {
     %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1223,11 +1217,10 @@ fn this_in_method_and_body_in_function_block() {
     %__vtable_FB_Test = type { void (%FB_Test*)*, i16 (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1347,14 +1340,13 @@ fn pass_this_to_method() {
     %FB_Test2 = type { i32* }
     %__vtable_FB_Test2 = type { void (%FB_Test2*)*, i16 (%FB_Test2*, %FB_Test*)* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @__FB_Test2__init = unnamed_addr constant %FB_Test2 zeroinitializer
     @____vtable_FB_Test2__init = unnamed_addr constant %__vtable_FB_Test2 zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
     @__vtable_FB_Test2_instance = global %__vtable_FB_Test2 zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1527,11 +1519,10 @@ fn this_with_shadowed_variable() {
     %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test { i32* null, i16 5 }
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1636,11 +1627,10 @@ fn this_calling_function_and_passing_this() {
     %__vtable_FB_Test = type { void (%FB_Test*)* }
     %FB_Test = type { i32*, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1743,11 +1733,10 @@ fn this_in_property_and_calling_method() {
     %__vtable_FB_Test = type { void (%FB_Test*)*, i16 (%FB_Test*)*, i16 (%FB_Test*)*, void (%FB_Test*, i16)* }
     %FB_Test = type { i32*, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1889,11 +1878,10 @@ fn this_with_self_pointer() {
     %__vtable_FB_Test = type { void (%FB_Test*)*, void (%FB_Test*)* }
     %FB_Test = type { i32*, %FB_Test* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB_Test__init = unnamed_addr constant %__vtable_FB_Test zeroinitializer
     @__FB_Test__init = unnamed_addr constant %FB_Test zeroinitializer
     @__vtable_FB_Test_instance = global %__vtable_FB_Test zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB_Test(%FB_Test* %0) {
     entry:
@@ -1989,11 +1977,10 @@ fn this_in_variable_initialization() {
     %__vtable_FB = type { void (%FB*)* }
     %FB = type { i32*, i16, %FB*, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_FB__init = unnamed_addr constant %__vtable_FB zeroinitializer
     @__FB__init = unnamed_addr constant %FB { i32* null, i16 5, %FB* null, i16 5 }
     @__vtable_FB_instance = global %__vtable_FB zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @FB(%FB* %0) {
     entry:
@@ -2070,11 +2057,10 @@ fn this_in_action_in_functionblock() {
     %__vtable_fb = type { void (%fb*)* }
     %fb = type { i32* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @fb(%fb* %0) {
     entry:
@@ -2157,11 +2143,10 @@ fn this_calling_functionblock_body_from_method() {
     %__vtable_fb = type { void (%fb*)*, i16 (%fb*)* }
     %fb = type { i32* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @fb(%fb* %0) {
     entry:
@@ -2264,14 +2249,13 @@ fn fb_extension_with_output() {
     %__vtable_foo2 = type { void (%foo2*)*, i16 (%foo*, i16, i16, i16*)* }
     %foo2 = type { %foo }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
     @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @foo(%foo* %0) {
     entry:
@@ -2456,14 +2440,13 @@ fn function_with_output_used_in_main_by_extension() {
     %__vtable_foo2 = type { void (%foo2*)*, i16 (%foo*, i16, i16, i16*)* }
     %foo2 = type { %foo, i16 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__vtable_foo_instance = global %__vtable_foo zeroinitializer
     @____vtable_foo2__init = unnamed_addr constant %__vtable_foo2 zeroinitializer
     @__foo2__init = unnamed_addr constant %foo2 zeroinitializer
     @__vtable_foo2_instance = global %__vtable_foo2 zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @foo(%foo* %0) {
     entry:

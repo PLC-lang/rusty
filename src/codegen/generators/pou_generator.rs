@@ -350,6 +350,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             false,
         );
 
+        // // How does this behave on windows?
+        // curr_f.set_section(Some(".text.startup"));
+        // curr_f.set_linkage(Linkage::Internal);
+
         //Create an entry for the global constructor of the project
         let str_value = ctor_str.const_named_struct(&[
             self.llvm.context.i32_type().const_int(65535, false).as_basic_value_enum(),

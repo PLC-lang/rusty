@@ -224,8 +224,7 @@ fn switch_case_debug_info() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
 
     define i32 @main() !dbg !4 {
     entry:
@@ -361,11 +360,10 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     %__vtable_fb = type { void (%fb*)*, void (%fb*)* }
     %fb = type { i32* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @fb(%fb* %0) !dbg !14 {
     entry:
@@ -496,9 +494,8 @@ fn action_with_var_temp() {
 
     %PLC_PRG = type {}
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define i32 @main() !dbg !9 {
     entry:
@@ -660,8 +657,7 @@ END_FUNCTION
     @__struct___init = unnamed_addr constant %struct_ { %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, [3 x %inner] zeroinitializer, [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !0
     @__inner__init = unnamed_addr constant %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !32
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
 
     define void @main() !dbg !39 {
     entry:
@@ -933,11 +929,10 @@ fn constants_are_tagged_as_such() {
 
     @x = unnamed_addr constant i32 0, !dbg !0
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer, !dbg !13
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !20
     @f = unnamed_addr constant %foo zeroinitializer, !dbg !26
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @prog(%prog* %0) !dbg !32 {
     entry:
@@ -1084,8 +1079,7 @@ fn test_debug_info_regular_pointer_types() {
     @struct_ptr = global %myStruct* null, !dbg !13
     @string_ptr = global [81 x i8]* null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -1183,10 +1177,9 @@ fn test_debug_info_auto_deref_parameters() {
     %test_with_ref_params = type { [81 x i8]*, [6 x i32]*, i32*, %myStruct*, i32* }
     %myStruct = type { i32, i8 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !34
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @test_with_ref_params(%test_with_ref_params* %0) !dbg !41 {
     entry:
@@ -1318,13 +1311,12 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
     @global_struct = global %myStruct zeroinitializer, !dbg !10
     @global_var = global i32 42, !dbg !12
     @alias_int = global i32* null, !dbg !14
     @alias_struct = global %myStruct* null, !dbg !18
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
@@ -1412,11 +1404,10 @@ fn test_debug_info_mixed_pointer_types() {
 
     %mixed_ptr = type { [81 x i8]*, i32*, i8*, i8* }
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !0
     @regular_ptr = global i32* null, !dbg !24
     @alias_var = global i32** null, !dbg !28
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @mixed_ptr(%mixed_ptr* %0) !dbg !38 {
     entry:
@@ -1545,10 +1536,9 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     @array_reference = global [11 x i32]* null, !dbg !6
     @struct_reference = global %myStruct* null, !dbg !13
     @string_reference = global [81 x i8]* null, !dbg !22
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !47
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
 
     define void @test_with_reference_params(%test_with_reference_params* %0) !dbg !54 {
     entry:
@@ -1688,8 +1678,7 @@ fn range_datatype_debug() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.used = appending global [2 x i8*] [i8* bitcast (void ()* @__init___Test to i8*), i8* bitcast (void ()** @__init_array_entry___init___Test to i8*)]
-    @__init_array_entry___init___Test = internal unnamed_addr global void ()* @__init___Test, section ".init_array"
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
 
     define i32 @main() !dbg !4 {
     entry:
