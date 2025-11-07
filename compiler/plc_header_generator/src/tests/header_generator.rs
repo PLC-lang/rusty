@@ -89,6 +89,48 @@ fn case_6_functions_with_complex_types_generated_header_file() {
     assert_snapshot!(&generated_headers[0].contents);
 }
 
+// ----------------- //
+// -- Test Case 7 -- //
+// ----------------- //
+
+#[test]
+fn case_7_function_blocks_generated_header_file() {
+    let generated_headers = get_all_generated_header_contents("case_7_function_blocks_compilation_units");
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    assert_snapshot!(&generated_headers[0].contents);
+}
+
+// ----------------- //
+// -- Test Case 8 -- //
+// ----------------- //
+
+#[test]
+fn case_8_function_blocks_with_inheritance_generated_header_file() {
+    let generated_headers = get_all_generated_header_contents("case_8_function_blocks_with_inheritance_compilation_units");
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    assert_snapshot!(&generated_headers[0].contents);
+}
+
+// ----------------- //
+// -- Test Case 9 -- //
+// ----------------- //
+
+#[test]
+fn case_9_programs_generated_header_file() {
+    let generated_headers = get_all_generated_header_contents("case_9_programs_compilation_units");
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    assert_snapshot!(&generated_headers[0].contents);
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //

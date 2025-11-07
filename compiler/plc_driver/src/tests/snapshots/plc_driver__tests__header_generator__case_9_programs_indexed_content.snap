@@ -9,657 +9,667 @@ expression: json
         {
           "global_vars": [
             {
-              "access": "Protected",
+              "access": "Internal",
               "constant": false,
               "retain": false,
-              "variables": [
+              "variables": [],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
+            }
+          ],
+          "var_config": [],
+          "pous": [
+            {
+              "id": 14,
+              "name": "prog",
+              "kind": "Program",
+              "variable_blocks": [
                 {
-                  "name": "gVarBool",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "BOOL",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 2,
-                              "column": 18,
-                              "offset": 34
+                  "access": "Protected",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "inOutVar",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "ComplexEnumType",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 10,
+                                  "column": 19,
+                                  "offset": 176
+                                },
+                                "end": {
+                                  "line": 10,
+                                  "column": 34,
+                                  "offset": 191
+                                }
+                              }
                             },
-                            "end": {
-                              "line": 2,
-                              "column": 22,
-                              "offset": 38
+                            "file": {
+                              "File": "programs.pli"
                             }
                           }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
                         }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 2,
-                          "column": 8,
-                          "offset": 24
-                        },
-                        "end": {
-                          "line": 2,
-                          "column": 16,
-                          "offset": 32
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarSInt",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "SINT",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 4,
-                              "column": 18,
-                              "offset": 59
-                            },
-                            "end": {
-                              "line": 4,
-                              "column": 22,
-                              "offset": 63
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 4,
-                          "column": 8,
-                          "offset": 49
-                        },
-                        "end": {
-                          "line": 4,
-                          "column": 16,
-                          "offset": 57
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarInt",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "INT",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 5,
-                              "column": 17,
-                              "offset": 82
-                            },
-                            "end": {
-                              "line": 5,
-                              "column": 20,
-                              "offset": 85
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 5,
-                          "column": 8,
-                          "offset": 73
-                        },
-                        "end": {
-                          "line": 5,
-                          "column": 15,
-                          "offset": 80
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarDInt",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "DINT",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 6,
-                              "column": 18,
-                              "offset": 105
-                            },
-                            "end": {
-                              "line": 6,
-                              "column": 22,
-                              "offset": 109
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 6,
-                          "column": 8,
-                          "offset": 95
-                        },
-                        "end": {
-                          "line": 6,
-                          "column": 16,
-                          "offset": 103
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarLInt",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "LINT",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 7,
-                              "column": 18,
-                              "offset": 129
-                            },
-                            "end": {
-                              "line": 7,
-                              "column": 22,
-                              "offset": 133
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 7,
-                          "column": 8,
-                          "offset": 119
-                        },
-                        "end": {
-                          "line": 7,
-                          "column": 16,
-                          "offset": 127
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarByte",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "BYTE",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 9,
-                              "column": 18,
-                              "offset": 154
-                            },
-                            "end": {
-                              "line": 9,
-                              "column": 22,
-                              "offset": 158
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 9,
-                          "column": 8,
-                          "offset": 144
-                        },
-                        "end": {
-                          "line": 9,
-                          "column": 16,
-                          "offset": 152
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarWord",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "WORD",
+                      },
+                      "initializer": null,
+                      "address": null,
                       "location": {
                         "span": {
                           "Range": {
                             "start": {
                               "line": 10,
-                              "column": 18,
-                              "offset": 178
+                              "column": 8,
+                              "offset": 165
                             },
                             "end": {
                               "line": 10,
-                              "column": 22,
-                              "offset": 182
+                              "column": 16,
+                              "offset": 173
                             }
                           }
                         },
                         "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 10,
-                          "column": 8,
-                          "offset": 168
-                        },
-                        "end": {
-                          "line": 10,
-                          "column": 16,
-                          "offset": 176
+                          "File": "programs.pli"
                         }
                       }
                     },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarDWord",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "DWORD",
+                    {
+                      "name": "outVar",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "ComplexEnumType",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 11,
+                                  "column": 16,
+                                  "offset": 209
+                                },
+                                "end": {
+                                  "line": 11,
+                                  "column": 31,
+                                  "offset": 224
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "programs.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
                       "location": {
                         "span": {
                           "Range": {
                             "start": {
                               "line": 11,
-                              "column": 19,
-                              "offset": 203
+                              "column": 8,
+                              "offset": 201
                             },
                             "end": {
                               "line": 11,
-                              "column": 24,
-                              "offset": 208
+                              "column": 14,
+                              "offset": 207
                             }
                           }
                         },
                         "file": {
-                          "File": "global_primitives.pli"
+                          "File": "programs.pli"
                         }
                       }
                     }
-                  },
-                  "initializer": null,
-                  "address": null,
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
                   "location": {
                     "span": {
                       "Range": {
                         "start": {
-                          "line": 11,
-                          "column": 8,
-                          "offset": 192
+                          "line": 9,
+                          "column": 4,
+                          "offset": 153
                         },
                         "end": {
-                          "line": 11,
-                          "column": 17,
-                          "offset": 201
+                          "line": 9,
+                          "column": 7,
+                          "offset": 156
                         }
                       }
                     },
                     "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarLWord",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "LWORD",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 12,
-                              "column": 19,
-                              "offset": 229
-                            },
-                            "end": {
-                              "line": 12,
-                              "column": 24,
-                              "offset": 234
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 12,
-                          "column": 8,
-                          "offset": 218
-                        },
-                        "end": {
-                          "line": 12,
-                          "column": 17,
-                          "offset": 227
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarReal",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "REAL",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 14,
-                              "column": 18,
-                              "offset": 255
-                            },
-                            "end": {
-                              "line": 14,
-                              "column": 22,
-                              "offset": 259
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 14,
-                          "column": 8,
-                          "offset": 245
-                        },
-                        "end": {
-                          "line": 14,
-                          "column": 16,
-                          "offset": 253
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarLReal",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "LREAL",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 15,
-                              "column": 19,
-                              "offset": 280
-                            },
-                            "end": {
-                              "line": 15,
-                              "column": 24,
-                              "offset": 285
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 15,
-                          "column": 8,
-                          "offset": 269
-                        },
-                        "end": {
-                          "line": 15,
-                          "column": 17,
-                          "offset": 278
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarDate",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "DATE",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 17,
-                              "column": 18,
-                              "offset": 306
-                            },
-                            "end": {
-                              "line": 17,
-                              "column": 22,
-                              "offset": 310
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 17,
-                          "column": 8,
-                          "offset": 296
-                        },
-                        "end": {
-                          "line": 17,
-                          "column": 16,
-                          "offset": 304
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
-                    }
-                  }
-                },
-                {
-                  "name": "gVarDateAndTime",
-                  "data_type_declaration": {
-                    "Reference": {
-                      "referenced_type": "DATE_AND_TIME",
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 18,
-                              "column": 25,
-                              "offset": 337
-                            },
-                            "end": {
-                              "line": 18,
-                              "column": 38,
-                              "offset": 350
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_primitives.pli"
-                        }
-                      }
-                    }
-                  },
-                  "initializer": null,
-                  "address": null,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 18,
-                          "column": 8,
-                          "offset": 320
-                        },
-                        "end": {
-                          "line": 18,
-                          "column": 23,
-                          "offset": 335
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "global_primitives.pli"
+                      "File": "programs.pli"
                     }
                   }
                 }
               ],
-              "kind": "Global",
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 4,
+                      "offset": 136
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 15,
+                      "offset": 253
+                    }
+                  }
+                },
+                "file": {
+                  "File": "programs.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "File": "programs.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
               "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            }
+          ],
+          "implementations": [
+            {
+              "name": "prog",
+              "type_name": "prog",
+              "linkage": "Internal",
+              "pou_type": "Program",
+              "statements": [],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 4,
+                      "offset": 242
+                    },
+                    "end": {
+                      "line": 12,
+                      "column": 11,
+                      "offset": 237
+                    }
+                  }
+                },
+                "file": {
+                  "File": "programs.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "File": "programs.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 4,
+                      "offset": 242
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 15,
+                      "offset": 253
+                    }
+                  }
+                },
+                "file": {
+                  "File": "programs.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            }
+          ],
+          "interfaces": [],
+          "user_types": [
+            {
+              "data_type": {
+                "EnumType": {
+                  "name": "ComplexEnumType",
+                  "numeric_type": "DINT",
+                  "elements": {
+                    "stmt": {
+                      "ExpressionList": [
+                        {
+                          "stmt": {
+                            "Assignment": {
+                              "left": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Member": {
+                                        "stmt": {
+                                          "Identifier": "orange"
+                                        },
+                                        "id": 56,
+                                        "location": {
+                                          "span": {
+                                            "Range": {
+                                              "start": {
+                                                "line": 2,
+                                                "column": 12,
+                                                "offset": 42
+                                              },
+                                              "end": {
+                                                "line": 2,
+                                                "column": 24,
+                                                "offset": 54
+                                              }
+                                            }
+                                          },
+                                          "file": {
+                                            "File": "programs.pli"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": null
+                                  }
+                                },
+                                "id": 57,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 2,
+                                        "column": 12,
+                                        "offset": 42
+                                      },
+                                      "end": {
+                                        "line": 2,
+                                        "column": 24,
+                                        "offset": 54
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              },
+                              "right": {
+                                "stmt": {
+                                  "Literal": {
+                                    "Integer": 10
+                                  }
+                                },
+                                "id": 3,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 2,
+                                        "column": 22,
+                                        "offset": 52
+                                      },
+                                      "end": {
+                                        "line": 2,
+                                        "column": 24,
+                                        "offset": 54
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 58,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 2,
+                                  "column": 12,
+                                  "offset": 42
+                                },
+                                "end": {
+                                  "line": 2,
+                                  "column": 24,
+                                  "offset": 54
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "programs.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        {
+                          "stmt": {
+                            "Assignment": {
+                              "left": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Member": {
+                                        "stmt": {
+                                          "Identifier": "yellow"
+                                        },
+                                        "id": 59,
+                                        "location": {
+                                          "span": {
+                                            "Range": {
+                                              "start": {
+                                                "line": 3,
+                                                "column": 12,
+                                                "offset": 68
+                                              },
+                                              "end": {
+                                                "line": 3,
+                                                "column": 24,
+                                                "offset": 80
+                                              }
+                                            }
+                                          },
+                                          "file": {
+                                            "File": "programs.pli"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": null
+                                  }
+                                },
+                                "id": 60,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 3,
+                                        "column": 12,
+                                        "offset": 68
+                                      },
+                                      "end": {
+                                        "line": 3,
+                                        "column": 24,
+                                        "offset": 80
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              },
+                              "right": {
+                                "stmt": {
+                                  "Literal": {
+                                    "Integer": 20
+                                  }
+                                },
+                                "id": 7,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 3,
+                                        "column": 22,
+                                        "offset": 78
+                                      },
+                                      "end": {
+                                        "line": 3,
+                                        "column": 24,
+                                        "offset": 80
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 61,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 3,
+                                  "column": 12,
+                                  "offset": 68
+                                },
+                                "end": {
+                                  "line": 3,
+                                  "column": 24,
+                                  "offset": 80
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "programs.pli"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        {
+                          "stmt": {
+                            "Assignment": {
+                              "left": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Member": {
+                                        "stmt": {
+                                          "Identifier": "purple"
+                                        },
+                                        "id": 62,
+                                        "location": {
+                                          "span": {
+                                            "Range": {
+                                              "start": {
+                                                "line": 4,
+                                                "column": 12,
+                                                "offset": 94
+                                              },
+                                              "end": {
+                                                "line": 4,
+                                                "column": 24,
+                                                "offset": 106
+                                              }
+                                            }
+                                          },
+                                          "file": {
+                                            "File": "programs.pli"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": null
+                                  }
+                                },
+                                "id": 63,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 4,
+                                        "column": 12,
+                                        "offset": 94
+                                      },
+                                      "end": {
+                                        "line": 4,
+                                        "column": 24,
+                                        "offset": 106
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              },
+                              "right": {
+                                "stmt": {
+                                  "Literal": {
+                                    "Integer": 30
+                                  }
+                                },
+                                "id": 11,
+                                "location": {
+                                  "span": {
+                                    "Range": {
+                                      "start": {
+                                        "line": 4,
+                                        "column": 22,
+                                        "offset": 104
+                                      },
+                                      "end": {
+                                        "line": 4,
+                                        "column": 24,
+                                        "offset": 106
+                                      }
+                                    }
+                                  },
+                                  "file": {
+                                    "File": "programs.pli"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 64,
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 4,
+                                  "column": 12,
+                                  "offset": 94
+                                },
+                                "end": {
+                                  "line": 4,
+                                  "column": 24,
+                                  "offset": 106
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "programs.pli"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      ]
+                    },
+                    "id": 65,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 2,
+                            "column": 12,
+                            "offset": 42
+                          },
+                          "end": {
+                            "line": 4,
+                            "column": 24,
+                            "offset": 106
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "programs.pli"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "initializer": null,
               "location": {
                 "span": {
                   "Range": {
                     "start": {
                       "line": 1,
-                      "column": 4,
-                      "offset": 5
+                      "column": 9,
+                      "offset": 10
                     },
                     "end": {
                       "line": 1,
-                      "column": 14,
-                      "offset": 15
+                      "column": 24,
+                      "offset": 25
                     }
                   }
                 },
                 "file": {
-                  "File": "global_primitives.pli"
+                  "File": "programs.pli"
                 }
-              }
-            },
+              },
+              "scope": null
+            }
+          ],
+          "file": {
+            "File": "programs.pli"
+          }
+        },
+        {
+          "global_vars": [
             {
               "access": "Internal",
               "constant": false,
@@ -676,30 +686,547 @@ expression: json
             }
           ],
           "var_config": [],
-          "pous": [],
-          "implementations": [],
+          "pous": [
+            {
+              "id": 44,
+              "name": "__init_prog",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "prog",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 8,
+                                  "column": 12,
+                                  "offset": 144
+                                },
+                                "end": {
+                                  "line": 8,
+                                  "column": 16,
+                                  "offset": 148
+                                }
+                              }
+                            },
+                            "file": {
+                              "Internal": "programs.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 8,
+                              "column": 12,
+                              "offset": 144
+                            },
+                            "end": {
+                              "line": 8,
+                              "column": 16,
+                              "offset": 148
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "programs.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "programs.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "programs.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 43,
+              "name": "__user_init_prog",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "prog",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "__initializers"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "__initializers"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            }
+          ],
+          "implementations": [
+            {
+              "name": "__init_prog",
+              "type_name": "__init_prog",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "programs.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "programs.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 8,
+                      "column": 12,
+                      "offset": 144
+                    },
+                    "end": {
+                      "line": 8,
+                      "column": 16,
+                      "offset": 148
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "programs.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__user_init_prog",
+              "type_name": "__user_init_prog",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            }
+          ],
           "interfaces": [],
           "user_types": [],
           "file": {
-            "File": "global_primitives.pli"
+            "Internal": "__initializers"
+          }
+        },
+        {
+          "global_vars": [
+            {
+              "access": "Internal",
+              "constant": false,
+              "retain": false,
+              "variables": [],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
+            }
+          ],
+          "var_config": [],
+          "pous": [
+            {
+              "id": 45,
+              "name": "__init___TestProject",
+              "kind": "ProjectInit",
+              "variable_blocks": [],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            }
+          ],
+          "implementations": [
+            {
+              "name": "__init___TestProject",
+              "type_name": "__init___TestProject",
+              "linkage": "Internal",
+              "pou_type": "ProjectInit",
+              "statements": [
+                {
+                  "stmt": {
+                    "CallStatement": {
+                      "operator": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__init_prog"
+                                },
+                                "id": 46,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 47,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "parameters": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "prog"
+                                },
+                                "id": 48,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 49,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 50,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                },
+                {
+                  "stmt": {
+                    "CallStatement": {
+                      "operator": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__user_init_prog"
+                                },
+                                "id": 51,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 52,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "parameters": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "prog"
+                                },
+                                "id": 53,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 54,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 55,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              ],
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            }
+          ],
+          "interfaces": [],
+          "user_types": [],
+          "file": {
+            "Internal": "__init___TestProject"
           }
         }
       ]
     },
     "index": {
       "global_variables": {
+        "inner_map": {}
+      },
+      "global_initializers": {
+        "inner_map": {}
+      },
+      "enum_global_variables": {
         "inner_map": {
-          "gvarbool": [
+          "orange": [
             {
-              "name": "gVarBool",
-              "qualified_name": "gVarBool",
-              "initial_value": null,
+              "name": "orange",
+              "qualified_name": "ComplexEnumType.orange",
+              "initial_value": [
+                0,
+                0
+              ],
               "argument_type": {
                 "ByVal": "Global"
               },
-              "is_constant": false,
+              "is_constant": true,
               "is_var_external": false,
-              "data_type_name": "BOOL",
+              "data_type_name": "ComplexEnumType",
               "location_in_parent": 0,
               "linkage": "Internal",
               "binding": null,
@@ -708,34 +1235,37 @@ expression: json
                   "Range": {
                     "start": {
                       "line": 2,
-                      "column": 8,
-                      "offset": 24
+                      "column": 12,
+                      "offset": 42
                     },
                     "end": {
                       "line": 2,
-                      "column": 16,
-                      "offset": 32
+                      "column": 24,
+                      "offset": 54
                     }
                   }
                 },
                 "file": {
-                  "File": "global_primitives.pli"
+                  "File": "programs.pli"
                 }
               },
               "varargs": null
             }
           ],
-          "gvarsint": [
+          "yellow": [
             {
-              "name": "gVarSInt",
-              "qualified_name": "gVarSInt",
-              "initial_value": null,
+              "name": "yellow",
+              "qualified_name": "ComplexEnumType.yellow",
+              "initial_value": [
+                1,
+                0
+              ],
               "argument_type": {
                 "ByVal": "Global"
               },
-              "is_constant": false,
+              "is_constant": true,
               "is_var_external": false,
-              "data_type_name": "SINT",
+              "data_type_name": "ComplexEnumType",
               "location_in_parent": 0,
               "linkage": "Internal",
               "binding": null,
@@ -743,71 +1273,38 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 4,
-                      "column": 8,
-                      "offset": 49
+                      "line": 3,
+                      "column": 12,
+                      "offset": 68
                     },
                     "end": {
-                      "line": 4,
-                      "column": 16,
-                      "offset": 57
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarint": [
-            {
-              "name": "gVarInt",
-              "qualified_name": "gVarInt",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "INT",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 5,
-                      "column": 8,
-                      "offset": 73
-                    },
-                    "end": {
-                      "line": 5,
-                      "column": 15,
+                      "line": 3,
+                      "column": 24,
                       "offset": 80
                     }
                   }
                 },
                 "file": {
-                  "File": "global_primitives.pli"
+                  "File": "programs.pli"
                 }
               },
               "varargs": null
             }
           ],
-          "gvardint": [
+          "purple": [
             {
-              "name": "gVarDInt",
-              "qualified_name": "gVarDInt",
-              "initial_value": null,
+              "name": "purple",
+              "qualified_name": "ComplexEnumType.purple",
+              "initial_value": [
+                2,
+                0
+              ],
               "argument_type": {
                 "ByVal": "Global"
               },
-              "is_constant": false,
+              "is_constant": true,
               "is_var_external": false,
-              "data_type_name": "DINT",
+              "data_type_name": "ComplexEnumType",
               "location_in_parent": 0,
               "linkage": "Internal",
               "binding": null,
@@ -815,343 +1312,19 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 6,
-                      "column": 8,
-                      "offset": 95
+                      "line": 4,
+                      "column": 12,
+                      "offset": 94
                     },
                     "end": {
-                      "line": 6,
-                      "column": 16,
-                      "offset": 103
+                      "line": 4,
+                      "column": 24,
+                      "offset": 106
                     }
                   }
                 },
                 "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarlint": [
-            {
-              "name": "gVarLInt",
-              "qualified_name": "gVarLInt",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "LINT",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 8,
-                      "offset": 119
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 16,
-                      "offset": 127
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarbyte": [
-            {
-              "name": "gVarByte",
-              "qualified_name": "gVarByte",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "BYTE",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 9,
-                      "column": 8,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 9,
-                      "column": 16,
-                      "offset": 152
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarword": [
-            {
-              "name": "gVarWord",
-              "qualified_name": "gVarWord",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "WORD",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 10,
-                      "column": 8,
-                      "offset": 168
-                    },
-                    "end": {
-                      "line": 10,
-                      "column": 16,
-                      "offset": 176
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvardword": [
-            {
-              "name": "gVarDWord",
-              "qualified_name": "gVarDWord",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "DWORD",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 11,
-                      "column": 8,
-                      "offset": 192
-                    },
-                    "end": {
-                      "line": 11,
-                      "column": 17,
-                      "offset": 201
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarlword": [
-            {
-              "name": "gVarLWord",
-              "qualified_name": "gVarLWord",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "LWORD",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 12,
-                      "column": 8,
-                      "offset": 218
-                    },
-                    "end": {
-                      "line": 12,
-                      "column": 17,
-                      "offset": 227
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarreal": [
-            {
-              "name": "gVarReal",
-              "qualified_name": "gVarReal",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "REAL",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 14,
-                      "column": 8,
-                      "offset": 245
-                    },
-                    "end": {
-                      "line": 14,
-                      "column": 16,
-                      "offset": 253
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvarlreal": [
-            {
-              "name": "gVarLReal",
-              "qualified_name": "gVarLReal",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "LREAL",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 15,
-                      "column": 8,
-                      "offset": 269
-                    },
-                    "end": {
-                      "line": 15,
-                      "column": 17,
-                      "offset": 278
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvardate": [
-            {
-              "name": "gVarDate",
-              "qualified_name": "gVarDate",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "DATE",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 17,
-                      "column": 8,
-                      "offset": 296
-                    },
-                    "end": {
-                      "line": 17,
-                      "column": 16,
-                      "offset": 304
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
-                }
-              },
-              "varargs": null
-            }
-          ],
-          "gvardateandtime": [
-            {
-              "name": "gVarDateAndTime",
-              "qualified_name": "gVarDateAndTime",
-              "initial_value": null,
-              "argument_type": {
-                "ByVal": "Global"
-              },
-              "is_constant": false,
-              "is_var_external": false,
-              "data_type_name": "DATE_AND_TIME",
-              "location_in_parent": 0,
-              "linkage": "Internal",
-              "binding": null,
-              "source_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 18,
-                      "column": 8,
-                      "offset": 320
-                    },
-                    "end": {
-                      "line": 18,
-                      "column": 23,
-                      "offset": 335
-                    }
-                  }
-                },
-                "file": {
-                  "File": "global_primitives.pli"
+                  "File": "programs.pli"
                 }
               },
               "varargs": null
@@ -1159,14 +1332,141 @@ expression: json
           ]
         }
       },
-      "global_initializers": {
-        "inner_map": {}
-      },
-      "enum_global_variables": {
-        "inner_map": {}
-      },
       "pous": {
         "inner_map": {
+          "prog": [
+            {
+              "Program": {
+                "name": "prog",
+                "instance_struct_name": "prog",
+                "instance_variable": {
+                  "name": "prog_instance",
+                  "qualified_name": "prog",
+                  "initial_value": null,
+                  "argument_type": {
+                    "ByVal": "Global"
+                  },
+                  "is_constant": false,
+                  "is_var_external": false,
+                  "data_type_name": "prog",
+                  "location_in_parent": 0,
+                  "linkage": "Internal",
+                  "binding": null,
+                  "source_location": {
+                    "span": {
+                      "Range": {
+                        "start": {
+                          "line": 8,
+                          "column": 12,
+                          "offset": 144
+                        },
+                        "end": {
+                          "line": 8,
+                          "column": 16,
+                          "offset": 148
+                        }
+                      }
+                    },
+                    "file": {
+                      "File": "programs.pli"
+                    }
+                  },
+                  "varargs": null
+                },
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 12,
+                        "offset": 144
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 16,
+                        "offset": 148
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "programs.pli"
+                  }
+                },
+                "properties": {}
+              }
+            }
+          ],
+          "__init_prog": [
+            {
+              "Function": {
+                "name": "__init_prog",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 12,
+                        "offset": 144
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 16,
+                        "offset": 148
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "programs.pli"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__user_init_prog": [
+            {
+              "Function": {
+                "name": "__user_init_prog",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__init___testproject": [
+            {
+              "Function": {
+                "name": "__init___TestProject",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
           "adr": [
             {
               "Function": {
@@ -1822,6 +2122,84 @@ expression: json
         "inner_map": {}
       },
       "implementations": {
+        "prog": {
+          "call_name": "prog",
+          "type_name": "prog",
+          "associated_class": null,
+          "implementation_type": "Program",
+          "generic": false,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 13,
+                  "column": 4,
+                  "offset": 242
+                },
+                "end": {
+                  "line": 12,
+                  "column": 11,
+                  "offset": 237
+                }
+              }
+            },
+            "file": {
+              "File": "programs.pli"
+            }
+          }
+        },
+        "__init_prog": {
+          "call_name": "__init_prog",
+          "type_name": "__init_prog",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 8,
+                  "column": 12,
+                  "offset": 144
+                },
+                "end": {
+                  "line": 8,
+                  "column": 16,
+                  "offset": 148
+                }
+              }
+            },
+            "file": {
+              "Internal": "programs.pli"
+            }
+          }
+        },
+        "__user_init_prog": {
+          "call_name": "__user_init_prog",
+          "type_name": "__user_init_prog",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "File": "__initializers"
+            }
+          }
+        },
+        "__init___testproject": {
+          "call_name": "__init___TestProject",
+          "type_name": "__init___TestProject",
+          "associated_class": null,
+          "implementation_type": "ProjectInit",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "Internal": "<internal>"
+            }
+          }
+        },
         "adr": {
           "call_name": "ADR",
           "type_name": "ADR",
@@ -2258,6 +2636,173 @@ expression: json
       "type_index": {
         "types": {
           "inner_map": {
+            "complexenumtype": [
+              {
+                "name": "ComplexEnumType",
+                "initial_value": null,
+                "information": {
+                  "Enum": {
+                    "name": "ComplexEnumType",
+                    "referenced_type": "DINT",
+                    "variants": [
+                      {
+                        "name": "orange",
+                        "qualified_name": "ComplexEnumType.orange",
+                        "initial_value": [
+                          0,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Global"
+                        },
+                        "is_constant": true,
+                        "is_var_external": false,
+                        "data_type_name": "ComplexEnumType",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 2,
+                                "column": 12,
+                                "offset": 42
+                              },
+                              "end": {
+                                "line": 2,
+                                "column": 24,
+                                "offset": 54
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "yellow",
+                        "qualified_name": "ComplexEnumType.yellow",
+                        "initial_value": [
+                          1,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Global"
+                        },
+                        "is_constant": true,
+                        "is_var_external": false,
+                        "data_type_name": "ComplexEnumType",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 3,
+                                "column": 12,
+                                "offset": 68
+                              },
+                              "end": {
+                                "line": 3,
+                                "column": 24,
+                                "offset": 80
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "purple",
+                        "qualified_name": "ComplexEnumType.purple",
+                        "initial_value": [
+                          2,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Global"
+                        },
+                        "is_constant": true,
+                        "is_var_external": false,
+                        "data_type_name": "ComplexEnumType",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 4,
+                                "column": 12,
+                                "offset": 94
+                              },
+                              "end": {
+                                "line": 4,
+                                "column": 24,
+                                "offset": 106
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ]
+                  }
+                },
+                "nature": "Int",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 1,
+                        "column": 9,
+                        "offset": 10
+                      },
+                      "end": {
+                        "line": 1,
+                        "column": 24,
+                        "offset": 25
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "programs.pli"
+                  }
+                }
+              }
+            ],
+            "__auto_pointer_to_prog": [
+              {
+                "name": "__auto_pointer_to_prog",
+                "initial_value": null,
+                "information": {
+                  "Pointer": {
+                    "name": "__auto_pointer_to_prog",
+                    "inner_type_name": "prog",
+                    "auto_deref": "Default",
+                    "type_safe": true,
+                    "is_function": false
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                }
+              }
+            ],
             "__void": [
               {
                 "name": "__VOID",
@@ -3785,6 +4330,246 @@ expression: json
         },
         "pou_types": {
           "inner_map": {
+            "prog": [
+              {
+                "name": "prog",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "prog",
+                    "members": [
+                      {
+                        "name": "inOutVar",
+                        "qualified_name": "prog.inOutVar",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "ComplexEnumType",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 10,
+                                "column": 8,
+                                "offset": 165
+                              },
+                              "end": {
+                                "line": 10,
+                                "column": 16,
+                                "offset": 173
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "outVar",
+                        "qualified_name": "prog.outVar",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "ComplexEnumType",
+                        "location_in_parent": 1,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 11,
+                                "column": 8,
+                                "offset": 201
+                              },
+                              "end": {
+                                "line": 11,
+                                "column": 14,
+                                "offset": 207
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Program"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 12,
+                        "offset": 144
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 16,
+                        "offset": 148
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "programs.pli"
+                  }
+                }
+              }
+            ],
+            "__init_prog": [
+              {
+                "name": "__init_prog",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init_prog",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__init_prog.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_prog",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 8,
+                                "column": 12,
+                                "offset": 144
+                              },
+                              "end": {
+                                "line": 8,
+                                "column": 16,
+                                "offset": 148
+                              }
+                            }
+                          },
+                          "file": {
+                            "Internal": "programs.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 12,
+                        "offset": 144
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 16,
+                        "offset": 148
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "programs.pli"
+                  }
+                }
+              }
+            ],
+            "__user_init_prog": [
+              {
+                "name": "__user_init_prog",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__user_init_prog",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__user_init_prog.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_prog",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "__initializers"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "__init___testproject": [
+              {
+                "name": "__init___TestProject",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init___TestProject",
+                    "members": [],
+                    "source": {
+                      "Pou": "ProjectInit"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                }
+              }
+            ],
             "adr": [
               {
                 "name": "ADR",
@@ -5838,9 +6623,114 @@ expression: json
       },
       "constant_expressions": {
         "expressions": [
-          null,
-          null,
-          null,
+          [
+            0,
+            {
+              "expr": {
+                "Resolved": {
+                  "stmt": {
+                    "Literal": {
+                      "Integer": 10
+                    }
+                  },
+                  "id": 3,
+                  "location": {
+                    "span": {
+                      "Range": {
+                        "start": {
+                          "line": 2,
+                          "column": 22,
+                          "offset": 52
+                        },
+                        "end": {
+                          "line": 2,
+                          "column": 24,
+                          "offset": 54
+                        }
+                      }
+                    },
+                    "file": {
+                      "File": "programs.pli"
+                    }
+                  },
+                  "metadata": null
+                }
+              },
+              "target_type_name": "DINT"
+            }
+          ],
+          [
+            0,
+            {
+              "expr": {
+                "Resolved": {
+                  "stmt": {
+                    "Literal": {
+                      "Integer": 20
+                    }
+                  },
+                  "id": 7,
+                  "location": {
+                    "span": {
+                      "Range": {
+                        "start": {
+                          "line": 3,
+                          "column": 22,
+                          "offset": 78
+                        },
+                        "end": {
+                          "line": 3,
+                          "column": 24,
+                          "offset": 80
+                        }
+                      }
+                    },
+                    "file": {
+                      "File": "programs.pli"
+                    }
+                  },
+                  "metadata": null
+                }
+              },
+              "target_type_name": "DINT"
+            }
+          ],
+          [
+            0,
+            {
+              "expr": {
+                "Resolved": {
+                  "stmt": {
+                    "Literal": {
+                      "Integer": 30
+                    }
+                  },
+                  "id": 11,
+                  "location": {
+                    "span": {
+                      "Range": {
+                        "start": {
+                          "line": 4,
+                          "column": 22,
+                          "offset": 104
+                        },
+                        "end": {
+                          "line": 4,
+                          "column": 24,
+                          "offset": 106
+                        }
+                      }
+                    },
+                    "file": {
+                      "File": "programs.pli"
+                    }
+                  },
+                  "metadata": null
+                }
+              },
+              "target_type_name": "DINT"
+            }
+          ],
           null
         ]
       },
@@ -5864,13 +6754,13 @@ expression: json
   },
   "context": {
     "sources": {
-      "global_primitives.pli": {
-        "source": "\n    VAR_GLOBAL\n        gVarBool: BOOL;\n\n        gVarSInt: SINT;\n        gVarInt: INT;\n        gVarDInt: DINT;\n        gVarLInt: LINT;\n\n        gVarByte: BYTE;\n        gVarWord: WORD;\n        gVarDWord: DWORD;\n        gVarLWord: LWORD;\n\n        gVarReal: REAL;\n        gVarLReal: LREAL;\n\n        gVarDate: DATE;\n        gVarDateAndTime: DATE_AND_TIME;\n    END_VAR\n    ",
-        "path": "global_primitives.pli"
+      "programs.pli": {
+        "source": "\n    TYPE ComplexEnumType : (\n            orange := 10,\n            yellow := 20,\n            purple := 30\n        );\n    END_TYPE\n\n    PROGRAM prog\n    VAR\n        inOutVar : ComplexEnumType;\n        outVar: ComplexEnumType;\n    END_VAR\n    END_PROGRAM\n    ",
+        "path": "programs.pli"
       }
     },
     "provider": {
-      "current_id": 37
+      "current_id": 84
     },
     "error_fmt": "Rich"
   }

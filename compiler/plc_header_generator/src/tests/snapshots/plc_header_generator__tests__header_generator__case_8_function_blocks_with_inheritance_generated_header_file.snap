@@ -1,0 +1,40 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].contents"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#include <dependencies.plc.h>
+
+
+
+
+
+
+// Functions, Function Blocks and Programs
+typedef struct {
+    int16_t varGreatGrandParentInt;
+} fbGreatGrandParent_type;
+
+void fbGreatGrandParent(fbGreatGrandParent_type* self);
+
+typedef struct {
+    int16_t varGrandParentInt;
+} fbGrandParent_type;
+
+void fbGrandParent(fbGrandParent_type* self);
+
+typedef struct {
+    int16_t varParentInt;
+} fbParent_type;
+
+void fbParent(fbParent_type* self);
+
+typedef struct {
+    int16_t varChildInt;
+} fbChild_type;
+
+void fbChild(fbChild_type* self);

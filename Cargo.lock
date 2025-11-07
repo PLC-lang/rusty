@@ -2928,6 +2928,7 @@ dependencies = [
  "plc_util",
  "rustc-hash",
  "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -3011,6 +3012,8 @@ dependencies = [
  "plc_diagnostics",
  "plc_source",
  "rustc-hash",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

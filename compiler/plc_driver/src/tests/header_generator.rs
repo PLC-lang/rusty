@@ -8,10 +8,9 @@ use insta::{assert_snapshot, internals::SnapshotContents, Snapshot};
 use source_code::SourceCode;
 
 use crate::{
-    pipelines::{AnnotatedProject, IndexedProject, ParsedProject},
+    pipelines::{AnnotatedProject},
     tests::{
-        progress_pipeline_to_step_annotated, progress_pipeline_to_step_indexed,
-        progress_pipeline_to_step_parsed,
+        IndexedProjectWrapper, ParsedProjectWrapper, progress_pipeline_to_step_annotated, progress_pipeline_to_step_indexed, progress_pipeline_to_step_parsed
     },
 };
 
@@ -64,8 +63,7 @@ fn case_1_global_primitives_indexed_content() {
 #[test]
 fn case_1_global_primitives_annotated_content() {
     let annotated_project = get_annotated_project(
-        "case_1_global_primitives_indexed_content",
-        get_source_code_for_case_1_global_primitives(),
+        "case_1_global_primitives_indexed_content"
     );
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
@@ -75,13 +73,7 @@ fn case_1_global_primitives_annotated_content() {
 }
 
 fn case_1_global_primitives_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
-
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
-
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -128,8 +120,7 @@ fn case_2_global_complex_types_indexed_content() {
 #[test]
 fn case_2_global_complex_types_annotated_content() {
     let annotated_project = get_annotated_project(
-        "case_2_global_complex_types_indexed_content",
-        get_source_code_for_case_2_global_complex_types(),
+        "case_2_global_complex_types_indexed_content"
     );
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
@@ -139,13 +130,7 @@ fn case_2_global_complex_types_annotated_content() {
 }
 
 fn case_2_global_complex_types_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
-
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
-
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -190,7 +175,7 @@ fn case_3_enum_types_indexed_content() {
 #[test]
 fn case_3_enum_types_annotated_content() {
     let annotated_project =
-        get_annotated_project("case_3_enum_types_indexed_content", get_source_code_for_case_3_enum_types());
+        get_annotated_project("case_3_enum_types_indexed_content");
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
     assert_snapshot!(json);
@@ -199,13 +184,7 @@ fn case_3_enum_types_annotated_content() {
 }
 
 fn case_3_enum_types_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
-
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
-
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -262,7 +241,7 @@ fn case_4_structs_indexed_content() {
 #[test]
 fn case_4_structs_annotated_content() {
     let annotated_project =
-        get_annotated_project("case_4_structs_indexed_content", get_source_code_for_case_4_structs());
+        get_annotated_project("case_4_structs_indexed_content");
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
     assert_snapshot!(json);
@@ -271,13 +250,7 @@ fn case_4_structs_annotated_content() {
 }
 
 fn case_4_structs_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
-
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
-
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -336,8 +309,7 @@ fn case_5_functions_with_primitive_types_indexed_content() {
 #[test]
 fn case_5_functions_with_primitive_types_annotated_content() {
     let annotated_project = get_annotated_project(
-        "case_5_functions_with_primitive_types_indexed_content",
-        get_source_code_for_case_5_functions_with_primitive_types(),
+        "case_5_functions_with_primitive_types_indexed_content"
     );
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
@@ -347,13 +319,7 @@ fn case_5_functions_with_primitive_types_annotated_content() {
 }
 
 fn case_5_functions_with_primitive_types_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
-
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
-
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -465,8 +431,7 @@ fn case_6_functions_with_complex_types_indexed_content() {
 #[test]
 fn case_6_functions_with_complex_types_annotated_content() {
     let annotated_project = get_annotated_project(
-        "case_6_functions_with_complex_types_indexed_content",
-        get_source_code_for_case_6_functions_with_complex_types(),
+        "case_6_functions_with_complex_types_indexed_content"
     );
 
     let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
@@ -476,13 +441,186 @@ fn case_6_functions_with_complex_types_annotated_content() {
 }
 
 fn case_6_functions_with_complex_types_compilation_units(annotated_project: &AnnotatedProject) {
-    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
+    let json = get_compilation_units_content(annotated_project);
+    assert_snapshot!(json);
+}
 
-    for unit in &annotated_project.units {
-        compilation_units.push(unit.get_unit());
-    }
+// ----------------- //
+// -- Test Case 7 -- //
+// ----------------- //
 
-    let json = serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!");
+fn get_source_code_for_case_7_function_blocks() -> SourceCode {
+    SourceCode::new(
+        "
+    FUNCTION_BLOCK fbThatHasSimpleTypes
+    VAR
+        varInt : INT;
+    END_VAR
+    VAR_OUTPUT
+        outVarInt : INT;
+    END_VAR
+    VAR_IN_OUT
+        inOutVarInt : INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+    ",
+        "function_blocks.pli",
+    )
+}
+
+#[test]
+fn case_7_function_blocks_parsed_content() {
+    let json = get_parsed_content(get_source_code_for_case_7_function_blocks());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_7_function_blocks_indexed_content() {
+    let json = get_indexed_content(
+        "case_7_function_blocks_parsed_content",
+        get_source_code_for_case_7_function_blocks(),
+    );
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_7_function_blocks_annotated_content() {
+    let annotated_project = get_annotated_project(
+        "case_7_function_blocks_indexed_content"
+    );
+
+    let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
+    assert_snapshot!(json);
+
+    case_7_function_blocks_compilation_units(&annotated_project);
+}
+
+fn case_7_function_blocks_compilation_units(annotated_project: &AnnotatedProject) {
+    let json = get_compilation_units_content(annotated_project);
+    assert_snapshot!(json);
+}
+
+// ----------------- //
+// -- Test Case 8 -- //
+// ----------------- //
+
+fn get_source_code_for_case_8_function_blocks_with_inheritance() -> SourceCode {
+    SourceCode::new(
+        "
+    FUNCTION_BLOCK fbGreatGrandParent
+    VAR
+        varGreatGrandParentInt: INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fbGrandParent extends fbGreatGrandParent
+    VAR
+        varGrandParentInt: INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fbParent extends fbGrandParent
+    VAR
+        varParentInt: INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK fbChild extends fbParent
+    VAR
+        varChildInt: INT;
+    END_VAR
+    END_FUNCTION_BLOCK
+    ",
+        "function_blocks_with_inheritance.pli",
+    )
+}
+
+#[test]
+fn case_8_function_blocks_with_inheritance_parsed_content() {
+    let json = get_parsed_content(get_source_code_for_case_8_function_blocks_with_inheritance());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_8_function_blocks_with_inheritance_indexed_content() {
+    let json = get_indexed_content(
+        "case_8_function_blocks_with_inheritance_parsed_content",
+        get_source_code_for_case_8_function_blocks_with_inheritance(),
+    );
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_8_function_blocks_with_inheritance_annotated_content() {
+    let annotated_project = get_annotated_project(
+        "case_8_function_blocks_with_inheritance_indexed_content"
+    );
+
+    let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
+    assert_snapshot!(json);
+
+    case_8_function_blocks_with_inheritance_compilation_units(&annotated_project);
+}
+
+fn case_8_function_blocks_with_inheritance_compilation_units(annotated_project: &AnnotatedProject) {
+    let json = get_compilation_units_content(annotated_project);
+    assert_snapshot!(json);
+}
+
+// ----------------- //
+// -- Test Case 9 -- //
+// ----------------- //
+
+fn get_source_code_for_case_9_programs() -> SourceCode {
+    SourceCode::new(
+        "
+    TYPE ComplexEnumType : (
+            orange := 10,
+            yellow := 20,
+            purple := 30
+        );
+    END_TYPE
+
+    PROGRAM prog
+    VAR
+        inOutVar : ComplexEnumType;
+        outVar: ComplexEnumType;
+    END_VAR
+    END_PROGRAM
+    ",
+        "programs.pli",
+    )
+}
+
+#[test]
+fn case_9_programs_parsed_content() {
+    let json = get_parsed_content(get_source_code_for_case_9_programs());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_9_programs_indexed_content() {
+    let json = get_indexed_content(
+        "case_9_programs_parsed_content",
+        get_source_code_for_case_9_programs(),
+    );
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_9_programs_annotated_content() {
+    let annotated_project = get_annotated_project(
+        "case_9_programs_indexed_content"
+    );
+
+    let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
+    assert_snapshot!(json);
+
+    case_9_programs_compilation_units(&annotated_project);
+}
+
+fn case_9_programs_compilation_units(annotated_project: &AnnotatedProject) {
+    let json = get_compilation_units_content(annotated_project);
     assert_snapshot!(json);
 }
 
@@ -511,10 +649,10 @@ fn get_parsed_content(source_code: SourceCode) -> String {
 /// Will load the snapshot that was generated during the run of the `fn case_1_global_primitives_parsed_content()` test.
 fn get_indexed_content(test_name: &str, source_code: SourceCode) -> String {
     let snapshot_string = extract_string_item_from_snapshot(test_name);
-    let parsed_project = serde_json::from_str::<ParsedProject>(snapshot_string)
+    let parsed_project_wrapper = serde_json::from_str::<ParsedProjectWrapper>(snapshot_string)
         .expect("Failed to deserialize snapshot content into a ParsedProject!");
 
-    let result = progress_pipeline_to_step_indexed(vec![source_code], vec![], parsed_project);
+    let result = progress_pipeline_to_step_indexed(vec![source_code], vec![], parsed_project_wrapper);
     assert!(result.is_ok());
 
     serde_json::to_string_pretty(&result.unwrap()).expect("Failed to serialize item!")
@@ -531,15 +669,28 @@ fn get_indexed_content(test_name: &str, source_code: SourceCode) -> String {
 ///     let annotated_project = get_annotated_project("case_1_global_primitives_indexed_content", get_source_code_for_case_1_global_primitives());
 /// ```
 /// Will load the snapshot that was generated during the run of the `fn case_1_global_primitives_indexed_content()` test.
-fn get_annotated_project(test_name: &str, source_code: SourceCode) -> AnnotatedProject {
+fn get_annotated_project(test_name: &str) -> AnnotatedProject {
     let snapshot_string = extract_string_item_from_snapshot(test_name);
-    let parsed_project = serde_json::from_str::<IndexedProject>(snapshot_string)
+    let indexed_project_wrapper = serde_json::from_str::<IndexedProjectWrapper>(snapshot_string)
         .expect("Failed to deserialize snapshot content into an IndexedProject!");
 
-    let result = progress_pipeline_to_step_annotated(vec![source_code], vec![], parsed_project);
+    let result = progress_pipeline_to_step_annotated(indexed_project_wrapper);
     assert!(result.is_ok());
 
-    result.unwrap()
+    let wrapper = result.unwrap();
+
+    wrapper.annotated_project
+}
+
+/// Returns json content for the compilation units in the annotated project.
+fn get_compilation_units_content(annotated_project: &AnnotatedProject) -> String {
+    let mut compilation_units: Vec<&CompilationUnit> = Vec::new();
+
+    for unit in &annotated_project.units {
+        compilation_units.push(unit.get_unit());
+    }
+
+    serde_json::to_string_pretty(&compilation_units).expect("Failed to serialize item!")
 }
 
 // -------------------- //

@@ -1,0 +1,915 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: json
+---
+[
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 1,
+        "name": "fbThatHasSimpleTypes",
+        "kind": "FunctionBlock",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varInt",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 3,
+                            "column": 17,
+                            "offset": 66
+                          },
+                          "end": {
+                            "line": 3,
+                            "column": 20,
+                            "offset": 69
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_blocks.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 3,
+                        "column": 8,
+                        "offset": 57
+                      },
+                      "end": {
+                        "line": 3,
+                        "column": 14,
+                        "offset": 63
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "Local",
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 2,
+                    "column": 4,
+                    "offset": 45
+                  },
+                  "end": {
+                    "line": 2,
+                    "column": 7,
+                    "offset": 48
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "outVarInt",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 6,
+                            "column": 20,
+                            "offset": 118
+                          },
+                          "end": {
+                            "line": 6,
+                            "column": 23,
+                            "offset": 121
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_blocks.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 6,
+                        "column": 8,
+                        "offset": 106
+                      },
+                      "end": {
+                        "line": 6,
+                        "column": 17,
+                        "offset": 115
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "Output",
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 5,
+                    "column": 4,
+                    "offset": 87
+                  },
+                  "end": {
+                    "line": 5,
+                    "column": 14,
+                    "offset": 97
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "inOutVarInt",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 9,
+                            "column": 22,
+                            "offset": 172
+                          },
+                          "end": {
+                            "line": 9,
+                            "column": 25,
+                            "offset": 175
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_blocks.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 9,
+                        "column": 8,
+                        "offset": 158
+                      },
+                      "end": {
+                        "line": 9,
+                        "column": 19,
+                        "offset": 169
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 8,
+                    "column": 4,
+                    "offset": 139
+                  },
+                  "end": {
+                    "line": 8,
+                    "column": 14,
+                    "offset": 149
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 4,
+                "offset": 5
+              },
+              "end": {
+                "line": 11,
+                "column": 22,
+                "offset": 211
+              }
+            }
+          },
+          "file": {
+            "File": "function_blocks.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "File": "function_blocks.pli"
+          }
+        },
+        "poly_mode": "None",
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "fbThatHasSimpleTypes",
+        "type_name": "fbThatHasSimpleTypes",
+        "linkage": "Internal",
+        "pou_type": "FunctionBlock",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 11,
+                "column": 4,
+                "offset": 193
+              },
+              "end": {
+                "line": 10,
+                "column": 11,
+                "offset": 188
+              }
+            }
+          },
+          "file": {
+            "File": "function_blocks.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "File": "function_blocks.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 11,
+                "column": 4,
+                "offset": 193
+              },
+              "end": {
+                "line": 11,
+                "column": 22,
+                "offset": 211
+              }
+            }
+          },
+          "file": {
+            "File": "function_blocks.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "File": "function_blocks.pli"
+    }
+  },
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 21,
+        "name": "__init_fbthathassimpletypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "fbThatHasSimpleTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 1,
+                            "column": 19,
+                            "offset": 20
+                          },
+                          "end": {
+                            "line": 1,
+                            "column": 39,
+                            "offset": 40
+                          }
+                        }
+                      },
+                      "file": {
+                        "Internal": "function_blocks.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 1,
+                        "column": 19,
+                        "offset": 20
+                      },
+                      "end": {
+                        "line": 1,
+                        "column": 39,
+                        "offset": 40
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_blocks.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_blocks.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 20,
+        "name": "__user_init_fbThatHasSimpleTypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "fbThatHasSimpleTypes",
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "File": "__initializers"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "__init_fbthathassimpletypes",
+        "type_name": "__init_fbthathassimpletypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [
+          {
+            "stmt": {
+              "Assignment": {
+                "left": {
+                  "stmt": {
+                    "ReferenceExpr": {
+                      "access": {
+                        "Member": {
+                          "stmt": {
+                            "Identifier": "__vtable"
+                          },
+                          "id": 22,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      },
+                      "base": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "self"
+                                },
+                                "id": 23,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 24,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 25,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                },
+                "right": {
+                  "stmt": {
+                    "CallStatement": {
+                      "operator": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "ADR"
+                                },
+                                "id": 26,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 27,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "parameters": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__vtable_fbThatHasSimpleTypes_instance"
+                                },
+                                "id": 28,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 29,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 30,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              }
+            },
+            "id": 31,
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            },
+            "metadata": null
+          }
+        ],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_blocks.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_blocks.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 19,
+                "offset": 20
+              },
+              "end": {
+                "line": 1,
+                "column": 39,
+                "offset": 40
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_blocks.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "__user_init_fbThatHasSimpleTypes",
+        "type_name": "__user_init_fbThatHasSimpleTypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "Internal": "__initializers"
+    }
+  },
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 32,
+        "name": "__init___TestProject",
+        "kind": "ProjectInit",
+        "variable_blocks": [],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "__init___TestProject",
+        "type_name": "__init___TestProject",
+        "linkage": "Internal",
+        "pou_type": "ProjectInit",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "Internal": "__init___TestProject"
+    }
+  }
+]

@@ -1,0 +1,32 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].contents"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#include <dependencies.plc.h>
+
+
+
+
+// User-defined data types
+typedef enum eComplexEnumType {
+    orange = 10,
+	yellow = 20,
+	purple = 30
+} ComplexEnumType;
+
+
+
+// Functions, Function Blocks and Programs
+extern prog_type prog_instance;;
+
+typedef struct {
+    ComplexEnumType inOutVar;
+	ComplexEnumType outVar;
+} prog_type;
+
+void prog(prog_type* self);

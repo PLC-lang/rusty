@@ -23,454 +23,19 @@ expression: json
           }
         ],
         "var_config": [],
-        "pous": [],
-        "implementations": [],
-        "interfaces": [],
-        "user_types": [
+        "pous": [
           {
-            "data_type": {
-              "EnumType": {
-                "name": "ComplexEnumType",
-                "numeric_type": "DINT",
-                "elements": {
-                  "stmt": {
-                    "ExpressionList": [
-                      {
-                        "stmt": {
-                          "Assignment": {
-                            "left": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "orange"
-                                      },
-                                      "id": 52,
-                                      "location": {
-                                        "span": {
-                                          "Range": {
-                                            "start": {
-                                              "line": 2,
-                                              "column": 12,
-                                              "offset": 42
-                                            },
-                                            "end": {
-                                              "line": 2,
-                                              "column": 24,
-                                              "offset": 54
-                                            }
-                                          }
-                                        },
-                                        "file": {
-                                          "File": "structs.pli"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 53,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 2,
-                                      "column": 12,
-                                      "offset": 42
-                                    },
-                                    "end": {
-                                      "line": 2,
-                                      "column": 24,
-                                      "offset": 54
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "right": {
-                              "stmt": {
-                                "Literal": {
-                                  "Integer": 10
-                                }
-                              },
-                              "id": 3,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 2,
-                                      "column": 22,
-                                      "offset": 52
-                                    },
-                                    "end": {
-                                      "line": 2,
-                                      "column": 24,
-                                      "offset": 54
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 54,
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 2,
-                                "column": 12,
-                                "offset": 42
-                              },
-                              "end": {
-                                "line": 2,
-                                "column": 24,
-                                "offset": 54
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      {
-                        "stmt": {
-                          "Assignment": {
-                            "left": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "yellow"
-                                      },
-                                      "id": 55,
-                                      "location": {
-                                        "span": {
-                                          "Range": {
-                                            "start": {
-                                              "line": 3,
-                                              "column": 12,
-                                              "offset": 68
-                                            },
-                                            "end": {
-                                              "line": 3,
-                                              "column": 24,
-                                              "offset": 80
-                                            }
-                                          }
-                                        },
-                                        "file": {
-                                          "File": "structs.pli"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 56,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 3,
-                                      "column": 12,
-                                      "offset": 68
-                                    },
-                                    "end": {
-                                      "line": 3,
-                                      "column": 24,
-                                      "offset": 80
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "right": {
-                              "stmt": {
-                                "Literal": {
-                                  "Integer": 20
-                                }
-                              },
-                              "id": 7,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 3,
-                                      "column": 22,
-                                      "offset": 78
-                                    },
-                                    "end": {
-                                      "line": 3,
-                                      "column": 24,
-                                      "offset": 80
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 57,
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 3,
-                                "column": 12,
-                                "offset": 68
-                              },
-                              "end": {
-                                "line": 3,
-                                "column": 24,
-                                "offset": 80
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      {
-                        "stmt": {
-                          "Assignment": {
-                            "left": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "purple"
-                                      },
-                                      "id": 58,
-                                      "location": {
-                                        "span": {
-                                          "Range": {
-                                            "start": {
-                                              "line": 4,
-                                              "column": 12,
-                                              "offset": 94
-                                            },
-                                            "end": {
-                                              "line": 4,
-                                              "column": 24,
-                                              "offset": 106
-                                            }
-                                          }
-                                        },
-                                        "file": {
-                                          "File": "structs.pli"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 59,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 4,
-                                      "column": 12,
-                                      "offset": 94
-                                    },
-                                    "end": {
-                                      "line": 4,
-                                      "column": 24,
-                                      "offset": 106
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "right": {
-                              "stmt": {
-                                "Literal": {
-                                  "Integer": 30
-                                }
-                              },
-                              "id": 11,
-                              "location": {
-                                "span": {
-                                  "Range": {
-                                    "start": {
-                                      "line": 4,
-                                      "column": 22,
-                                      "offset": 104
-                                    },
-                                    "end": {
-                                      "line": 4,
-                                      "column": 24,
-                                      "offset": 106
-                                    }
-                                  }
-                                },
-                                "file": {
-                                  "File": "structs.pli"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 60,
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 4,
-                                "column": 12,
-                                "offset": 94
-                              },
-                              "end": {
-                                "line": 4,
-                                "column": 24,
-                                "offset": 106
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        },
-                        "metadata": null
-                      }
-                    ]
-                  },
-                  "id": 61,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 2,
-                          "column": 12,
-                          "offset": 42
-                        },
-                        "end": {
-                          "line": 4,
-                          "column": 24,
-                          "offset": 106
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "structs.pli"
-                    }
-                  },
-                  "metadata": null
-                }
-              }
-            },
-            "initializer": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 1,
-                    "column": 9,
-                    "offset": 10
-                  },
-                  "end": {
-                    "line": 1,
-                    "column": 24,
-                    "offset": 25
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "scope": null
-          },
-          {
-            "data_type": {
-              "StructType": {
-                "name": "StructWithPrimitiveTypes",
+            "id": 1,
+            "name": "fbThatHasSimpleTypes",
+            "kind": "FunctionBlock",
+            "variable_blocks": [
+              {
+                "access": "Protected",
+                "constant": false,
+                "retain": false,
                 "variables": [
                   {
-                    "name": "Field1",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "BYTE",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 10,
-                                "column": 21,
-                                "offset": 203
-                              },
-                              "end": {
-                                "line": 10,
-                                "column": 25,
-                                "offset": 207
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 10,
-                            "column": 12,
-                            "offset": 194
-                          },
-                          "end": {
-                            "line": 10,
-                            "column": 18,
-                            "offset": 200
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "Field2",
+                    "name": "varInt",
                     "data_type_declaration": {
                       "Reference": {
                         "referenced_type": "INT",
@@ -478,19 +43,19 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 11,
-                                "column": 21,
-                                "offset": 230
+                                "line": 3,
+                                "column": 17,
+                                "offset": 66
                               },
                               "end": {
-                                "line": 11,
-                                "column": 24,
-                                "offset": 233
+                                "line": 3,
+                                "column": 20,
+                                "offset": 69
                               }
                             }
                           },
                           "file": {
-                            "File": "structs.pli"
+                            "File": "function_blocks.pli"
                           }
                         }
                       }
@@ -501,758 +66,330 @@ expression: json
                       "span": {
                         "Range": {
                           "start": {
-                            "line": 11,
-                            "column": 12,
-                            "offset": 221
+                            "line": 3,
+                            "column": 8,
+                            "offset": 57
                           },
                           "end": {
-                            "line": 11,
-                            "column": 18,
-                            "offset": 227
+                            "line": 3,
+                            "column": 14,
+                            "offset": 63
                           }
                         }
                       },
                       "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "Field3",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "DINT",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 12,
-                                "column": 21,
-                                "offset": 256
-                              },
-                              "end": {
-                                "line": 12,
-                                "column": 25,
-                                "offset": 260
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 12,
-                            "column": 12,
-                            "offset": 247
-                          },
-                          "end": {
-                            "line": 12,
-                            "column": 18,
-                            "offset": 253
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
+                        "File": "function_blocks.pli"
                       }
                     }
                   }
-                ]
-              }
-            },
-            "initializer": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
-                  },
-                  "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "scope": null
-          },
-          {
-            "data_type": {
-              "StructType": {
-                "name": "StructWithComplexTypes",
-                "variables": [
-                  {
-                    "name": "byteField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "BYTE",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 18,
-                                "column": 24,
-                                "offset": 367
-                              },
-                              "end": {
-                                "line": 18,
-                                "column": 28,
-                                "offset": 371
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 18,
-                            "column": 12,
-                            "offset": 355
-                          },
-                          "end": {
-                            "line": 18,
-                            "column": 21,
-                            "offset": 364
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "intField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "INT",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 19,
-                                "column": 23,
-                                "offset": 396
-                              },
-                              "end": {
-                                "line": 19,
-                                "column": 26,
-                                "offset": 399
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 19,
-                            "column": 12,
-                            "offset": 385
-                          },
-                          "end": {
-                            "line": 19,
-                            "column": 20,
-                            "offset": 393
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "dIntField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "DINT",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 20,
-                                "column": 24,
-                                "offset": 425
-                              },
-                              "end": {
-                                "line": 20,
-                                "column": 28,
-                                "offset": 429
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 20,
-                            "column": 12,
-                            "offset": 413
-                          },
-                          "end": {
-                            "line": 20,
-                            "column": 21,
-                            "offset": 422
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "stringField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "__StructWithComplexTypes_stringField",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 21,
-                                "column": 26,
-                                "offset": 457
-                              },
-                              "end": {
-                                "line": 21,
-                                "column": 37,
-                                "offset": 468
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 21,
-                            "column": 12,
-                            "offset": 443
-                          },
-                          "end": {
-                            "line": 21,
-                            "column": 23,
-                            "offset": 454
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "wStringField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "__StructWithComplexTypes_wStringField",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 22,
-                                "column": 27,
-                                "offset": 497
-                              },
-                              "end": {
-                                "line": 22,
-                                "column": 40,
-                                "offset": 510
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 22,
-                            "column": 12,
-                            "offset": 482
-                          },
-                          "end": {
-                            "line": 22,
-                            "column": 24,
-                            "offset": 494
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "complexEnumTypeField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "ComplexEnumType",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 23,
-                                "column": 35,
-                                "offset": 547
-                              },
-                              "end": {
-                                "line": 23,
-                                "column": 50,
-                                "offset": 562
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 23,
-                            "column": 12,
-                            "offset": 524
-                          },
-                          "end": {
-                            "line": 23,
-                            "column": 32,
-                            "offset": 544
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  },
-                  {
-                    "name": "intArrayField",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "__StructWithComplexTypes_intArrayField",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 24,
-                                "column": 27,
-                                "offset": 591
-                              },
-                              "end": {
-                                "line": 24,
-                                "column": 45,
-                                "offset": 609
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 24,
-                            "column": 12,
-                            "offset": 576
-                          },
-                          "end": {
-                            "line": 24,
-                            "column": 25,
-                            "offset": 589
-                          }
-                        }
-                      },
-                      "file": {
-                        "File": "structs.pli"
-                      }
-                    }
-                  }
-                ]
-              }
-            },
-            "initializer": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "scope": null
-          },
-          {
-            "data_type": {
-              "StringType": {
-                "name": "__StructWithComplexTypes_stringField",
-                "is_wide": false,
-                "size": {
-                  "stmt": {
-                    "Literal": {
-                      "Integer": 255
-                    }
-                  },
-                  "id": 14,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 21,
-                          "column": 33,
-                          "offset": 464
-                        },
-                        "end": {
-                          "line": 21,
-                          "column": 36,
-                          "offset": 467
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "structs.pli"
-                    }
-                  },
-                  "metadata": null
-                }
-              }
-            },
-            "initializer": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 21,
-                    "column": 26,
-                    "offset": 457
-                  },
-                  "end": {
-                    "line": 21,
-                    "column": 37,
-                    "offset": 468
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "scope": null
-          },
-          {
-            "data_type": {
-              "StringType": {
-                "name": "__StructWithComplexTypes_wStringField",
-                "is_wide": true,
-                "size": {
-                  "stmt": {
-                    "Literal": {
-                      "Integer": 6000
-                    }
-                  },
-                  "id": 15,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 22,
-                          "column": 35,
-                          "offset": 505
-                        },
-                        "end": {
-                          "line": 22,
-                          "column": 39,
-                          "offset": 509
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "structs.pli"
-                    }
-                  },
-                  "metadata": null
-                }
-              }
-            },
-            "initializer": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 22,
-                    "column": 27,
-                    "offset": 497
-                  },
-                  "end": {
-                    "line": 22,
-                    "column": 40,
-                    "offset": 510
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "scope": null
-          },
-          {
-            "data_type": {
-              "ArrayType": {
-                "name": "__StructWithComplexTypes_intArrayField",
-                "bounds": {
-                  "stmt": {
-                    "RangeStatement": {
+                ],
+                "kind": "Local",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
                       "start": {
-                        "stmt": {
-                          "Literal": {
-                            "Integer": 0
-                          }
-                        },
-                        "id": 16,
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 24,
-                                "column": 33,
-                                "offset": 597
-                              },
-                              "end": {
-                                "line": 24,
-                                "column": 34,
-                                "offset": 598
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "structs.pli"
-                          }
-                        },
-                        "metadata": null
+                        "line": 2,
+                        "column": 4,
+                        "offset": 45
                       },
                       "end": {
-                        "stmt": {
-                          "Literal": {
-                            "Integer": 9
-                          }
-                        },
-                        "id": 17,
+                        "line": 2,
+                        "column": 7,
+                        "offset": 48
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              },
+              {
+                "access": "Protected",
+                "constant": false,
+                "retain": false,
+                "variables": [
+                  {
+                    "name": "outVarInt",
+                    "data_type_declaration": {
+                      "Reference": {
+                        "referenced_type": "INT",
                         "location": {
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 24,
-                                "column": 36,
-                                "offset": 600
+                                "line": 6,
+                                "column": 20,
+                                "offset": 118
                               },
                               "end": {
-                                "line": 24,
-                                "column": 37,
-                                "offset": 601
+                                "line": 6,
+                                "column": 23,
+                                "offset": 121
                               }
                             }
                           },
                           "file": {
-                            "File": "structs.pli"
+                            "File": "function_blocks.pli"
                           }
-                        },
-                        "metadata": null
-                      }
-                    }
-                  },
-                  "id": 18,
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 24,
-                          "column": 33,
-                          "offset": 597
-                        },
-                        "end": {
-                          "line": 24,
-                          "column": 37,
-                          "offset": 601
                         }
                       }
                     },
-                    "file": {
-                      "File": "structs.pli"
-                    }
-                  },
-                  "metadata": null
-                },
-                "referenced_type": {
-                  "Reference": {
-                    "referenced_type": "INT",
+                    "initializer": null,
+                    "address": null,
                     "location": {
                       "span": {
                         "Range": {
                           "start": {
-                            "line": 24,
-                            "column": 42,
-                            "offset": 606
+                            "line": 6,
+                            "column": 8,
+                            "offset": 106
                           },
                           "end": {
-                            "line": 24,
-                            "column": 45,
-                            "offset": 609
+                            "line": 6,
+                            "column": 17,
+                            "offset": 115
                           }
                         }
                       },
                       "file": {
-                        "File": "structs.pli"
+                        "File": "function_blocks.pli"
                       }
                     }
                   }
-                },
-                "is_variable_length": false
+                ],
+                "kind": "Output",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 5,
+                        "column": 4,
+                        "offset": 87
+                      },
+                      "end": {
+                        "line": 5,
+                        "column": 14,
+                        "offset": 97
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              },
+              {
+                "access": "Protected",
+                "constant": false,
+                "retain": false,
+                "variables": [
+                  {
+                    "name": "inOutVarInt",
+                    "data_type_declaration": {
+                      "Reference": {
+                        "referenced_type": "INT",
+                        "location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 9,
+                                "column": 22,
+                                "offset": 172
+                              },
+                              "end": {
+                                "line": 9,
+                                "column": 25,
+                                "offset": 175
+                              }
+                            }
+                          },
+                          "file": {
+                            "File": "function_blocks.pli"
+                          }
+                        }
+                      }
+                    },
+                    "initializer": null,
+                    "address": null,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 9,
+                            "column": 8,
+                            "offset": 158
+                          },
+                          "end": {
+                            "line": 9,
+                            "column": 19,
+                            "offset": 169
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_blocks.pli"
+                      }
+                    }
+                  }
+                ],
+                "kind": "InOut",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 4,
+                        "offset": 139
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 14,
+                        "offset": 149
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
               }
-            },
-            "initializer": null,
+            ],
+            "return_type": null,
             "location": {
               "span": {
                 "Range": {
                   "start": {
-                    "line": 24,
-                    "column": 27,
-                    "offset": 591
+                    "line": 1,
+                    "column": 4,
+                    "offset": 5
                   },
                   "end": {
-                    "line": 24,
-                    "column": 45,
-                    "offset": 609
+                    "line": 11,
+                    "column": 22,
+                    "offset": 211
                   }
                 }
               },
               "file": {
-                "File": "structs.pli"
+                "File": "function_blocks.pli"
               }
             },
-            "scope": null
+            "name_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "poly_mode": "None",
+            "generics": [],
+            "linkage": "Internal",
+            "super_class": null,
+            "is_const": false,
+            "interfaces": [],
+            "properties": []
           }
         ],
+        "implementations": [
+          {
+            "name": "fbThatHasSimpleTypes",
+            "type_name": "fbThatHasSimpleTypes",
+            "linkage": "Internal",
+            "pou_type": "FunctionBlock",
+            "statements": [],
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 11,
+                    "column": 4,
+                    "offset": 193
+                  },
+                  "end": {
+                    "line": 10,
+                    "column": 11,
+                    "offset": 188
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "name_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
+                  },
+                  "end": {
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "end_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 11,
+                    "column": 4,
+                    "offset": 193
+                  },
+                  "end": {
+                    "line": 11,
+                    "column": 22,
+                    "offset": 211
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "overriding": false,
+            "generic": false,
+            "access": null
+          }
+        ],
+        "interfaces": [],
+        "user_types": [],
         "file": {
-          "File": "structs.pli"
+          "File": "function_blocks.pli"
         }
       },
       "dependencies": [
         {
-          "Datatype": "ComplexEnumType"
-        },
-        {
-          "Datatype": "DINT"
-        },
-        {
-          "Variable": "ComplexEnumType.orange"
-        },
-        {
-          "Variable": "ComplexEnumType.yellow"
-        },
-        {
-          "Variable": "ComplexEnumType.purple"
-        },
-        {
-          "Datatype": "StructWithPrimitiveTypes"
-        },
-        {
-          "Datatype": "BYTE"
+          "Datatype": "fbThatHasSimpleTypes"
         },
         {
           "Datatype": "INT"
         },
         {
-          "Datatype": "StructWithComplexTypes"
-        },
-        {
-          "Datatype": "__StructWithComplexTypes_stringField"
-        },
-        {
-          "Datatype": "STRING"
-        },
-        {
-          "Datatype": "__StructWithComplexTypes_wStringField"
-        },
-        {
-          "Datatype": "WSTRING"
-        },
-        {
-          "Datatype": "__StructWithComplexTypes_intArrayField"
+          "Datatype": "__auto_pointer_to_INT"
         }
       ],
       "literals": {
@@ -1281,8 +418,8 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 49,
-            "name": "__init_structwithprimitivetypes",
+            "id": 21,
+            "name": "__init_fbthathassimpletypes",
             "kind": "Init",
             "variable_blocks": [
               {
@@ -1294,24 +431,24 @@ expression: json
                     "name": "self",
                     "data_type_declaration": {
                       "Reference": {
-                        "referenced_type": "StructWithPrimitiveTypes",
+                        "referenced_type": "fbThatHasSimpleTypes",
                         "location": {
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 8,
-                                "column": 9,
-                                "offset": 141
+                                "line": 1,
+                                "column": 19,
+                                "offset": 20
                               },
                               "end": {
-                                "line": 8,
-                                "column": 33,
-                                "offset": 165
+                                "line": 1,
+                                "column": 39,
+                                "offset": 40
                               }
                             }
                           },
                           "file": {
-                            "Internal": "structs.pli"
+                            "Internal": "function_blocks.pli"
                           }
                         }
                       }
@@ -1322,19 +459,19 @@ expression: json
                       "span": {
                         "Range": {
                           "start": {
-                            "line": 8,
-                            "column": 9,
-                            "offset": 141
+                            "line": 1,
+                            "column": 19,
+                            "offset": 20
                           },
                           "end": {
-                            "line": 8,
-                            "column": 33,
-                            "offset": 165
+                            "line": 1,
+                            "column": 39,
+                            "offset": 40
                           }
                         }
                       },
                       "file": {
-                        "Internal": "structs.pli"
+                        "Internal": "function_blocks.pli"
                       }
                     }
                   }
@@ -1354,38 +491,38 @@ expression: json
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "Internal": "structs.pli"
+                "Internal": "function_blocks.pli"
               }
             },
             "name_location": {
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "Internal": "structs.pli"
+                "Internal": "function_blocks.pli"
               }
             },
             "poly_mode": null,
@@ -1397,8 +534,8 @@ expression: json
             "properties": []
           },
           {
-            "id": 50,
-            "name": "__init_structwithcomplextypes",
+            "id": 20,
+            "name": "__user_init_fbThatHasSimpleTypes",
             "kind": "Init",
             "variable_blocks": [
               {
@@ -1410,187 +547,7 @@ expression: json
                     "name": "self",
                     "data_type_declaration": {
                       "Reference": {
-                        "referenced_type": "StructWithComplexTypes",
-                        "location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 16,
-                                "column": 9,
-                                "offset": 304
-                              },
-                              "end": {
-                                "line": 16,
-                                "column": 31,
-                                "offset": 326
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "structs.pli"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": {
-                        "Range": {
-                          "start": {
-                            "line": 16,
-                            "column": 9,
-                            "offset": 304
-                          },
-                          "end": {
-                            "line": 16,
-                            "column": 31,
-                            "offset": 326
-                          }
-                        }
-                      },
-                      "file": {
-                        "Internal": "structs.pli"
-                      }
-                    }
-                  }
-                ],
-                "kind": "InOut",
-                "linkage": "Internal",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
-                  }
-                }
-              }
-            ],
-            "return_type": null,
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "Internal": "structs.pli"
-              }
-            },
-            "name_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "Internal": "structs.pli"
-              }
-            },
-            "poly_mode": null,
-            "generics": [],
-            "linkage": "Internal",
-            "super_class": null,
-            "is_const": false,
-            "interfaces": [],
-            "properties": []
-          },
-          {
-            "id": 47,
-            "name": "__user_init_StructWithPrimitiveTypes",
-            "kind": "Init",
-            "variable_blocks": [
-              {
-                "access": "Internal",
-                "constant": false,
-                "retain": false,
-                "variables": [
-                  {
-                    "name": "self",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "StructWithPrimitiveTypes",
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        }
-                      }
-                    },
-                    "initializer": null,
-                    "address": null,
-                    "location": {
-                      "span": "None",
-                      "file": {
-                        "File": "__initializers"
-                      }
-                    }
-                  }
-                ],
-                "kind": "InOut",
-                "linkage": "Internal",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
-                  }
-                }
-              }
-            ],
-            "return_type": null,
-            "location": {
-              "span": "None",
-              "file": {
-                "File": "__initializers"
-              }
-            },
-            "name_location": {
-              "span": "None",
-              "file": {
-                "File": "__initializers"
-              }
-            },
-            "poly_mode": null,
-            "generics": [],
-            "linkage": "Internal",
-            "super_class": null,
-            "is_const": false,
-            "interfaces": [],
-            "properties": []
-          },
-          {
-            "id": 48,
-            "name": "__user_init_StructWithComplexTypes",
-            "kind": "Init",
-            "variable_blocks": [
-              {
-                "access": "Internal",
-                "constant": false,
-                "retain": false,
-                "variables": [
-                  {
-                    "name": "self",
-                    "data_type_declaration": {
-                      "Reference": {
-                        "referenced_type": "StructWithComplexTypes",
+                        "referenced_type": "fbThatHasSimpleTypes",
                         "location": {
                           "span": "None",
                           "file": {
@@ -1643,66 +600,214 @@ expression: json
         ],
         "implementations": [
           {
-            "name": "__init_structwithprimitivetypes",
-            "type_name": "__init_structwithprimitivetypes",
+            "name": "__init_fbthathassimpletypes",
+            "type_name": "__init_fbthathassimpletypes",
             "linkage": "Internal",
             "pou_type": "Init",
-            "statements": [],
+            "statements": [
+              {
+                "stmt": {
+                  "Assignment": {
+                    "left": {
+                      "stmt": {
+                        "ReferenceExpr": {
+                          "access": {
+                            "Member": {
+                              "stmt": {
+                                "Identifier": "__vtable"
+                              },
+                              "id": 22,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          },
+                          "base": {
+                            "stmt": {
+                              "ReferenceExpr": {
+                                "access": {
+                                  "Member": {
+                                    "stmt": {
+                                      "Identifier": "self"
+                                    },
+                                    "id": 23,
+                                    "location": {
+                                      "span": "None",
+                                      "file": {
+                                        "Internal": "<internal>"
+                                      }
+                                    },
+                                    "metadata": null
+                                  }
+                                },
+                                "base": null
+                              }
+                            },
+                            "id": 24,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        }
+                      },
+                      "id": 25,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "Internal": "<internal>"
+                        }
+                      },
+                      "metadata": null
+                    },
+                    "right": {
+                      "stmt": {
+                        "CallStatement": {
+                          "operator": {
+                            "stmt": {
+                              "ReferenceExpr": {
+                                "access": {
+                                  "Member": {
+                                    "stmt": {
+                                      "Identifier": "ADR"
+                                    },
+                                    "id": 26,
+                                    "location": {
+                                      "span": "None",
+                                      "file": {
+                                        "Internal": "<internal>"
+                                      }
+                                    },
+                                    "metadata": null
+                                  }
+                                },
+                                "base": null
+                              }
+                            },
+                            "id": 27,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          },
+                          "parameters": {
+                            "stmt": {
+                              "ReferenceExpr": {
+                                "access": {
+                                  "Member": {
+                                    "stmt": {
+                                      "Identifier": "__vtable_fbThatHasSimpleTypes_instance"
+                                    },
+                                    "id": 28,
+                                    "location": {
+                                      "span": "None",
+                                      "file": {
+                                        "Internal": "<internal>"
+                                      }
+                                    },
+                                    "metadata": null
+                                  }
+                                },
+                                "base": null
+                              }
+                            },
+                            "id": 29,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        }
+                      },
+                      "id": 30,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "Internal": "<internal>"
+                        }
+                      },
+                      "metadata": null
+                    }
+                  }
+                },
+                "id": 31,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                },
+                "metadata": null
+              }
+            ],
             "location": {
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "Internal": "structs.pli"
+                "Internal": "function_blocks.pli"
               }
             },
             "name_location": {
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "Internal": "structs.pli"
+                "Internal": "function_blocks.pli"
               }
             },
             "end_location": {
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "Internal": "structs.pli"
+                "Internal": "function_blocks.pli"
               }
             },
             "overriding": false,
@@ -1710,103 +815,8 @@ expression: json
             "access": null
           },
           {
-            "name": "__init_structwithcomplextypes",
-            "type_name": "__init_structwithcomplextypes",
-            "linkage": "Internal",
-            "pou_type": "Init",
-            "statements": [],
-            "location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "Internal": "structs.pli"
-              }
-            },
-            "name_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "Internal": "structs.pli"
-              }
-            },
-            "end_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "Internal": "structs.pli"
-              }
-            },
-            "overriding": false,
-            "generic": false,
-            "access": null
-          },
-          {
-            "name": "__user_init_StructWithPrimitiveTypes",
-            "type_name": "__user_init_StructWithPrimitiveTypes",
-            "linkage": "Internal",
-            "pou_type": "Init",
-            "statements": [],
-            "location": {
-              "span": "None",
-              "file": {
-                "File": "__initializers"
-              }
-            },
-            "name_location": {
-              "span": "None",
-              "file": {
-                "File": "__initializers"
-              }
-            },
-            "end_location": {
-              "span": "None",
-              "file": {
-                "File": "__initializers"
-              }
-            },
-            "overriding": false,
-            "generic": false,
-            "access": null
-          },
-          {
-            "name": "__user_init_StructWithComplexTypes",
-            "type_name": "__user_init_StructWithComplexTypes",
+            "name": "__user_init_fbThatHasSimpleTypes",
+            "type_name": "__user_init_fbThatHasSimpleTypes",
             "linkage": "Internal",
             "pou_type": "Init",
             "statements": [],
@@ -1841,55 +851,34 @@ expression: json
       },
       "dependencies": [
         {
-          "Datatype": "__init_structwithprimitivetypes"
+          "Datatype": "__init_fbthathassimpletypes"
         },
         {
-          "Datatype": "StructWithPrimitiveTypes"
-        },
-        {
-          "Datatype": "BYTE"
+          "Datatype": "fbThatHasSimpleTypes"
         },
         {
           "Datatype": "INT"
         },
         {
-          "Datatype": "DINT"
+          "Datatype": "__auto_pointer_to_INT"
         },
         {
-          "Datatype": "__init_structwithcomplextypes"
+          "Datatype": "__user_init_fbThatHasSimpleTypes"
         },
         {
-          "Datatype": "StructWithComplexTypes"
+          "Datatype": "__auto_pointer_to_fbThatHasSimpleTypes"
         },
         {
-          "Datatype": "__StructWithComplexTypes_stringField"
+          "Call": "ADR"
         },
         {
-          "Datatype": "STRING"
+          "Datatype": "ADR"
         },
         {
-          "Datatype": "__StructWithComplexTypes_wStringField"
+          "Datatype": "__ADR__U"
         },
         {
-          "Datatype": "WSTRING"
-        },
-        {
-          "Datatype": "ComplexEnumType"
-        },
-        {
-          "Datatype": "__StructWithComplexTypes_intArrayField"
-        },
-        {
-          "Datatype": "__user_init_StructWithPrimitiveTypes"
-        },
-        {
-          "Datatype": "__user_init_StructWithComplexTypes"
-        },
-        {
-          "Datatype": "__auto_pointer_to_StructWithPrimitiveTypes"
-        },
-        {
-          "Datatype": "__auto_pointer_to_StructWithComplexTypes"
+          "Datatype": "LWORD"
         }
       ],
       "literals": {
@@ -1918,7 +907,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 51,
+            "id": 32,
             "name": "__init___TestProject",
             "kind": "ProjectInit",
             "variable_blocks": [],
@@ -1997,17 +986,17 @@ expression: json
     },
     "global_initializers": {
       "inner_map": {
-        "__structwithprimitivetypes__init": [
+        "__fbthathassimpletypes__init": [
           {
-            "name": "__StructWithPrimitiveTypes__init",
-            "qualified_name": "__StructWithPrimitiveTypes__init",
+            "name": "__fbThatHasSimpleTypes__init",
+            "qualified_name": "__fbThatHasSimpleTypes__init",
             "initial_value": null,
             "argument_type": {
               "ByVal": "Global"
             },
             "is_constant": true,
             "is_var_external": false,
-            "data_type_name": "StructWithPrimitiveTypes",
+            "data_type_name": "fbThatHasSimpleTypes",
             "location_in_parent": 0,
             "linkage": "Internal",
             "binding": null,
@@ -2015,55 +1004,19 @@ expression: json
               "span": {
                 "Range": {
                   "start": {
-                    "line": 8,
-                    "column": 9,
-                    "offset": 141
+                    "line": 1,
+                    "column": 19,
+                    "offset": 20
                   },
                   "end": {
-                    "line": 8,
-                    "column": 33,
-                    "offset": 165
+                    "line": 1,
+                    "column": 39,
+                    "offset": 40
                   }
                 }
               },
               "file": {
-                "File": "structs.pli"
-              }
-            },
-            "varargs": null
-          }
-        ],
-        "__structwithcomplextypes__init": [
-          {
-            "name": "__StructWithComplexTypes__init",
-            "qualified_name": "__StructWithComplexTypes__init",
-            "initial_value": null,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "is_constant": true,
-            "is_var_external": false,
-            "data_type_name": "StructWithComplexTypes",
-            "location_in_parent": 0,
-            "linkage": "Internal",
-            "binding": null,
-            "source_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 16,
-                    "column": 9,
-                    "offset": 304
-                  },
-                  "end": {
-                    "line": 16,
-                    "column": 31,
-                    "offset": 326
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
+                "File": "function_blocks.pli"
               }
             },
             "varargs": null
@@ -2072,132 +1025,45 @@ expression: json
       }
     },
     "enum_global_variables": {
-      "inner_map": {
-        "orange": [
-          {
-            "name": "orange",
-            "qualified_name": "ComplexEnumType.orange",
-            "initial_value": [
-              0,
-              0
-            ],
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "is_constant": true,
-            "is_var_external": false,
-            "data_type_name": "ComplexEnumType",
-            "location_in_parent": 0,
-            "linkage": "Internal",
-            "binding": null,
-            "source_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 2,
-                    "column": 12,
-                    "offset": 42
-                  },
-                  "end": {
-                    "line": 2,
-                    "column": 24,
-                    "offset": 54
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "varargs": null
-          }
-        ],
-        "yellow": [
-          {
-            "name": "yellow",
-            "qualified_name": "ComplexEnumType.yellow",
-            "initial_value": [
-              1,
-              0
-            ],
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "is_constant": true,
-            "is_var_external": false,
-            "data_type_name": "ComplexEnumType",
-            "location_in_parent": 0,
-            "linkage": "Internal",
-            "binding": null,
-            "source_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 3,
-                    "column": 12,
-                    "offset": 68
-                  },
-                  "end": {
-                    "line": 3,
-                    "column": 24,
-                    "offset": 80
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "varargs": null
-          }
-        ],
-        "purple": [
-          {
-            "name": "purple",
-            "qualified_name": "ComplexEnumType.purple",
-            "initial_value": [
-              2,
-              0
-            ],
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "is_constant": true,
-            "is_var_external": false,
-            "data_type_name": "ComplexEnumType",
-            "location_in_parent": 0,
-            "linkage": "Internal",
-            "binding": null,
-            "source_location": {
-              "span": {
-                "Range": {
-                  "start": {
-                    "line": 4,
-                    "column": 12,
-                    "offset": 94
-                  },
-                  "end": {
-                    "line": 4,
-                    "column": 24,
-                    "offset": 106
-                  }
-                }
-              },
-              "file": {
-                "File": "structs.pli"
-              }
-            },
-            "varargs": null
-          }
-        ]
-      }
+      "inner_map": {}
     },
     "pous": {
       "inner_map": {
-        "__init_structwithprimitivetypes": [
+        "fbthathassimpletypes": [
+          {
+            "FunctionBlock": {
+              "name": "fbThatHasSimpleTypes",
+              "instance_struct_name": "fbThatHasSimpleTypes",
+              "linkage": "Internal",
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 39,
+                      "offset": 40
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "super_class": null,
+              "interfaces": [],
+              "properties": {}
+            }
+          }
+        ],
+        "__init_fbthathassimpletypes": [
           {
             "Function": {
-              "name": "__init_structwithprimitivetypes",
+              "name": "__init_fbthathassimpletypes",
               "return_type": "VOID",
               "generics": [],
               "linkage": "Internal",
@@ -2206,19 +1072,19 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 8,
-                      "column": 9,
-                      "offset": 141
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
                     },
                     "end": {
-                      "line": 8,
-                      "column": 33,
-                      "offset": 165
+                      "line": 1,
+                      "column": 39,
+                      "offset": 40
                     }
                   }
                 },
                 "file": {
-                  "Internal": "structs.pli"
+                  "Internal": "function_blocks.pli"
                 }
               },
               "is_generated": false,
@@ -2226,61 +1092,10 @@ expression: json
             }
           }
         ],
-        "__init_structwithcomplextypes": [
+        "__user_init_fbthathassimpletypes": [
           {
             "Function": {
-              "name": "__init_structwithcomplextypes",
-              "return_type": "VOID",
-              "generics": [],
-              "linkage": "Internal",
-              "is_variadic": false,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 16,
-                      "column": 9,
-                      "offset": 304
-                    },
-                    "end": {
-                      "line": 16,
-                      "column": 31,
-                      "offset": 326
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "structs.pli"
-                }
-              },
-              "is_generated": false,
-              "is_const": false
-            }
-          }
-        ],
-        "__user_init_structwithprimitivetypes": [
-          {
-            "Function": {
-              "name": "__user_init_StructWithPrimitiveTypes",
-              "return_type": "VOID",
-              "generics": [],
-              "linkage": "Internal",
-              "is_variadic": false,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "is_generated": false,
-              "is_const": false
-            }
-          }
-        ],
-        "__user_init_structwithcomplextypes": [
-          {
-            "Function": {
-              "name": "__user_init_StructWithComplexTypes",
+              "name": "__user_init_fbThatHasSimpleTypes",
               "return_type": "VOID",
               "generics": [],
               "linkage": "Internal",
@@ -2970,74 +1785,48 @@ expression: json
       "inner_map": {}
     },
     "implementations": {
-      "__init_structwithprimitivetypes": {
-        "call_name": "__init_structwithprimitivetypes",
-        "type_name": "__init_structwithprimitivetypes",
+      "fbthathassimpletypes": {
+        "call_name": "fbThatHasSimpleTypes",
+        "type_name": "fbThatHasSimpleTypes",
         "associated_class": null,
-        "implementation_type": "Init",
+        "implementation_type": "FunctionBlock",
         "generic": false,
         "location": {
           "span": {
             "Range": {
               "start": {
-                "line": 8,
-                "column": 9,
-                "offset": 141
+                "line": 11,
+                "column": 4,
+                "offset": 193
               },
               "end": {
-                "line": 8,
-                "column": 33,
-                "offset": 165
+                "line": 10,
+                "column": 11,
+                "offset": 188
               }
             }
           },
           "file": {
-            "Internal": "structs.pli"
+            "File": "function_blocks.pli"
           }
         }
       },
-      "__init_structwithcomplextypes": {
-        "call_name": "__init_structwithcomplextypes",
-        "type_name": "__init_structwithcomplextypes",
-        "associated_class": null,
-        "implementation_type": "Init",
-        "generic": false,
-        "location": {
-          "span": {
-            "Range": {
-              "start": {
-                "line": 16,
-                "column": 9,
-                "offset": 304
-              },
-              "end": {
-                "line": 16,
-                "column": 31,
-                "offset": 326
-              }
-            }
-          },
-          "file": {
-            "Internal": "structs.pli"
-          }
-        }
-      },
-      "__user_init_structwithprimitivetypes": {
-        "call_name": "__user_init_StructWithPrimitiveTypes",
-        "type_name": "__user_init_StructWithPrimitiveTypes",
+      "__init_fbthathassimpletypes": {
+        "call_name": "__init_fbthathassimpletypes",
+        "type_name": "__init_fbthathassimpletypes",
         "associated_class": null,
         "implementation_type": "Init",
         "generic": false,
         "location": {
           "span": "None",
           "file": {
-            "File": "__initializers"
+            "Internal": "<internal>"
           }
         }
       },
-      "__user_init_structwithcomplextypes": {
-        "call_name": "__user_init_StructWithComplexTypes",
-        "type_name": "__user_init_StructWithComplexTypes",
+      "__user_init_fbthathassimpletypes": {
+        "call_name": "__user_init_fbThatHasSimpleTypes",
+        "type_name": "__user_init_fbThatHasSimpleTypes",
         "associated_class": null,
         "implementation_type": "Init",
         "generic": false,
@@ -3497,683 +2286,14 @@ expression: json
     "type_index": {
       "types": {
         "inner_map": {
-          "complexenumtype": [
+          "__auto_pointer_to_int": [
             {
-              "name": "ComplexEnumType",
-              "initial_value": null,
-              "information": {
-                "Enum": {
-                  "name": "ComplexEnumType",
-                  "referenced_type": "DINT",
-                  "variants": [
-                    {
-                      "name": "orange",
-                      "qualified_name": "ComplexEnumType.orange",
-                      "initial_value": [
-                        0,
-                        0
-                      ],
-                      "argument_type": {
-                        "ByVal": "Global"
-                      },
-                      "is_constant": true,
-                      "is_var_external": false,
-                      "data_type_name": "ComplexEnumType",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 2,
-                              "column": 12,
-                              "offset": 42
-                            },
-                            "end": {
-                              "line": 2,
-                              "column": 24,
-                              "offset": 54
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "yellow",
-                      "qualified_name": "ComplexEnumType.yellow",
-                      "initial_value": [
-                        1,
-                        0
-                      ],
-                      "argument_type": {
-                        "ByVal": "Global"
-                      },
-                      "is_constant": true,
-                      "is_var_external": false,
-                      "data_type_name": "ComplexEnumType",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 3,
-                              "column": 12,
-                              "offset": 68
-                            },
-                            "end": {
-                              "line": 3,
-                              "column": 24,
-                              "offset": 80
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "purple",
-                      "qualified_name": "ComplexEnumType.purple",
-                      "initial_value": [
-                        2,
-                        0
-                      ],
-                      "argument_type": {
-                        "ByVal": "Global"
-                      },
-                      "is_constant": true,
-                      "is_var_external": false,
-                      "data_type_name": "ComplexEnumType",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 4,
-                              "column": 12,
-                              "offset": 94
-                            },
-                            "end": {
-                              "line": 4,
-                              "column": 24,
-                              "offset": 106
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    }
-                  ]
-                }
-              },
-              "nature": "Int",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 9,
-                      "offset": 10
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 24,
-                      "offset": 25
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "structwithprimitivetypes": [
-            {
-              "name": "StructWithPrimitiveTypes",
-              "initial_value": null,
-              "information": {
-                "Struct": {
-                  "name": "StructWithPrimitiveTypes",
-                  "members": [
-                    {
-                      "name": "Field1",
-                      "qualified_name": "StructWithPrimitiveTypes.Field1",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "BYTE",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 10,
-                              "column": 12,
-                              "offset": 194
-                            },
-                            "end": {
-                              "line": 10,
-                              "column": 18,
-                              "offset": 200
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "Field2",
-                      "qualified_name": "StructWithPrimitiveTypes.Field2",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "INT",
-                      "location_in_parent": 1,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 11,
-                              "column": 12,
-                              "offset": 221
-                            },
-                            "end": {
-                              "line": 11,
-                              "column": 18,
-                              "offset": 227
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "Field3",
-                      "qualified_name": "StructWithPrimitiveTypes.Field3",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "DINT",
-                      "location_in_parent": 2,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 12,
-                              "column": 12,
-                              "offset": 247
-                            },
-                            "end": {
-                              "line": 12,
-                              "column": 18,
-                              "offset": 253
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    }
-                  ],
-                  "source": "OriginalDeclaration"
-                }
-              },
-              "nature": "Derived",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 9,
-                      "offset": 141
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 33,
-                      "offset": 165
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "structwithcomplextypes": [
-            {
-              "name": "StructWithComplexTypes",
-              "initial_value": null,
-              "information": {
-                "Struct": {
-                  "name": "StructWithComplexTypes",
-                  "members": [
-                    {
-                      "name": "byteField",
-                      "qualified_name": "StructWithComplexTypes.byteField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "BYTE",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 18,
-                              "column": 12,
-                              "offset": 355
-                            },
-                            "end": {
-                              "line": 18,
-                              "column": 21,
-                              "offset": 364
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "intField",
-                      "qualified_name": "StructWithComplexTypes.intField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "INT",
-                      "location_in_parent": 1,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 19,
-                              "column": 12,
-                              "offset": 385
-                            },
-                            "end": {
-                              "line": 19,
-                              "column": 20,
-                              "offset": 393
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "dIntField",
-                      "qualified_name": "StructWithComplexTypes.dIntField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "DINT",
-                      "location_in_parent": 2,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 20,
-                              "column": 12,
-                              "offset": 413
-                            },
-                            "end": {
-                              "line": 20,
-                              "column": 21,
-                              "offset": 422
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "stringField",
-                      "qualified_name": "StructWithComplexTypes.stringField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "__StructWithComplexTypes_stringField",
-                      "location_in_parent": 3,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 21,
-                              "column": 12,
-                              "offset": 443
-                            },
-                            "end": {
-                              "line": 21,
-                              "column": 23,
-                              "offset": 454
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "wStringField",
-                      "qualified_name": "StructWithComplexTypes.wStringField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "__StructWithComplexTypes_wStringField",
-                      "location_in_parent": 4,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 22,
-                              "column": 12,
-                              "offset": 482
-                            },
-                            "end": {
-                              "line": 22,
-                              "column": 24,
-                              "offset": 494
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "complexEnumTypeField",
-                      "qualified_name": "StructWithComplexTypes.complexEnumTypeField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "ComplexEnumType",
-                      "location_in_parent": 5,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 23,
-                              "column": 12,
-                              "offset": 524
-                            },
-                            "end": {
-                              "line": 23,
-                              "column": 32,
-                              "offset": 544
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    },
-                    {
-                      "name": "intArrayField",
-                      "qualified_name": "StructWithComplexTypes.intArrayField",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByVal": "Input"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "__StructWithComplexTypes_intArrayField",
-                      "location_in_parent": 6,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 24,
-                              "column": 12,
-                              "offset": 576
-                            },
-                            "end": {
-                              "line": 24,
-                              "column": 25,
-                              "offset": 589
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    }
-                  ],
-                  "source": "OriginalDeclaration"
-                }
-              },
-              "nature": "Derived",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 16,
-                      "column": 9,
-                      "offset": 304
-                    },
-                    "end": {
-                      "line": 16,
-                      "column": 31,
-                      "offset": 326
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "__structwithcomplextypes_stringfield": [
-            {
-              "name": "__StructWithComplexTypes_stringField",
-              "initial_value": null,
-              "information": {
-                "String": {
-                  "size": {
-                    "LiteralInteger": 256
-                  },
-                  "encoding": "Utf8"
-                }
-              },
-              "nature": "String",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 21,
-                      "column": 26,
-                      "offset": 457
-                    },
-                    "end": {
-                      "line": 21,
-                      "column": 37,
-                      "offset": 468
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "__structwithcomplextypes_wstringfield": [
-            {
-              "name": "__StructWithComplexTypes_wStringField",
-              "initial_value": null,
-              "information": {
-                "String": {
-                  "size": {
-                    "LiteralInteger": 6001
-                  },
-                  "encoding": "Utf16"
-                }
-              },
-              "nature": "String",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 22,
-                      "column": 27,
-                      "offset": 497
-                    },
-                    "end": {
-                      "line": 22,
-                      "column": 40,
-                      "offset": 510
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "__structwithcomplextypes_intarrayfield": [
-            {
-              "name": "__StructWithComplexTypes_intArrayField",
-              "initial_value": null,
-              "information": {
-                "Array": {
-                  "name": "__StructWithComplexTypes_intArrayField",
-                  "inner_type_name": "INT",
-                  "dimensions": [
-                    {
-                      "start_offset": {
-                        "ConstExpression": [
-                          3,
-                          0
-                        ]
-                      },
-                      "end_offset": {
-                        "ConstExpression": [
-                          4,
-                          0
-                        ]
-                      }
-                    }
-                  ]
-                }
-              },
-              "nature": "Any",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 24,
-                      "column": 27,
-                      "offset": 591
-                    },
-                    "end": {
-                      "line": 24,
-                      "column": 45,
-                      "offset": 609
-                    }
-                  }
-                },
-                "file": {
-                  "File": "structs.pli"
-                }
-              }
-            }
-          ],
-          "__auto_pointer_to_structwithprimitivetypes": [
-            {
-              "name": "__auto_pointer_to_StructWithPrimitiveTypes",
+              "name": "__auto_pointer_to_INT",
               "initial_value": null,
               "information": {
                 "Pointer": {
-                  "name": "__auto_pointer_to_StructWithPrimitiveTypes",
-                  "inner_type_name": "StructWithPrimitiveTypes",
+                  "name": "__auto_pointer_to_INT",
+                  "inner_type_name": "INT",
                   "auto_deref": "Default",
                   "type_safe": true,
                   "is_function": false
@@ -4188,14 +2308,14 @@ expression: json
               }
             }
           ],
-          "__auto_pointer_to_structwithcomplextypes": [
+          "__auto_pointer_to_fbthathassimpletypes": [
             {
-              "name": "__auto_pointer_to_StructWithComplexTypes",
+              "name": "__auto_pointer_to_fbThatHasSimpleTypes",
               "initial_value": null,
               "information": {
                 "Pointer": {
-                  "name": "__auto_pointer_to_StructWithComplexTypes",
-                  "inner_type_name": "StructWithComplexTypes",
+                  "name": "__auto_pointer_to_fbThatHasSimpleTypes",
+                  "inner_type_name": "fbThatHasSimpleTypes",
                   "auto_deref": "Default",
                   "type_safe": true,
                   "is_function": false
@@ -5737,24 +3857,24 @@ expression: json
       },
       "pou_types": {
         "inner_map": {
-          "__init_structwithprimitivetypes": [
+          "fbthathassimpletypes": [
             {
-              "name": "__init_structwithprimitivetypes",
+              "name": "fbThatHasSimpleTypes",
               "initial_value": null,
               "information": {
                 "Struct": {
-                  "name": "__init_structwithprimitivetypes",
+                  "name": "fbThatHasSimpleTypes",
                   "members": [
                     {
-                      "name": "self",
-                      "qualified_name": "__init_structwithprimitivetypes.self",
+                      "name": "varInt",
+                      "qualified_name": "fbThatHasSimpleTypes.varInt",
                       "initial_value": null,
                       "argument_type": {
-                        "ByRef": "InOut"
+                        "ByVal": "Local"
                       },
                       "is_constant": false,
                       "is_var_external": false,
-                      "data_type_name": "__auto_pointer_to_StructWithPrimitiveTypes",
+                      "data_type_name": "INT",
                       "location_in_parent": 0,
                       "linkage": "Internal",
                       "binding": null,
@@ -5762,19 +3882,157 @@ expression: json
                         "span": {
                           "Range": {
                             "start": {
-                              "line": 8,
-                              "column": 9,
-                              "offset": 141
+                              "line": 3,
+                              "column": 8,
+                              "offset": 57
                             },
                             "end": {
-                              "line": 8,
-                              "column": 33,
-                              "offset": 165
+                              "line": 3,
+                              "column": 14,
+                              "offset": 63
                             }
                           }
                         },
                         "file": {
-                          "Internal": "structs.pli"
+                          "File": "function_blocks.pli"
+                        }
+                      },
+                      "varargs": null
+                    },
+                    {
+                      "name": "outVarInt",
+                      "qualified_name": "fbThatHasSimpleTypes.outVarInt",
+                      "initial_value": null,
+                      "argument_type": {
+                        "ByVal": "Output"
+                      },
+                      "is_constant": false,
+                      "is_var_external": false,
+                      "data_type_name": "INT",
+                      "location_in_parent": 1,
+                      "linkage": "Internal",
+                      "binding": null,
+                      "source_location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 6,
+                              "column": 8,
+                              "offset": 106
+                            },
+                            "end": {
+                              "line": 6,
+                              "column": 17,
+                              "offset": 115
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks.pli"
+                        }
+                      },
+                      "varargs": null
+                    },
+                    {
+                      "name": "inOutVarInt",
+                      "qualified_name": "fbThatHasSimpleTypes.inOutVarInt",
+                      "initial_value": null,
+                      "argument_type": {
+                        "ByRef": "InOut"
+                      },
+                      "is_constant": false,
+                      "is_var_external": false,
+                      "data_type_name": "__auto_pointer_to_INT",
+                      "location_in_parent": 2,
+                      "linkage": "Internal",
+                      "binding": null,
+                      "source_location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 9,
+                              "column": 8,
+                              "offset": 158
+                            },
+                            "end": {
+                              "line": 9,
+                              "column": 19,
+                              "offset": 169
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks.pli"
+                        }
+                      },
+                      "varargs": null
+                    }
+                  ],
+                  "source": {
+                    "Pou": "FunctionBlock"
+                  }
+                }
+              },
+              "nature": "Any",
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 39,
+                      "offset": 40
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              }
+            }
+          ],
+          "__init_fbthathassimpletypes": [
+            {
+              "name": "__init_fbthathassimpletypes",
+              "initial_value": null,
+              "information": {
+                "Struct": {
+                  "name": "__init_fbthathassimpletypes",
+                  "members": [
+                    {
+                      "name": "self",
+                      "qualified_name": "__init_fbthathassimpletypes.self",
+                      "initial_value": null,
+                      "argument_type": {
+                        "ByRef": "InOut"
+                      },
+                      "is_constant": false,
+                      "is_var_external": false,
+                      "data_type_name": "__auto_pointer_to_fbThatHasSimpleTypes",
+                      "location_in_parent": 0,
+                      "linkage": "Internal",
+                      "binding": null,
+                      "source_location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 1,
+                              "column": 19,
+                              "offset": 20
+                            },
+                            "end": {
+                              "line": 1,
+                              "column": 39,
+                              "offset": 40
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "function_blocks.pli"
                         }
                       },
                       "varargs": null
@@ -5790,155 +4048,41 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 8,
-                      "column": 9,
-                      "offset": 141
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
                     },
                     "end": {
-                      "line": 8,
-                      "column": 33,
-                      "offset": 165
+                      "line": 1,
+                      "column": 39,
+                      "offset": 40
                     }
                   }
                 },
                 "file": {
-                  "Internal": "structs.pli"
+                  "Internal": "function_blocks.pli"
                 }
               }
             }
           ],
-          "__init_structwithcomplextypes": [
+          "__user_init_fbthathassimpletypes": [
             {
-              "name": "__init_structwithcomplextypes",
+              "name": "__user_init_fbThatHasSimpleTypes",
               "initial_value": null,
               "information": {
                 "Struct": {
-                  "name": "__init_structwithcomplextypes",
+                  "name": "__user_init_fbThatHasSimpleTypes",
                   "members": [
                     {
                       "name": "self",
-                      "qualified_name": "__init_structwithcomplextypes.self",
+                      "qualified_name": "__user_init_fbThatHasSimpleTypes.self",
                       "initial_value": null,
                       "argument_type": {
                         "ByRef": "InOut"
                       },
                       "is_constant": false,
                       "is_var_external": false,
-                      "data_type_name": "__auto_pointer_to_StructWithComplexTypes",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 16,
-                              "column": 9,
-                              "offset": 304
-                            },
-                            "end": {
-                              "line": 16,
-                              "column": 31,
-                              "offset": 326
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "structs.pli"
-                        }
-                      },
-                      "varargs": null
-                    }
-                  ],
-                  "source": {
-                    "Pou": "Init"
-                  }
-                }
-              },
-              "nature": "Any",
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 16,
-                      "column": 9,
-                      "offset": 304
-                    },
-                    "end": {
-                      "line": 16,
-                      "column": 31,
-                      "offset": 326
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "structs.pli"
-                }
-              }
-            }
-          ],
-          "__user_init_structwithprimitivetypes": [
-            {
-              "name": "__user_init_StructWithPrimitiveTypes",
-              "initial_value": null,
-              "information": {
-                "Struct": {
-                  "name": "__user_init_StructWithPrimitiveTypes",
-                  "members": [
-                    {
-                      "name": "self",
-                      "qualified_name": "__user_init_StructWithPrimitiveTypes.self",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByRef": "InOut"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "__auto_pointer_to_StructWithPrimitiveTypes",
-                      "location_in_parent": 0,
-                      "linkage": "Internal",
-                      "binding": null,
-                      "source_location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      },
-                      "varargs": null
-                    }
-                  ],
-                  "source": {
-                    "Pou": "Init"
-                  }
-                }
-              },
-              "nature": "Any",
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              }
-            }
-          ],
-          "__user_init_structwithcomplextypes": [
-            {
-              "name": "__user_init_StructWithComplexTypes",
-              "initial_value": null,
-              "information": {
-                "Struct": {
-                  "name": "__user_init_StructWithComplexTypes",
-                  "members": [
-                    {
-                      "name": "self",
-                      "qualified_name": "__user_init_StructWithComplexTypes.self",
-                      "initial_value": null,
-                      "argument_type": {
-                        "ByRef": "InOut"
-                      },
-                      "is_constant": false,
-                      "is_var_external": false,
-                      "data_type_name": "__auto_pointer_to_StructWithComplexTypes",
+                      "data_type_name": "__auto_pointer_to_fbThatHasSimpleTypes",
                       "location_in_parent": 0,
                       "linkage": "Internal",
                       "binding": null,
@@ -8040,186 +6184,7 @@ expression: json
     },
     "constant_expressions": {
       "expressions": [
-        [
-          0,
-          {
-            "expr": {
-              "Resolved": {
-                "stmt": {
-                  "Literal": {
-                    "Integer": 10
-                  }
-                },
-                "id": 3,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 2,
-                        "column": 22,
-                        "offset": 52
-                      },
-                      "end": {
-                        "line": 2,
-                        "column": 24,
-                        "offset": 54
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "structs.pli"
-                  }
-                },
-                "metadata": null
-              }
-            },
-            "target_type_name": "DINT"
-          }
-        ],
-        [
-          0,
-          {
-            "expr": {
-              "Resolved": {
-                "stmt": {
-                  "Literal": {
-                    "Integer": 20
-                  }
-                },
-                "id": 7,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 3,
-                        "column": 22,
-                        "offset": 78
-                      },
-                      "end": {
-                        "line": 3,
-                        "column": 24,
-                        "offset": 80
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "structs.pli"
-                  }
-                },
-                "metadata": null
-              }
-            },
-            "target_type_name": "DINT"
-          }
-        ],
-        [
-          0,
-          {
-            "expr": {
-              "Resolved": {
-                "stmt": {
-                  "Literal": {
-                    "Integer": 30
-                  }
-                },
-                "id": 11,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 4,
-                        "column": 22,
-                        "offset": 104
-                      },
-                      "end": {
-                        "line": 4,
-                        "column": 24,
-                        "offset": 106
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "structs.pli"
-                  }
-                },
-                "metadata": null
-              }
-            },
-            "target_type_name": "DINT"
-          }
-        ],
-        [
-          0,
-          {
-            "expr": {
-              "Resolved": {
-                "stmt": {
-                  "Literal": {
-                    "Integer": 0
-                  }
-                },
-                "id": 16,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 24,
-                        "column": 33,
-                        "offset": 597
-                      },
-                      "end": {
-                        "line": 24,
-                        "column": 34,
-                        "offset": 598
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "structs.pli"
-                  }
-                },
-                "metadata": null
-              }
-            },
-            "target_type_name": "DINT"
-          }
-        ],
-        [
-          0,
-          {
-            "expr": {
-              "Resolved": {
-                "stmt": {
-                  "Literal": {
-                    "Integer": 9
-                  }
-                },
-                "id": 17,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 24,
-                        "column": 36,
-                        "offset": 600
-                      },
-                      "end": {
-                        "line": 24,
-                        "column": 37,
-                        "offset": 601
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "structs.pli"
-                  }
-                },
-                "metadata": null
-              }
-            },
-            "target_type_name": "DINT"
-          }
-        ],
+        null,
         null,
         null,
         null
@@ -8244,102 +6209,55 @@ expression: json
   "annotations": {
     "annotation_map": {
       "type_map": {
-        "3": {
+        "27": {
+          "Function": {
+            "return_type": "LWORD",
+            "qualified_name": "ADR",
+            "generic_name": "ADR",
+            "call_name": "ADR"
+          }
+        },
+        "26": {
+          "Function": {
+            "return_type": "LWORD",
+            "qualified_name": "ADR",
+            "generic_name": null,
+            "call_name": null
+          }
+        },
+        "30": {
           "Value": {
-            "resulting_type": "DINT"
+            "resulting_type": "LWORD"
           }
         },
-        "53": {
+        "24": {
           "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.orange",
-            "constant": true,
+            "resulting_type": "fbThatHasSimpleTypes",
+            "qualified_name": "__init_fbthathassimpletypes.self",
+            "constant": false,
             "argument_type": {
-              "ByVal": "Global"
+              "ByRef": "InOut"
             },
-            "auto_deref": null
+            "auto_deref": "Default"
           }
         },
-        "52": {
+        "23": {
           "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.orange",
-            "constant": true,
+            "resulting_type": "fbThatHasSimpleTypes",
+            "qualified_name": "__init_fbthathassimpletypes.self",
+            "constant": false,
             "argument_type": {
-              "ByVal": "Global"
+              "ByRef": "InOut"
             },
-            "auto_deref": null
-          }
-        },
-        "7": {
-          "Value": {
-            "resulting_type": "DINT"
-          }
-        },
-        "56": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.yellow",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "55": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.yellow",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "11": {
-          "Value": {
-            "resulting_type": "DINT"
-          }
-        },
-        "59": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.purple",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "58": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.purple",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
+            "auto_deref": "Default"
           }
         }
       },
       "type_hint_map": {
-        "3": {
-          "Value": {
-            "resulting_type": "ComplexEnumType"
-          }
-        },
-        "7": {
-          "Value": {
-            "resulting_type": "ComplexEnumType"
-          }
-        },
-        "11": {
-          "Value": {
-            "resulting_type": "ComplexEnumType"
+        "29": {
+          "Argument": {
+            "resulting_type": "__ADR__U",
+            "position": 0
           }
         }
       },
@@ -8410,7 +6328,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 80,
+    "bool_id": 51,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"

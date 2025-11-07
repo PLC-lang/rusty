@@ -4,6 +4,7 @@ use plc::DebugLevel;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
 use project::project::Project;
+use serde::{Deserialize, Serialize};
 use source_code::SourceContainer;
 
 use crate::{
@@ -14,6 +15,27 @@ use crate::{
 mod external_files;
 mod header_generator;
 mod multi_files;
+
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
+pub struct ParsedProjectWrapper {
+    pub parsed_project: ParsedProject,
+    pub context: GlobalContext,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
+pub struct IndexedProjectWrapper {
+    pub indexed_project: IndexedProject,
+    pub context: GlobalContext,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
+pub struct AnnotatedProjectWrapper {
+    pub annotated_project: AnnotatedProject,
+    pub context: GlobalContext,
+}
 
 pub fn compile_with_root<S, T>(
     sources: T,
@@ -63,68 +85,69 @@ where
         .codegen_to_string(&compile_options)
 }
 
-pub fn progress_pipeline_to_step_parsed<S, T>(sources: T, includes: T) -> Result<ParsedProject, Diagnostic>
+pub fn progress_pipeline_to_step_parsed<S, T>(
+    sources: T,
+    includes: T
+) -> Result<ParsedProjectWrapper, Diagnostic>
 where
     S: SourceContainer + Debug,
     T: IntoIterator<Item = S>,
 {
     let mut diagnostician = Diagnostician::null_diagnostician();
-
-    let (project, context) = construct_project_and_context_from_sources_and_includes(sources, includes);
-    let parsed_project = pipelines::ParsedProject::parse(&context, &project, &mut diagnostician)?;
-
-    Ok(parsed_project)
-}
-
-pub fn progress_pipeline_to_step_indexed<S, T>(
-    sources: T,
-    includes: T,
-    parsed_project: ParsedProject,
-) -> Result<IndexedProject, Diagnostic>
-where
-    S: SourceContainer + Debug,
-    T: IntoIterator<Item = S>,
-{
-    let (project, context) = construct_project_and_context_from_sources_and_includes(sources, includes);
-
-    let indexed_project = parsed_project
-        .index(context.provider())
-        .extend_with_init_units(project.get_init_symbol_name(), context.provider());
-
-    Ok(indexed_project)
-}
-
-pub fn progress_pipeline_to_step_annotated<S, T>(
-    sources: T,
-    includes: T,
-    indexed_project: IndexedProject,
-) -> Result<AnnotatedProject, Diagnostic>
-where
-    S: SourceContainer + Debug,
-    T: IntoIterator<Item = S>,
-{
-    let (_, context) = construct_project_and_context_from_sources_and_includes(sources, includes);
-
-    let annotated_project = indexed_project.annotate(context.provider());
-
-    Ok(annotated_project)
-}
-
-fn construct_project_and_context_from_sources_and_includes<S, T>(
-    sources: T,
-    includes: T,
-) -> (Project<S>, GlobalContext)
-where
-    S: SourceContainer + Debug,
-    T: IntoIterator<Item = S>,
-{
-    // Create a project
-    let project = Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes);
+    let project = construct_project_from_sources_and_includes(sources, includes);
     let context = GlobalContext::new()
         .with_source(project.get_sources(), None)
         .expect("Failed to generate global context with sources!")
         .with_source(project.get_includes(), None)
         .expect("Failed to generate global context with includes!");
 
-    (project, context)
+    let parsed_project = pipelines::ParsedProject::parse(&context, &project, &mut diagnostician)?;
+
+    Ok(ParsedProjectWrapper { parsed_project, context })
+}
+
+pub fn progress_pipeline_to_step_indexed<S, T>(
+    sources: T,
+    includes: T,
+    parsed_project_wrapper: ParsedProjectWrapper,
+) -> Result<IndexedProjectWrapper, Diagnostic>
+where
+    S: SourceContainer + Debug,
+    T: IntoIterator<Item = S>,
+{
+    let project = construct_project_from_sources_and_includes(sources, includes);
+
+    let indexed_project = parsed_project_wrapper.parsed_project
+        .index(parsed_project_wrapper.context.provider())
+        .extend_with_init_units(project.get_init_symbol_name(), parsed_project_wrapper.context.provider());
+
+    Ok(IndexedProjectWrapper {
+        indexed_project,
+        context: parsed_project_wrapper.context
+    })
+}
+
+pub fn progress_pipeline_to_step_annotated(
+    indexed_project_wrapper: IndexedProjectWrapper,
+) -> Result<AnnotatedProjectWrapper, Diagnostic>
+{
+    let annotated_project = indexed_project_wrapper.indexed_project
+        .annotate(indexed_project_wrapper.context.provider());
+
+    Ok(AnnotatedProjectWrapper {
+        annotated_project,
+        context: indexed_project_wrapper.context
+    })
+}
+
+fn construct_project_from_sources_and_includes<S, T>(
+    sources: T,
+    includes: T,
+) -> Project<S>
+where
+    S: SourceContainer + Debug,
+    T: IntoIterator<Item = S>,
+{
+    // Create a project
+    Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes)
 }

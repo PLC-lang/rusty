@@ -27,8 +27,8 @@ expression: json
           "pous": [
             {
               "id": 1,
-              "name": "fnThatIsVoid",
-              "kind": "Function",
+              "name": "fbGreatGrandParent",
+              "kind": "FunctionBlock",
               "variable_blocks": [
                 {
                   "access": "Protected",
@@ -36,7 +36,7 @@ expression: json
                   "retain": false,
                   "variables": [
                     {
-                      "name": "varIntInput",
+                      "name": "varGreatGrandParentInt",
                       "data_type_declaration": {
                         "Reference": {
                           "referenced_type": "INT",
@@ -45,18 +45,18 @@ expression: json
                               "Range": {
                                 "start": {
                                   "line": 3,
-                                  "column": 21,
-                                  "offset": 62
+                                  "column": 32,
+                                  "offset": 79
                                 },
                                 "end": {
                                   "line": 3,
-                                  "column": 24,
-                                  "offset": 65
+                                  "column": 35,
+                                  "offset": 82
                                 }
                               }
                             },
                             "file": {
-                              "File": "functions_with_primitive_types.pli"
+                              "File": "function_blocks_with_inheritance.pli"
                             }
                           }
                         }
@@ -69,24 +69,22 @@ expression: json
                             "start": {
                               "line": 3,
                               "column": 8,
-                              "offset": 49
+                              "offset": 55
                             },
                             "end": {
                               "line": 3,
-                              "column": 19,
-                              "offset": 60
+                              "column": 30,
+                              "offset": 77
                             }
                           }
                         },
                         "file": {
-                          "File": "functions_with_primitive_types.pli"
+                          "File": "function_blocks_with_inheritance.pli"
                         }
                       }
                     }
                   ],
-                  "kind": {
-                    "Input": "ByVal"
-                  },
+                  "kind": "Local",
                   "linkage": "Internal",
                   "location": {
                     "span": {
@@ -94,17 +92,17 @@ expression: json
                         "start": {
                           "line": 2,
                           "column": 4,
-                          "offset": 31
+                          "offset": 43
                         },
                         "end": {
                           "line": 2,
-                          "column": 13,
-                          "offset": 40
+                          "column": 7,
+                          "offset": 46
                         }
                       }
                     },
                     "file": {
-                      "File": "functions_with_primitive_types.pli"
+                      "File": "function_blocks_with_inheritance.pli"
                     }
                   }
                 }
@@ -120,13 +118,13 @@ expression: json
                     },
                     "end": {
                       "line": 5,
-                      "column": 16,
-                      "offset": 95
+                      "column": 22,
+                      "offset": 118
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "name_location": {
@@ -134,21 +132,21 @@ expression: json
                   "Range": {
                     "start": {
                       "line": 1,
-                      "column": 13,
-                      "offset": 14
+                      "column": 19,
+                      "offset": 20
                     },
                     "end": {
                       "line": 1,
-                      "column": 25,
-                      "offset": 26
+                      "column": 37,
+                      "offset": 38
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "poly_mode": null,
+              "poly_mode": "None",
               "generics": [],
               "linkage": "Internal",
               "super_class": null,
@@ -158,8 +156,8 @@ expression: json
             },
             {
               "id": 2,
-              "name": "fnThatReturnsInt",
-              "kind": "Function",
+              "name": "fbGrandParent",
+              "kind": "FunctionBlock",
               "variable_blocks": [
                 {
                   "access": "Protected",
@@ -167,55 +165,7 @@ expression: json
                   "retain": false,
                   "variables": [
                     {
-                      "name": "varRealInputToFunc",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "REAL",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 9,
-                                  "column": 28,
-                                  "offset": 174
-                                },
-                                "end": {
-                                  "line": 9,
-                                  "column": 32,
-                                  "offset": 178
-                                }
-                              }
-                            },
-                            "file": {
-                              "File": "functions_with_primitive_types.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 9,
-                              "column": 8,
-                              "offset": 154
-                            },
-                            "end": {
-                              "line": 9,
-                              "column": 26,
-                              "offset": 172
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_primitive_types.pli"
-                        }
-                      }
-                    },
-                    {
-                      "name": "varIntInputToFunc",
+                      "name": "varGrandParentInt",
                       "data_type_declaration": {
                         "Reference": {
                           "referenced_type": "INT",
@@ -223,19 +173,19 @@ expression: json
                             "span": {
                               "Range": {
                                 "start": {
-                                  "line": 10,
+                                  "line": 9,
                                   "column": 27,
-                                  "offset": 207
+                                  "offset": 215
                                 },
                                 "end": {
-                                  "line": 10,
+                                  "line": 9,
                                   "column": 30,
-                                  "offset": 210
+                                  "offset": 218
                                 }
                               }
                             },
                             "file": {
-                              "File": "functions_with_primitive_types.pli"
+                              "File": "function_blocks_with_inheritance.pli"
                             }
                           }
                         }
@@ -246,74 +196,24 @@ expression: json
                         "span": {
                           "Range": {
                             "start": {
-                              "line": 10,
+                              "line": 9,
                               "column": 8,
-                              "offset": 188
+                              "offset": 196
                             },
                             "end": {
-                              "line": 10,
+                              "line": 9,
                               "column": 25,
-                              "offset": 205
+                              "offset": 213
                             }
                           }
                         },
                         "file": {
-                          "File": "functions_with_primitive_types.pli"
-                        }
-                      }
-                    },
-                    {
-                      "name": "varDateAndTimeInputToFunc",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "DATE_AND_TIME",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 11,
-                                  "column": 35,
-                                  "offset": 247
-                                },
-                                "end": {
-                                  "line": 11,
-                                  "column": 48,
-                                  "offset": 260
-                                }
-                              }
-                            },
-                            "file": {
-                              "File": "functions_with_primitive_types.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 11,
-                              "column": 8,
-                              "offset": 220
-                            },
-                            "end": {
-                              "line": 11,
-                              "column": 33,
-                              "offset": 245
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_primitive_types.pli"
+                          "File": "function_blocks_with_inheritance.pli"
                         }
                       }
                     }
                   ],
-                  "kind": {
-                    "Input": "ByVal"
-                  },
+                  "kind": "Local",
                   "linkage": "Internal",
                   "location": {
                     "span": {
@@ -321,214 +221,39 @@ expression: json
                         "start": {
                           "line": 8,
                           "column": 4,
-                          "offset": 136
+                          "offset": 184
                         },
                         "end": {
                           "line": 8,
-                          "column": 13,
-                          "offset": 145
+                          "column": 7,
+                          "offset": 187
                         }
                       }
                     },
                     "file": {
-                      "File": "functions_with_primitive_types.pli"
-                    }
-                  }
-                },
-                {
-                  "access": "Protected",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "varRealInOutFunc",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "REAL",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 14,
-                                  "column": 26,
-                                  "offset": 315
-                                },
-                                "end": {
-                                  "line": 14,
-                                  "column": 30,
-                                  "offset": 319
-                                }
-                              }
-                            },
-                            "file": {
-                              "File": "functions_with_primitive_types.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 14,
-                              "column": 8,
-                              "offset": 297
-                            },
-                            "end": {
-                              "line": 14,
-                              "column": 24,
-                              "offset": 313
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_primitive_types.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 13,
-                          "column": 4,
-                          "offset": 278
-                        },
-                        "end": {
-                          "line": 13,
-                          "column": 14,
-                          "offset": 288
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "functions_with_primitive_types.pli"
-                    }
-                  }
-                },
-                {
-                  "access": "Protected",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "varIntOutputFunc",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "INT",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 17,
-                                  "column": 26,
-                                  "offset": 374
-                                },
-                                "end": {
-                                  "line": 17,
-                                  "column": 29,
-                                  "offset": 377
-                                }
-                              }
-                            },
-                            "file": {
-                              "File": "functions_with_primitive_types.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 17,
-                              "column": 8,
-                              "offset": 356
-                            },
-                            "end": {
-                              "line": 17,
-                              "column": 24,
-                              "offset": 372
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_primitive_types.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "Output",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 16,
-                          "column": 4,
-                          "offset": 337
-                        },
-                        "end": {
-                          "line": 16,
-                          "column": 14,
-                          "offset": 347
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "functions_with_primitive_types.pli"
+                      "File": "function_blocks_with_inheritance.pli"
                     }
                   }
                 }
               ],
-              "return_type": {
-                "Reference": {
-                  "referenced_type": "INT",
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 7,
-                          "column": 31,
-                          "offset": 128
-                        },
-                        "end": {
-                          "line": 7,
-                          "column": 34,
-                          "offset": 131
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "functions_with_primitive_types.pli"
-                    }
-                  }
-                }
-              },
+              "return_type": null,
               "location": {
                 "span": {
                   "Range": {
                     "start": {
                       "line": 7,
                       "column": 4,
-                      "offset": 101
+                      "offset": 124
                     },
                     "end": {
-                      "line": 19,
-                      "column": 16,
-                      "offset": 407
+                      "line": 11,
+                      "column": 22,
+                      "offset": 254
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "name_location": {
@@ -536,32 +261,53 @@ expression: json
                   "Range": {
                     "start": {
                       "line": 7,
-                      "column": 13,
-                      "offset": 110
+                      "column": 19,
+                      "offset": 139
                     },
                     "end": {
                       "line": 7,
-                      "column": 29,
-                      "offset": 126
+                      "column": 32,
+                      "offset": 152
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "poly_mode": null,
+              "poly_mode": "None",
               "generics": [],
               "linkage": "Internal",
-              "super_class": null,
+              "super_class": {
+                "name": "fbGreatGrandParent",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 7,
+                        "column": 41,
+                        "offset": 161
+                      },
+                      "end": {
+                        "line": 7,
+                        "column": 59,
+                        "offset": 179
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              },
               "is_const": false,
               "interfaces": [],
               "properties": []
             },
             {
               "id": 3,
-              "name": "fnThatReturnsTimeOfDay",
-              "kind": "Function",
+              "name": "fbParent",
+              "kind": "FunctionBlock",
               "variable_blocks": [
                 {
                   "access": "Protected",
@@ -569,27 +315,27 @@ expression: json
                   "retain": false,
                   "variables": [
                     {
-                      "name": "varDateTimeInput",
+                      "name": "varParentInt",
                       "data_type_declaration": {
                         "Reference": {
-                          "referenced_type": "DT",
+                          "referenced_type": "INT",
                           "location": {
                             "span": {
                               "Range": {
                                 "start": {
-                                  "line": 23,
-                                  "column": 27,
-                                  "offset": 492
+                                  "line": 15,
+                                  "column": 22,
+                                  "offset": 336
                                 },
                                 "end": {
-                                  "line": 23,
-                                  "column": 29,
-                                  "offset": 494
+                                  "line": 15,
+                                  "column": 25,
+                                  "offset": 339
                                 }
                               }
                             },
                             "file": {
-                              "File": "functions_with_primitive_types.pli"
+                              "File": "function_blocks_with_inheritance.pli"
                             }
                           }
                         }
@@ -600,114 +346,260 @@ expression: json
                         "span": {
                           "Range": {
                             "start": {
-                              "line": 23,
+                              "line": 15,
                               "column": 8,
-                              "offset": 473
+                              "offset": 322
                             },
                             "end": {
-                              "line": 23,
-                              "column": 24,
-                              "offset": 489
+                              "line": 15,
+                              "column": 20,
+                              "offset": 334
                             }
                           }
                         },
                         "file": {
-                          "File": "functions_with_primitive_types.pli"
+                          "File": "function_blocks_with_inheritance.pli"
                         }
                       }
                     }
                   ],
-                  "kind": {
-                    "Input": "ByVal"
-                  },
+                  "kind": "Local",
                   "linkage": "Internal",
                   "location": {
                     "span": {
                       "Range": {
                         "start": {
-                          "line": 22,
+                          "line": 14,
                           "column": 4,
-                          "offset": 455
+                          "offset": 310
                         },
                         "end": {
-                          "line": 22,
-                          "column": 13,
-                          "offset": 464
+                          "line": 14,
+                          "column": 7,
+                          "offset": 313
                         }
                       }
                     },
                     "file": {
-                      "File": "functions_with_primitive_types.pli"
+                      "File": "function_blocks_with_inheritance.pli"
                     }
                   }
                 }
               ],
-              "return_type": {
-                "Reference": {
-                  "referenced_type": "TOD",
-                  "location": {
-                    "span": {
-                      "Range": {
-                        "start": {
-                          "line": 21,
-                          "column": 38,
-                          "offset": 447
-                        },
-                        "end": {
-                          "line": 21,
-                          "column": 41,
-                          "offset": 450
-                        }
-                      }
-                    },
-                    "file": {
-                      "File": "functions_with_primitive_types.pli"
-                    }
-                  }
-                }
-              },
+              "return_type": null,
               "location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 21,
+                      "line": 13,
                       "column": 4,
-                      "offset": 413
+                      "offset": 260
                     },
                     "end": {
-                      "line": 25,
-                      "column": 16,
-                      "offset": 524
+                      "line": 17,
+                      "column": 22,
+                      "offset": 375
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "name_location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 21,
-                      "column": 13,
-                      "offset": 422
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
                     },
                     "end": {
-                      "line": 21,
-                      "column": 35,
-                      "offset": 444
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "poly_mode": null,
+              "poly_mode": "None",
               "generics": [],
               "linkage": "Internal",
-              "super_class": null,
+              "super_class": {
+                "name": "fbGrandParent",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 13,
+                        "column": 36,
+                        "offset": 292
+                      },
+                      "end": {
+                        "line": 13,
+                        "column": 49,
+                        "offset": 305
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              },
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 4,
+              "name": "fbChild",
+              "kind": "FunctionBlock",
+              "variable_blocks": [
+                {
+                  "access": "Protected",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "varChildInt",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "INT",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 21,
+                                  "column": 21,
+                                  "offset": 450
+                                },
+                                "end": {
+                                  "line": 21,
+                                  "column": 24,
+                                  "offset": 453
+                                }
+                              }
+                            },
+                            "file": {
+                              "File": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 21,
+                              "column": 8,
+                              "offset": 437
+                            },
+                            "end": {
+                              "line": 21,
+                              "column": 19,
+                              "offset": 448
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": {
+                      "Range": {
+                        "start": {
+                          "line": 20,
+                          "column": 4,
+                          "offset": 425
+                        },
+                        "end": {
+                          "line": 20,
+                          "column": 7,
+                          "offset": 428
+                        }
+                      }
+                    },
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 4,
+                      "offset": 381
+                    },
+                    "end": {
+                      "line": 23,
+                      "column": 22,
+                      "offset": 489
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "poly_mode": "None",
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": {
+                "name": "fbParent",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 19,
+                        "column": 35,
+                        "offset": 412
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 43,
+                        "offset": 420
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              },
               "is_const": false,
               "interfaces": [],
               "properties": []
@@ -715,10 +607,10 @@ expression: json
           ],
           "implementations": [
             {
-              "name": "fnThatIsVoid",
-              "type_name": "fnThatIsVoid",
+              "name": "fbGreatGrandParent",
+              "type_name": "fbGreatGrandParent",
               "linkage": "Internal",
-              "pou_type": "Function",
+              "pou_type": "FunctionBlock",
               "statements": [],
               "location": {
                 "span": {
@@ -726,55 +618,55 @@ expression: json
                     "start": {
                       "line": 5,
                       "column": 4,
-                      "offset": 83
+                      "offset": 100
                     },
                     "end": {
                       "line": 4,
                       "column": 11,
-                      "offset": 78
-                    }
-                  }
-                },
-                "file": {
-                  "File": "functions_with_primitive_types.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 13,
-                      "offset": 14
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 25,
-                      "offset": 26
-                    }
-                  }
-                },
-                "file": {
-                  "File": "functions_with_primitive_types.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 5,
-                      "column": 4,
-                      "offset": 83
-                    },
-                    "end": {
-                      "line": 5,
-                      "column": 16,
                       "offset": 95
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 5,
+                      "column": 4,
+                      "offset": 100
+                    },
+                    "end": {
+                      "line": 5,
+                      "column": 22,
+                      "offset": 118
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "overriding": false,
@@ -782,28 +674,28 @@ expression: json
               "access": null
             },
             {
-              "name": "fnThatReturnsInt",
-              "type_name": "fnThatReturnsInt",
+              "name": "fbGrandParent",
+              "type_name": "fbGrandParent",
               "linkage": "Internal",
-              "pou_type": "Function",
+              "pou_type": "FunctionBlock",
               "statements": [],
               "location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 19,
+                      "line": 11,
                       "column": 4,
-                      "offset": 395
+                      "offset": 236
                     },
                     "end": {
-                      "line": 18,
+                      "line": 10,
                       "column": 11,
-                      "offset": 390
+                      "offset": 231
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "name_location": {
@@ -811,37 +703,37 @@ expression: json
                   "Range": {
                     "start": {
                       "line": 7,
-                      "column": 13,
-                      "offset": 110
+                      "column": 19,
+                      "offset": 139
                     },
                     "end": {
                       "line": 7,
-                      "column": 29,
-                      "offset": 126
+                      "column": 32,
+                      "offset": 152
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "end_location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 19,
+                      "line": 11,
                       "column": 4,
-                      "offset": 395
+                      "offset": 236
                     },
                     "end": {
-                      "line": 19,
-                      "column": 16,
-                      "offset": 407
+                      "line": 11,
+                      "column": 22,
+                      "offset": 254
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "overriding": false,
@@ -849,66 +741,133 @@ expression: json
               "access": null
             },
             {
-              "name": "fnThatReturnsTimeOfDay",
-              "type_name": "fnThatReturnsTimeOfDay",
+              "name": "fbParent",
+              "type_name": "fbParent",
               "linkage": "Internal",
-              "pou_type": "Function",
+              "pou_type": "FunctionBlock",
               "statements": [],
               "location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 25,
+                      "line": 17,
                       "column": 4,
-                      "offset": 512
+                      "offset": 357
                     },
                     "end": {
-                      "line": 24,
+                      "line": 16,
                       "column": 11,
-                      "offset": 507
+                      "offset": 352
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "name_location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 21,
-                      "column": 13,
-                      "offset": 422
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
                     },
                     "end": {
-                      "line": 21,
-                      "column": 35,
-                      "offset": 444
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "end_location": {
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 25,
+                      "line": 17,
                       "column": 4,
-                      "offset": 512
+                      "offset": 357
                     },
                     "end": {
-                      "line": 25,
-                      "column": 16,
-                      "offset": 524
+                      "line": 17,
+                      "column": 22,
+                      "offset": 375
                     }
                   }
                 },
                 "file": {
-                  "File": "functions_with_primitive_types.pli"
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "fbChild",
+              "type_name": "fbChild",
+              "linkage": "Internal",
+              "pou_type": "FunctionBlock",
+              "statements": [],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 23,
+                      "column": 4,
+                      "offset": 471
+                    },
+                    "end": {
+                      "line": 22,
+                      "column": 11,
+                      "offset": 466
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 23,
+                      "column": 4,
+                      "offset": 471
+                    },
+                    "end": {
+                      "line": 23,
+                      "column": 22,
+                      "offset": 489
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
               "overriding": false,
@@ -919,7 +878,7 @@ expression: json
           "interfaces": [],
           "user_types": [],
           "file": {
-            "File": "functions_with_primitive_types.pli"
+            "File": "function_blocks_with_inheritance.pli"
           }
         },
         {
@@ -942,7 +901,1727 @@ expression: json
           "var_config": [],
           "pous": [
             {
-              "id": 22,
+              "id": 27,
+              "name": "__init_fbparent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbParent",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 13,
+                                  "column": 19,
+                                  "offset": 275
+                                },
+                                "end": {
+                                  "line": 13,
+                                  "column": 27,
+                                  "offset": 283
+                                }
+                              }
+                            },
+                            "file": {
+                              "Internal": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 13,
+                              "column": 19,
+                              "offset": 275
+                            },
+                            "end": {
+                              "line": 13,
+                              "column": 27,
+                              "offset": 283
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 38,
+              "name": "__init_fbgreatgrandparent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGreatGrandParent",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 1,
+                                  "column": 19,
+                                  "offset": 20
+                                },
+                                "end": {
+                                  "line": 1,
+                                  "column": 37,
+                                  "offset": 38
+                                }
+                              }
+                            },
+                            "file": {
+                              "Internal": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 1,
+                              "column": 19,
+                              "offset": 20
+                            },
+                            "end": {
+                              "line": 1,
+                              "column": 37,
+                              "offset": 38
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 49,
+              "name": "__init_fbgrandparent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGrandParent",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 7,
+                                  "column": 19,
+                                  "offset": 139
+                                },
+                                "end": {
+                                  "line": 7,
+                                  "column": 32,
+                                  "offset": 152
+                                }
+                              }
+                            },
+                            "file": {
+                              "Internal": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 7,
+                              "column": 19,
+                              "offset": 139
+                            },
+                            "end": {
+                              "line": 7,
+                              "column": 32,
+                              "offset": 152
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 60,
+              "name": "__init_fbchild",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbChild",
+                          "location": {
+                            "span": {
+                              "Range": {
+                                "start": {
+                                  "line": 19,
+                                  "column": 19,
+                                  "offset": 396
+                                },
+                                "end": {
+                                  "line": 19,
+                                  "column": 26,
+                                  "offset": 403
+                                }
+                              }
+                            },
+                            "file": {
+                              "Internal": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 19,
+                              "column": 19,
+                              "offset": 396
+                            },
+                            "end": {
+                              "line": 19,
+                              "column": 26,
+                              "offset": 403
+                            }
+                          }
+                        },
+                        "file": {
+                          "Internal": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 23,
+              "name": "__user_init_fbChild",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbChild",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "__initializers"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "__initializers"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 24,
+              "name": "__user_init_fbParent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "__initializers"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "__initializers"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 25,
+              "name": "__user_init_fbGreatGrandParent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGreatGrandParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "__initializers"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "__initializers"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            },
+            {
+              "id": 26,
+              "name": "__user_init_fbGrandParent",
+              "kind": "Init",
+              "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "self",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGrandParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "__initializers"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "__initializers"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "InOut",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                }
+              ],
+              "return_type": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "poly_mode": null,
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
+            }
+          ],
+          "implementations": [
+            {
+              "name": "__init_fbparent",
+              "type_name": "__init_fbparent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [
+                {
+                  "stmt": {
+                    "Assignment": {
+                      "left": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__vtable"
+                                },
+                                "id": 28,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "self"
+                                      },
+                                      "id": 29,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 30,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 31,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "right": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 32,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 33,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "__vtable_fbParent_instance"
+                                      },
+                                      "id": 34,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 35,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 36,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 37,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              ],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__init_fbgreatgrandparent",
+              "type_name": "__init_fbgreatgrandparent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [
+                {
+                  "stmt": {
+                    "Assignment": {
+                      "left": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__vtable"
+                                },
+                                "id": 39,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "self"
+                                      },
+                                      "id": 40,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 41,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 42,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "right": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 43,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 44,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "__vtable_fbGreatGrandParent_instance"
+                                      },
+                                      "id": 45,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 46,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 47,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 48,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              ],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__init_fbgrandparent",
+              "type_name": "__init_fbgrandparent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [
+                {
+                  "stmt": {
+                    "Assignment": {
+                      "left": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__vtable"
+                                },
+                                "id": 50,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "self"
+                                      },
+                                      "id": 51,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 52,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 53,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "right": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 54,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 55,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "__vtable_fbGrandParent_instance"
+                                      },
+                                      "id": 56,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 57,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 58,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 59,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              ],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__init_fbchild",
+              "type_name": "__init_fbchild",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [
+                {
+                  "stmt": {
+                    "Assignment": {
+                      "left": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "__vtable"
+                                },
+                                "id": 61,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "self"
+                                      },
+                                      "id": 62,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 63,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 64,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "right": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 65,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 66,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "__vtable_fbChild_instance"
+                                      },
+                                      "id": 67,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 68,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 69,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 70,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              ],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "Internal": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__user_init_fbChild",
+              "type_name": "__user_init_fbChild",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__user_init_fbParent",
+              "type_name": "__user_init_fbParent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__user_init_fbGreatGrandParent",
+              "type_name": "__user_init_fbGreatGrandParent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            },
+            {
+              "name": "__user_init_fbGrandParent",
+              "type_name": "__user_init_fbGrandParent",
+              "linkage": "Internal",
+              "pou_type": "Init",
+              "statements": [],
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "name_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "end_location": {
+                "span": "None",
+                "file": {
+                  "File": "__initializers"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": null
+            }
+          ],
+          "interfaces": [],
+          "user_types": [],
+          "file": {
+            "Internal": "__initializers"
+          }
+        },
+        {
+          "global_vars": [
+            {
+              "access": "Internal",
+              "constant": false,
+              "retain": false,
+              "variables": [],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
+            }
+          ],
+          "var_config": [],
+          "pous": [
+            {
+              "id": 71,
               "name": "__init___TestProject",
               "kind": "ProjectInit",
               "variable_blocks": [],
@@ -1011,17 +2690,318 @@ expression: json
         "inner_map": {}
       },
       "global_initializers": {
-        "inner_map": {}
+        "inner_map": {
+          "__fbgreatgrandparent__init": [
+            {
+              "name": "__fbGreatGrandParent__init",
+              "qualified_name": "__fbGreatGrandParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "fbGreatGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 1,
+                      "column": 19,
+                      "offset": 20
+                    },
+                    "end": {
+                      "line": 1,
+                      "column": 37,
+                      "offset": 38
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__fbgrandparent__init": [
+            {
+              "name": "__fbGrandParent__init",
+              "qualified_name": "__fbGrandParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "fbGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 7,
+                      "column": 19,
+                      "offset": 139
+                    },
+                    "end": {
+                      "line": 7,
+                      "column": 32,
+                      "offset": 152
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__fbparent__init": [
+            {
+              "name": "__fbParent__init",
+              "qualified_name": "__fbParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "fbParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 13,
+                      "column": 19,
+                      "offset": 275
+                    },
+                    "end": {
+                      "line": 13,
+                      "column": 27,
+                      "offset": 283
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__fbchild__init": [
+            {
+              "name": "__fbChild__init",
+              "qualified_name": "__fbChild__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "fbChild",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 19,
+                      "column": 19,
+                      "offset": 396
+                    },
+                    "end": {
+                      "line": 19,
+                      "column": 26,
+                      "offset": 403
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ]
+        }
       },
       "enum_global_variables": {
         "inner_map": {}
       },
       "pous": {
         "inner_map": {
-          "fnthatisvoid": [
+          "fbgreatgrandparent": [
+            {
+              "FunctionBlock": {
+                "name": "fbGreatGrandParent",
+                "instance_struct_name": "fbGreatGrandParent",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 1,
+                        "column": 19,
+                        "offset": 20
+                      },
+                      "end": {
+                        "line": 1,
+                        "column": 37,
+                        "offset": 38
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "super_class": null,
+                "interfaces": [],
+                "properties": {}
+              }
+            }
+          ],
+          "fbgrandparent": [
+            {
+              "FunctionBlock": {
+                "name": "fbGrandParent",
+                "instance_struct_name": "fbGrandParent",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 7,
+                        "column": 19,
+                        "offset": 139
+                      },
+                      "end": {
+                        "line": 7,
+                        "column": 32,
+                        "offset": 152
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "super_class": "fbGreatGrandParent",
+                "interfaces": [],
+                "properties": {}
+              }
+            }
+          ],
+          "fbparent": [
+            {
+              "FunctionBlock": {
+                "name": "fbParent",
+                "instance_struct_name": "fbParent",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 13,
+                        "column": 19,
+                        "offset": 275
+                      },
+                      "end": {
+                        "line": 13,
+                        "column": 27,
+                        "offset": 283
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "super_class": "fbGrandParent",
+                "interfaces": [],
+                "properties": {}
+              }
+            }
+          ],
+          "fbchild": [
+            {
+              "FunctionBlock": {
+                "name": "fbChild",
+                "instance_struct_name": "fbChild",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 19,
+                        "column": 19,
+                        "offset": 396
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 26,
+                        "offset": 403
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "super_class": "fbParent",
+                "interfaces": [],
+                "properties": {}
+              }
+            }
+          ],
+          "__init_fbparent": [
             {
               "Function": {
-                "name": "fnThatIsVoid",
+                "name": "__init_fbparent",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 13,
+                        "column": 19,
+                        "offset": 275
+                      },
+                      "end": {
+                        "line": 13,
+                        "column": 27,
+                        "offset": 283
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__init_fbgreatgrandparent": [
+            {
+              "Function": {
+                "name": "__init_fbgreatgrandparent",
                 "return_type": "VOID",
                 "generics": [],
                 "linkage": "Internal",
@@ -1031,18 +3011,18 @@ expression: json
                     "Range": {
                       "start": {
                         "line": 1,
-                        "column": 13,
-                        "offset": 14
+                        "column": 19,
+                        "offset": 20
                       },
                       "end": {
                         "line": 1,
-                        "column": 25,
-                        "offset": 26
+                        "column": 37,
+                        "offset": 38
                       }
                     }
                   },
                   "file": {
-                    "File": "functions_with_primitive_types.pli"
+                    "Internal": "function_blocks_with_inheritance.pli"
                   }
                 },
                 "is_generated": false,
@@ -1050,11 +3030,11 @@ expression: json
               }
             }
           ],
-          "fnthatreturnsint": [
+          "__init_fbgrandparent": [
             {
               "Function": {
-                "name": "fnThatReturnsInt",
-                "return_type": "INT",
+                "name": "__init_fbgrandparent",
+                "return_type": "VOID",
                 "generics": [],
                 "linkage": "Internal",
                 "is_variadic": false,
@@ -1063,18 +3043,18 @@ expression: json
                     "Range": {
                       "start": {
                         "line": 7,
-                        "column": 13,
-                        "offset": 110
+                        "column": 19,
+                        "offset": 139
                       },
                       "end": {
                         "line": 7,
-                        "column": 29,
-                        "offset": 126
+                        "column": 32,
+                        "offset": 152
                       }
                     }
                   },
                   "file": {
-                    "File": "functions_with_primitive_types.pli"
+                    "Internal": "function_blocks_with_inheritance.pli"
                   }
                 },
                 "is_generated": false,
@@ -1082,11 +3062,11 @@ expression: json
               }
             }
           ],
-          "fnthatreturnstimeofday": [
+          "__init_fbchild": [
             {
               "Function": {
-                "name": "fnThatReturnsTimeOfDay",
-                "return_type": "TOD",
+                "name": "__init_fbchild",
+                "return_type": "VOID",
                 "generics": [],
                 "linkage": "Internal",
                 "is_variadic": false,
@@ -1094,19 +3074,95 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 21,
-                        "column": 13,
-                        "offset": 422
+                        "line": 19,
+                        "column": 19,
+                        "offset": 396
                       },
                       "end": {
-                        "line": 21,
-                        "column": 35,
-                        "offset": 444
+                        "line": 19,
+                        "column": 26,
+                        "offset": 403
                       }
                     }
                   },
                   "file": {
-                    "File": "functions_with_primitive_types.pli"
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__user_init_fbchild": [
+            {
+              "Function": {
+                "name": "__user_init_fbChild",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__user_init_fbparent": [
+            {
+              "Function": {
+                "name": "__user_init_fbParent",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__user_init_fbgreatgrandparent": [
+            {
+              "Function": {
+                "name": "__user_init_fbGreatGrandParent",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "__user_init_fbgrandparent": [
+            {
+              "Function": {
+                "name": "__user_init_fbGrandParent",
+                "return_type": "VOID",
+                "generics": [],
+                "linkage": "Internal",
+                "is_variadic": false,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
                   }
                 },
                 "is_generated": false,
@@ -1788,11 +3844,11 @@ expression: json
         "inner_map": {}
       },
       "implementations": {
-        "fnthatisvoid": {
-          "call_name": "fnThatIsVoid",
-          "type_name": "fnThatIsVoid",
+        "fbgreatgrandparent": {
+          "call_name": "fbGreatGrandParent",
+          "type_name": "fbGreatGrandParent",
           "associated_class": null,
-          "implementation_type": "Function",
+          "implementation_type": "FunctionBlock",
           "generic": false,
           "location": {
             "span": {
@@ -1800,69 +3856,199 @@ expression: json
                 "start": {
                   "line": 5,
                   "column": 4,
-                  "offset": 83
+                  "offset": 100
                 },
                 "end": {
                   "line": 4,
                   "column": 11,
-                  "offset": 78
+                  "offset": 95
                 }
               }
             },
             "file": {
-              "File": "functions_with_primitive_types.pli"
+              "File": "function_blocks_with_inheritance.pli"
             }
           }
         },
-        "fnthatreturnsint": {
-          "call_name": "fnThatReturnsInt",
-          "type_name": "fnThatReturnsInt",
+        "fbgrandparent": {
+          "call_name": "fbGrandParent",
+          "type_name": "fbGrandParent",
           "associated_class": null,
-          "implementation_type": "Function",
+          "implementation_type": "FunctionBlock",
           "generic": false,
           "location": {
             "span": {
               "Range": {
                 "start": {
-                  "line": 19,
+                  "line": 11,
                   "column": 4,
-                  "offset": 395
+                  "offset": 236
                 },
                 "end": {
-                  "line": 18,
+                  "line": 10,
                   "column": 11,
-                  "offset": 390
+                  "offset": 231
                 }
               }
             },
             "file": {
-              "File": "functions_with_primitive_types.pli"
+              "File": "function_blocks_with_inheritance.pli"
             }
           }
         },
-        "fnthatreturnstimeofday": {
-          "call_name": "fnThatReturnsTimeOfDay",
-          "type_name": "fnThatReturnsTimeOfDay",
+        "fbparent": {
+          "call_name": "fbParent",
+          "type_name": "fbParent",
           "associated_class": null,
-          "implementation_type": "Function",
+          "implementation_type": "FunctionBlock",
           "generic": false,
           "location": {
             "span": {
               "Range": {
                 "start": {
-                  "line": 25,
+                  "line": 17,
                   "column": 4,
-                  "offset": 512
+                  "offset": 357
                 },
                 "end": {
-                  "line": 24,
+                  "line": 16,
                   "column": 11,
-                  "offset": 507
+                  "offset": 352
                 }
               }
             },
             "file": {
-              "File": "functions_with_primitive_types.pli"
+              "File": "function_blocks_with_inheritance.pli"
+            }
+          }
+        },
+        "fbchild": {
+          "call_name": "fbChild",
+          "type_name": "fbChild",
+          "associated_class": null,
+          "implementation_type": "FunctionBlock",
+          "generic": false,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 23,
+                  "column": 4,
+                  "offset": 471
+                },
+                "end": {
+                  "line": 22,
+                  "column": 11,
+                  "offset": 466
+                }
+              }
+            },
+            "file": {
+              "File": "function_blocks_with_inheritance.pli"
+            }
+          }
+        },
+        "__init_fbparent": {
+          "call_name": "__init_fbparent",
+          "type_name": "__init_fbparent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "Internal": "<internal>"
+            }
+          }
+        },
+        "__init_fbgreatgrandparent": {
+          "call_name": "__init_fbgreatgrandparent",
+          "type_name": "__init_fbgreatgrandparent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "Internal": "<internal>"
+            }
+          }
+        },
+        "__init_fbgrandparent": {
+          "call_name": "__init_fbgrandparent",
+          "type_name": "__init_fbgrandparent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "Internal": "<internal>"
+            }
+          }
+        },
+        "__init_fbchild": {
+          "call_name": "__init_fbchild",
+          "type_name": "__init_fbchild",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "Internal": "<internal>"
+            }
+          }
+        },
+        "__user_init_fbchild": {
+          "call_name": "__user_init_fbChild",
+          "type_name": "__user_init_fbChild",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "File": "__initializers"
+            }
+          }
+        },
+        "__user_init_fbparent": {
+          "call_name": "__user_init_fbParent",
+          "type_name": "__user_init_fbParent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "File": "__initializers"
+            }
+          }
+        },
+        "__user_init_fbgreatgrandparent": {
+          "call_name": "__user_init_fbGreatGrandParent",
+          "type_name": "__user_init_fbGreatGrandParent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "File": "__initializers"
+            }
+          }
+        },
+        "__user_init_fbgrandparent": {
+          "call_name": "__user_init_fbGrandParent",
+          "type_name": "__user_init_fbGrandParent",
+          "associated_class": null,
+          "implementation_type": "Init",
+          "generic": false,
+          "location": {
+            "span": "None",
+            "file": {
+              "File": "__initializers"
             }
           }
         },
@@ -2315,14 +4501,14 @@ expression: json
       "type_index": {
         "types": {
           "inner_map": {
-            "__auto_pointer_to_real": [
+            "__auto_pointer_to_fbparent": [
               {
-                "name": "__auto_pointer_to_REAL",
+                "name": "__auto_pointer_to_fbParent",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_REAL",
-                    "inner_type_name": "REAL",
+                    "name": "__auto_pointer_to_fbParent",
+                    "inner_type_name": "fbParent",
                     "auto_deref": "Default",
                     "type_safe": true,
                     "is_function": false
@@ -2337,14 +4523,58 @@ expression: json
                 }
               }
             ],
-            "__auto_pointer_to_int": [
+            "__auto_pointer_to_fbgreatgrandparent": [
               {
-                "name": "__auto_pointer_to_INT",
+                "name": "__auto_pointer_to_fbGreatGrandParent",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_INT",
-                    "inner_type_name": "INT",
+                    "name": "__auto_pointer_to_fbGreatGrandParent",
+                    "inner_type_name": "fbGreatGrandParent",
+                    "auto_deref": "Default",
+                    "type_safe": true,
+                    "is_function": false
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                }
+              }
+            ],
+            "__auto_pointer_to_fbgrandparent": [
+              {
+                "name": "__auto_pointer_to_fbGrandParent",
+                "initial_value": null,
+                "information": {
+                  "Pointer": {
+                    "name": "__auto_pointer_to_fbGrandParent",
+                    "inner_type_name": "fbGrandParent",
+                    "auto_deref": "Default",
+                    "type_safe": true,
+                    "is_function": false
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "Internal": "<internal>"
+                  }
+                }
+              }
+            ],
+            "__auto_pointer_to_fbchild": [
+              {
+                "name": "__auto_pointer_to_fbChild",
+                "initial_value": null,
+                "information": {
+                  "Pointer": {
+                    "name": "__auto_pointer_to_fbChild",
+                    "inner_type_name": "fbChild",
                     "auto_deref": "Default",
                     "type_safe": true,
                     "is_function": false
@@ -3886,20 +6116,20 @@ expression: json
         },
         "pou_types": {
           "inner_map": {
-            "fnthatisvoid": [
+            "fbgreatgrandparent": [
               {
-                "name": "fnThatIsVoid",
+                "name": "fbGreatGrandParent",
                 "initial_value": null,
                 "information": {
                   "Struct": {
-                    "name": "fnThatIsVoid",
+                    "name": "fbGreatGrandParent",
                     "members": [
                       {
-                        "name": "varIntInput",
-                        "qualified_name": "fnThatIsVoid.varIntInput",
+                        "name": "varGreatGrandParentInt",
+                        "qualified_name": "fbGreatGrandParent.varGreatGrandParentInt",
                         "initial_value": null,
                         "argument_type": {
-                          "ByVal": "Input"
+                          "ByVal": "Local"
                         },
                         "is_constant": false,
                         "is_var_external": false,
@@ -3913,24 +6143,24 @@ expression: json
                               "start": {
                                 "line": 3,
                                 "column": 8,
-                                "offset": 49
+                                "offset": 55
                               },
                               "end": {
                                 "line": 3,
-                                "column": 19,
-                                "offset": 60
+                                "column": 30,
+                                "offset": 77
                               }
                             }
                           },
                           "file": {
-                            "File": "functions_with_primitive_types.pli"
+                            "File": "function_blocks_with_inheritance.pli"
                           }
                         },
                         "varargs": null
                       }
                     ],
                     "source": {
-                      "Pou": "Function"
+                      "Pou": "FunctionBlock"
                     }
                   }
                 },
@@ -3940,40 +6170,40 @@ expression: json
                     "Range": {
                       "start": {
                         "line": 1,
-                        "column": 13,
-                        "offset": 14
+                        "column": 19,
+                        "offset": 20
                       },
                       "end": {
                         "line": 1,
-                        "column": 25,
-                        "offset": 26
+                        "column": 37,
+                        "offset": 38
                       }
                     }
                   },
                   "file": {
-                    "File": "functions_with_primitive_types.pli"
+                    "File": "function_blocks_with_inheritance.pli"
                   }
                 }
               }
             ],
-            "fnthatreturnsint": [
+            "fbgrandparent": [
               {
-                "name": "fnThatReturnsInt",
+                "name": "fbGrandParent",
                 "initial_value": null,
                 "information": {
                   "Struct": {
-                    "name": "fnThatReturnsInt",
+                    "name": "fbGrandParent",
                     "members": [
                       {
-                        "name": "varRealInputToFunc",
-                        "qualified_name": "fnThatReturnsInt.varRealInputToFunc",
+                        "name": "varGrandParentInt",
+                        "qualified_name": "fbGrandParent.varGrandParentInt",
                         "initial_value": null,
                         "argument_type": {
-                          "ByVal": "Input"
+                          "ByVal": "Local"
                         },
                         "is_constant": false,
                         "is_var_external": false,
-                        "data_type_name": "REAL",
+                        "data_type_name": "INT",
                         "location_in_parent": 0,
                         "linkage": "Internal",
                         "binding": null,
@@ -3983,237 +6213,207 @@ expression: json
                               "start": {
                                 "line": 9,
                                 "column": 8,
-                                "offset": 154
+                                "offset": 196
                               },
                               "end": {
                                 "line": 9,
-                                "column": 26,
-                                "offset": 172
+                                "column": 25,
+                                "offset": 213
                               }
                             }
                           },
                           "file": {
-                            "File": "functions_with_primitive_types.pli"
+                            "File": "function_blocks_with_inheritance.pli"
                           }
                         },
                         "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "FunctionBlock"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 7,
+                        "column": 19,
+                        "offset": 139
                       },
+                      "end": {
+                        "line": 7,
+                        "column": 32,
+                        "offset": 152
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "fbparent": [
+              {
+                "name": "fbParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "fbParent",
+                    "members": [
                       {
-                        "name": "varIntInputToFunc",
-                        "qualified_name": "fnThatReturnsInt.varIntInputToFunc",
+                        "name": "varParentInt",
+                        "qualified_name": "fbParent.varParentInt",
                         "initial_value": null,
                         "argument_type": {
-                          "ByVal": "Input"
+                          "ByVal": "Local"
                         },
                         "is_constant": false,
                         "is_var_external": false,
                         "data_type_name": "INT",
-                        "location_in_parent": 1,
+                        "location_in_parent": 0,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 10,
+                                "line": 15,
                                 "column": 8,
-                                "offset": 188
+                                "offset": 322
                               },
                               "end": {
-                                "line": 10,
-                                "column": 25,
-                                "offset": 205
+                                "line": 15,
+                                "column": 20,
+                                "offset": 334
                               }
                             }
                           },
                           "file": {
-                            "File": "functions_with_primitive_types.pli"
+                            "File": "function_blocks_with_inheritance.pli"
                           }
                         },
                         "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "FunctionBlock"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 13,
+                        "column": 19,
+                        "offset": 275
                       },
+                      "end": {
+                        "line": 13,
+                        "column": 27,
+                        "offset": 283
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "fbchild": [
+              {
+                "name": "fbChild",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "fbChild",
+                    "members": [
                       {
-                        "name": "varDateAndTimeInputToFunc",
-                        "qualified_name": "fnThatReturnsInt.varDateAndTimeInputToFunc",
+                        "name": "varChildInt",
+                        "qualified_name": "fbChild.varChildInt",
                         "initial_value": null,
                         "argument_type": {
-                          "ByVal": "Input"
+                          "ByVal": "Local"
                         },
                         "is_constant": false,
                         "is_var_external": false,
-                        "data_type_name": "DATE_AND_TIME",
-                        "location_in_parent": 2,
+                        "data_type_name": "INT",
+                        "location_in_parent": 0,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 11,
+                                "line": 21,
                                 "column": 8,
-                                "offset": 220
+                                "offset": 437
                               },
                               "end": {
-                                "line": 11,
-                                "column": 33,
-                                "offset": 245
+                                "line": 21,
+                                "column": 19,
+                                "offset": 448
                               }
                             }
                           },
                           "file": {
-                            "File": "functions_with_primitive_types.pli"
+                            "File": "function_blocks_with_inheritance.pli"
                           }
                         },
                         "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "FunctionBlock"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 19,
+                        "column": 19,
+                        "offset": 396
                       },
+                      "end": {
+                        "line": 19,
+                        "column": 26,
+                        "offset": 403
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__init_fbparent": [
+              {
+                "name": "__init_fbparent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init_fbparent",
+                    "members": [
                       {
-                        "name": "varRealInOutFunc",
-                        "qualified_name": "fnThatReturnsInt.varRealInOutFunc",
+                        "name": "self",
+                        "qualified_name": "__init_fbparent.self",
                         "initial_value": null,
                         "argument_type": {
                           "ByRef": "InOut"
                         },
                         "is_constant": false,
                         "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_REAL",
-                        "location_in_parent": 3,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 14,
-                                "column": 8,
-                                "offset": 297
-                              },
-                              "end": {
-                                "line": 14,
-                                "column": 24,
-                                "offset": 313
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "functions_with_primitive_types.pli"
-                          }
-                        },
-                        "varargs": null
-                      },
-                      {
-                        "name": "varIntOutputFunc",
-                        "qualified_name": "fnThatReturnsInt.varIntOutputFunc",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "Output"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_INT",
-                        "location_in_parent": 4,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 17,
-                                "column": 8,
-                                "offset": 356
-                              },
-                              "end": {
-                                "line": 17,
-                                "column": 24,
-                                "offset": 372
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "functions_with_primitive_types.pli"
-                          }
-                        },
-                        "varargs": null
-                      },
-                      {
-                        "name": "fnThatReturnsInt",
-                        "qualified_name": "fnThatReturnsInt.fnThatReturnsInt",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByVal": "Return"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "INT",
-                        "location_in_parent": 5,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 7,
-                                "column": 13,
-                                "offset": 110
-                              },
-                              "end": {
-                                "line": 7,
-                                "column": 29,
-                                "offset": 126
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "functions_with_primitive_types.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Function"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 7,
-                        "column": 13,
-                        "offset": 110
-                      },
-                      "end": {
-                        "line": 7,
-                        "column": 29,
-                        "offset": 126
-                      }
-                    }
-                  },
-                  "file": {
-                    "File": "functions_with_primitive_types.pli"
-                  }
-                }
-              }
-            ],
-            "fnthatreturnstimeofday": [
-              {
-                "name": "fnThatReturnsTimeOfDay",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "fnThatReturnsTimeOfDay",
-                    "members": [
-                      {
-                        "name": "varDateTimeInput",
-                        "qualified_name": "fnThatReturnsTimeOfDay.varDateTimeInput",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByVal": "Input"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "DT",
+                        "data_type_name": "__auto_pointer_to_fbParent",
                         "location_in_parent": 0,
                         "linkage": "Internal",
                         "binding": null,
@@ -4221,60 +6421,26 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 23,
-                                "column": 8,
-                                "offset": 473
+                                "line": 13,
+                                "column": 19,
+                                "offset": 275
                               },
                               "end": {
-                                "line": 23,
-                                "column": 24,
-                                "offset": 489
+                                "line": 13,
+                                "column": 27,
+                                "offset": 283
                               }
                             }
                           },
                           "file": {
-                            "File": "functions_with_primitive_types.pli"
-                          }
-                        },
-                        "varargs": null
-                      },
-                      {
-                        "name": "fnThatReturnsTimeOfDay",
-                        "qualified_name": "fnThatReturnsTimeOfDay.fnThatReturnsTimeOfDay",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByVal": "Return"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "TOD",
-                        "location_in_parent": 1,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 21,
-                                "column": 13,
-                                "offset": 422
-                              },
-                              "end": {
-                                "line": 21,
-                                "column": 35,
-                                "offset": 444
-                              }
-                            }
-                          },
-                          "file": {
-                            "File": "functions_with_primitive_types.pli"
+                            "Internal": "function_blocks_with_inheritance.pli"
                           }
                         },
                         "varargs": null
                       }
                     ],
                     "source": {
-                      "Pou": "Function"
+                      "Pou": "Init"
                     }
                   }
                 },
@@ -4283,19 +6449,405 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 21,
-                        "column": 13,
-                        "offset": 422
+                        "line": 13,
+                        "column": 19,
+                        "offset": 275
                       },
                       "end": {
-                        "line": 21,
-                        "column": 35,
-                        "offset": 444
+                        "line": 13,
+                        "column": 27,
+                        "offset": 283
                       }
                     }
                   },
                   "file": {
-                    "File": "functions_with_primitive_types.pli"
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__init_fbgreatgrandparent": [
+              {
+                "name": "__init_fbgreatgrandparent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init_fbgreatgrandparent",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__init_fbgreatgrandparent.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbGreatGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 1,
+                                "column": 19,
+                                "offset": 20
+                              },
+                              "end": {
+                                "line": 1,
+                                "column": 37,
+                                "offset": 38
+                              }
+                            }
+                          },
+                          "file": {
+                            "Internal": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 1,
+                        "column": 19,
+                        "offset": 20
+                      },
+                      "end": {
+                        "line": 1,
+                        "column": 37,
+                        "offset": 38
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__init_fbgrandparent": [
+              {
+                "name": "__init_fbgrandparent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init_fbgrandparent",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__init_fbgrandparent.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 7,
+                                "column": 19,
+                                "offset": 139
+                              },
+                              "end": {
+                                "line": 7,
+                                "column": 32,
+                                "offset": 152
+                              }
+                            }
+                          },
+                          "file": {
+                            "Internal": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 7,
+                        "column": 19,
+                        "offset": 139
+                      },
+                      "end": {
+                        "line": 7,
+                        "column": 32,
+                        "offset": 152
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__init_fbchild": [
+              {
+                "name": "__init_fbchild",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__init_fbchild",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__init_fbchild.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbChild",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 19,
+                                "column": 19,
+                                "offset": 396
+                              },
+                              "end": {
+                                "line": 19,
+                                "column": 26,
+                                "offset": 403
+                              }
+                            }
+                          },
+                          "file": {
+                            "Internal": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 19,
+                        "column": 19,
+                        "offset": 396
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 26,
+                        "offset": 403
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__user_init_fbchild": [
+              {
+                "name": "__user_init_fbChild",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__user_init_fbChild",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__user_init_fbChild.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbChild",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "__initializers"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "__user_init_fbparent": [
+              {
+                "name": "__user_init_fbParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__user_init_fbParent",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__user_init_fbParent.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "__initializers"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "__user_init_fbgreatgrandparent": [
+              {
+                "name": "__user_init_fbGreatGrandParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__user_init_fbGreatGrandParent",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__user_init_fbGreatGrandParent.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbGreatGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "__initializers"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "__user_init_fbgrandparent": [
+              {
+                "name": "__user_init_fbGrandParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__user_init_fbGrandParent",
+                    "members": [
+                      {
+                        "name": "self",
+                        "qualified_name": "__user_init_fbGrandParent.self",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByRef": "InOut"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__auto_pointer_to_fbGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "__initializers"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Init"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
                   }
                 }
               }
@@ -6401,13 +8953,13 @@ expression: json
   },
   "context": {
     "sources": {
-      "functions_with_primitive_types.pli": {
-        "source": "\n    FUNCTION fnThatIsVoid\n    VAR_INPUT\n        varIntInput: INT;\n    END_VAR\n    END_FUNCTION\n\n    FUNCTION fnThatReturnsInt: INT\n    VAR_INPUT\n        varRealInputToFunc: REAL;\n        varIntInputToFunc: INT;\n        varDateAndTimeInputToFunc: DATE_AND_TIME;\n    END_VAR\n    VAR_IN_OUT\n        varRealInOutFunc: REAL;\n    END_VAR\n    VAR_OUTPUT\n        varIntOutputFunc: INT;\n    END_VAR\n    END_FUNCTION\n\n    FUNCTION fnThatReturnsTimeOfDay : TOD\n    VAR_INPUT\n        varDateTimeInput : DT;\n    END_VAR\n    END_FUNCTION\n    ",
-        "path": "functions_with_primitive_types.pli"
+      "function_blocks_with_inheritance.pli": {
+        "source": "\n    FUNCTION_BLOCK fbGreatGrandParent\n    VAR\n        varGreatGrandParentInt: INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n\n    FUNCTION_BLOCK fbGrandParent extends fbGreatGrandParent\n    VAR\n        varGrandParentInt: INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n\n    FUNCTION_BLOCK fbParent extends fbGrandParent\n    VAR\n        varParentInt: INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n\n    FUNCTION_BLOCK fbChild extends fbParent\n    VAR\n        varChildInt: INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n    ",
+        "path": "function_blocks_with_inheritance.pli"
       }
     },
     "provider": {
-      "current_id": 41
+      "current_id": 90
     },
     "error_fmt": "Rich"
   }

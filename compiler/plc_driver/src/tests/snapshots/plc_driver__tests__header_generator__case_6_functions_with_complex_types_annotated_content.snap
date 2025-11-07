@@ -2047,7 +2047,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "orange"
                                       },
-                                      "id": 34,
+                                      "id": 66,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -2073,7 +2073,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 35,
+                              "id": 67,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -2125,7 +2125,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 36,
+                        "id": 68,
                         "location": {
                           "span": {
                             "Range": {
@@ -2158,7 +2158,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "yellow"
                                       },
-                                      "id": 37,
+                                      "id": 69,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -2184,7 +2184,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 38,
+                              "id": 70,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -2236,7 +2236,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 39,
+                        "id": 71,
                         "location": {
                           "span": {
                             "Range": {
@@ -2269,7 +2269,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "purple"
                                       },
-                                      "id": 40,
+                                      "id": 72,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -2295,7 +2295,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 41,
+                              "id": 73,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -2347,7 +2347,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 42,
+                        "id": 74,
                         "location": {
                           "span": {
                             "Range": {
@@ -2371,7 +2371,7 @@ expression: json
                       }
                     ]
                   },
-                  "id": 43,
+                  "id": 75,
                   "location": {
                     "span": {
                       "Range": {
@@ -3852,7 +3852,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 31,
+            "id": 63,
             "name": "__init_structwithprimitivetypes",
             "kind": "Init",
             "variable_blocks": [
@@ -3968,7 +3968,7 @@ expression: json
             "properties": []
           },
           {
-            "id": 32,
+            "id": 64,
             "name": "__init_structwithcomplextypes",
             "kind": "Init",
             "variable_blocks": [
@@ -4084,7 +4084,7 @@ expression: json
             "properties": []
           },
           {
-            "id": 29,
+            "id": 61,
             "name": "__user_init_StructWithPrimitiveTypes",
             "kind": "Init",
             "variable_blocks": [
@@ -4148,7 +4148,7 @@ expression: json
             "properties": []
           },
           {
-            "id": 30,
+            "id": 62,
             "name": "__user_init_StructWithComplexTypes",
             "kind": "Init",
             "variable_blocks": [
@@ -4489,7 +4489,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 33,
+            "id": 65,
             "name": "__init___TestProject",
             "kind": "ProjectInit",
             "variable_blocks": [],
@@ -12512,7 +12512,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "35": {
+        "67": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.orange",
@@ -12523,7 +12523,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "34": {
+        "66": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.orange",
@@ -12539,7 +12539,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "38": {
+        "70": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.yellow",
@@ -12550,7 +12550,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "37": {
+        "69": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.yellow",
@@ -12566,7 +12566,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "41": {
+        "73": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -12577,7 +12577,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "40": {
+        "72": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -12693,7 +12693,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 1,
+    "bool_id": 94,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"

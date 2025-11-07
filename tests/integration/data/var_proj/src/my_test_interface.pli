@@ -1,215 +1,23 @@
-VAR_GLOBAL
-    gVarBool: BOOL;
-
-    gVarSInt: SINT;
-    gVarInt: INT;
-    gVarDInt: DINT;
-    gVarLInt: LINT;
-
-    gVarByte: BYTE;
-    gVarWord: WORD;
-    gVarDWord: DWORD;
-    gVarLWord: LWORD;
-
-    gVarReal: REAL;
-    gVarLReal: LREAL;
-
-    gVarDate: DATE;
-    gVarDateAndTime: DATE_AND_TIME;
-
-    gVarString: STRING[255];
-    gVarWString: WSTRING[6000];
-
-    gVarIntArray: ARRAY[0..11] OF INT;
-
-    gVarRefToInt: REFERENCE TO INT;
-    gVarPointerToInt: REF_TO INT;
-    gVarRefToDate: REFERENCE TO DATE;
-    gVarPointerToDate: REF_TO DATE;
-
-    gVarIntWithRange: INT(0..100);
-END_VAR
-
-TYPE SimpleEnumType : (
-        red,
-        green,
-        blue
-    );
-END_TYPE
-
-TYPE ComplexEnumType : (
-        orange := 10,
-        yellow := 20,
-        purple := 30
-    );
-END_TYPE
-
-(********************
-*
-* Converts DT/LDT to DATE
-*
-*********************)
-{external}
-FUNCTION DATE_AND_TIME_TO_DATE : DATE
-VAR_INPUT
-    in : DT;
-END_VAR
-END_FUNCTION
-
-(********************
-*
-* Converts DT/LDT to TOD/LTOD
-*
-*********************)
-{external}
-FUNCTION DATE_AND_TIME_TO_TIME_OF_DAY : TOD
-VAR_INPUT
-    in : DT;
-END_VAR
-END_FUNCTION
-
-{external}
-FUNCTION IamAWeIrdLYCaSEdFunCTIon: INT
-VAR_INPUT
-    varRealInputToFunc: REAL;
-    varIntInputToFunc: INT;
-    varDateAndTimeInputToFunc: DATE_AND_TIME;
-END_VAR
-VAR_IN_OUT
-    varRealInOutFunc: REAL;
-END_VAR
-VAR_OUTPUT
-    varIntOutputFunc: INT;
-END_VAR
-END_FUNCTION
-
-FUNCTION IAmAVoidFunction
-VAR_INPUT
-    varIntInput: INT;
-END_VAR
-END_FUNCTION
-
-(********************
-*
-* Basic Struct with Primitive Types
-*
-*********************)
-TYPE StructWithPrimitiveTypes:
-    STRUCT
-        Field1 : BYTE;
-        Field2 : INT;
-        Field3 : DINT;
-    END_STRUCT
-END_TYPE
-
-(********************
-*
-* Basic Struct with Complex Types
-*
-*********************)
-TYPE StructWithComplexTypes:
-    STRUCT
-        byteField : BYTE;
-        intField : INT;
-        dIntField : DINT;
-        stringField : STRING[255];
-        wStringField : WSTRING[6000];
-        complexEnumTypeField : ComplexEnumType;
-        intArrayField: ARRAY[0..9] OF INT;
-    END_STRUCT
-END_TYPE
-
-FUNCTION fnThatUsesStructWithPrimitiveTypes: StructWithPrimitiveTypes
-VAR_INPUT
-    varStruct: StructWithPrimitiveTypes;
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatUsesStructWithComplexTypes: StructWithComplexTypes
-VAR_INPUT
-    varStruct: StructWithComplexTypes;
-    varEnum: ComplexEnumType;
-    varString: STRING[200];
-    varIntArray: ARRAY[0..14] OF INT;
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatUsesPrimitiveTypesAndReferences
-VAR_INPUT
-    varInt: INT;
-    varRefToInt: REFERENCE TO INT;
-    varPointerToInt: REF_TO INT;
-    varRefToDate: REFERENCE TO DATE;
-    varPointerToDate: REF_TO DATE;
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatHasIntWithRange
-VAR_INPUT
-    varIntWithRange: INT(0..99);
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatHasVariadicIntInput
-VAR_INPUT
-    varIntInput: INT;
-    varVariadicInt: {sized} INT...;
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatHasVariadicStringInput
-VAR_INPUT
-    varIntInput: INT;
-    varVariadicString: {sized} STRING...;
-END_VAR
-END_FUNCTION
-
-FUNCTION fnThatHasVariadicComplexTypeInput
-VAR_INPUT
-    varIntInput: INT;
-    varVariadicStruct: {sized} StructWithPrimitiveTypes...;
-END_VAR
-END_FUNCTION
-
-FUNCTION_BLOCK fbThatHasSimpleTypes
-VAR
-    varInt : INT;
-END_VAR
-VAR_OUTPUT
-    outVarInt : INT;
-END_VAR
-VAR_IN_OUT
-    inOutVarInt : INT;
-END_VAR
-END_FUNCTION_BLOCK
-
 FUNCTION_BLOCK fbGreatGrandParent
 VAR
-    varGreatGrandParent: INT;
+	varGreatGrandParentInt: INT;
 END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fbGrandParent extends fbGreatGrandParent
 VAR
-    varGrandParent: INT;
+	varGrandParentInt: INT;
 END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fbParent extends fbGrandParent
 VAR
-    varParentInt: INT;
+	varParentInt: INT;
 END_VAR
 END_FUNCTION_BLOCK
 
 FUNCTION_BLOCK fbChild extends fbParent
 VAR
-    varChildInt: INT;
+	varChildInt: INT;
 END_VAR
 END_FUNCTION_BLOCK
-
-PROGRAM prog
-VAR
-    inOutVar : ComplexEnumType;
-    outVar: ComplexEnumType;
-END_VAR
-END_PROGRAM

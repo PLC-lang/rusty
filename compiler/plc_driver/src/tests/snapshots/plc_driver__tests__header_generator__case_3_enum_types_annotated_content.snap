@@ -46,7 +46,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "red"
                                       },
-                                      "id": 52,
+                                      "id": 72,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -72,7 +72,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 53,
+                              "id": 73,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -100,7 +100,7 @@ expression: json
                                   "Integer": 0
                                 }
                               },
-                              "id": 1,
+                              "id": 21,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -124,7 +124,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 54,
+                        "id": 74,
                         "location": {
                           "span": {
                             "Range": {
@@ -157,7 +157,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "green"
                                       },
-                                      "id": 55,
+                                      "id": 75,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -183,7 +183,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 56,
+                              "id": 76,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -217,7 +217,7 @@ expression: json
                                             "stmt": {
                                               "Identifier": "red"
                                             },
-                                            "id": 5,
+                                            "id": 25,
                                             "location": {
                                               "span": {
                                                 "Range": {
@@ -248,7 +248,7 @@ expression: json
                                                   "stmt": {
                                                     "Identifier": "SimpleEnumType"
                                                   },
-                                                  "id": 6,
+                                                  "id": 26,
                                                   "location": {
                                                     "span": {
                                                       "Range": {
@@ -274,7 +274,7 @@ expression: json
                                               "base": null
                                             }
                                           },
-                                          "id": 7,
+                                          "id": 27,
                                           "location": {
                                             "span": {
                                               "Range": {
@@ -298,7 +298,7 @@ expression: json
                                         }
                                       }
                                     },
-                                    "id": 8,
+                                    "id": 28,
                                     "location": {
                                       "span": {
                                         "Range": {
@@ -326,7 +326,7 @@ expression: json
                                         "Integer": 1
                                       }
                                     },
-                                    "id": 9,
+                                    "id": 29,
                                     "location": {
                                       "span": {
                                         "Range": {
@@ -350,7 +350,7 @@ expression: json
                                   }
                                 }
                               },
-                              "id": 10,
+                              "id": 30,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -374,7 +374,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 57,
+                        "id": 77,
                         "location": {
                           "span": {
                             "Range": {
@@ -407,7 +407,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "blue"
                                       },
-                                      "id": 58,
+                                      "id": 78,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -433,7 +433,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 59,
+                              "id": 79,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -467,7 +467,7 @@ expression: json
                                             "stmt": {
                                               "Identifier": "green"
                                             },
-                                            "id": 14,
+                                            "id": 34,
                                             "location": {
                                               "span": {
                                                 "Range": {
@@ -498,7 +498,7 @@ expression: json
                                                   "stmt": {
                                                     "Identifier": "SimpleEnumType"
                                                   },
-                                                  "id": 15,
+                                                  "id": 35,
                                                   "location": {
                                                     "span": {
                                                       "Range": {
@@ -524,7 +524,7 @@ expression: json
                                               "base": null
                                             }
                                           },
-                                          "id": 16,
+                                          "id": 36,
                                           "location": {
                                             "span": {
                                               "Range": {
@@ -548,7 +548,7 @@ expression: json
                                         }
                                       }
                                     },
-                                    "id": 17,
+                                    "id": 37,
                                     "location": {
                                       "span": {
                                         "Range": {
@@ -576,7 +576,7 @@ expression: json
                                         "Integer": 1
                                       }
                                     },
-                                    "id": 18,
+                                    "id": 38,
                                     "location": {
                                       "span": {
                                         "Range": {
@@ -600,7 +600,7 @@ expression: json
                                   }
                                 }
                               },
-                              "id": 19,
+                              "id": 39,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -624,7 +624,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 60,
+                        "id": 80,
                         "location": {
                           "span": {
                             "Range": {
@@ -648,7 +648,7 @@ expression: json
                       }
                     ]
                   },
-                  "id": 61,
+                  "id": 81,
                   "location": {
                     "span": {
                       "Range": {
@@ -713,7 +713,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "orange"
                                       },
-                                      "id": 62,
+                                      "id": 82,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -739,7 +739,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 63,
+                              "id": 83,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -791,7 +791,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 64,
+                        "id": 84,
                         "location": {
                           "span": {
                             "Range": {
@@ -824,7 +824,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "yellow"
                                       },
-                                      "id": 65,
+                                      "id": 85,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -850,7 +850,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 66,
+                              "id": 86,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -902,7 +902,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 67,
+                        "id": 87,
                         "location": {
                           "span": {
                             "Range": {
@@ -935,7 +935,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "purple"
                                       },
-                                      "id": 68,
+                                      "id": 88,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -961,7 +961,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 69,
+                              "id": 89,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -1013,7 +1013,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 70,
+                        "id": 90,
                         "location": {
                           "span": {
                             "Range": {
@@ -1037,7 +1037,7 @@ expression: json
                       }
                     ]
                   },
-                  "id": 71,
+                  "id": 91,
                   "location": {
                     "span": {
                       "Range": {
@@ -6341,7 +6341,7 @@ expression: json
                     "Integer": 0
                   }
                 },
-                "id": 1,
+                "id": 21,
                 "location": {
                   "span": {
                     "Range": {
@@ -6377,7 +6377,7 @@ expression: json
                     "Integer": 1
                   }
                 },
-                "id": 10,
+                "id": 30,
                 "location": {
                   "span": {
                     "Range": {
@@ -6413,7 +6413,7 @@ expression: json
                     "Integer": 2
                   }
                 },
-                "id": 19,
+                "id": 39,
                 "location": {
                   "span": {
                     "Range": {
@@ -6570,12 +6570,12 @@ expression: json
   "annotations": {
     "annotation_map": {
       "type_map": {
-        "1": {
+        "21": {
           "Value": {
             "resulting_type": "DINT"
           }
         },
-        "53": {
+        "73": {
           "Variable": {
             "resulting_type": "SimpleEnumType",
             "qualified_name": "SimpleEnumType.red",
@@ -6586,7 +6586,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "52": {
+        "72": {
           "Variable": {
             "resulting_type": "SimpleEnumType",
             "qualified_name": "SimpleEnumType.red",
@@ -6597,17 +6597,17 @@ expression: json
             "auto_deref": null
           }
         },
-        "7": {
+        "27": {
           "Type": {
             "type_name": "SimpleEnumType"
           }
         },
-        "6": {
+        "26": {
           "Type": {
             "type_name": "SimpleEnumType"
           }
         },
-        "5": {
+        "25": {
           "Variable": {
             "resulting_type": "SimpleEnumType",
             "qualified_name": "SimpleEnumType.red",
@@ -6618,14 +6618,99 @@ expression: json
             "auto_deref": null
           }
         },
-        "8": {
+        "28": {
           "Value": {
             "resulting_type": "SimpleEnumType"
           }
         },
-        "9": {
+        "29": {
           "Value": {
             "resulting_type": "DINT"
+          }
+        },
+        "30": {
+          "Value": {
+            "resulting_type": "DINT"
+          }
+        },
+        "76": {
+          "Variable": {
+            "resulting_type": "SimpleEnumType",
+            "qualified_name": "SimpleEnumType.green",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
+          }
+        },
+        "75": {
+          "Variable": {
+            "resulting_type": "SimpleEnumType",
+            "qualified_name": "SimpleEnumType.green",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
+          }
+        },
+        "36": {
+          "Type": {
+            "type_name": "SimpleEnumType"
+          }
+        },
+        "35": {
+          "Type": {
+            "type_name": "SimpleEnumType"
+          }
+        },
+        "34": {
+          "Variable": {
+            "resulting_type": "SimpleEnumType",
+            "qualified_name": "SimpleEnumType.green",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
+          }
+        },
+        "37": {
+          "Value": {
+            "resulting_type": "SimpleEnumType"
+          }
+        },
+        "38": {
+          "Value": {
+            "resulting_type": "DINT"
+          }
+        },
+        "39": {
+          "Value": {
+            "resulting_type": "DINT"
+          }
+        },
+        "79": {
+          "Variable": {
+            "resulting_type": "SimpleEnumType",
+            "qualified_name": "SimpleEnumType.blue",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
+          }
+        },
+        "78": {
+          "Variable": {
+            "resulting_type": "SimpleEnumType",
+            "qualified_name": "SimpleEnumType.blue",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
           }
         },
         "10": {
@@ -6633,10 +6718,10 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "56": {
+        "83": {
           "Variable": {
-            "resulting_type": "SimpleEnumType",
-            "qualified_name": "SimpleEnumType.green",
+            "resulting_type": "ComplexEnumType",
+            "qualified_name": "ComplexEnumType.orange",
             "constant": true,
             "argument_type": {
               "ByVal": "Global"
@@ -6644,25 +6729,15 @@ expression: json
             "auto_deref": null
           }
         },
-        "55": {
+        "82": {
           "Variable": {
-            "resulting_type": "SimpleEnumType",
-            "qualified_name": "SimpleEnumType.green",
+            "resulting_type": "ComplexEnumType",
+            "qualified_name": "ComplexEnumType.orange",
             "constant": true,
             "argument_type": {
               "ByVal": "Global"
             },
             "auto_deref": null
-          }
-        },
-        "16": {
-          "Type": {
-            "type_name": "SimpleEnumType"
-          }
-        },
-        "15": {
-          "Type": {
-            "type_name": "SimpleEnumType"
           }
         },
         "14": {
@@ -6670,9 +6745,26 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "17": {
-          "Value": {
-            "resulting_type": "SimpleEnumType"
+        "86": {
+          "Variable": {
+            "resulting_type": "ComplexEnumType",
+            "qualified_name": "ComplexEnumType.yellow",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
+          }
+        },
+        "85": {
+          "Variable": {
+            "resulting_type": "ComplexEnumType",
+            "qualified_name": "ComplexEnumType.yellow",
+            "constant": true,
+            "argument_type": {
+              "ByVal": "Global"
+            },
+            "auto_deref": null
           }
         },
         "18": {
@@ -6680,78 +6772,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "19": {
-          "Value": {
-            "resulting_type": "DINT"
-          }
-        },
-        "59": {
-          "Variable": {
-            "resulting_type": "SimpleEnumType",
-            "qualified_name": "SimpleEnumType.blue",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "58": {
-          "Variable": {
-            "resulting_type": "SimpleEnumType",
-            "qualified_name": "SimpleEnumType.blue",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "63": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.orange",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "62": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.orange",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "66": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.yellow",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "65": {
-          "Variable": {
-            "resulting_type": "ComplexEnumType",
-            "qualified_name": "ComplexEnumType.yellow",
-            "constant": true,
-            "argument_type": {
-              "ByVal": "Global"
-            },
-            "auto_deref": null
-          }
-        },
-        "69": {
+        "89": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -6762,7 +6783,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "68": {
+        "88": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -6775,12 +6796,27 @@ expression: json
         }
       },
       "type_hint_map": {
-        "1": {
+        "21": {
           "Value": {
             "resulting_type": "SimpleEnumType"
           }
         },
-        "9": {
+        "29": {
+          "Value": {
+            "resulting_type": "SimpleEnumType"
+          }
+        },
+        "30": {
+          "Value": {
+            "resulting_type": "SimpleEnumType"
+          }
+        },
+        "38": {
+          "Value": {
+            "resulting_type": "SimpleEnumType"
+          }
+        },
+        "39": {
           "Value": {
             "resulting_type": "SimpleEnumType"
           }
@@ -6790,17 +6826,12 @@ expression: json
             "resulting_type": "ComplexEnumType"
           }
         },
-        "18": {
+        "14": {
           "Value": {
             "resulting_type": "ComplexEnumType"
           }
         },
-        "19": {
-          "Value": {
-            "resulting_type": "SimpleEnumType"
-          }
-        },
-        "14": {
+        "18": {
           "Value": {
             "resulting_type": "ComplexEnumType"
           }
@@ -6873,7 +6904,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 1,
+    "bool_id": 110,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"

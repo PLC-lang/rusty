@@ -1,0 +1,24 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].contents"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#include <dependencies.plc.h>
+
+
+
+
+
+
+// Functions, Function Blocks and Programs
+typedef struct {
+    int16_t varInt;
+	int16_t* outVarInt;
+	int16_t* inOutVarInt;
+} fbThatHasSimpleTypes_type;
+
+void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);

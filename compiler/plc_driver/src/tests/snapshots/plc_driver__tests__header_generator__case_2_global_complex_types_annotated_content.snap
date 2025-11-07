@@ -6600,7 +6600,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 1,
+    "bool_id": 45,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"
