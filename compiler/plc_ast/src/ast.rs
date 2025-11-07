@@ -517,6 +517,11 @@ impl VariableBlock {
         VariableBlock::default().with_block_type(VariableBlockType::Global)
     }
 
+    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
+       self.linkage = linkage;
+       self
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
