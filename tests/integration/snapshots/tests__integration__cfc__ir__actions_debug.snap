@@ -6,51 +6,175 @@ target triple = "[filtered]"
 
 %main = type { i32, i32 }
 
+<<<<<<< HEAD
 @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
+||||||| parent of ba4d93ad92 (make the code compile)
+@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___plc, i8* null }]
+=======
+>>>>>>> ba4d93ad92 (make the code compile)
 @main_instance = global %main zeroinitializer, !dbg !0
 
 define void @main(ptr %0) !dbg !12 {
 entry:
+<<<<<<< HEAD
     #dbg_declare(ptr %0, !16, !DIExpression(), !17)
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  store i32 0, ptr %a, align [filtered], !dbg !18
+  store i32 0, ptr %a, align 4, !dbg !18
   call void @main__newAction(ptr %0), !dbg !17
   call void @main__newAction2(ptr %0), !dbg !19
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  store i32 0, i32* %a, align 4, !dbg !18
+  call void @main__newAction(%main* %0), !dbg !17
+  call void @main__newAction2(%main* %0), !dbg !19
+=======
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  store i32 0, i32* %a, align [filtered], !dbg !18
+  call void @main__newAction(%main* %0), !dbg !17
+  call void @main__newAction2(%main* %0), !dbg !19
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   ret void, !dbg !20
 }
 
+<<<<<<< HEAD
 define void @main__newAction(ptr %0) {
+||||||| parent of ba4d93ad92 (make the code compile)
+define void @main__newAction(%main* %0) {
+=======
+define void @__main_ctor(%main* %0) {
 entry:
+  %self = alloca %main*, align [filtered]
+  call void @llvm.dbg.declare(metadata %main** %self, metadata !15, metadata !DIExpression()), !dbg !21
+  store %main* %0, %main** %self, align [filtered]
+  ret void, !dbg !23
+}
+
+define void @main__newAction(%main* %0) {
+>>>>>>> ba4d93ad92 (make the code compile)
+entry:
+<<<<<<< HEAD
+<<<<<<< HEAD
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_a = load i32, ptr %a, align [filtered], !dbg !21
+  %load_a = load i32, ptr %a, align 4, !dbg !21
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %load_a = load i32, i32* %a, align 4, !dbg !21
+=======
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+||||||| parent of ba4d93ad92 (make the code compile)
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+=======
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !24
+>>>>>>> ba4d93ad92 (make the code compile)
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+<<<<<<< HEAD
+  %load_a = load i32, i32* %a, align [filtered], !dbg !21
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   %tmpVar = add i32 %load_a, 1, !dbg !21
-  store i32 %tmpVar, ptr %a, align [filtered], !dbg !21
+<<<<<<< HEAD
+  store i32 %tmpVar, ptr %a, align 4, !dbg !21
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  store i32 %tmpVar, i32* %a, align 4, !dbg !21
+=======
+  store i32 %tmpVar, i32* %a, align [filtered], !dbg !21
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   ret void, !dbg !22
+||||||| parent of ba4d93ad92 (make the code compile)
+  %load_a = load i32, i32* %a, align [filtered], !dbg !21
+  %tmpVar = add i32 %load_a, 1, !dbg !21
+  store i32 %tmpVar, i32* %a, align [filtered], !dbg !21
+  ret void, !dbg !22
+=======
+  %load_a = load i32, i32* %a, align [filtered], !dbg !24
+  %tmpVar = add i32 %load_a, 1, !dbg !24
+  store i32 %tmpVar, i32* %a, align [filtered], !dbg !24
+  ret void, !dbg !25
+>>>>>>> ba4d93ad92 (make the code compile)
 }
 
 define void @main__newAction2(ptr %0) {
 entry:
+<<<<<<< HEAD
+<<<<<<< HEAD
   %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  %load_b = load i32, ptr %b, align [filtered], !dbg !23
+  %load_b = load i32, ptr %b, align 4, !dbg !23
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %load_b = load i32, i32* %b, align 4, !dbg !23
+=======
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+||||||| parent of ba4d93ad92 (make the code compile)
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
+=======
+  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !24
+>>>>>>> ba4d93ad92 (make the code compile)
+  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+<<<<<<< HEAD
+  %load_b = load i32, i32* %b, align [filtered], !dbg !23
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, ptr %b, align [filtered], !dbg !23
+<<<<<<< HEAD
+  store i32 %tmpVar, ptr %b, align 4, !dbg !23
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  store i32 %tmpVar, i32* %b, align 4, !dbg !23
+=======
+  store i32 %tmpVar, i32* %b, align [filtered], !dbg !23
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   ret void, !dbg !22
+||||||| parent of ba4d93ad92 (make the code compile)
+  %load_b = load i32, i32* %b, align [filtered], !dbg !23
+  %tmpVar = add i32 %load_b, 2, !dbg !23
+  store i32 %tmpVar, i32* %b, align [filtered], !dbg !23
+  ret void, !dbg !22
+=======
+  %load_b = load i32, i32* %b, align [filtered], !dbg !26
+  %tmpVar = add i32 %load_b, 2, !dbg !26
+  store i32 %tmpVar, i32* %b, align [filtered], !dbg !26
+  ret void, !dbg !25
+>>>>>>> ba4d93ad92 (make the code compile)
 }
 
+<<<<<<< HEAD
 define void @__init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
+<<<<<<< HEAD
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+=======
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   ret void
 }
 
 define void @__user_init_main(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
+<<<<<<< HEAD
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  %self = alloca %main*, align 8
+  store %main* %0, %main** %self, align 8
+=======
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
+>>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
   ret void
 }
 
@@ -60,6 +184,39 @@ entry:
   call void @__user_init_main(ptr @main_instance)
   ret void
 }
+||||||| parent of ba4d93ad92 (make the code compile)
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+define void @__init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
+  ret void
+}
+
+define void @__user_init_main(%main* %0) {
+entry:
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
+  ret void
+}
+
+define void @__init___plc() {
+entry:
+  call void @__init_main(%main* @main_instance)
+  call void @__user_init_main(%main* @main_instance)
+  ret void
+}
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+=======
+; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+>>>>>>> ba4d93ad92 (make the code compile)
 
 !llvm.module.flags = !{!8, !9}
 !llvm.dbg.cu = !{!10}
@@ -85,6 +242,9 @@ entry:
 !18 = !DILocation(line: 3, scope: !12)
 !19 = !DILocation(line: 2, scope: !12)
 !20 = !DILocation(line: 0, scope: !12)
-!21 = !DILocation(line: 1, scope: !2)
-!22 = !DILocation(line: 0, scope: !2)
-!23 = !DILocation(line: 2, scope: !2)
+!21 = !DILocation(line: 1, scope: !22)
+!22 = !DIFile(filename: "<internal>", directory: "")
+!23 = !DILocation(line: 0, scope: !22)
+!24 = !DILocation(line: 1, scope: !2)
+!25 = !DILocation(line: 0, scope: !2)
+!26 = !DILocation(line: 2, scope: !2)

@@ -28,7 +28,7 @@ fn representation() {
     // The probably most interesting entry here is the `source` field, indicating that the given struct is a
     // VLA with one dimension of type DINT.
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__foo_arr",
         initial_value: None,
@@ -86,8 +86,9 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
-    "###);
+    "#);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(),
@@ -109,6 +110,7 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
     "#);
 
@@ -215,7 +217,7 @@ fn pass() {
 
     // `local` is defined as an array of type DINT...
     insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__main_local",
         initial_value: None,
@@ -246,8 +248,9 @@ fn pass() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
-    "###);
+    "#);
 
     // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
     // result in wrapping arrays into structs.

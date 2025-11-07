@@ -25,7 +25,7 @@ use plc::{
     linker::LinkerType,
     lowering::{
         calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
+        vtable::VirtualTableGenerator,
     },
     output::FormatOption,
     parser::parse_file,
@@ -247,21 +247,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-    /// Register all default participants (excluding codegen/linking)
-    pub fn register_default_participants(&mut self) {
+
+    pub fn get_default_mut_particitants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
         use participant::InitParticipant;
 
-        // XXX: should we use a static array of participants?
-        let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+        vec![
             Box::new(VirtualTableGenerator::new(self.context.provider())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-        ];
+            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+        ]
+    }
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_mut_participants(&mut self) {
+        // XXX: should we use a static array of participants?
+        let mut_participants = self.get_default_mut_particitants();
+        self.register_mut_participants(mut_participants);
+    }
 
-        for participant in mut_participants {
+    pub fn register_mut_participants(&mut self, participants: Vec<Box<dyn PipelineParticipantMut>>) {
+        for participant in participants {
             self.register_mut_participant(participant)
         }
     }
@@ -597,21 +604,6 @@ impl IndexedProject {
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
         AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(
-        self,
-        symbol_name: &'static str,
-        id_provider: IdProvider,
-    ) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 

@@ -224,8 +224,6 @@ fn switch_case_debug_info() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-
     define i32 @main() !dbg !4 {
     entry:
       %main = alloca i32, align [filtered]
@@ -293,10 +291,10 @@ fn switch_case_debug_info() {
       br label %condition_check, !dbg !18
     }
 
-    define void @__init___Test() {
-    entry:
-      ret void
-    }
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}

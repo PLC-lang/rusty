@@ -1,5 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
+    backtrace,
     cell::RefCell,
     collections::HashMap,
     fmt::Display,
@@ -662,6 +663,7 @@ impl From<Diagnostic> for CodegenError {
 
 impl From<String> for CodegenError {
     fn from(err: String) -> Self {
+        log::debug!("Codegen Error(from): {err}");
         CodegenError::GenericError(err, SourceLocation::undefined())
     }
 }
@@ -672,7 +674,11 @@ impl CodegenError {
         T: Into<String>,
         U: Into<SourceLocation>,
     {
-        CodegenError::GenericError(msg.into(), location.into())
+        let bt = backtrace::Backtrace::capture();
+        eprintln!("{bt}");
+        let msg = msg.into();
+        log::debug!("Codegen Error(new): {msg}");
+        CodegenError::GenericError(msg, location.into())
     }
 
     fn missing_function(location: SourceLocation) -> Self {
@@ -682,6 +688,7 @@ impl CodegenError {
 
 impl From<LLVMString> for CodegenError {
     fn from(err: LLVMString) -> Self {
+        log::debug!("LLVM Error: {}", err.to_string_lossy());
         CodegenError::GenericError(err.to_string_lossy().to_string(), SourceLocation::undefined())
     }
 }
@@ -705,6 +712,7 @@ impl Display for CodegenError {
 
 impl From<CodegenError> for Diagnostic {
     fn from(err: CodegenError) -> Self {
+        panic!("{err:?}");
         if let CodegenError::DiagnosticError(diagnostic) = err {
             return diagnostic;
         }

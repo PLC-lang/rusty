@@ -23,15 +23,29 @@ fn simple_global() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
-    @ps = global ptr null
+    @ps = global [81 x i8]* null
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @____internal___ctor, i8* null }]
+    @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @__init___Test() {
+    define void @____global_ps_ctor([81 x i8]** %0) {
     entry:
-      store ptr @s, ptr @ps, align [filtered]
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
       ret void
     }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] getelementptr inbounds ([81 x i8], [81 x i8]* @s, i32 0, i32 0), i8* align [filtered] getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      store [81 x i8]* @s, [81 x i8]** @ps, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "#);
 }
 
@@ -56,15 +70,29 @@ fn global_alias() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
-    @ps = global ptr null
+    @ps = global [81 x i8]* null
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @____internal___ctor, i8* null }]
+    @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @__init___Test() {
+    define void @____global_ps_ctor([81 x i8]** %0) {
     entry:
-      store ptr @s, ptr @ps, align [filtered]
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
       ret void
     }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] getelementptr inbounds ([81 x i8], [81 x i8]* @s, i32 0, i32 0), i8* align [filtered] getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      store [81 x i8]* @s, [81 x i8]** @ps, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "#);
 }
 
@@ -89,15 +117,29 @@ fn global_reference_to() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @s = global [81 x i8] c"hello world!\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
-    @ps = global ptr null
+    @ps = global [81 x i8]* null
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @____internal___ctor, i8* null }]
+    @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @__init___Test() {
+    define void @____global_ps_ctor([81 x i8]** %0) {
     entry:
-      store ptr @s, ptr @ps, align [filtered]
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
       ret void
     }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] getelementptr inbounds ([81 x i8], [81 x i8]* @s, i32 0, i32 0), i8* align [filtered] getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      store [81 x i8]* @s, [81 x i8]** @ps, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+
+    attributes #0 = { argmemonly nofree nounwind willreturn }
     "#);
 }
 
@@ -2174,34 +2216,66 @@ fn temporary_variable_ref_to_temporary_variable() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-
     define void @foo() {
     entry:
       %ptr = alloca ptr, align [filtered]
       %alias = alloca ptr, align [filtered]
       %s = alloca [81 x i8], align [filtered]
-      %reference_to = alloca ptr, align [filtered]
-      store ptr %s, ptr %ptr, align [filtered]
-      store ptr null, ptr %alias, align [filtered]
-      call void @llvm.memset.p0.i64(ptr align [filtered] %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      store ptr null, ptr %reference_to, align [filtered]
-      store ptr %s, ptr %ptr, align [filtered]
-      store ptr %s, ptr %alias, align [filtered]
-      %deref = load ptr, ptr %alias, align [filtered]
-      store ptr %deref, ptr %reference_to, align [filtered]
+      %reference_to = alloca [81 x i8]*, align [filtered]
+      store [81 x i8]* %s, [81 x i8]** %ptr, align [filtered]
+      store [81 x i8]* null, [81 x i8]** %alias, align [filtered]
+      %0 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store [81 x i8]* null, [81 x i8]** %reference_to, align [filtered]
+      call void @____foo_ptr_ctor([81 x i8]** %ptr)
+      store [81 x i8]* %s, [81 x i8]** %ptr, align [filtered]
+      %deref = load [81 x i8]*, [81 x i8]** %alias, align [filtered]
+      %1 = bitcast [81 x i8]* %deref to i8*
+      call void @____foo_alias_ctor(i8* %1)
+      %deref1 = load [81 x i8]*, [81 x i8]** %alias, align [filtered]
+      %2 = bitcast [81 x i8]* %deref1 to i8*
+      %3 = bitcast [81 x i8]* %s to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %2, i8* align [filtered] %3, i32 80, i1 false)
+      %deref2 = load [81 x i8]*, [81 x i8]** %reference_to, align [filtered]
+      %4 = bitcast [81 x i8]* %deref2 to i8*
+      call void @____foo_reference_to_ctor(i8* %4)
+      %deref3 = load [81 x i8]*, [81 x i8]** %reference_to, align [filtered]
+      %deref4 = load [81 x i8]*, [81 x i8]** %alias, align [filtered]
+      %5 = bitcast [81 x i8]* %deref3 to i8*
+      %6 = bitcast [81 x i8]* %deref4 to i8*
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %5, i8* align [filtered] %6, i32 80, i1 false)
       ret void
     }
 
-    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
-
-    define void @__init___Test() {
+    define void @____foo_ptr_ctor([81 x i8]** %0) {
     entry:
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
       ret void
     }
 
-    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    define void @____foo_alias_ctor([81 x i8]** %0) {
+    entry:
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
+      ret void
+    }
+
+    define void @____foo_reference_to_ctor([81 x i8]** %0) {
+    entry:
+      %self = alloca [81 x i8]**, align [filtered]
+      store [81 x i8]** %0, [81 x i8]*** %self, align [filtered]
+      ret void
+    }
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+
+    ; Function Attrs: argmemonly nofree nounwind willreturn
+    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+
+    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nofree nounwind willreturn }
     "#)
 }
 
@@ -3334,11 +3408,10 @@ fn user_init_called_when_declared_as_external() {
     %foo = type { ptr, i16, i16 }
     %__vtable_foo = type { ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @prog_instance = global %prog zeroinitializer
-    @__foo__init = external unnamed_addr constant %foo
+    @__vtable_foo_instance = external global %__vtable_foo
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
+    @__foo__init = external unnamed_addr constant %foo
+    @prog_instance = global %prog zeroinitializer
 
     declare void @foo(ptr)
 
@@ -3365,44 +3438,36 @@ fn user_init_called_when_declared_as_external() {
     }
 
     define void @__init_prog(ptr %0) {
+    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    declare void @____vtable_foo_ctor(%__vtable_foo*)
+
+    define void @____foo___vtable_ctor(i32** %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
+      %self = alloca i32**, align [filtered]
+      store i32** %0, i32*** %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_prog(ptr %0) {
+    define void @______vtable_foo___body_ctor(void (%foo*)** %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      %f = getelementptr inbounds nuw %prog, ptr %deref, i32 0, i32 0
-      call void @__user_init_foo(ptr %f)
+      %self = alloca void (%foo*)**, align [filtered]
+      store void (%foo*)** %0, void (%foo*)*** %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_foo(ptr %0) {
+    define void @______vtable_foo_FB_INIT_ctor(void (%foo*)** %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      %deref = load ptr, ptr %self, align [filtered]
-      call void @foo__FB_INIT(ptr %deref)
+      %self = alloca void (%foo*)**, align [filtered]
+      store void (%foo*)** %0, void (%foo*)*** %self, align [filtered]
       ret void
     }
 
-    define void @__user_init___vtable_foo(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
+    declare void @__foo_ctor(%foo*)
 
-    define void @__init___Test() {
+    define void @__prog_ctor(%prog* %0) {
     entry:
-      call void @__init_prog(ptr @prog_instance)
-      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
-      call void @__user_init_prog(ptr @prog_instance)
-      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
+      %self = alloca %prog*, align [filtered]
+      store %prog* %0, %prog** %self, align [filtered]
       ret void
     }
     "#);

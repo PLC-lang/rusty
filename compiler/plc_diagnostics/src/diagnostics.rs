@@ -1,4 +1,5 @@
 use std::{
+    backtrace,
     fmt::Display,
     ops::{Deref, DerefMut},
 };
@@ -276,6 +277,7 @@ impl Diagnostic {
     where
         T: Into<SourceLocation>,
     {
+        panic!("Unresolved reference to {}", reference);
         Diagnostic::new(format!("Could not resolve reference to {reference:}"))
             .with_error_code("E048")
             .with_location(location)
@@ -303,6 +305,7 @@ impl Diagnostic {
 
     pub fn cannot_generate_call_statement(operator: &AstNode) -> Diagnostic {
         //TODO: We could probably get a better slice here
+        panic!("Cannot generate call statement for {:?}", operator);
         Diagnostic::codegen_error(format!("cannot generate call statement for {:?}", operator), operator)
     }
 

@@ -1166,6 +1166,7 @@ impl Default for TypeIndex {
                 information: DataTypeInformation::Void,
                 nature: TypeNature::Any,
                 location: SourceLocation::internal(),
+                linkage: LinkageType::Internal,
             },
         }
     }

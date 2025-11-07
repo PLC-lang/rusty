@@ -2168,6 +2168,7 @@ dependencies = [
  "insta",
  "log",
  "plc_ast",
+ "plc_diagnostics",
  "plc_driver",
  "plc_source",
  "rusty",

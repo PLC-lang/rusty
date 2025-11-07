@@ -862,6 +862,7 @@ fn pre_processing_generates_generic_types() {
         initializer: None,
         location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
@@ -896,6 +897,7 @@ fn pre_processing_generates_nested_generic_types() {
         initializer: None,
         location: SourceLocation::internal(),
         scope: Some("myFunc".into()),
+        linkage: LinkageType::Internal,
     };
 
     assert_eq!(format!("{expected:?}"), format!("{:?}", ast.user_types[0]));
@@ -1831,6 +1833,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);
@@ -1901,6 +1904,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);

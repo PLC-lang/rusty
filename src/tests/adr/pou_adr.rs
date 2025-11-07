@@ -51,7 +51,7 @@ fn programs_state_is_stored_in_a_struct() {
 
     let pou_struct = index.find_pou("main_prg").and_then(|pou| pou.find_instance_struct_type(&index));
 
-    insta::assert_debug_snapshot!(pou_struct, @r###"
+    insta::assert_debug_snapshot!(pou_struct, @r#"
     Some(
         DataType {
             name: "main_prg",
@@ -176,9 +176,10 @@ fn programs_state_is_stored_in_a_struct() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
-    "###);
+    "#);
 }
 
 /// Code-Generating a program does ...

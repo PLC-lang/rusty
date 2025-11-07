@@ -1354,6 +1354,7 @@ fn function_expression_resolves_to_the_function_itself_not_its_return_type() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);

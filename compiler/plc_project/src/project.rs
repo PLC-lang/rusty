@@ -309,7 +309,8 @@ impl<S: SourceContainer> Project<S> {
     /// Returns the symbol name of this projects main initializer function
     pub fn get_init_symbol_name(&self) -> &'static str {
         //Converts into static because this will live forever
-        format!("__init___{}", self.get_name().replace(['.', '-'], "_")).leak()
+        // TODO: this is for compatibility and will be removed in future versions
+        format!("__init___{}", self.get_name().replace(['.', '-', '*'], "_")).leak()
     }
 }
 
