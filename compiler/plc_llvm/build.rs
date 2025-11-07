@@ -1,5 +1,9 @@
 fn main() {
-    let llvm_config = std::env::var("LLVM_CONFIG").unwrap_or_else(|_| "llvm-config-14".to_string());
+    let llvm_config = if is_os("windows") {
+        "llvm-config.exe".to_string()
+    } else {
+        std::env::var("LLVM_CONFIG").unwrap_or_else(|_| "llvm-config-14".to_string())
+    };
 
     let cxxflags = String::from_utf8(
         std::process::Command::new(&llvm_config)
@@ -22,4 +26,11 @@ fn main() {
     build.compile("llvm_wrapper");
 
     println!("cargo:rerun-if-changed=src/cpp/llvm_wrapper.cpp");
+}
+
+fn is_os(os: &str) -> bool {
+    match std::env::var_os("CARGO_CFG_TARGET_OS") {
+        Some(target_os) => target_os == os,
+        None => false,
+    }
 }
