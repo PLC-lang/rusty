@@ -1,7 +1,6 @@
-// #include <llvm/Target/TargetOptions.h>
-#include <llvm-14/llvm/Target/TargetLoweringObjectFile.h>
-#include <llvm-14/llvm/Target/TargetOptions.h>
-#include <llvm-14/llvm/Target/TargetMachine.h>
+#include <llvm/Target/TargetLoweringObjectFile.h>
+#include <llvm/Target/TargetOptions.h>
+#include <llvm/Target/TargetMachine.h>
 
 using namespace llvm;
 
