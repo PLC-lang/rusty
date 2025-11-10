@@ -292,8 +292,10 @@ impl UserTypeIndexer<'_, '_> {
 
     fn index_enum_type(&mut self, name: &str, numeric_type: &str, elements: &AstNode) {
         let mut variants = Vec::new();
+        let mut zero_value_const_id: Option<ConstId> = None;
+        let mut first_element_const_id: Option<ConstId> = None;
 
-        for ele in flatten_expression_list(elements) {
+        for (idx, ele) in flatten_expression_list(elements).iter().enumerate() {
             let variant = get_enum_element_name(ele);
             if let AstStatement::Assignment(Assignment { right, .. }) = ele.get_stmt() {
                 let scope = self.current_scope();
@@ -304,6 +306,16 @@ impl UserTypeIndexer<'_, '_> {
                     None,
                 );
 
+                // Track if we have a zero element and remember its ConstId
+                if let AstStatement::Literal(AstLiteral::Integer(0)) = right.get_stmt() {
+                    zero_value_const_id = Some(init);
+                }
+
+                // Remember the first element's ConstId
+                if idx == 0 {
+                    first_element_const_id = Some(init);
+                }
+
                 variants.push(self.index.register_enum_variant(
                     name,
                     &variant,
@@ -313,6 +325,17 @@ impl UserTypeIndexer<'_, '_> {
             } else {
                 unreachable!("the preprocessor should have provided explicit assignments for enum values")
             }
+        }
+
+        // If no explicit initializer was provided, determine the default value
+        if self.pending_initializer.is_none() {
+            self.pending_initializer = if zero_value_const_id.is_some() {
+                // If zero is defined, use its ConstId
+                zero_value_const_id
+            } else {
+                // Otherwise use the first element's ConstId
+                first_element_const_id
+            };
         }
 
         let information = DataTypeInformation::Enum {

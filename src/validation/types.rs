@@ -40,6 +40,26 @@ pub fn visit_data_type<T: AnnotationMap>(
 ) {
     validate_data_type(validator, data_type, location);
 
+    // Validate enum numeric type
+    if let DataType::EnumType { numeric_type, .. } = data_type {
+        if let Some(resolved_type) = context.index.find_effective_type_by_name(numeric_type) {
+            let type_info = resolved_type.get_type_information();
+            if !type_info.is_int() || type_info.is_date_or_time_type() {
+                validator.push_diagnostic(
+                    Diagnostic::new(format!(
+                        "Invalid type '{}' for enum. Only integer types are allowed",
+                        numeric_type
+                    ))
+                    .with_error_code("E122")
+                    .with_location(location),
+                );
+            }
+        }
+         else {
+            validator.push_diagnostic(Diagnostic::unknown_type(numeric_type, location));
+        }
+    }
+
     let context = &context.with_optional_qualifier(data_type.get_name());
     match data_type {
         DataType::StructType { variables, .. } => {
