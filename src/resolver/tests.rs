@@ -9,3 +9,5 @@ mod resolve_expressions_tests;
 mod resolve_generic_calls;
 mod resolve_literals_tests;
 mod resolver_dependency_resolution;
+
+mod resolver_test_util;
