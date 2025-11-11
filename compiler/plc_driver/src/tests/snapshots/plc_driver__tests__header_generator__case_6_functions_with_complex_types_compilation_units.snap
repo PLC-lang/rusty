@@ -18,6 +18,20 @@ expression: json
             "Internal": "<internal>"
           }
         }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
       }
     ],
     "var_config": [],
@@ -27,6 +41,69 @@ expression: json
         "name": "fnThatUsesStructWithPrimitiveTypes",
         "kind": "Function",
         "variable_blocks": [
+          {
+            "access": "Public",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "fnThatUsesStructWithPrimitiveTypes",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithPrimitiveTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 28,
+                            "column": 49,
+                            "offset": 693
+                          },
+                          "end": {
+                            "line": 28,
+                            "column": 73,
+                            "offset": 717
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_complex_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 28,
+                        "column": 13,
+                        "offset": 657
+                      },
+                      "end": {
+                        "line": 28,
+                        "column": 47,
+                        "offset": 691
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_complex_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          },
           {
             "access": "Protected",
             "constant": false,
@@ -107,7 +184,7 @@ expression: json
           }
         ],
         "return_type": {
-          "Reference": {
+          "Aggregate": {
             "referenced_type": "StructWithPrimitiveTypes",
             "location": {
               "span": {
@@ -181,6 +258,69 @@ expression: json
         "name": "fnThatUsesStructWithComplexTypes",
         "kind": "Function",
         "variable_blocks": [
+          {
+            "access": "Public",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "fnThatUsesStructWithComplexTypes",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithComplexTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 34,
+                            "column": 47,
+                            "offset": 854
+                          },
+                          "end": {
+                            "line": 34,
+                            "column": 69,
+                            "offset": 876
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "functions_with_complex_types.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 34,
+                        "column": 13,
+                        "offset": 820
+                      },
+                      "end": {
+                        "line": 34,
+                        "column": 45,
+                        "offset": 852
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "functions_with_complex_types.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          },
           {
             "access": "Protected",
             "constant": false,
@@ -405,7 +545,7 @@ expression: json
           }
         ],
         "return_type": {
-          "Reference": {
+          "Aggregate": {
             "referenced_type": "StructWithComplexTypes",
             "location": {
               "span": {
@@ -2045,7 +2185,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "orange"
                                   },
-                                  "id": 66,
+                                  "id": 122,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2071,7 +2211,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 67,
+                          "id": 123,
                           "location": {
                             "span": {
                               "Range": {
@@ -2123,7 +2263,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 68,
+                    "id": 124,
                     "location": {
                       "span": {
                         "Range": {
@@ -2156,7 +2296,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "yellow"
                                   },
-                                  "id": 69,
+                                  "id": 125,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2182,7 +2322,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 70,
+                          "id": 126,
                           "location": {
                             "span": {
                               "Range": {
@@ -2234,7 +2374,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 71,
+                    "id": 127,
                     "location": {
                       "span": {
                         "Range": {
@@ -2267,7 +2407,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "purple"
                                   },
-                                  "id": 72,
+                                  "id": 128,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2293,7 +2433,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 73,
+                          "id": 129,
                           "location": {
                             "span": {
                               "Range": {
@@ -2345,7 +2485,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 74,
+                    "id": 130,
                     "location": {
                       "span": {
                         "Range": {
@@ -2369,7 +2509,7 @@ expression: json
                   }
                 ]
               },
-              "id": 75,
+              "id": 131,
               "location": {
                 "span": {
                   "Range": {
@@ -3755,7 +3895,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 63,
+        "id": 119,
         "name": "__init_structwithprimitivetypes",
         "kind": "Init",
         "variable_blocks": [
@@ -3871,7 +4011,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 64,
+        "id": 120,
         "name": "__init_structwithcomplextypes",
         "kind": "Init",
         "variable_blocks": [
@@ -3987,7 +4127,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 61,
+        "id": 117,
         "name": "__user_init_StructWithPrimitiveTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4051,7 +4191,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 62,
+        "id": 118,
         "name": "__user_init_StructWithComplexTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4333,7 +4473,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 65,
+        "id": 121,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

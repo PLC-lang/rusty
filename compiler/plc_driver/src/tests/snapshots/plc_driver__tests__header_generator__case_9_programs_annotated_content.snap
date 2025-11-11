@@ -20,6 +20,20 @@ expression: json
                 "Internal": "<internal>"
               }
             }
+          },
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [],
+            "kind": "Global",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
           }
         ],
         "var_config": [],
@@ -292,7 +306,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "orange"
                                       },
-                                      "id": 56,
+                                      "id": 112,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -318,7 +332,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 57,
+                              "id": 113,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -370,7 +384,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 58,
+                        "id": 114,
                         "location": {
                           "span": {
                             "Range": {
@@ -403,7 +417,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "yellow"
                                       },
-                                      "id": 59,
+                                      "id": 115,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -429,7 +443,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 60,
+                              "id": 116,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -481,7 +495,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 61,
+                        "id": 117,
                         "location": {
                           "span": {
                             "Range": {
@@ -514,7 +528,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "purple"
                                       },
-                                      "id": 62,
+                                      "id": 118,
                                       "location": {
                                         "span": {
                                           "Range": {
@@ -540,7 +554,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 63,
+                              "id": 119,
                               "location": {
                                 "span": {
                                   "Range": {
@@ -592,7 +606,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 64,
+                        "id": 120,
                         "location": {
                           "span": {
                             "Range": {
@@ -616,7 +630,7 @@ expression: json
                       }
                     ]
                   },
-                  "id": 65,
+                  "id": 121,
                   "location": {
                     "span": {
                       "Range": {
@@ -713,7 +727,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 44,
+            "id": 100,
             "name": "__init_prog",
             "kind": "Init",
             "variable_blocks": [
@@ -829,7 +843,7 @@ expression: json
             "properties": []
           },
           {
-            "id": 43,
+            "id": 99,
             "name": "__user_init_prog",
             "kind": "Init",
             "variable_blocks": [
@@ -1042,7 +1056,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 45,
+            "id": 101,
             "name": "__init___TestProject",
             "kind": "ProjectInit",
             "variable_blocks": [],
@@ -1086,7 +1100,7 @@ expression: json
                               "stmt": {
                                 "Identifier": "__init_prog"
                               },
-                              "id": 46,
+                              "id": 102,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1099,7 +1113,7 @@ expression: json
                           "base": null
                         }
                       },
-                      "id": 47,
+                      "id": 103,
                       "location": {
                         "span": "None",
                         "file": {
@@ -1116,7 +1130,7 @@ expression: json
                               "stmt": {
                                 "Identifier": "prog"
                               },
-                              "id": 48,
+                              "id": 104,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1129,7 +1143,7 @@ expression: json
                           "base": null
                         }
                       },
-                      "id": 49,
+                      "id": 105,
                       "location": {
                         "span": "None",
                         "file": {
@@ -1140,7 +1154,7 @@ expression: json
                     }
                   }
                 },
-                "id": 50,
+                "id": 106,
                 "location": {
                   "span": "None",
                   "file": {
@@ -1160,7 +1174,7 @@ expression: json
                               "stmt": {
                                 "Identifier": "__user_init_prog"
                               },
-                              "id": 51,
+                              "id": 107,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1173,7 +1187,7 @@ expression: json
                           "base": null
                         }
                       },
-                      "id": 52,
+                      "id": 108,
                       "location": {
                         "span": "None",
                         "file": {
@@ -1190,7 +1204,7 @@ expression: json
                               "stmt": {
                                 "Identifier": "prog"
                               },
-                              "id": 53,
+                              "id": 109,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1203,7 +1217,7 @@ expression: json
                           "base": null
                         }
                       },
-                      "id": 54,
+                      "id": 110,
                       "location": {
                         "span": "None",
                         "file": {
@@ -1214,7 +1228,7 @@ expression: json
                     }
                   }
                 },
-                "id": 55,
+                "id": 111,
                 "location": {
                   "span": "None",
                   "file": {
@@ -6848,7 +6862,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "57": {
+        "113": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.orange",
@@ -6859,7 +6873,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "56": {
+        "112": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.orange",
@@ -6875,7 +6889,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "60": {
+        "116": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.yellow",
@@ -6886,7 +6900,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "59": {
+        "115": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.yellow",
@@ -6902,7 +6916,7 @@ expression: json
             "resulting_type": "DINT"
           }
         },
-        "63": {
+        "119": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -6913,7 +6927,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "62": {
+        "118": {
           "Variable": {
             "resulting_type": "ComplexEnumType",
             "qualified_name": "ComplexEnumType.purple",
@@ -6924,7 +6938,7 @@ expression: json
             "auto_deref": null
           }
         },
-        "47": {
+        "103": {
           "Function": {
             "return_type": "VOID",
             "qualified_name": "__init_prog",
@@ -6932,7 +6946,7 @@ expression: json
             "call_name": null
           }
         },
-        "46": {
+        "102": {
           "Function": {
             "return_type": "VOID",
             "qualified_name": "__init_prog",
@@ -6940,22 +6954,22 @@ expression: json
             "call_name": null
           }
         },
-        "49": {
+        "105": {
           "Program": {
             "qualified_name": "prog"
           }
         },
-        "48": {
+        "104": {
           "Program": {
             "qualified_name": "prog"
           }
         },
-        "50": {
+        "106": {
           "Value": {
             "resulting_type": "__VOID"
           }
         },
-        "52": {
+        "108": {
           "Function": {
             "return_type": "VOID",
             "qualified_name": "__user_init_prog",
@@ -6963,7 +6977,7 @@ expression: json
             "call_name": null
           }
         },
-        "51": {
+        "107": {
           "Function": {
             "return_type": "VOID",
             "qualified_name": "__user_init_prog",
@@ -6971,17 +6985,17 @@ expression: json
             "call_name": null
           }
         },
-        "54": {
+        "110": {
           "Program": {
             "qualified_name": "prog"
           }
         },
-        "53": {
+        "109": {
           "Program": {
             "qualified_name": "prog"
           }
         },
-        "55": {
+        "111": {
           "Value": {
             "resulting_type": "__VOID"
           }
@@ -7003,13 +7017,13 @@ expression: json
             "resulting_type": "ComplexEnumType"
           }
         },
-        "49": {
+        "105": {
           "Argument": {
             "resulting_type": "__auto_pointer_to_prog",
             "position": 0
           }
         },
-        "54": {
+        "110": {
           "Argument": {
             "resulting_type": "__auto_pointer_to_prog",
             "position": 0
@@ -7083,7 +7097,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 84,
+    "bool_id": 144,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"

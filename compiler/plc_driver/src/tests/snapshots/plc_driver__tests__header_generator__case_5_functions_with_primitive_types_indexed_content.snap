@@ -21,6 +21,20 @@ expression: json
                   "Internal": "<internal>"
                 }
               }
+            },
+            {
+              "access": "Internal",
+              "constant": false,
+              "retain": false,
+              "variables": [],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
             }
           ],
           "var_config": [],
@@ -921,88 +935,6 @@ expression: json
           "file": {
             "File": "functions_with_primitive_types.pli"
           }
-        },
-        {
-          "global_vars": [
-            {
-              "access": "Internal",
-              "constant": false,
-              "retain": false,
-              "variables": [],
-              "kind": "Global",
-              "linkage": "Internal",
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              }
-            }
-          ],
-          "var_config": [],
-          "pous": [
-            {
-              "id": 22,
-              "name": "__init___TestProject",
-              "kind": "ProjectInit",
-              "variable_blocks": [],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            }
-          ],
-          "implementations": [
-            {
-              "name": "__init___TestProject",
-              "type_name": "__init___TestProject",
-              "linkage": "Internal",
-              "pou_type": "ProjectInit",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            }
-          ],
-          "interfaces": [],
-          "user_types": [],
-          "file": {
-            "Internal": "__init___TestProject"
-          }
         }
       ]
     },
@@ -1107,25 +1039,6 @@ expression: json
                   },
                   "file": {
                     "File": "functions_with_primitive_types.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init___testproject": [
-            {
-              "Function": {
-                "name": "__init___TestProject",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
                   }
                 },
                 "is_generated": false,
@@ -1863,19 +1776,6 @@ expression: json
             },
             "file": {
               "File": "functions_with_primitive_types.pli"
-            }
-          }
-        },
-        "__init___testproject": {
-          "call_name": "__init___TestProject",
-          "type_name": "__init___TestProject",
-          "associated_class": null,
-          "implementation_type": "ProjectInit",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
             }
           }
         },
@@ -4300,28 +4200,6 @@ expression: json
                 }
               }
             ],
-            "__init___testproject": [
-              {
-                "name": "__init___TestProject",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init___TestProject",
-                    "members": [],
-                    "source": {
-                      "Pou": "ProjectInit"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
-                  }
-                }
-              }
-            ],
             "adr": [
               {
                 "name": "ADR",
@@ -6407,7 +6285,7 @@ expression: json
       }
     },
     "provider": {
-      "current_id": 41
+      "current_id": 58
     },
     "error_fmt": "Rich"
   }

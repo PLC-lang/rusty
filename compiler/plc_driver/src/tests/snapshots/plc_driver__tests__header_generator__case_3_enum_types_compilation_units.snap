@@ -18,6 +18,20 @@ expression: json
             "Internal": "<internal>"
           }
         }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
       }
     ],
     "var_config": [],
@@ -44,7 +58,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "red"
                                   },
-                                  "id": 72,
+                                  "id": 148,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -70,7 +84,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 73,
+                          "id": 149,
                           "location": {
                             "span": {
                               "Range": {
@@ -122,7 +136,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 74,
+                    "id": 150,
                     "location": {
                       "span": {
                         "Range": {
@@ -155,7 +169,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "green"
                                   },
-                                  "id": 75,
+                                  "id": 151,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -181,7 +195,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 76,
+                          "id": 152,
                           "location": {
                             "span": {
                               "Range": {
@@ -372,7 +386,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 77,
+                    "id": 153,
                     "location": {
                       "span": {
                         "Range": {
@@ -405,7 +419,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "blue"
                                   },
-                                  "id": 78,
+                                  "id": 154,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -431,7 +445,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 79,
+                          "id": 155,
                           "location": {
                             "span": {
                               "Range": {
@@ -622,7 +636,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 80,
+                    "id": 156,
                     "location": {
                       "span": {
                         "Range": {
@@ -646,7 +660,7 @@ expression: json
                   }
                 ]
               },
-              "id": 81,
+              "id": 157,
               "location": {
                 "span": {
                   "Range": {
@@ -711,7 +725,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "orange"
                                   },
-                                  "id": 82,
+                                  "id": 158,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -737,7 +751,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 83,
+                          "id": 159,
                           "location": {
                             "span": {
                               "Range": {
@@ -789,7 +803,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 84,
+                    "id": 160,
                     "location": {
                       "span": {
                         "Range": {
@@ -822,7 +836,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "yellow"
                                   },
-                                  "id": 85,
+                                  "id": 161,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -848,7 +862,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 86,
+                          "id": 162,
                           "location": {
                             "span": {
                               "Range": {
@@ -900,7 +914,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 87,
+                    "id": 163,
                     "location": {
                       "span": {
                         "Range": {
@@ -933,7 +947,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "purple"
                                   },
-                                  "id": 88,
+                                  "id": 164,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -959,7 +973,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 89,
+                          "id": 165,
                           "location": {
                             "span": {
                               "Range": {
@@ -1011,7 +1025,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 90,
+                    "id": 166,
                     "location": {
                       "span": {
                         "Range": {
@@ -1035,7 +1049,7 @@ expression: json
                   }
                 ]
               },
-              "id": 91,
+              "id": 167,
               "location": {
                 "span": {
                   "Range": {

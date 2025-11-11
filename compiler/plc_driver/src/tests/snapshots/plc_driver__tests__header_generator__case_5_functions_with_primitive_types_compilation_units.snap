@@ -18,6 +18,20 @@ expression: json
             "Internal": "<internal>"
           }
         }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
       }
     ],
     "var_config": [],
@@ -939,7 +953,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 22,
+        "id": 58,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

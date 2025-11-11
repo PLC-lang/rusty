@@ -21,6 +21,20 @@ expression: json
                   "Internal": "<internal>"
                 }
               }
+            },
+            {
+              "access": "Internal",
+              "constant": false,
+              "retain": false,
+              "variables": [],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
             }
           ],
           "var_config": [],
@@ -293,7 +307,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "orange"
                                         },
-                                        "id": 56,
+                                        "id": 71,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -319,7 +333,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 57,
+                                "id": 72,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -371,7 +385,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 58,
+                          "id": 73,
                           "location": {
                             "span": {
                               "Range": {
@@ -404,7 +418,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "yellow"
                                         },
-                                        "id": 59,
+                                        "id": 74,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -430,7 +444,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 60,
+                                "id": 75,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -482,7 +496,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 61,
+                          "id": 76,
                           "location": {
                             "span": {
                               "Range": {
@@ -515,7 +529,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "purple"
                                         },
-                                        "id": 62,
+                                        "id": 77,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -541,7 +555,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 63,
+                                "id": 78,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -593,7 +607,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 64,
+                          "id": 79,
                           "location": {
                             "span": {
                               "Range": {
@@ -617,7 +631,7 @@ expression: json
                         }
                       ]
                     },
-                    "id": 65,
+                    "id": 80,
                     "location": {
                       "span": {
                         "Range": {
@@ -666,540 +680,6 @@ expression: json
           ],
           "file": {
             "File": "programs.pli"
-          }
-        },
-        {
-          "global_vars": [
-            {
-              "access": "Internal",
-              "constant": false,
-              "retain": false,
-              "variables": [],
-              "kind": "Global",
-              "linkage": "Internal",
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              }
-            }
-          ],
-          "var_config": [],
-          "pous": [
-            {
-              "id": 44,
-              "name": "__init_prog",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "prog",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 8,
-                                  "column": 12,
-                                  "offset": 144
-                                },
-                                "end": {
-                                  "line": 8,
-                                  "column": 16,
-                                  "offset": 148
-                                }
-                              }
-                            },
-                            "file": {
-                              "Internal": "programs.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 8,
-                              "column": 12,
-                              "offset": 144
-                            },
-                            "end": {
-                              "line": 8,
-                              "column": 16,
-                              "offset": 148
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "programs.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 12,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 16,
-                      "offset": 148
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "programs.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 12,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 16,
-                      "offset": 148
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "programs.pli"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 43,
-              "name": "__user_init_prog",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "prog",
-                          "location": {
-                            "span": "None",
-                            "file": {
-                              "File": "__initializers"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            }
-          ],
-          "implementations": [
-            {
-              "name": "__init_prog",
-              "type_name": "__init_prog",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 12,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 16,
-                      "offset": 148
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "programs.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 12,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 16,
-                      "offset": 148
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "programs.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 8,
-                      "column": 12,
-                      "offset": 144
-                    },
-                    "end": {
-                      "line": 8,
-                      "column": 16,
-                      "offset": 148
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "programs.pli"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            },
-            {
-              "name": "__user_init_prog",
-              "type_name": "__user_init_prog",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            }
-          ],
-          "interfaces": [],
-          "user_types": [],
-          "file": {
-            "Internal": "__initializers"
-          }
-        },
-        {
-          "global_vars": [
-            {
-              "access": "Internal",
-              "constant": false,
-              "retain": false,
-              "variables": [],
-              "kind": "Global",
-              "linkage": "Internal",
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              }
-            }
-          ],
-          "var_config": [],
-          "pous": [
-            {
-              "id": 45,
-              "name": "__init___TestProject",
-              "kind": "ProjectInit",
-              "variable_blocks": [],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            }
-          ],
-          "implementations": [
-            {
-              "name": "__init___TestProject",
-              "type_name": "__init___TestProject",
-              "linkage": "Internal",
-              "pou_type": "ProjectInit",
-              "statements": [
-                {
-                  "stmt": {
-                    "CallStatement": {
-                      "operator": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__init_prog"
-                                },
-                                "id": 46,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 47,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "parameters": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "prog"
-                                },
-                                "id": 48,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 49,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      }
-                    }
-                  },
-                  "id": 50,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
-                },
-                {
-                  "stmt": {
-                    "CallStatement": {
-                      "operator": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__user_init_prog"
-                                },
-                                "id": 51,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 52,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "parameters": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "prog"
-                                },
-                                "id": 53,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 54,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      }
-                    }
-                  },
-                  "id": 55,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
-                }
-              ],
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            }
-          ],
-          "interfaces": [],
-          "user_types": [],
-          "file": {
-            "Internal": "__init___TestProject"
           }
         }
       ]
@@ -1394,76 +874,6 @@ expression: json
                   }
                 },
                 "properties": {}
-              }
-            }
-          ],
-          "__init_prog": [
-            {
-              "Function": {
-                "name": "__init_prog",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 8,
-                        "column": 12,
-                        "offset": 144
-                      },
-                      "end": {
-                        "line": 8,
-                        "column": 16,
-                        "offset": 148
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "programs.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__user_init_prog": [
-            {
-              "Function": {
-                "name": "__user_init_prog",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init___testproject": [
-            {
-              "Function": {
-                "name": "__init___TestProject",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
               }
             }
           ],
@@ -2148,58 +1558,6 @@ expression: json
             }
           }
         },
-        "__init_prog": {
-          "call_name": "__init_prog",
-          "type_name": "__init_prog",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": {
-              "Range": {
-                "start": {
-                  "line": 8,
-                  "column": 12,
-                  "offset": 144
-                },
-                "end": {
-                  "line": 8,
-                  "column": 16,
-                  "offset": 148
-                }
-              }
-            },
-            "file": {
-              "Internal": "programs.pli"
-            }
-          }
-        },
-        "__user_init_prog": {
-          "call_name": "__user_init_prog",
-          "type_name": "__user_init_prog",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "File": "__initializers"
-            }
-          }
-        },
-        "__init___testproject": {
-          "call_name": "__init___TestProject",
-          "type_name": "__init___TestProject",
-          "associated_class": null,
-          "implementation_type": "ProjectInit",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
         "adr": {
           "call_name": "ADR",
           "type_name": "ADR",
@@ -2777,28 +2135,6 @@ expression: json
                   },
                   "file": {
                     "File": "programs.pli"
-                  }
-                }
-              }
-            ],
-            "__auto_pointer_to_prog": [
-              {
-                "name": "__auto_pointer_to_prog",
-                "initial_value": null,
-                "information": {
-                  "Pointer": {
-                    "name": "__auto_pointer_to_prog",
-                    "inner_type_name": "prog",
-                    "auto_deref": "Default",
-                    "type_safe": true,
-                    "is_function": false
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
                   }
                 }
               }
@@ -4430,142 +3766,6 @@ expression: json
                   },
                   "file": {
                     "File": "programs.pli"
-                  }
-                }
-              }
-            ],
-            "__init_prog": [
-              {
-                "name": "__init_prog",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init_prog",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__init_prog.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_prog",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 8,
-                                "column": 12,
-                                "offset": 144
-                              },
-                              "end": {
-                                "line": 8,
-                                "column": 16,
-                                "offset": 148
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "programs.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 8,
-                        "column": 12,
-                        "offset": 144
-                      },
-                      "end": {
-                        "line": 8,
-                        "column": 16,
-                        "offset": 148
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "programs.pli"
-                  }
-                }
-              }
-            ],
-            "__user_init_prog": [
-              {
-                "name": "__user_init_prog",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__user_init_prog",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__user_init_prog.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_prog",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                }
-              }
-            ],
-            "__init___testproject": [
-              {
-                "name": "__init___TestProject",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init___TestProject",
-                    "members": [],
-                    "source": {
-                      "Pou": "ProjectInit"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
                   }
                 }
               }
@@ -6760,7 +5960,7 @@ expression: json
       }
     },
     "provider": {
-      "current_id": 84
+      "current_id": 99
     },
     "error_fmt": "Rich"
   }

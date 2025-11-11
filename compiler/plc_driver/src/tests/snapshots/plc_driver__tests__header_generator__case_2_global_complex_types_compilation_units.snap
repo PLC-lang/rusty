@@ -430,6 +430,20 @@ expression: json
             "Internal": "<internal>"
           }
         }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
       }
     ],
     "var_config": [],

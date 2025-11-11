@@ -21,6 +21,109 @@ expression: json
                   "Internal": "<internal>"
                 }
               }
+            },
+            {
+              "access": "Internal",
+              "constant": false,
+              "retain": false,
+              "variables": [
+                {
+                  "name": "__vtable_fbGreatGrandParent_instance",
+                  "data_type_declaration": {
+                    "Reference": {
+                      "referenced_type": "__vtable_fbGreatGrandParent",
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  },
+                  "initializer": null,
+                  "address": null,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                },
+                {
+                  "name": "__vtable_fbGrandParent_instance",
+                  "data_type_declaration": {
+                    "Reference": {
+                      "referenced_type": "__vtable_fbGrandParent",
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  },
+                  "initializer": null,
+                  "address": null,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                },
+                {
+                  "name": "__vtable_fbParent_instance",
+                  "data_type_declaration": {
+                    "Reference": {
+                      "referenced_type": "__vtable_fbParent",
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  },
+                  "initializer": null,
+                  "address": null,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                },
+                {
+                  "name": "__vtable_fbChild_instance",
+                  "data_type_declaration": {
+                    "Reference": {
+                      "referenced_type": "__vtable_fbChild",
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  },
+                  "initializer": null,
+                  "address": null,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                }
+              ],
+              "kind": "Global",
+              "linkage": "Internal",
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              }
             }
           ],
           "var_config": [],
@@ -30,6 +133,43 @@ expression: json
               "name": "fbGreatGrandParent",
               "kind": "FunctionBlock",
               "variable_blocks": [
+                {
+                  "access": "Protected",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "__vtable",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "__fbGreatGrandParent___vtable",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "File": "function_blocks_with_inheritance.pli"
+                    }
+                  }
+                },
                 {
                   "access": "Protected",
                   "constant": false,
@@ -159,6 +299,43 @@ expression: json
               "name": "fbGrandParent",
               "kind": "FunctionBlock",
               "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "__fbGreatGrandParent",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGreatGrandParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "Internal": "<internal>"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                },
                 {
                   "access": "Protected",
                   "constant": false,
@@ -310,6 +487,43 @@ expression: json
               "kind": "FunctionBlock",
               "variable_blocks": [
                 {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "__fbGrandParent",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbGrandParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "Internal": "<internal>"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                },
+                {
                   "access": "Protected",
                   "constant": false,
                   "retain": false,
@@ -459,6 +673,43 @@ expression: json
               "name": "fbChild",
               "kind": "FunctionBlock",
               "variable_blocks": [
+                {
+                  "access": "Internal",
+                  "constant": false,
+                  "retain": false,
+                  "variables": [
+                    {
+                      "name": "__fbParent",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "fbParent",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": null,
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "Internal": "<internal>"
+                        }
+                      }
+                    }
+                  ],
+                  "kind": "Local",
+                  "linkage": "Internal",
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  }
+                },
                 {
                   "access": "Protected",
                   "constant": false,
@@ -876,821 +1127,26 @@ expression: json
             }
           ],
           "interfaces": [],
-          "user_types": [],
-          "file": {
-            "File": "function_blocks_with_inheritance.pli"
-          }
-        },
-        {
-          "global_vars": [
+          "user_types": [
             {
-              "access": "Internal",
-              "constant": false,
-              "retain": false,
-              "variables": [],
-              "kind": "Global",
-              "linkage": "Internal",
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              }
-            }
-          ],
-          "var_config": [],
-          "pous": [
-            {
-              "id": 27,
-              "name": "__init_fbparent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
+              "data_type": {
+                "StructType": {
+                  "name": "__vtable_fbGreatGrandParent",
                   "variables": [
                     {
-                      "name": "self",
+                      "name": "__body",
                       "data_type_declaration": {
                         "Reference": {
-                          "referenced_type": "fbParent",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 13,
-                                  "column": 19,
-                                  "offset": 275
-                                },
-                                "end": {
-                                  "line": 13,
-                                  "column": 27,
-                                  "offset": 283
-                                }
-                              }
-                            },
-                            "file": {
-                              "Internal": "function_blocks_with_inheritance.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 13,
-                              "column": 19,
-                              "offset": 275
-                            },
-                            "end": {
-                              "line": 13,
-                              "column": 27,
-                              "offset": 283
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "function_blocks_with_inheritance.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 13,
-                      "column": 19,
-                      "offset": 275
-                    },
-                    "end": {
-                      "line": 13,
-                      "column": 27,
-                      "offset": 283
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 13,
-                      "column": 19,
-                      "offset": 275
-                    },
-                    "end": {
-                      "line": 13,
-                      "column": 27,
-                      "offset": 283
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 38,
-              "name": "__init_fbgreatgrandparent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbGreatGrandParent",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 1,
-                                  "column": 19,
-                                  "offset": 20
-                                },
-                                "end": {
-                                  "line": 1,
-                                  "column": 37,
-                                  "offset": 38
-                                }
-                              }
-                            },
-                            "file": {
-                              "Internal": "function_blocks_with_inheritance.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 1,
-                              "column": 19,
-                              "offset": 20
-                            },
-                            "end": {
-                              "line": 1,
-                              "column": 37,
-                              "offset": 38
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "function_blocks_with_inheritance.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 19,
-                      "offset": 20
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 37,
-                      "offset": 38
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 19,
-                      "offset": 20
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 37,
-                      "offset": 38
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 49,
-              "name": "__init_fbgrandparent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbGrandParent",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 7,
-                                  "column": 19,
-                                  "offset": 139
-                                },
-                                "end": {
-                                  "line": 7,
-                                  "column": 32,
-                                  "offset": 152
-                                }
-                              }
-                            },
-                            "file": {
-                              "Internal": "function_blocks_with_inheritance.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 7,
-                              "column": 19,
-                              "offset": 139
-                            },
-                            "end": {
-                              "line": 7,
-                              "column": 32,
-                              "offset": 152
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "function_blocks_with_inheritance.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 19,
-                      "offset": 139
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 32,
-                      "offset": 152
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 19,
-                      "offset": 139
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 32,
-                      "offset": 152
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 60,
-              "name": "__init_fbchild",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbChild",
-                          "location": {
-                            "span": {
-                              "Range": {
-                                "start": {
-                                  "line": 19,
-                                  "column": 19,
-                                  "offset": 396
-                                },
-                                "end": {
-                                  "line": 19,
-                                  "column": 26,
-                                  "offset": 403
-                                }
-                              }
-                            },
-                            "file": {
-                              "Internal": "function_blocks_with_inheritance.pli"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 19,
-                              "column": 19,
-                              "offset": 396
-                            },
-                            "end": {
-                              "line": 19,
-                              "column": 26,
-                              "offset": 403
-                            }
-                          }
-                        },
-                        "file": {
-                          "Internal": "function_blocks_with_inheritance.pli"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 19,
-                      "column": 19,
-                      "offset": 396
-                    },
-                    "end": {
-                      "line": 19,
-                      "column": 26,
-                      "offset": 403
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 19,
-                      "column": 19,
-                      "offset": 396
-                    },
-                    "end": {
-                      "line": 19,
-                      "column": 26,
-                      "offset": 403
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 23,
-              "name": "__user_init_fbChild",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbChild",
+                          "referenced_type": "____vtable_fbGreatGrandParent___body",
                           "location": {
                             "span": "None",
                             "file": {
-                              "File": "__initializers"
+                              "File": "function_blocks_with_inheritance.pli"
                             }
                           }
                         }
                       },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 24,
-              "name": "__user_init_fbParent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbParent",
-                          "location": {
-                            "span": "None",
-                            "file": {
-                              "File": "__initializers"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 25,
-              "name": "__user_init_fbGreatGrandParent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbGreatGrandParent",
-                          "location": {
-                            "span": "None",
-                            "file": {
-                              "File": "__initializers"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            },
-            {
-              "id": 26,
-              "name": "__user_init_fbGrandParent",
-              "kind": "Init",
-              "variable_blocks": [
-                {
-                  "access": "Internal",
-                  "constant": false,
-                  "retain": false,
-                  "variables": [
-                    {
-                      "name": "self",
-                      "data_type_declaration": {
-                        "Reference": {
-                          "referenced_type": "fbGrandParent",
-                          "location": {
-                            "span": "None",
-                            "file": {
-                              "File": "__initializers"
-                            }
-                          }
-                        }
-                      },
-                      "initializer": null,
-                      "address": null,
-                      "location": {
-                        "span": "None",
-                        "file": {
-                          "File": "__initializers"
-                        }
-                      }
-                    }
-                  ],
-                  "kind": "InOut",
-                  "linkage": "Internal",
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  }
-                }
-              ],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            }
-          ],
-          "implementations": [
-            {
-              "name": "__init_fbparent",
-              "type_name": "__init_fbparent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [
-                {
-                  "stmt": {
-                    "Assignment": {
-                      "left": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__vtable"
-                                },
-                                "id": 28,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "self"
-                                      },
-                                      "id": 29,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 30,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 31,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "right": {
+                      "initializer": {
                         "stmt": {
                           "CallStatement": {
                             "operator": {
@@ -1701,7 +1157,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "ADR"
                                       },
-                                      "id": 32,
+                                      "id": 23,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -1714,7 +1170,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 33,
+                              "id": 24,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1729,9 +1185,9 @@ expression: json
                                   "access": {
                                     "Member": {
                                       "stmt": {
-                                        "Identifier": "__vtable_fbParent_instance"
+                                        "Identifier": "fbGreatGrandParent"
                                       },
-                                      "id": 34,
+                                      "id": 25,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -1744,7 +1200,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 35,
+                              "id": 26,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1755,7 +1211,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 36,
+                        "id": 27,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1763,114 +1219,309 @@ expression: json
                           }
                         },
                         "metadata": null
+                      },
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
                       }
                     }
-                  },
-                  "id": 37,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
+                  ]
                 }
-              ],
+              },
+              "initializer": null,
               "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 13,
-                      "column": 19,
-                      "offset": 275
-                    },
-                    "end": {
-                      "line": 13,
-                      "column": 27,
-                      "offset": 283
-                    }
-                  }
-                },
+                "span": "None",
                 "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 13,
-                      "column": 19,
-                      "offset": 275
-                    },
-                    "end": {
-                      "line": 13,
-                      "column": 27,
-                      "offset": 283
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 13,
-                      "column": 19,
-                      "offset": 275
-                    },
-                    "end": {
-                      "line": 13,
-                      "column": 27,
-                      "offset": 283
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
+              "scope": null
             },
             {
-              "name": "__init_fbgreatgrandparent",
-              "type_name": "__init_fbgreatgrandparent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [
-                {
-                  "stmt": {
-                    "Assignment": {
-                      "left": {
+              "data_type": {
+                "StructType": {
+                  "name": "__vtable_fbGrandParent",
+                  "variables": [
+                    {
+                      "name": "__body",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "____vtable_fbGrandParent___body",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": {
                         "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__vtable"
-                                },
-                                "id": 39,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": {
+                          "CallStatement": {
+                            "operator": {
                               "stmt": {
                                 "ReferenceExpr": {
                                   "access": {
                                     "Member": {
                                       "stmt": {
-                                        "Identifier": "self"
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 28,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 29,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbGrandParent"
+                                      },
+                                      "id": 30,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 31,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 32,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "initializer": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "StructType": {
+                  "name": "__vtable_fbParent",
+                  "variables": [
+                    {
+                      "name": "__body",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "____vtable_fbParent___body",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 33,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 34,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbParent"
+                                      },
+                                      "id": 35,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 36,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 37,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "initializer": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "StructType": {
+                  "name": "__vtable_fbChild",
+                  "variables": [
+                    {
+                      "name": "__body",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "____vtable_fbChild___body",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "function_blocks_with_inheritance.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 38,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 39,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbChild"
                                       },
                                       "id": 40,
                                       "location": {
@@ -1905,792 +1556,421 @@ expression: json
                         },
                         "metadata": null
                       },
-                      "right": {
-                        "stmt": {
-                          "CallStatement": {
-                            "operator": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "ADR"
-                                      },
-                                      "id": 43,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 44,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "parameters": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "__vtable_fbGreatGrandParent_instance"
-                                      },
-                                      "id": 45,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 46,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 47,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "initializer": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "PointerType": {
+                  "name": "__fbGreatGrandParent___vtable",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "__VOID",
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
                       }
                     }
                   },
-                  "id": 48,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": false
                 }
-              ],
+              },
+              "initializer": null,
               "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 19,
-                      "offset": 20
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 37,
-                      "offset": 38
-                    }
-                  }
-                },
+                "span": "None",
                 "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 19,
-                      "offset": 20
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 37,
-                      "offset": 38
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 1,
-                      "column": 19,
-                      "offset": 20
-                    },
-                    "end": {
-                      "line": 1,
-                      "column": 37,
-                      "offset": 38
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
+              "scope": null
             },
             {
-              "name": "__init_fbgrandparent",
-              "type_name": "__init_fbgrandparent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [
-                {
-                  "stmt": {
-                    "Assignment": {
-                      "left": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__vtable"
-                                },
-                                "id": 50,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
+              "data_type": {
+                "PointerType": {
+                  "name": "____vtable_fbGreatGrandParent___body",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "fbGreatGrandParent",
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 1,
+                              "column": 4,
+                              "offset": 5
                             },
-                            "base": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "self"
-                                      },
-                                      "id": 51,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 52,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
+                            "end": {
+                              "line": 5,
+                              "column": 22,
+                              "offset": 118
                             }
                           }
                         },
-                        "id": 53,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "right": {
-                        "stmt": {
-                          "CallStatement": {
-                            "operator": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "ADR"
-                                      },
-                                      "id": 54,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 55,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "parameters": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "__vtable_fbGrandParent_instance"
-                                      },
-                                      "id": 56,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 57,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 58,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
                       }
                     }
                   },
-                  "id": 59,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": true
                 }
-              ],
+              },
+              "initializer": null,
               "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 19,
-                      "offset": 139
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 32,
-                      "offset": 152
-                    }
-                  }
-                },
+                "span": "None",
                 "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 19,
-                      "offset": 139
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 32,
-                      "offset": 152
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 7,
-                      "column": 19,
-                      "offset": 139
-                    },
-                    "end": {
-                      "line": 7,
-                      "column": 32,
-                      "offset": 152
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
+              "scope": null
             },
             {
-              "name": "__init_fbchild",
-              "type_name": "__init_fbchild",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [
-                {
-                  "stmt": {
-                    "Assignment": {
-                      "left": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "__vtable"
-                                },
-                                "id": 61,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
+              "data_type": {
+                "PointerType": {
+                  "name": "____vtable_fbGrandParent___body",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "fbGrandParent",
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 7,
+                              "column": 4,
+                              "offset": 124
                             },
-                            "base": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "self"
-                                      },
-                                      "id": 62,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 63,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
+                            "end": {
+                              "line": 11,
+                              "column": 22,
+                              "offset": 254
                             }
                           }
                         },
-                        "id": 64,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "right": {
-                        "stmt": {
-                          "CallStatement": {
-                            "operator": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "ADR"
-                                      },
-                                      "id": 65,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 66,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            },
-                            "parameters": {
-                              "stmt": {
-                                "ReferenceExpr": {
-                                  "access": {
-                                    "Member": {
-                                      "stmt": {
-                                        "Identifier": "__vtable_fbChild_instance"
-                                      },
-                                      "id": 67,
-                                      "location": {
-                                        "span": "None",
-                                        "file": {
-                                          "Internal": "<internal>"
-                                        }
-                                      },
-                                      "metadata": null
-                                    }
-                                  },
-                                  "base": null
-                                }
-                              },
-                              "id": 68,
-                              "location": {
-                                "span": "None",
-                                "file": {
-                                  "Internal": "<internal>"
-                                }
-                              },
-                              "metadata": null
-                            }
-                          }
-                        },
-                        "id": 69,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
                       }
                     }
                   },
-                  "id": 70,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": true
+                }
+              },
+              "initializer": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "PointerType": {
+                  "name": "____vtable_fbParent___body",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "fbParent",
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 13,
+                              "column": 4,
+                              "offset": 260
+                            },
+                            "end": {
+                              "line": 17,
+                              "column": 22,
+                              "offset": 375
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
                     }
                   },
-                  "metadata": null
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": true
                 }
-              ],
+              },
+              "initializer": null,
               "location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 19,
-                      "column": 19,
-                      "offset": 396
-                    },
-                    "end": {
-                      "line": 19,
-                      "column": 26,
-                      "offset": 403
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "PointerType": {
+                  "name": "____vtable_fbChild___body",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "fbChild",
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 19,
+                              "column": 4,
+                              "offset": 381
+                            },
+                            "end": {
+                              "line": 23,
+                              "column": 22,
+                              "offset": 489
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks_with_inheritance.pli"
+                        }
+                      }
                     }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
+                  },
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": true
                 }
               },
-              "name_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 19,
-                      "column": 19,
-                      "offset": 396
-                    },
-                    "end": {
-                      "line": 19,
-                      "column": 26,
-                      "offset": 403
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "end_location": {
-                "span": {
-                  "Range": {
-                    "start": {
-                      "line": 19,
-                      "column": 19,
-                      "offset": 396
-                    },
-                    "end": {
-                      "line": 19,
-                      "column": 26,
-                      "offset": 403
-                    }
-                  }
-                },
-                "file": {
-                  "Internal": "function_blocks_with_inheritance.pli"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            },
-            {
-              "name": "__user_init_fbChild",
-              "type_name": "__user_init_fbChild",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
+              "initializer": null,
               "location": {
                 "span": "None",
                 "file": {
-                  "File": "__initializers"
+                  "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            },
-            {
-              "name": "__user_init_fbParent",
-              "type_name": "__user_init_fbParent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            },
-            {
-              "name": "__user_init_fbGreatGrandParent",
-              "type_name": "__user_init_fbGreatGrandParent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            },
-            {
-              "name": "__user_init_fbGrandParent",
-              "type_name": "__user_init_fbGrandParent",
-              "linkage": "Internal",
-              "pou_type": "Init",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "File": "__initializers"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
+              "scope": null
             }
           ],
-          "interfaces": [],
-          "user_types": [],
           "file": {
-            "Internal": "__initializers"
-          }
-        },
-        {
-          "global_vars": [
-            {
-              "access": "Internal",
-              "constant": false,
-              "retain": false,
-              "variables": [],
-              "kind": "Global",
-              "linkage": "Internal",
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              }
-            }
-          ],
-          "var_config": [],
-          "pous": [
-            {
-              "id": 71,
-              "name": "__init___TestProject",
-              "kind": "ProjectInit",
-              "variable_blocks": [],
-              "return_type": null,
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "poly_mode": null,
-              "generics": [],
-              "linkage": "Internal",
-              "super_class": null,
-              "is_const": false,
-              "interfaces": [],
-              "properties": []
-            }
-          ],
-          "implementations": [
-            {
-              "name": "__init___TestProject",
-              "type_name": "__init___TestProject",
-              "linkage": "Internal",
-              "pou_type": "ProjectInit",
-              "statements": [],
-              "location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "name_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "end_location": {
-                "span": "None",
-                "file": {
-                  "Internal": "<internal>"
-                }
-              },
-              "overriding": false,
-              "generic": false,
-              "access": null
-            }
-          ],
-          "interfaces": [],
-          "user_types": [],
-          "file": {
-            "Internal": "__init___TestProject"
+            "File": "function_blocks_with_inheritance.pli"
           }
         }
       ]
     },
     "index": {
       "global_variables": {
-        "inner_map": {}
+        "inner_map": {
+          "__vtable_fbgreatgrandparent_instance": [
+            {
+              "name": "__vtable_fbGreatGrandParent_instance",
+              "qualified_name": "__vtable_fbGreatGrandParent_instance",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": false,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbGreatGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__vtable_fbgrandparent_instance": [
+            {
+              "name": "__vtable_fbGrandParent_instance",
+              "qualified_name": "__vtable_fbGrandParent_instance",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": false,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__vtable_fbparent_instance": [
+            {
+              "name": "__vtable_fbParent_instance",
+              "qualified_name": "__vtable_fbParent_instance",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": false,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "__vtable_fbchild_instance": [
+            {
+              "name": "__vtable_fbChild_instance",
+              "qualified_name": "__vtable_fbChild_instance",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": false,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbChild",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ]
+        }
       },
       "global_initializers": {
         "inner_map": {
+          "____vtable_fbgreatgrandparent__init": [
+            {
+              "name": "____vtable_fbGreatGrandParent__init",
+              "qualified_name": "____vtable_fbGreatGrandParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbGreatGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "____vtable_fbgrandparent__init": [
+            {
+              "name": "____vtable_fbGrandParent__init",
+              "qualified_name": "____vtable_fbGrandParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbGrandParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "____vtable_fbparent__init": [
+            {
+              "name": "____vtable_fbParent__init",
+              "qualified_name": "____vtable_fbParent__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbParent",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
+          "____vtable_fbchild__init": [
+            {
+              "name": "____vtable_fbChild__init",
+              "qualified_name": "____vtable_fbChild__init",
+              "initial_value": null,
+              "argument_type": {
+                "ByVal": "Global"
+              },
+              "is_constant": true,
+              "is_var_external": false,
+              "data_type_name": "__vtable_fbChild",
+              "location_in_parent": 0,
+              "linkage": "Internal",
+              "binding": null,
+              "source_location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks_with_inheritance.pli"
+                }
+              },
+              "varargs": null
+            }
+          ],
           "__fbgreatgrandparent__init": [
             {
               "name": "__fbGreatGrandParent__init",
@@ -2963,229 +2243,6 @@ expression: json
                 "super_class": "fbParent",
                 "interfaces": [],
                 "properties": {}
-              }
-            }
-          ],
-          "__init_fbparent": [
-            {
-              "Function": {
-                "name": "__init_fbparent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 13,
-                        "column": 19,
-                        "offset": 275
-                      },
-                      "end": {
-                        "line": 13,
-                        "column": 27,
-                        "offset": 283
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init_fbgreatgrandparent": [
-            {
-              "Function": {
-                "name": "__init_fbgreatgrandparent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 1,
-                        "column": 19,
-                        "offset": 20
-                      },
-                      "end": {
-                        "line": 1,
-                        "column": 37,
-                        "offset": 38
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init_fbgrandparent": [
-            {
-              "Function": {
-                "name": "__init_fbgrandparent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 7,
-                        "column": 19,
-                        "offset": 139
-                      },
-                      "end": {
-                        "line": 7,
-                        "column": 32,
-                        "offset": 152
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init_fbchild": [
-            {
-              "Function": {
-                "name": "__init_fbchild",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 19,
-                        "column": 19,
-                        "offset": 396
-                      },
-                      "end": {
-                        "line": 19,
-                        "column": 26,
-                        "offset": 403
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__user_init_fbchild": [
-            {
-              "Function": {
-                "name": "__user_init_fbChild",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__user_init_fbparent": [
-            {
-              "Function": {
-                "name": "__user_init_fbParent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__user_init_fbgreatgrandparent": [
-            {
-              "Function": {
-                "name": "__user_init_fbGreatGrandParent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__user_init_fbgrandparent": [
-            {
-              "Function": {
-                "name": "__user_init_fbGrandParent",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
-              }
-            }
-          ],
-          "__init___testproject": [
-            {
-              "Function": {
-                "name": "__init___TestProject",
-                "return_type": "VOID",
-                "generics": [],
-                "linkage": "Internal",
-                "is_variadic": false,
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
-                  }
-                },
-                "is_generated": false,
-                "is_const": false
               }
             }
           ],
@@ -3948,123 +3005,6 @@ expression: json
             }
           }
         },
-        "__init_fbparent": {
-          "call_name": "__init_fbparent",
-          "type_name": "__init_fbparent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
-        "__init_fbgreatgrandparent": {
-          "call_name": "__init_fbgreatgrandparent",
-          "type_name": "__init_fbgreatgrandparent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
-        "__init_fbgrandparent": {
-          "call_name": "__init_fbgrandparent",
-          "type_name": "__init_fbgrandparent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
-        "__init_fbchild": {
-          "call_name": "__init_fbchild",
-          "type_name": "__init_fbchild",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
-        "__user_init_fbchild": {
-          "call_name": "__user_init_fbChild",
-          "type_name": "__user_init_fbChild",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "File": "__initializers"
-            }
-          }
-        },
-        "__user_init_fbparent": {
-          "call_name": "__user_init_fbParent",
-          "type_name": "__user_init_fbParent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "File": "__initializers"
-            }
-          }
-        },
-        "__user_init_fbgreatgrandparent": {
-          "call_name": "__user_init_fbGreatGrandParent",
-          "type_name": "__user_init_fbGreatGrandParent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "File": "__initializers"
-            }
-          }
-        },
-        "__user_init_fbgrandparent": {
-          "call_name": "__user_init_fbGrandParent",
-          "type_name": "__user_init_fbGrandParent",
-          "associated_class": null,
-          "implementation_type": "Init",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "File": "__initializers"
-            }
-          }
-        },
-        "__init___testproject": {
-          "call_name": "__init___TestProject",
-          "type_name": "__init___TestProject",
-          "associated_class": null,
-          "implementation_type": "ProjectInit",
-          "generic": false,
-          "location": {
-            "span": "None",
-            "file": {
-              "Internal": "<internal>"
-            }
-          }
-        },
         "adr": {
           "call_name": "ADR",
           "type_name": "ADR",
@@ -4501,16 +3441,196 @@ expression: json
       "type_index": {
         "types": {
           "inner_map": {
-            "__auto_pointer_to_fbparent": [
+            "__vtable_fbgreatgrandparent": [
               {
-                "name": "__auto_pointer_to_fbParent",
+                "name": "__vtable_fbGreatGrandParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__vtable_fbGreatGrandParent",
+                    "members": [
+                      {
+                        "name": "__body",
+                        "qualified_name": "__vtable_fbGreatGrandParent.__body",
+                        "initial_value": [
+                          0,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "____vtable_fbGreatGrandParent___body",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": "OriginalDeclaration"
+                  }
+                },
+                "nature": "Derived",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__vtable_fbgrandparent": [
+              {
+                "name": "__vtable_fbGrandParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__vtable_fbGrandParent",
+                    "members": [
+                      {
+                        "name": "__body",
+                        "qualified_name": "__vtable_fbGrandParent.__body",
+                        "initial_value": [
+                          1,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "____vtable_fbGrandParent___body",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": "OriginalDeclaration"
+                  }
+                },
+                "nature": "Derived",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__vtable_fbparent": [
+              {
+                "name": "__vtable_fbParent",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__vtable_fbParent",
+                    "members": [
+                      {
+                        "name": "__body",
+                        "qualified_name": "__vtable_fbParent.__body",
+                        "initial_value": [
+                          2,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "____vtable_fbParent___body",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": "OriginalDeclaration"
+                  }
+                },
+                "nature": "Derived",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__vtable_fbchild": [
+              {
+                "name": "__vtable_fbChild",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "__vtable_fbChild",
+                    "members": [
+                      {
+                        "name": "__body",
+                        "qualified_name": "__vtable_fbChild.__body",
+                        "initial_value": [
+                          3,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "____vtable_fbChild___body",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": "OriginalDeclaration"
+                  }
+                },
+                "nature": "Derived",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "__fbgreatgrandparent___vtable": [
+              {
+                "name": "__fbGreatGrandParent___vtable",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_fbParent",
-                    "inner_type_name": "fbParent",
-                    "auto_deref": "Default",
-                    "type_safe": true,
+                    "name": "__fbGreatGrandParent___vtable",
+                    "inner_type_name": "__VOID",
+                    "auto_deref": null,
+                    "type_safe": false,
                     "is_function": false
                   }
                 },
@@ -4518,73 +3638,95 @@ expression: json
                 "location": {
                   "span": "None",
                   "file": {
-                    "Internal": "<internal>"
+                    "File": "function_blocks_with_inheritance.pli"
                   }
                 }
               }
             ],
-            "__auto_pointer_to_fbgreatgrandparent": [
+            "____vtable_fbgreatgrandparent___body": [
               {
-                "name": "__auto_pointer_to_fbGreatGrandParent",
+                "name": "____vtable_fbGreatGrandParent___body",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_fbGreatGrandParent",
+                    "name": "____vtable_fbGreatGrandParent___body",
                     "inner_type_name": "fbGreatGrandParent",
-                    "auto_deref": "Default",
-                    "type_safe": true,
-                    "is_function": false
+                    "auto_deref": null,
+                    "type_safe": false,
+                    "is_function": true
                   }
                 },
                 "nature": "Any",
                 "location": {
                   "span": "None",
                   "file": {
-                    "Internal": "<internal>"
+                    "File": "function_blocks_with_inheritance.pli"
                   }
                 }
               }
             ],
-            "__auto_pointer_to_fbgrandparent": [
+            "____vtable_fbgrandparent___body": [
               {
-                "name": "__auto_pointer_to_fbGrandParent",
+                "name": "____vtable_fbGrandParent___body",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_fbGrandParent",
+                    "name": "____vtable_fbGrandParent___body",
                     "inner_type_name": "fbGrandParent",
-                    "auto_deref": "Default",
-                    "type_safe": true,
-                    "is_function": false
+                    "auto_deref": null,
+                    "type_safe": false,
+                    "is_function": true
                   }
                 },
                 "nature": "Any",
                 "location": {
                   "span": "None",
                   "file": {
-                    "Internal": "<internal>"
+                    "File": "function_blocks_with_inheritance.pli"
                   }
                 }
               }
             ],
-            "__auto_pointer_to_fbchild": [
+            "____vtable_fbparent___body": [
               {
-                "name": "__auto_pointer_to_fbChild",
+                "name": "____vtable_fbParent___body",
                 "initial_value": null,
                 "information": {
                   "Pointer": {
-                    "name": "__auto_pointer_to_fbChild",
-                    "inner_type_name": "fbChild",
-                    "auto_deref": "Default",
-                    "type_safe": true,
-                    "is_function": false
+                    "name": "____vtable_fbParent___body",
+                    "inner_type_name": "fbParent",
+                    "auto_deref": null,
+                    "type_safe": false,
+                    "is_function": true
                   }
                 },
                 "nature": "Any",
                 "location": {
                   "span": "None",
                   "file": {
-                    "Internal": "<internal>"
+                    "File": "function_blocks_with_inheritance.pli"
+                  }
+                }
+              }
+            ],
+            "____vtable_fbchild___body": [
+              {
+                "name": "____vtable_fbChild___body",
+                "initial_value": null,
+                "information": {
+                  "Pointer": {
+                    "name": "____vtable_fbChild___body",
+                    "inner_type_name": "fbChild",
+                    "auto_deref": null,
+                    "type_safe": false,
+                    "is_function": true
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks_with_inheritance.pli"
                   }
                 }
               }
@@ -6125,6 +5267,27 @@ expression: json
                     "name": "fbGreatGrandParent",
                     "members": [
                       {
+                        "name": "__vtable",
+                        "qualified_name": "fbGreatGrandParent.__vtable",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__fbGreatGrandParent___vtable",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks_with_inheritance.pli"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
                         "name": "varGreatGrandParentInt",
                         "qualified_name": "fbGreatGrandParent.varGreatGrandParentInt",
                         "initial_value": null,
@@ -6134,7 +5297,7 @@ expression: json
                         "is_constant": false,
                         "is_var_external": false,
                         "data_type_name": "INT",
-                        "location_in_parent": 0,
+                        "location_in_parent": 1,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
@@ -6195,6 +5358,27 @@ expression: json
                     "name": "fbGrandParent",
                     "members": [
                       {
+                        "name": "__fbGreatGrandParent",
+                        "qualified_name": "fbGrandParent.__fbGreatGrandParent",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "fbGreatGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
                         "name": "varGrandParentInt",
                         "qualified_name": "fbGrandParent.varGrandParentInt",
                         "initial_value": null,
@@ -6204,7 +5388,7 @@ expression: json
                         "is_constant": false,
                         "is_var_external": false,
                         "data_type_name": "INT",
-                        "location_in_parent": 0,
+                        "location_in_parent": 1,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
@@ -6265,6 +5449,27 @@ expression: json
                     "name": "fbParent",
                     "members": [
                       {
+                        "name": "__fbGrandParent",
+                        "qualified_name": "fbParent.__fbGrandParent",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "fbGrandParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
                         "name": "varParentInt",
                         "qualified_name": "fbParent.varParentInt",
                         "initial_value": null,
@@ -6274,7 +5479,7 @@ expression: json
                         "is_constant": false,
                         "is_var_external": false,
                         "data_type_name": "INT",
-                        "location_in_parent": 0,
+                        "location_in_parent": 1,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
@@ -6335,6 +5540,27 @@ expression: json
                     "name": "fbChild",
                     "members": [
                       {
+                        "name": "__fbParent",
+                        "qualified_name": "fbChild.__fbParent",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Local"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "fbParent",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "varargs": null
+                      },
+                      {
                         "name": "varChildInt",
                         "qualified_name": "fbChild.varChildInt",
                         "initial_value": null,
@@ -6344,7 +5570,7 @@ expression: json
                         "is_constant": false,
                         "is_var_external": false,
                         "data_type_name": "INT",
-                        "location_in_parent": 0,
+                        "location_in_parent": 1,
                         "linkage": "Internal",
                         "binding": null,
                         "source_location": {
@@ -6392,484 +5618,6 @@ expression: json
                   },
                   "file": {
                     "File": "function_blocks_with_inheritance.pli"
-                  }
-                }
-              }
-            ],
-            "__init_fbparent": [
-              {
-                "name": "__init_fbparent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init_fbparent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__init_fbparent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 13,
-                                "column": 19,
-                                "offset": 275
-                              },
-                              "end": {
-                                "line": 13,
-                                "column": 27,
-                                "offset": 283
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "function_blocks_with_inheritance.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 13,
-                        "column": 19,
-                        "offset": 275
-                      },
-                      "end": {
-                        "line": 13,
-                        "column": 27,
-                        "offset": 283
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                }
-              }
-            ],
-            "__init_fbgreatgrandparent": [
-              {
-                "name": "__init_fbgreatgrandparent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init_fbgreatgrandparent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__init_fbgreatgrandparent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbGreatGrandParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 1,
-                                "column": 19,
-                                "offset": 20
-                              },
-                              "end": {
-                                "line": 1,
-                                "column": 37,
-                                "offset": 38
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "function_blocks_with_inheritance.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 1,
-                        "column": 19,
-                        "offset": 20
-                      },
-                      "end": {
-                        "line": 1,
-                        "column": 37,
-                        "offset": 38
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                }
-              }
-            ],
-            "__init_fbgrandparent": [
-              {
-                "name": "__init_fbgrandparent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init_fbgrandparent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__init_fbgrandparent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbGrandParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 7,
-                                "column": 19,
-                                "offset": 139
-                              },
-                              "end": {
-                                "line": 7,
-                                "column": 32,
-                                "offset": 152
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "function_blocks_with_inheritance.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 7,
-                        "column": 19,
-                        "offset": 139
-                      },
-                      "end": {
-                        "line": 7,
-                        "column": 32,
-                        "offset": 152
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                }
-              }
-            ],
-            "__init_fbchild": [
-              {
-                "name": "__init_fbchild",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init_fbchild",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__init_fbchild.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbChild",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": {
-                            "Range": {
-                              "start": {
-                                "line": 19,
-                                "column": 19,
-                                "offset": 396
-                              },
-                              "end": {
-                                "line": 19,
-                                "column": 26,
-                                "offset": 403
-                              }
-                            }
-                          },
-                          "file": {
-                            "Internal": "function_blocks_with_inheritance.pli"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": {
-                    "Range": {
-                      "start": {
-                        "line": 19,
-                        "column": 19,
-                        "offset": 396
-                      },
-                      "end": {
-                        "line": 19,
-                        "column": 26,
-                        "offset": 403
-                      }
-                    }
-                  },
-                  "file": {
-                    "Internal": "function_blocks_with_inheritance.pli"
-                  }
-                }
-              }
-            ],
-            "__user_init_fbchild": [
-              {
-                "name": "__user_init_fbChild",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__user_init_fbChild",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__user_init_fbChild.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbChild",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                }
-              }
-            ],
-            "__user_init_fbparent": [
-              {
-                "name": "__user_init_fbParent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__user_init_fbParent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__user_init_fbParent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                }
-              }
-            ],
-            "__user_init_fbgreatgrandparent": [
-              {
-                "name": "__user_init_fbGreatGrandParent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__user_init_fbGreatGrandParent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__user_init_fbGreatGrandParent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbGreatGrandParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                }
-              }
-            ],
-            "__user_init_fbgrandparent": [
-              {
-                "name": "__user_init_fbGrandParent",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__user_init_fbGrandParent",
-                    "members": [
-                      {
-                        "name": "self",
-                        "qualified_name": "__user_init_fbGrandParent.self",
-                        "initial_value": null,
-                        "argument_type": {
-                          "ByRef": "InOut"
-                        },
-                        "is_constant": false,
-                        "is_var_external": false,
-                        "data_type_name": "__auto_pointer_to_fbGrandParent",
-                        "location_in_parent": 0,
-                        "linkage": "Internal",
-                        "binding": null,
-                        "source_location": {
-                          "span": "None",
-                          "file": {
-                            "File": "__initializers"
-                          }
-                        },
-                        "varargs": null
-                      }
-                    ],
-                    "source": {
-                      "Pou": "Init"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "File": "__initializers"
-                  }
-                }
-              }
-            ],
-            "__init___testproject": [
-              {
-                "name": "__init___TestProject",
-                "initial_value": null,
-                "information": {
-                  "Struct": {
-                    "name": "__init___TestProject",
-                    "members": [],
-                    "source": {
-                      "Pou": "ProjectInit"
-                    }
-                  }
-                },
-                "nature": "Any",
-                "location": {
-                  "span": "None",
-                  "file": {
-                    "Internal": "<internal>"
                   }
                 }
               }
@@ -8927,10 +7675,666 @@ expression: json
       },
       "constant_expressions": {
         "expressions": [
-          null,
-          null,
-          null,
-          null
+          [
+            0,
+            {
+              "expr": {
+                "Unresolvable": {
+                  "statement": {
+                    "stmt": {
+                      "CallStatement": {
+                        "operator": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "ADR"
+                                  },
+                                  "id": 23,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 24,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "parameters": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "fbGreatGrandParent"
+                                  },
+                                  "id": 25,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 26,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 27,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "reason": {
+                    "Address": {
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 23,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 24,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbGreatGrandParent"
+                                      },
+                                      "id": 25,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 26,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 27,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "target_type_name": "____vtable_fbGreatGrandParent___body",
+                      "scope": "__vtable_fbGreatGrandParent",
+                      "lhs": "__body"
+                    }
+                  }
+                }
+              },
+              "target_type_name": "____vtable_fbGreatGrandParent___body"
+            }
+          ],
+          [
+            0,
+            {
+              "expr": {
+                "Unresolvable": {
+                  "statement": {
+                    "stmt": {
+                      "CallStatement": {
+                        "operator": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "ADR"
+                                  },
+                                  "id": 28,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 29,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "parameters": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "fbGrandParent"
+                                  },
+                                  "id": 30,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 31,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 32,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "reason": {
+                    "Address": {
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 28,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 29,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbGrandParent"
+                                      },
+                                      "id": 30,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 31,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 32,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "target_type_name": "____vtable_fbGrandParent___body",
+                      "scope": "__vtable_fbGrandParent",
+                      "lhs": "__body"
+                    }
+                  }
+                }
+              },
+              "target_type_name": "____vtable_fbGrandParent___body"
+            }
+          ],
+          [
+            0,
+            {
+              "expr": {
+                "Unresolvable": {
+                  "statement": {
+                    "stmt": {
+                      "CallStatement": {
+                        "operator": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "ADR"
+                                  },
+                                  "id": 33,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 34,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "parameters": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "fbParent"
+                                  },
+                                  "id": 35,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 36,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 37,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "reason": {
+                    "Address": {
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 33,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 34,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbParent"
+                                      },
+                                      "id": 35,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 36,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 37,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "target_type_name": "____vtable_fbParent___body",
+                      "scope": "__vtable_fbParent",
+                      "lhs": "__body"
+                    }
+                  }
+                }
+              },
+              "target_type_name": "____vtable_fbParent___body"
+            }
+          ],
+          [
+            0,
+            {
+              "expr": {
+                "Unresolvable": {
+                  "statement": {
+                    "stmt": {
+                      "CallStatement": {
+                        "operator": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "ADR"
+                                  },
+                                  "id": 38,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 39,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "parameters": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "fbChild"
+                                  },
+                                  "id": 40,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 41,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 42,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "reason": {
+                    "Address": {
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 38,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 39,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "fbChild"
+                                      },
+                                      "id": 40,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 41,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 42,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "target_type_name": "____vtable_fbChild___body",
+                      "scope": "__vtable_fbChild",
+                      "lhs": "__body"
+                    }
+                  }
+                }
+              },
+              "target_type_name": "____vtable_fbChild___body"
+            }
+          ]
         ]
       },
       "data_layout": {
@@ -8949,7 +8353,356 @@ expression: json
       "labels": {},
       "config_variables": []
     },
-    "unresolvables": []
+    "unresolvables": [
+      {
+        "id": [
+          0,
+          0
+        ],
+        "kind": {
+          "Address": {
+            "initializer": {
+              "stmt": {
+                "CallStatement": {
+                  "operator": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "ADR"
+                            },
+                            "id": 23,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 24,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "parameters": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "fbGreatGrandParent"
+                            },
+                            "id": 25,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 26,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 27,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "metadata": null
+            },
+            "target_type_name": "____vtable_fbGreatGrandParent___body",
+            "scope": "__vtable_fbGreatGrandParent",
+            "lhs": "__body"
+          }
+        }
+      },
+      {
+        "id": [
+          1,
+          0
+        ],
+        "kind": {
+          "Address": {
+            "initializer": {
+              "stmt": {
+                "CallStatement": {
+                  "operator": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "ADR"
+                            },
+                            "id": 28,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 29,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "parameters": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "fbGrandParent"
+                            },
+                            "id": 30,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 31,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 32,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "metadata": null
+            },
+            "target_type_name": "____vtable_fbGrandParent___body",
+            "scope": "__vtable_fbGrandParent",
+            "lhs": "__body"
+          }
+        }
+      },
+      {
+        "id": [
+          2,
+          0
+        ],
+        "kind": {
+          "Address": {
+            "initializer": {
+              "stmt": {
+                "CallStatement": {
+                  "operator": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "ADR"
+                            },
+                            "id": 33,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 34,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "parameters": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "fbParent"
+                            },
+                            "id": 35,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 36,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 37,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "metadata": null
+            },
+            "target_type_name": "____vtable_fbParent___body",
+            "scope": "__vtable_fbParent",
+            "lhs": "__body"
+          }
+        }
+      },
+      {
+        "id": [
+          3,
+          0
+        ],
+        "kind": {
+          "Address": {
+            "initializer": {
+              "stmt": {
+                "CallStatement": {
+                  "operator": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "ADR"
+                            },
+                            "id": 38,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 39,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "parameters": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "fbChild"
+                            },
+                            "id": 40,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 41,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 42,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "metadata": null
+            },
+            "target_type_name": "____vtable_fbChild___body",
+            "scope": "__vtable_fbChild",
+            "lhs": "__body"
+          }
+        }
+      }
+    ]
   },
   "context": {
     "sources": {
@@ -8959,7 +8712,7 @@ expression: json
       }
     },
     "provider": {
-      "current_id": 90
+      "current_id": 79
     },
     "error_fmt": "Rich"
   }

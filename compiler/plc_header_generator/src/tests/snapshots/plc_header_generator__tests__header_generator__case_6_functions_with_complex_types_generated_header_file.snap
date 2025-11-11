@@ -38,9 +38,9 @@ typedef struct {
 
 
 // Functions, Function Blocks and Programs
-StructWithPrimitiveTypes fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* varStruct);
+void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
 
-StructWithComplexTypes fnThatUsesStructWithComplexTypes(StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
 
 void fnThatUsesPrimitiveTypesAndReferences(int16_t varInt, int16_t* varRefToInt, int16_t* varPointerToInt, time_t* varRefToDate, time_t* varPointerToDate);
 

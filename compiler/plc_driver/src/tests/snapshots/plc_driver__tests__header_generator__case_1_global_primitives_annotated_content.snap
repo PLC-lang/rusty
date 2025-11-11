@@ -672,6 +672,20 @@ expression: json
                 "Internal": "<internal>"
               }
             }
+          },
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [],
+            "kind": "Global",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
           }
         ],
         "var_config": [],
@@ -6014,7 +6028,7 @@ expression: json
         "config_variables": []
       }
     },
-    "bool_id": 37,
+    "bool_id": 77,
     "bool_annotation": {
       "Value": {
         "resulting_type": "BOOL"
