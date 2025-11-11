@@ -296,6 +296,10 @@ impl Pou {
     pub fn is_generic(&self) -> bool {
         !self.generics.is_empty()
     }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(self.kind, PouType::Program | PouType::FunctionBlock | PouType::Action | PouType::Class)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -313,11 +317,19 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
+/// Marks declaration and linking requirements for an ast member
 #[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
 pub enum LinkageType {
+    /// The element is declared in the project currently being complied
     Internal,
+    /// The element is declared externally and being used by the project
     External,
+    /// This indicates an element that should not have any declarations within the compiled project
+    /// For example a built in function is implied to exist but not declared
     BuiltIn,
+    // TODO: A private linkage indicates an internal element that should not be visible externally
+    // This is for example a static constructor that should not leak outside its module
+    // Private,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -518,8 +530,8 @@ impl VariableBlock {
     }
 
     pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
-       self.linkage = linkage;
-       self
+        self.linkage = linkage;
+        self
     }
 
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
@@ -684,6 +696,7 @@ pub struct UserTypeDeclaration {
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
+    pub linkage: LinkageType,
 }
 
 impl Debug for UserTypeDeclaration {

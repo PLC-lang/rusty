@@ -212,6 +212,7 @@ impl VirtualTableGenerator {
             initializer: None,
             location: location.clone(),
             scope: None,
+            linkage: pou.linkage,
         }
     }
 
