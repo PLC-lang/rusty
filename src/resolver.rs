@@ -388,28 +388,23 @@ impl TypeAnnotator<'_> {
                                         .get_name()
                                     }
                                     // Enum types need to be promoted based on their underlying integer type
-                                    DataTypeInformation::Enum { referenced_type, .. } => {
-                                        let enum_base_type =
-                                            self.index.get_effective_type_or_void_by_name(referenced_type);
-                                        if let DataTypeInformation::Integer { .. } =
-                                            enum_base_type.get_type_information()
-                                        {
-                                            if !enum_base_type.information.is_bool()
-                                                && !enum_base_type.information.is_character()
-                                            {
-                                                get_bigger_type(
-                                                    enum_base_type,
-                                                    self.index.get_type_or_panic(DINT_TYPE),
-                                                    self.index,
-                                                )
-                                                .get_name()
-                                            } else {
-                                                type_name
-                                            }
-                                        } else {
-                                            type_name
-                                        }
-                                    }
+                                    DataTypeInformation::Enum { referenced_type, .. } => self
+                                        .index
+                                        .get_effective_type_by_name(referenced_type)
+                                        .ok()
+                                        .filter(|dt| {
+                                            let info = dt.get_type_information();
+                                            info.is_int() && !(info.is_bool() || info.is_character())
+                                        })
+                                        .map(|enum_base_type| {
+                                            get_bigger_type(
+                                                enum_base_type,
+                                                self.index.get_type_or_panic(DINT_TYPE),
+                                                self.index,
+                                            )
+                                            .get_name()
+                                        })
+                                        .unwrap_or(type_name),
                                     _ => type_name,
                                 }
                             } else {
