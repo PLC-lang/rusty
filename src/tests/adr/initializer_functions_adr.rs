@@ -1394,13 +1394,21 @@ fn external_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_foo = type { void (%foo*)* }
     %foo = type { i32*, i32 }
+    %__vtable_foo = type { void (%foo*)* }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
-    @____vtable_foo__init = external unnamed_addr constant %__vtable_foo
     @__foo__init = external unnamed_addr constant %foo
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__vtable_foo_instance = external global %__vtable_foo
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
+
+    declare void @foo(%foo*)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align 4
+      %fb = alloca %foo, align 8
+      %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%foo* %fb)
@@ -1409,6 +1417,10 @@ fn external_initializers() {
       %main_ret = load i32, i32* %main, align 4
       ret i32 %main_ret
     }
+
+    declare void @__init_foo(%foo*)
+
+    declare void @__user_init_foo(%foo*)
 
     ; Function Attrs: argmemonly nofree nounwind willreturn
     declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
@@ -1454,11 +1466,12 @@ fn external_initializers_in_fbs() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main = type { i32*, %foo }
-    %foo = type { i32*, i32 }
     %__vtable_foo = type { void (%foo*)* }
+    %foo = type { i32*, i32 }
+    %main = type { i32*, %foo }
     %__vtable_main = type { void (%main*)* }
 
+    @__vtable_foo_instance = external global %__vtable_foo
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @__main__init = unnamed_addr constant %main { i32* null, %foo { i32* null, i32 5 } }
     @__foo__init = external unnamed_addr constant %foo
@@ -1466,7 +1479,6 @@ fn external_initializers_in_fbs() {
     @____vtable_main__init = unnamed_addr constant %__vtable_main zeroinitializer
     @main_inst = global %main { i32* null, %foo { i32* null, i32 5 } }
     @__vtable_main_instance = global %__vtable_main zeroinitializer
-    @__vtable_foo_instance = external global %__vtable_foo
 
     define void @main(%main* %0) {
     entry:
@@ -1479,7 +1491,6 @@ fn external_initializers_in_fbs() {
     }
 
     declare void @foo(%foo*)
-    declare void @__init___vtable_foo(%__vtable_foo* %0)
 
     define void @__init___vtable_main(%__vtable_main* %0) {
     entry:
@@ -1506,13 +1517,6 @@ fn external_initializers_in_fbs() {
 
     declare void @__init_foo(%foo*)
 
-    define void @__user_init___vtable_main(%__vtable_main* %0) {
-    entry:
-      %self = alloca %__vtable_main*, align 8
-      store %__vtable_main* %0, %__vtable_main** %self, align 8
-      ret void
-    }
-
     define void @__user_init_main(%main* %0) {
     entry:
       %self = alloca %main*, align 8
@@ -1525,7 +1529,12 @@ fn external_initializers_in_fbs() {
 
     declare void @__user_init_foo(%foo*)
 
-    declare void @__user_init___vtable_foo(%__vtable_foo* %0)
+    define void @__user_init___vtable_main(%__vtable_main* %0) {
+    entry:
+      %self = alloca %__vtable_main*, align 8
+      store %__vtable_main* %0, %__vtable_main** %self, align 8
+      ret void
+    }
 
     define void @__init___Test() {
     entry:
@@ -1570,18 +1579,18 @@ fn external_inherited_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
+    %__vtable_foo = type { void (%foo*)* }
+    %foo = type { i32*, i32 }
     %__vtable_bar = type { void (%bar*)* }
     %bar = type { %foo, i32 }
-    %foo = type { i32*, i32 }
-    %__vtable_foo = type { void (%foo*)* }
 
+    @__vtable_foo_instance = external global %__vtable_foo
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @____vtable_bar__init = unnamed_addr constant %__vtable_bar zeroinitializer
     @__bar__init = unnamed_addr constant %bar { %foo { i32* null, i32 5 }, i32 10 }
     @__foo__init = external unnamed_addr constant %foo
-    @____vtable_foo__init = external unnamed_addr constant %__vtable_foo
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
-    @__vtable_foo_instance = external global %__vtable_foo
 
     define void @bar(%bar* %0) {
     entry:
@@ -1593,10 +1602,6 @@ fn external_inherited_initializers() {
     }
 
     declare void @foo(%foo*)
-    declare void @__init_foo(%foo*)
-    declare void @__init___vtable_foo(%__vtable_foo*)
-    declare void @__user_init___vtable_foo(%__vtable_foo*)
-    declare void @__user_init_foo(%foo*)
 
     define i32 @main() {
     entry:
@@ -1631,17 +1636,15 @@ fn external_inherited_initializers() {
       store %bar* %0, %bar** %self, align 8
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 0
+      call void @__init_foo(%foo* %__foo)
+      %deref1 = load %bar*, %bar** %self, align 8
+      %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
       store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
       ret void
     }
 
-    define void @__user_init___vtable_bar(%__vtable_bar* %0) {
-    entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      ret void
-    }
+    declare void @__init_foo(%foo*)
 
     define void @__user_init_bar(%bar* %0) {
     entry:
@@ -1650,6 +1653,15 @@ fn external_inherited_initializers() {
       %deref = load %bar*, %bar** %self, align 8
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__user_init_foo(%foo* %__foo)
+      ret void
+    }
+
+    declare void @__user_init_foo(%foo*)
+
+    define void @__user_init___vtable_bar(%__vtable_bar* %0) {
+    entry:
+      %self = alloca %__vtable_bar*, align 8
+      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
       ret void
     }
 
@@ -1691,18 +1703,14 @@ fn external_struct_and_program_initializers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %myStruct = type { i32 }
     %baz = type { %myStruct }
+    %myStruct = type { i32 }
 
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
-    @baz_instance = external global %baz
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
+    @baz_instance = external global %baz
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
     declare void @baz(%baz*)
-    declare void @__init_mystruct(%myStruct*)
-    declare void @__init_baz(%baz*)
-    declare void @__user_init_baz(%baz*)
-    declare void @__user_init_myStruct(%myStruct*)
 
     define i32 @main() {
     entry:
@@ -1713,9 +1721,29 @@ fn external_struct_and_program_initializers() {
       ret i32 %main_ret
     }
 
-    define void @__init___Test() {
+    define void @__init_mystruct(%myStruct* %0) {
     entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
       ret void
     }
+
+    define void @__user_init_myStruct(%myStruct* %0) {
+    entry:
+      %self = alloca %myStruct*, align 8
+      store %myStruct* %0, %myStruct** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_baz(%baz* @baz_instance)
+      call void @__user_init_baz(%baz* @baz_instance)
+      ret void
+    }
+
+    declare void @__init_baz(%baz*)
+
+    declare void @__user_init_baz(%baz*)
     "#);
 }

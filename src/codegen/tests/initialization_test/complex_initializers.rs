@@ -3333,15 +3333,15 @@ fn user_init_called_when_declared_as_external() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %prog = type { %foo }
-    %foo = type { i32*, i16, i16 }
     %__vtable_foo = type { void (%foo*)*, void (%foo*)* }
+    %foo = type { i32*, i16, i16 }
+    %prog = type { %foo }
 
+    @__vtable_foo_instance = external global %__vtable_foo
     @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
     @prog_instance = global %prog zeroinitializer
     @__foo__init = external unnamed_addr constant %foo
     @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
-    @__vtable_foo_instance = global %__vtable_foo zeroinitializer
 
     declare void @foo(%foo*)
 
@@ -3354,25 +3354,17 @@ fn user_init_called_when_declared_as_external() {
       ret void
     }
 
-    define void @__init___vtable_foo(%__vtable_foo* %0) {
-    entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
-      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %FB_INIT = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__FB_INIT, void (%foo*)** %FB_INIT, align 8
-      ret void
-    }
-
     define void @__init_prog(%prog* %0) {
     entry:
       %self = alloca %prog*, align 8
       store %prog* %0, %prog** %self, align 8
+      %deref = load %prog*, %prog** %self, align 8
+      %f = getelementptr inbounds %prog, %prog* %deref, i32 0, i32 0
+      call void @__init_foo(%foo* %f)
       ret void
     }
+
+    declare void @__init_foo(%foo*)
 
     define void @__user_init_prog(%prog* %0) {
     entry:
@@ -3384,28 +3376,12 @@ fn user_init_called_when_declared_as_external() {
       ret void
     }
 
-    define void @__user_init_foo(%foo* %0) {
-    entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      call void @foo__FB_INIT(%foo* %deref)
-      ret void
-    }
-
-    define void @__user_init___vtable_foo(%__vtable_foo* %0) {
-    entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      ret void
-    }
+    declare void @__user_init_foo(%foo*)
 
     define void @__init___Test() {
     entry:
       call void @__init_prog(%prog* @prog_instance)
-      call void @__init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
       call void @__user_init_prog(%prog* @prog_instance)
-      call void @__user_init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
       ret void
     }
     "#);

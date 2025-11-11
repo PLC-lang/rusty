@@ -327,6 +327,9 @@ pub enum LinkageType {
     /// This indicates an element that should not have any declarations within the compiled project
     /// For example a built in function is implied to exist but not declared
     BuiltIn,
+    // TODO: A private linkage indicates an internal element that should not be visible externally
+    // This is for example a static constructor that should not leak outside its module
+    // Private,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]

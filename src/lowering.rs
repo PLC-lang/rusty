@@ -54,7 +54,7 @@ impl InitVisitor {
         unresolved_initializers: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
     ) -> Self {
-        let unresolved_initializers = dbg!(Initializers::new(&unresolved_initializers, &index));
+        let unresolved_initializers = Initializers::new(&unresolved_initializers, &index);
         Self {
             index,
             unresolved_initializers,
@@ -75,7 +75,7 @@ impl InitVisitor {
 
     fn collect_user_init_candidates(&mut self, unit: &mut CompilationUnit) {
         // collect all candidates for user-defined init functions
-        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program))
+        for pou in unit.pous.iter().filter(|it| matches!(it.kind, PouType::FunctionBlock | PouType::Program)).filter(|it| !matches!(it.linkage, LinkageType::BuiltIn))
         {
             // add the POU to potential `FB_INIT` candidates
             self.user_inits
@@ -83,11 +83,10 @@ impl InitVisitor {
         }
 
         for user_type in
-            unit.user_types.iter_mut().filter(|it| matches!(it.data_type, DataType::StructType { .. }))
+            unit.user_types.iter_mut().filter(|it| matches!(it.data_type, DataType::StructType { .. })).filter(|it| !matches!(it.linkage, LinkageType::BuiltIn))
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {
-                eprintln!("insert user init for {name}");
                 self.user_inits.insert(name.to_string(), false);
             };
         }
@@ -357,8 +356,8 @@ impl AstVisitorMut for InitVisitor {
     fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
         if !matches!(user_type.linkage, LinkageType::BuiltIn) {
             self.update_struct_initializers(user_type);
+            user_type.walk(self);
         }
-        user_type.walk(self);
     }
 
     fn visit_data_type(&mut self, data_type: &mut DataType) {

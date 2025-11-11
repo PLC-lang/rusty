@@ -1833,6 +1833,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);
@@ -1903,6 +1904,7 @@ fn aliased_hardware_access_variable_is_indexed_as_a_pointer() {
                     "<internal>",
                 ),
             },
+            linkage: Internal,
         },
     )
     "#);

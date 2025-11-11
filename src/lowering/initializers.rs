@@ -59,7 +59,7 @@ impl<'lwr> Init<'lwr> for Initializers {
                 }
             })
             .filter(|(scope, _)| {
-                dbg!(index.find_type(dbg!(scope)))
+                index.find_type(scope)
                     .is_some_and(|it| !matches!(it.linkage, LinkageType::BuiltIn))
             })
             .for_each(|(scope, data)| {
@@ -342,7 +342,7 @@ fn create_init_wrapper_function(
     let global_instances = if let Some(global_instances) =
         lowerer.unresolved_initializers.get(GLOBAL_SCOPE).map(|it| {
             it.keys().filter_map(|var_name| {
-                lowerer.index.find_variable(None, &[var_name]).and_then(|it| {
+                lowerer.index.find_variable(None, &[var_name]).filter(|it| !it.is_external()).and_then(|it| {
                     lowerer.index.find_effective_type_by_name(it.get_type_name()).and_then(|dt| {
                         let name = dt.get_type_information().get_name();
                         if dt.get_type_information().is_struct() {
