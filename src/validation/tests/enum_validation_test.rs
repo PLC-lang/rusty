@@ -372,7 +372,7 @@ fn enum_variants_initialized_with_other_enum_values() {
 }
 
 #[test]
-#[ignore = "currently fails during codegen"]
+#[ignore = "currently fails during codegen, tracked in #1546"]
 fn enum_type_assigned_without_qualifier() {
     let diagnostics = parse_and_validate_buffered(
         "
@@ -394,7 +394,7 @@ fn enum_type_assigned_without_qualifier() {
 }
 
 #[test]
-#[ignore = "currently fails during codegen"]
+#[ignore = "currently fails during codegen, tracked in #1546"]
 fn type_name_used_as_value() {
     let diagnostics = parse_and_validate_buffered(
         "
