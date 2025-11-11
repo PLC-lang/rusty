@@ -1,12 +1,7 @@
+use clap::ArgEnum;
 use std::path::PathBuf;
 
-use clap::ArgEnum;
-
-pub mod file_manager;
 pub mod header_generator;
-pub mod symbol_manager;
-pub mod template_manager;
-pub mod type_manager;
 
 #[cfg(test)]
 mod tests;

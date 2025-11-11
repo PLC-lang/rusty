@@ -41,7 +41,7 @@ use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
-use plc_header_generator::{header_generator::GeneratedHeader, GenerateHeaderOptions};
+use plc_header_generator::{GenerateHeaderOptions, header_generator::{GeneratedHeader, get_generated_header}};
 use plc_index::GlobalContext;
 use plc_lowering::inheritance::InheritanceLowerer;
 use project::{
@@ -465,23 +465,21 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             return Ok(());
         };
 
-        let mut generated_headers: Vec<GeneratedHeader> = Vec::new();
+        let mut generated_headers: Vec<Box<dyn GeneratedHeader>> = Vec::new();
 
         for unit in project.units {
-            let mut generated_header = GeneratedHeader::new();
-            generated_header.generate_headers(&generate_header_options, &unit.unit)?;
-            generated_headers.push(generated_header);
+            generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
         }
 
         for generated_header in generated_headers {
             if !generated_header.is_empty() {
                 // Create the directories to the output path (if it is necessary to do so)
-                if !generated_header.directory.is_empty() {
-                    fs::create_dir_all(generated_header.directory)?;
+                if !generated_header.get_directory().is_empty() {
+                    fs::create_dir_all(generated_header.get_directory())?;
                 }
 
                 // Write the header file
-                fs::write(generated_header.path, generated_header.contents)?;
+                fs::write(generated_header.get_path(), generated_header.get_contents())?;
             }
         }
 
