@@ -1136,7 +1136,6 @@ fn parse_string_type_definition(
     let location = lexer.source_range_factory.create_range(start..end);
 
     // Check if this is actually an enum type (e.g., STRING (a := 1, b := 2))
-    // If size is an ExpressionList with assignments, it's likely an invalid enum definition
     let is_enum_like = matches!(&size, Some(AstNode { stmt: AstStatement::ExpressionList(_), .. }));
 
     match (size, &name, is_enum_like) {
