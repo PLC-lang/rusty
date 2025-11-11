@@ -54,8 +54,7 @@ pub fn visit_data_type<T: AnnotationMap>(
                     .with_location(location),
                 );
             }
-        }
-         else {
+        } else {
             validator.push_diagnostic(Diagnostic::unknown_type(numeric_type, location));
         }
     }

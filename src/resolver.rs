@@ -389,9 +389,14 @@ impl TypeAnnotator<'_> {
                                     }
                                     // Enum types need to be promoted based on their underlying integer type
                                     DataTypeInformation::Enum { referenced_type, .. } => {
-                                        let enum_base_type = self.index.get_effective_type_or_void_by_name(referenced_type);
-                                        if let DataTypeInformation::Integer { .. } = enum_base_type.get_type_information() {
-                                            if !enum_base_type.information.is_bool() && !enum_base_type.information.is_character() {
+                                        let enum_base_type =
+                                            self.index.get_effective_type_or_void_by_name(referenced_type);
+                                        if let DataTypeInformation::Integer { .. } =
+                                            enum_base_type.get_type_information()
+                                        {
+                                            if !enum_base_type.information.is_bool()
+                                                && !enum_base_type.information.is_character()
+                                            {
                                                 get_bigger_type(
                                                     enum_base_type,
                                                     self.index.get_type_or_panic(DINT_TYPE),

@@ -1105,7 +1105,9 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
                         .with_location(error_range)
                         .with_error_code("E009"),
                 );
-            } else if !is_enum_like && (opening_token == KeywordParensOpen || lexer.token == KeywordParensClose) {
+            } else if !is_enum_like
+                && (opening_token == KeywordParensOpen || lexer.token == KeywordParensClose)
+            {
                 lexer.accept_diagnostic(Diagnostic::new(
                     "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
                     with_location(error_range)
@@ -1135,21 +1137,14 @@ fn parse_string_type_definition(
 
     // Check if this is actually an enum type (e.g., STRING (a := 1, b := 2))
     // If size is an ExpressionList with assignments, it's likely an invalid enum definition
-    let is_enum_like = matches!(
-        &size,
-        Some(AstNode { stmt: AstStatement::ExpressionList(_), .. })
-    );
+    let is_enum_like = matches!(&size, Some(AstNode { stmt: AstStatement::ExpressionList(_), .. }));
 
     match (size, &name, is_enum_like) {
         (Some(size), _, true) => {
             // This looks like an enum definition with STRING/WSTRING as the type
             // Create an EnumType so validation can catch it as invalid
             Some(DataTypeDeclaration::Definition {
-                data_type: Box::new(DataType::EnumType {
-                    name,
-                    numeric_type: text,
-                    elements: size,
-                }),
+                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
                 location,
                 scope: lexer.scope.clone(),
             })
@@ -1189,11 +1184,8 @@ fn parse_enum_type_definition(
 
     // Check for Codesys-style type specification after the enum list
     // TYPE COLOR : (...) DWORD;
-    let numeric_type = if lexer.token == Identifier {
-        lexer.slice_and_advance()
-    } else {
-        DINT_TYPE.to_string()
-    };
+    let numeric_type =
+        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
 
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((

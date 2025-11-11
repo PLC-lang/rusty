@@ -416,7 +416,7 @@ fn type_name_used_as_value() {
         END_PROGRAM
         ",
     );
-    
+
     assert!(diagnostics.len() > 0);
     assert_snapshot!(diagnostics, @r#""#);
 }

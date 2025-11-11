@@ -366,8 +366,8 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                             Some(v) => Ok((it.get_qualified_name(), v)),
                             None => self
                                 .types_index
-                                        .get_associated_type(it.get_type_name())
-                                        .map(get_default_for)
+                                .get_associated_type(it.get_type_name())
+                                .map(get_default_for)
                                 .map(|v| (it.get_qualified_name(), v)),
                         })
                     })
