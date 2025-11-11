@@ -207,17 +207,12 @@ impl VirtualTableGenerator {
             members.push(member);
         }
 
-        // For vtables structs, if the original POU is external, declare the struct as built in so
-        // no initializer is generated for it.
-        let linkage =
-            if matches!(pou.linkage, LinkageType::External) { LinkageType::BuiltIn } else { pou.linkage };
-
         UserTypeDeclaration {
             data_type: DataType::StructType { name: Some(helper::get_vtable_name(pou)), variables: members },
             initializer: None,
             location: location.clone(),
             scope: None,
-            linkage,
+            linkage: pou.linkage,
         }
     }
 

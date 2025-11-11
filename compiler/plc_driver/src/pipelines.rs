@@ -24,8 +24,8 @@ use plc::{
     index::{indexer, FxIndexSet, Index},
     linker::LinkerType,
     lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
+        calls::AggregateTypeLowerer, init_visitor::InitVisitor, polymorphism::PolymorphicCallLowerer,
+        property::PropertyLowerer, vtable::VirtualTableGenerator,
     },
     output::FormatOption,
     parser::parse_file,

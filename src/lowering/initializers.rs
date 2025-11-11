@@ -1,6 +1,7 @@
 use crate::{
     index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet, Index},
-    lowering::{create_call_statement, create_member_reference},
+    lowering::helper::{create_assignments_from_initializer, create_call_statement, create_member_reference},
+    lowering::init_visitor::InitVisitor,
     resolver::const_evaluator::UnresolvableConstant,
 };
 use plc_ast::{
@@ -12,7 +13,6 @@ use plc_ast::{
 };
 use plc_source::source_location::{FileMarker, SourceLocation};
 
-use super::{create_assignments_from_initializer, InitVisitor};
 pub(crate) const GLOBAL_SCOPE: &str = "__global";
 const INIT_COMPILATION_UNIT: &str = "__initializers";
 const VAR_CONFIG_INIT: &str = "__init___var_config";
@@ -59,8 +59,7 @@ impl<'lwr> Init<'lwr> for Initializers {
                 }
             })
             .filter(|(scope, _)| {
-                index.find_type(scope)
-                    .is_some_and(|it| !matches!(it.linkage, LinkageType::BuiltIn))
+                index.find_type(scope).is_some_and(|it| !matches!(it.linkage, LinkageType::BuiltIn))
             })
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
