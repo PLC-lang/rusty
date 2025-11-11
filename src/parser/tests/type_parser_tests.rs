@@ -323,3 +323,526 @@ fn optional_semicolon_at_end_of_endstruct_keyword_is_consumed() {
 
     assert!(diagnostics.is_empty())
 }
+
+#[test]
+fn enum_61131_standard_style_type_before_list() {
+    // TYPE COLOR : DWORD (...) := default;
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE COLOR : DWORD (
+            white := 16#FFFFFF00,
+            yellow := 16#FFFF0000,
+            green := 16#FF00FF00,
+            blue := 16#FF0000FF,
+            black := 16#88000000
+        ) := black;
+        END_TYPE
+        "#,
+    );
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "COLOR",
+            ),
+            numeric_type: "DWORD",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "white",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4294967040,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "yellow",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4294901760,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "green",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4278255360,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "blue",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4278190335,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "black",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 2281701376,
+                        },
+                    },
+                ],
+            },
+        },
+        initializer: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "black",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn enum_mixed_style_type_before_and_after_list() {
+    // TYPE COLOR : INT (...) DWORD - invalid mixed syntax
+    let (_result, diagnostics) = parse_buffered(
+        r#"
+        TYPE MyEnum : INT (a := 1, b := 2) DWORD;
+        END_TYPE
+        "#,
+    );
+    // This should produce a diagnostic since types are specified twice
+    assert!(!diagnostics.is_empty(), "Expected diagnostic for mixed enum type syntax");
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected KeywordSemicolon but found 'DWORD'
+      ┌─ <internal>:2:44
+      │
+    2 │         TYPE MyEnum : INT (a := 1, b := 2) DWORD;
+      │                                            ^^^^^ Unexpected token: expected KeywordSemicolon but found 'DWORD'
+    ");
+}
+
+#[test]
+fn enum_codesys_style_type_after_list() {
+    // TYPE COLOR : (...) DWORD := default;
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE COLOR : (
+            white := 16#FFFFFF00,
+            yellow := 16#FFFF0000,
+            green := 16#FF00FF00,
+            blue := 16#FF0000FF,
+            black := 16#88000000
+        ) DWORD := black;
+        END_TYPE
+        "#,
+    );
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "COLOR",
+            ),
+            numeric_type: "DWORD",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "white",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4294967040,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "yellow",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4294901760,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "green",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4278255360,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "blue",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 4278190335,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "black",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 2281701376,
+                        },
+                    },
+                ],
+            },
+        },
+        initializer: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "black",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn enum_with_default_value_no_type_specified() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE STATE : (idle := 0, running := 1, stopped := 2) := running;
+        END_TYPE
+        "#,
+    );
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "STATE",
+            ),
+            numeric_type: "DINT",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "idle",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "running",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "stopped",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 2,
+                        },
+                    },
+                ],
+            },
+        },
+        initializer: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "running",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn enum_61131_style_with_byte_type_and_default() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE STATE : BYTE (idle := 0, running := 1, stopped := 2) := running;
+        END_TYPE
+        "#,
+    );
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "STATE",
+            ),
+            numeric_type: "BYTE",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "idle",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "running",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 1,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "stopped",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 2,
+                        },
+                    },
+                ],
+            },
+        },
+        initializer: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "running",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn enum_codesys_style_with_int_type_and_default() {
+    let (result, diagnostics) = parse(
+        r#"
+        TYPE PRIORITY : (low := 10, medium := 20, high := 30) INT := medium;
+        END_TYPE
+        "#,
+    );
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "PRIORITY",
+            ),
+            numeric_type: "INT",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "low",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 10,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "medium",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 20,
+                        },
+                    },
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "high",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 30,
+                        },
+                    },
+                ],
+            },
+        },
+        initializer: Some(
+            ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "medium",
+                    },
+                ),
+                base: None,
+            },
+        ),
+        scope: None,
+    }
+    "#);
+    assert_eq!(diagnostics.len(), 0);
+}
+
+#[test]
+fn enum_with_no_elements_produces_syntax_error() {
+    // Empty enums are syntactically invalid - parser requires at least one element
+    let (result, diagnostics) = parse_buffered(
+        r#"
+        TYPE EMPTY_ENUM : INT ();
+        END_TYPE
+
+        TYPE ANOTHER_EMPTY_ENUM : () INT;
+        "#,
+    );
+    assert!(diagnostics.len() > 0);
+    assert_snapshot!(diagnostics, @r"
+    error[E007]: Unexpected token: expected Literal but found )
+      ┌─ <internal>:2:32
+      │
+    2 │         TYPE EMPTY_ENUM : INT ();
+      │                                ^ Unexpected token: expected Literal but found )
+
+    error[E007]: Unexpected token: expected Literal but found )
+      ┌─ <internal>:5:36
+      │
+    5 │         TYPE ANOTHER_EMPTY_ENUM : () INT;
+      │                                    ^ Unexpected token: expected Literal but found )
+
+    error[E007]: Unexpected token: expected KeywordEndType but found ''
+      ┌─ <internal>:6:9
+      │
+    6 │         
+      │         ^ Unexpected token: expected KeywordEndType but found ''
+    ");
+    // User type should still be created despite the error (error recovery)
+    assert_debug_snapshot!(result.user_types[0], @r#"
+    UserTypeDeclaration {
+        data_type: SubRangeType {
+            name: Some(
+                "EMPTY_ENUM",
+            ),
+            referenced_type: "INT",
+            bounds: Some(
+                EmptyStatement,
+            ),
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+    assert_debug_snapshot!(result.user_types[1], @r#"
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "ANOTHER_EMPTY_ENUM",
+            ),
+            numeric_type: "INT",
+            elements: EmptyStatement,
+        },
+        initializer: None,
+        scope: None,
+    }
+    "#);
+}
