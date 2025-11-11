@@ -140,9 +140,9 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
                     // there was an error during evaluation
                     (Err(kind), _) => {
                         //error during resolving
-                        dbg!(index.get_mut_const_expressions().find_const_expression(&candidate));
+                        index.get_mut_const_expressions().find_const_expression(&candidate);
                         unresolvable.push(
-                            dbg!(UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone())),
+                            UnresolvableConstant::new(candidate, kind.get_reason()).with_kind(kind.clone()),
                         );
                         index
                             .get_mut_const_expressions()

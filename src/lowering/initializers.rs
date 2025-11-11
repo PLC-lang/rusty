@@ -1,5 +1,5 @@
 use crate::{
-    index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet},
+    index::{const_expressions::UnresolvableKind, get_init_fn_name, FxIndexMap, FxIndexSet, Index},
     lowering::{create_call_statement, create_member_reference},
     resolver::const_evaluator::UnresolvableConstant,
 };
@@ -28,7 +28,7 @@ pub(crate) trait Init<'lwr>
 where
     Self: Sized + Default,
 {
-    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self;
+    fn new(candidates: &'lwr [UnresolvableConstant], index: &Index) -> Self;
     /// Inserts an initializer only if no entry exists for the given variable
     fn maybe_insert_initializer(
         &mut self,
@@ -46,7 +46,7 @@ where
 }
 
 impl<'lwr> Init<'lwr> for Initializers {
-    fn new(candidates: &'lwr [UnresolvableConstant]) -> Self {
+    fn new(candidates: &'lwr [UnresolvableConstant], index: &Index) -> Self {
         let mut assignments = Self::default();
         candidates
             .iter()
@@ -57,6 +57,10 @@ impl<'lwr> Init<'lwr> for Initializers {
                 } else {
                     None
                 }
+            })
+            .filter(|(scope, _)| {
+                dbg!(index.find_type(dbg!(scope)))
+                    .is_some_and(|it| !matches!(it.linkage, LinkageType::BuiltIn))
             })
             .for_each(|(scope, data)| {
                 assignments.maybe_insert_initializer(
@@ -127,15 +131,17 @@ impl InitVisitor {
 
 fn create_var_config_init(statements: Vec<AstNode>, mut id_provider: IdProvider) -> CompilationUnit {
     let loc = SourceLocation::internal_in_unit(Some(INIT_COMPILATION_UNIT));
-    let pou = new_pou(VAR_CONFIG_INIT, id_provider.next_id(), vec![], PouType::Init, LinkageType::Internal, &loc); // this can probably just be internal
-    let implementation = new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, LinkageType::Internal, loc);
+    let pou =
+        new_pou(VAR_CONFIG_INIT, id_provider.next_id(), vec![], PouType::Init, LinkageType::Internal, &loc); // this can probably just be internal
+    let implementation =
+        new_implementation(VAR_CONFIG_INIT, statements, PouType::Init, LinkageType::Internal, loc);
     new_unit(pou, implementation, INIT_COMPILATION_UNIT)
 }
 
 fn create_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
     let lookup = lowerer.unresolved_initializers.keys().map(|it| it.as_str()).collect::<FxIndexSet<_>>();
     lowerer
-            .unresolved_initializers
+        .unresolved_initializers
         .iter()
         .filter_map(|(container, init)| {
             // globals will be initialized in the `__init` body
@@ -162,7 +168,10 @@ fn create_init_unit(
         .index
         .find_pou(container_name)
         .map(|it| (it.is_function() || it.is_method(), it.get_location(), *it.get_linkage()))
-        .unwrap_or_else(|| (false, &lowerer.index.get_type_or_panic(container_name).location, LinkageType::Internal));
+        .unwrap_or_else(|| {
+            let datatype = lowerer.index.get_type_or_panic(container_name);
+            (false, &datatype.location, datatype.linkage)
+        });
 
     if is_stateless {
         // functions do not get their own init-functions -
@@ -188,7 +197,8 @@ fn create_init_unit(
         "self".to_string(),
     );
 
-    let init_pou = new_pou(&init_fn_name, id_provider.next_id(), self_param, PouType::Init, linkage, &location);
+    let init_pou =
+        new_pou(&init_fn_name, id_provider.next_id(), self_param, PouType::Init, linkage, &location);
 
     let mut statements = Vec::new();
 
@@ -261,8 +271,12 @@ fn create_user_init_units(lowerer: &InitVisitor) -> Vec<CompilationUnit> {
                     location: location.clone(),
                 }])];
 
-
-            let linkage = lowerer.index.find_pou(container_name).map(|it|*it.get_linkage()).unwrap_or(LinkageType::Internal);
+            let linkage = lowerer
+                .index
+                .find_pou(container_name)
+                .map(|it| *it.get_linkage())
+                .or_else(|| lowerer.index.find_type(container_name).map(|it| it.linkage))
+                .unwrap_or(LinkageType::Internal);
             let fn_name = get_user_init_fn_name(container_name);
             let init_pou = new_pou(&fn_name, id_provider.next_id(), param, PouType::Init, linkage, &location);
 
@@ -389,8 +403,13 @@ fn create_init_wrapper_function(
 
     let user_init_calls = get_global_user_init_statements(lowerer);
     let statements = [calls, statements, user_init_calls].concat();
-    let implementation =
-        new_implementation(init_symbol_name, statements, PouType::ProjectInit, LinkageType::Internal, SourceLocation::internal());
+    let implementation = new_implementation(
+        init_symbol_name,
+        statements,
+        PouType::ProjectInit,
+        LinkageType::Internal,
+        SourceLocation::internal(),
+    );
     let mut global_init = new_unit(init_pou, implementation, init_symbol_name);
 
     if skip_var_config {
@@ -465,7 +484,7 @@ fn new_pou(
         name_location: location.to_owned(),
         poly_mode: None,
         generics: vec![],
-        linkage: LinkageType::Internal,
+        linkage,
         super_class: None,
         interfaces: vec![],
         properties: vec![],
@@ -483,7 +502,7 @@ fn new_implementation(
     Implementation {
         name: name.into(),
         type_name: name.into(),
-        linkage: LinkageType::Internal,
+        linkage,
         pou_type,
         statements,
         location: location.clone(),
@@ -560,12 +579,8 @@ fn create_vtable_initializer(lowerer: &InitVisitor, ids: &mut IdProvider, pou_na
 
 #[cfg(test)]
 mod tests {
-    use inkwell::module::Linkage;
-    use insta::assert_debug_snapshot;
     use plc_ast::ast::LinkageType;
     use test_utils::parse_and_validate_buffered_ast;
-
-    use crate::lowering::vtable;
 
     #[test]
     fn usertype_todo_better_name_00() {
@@ -1674,22 +1689,32 @@ mod tests {
         let init_base = init_unit.implementations.iter().find(|it| it.name == "__init_fb_base").unwrap();
         assert_eq!(init_base.linkage, LinkageType::Internal);
         // Check that a vtable_init for base was generated
-        let vtable_init_base = init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_base").unwrap();
+        let vtable_init_base =
+            init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_base").unwrap();
         assert_eq!(vtable_init_base.linkage, LinkageType::Internal);
         // Make sure the variable block containing the base vtable is internal
-        let variable_block = units[0].global_vars.iter().find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Base_instance")).unwrap();
+        let variable_block = units[0]
+            .global_vars
+            .iter()
+            .find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Base_instance"))
+            .unwrap();
         assert_eq!(variable_block.linkage, LinkageType::Internal);
         // Make sure the derived initializer is still internal
-        let init_derived = init_unit.implementations.iter().find(|it| it.name == "__init_fb_derived").unwrap();
+        let init_derived =
+            init_unit.implementations.iter().find(|it| it.name == "__init_fb_derived").unwrap();
         assert_eq!(init_derived.linkage, LinkageType::Internal);
         // Make sure the derived vtable initializer is still internal
-        let vtable_init_derived = init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_derived").unwrap();
+        let vtable_init_derived =
+            init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_derived").unwrap();
         assert_eq!(vtable_init_derived.linkage, LinkageType::Internal);
         // Make sure the variable block containing the derived vtable is internal
-        let variable_block = units[0].global_vars.iter().find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Derived_instance")).unwrap();
+        let variable_block = units[0]
+            .global_vars
+            .iter()
+            .find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Derived_instance"))
+            .unwrap();
         assert_eq!(variable_block.linkage, LinkageType::Internal);
     }
-
 
     #[test]
     fn function_block_initializer_with_external_base_call() {
@@ -1717,21 +1742,30 @@ mod tests {
         let init_base = init_unit.implementations.iter().find(|it| it.name == "__init_fb_base").unwrap();
         assert_eq!(init_base.linkage, LinkageType::External);
         // Check that a vtable_init for base was generated
-        let vtable_init_base = init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_base").unwrap();
+        let vtable_init_base =
+            init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_base").unwrap();
         assert_eq!(vtable_init_base.linkage, LinkageType::External);
         // Make sure the variable block containing the base vtable is internal
-        let variable_block = units[0].global_vars.iter().find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Base_instance")).unwrap();
+        let variable_block = units[0]
+            .global_vars
+            .iter()
+            .find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Base_instance"))
+            .unwrap();
         assert_eq!(variable_block.linkage, LinkageType::External);
         // Make sure the derived initializer is still internal
-        let init_derived = init_unit.implementations.iter().find(|it| it.name == "__init_fb_derived").unwrap();
+        let init_derived =
+            init_unit.implementations.iter().find(|it| it.name == "__init_fb_derived").unwrap();
         assert_eq!(init_derived.linkage, LinkageType::Internal);
         // Make sure the derived vtable initializer is still internal
-        let vtable_init_derived = init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_derived").unwrap();
+        let vtable_init_derived =
+            init_unit.implementations.iter().find(|it| it.name == "__init___vtable_fb_derived").unwrap();
         assert_eq!(vtable_init_derived.linkage, LinkageType::Internal);
         // Make sure the variable block containing the derived vtable is internal
-        let variable_block = units[0].global_vars.iter().find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Derived_instance")).unwrap();
+        let variable_block = units[0]
+            .global_vars
+            .iter()
+            .find(|it| it.variables.iter().any(|it| it.name == "__vtable_FB_Derived_instance"))
+            .unwrap();
         assert_eq!(variable_block.linkage, LinkageType::Internal);
     }
-
-
 }

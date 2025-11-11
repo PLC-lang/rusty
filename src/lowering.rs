@@ -54,9 +54,10 @@ impl InitVisitor {
         unresolved_initializers: Vec<UnresolvableConstant>,
         id_provider: IdProvider,
     ) -> Self {
+        let unresolved_initializers = dbg!(Initializers::new(&unresolved_initializers, &index));
         Self {
             index,
-            unresolved_initializers: Initializers::new(&unresolved_initializers),
+            unresolved_initializers,
             var_config_initializers: vec![],
             user_inits: FxHashMap::default(),
             ctxt: Context::new(id_provider),
@@ -86,6 +87,7 @@ impl InitVisitor {
         {
             // add the struct to potential `STRUCT_INIT` candidates
             if let Some(name) = user_type.data_type.get_name() {
+                eprintln!("insert user init for {name}");
                 self.user_inits.insert(name.to_string(), false);
             };
         }
@@ -248,11 +250,7 @@ impl InitVisitor {
             |var| {
                 let dti =
                     self.index.get_effective_type_or_void_by_name(var.get_type_name()).get_type_information();
-                let is_external = self
-                    .index
-                    .find_pou(dti.get_name())
-                    .is_some_and(|it| it.get_linkage() == &LinkageType::External);
-                if dti.is_struct() && !is_external {
+                if dti.is_struct() {
                     implicit_calls.push(create_call_statement(
                         &get_init_fn_name(dti.get_name()),
                         var.get_name(),
@@ -324,12 +322,7 @@ impl InitVisitor {
         let info =
             self.index.get_effective_type_or_void_by_name(global.get_type_name()).get_type_information();
 
-        if !info.is_struct()
-            || self
-                .index
-                .find_pou(info.get_name())
-                .is_some_and(|it| it.get_linkage() == &LinkageType::External)
-        {
+        if !info.is_struct() {
             return;
         }
 
@@ -362,7 +355,9 @@ impl AstVisitorMut for InitVisitor {
     }
 
     fn visit_user_type_declaration(&mut self, user_type: &mut plc_ast::ast::UserTypeDeclaration) {
-        self.update_struct_initializers(user_type);
+        if !matches!(user_type.linkage, LinkageType::BuiltIn) {
+            self.update_struct_initializers(user_type);
+        }
         user_type.walk(self);
     }
 
@@ -375,7 +370,7 @@ impl AstVisitorMut for InitVisitor {
     }
 
     fn visit_pou(&mut self, pou: &mut plc_ast::ast::Pou) {
-        if !matches!(pou.linkage, LinkageType::External | LinkageType::BuiltIn) {
+        if !matches!(pou.linkage, LinkageType::BuiltIn) {
             self.unresolved_initializers.maybe_insert_initializer(&pou.name, None, &None);
         }
 

@@ -1776,6 +1776,7 @@ impl<'i> TypeAnnotator<'i> {
                         information,
                         nature: TypeNature::Any,
                         location: SourceLocation::internal(),
+                        linkage: plc_ast::ast::LinkageType::Internal,
                     };
                     self.annotation_map.new_index.register_type(dt);
                 }
@@ -2461,6 +2462,7 @@ fn register_string_type(index: &mut Index, is_wide: bool, len: usize) -> String 
                 size: typesystem::TypeSize::LiteralInteger(len as i64 + 1),
             },
             location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         });
     }
     new_type_name
@@ -2483,6 +2485,7 @@ pub(crate) fn add_pointer_type(index: &mut Index, inner_type_name: String, type_
                 is_function: false,
             },
             location: SourceLocation::internal(),
+            linkage: plc_ast::ast::LinkageType::Internal,
         });
     }
     new_type_name

@@ -303,7 +303,8 @@ impl Diagnostic {
 
     pub fn cannot_generate_call_statement(operator: &AstNode) -> Diagnostic {
         //TODO: We could probably get a better slice here
-        Diagnostic::codegen_error(format!("cannot generate call statement for {:?}", operator), operator)
+        panic!("{operator:?}");
+        // Diagnostic::codegen_error(format!("cannot generate call statement for {:?}", operator), operator)
     }
 
     pub fn cannot_generate_from_empty_literal<T>(type_name: &str, location: T) -> Diagnostic

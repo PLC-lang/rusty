@@ -1401,19 +1401,6 @@ fn external_initializers() {
     @____vtable_foo__init = external unnamed_addr constant %__vtable_foo
     @__foo__init = external unnamed_addr constant %foo
     @__vtable_foo_instance = external global %__vtable_foo
-
-    declare void @foo(%foo*)
-    declare void @__init_foo(%foo*)
-    declare void @__init___vtable_foo(%__vtable_foo*)
-    declare void @__user_init___vtable_foo(%__vtable_foo*)
-    declare void @__user_init_foo(%foo*)
-
-
-    define i32 @main() {
-    entry:
-      %main = alloca i32, align 4
-      %fb = alloca %foo, align 8
-      %0 = bitcast %foo* %fb to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
       store i32 0, i32* %main, align 4
       call void @__init_foo(%foo* %fb)
@@ -1432,6 +1419,122 @@ fn external_initializers() {
     }
 
     attributes #0 = { argmemonly nofree nounwind willreturn }
+    "#);
+}
+
+///
+/// Initializers for external members happens in the external libraries
+/// The current module defines such external initializers as declarations only
+/// This also applies to any vtable initializers for external FBs
+#[test]
+fn external_initializers_in_fbs() {
+    let src = r"
+    {external} FUNCTION_BLOCK foo
+        VAR
+            x : DINT := 5;
+        END_VAR
+    END_FUNCTION_BLOCK
+
+    FUNCTION_BLOCK main
+    VAR
+        fb: foo;
+    END_VAR
+        fb();
+    END_FUNCTION_BLOCK
+
+    VAR_GLOBAL
+        main_inst : main;
+    END_VAR
+    ";
+
+    let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
+    filtered_assert_snapshot!(res, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type { i32*, %foo }
+    %foo = type { i32*, i32 }
+    %__vtable_foo = type { void (%foo*)* }
+    %__vtable_main = type { void (%main*)* }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___Test, i8* null }]
+    @__main__init = unnamed_addr constant %main { i32* null, %foo { i32* null, i32 5 } }
+    @__foo__init = external unnamed_addr constant %foo
+    @____vtable_foo__init = unnamed_addr constant %__vtable_foo zeroinitializer
+    @____vtable_main__init = unnamed_addr constant %__vtable_main zeroinitializer
+    @main_inst = global %main { i32* null, %foo { i32* null, i32 5 } }
+    @__vtable_main_instance = global %__vtable_main zeroinitializer
+    @__vtable_foo_instance = external global %__vtable_foo
+
+    define void @main(%main* %0) {
+    entry:
+      %this = alloca %main*, align 8
+      store %main* %0, %main** %this, align 8
+      %__vtable = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+      %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      call void @foo(%foo* %fb)
+      ret void
+    }
+
+    declare void @foo(%foo*)
+    declare void @__init___vtable_foo(%__vtable_foo* %0)
+
+    define void @__init___vtable_main(%__vtable_main* %0) {
+    entry:
+      %self = alloca %__vtable_main*, align 8
+      store %__vtable_main* %0, %__vtable_main** %self, align 8
+      %deref = load %__vtable_main*, %__vtable_main** %self, align 8
+      %__body = getelementptr inbounds %__vtable_main, %__vtable_main* %deref, i32 0, i32 0
+      store void (%main*)* @main, void (%main*)** %__body, align 8
+      ret void
+    }
+
+    define void @__init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      %deref = load %main*, %main** %self, align 8
+      %fb = getelementptr inbounds %main, %main* %deref, i32 0, i32 1
+      call void @__init_foo(%foo* %fb)
+      %deref1 = load %main*, %main** %self, align 8
+      %__vtable = getelementptr inbounds %main, %main* %deref1, i32 0, i32 0
+      store i32* bitcast (%__vtable_main* @__vtable_main_instance to i32*), i32** %__vtable, align 8
+      ret void
+    }
+
+    declare void @__init_foo(%foo*)
+
+    define void @__user_init___vtable_main(%__vtable_main* %0) {
+    entry:
+      %self = alloca %__vtable_main*, align 8
+      store %__vtable_main* %0, %__vtable_main** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_main(%main* %0) {
+    entry:
+      %self = alloca %main*, align 8
+      store %main* %0, %main** %self, align 8
+      %deref = load %main*, %main** %self, align 8
+      %fb = getelementptr inbounds %main, %main* %deref, i32 0, i32 1
+      call void @__user_init_foo(%foo* %fb)
+      ret void
+    }
+
+    declare void @__user_init_foo(%foo*)
+
+    declare void @__user_init___vtable_foo(%__vtable_foo* %0)
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_main(%main* @main_inst)
+      call void @__init___vtable_main(%__vtable_main* @__vtable_main_instance)
+      call void @__user_init_main(%main* @main_inst)
+      call void @__user_init___vtable_main(%__vtable_main* @__vtable_main_instance)
+      ret void
+    }
     "#);
 }
 
