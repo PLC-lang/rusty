@@ -84,7 +84,8 @@ default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
 insta = { version = "1.31.0", features = ["filters"] }
-inkwell = { version = "0.6", features = ["llvm14-0"] }
+# inkwell = { version = "0.6", features = ["llvm14-0"] }
+inkwell = { git = "https://github.com/abroooo/inkwell", branch = "abroooo/enumeration_type" , features = ["llvm14-0"] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 log = "0.4"
@@ -96,3 +97,6 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 toml = "0.5"
 rustc-hash = "1.1.0"
+
+[patch.crates-io]
+inkwell = { git = "https://github.com/abroooo/inkwell", branch = "abroooo/enumeration_type" }

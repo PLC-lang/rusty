@@ -429,7 +429,10 @@ impl<'ink> DebugBuilder<'ink> {
                         DebugEncoding::DW_ATE_unsigned as u32,
                         DIFlagsConstants::PUBLIC,
                     )
-                    .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?,
+                    // .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?,
+                    .map_err(|err| {
+                        Diagnostic::codegen_error(format!("{:?}", err), SourceLocation::undefined())
+                    })?,
             )
         } else {
             self.get_or_create_debug_type(inner_type, index, types_index)?

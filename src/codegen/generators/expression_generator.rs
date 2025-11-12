@@ -9,7 +9,6 @@ use inkwell::{
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use itertools::Either;
 use rustc_hash::FxHashSet;
 
 use plc_ast::{
@@ -571,21 +570,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // if the target is a function, declare the struct locally
         // assign all parameters into the struct values
 
-        // so grab either:
-        // - the call's return value
-        // - or a null-ptr
-        let value = call
-            .try_as_basic_value()
-            .either(Ok, |_| {
-                // we return an uninitialized int pointer for void methods :-/
-                // dont deref it!!
-                Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                    .const_null()
-                    .as_basic_value_enum())
-            })
-            .map(ExpressionValue::RValue);
-
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
         // FUNCTION outputs are defined as `rusty::index::ArgumentType::ByRef` // FIXME(mhasel): for standard-compliance functions also need to support VAR_OUTPUT
@@ -598,7 +582,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
 
-        value
+        // if the target is a function, declare the struct locally
+        // assign all parameters into the struct values
+
+        // so grab either:
+        // - the call's return value
+        // - or a null-ptr
+        Ok(ExpressionValue::RValue(call.try_as_basic_value().basic().unwrap_or_else(|| {
+            // we return an uninitialized int pointer for void methods :-/
+            // dont deref it!!
+            get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum()
+        })))
     }
 
     fn generate_fnptr_call(
@@ -668,21 +665,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .build_call(callable, &arguments_llvm, "fnptr_call")
             .map_err(CodegenError::from)?;
 
-        let value = match call.try_as_basic_value() {
-            Either::Left(value) => value,
-            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
-                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                .const_null()
-                .as_basic_value_enum(),
-        };
-
         // Output variables are assigned after the function block call, effectively gep'ing the instance
         // struct fetching the output values
         if impl_entry.is_function_block() {
             self.assign_output_values(instance, qualified_pou_name, arguments_raw)?
         }
-
-        Ok(ExpressionValue::RValue(value))
+        Ok(ExpressionValue::RValue(call.try_as_basic_value().basic().unwrap_or_else(|| {
+            // we return an uninitialized int pointer for void methods :-/
+            // dont deref it!!
+            get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum()
+        })))
     }
 
     /// copies the output values to the assigned output variables
