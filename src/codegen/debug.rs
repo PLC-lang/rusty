@@ -4,7 +4,7 @@ use inkwell::{
     basic_block::BasicBlock,
     context::Context,
     debug_info::{
-        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIFile, DIFlags,
+        AsDIScope, DIBasicType, DICompileUnit, DICompositeType, DIDerivedType, DIEnumerator, DIFile, DIFlags,
         DIFlagsConstants, DILocalVariable, DIScope, DISubprogram, DISubroutineType, DIType,
         DWARFEmissionKind, DebugInfoBuilder,
     },
@@ -141,6 +141,7 @@ enum DebugType<'ink> {
     Struct(DICompositeType<'ink>),
     Derived(DIDerivedType<'ink>),
     Composite(DICompositeType<'ink>),
+    Enumeration(DICompositeType<'ink>),
 }
 
 impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
@@ -150,6 +151,7 @@ impl<'ink> From<DebugType<'ink>> for DIType<'ink> {
             DebugType::Struct(t) => t.as_type(),
             DebugType::Derived(t) => t.as_type(),
             DebugType::Composite(t) => t.as_type(),
+            DebugType::Enumeration(t) => t.as_type(),
         }
     }
 }
@@ -287,8 +289,69 @@ impl<'ink> DebugBuilder<'ink> {
         let res = self
             .debug_info
             .create_basic_type(name, size, encoding as u32, DIFlagsConstants::PUBLIC)
-            .map_err(|err| Diagnostic::codegen_error(err, location))?;
+            .map_err(|err| Diagnostic::codegen_error(format!("{}", err), location))?;
         self.register_concrete_type(name, DebugType::Basic(res));
+        Ok(())
+    }
+
+    fn create_enum_type(
+        &mut self,
+        name: &str,
+        variants: Vec<VariableIndexEntry>,
+        referenced_type: &str,
+        location: &SourceLocation,
+        index: &Index,
+        types_index: &LlvmTypedIndex,
+    ) -> Result<(), Diagnostic> {
+        if location.is_internal() {
+            return Ok(());
+        }
+
+        let inner_dt = index.get_effective_type_by_name(referenced_type)?;
+        let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
+        let file = location
+            .get_file_name()
+            .map(|it| self.get_or_create_debug_file(it))
+            .unwrap_or_else(|| self.compile_unit.get_file());
+
+        let llvm_type = types_index.get_associated_type(name)?;
+        let size_bits = self.target_data.get_bit_size(&llvm_type);
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
+
+        let enum_elements: Vec<DIEnumerator> = variants
+            .iter()
+            .enumerate()
+            .map(|(idx, variant)| {
+                // Access the initial_value field and convert to integer
+                let value = variant
+                    .initial_value
+                    .as_ref()
+                    .and_then(|const_id| {
+                        index
+                            .get_const_expressions()
+                            .get_constant_int_statement_value(const_id)
+                            .ok()
+                            .map(|v| v as i64)
+                    })
+                    .unwrap_or(idx as i64);
+
+                let is_unsigned = inner_dt.get_type_information().is_unsigned_int();
+                self.debug_info.create_enumerator(variant.get_name(), value, is_unsigned)
+            })
+            .collect();
+
+        let enum_type = self.debug_info.create_enumeration_type(
+            file.as_debug_info_scope(),
+            name,
+            file,
+            location.get_line_plus_one() as u32,
+            size_bits,
+            align_bits,
+            &enum_elements,
+            inner_type.into(),
+        );
+
+        self.register_concrete_type(name, DebugType::Enumeration(enum_type));
         Ok(())
     }
 
@@ -767,6 +830,14 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             let location = &datatype.location;
             log::trace!("Creating debug info for type {name} with size {size} and info {type_info:?}");
             match type_info {
+                DataTypeInformation::Enum { name, variants, referenced_type, .. } => self.create_enum_type(
+                    name,
+                    variants.to_vec(),
+                    referenced_type,
+                    location,
+                    index,
+                    types_index,
+                ),
                 DataTypeInformation::Struct { members, .. } => {
                     self.create_struct_type(name, members.as_slice(), location, index, types_index)
                 }
@@ -799,7 +870,6 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     self.create_string_type(name, length, *encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
-                | DataTypeInformation::Enum { name, referenced_type, .. }
                 | DataTypeInformation::SubRange { name, referenced_type, .. } => {
                     self.create_typedef_type(name, referenced_type, location, index, types_index)
                 }
