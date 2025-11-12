@@ -199,7 +199,7 @@ impl VariableIndexEntry {
         self.data_type_name.as_str()
     }
 
-    pub fn get_location_in_parent(&self) -> u32 {
+    pub fn get_position(&self) -> u32 {
         self.location_in_parent
     }
 
@@ -1551,30 +1551,31 @@ impl Index {
             })
     }
 
-    fn truly_find_local_member(&self, pou: &str, name: &str) -> Option<&VariableIndexEntry> {
-        self.type_index.find_type(pou).and_then(|it| it.find_member(name))
-    }
+    // XXX: This is super specific and currently only being used in the context of argument annotations. Do we
+    // want to move this to the resolver?
+    /// Finds a member in the specified POU, traversing the inheritance chain if necessary. Returns the
+    /// [`VariableIndexEntry`] along with the inheritance depth from the given POU to where the member
+    /// was declared.
+    pub fn find_pou_member_and_depth(&self, pou: &str, name: &str) -> Option<(&VariableIndexEntry, usize)> {
+        fn find<'a>(index: &'a Index, pou: &str, name: &str) -> Option<&'a VariableIndexEntry> {
+            index.type_index.find_type(pou).and_then(|pou| pou.find_member(name))
+        }
 
-    // TODO: Own type?
-    /// Given some POU name and one of its members' name, returns the member and the position including its
-    /// inheritance level. For example If we have `A { localVarA }, B extends A { localVarB }`, then
-    /// `find_member_with_path("B", "localVarA")` will return `(localVarA, 0, 1)`
-    pub fn find_member_with_path(&self, pou: &str, name: &str) -> Option<(String, &VariableIndexEntry, u32)> {
         // Check if the POU has the member locally
-        if let Some(entry) = self.truly_find_local_member(pou, name) {
-            return Some((pou.to_string(), entry, 0));
+        if let Some(entry) = find(self, pou, name) {
+            return Some((entry, 0));
         }
 
         // ..and if not walk the inheritance chain and re-try
-        let mut level = 1;
+        let mut depth = 1;
         let mut current_pou = pou;
 
-        while let Some(parent) = self.find_pou(current_pou).and_then(|it| it.get_super_class()) {
-            if let Some(entry) = self.truly_find_local_member(parent, name) {
-                return Some((parent.to_string(), entry, level));
+        while let Some(parent) = self.find_pou(current_pou).and_then(PouIndexEntry::get_super_class) {
+            if let Some(entry) = find(self, parent, name) {
+                return Some((entry, depth));
             }
 
-            level += 1;
+            depth += 1;
             current_pou = parent;
         }
 
@@ -1731,21 +1732,30 @@ impl Index {
         self.get_pou_types().get(&pou_name.to_lowercase())
     }
 
-    pub fn get_declared_parameters(&self, pou_name: &str) -> Vec<&VariableIndexEntry> {
-        self.get_pou_members(pou_name)
-            .iter()
-            .filter(|it| it.is_parameter() && !it.is_variadic())
-            .collect::<Vec<_>>()
+    /// Returns the parameter (INPUT, OUTPUT or IN_OUT) for the given POU by its location, if it exists.
+    pub fn get_declared_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
+        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
-    /// Returns all declared parameters of a POU, including those defined in super-classes
-    pub fn get_declared_parameters_2nd(&self, pou: &str) -> Vec<&VariableIndexEntry> {
-        let mut pou = pou;
-        let mut parameters = self.get_declared_parameters(pou);
+    /// Returns all declared parameters (INPUT, OUTPUT or IN_OUT) of a POU, including those defined in parent
+    /// POUs. The returned list is ordered by the inheritance chain, from base to derived.
+    pub fn get_declared_parameters(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+        // Collect all POU names in the inheritance chain from base to derived
+        let mut chain = Vec::new();
+        let mut current = Some(pou);
+        let mut parameters = Vec::new();
 
-        while let Some(parent) = self.find_pou(pou).and_then(PouIndexEntry::get_super_class) {
-            parameters.extend(self.get_declared_parameters(parent));
-            pou = parent;
+        // Walk the inheritance chain and collect its POU names; only has an effect on function block calls
+        while let Some(pou_name) = current {
+            chain.push(pou_name);
+            current = self.find_pou(pou_name).and_then(PouIndexEntry::get_super_class);
+        }
+
+        // Then, reverse the chain to start at the root and collect its parameters
+        for &name in chain.iter().rev() {
+            parameters.extend(
+                self.get_pou_members(name).iter().filter(|var| var.is_parameter() && !var.is_variadic()),
+            );
         }
 
         parameters
@@ -1753,13 +1763,6 @@ impl Index {
 
     pub fn has_variadic_parameter(&self, pou_name: &str) -> bool {
         self.get_pou_members(pou_name).iter().any(|member| member.is_parameter() && member.is_variadic())
-    }
-
-    /// returns some if the current index is a VAR_INPUT, VAR_IN_OUT or VAR_OUTPUT that is not a variadic argument
-    /// In other words it returns some if the member variable at `index` of the given container is a possible parameter in
-    /// the call to it
-    pub fn get_declared_parameter(&self, pou_name: &str, index: u32) -> Option<&VariableIndexEntry> {
-        self.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
     pub fn get_variadic_member(&self, pou_name: &str) -> Option<&VariableIndexEntry> {

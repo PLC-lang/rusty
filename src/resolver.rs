@@ -292,86 +292,68 @@ impl TypeAnnotator<'_> {
             ))
     }
 
-    fn annotate_named_arguments(
-        &mut self,
-        operator: &AstNode,
-        arguments: Vec<&AstNode>,
-        arguments_node: Option<&AstNode>,
+    pub fn annotate_arguments(&mut self, operator: &AstNode, arguments_node: &AstNode, ctx: &VisitorContext) {
+        self.visit_statement(ctx, arguments_node);
+        let arguments = flatten_expression_list(arguments_node);
 
-        ctx: &VisitorContext,
-    ) {
         let pou_name = {
             let name = self.get_call_name(operator);
             let implementation = self.index.find_implementation_by_name(&name);
             implementation.map(|it| it.get_type_name().to_string()).unwrap_or(name)
         };
 
+        let generics = if arguments.iter().any(|arg| arg.is_assignment() | arg.is_output_assignment()) {
+            self.annotate_arguments_named(&pou_name, arguments)
+        } else {
+            self.annotate_arguments_positional(&pou_name, operator, arguments)
+        };
+
+        self.update_generic_call_statement(generics, &pou_name, operator, arguments_node, ctx.to_owned());
+    }
+
+    fn annotate_arguments_named(
+        &mut self,
+        pou_name: &str,
+        arguments: Vec<&AstNode>,
+    ) -> FxHashMap<String, Vec<String>> {
         let mut generics_candidates = FxHashMap::<String, Vec<String>>::default();
+
         for argument in arguments {
-            let Some(var_name) = argument.get_name_of_lhs_of_assignment() else {
+            let Some(var_name) = argument.get_assignment_identifier() else {
                 continue;
             };
 
-            let Some((name, entry, depth)) = self.index.find_member_with_path(&pou_name, var_name) else {
+            let Some((parameter, depth)) = self.index.find_pou_member_and_depth(pou_name, var_name) else {
                 continue;
             };
 
-            if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                self.index,
-                &self.annotation_map,
-                entry.get_type_name(),
-                argument,
-            ) {
+            if let Some((key, candidate)) = self.get_generic_candidate(parameter.get_type_name(), argument) {
                 generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
                 continue;
             }
 
-            self.annotation_map.annotate_type_hint(
+            self.annotate_argument(
+                parameter.get_qualifier().expect("parameter must have a qualifier"),
                 argument,
-                StatementAnnotation::Argument {
-                    resulting_type: entry.get_type_name().to_string(),
-                    position: entry.get_location_in_parent() as usize,
-                    depth: depth as usize,
-                    pou: name,
-                },
+                parameter.get_type_name(),
+                depth,
+                parameter.get_position() as usize,
             );
         }
 
-        // Attempt to resolve the generic signature here
-        self.update_generic_call_statement(
-            generics_candidates,
-            &pou_name,
-            operator,
-            arguments_node,
-            ctx.to_owned(),
-        );
+        generics_candidates
     }
 
-    pub fn annotate_call_statement(
+    fn annotate_arguments_positional(
         &mut self,
+        pou_name: &str,
         operator: &AstNode,
-        arguments_node: Option<&AstNode>,
-        ctx: &VisitorContext,
-    ) {
-        let operator_qualifier = &self.get_call_name(operator);
-        let implementation = self.index.find_implementation_by_name(operator_qualifier);
-        let operator_qualifier = implementation.map(|it| it.get_type_name()).unwrap_or(operator_qualifier);
+        arguments: Vec<&AstNode>,
+    ) -> FxHashMap<String, Vec<String>> {
+        let mut generic_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
+        let mut positional_candidates = Vec::new();
 
-        let arguments = if let Some(parameters) = arguments_node {
-            self.visit_statement(ctx, parameters);
-            flatten_expression_list(parameters)
-        } else {
-            vec![]
-        };
-
-        if arguments.iter().any(|arg| arg.is_assignment() | arg.is_output_assignment()) {
-            self.annotate_named_arguments(operator, arguments, arguments_node, ctx);
-            return;
-        }
-
-        let mut generics_candidates: FxHashMap<String, Vec<String>> = FxHashMap::default();
-        let mut params = vec![];
-        let mut parameters = if self.annotation_map.get(operator).is_some_and(|opt| opt.is_fnptr()) {
+        let mut arguments = if self.annotation_map.get(operator).is_some_and(|opt| opt.is_fnptr()) {
             // When dealing with a function pointer (which are only supported in the context of methods and
             // direct function block calls), the first argument will be a instance of the POU, e.g.
             // `fnPtrToMyFbEcho^(instanceFb)`, hence we must skip the first argument as otherwise the
@@ -386,100 +368,73 @@ impl TypeAnnotator<'_> {
             arguments.iter()
         };
 
-        // If we are dealing with an action call statement, we need to get the declared parameters from the parent POU in order
-        // to annotate them with the correct type hint.
-        for m in self.index.get_declared_parameters(operator_qualifier).into_iter() {
-            if let Some(p) = parameters.next() {
-                let type_name = m.get_type_name();
-                if let Some((key, candidate)) =
-                    TypeAnnotator::get_generic_candidate(self.index, &self.annotation_map, type_name, p)
+        // Zip the parameters together with the arguments, then link the correct type information to them.
+        for (parameter, argument) in self.index.get_declared_parameters(pou_name).iter().zip(&mut arguments) {
+            let parameter_type_name = parameter.get_type_name();
+
+            match self.get_generic_candidate(parameter_type_name, argument) {
+                Some((key, candidate)) => {
+                    generic_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                }
+
+                None => {
+                    let candidate = (argument, parameter_type_name.to_string(), parameter.get_position());
+                    positional_candidates.push(candidate);
+                }
+            }
+        }
+
+        // When dealing with variadic arguments, the previous zip will not have consumed all arguments because
+        // potentially we have more arguments than parameters. In that case, check if we are dealing with a
+        // variadic argument and if so, iterate over the remaining arguments.
+        if let Some(vararg) = self.index.get_variadic_member(pou_name) {
+            for argument in arguments {
+                if let Some((key, candidate)) = self.get_generic_candidate(vararg.get_type_name(), argument) {
+                    generic_candidates.entry(key.to_string()).or_default().push(candidate.to_string());
+                    continue;
+                }
+
+                let type_name = self.get_vararg_type_name(argument, vararg);
+                positional_candidates.push((argument, type_name, vararg.get_position()));
+            }
+        }
+
+        for (argument, type_name, position) in positional_candidates {
+            self.annotate_argument(pou_name, argument, &type_name, 0, position as usize);
+        }
+
+        generic_candidates
+    }
+
+    fn get_vararg_type_name(&mut self, argument: &&AstNode, vararg: &VariableIndexEntry) -> String {
+        // intrinsic type promotion for variadics in order to be compatible with the C standard.
+        // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
+        // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
+        // for more about default argument promotion.
+        //
+        // varargs without a type declaration will be annotated "VOID", so in order to check if a
+        // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
+        // types, we promote if the type is smaller than double/i32 (except for booleans).
+
+        let type_name = match self.annotation_map.get_type(argument, self.index) {
+            Some(data_type) => match &data_type.information {
+                DataTypeInformation::Float { .. } => {
+                    get_bigger_type(data_type, self.index.get_type_or_panic(LREAL_TYPE), self.index)
+                        .get_name()
+                }
+                DataTypeInformation::Integer { .. }
+                    if !data_type.information.is_bool() && !data_type.information.is_character() =>
                 {
-                    generics_candidates.entry(key.to_string()).or_default().push(candidate.to_string())
-                } else {
-                    params.push((p, type_name.to_string(), m.get_location_in_parent()))
+                    get_bigger_type(data_type, self.index.get_type_or_panic(DINT_TYPE), self.index).get_name()
                 }
-            }
-        }
 
-        //We possibly did not consume all parameters, see if the variadic arguments are derivable
-        match self.index.find_pou(operator_qualifier) {
-            Some(pou) if pou.is_variadic() => {
-                //get variadic argument type, if it is generic, update the generic candidates
-                if let Some(variadic) = self.index.get_variadic_member(pou.get_name()) {
-                    let type_name = variadic.get_type_name();
-                    for parameter in parameters {
-                        if let Some((key, candidate)) = TypeAnnotator::get_generic_candidate(
-                            self.index,
-                            &self.annotation_map,
-                            type_name,
-                            parameter,
-                        ) {
-                            generics_candidates
-                                .entry(key.to_string())
-                                .or_default()
-                                .push(candidate.to_string())
-                        } else {
-                            // intrinsic type promotion for variadics in order to be compatible with the C standard.
-                            // see ISO/IEC 9899:1999, 6.5.2.2 Function calls (https://www.open-std.org/jtc1/sc22/wg14/www/docs/n1256.pdf)
-                            // or https://en.cppreference.com/w/cpp/language/implicit_conversion#Integral_promotion
-                            // for more about default argument promotion.
+                _ => vararg.get_type_name(),
+            },
 
-                            // varargs without a type declaration will be annotated "VOID", so in order to check if a
-                            // promotion is necessary, we need to first check the type of each parameter. in the case of numerical
-                            // types, we promote if the type is smaller than double/i32 (except for booleans).
-                            let type_name = if let Some(data_type) =
-                                self.annotation_map.get_type(parameter, self.index)
-                            {
-                                match &data_type.information {
-                                    DataTypeInformation::Float { .. } => get_bigger_type(
-                                        data_type,
-                                        self.index.get_type_or_panic(LREAL_TYPE),
-                                        self.index,
-                                    )
-                                    .get_name(),
-                                    DataTypeInformation::Integer { .. }
-                                        if !data_type.information.is_bool()
-                                            && !data_type.information.is_character() =>
-                                    {
-                                        get_bigger_type(
-                                            data_type,
-                                            self.index.get_type_or_panic(DINT_TYPE),
-                                            self.index,
-                                        )
-                                        .get_name()
-                                    }
-                                    _ => type_name,
-                                }
-                            } else {
-                                // default to original type in case no type could be found
-                                // and let the validator handle situations that might lead here
-                                type_name
-                            };
+            None => vararg.get_type_name(),
+        };
 
-                            params.push((
-                                parameter,
-                                type_name.to_string(),
-                                variadic.get_location_in_parent(),
-                            ));
-                        }
-                    }
-                }
-            }
-            _ => {}
-        }
-
-        for (p, name, position) in params {
-            self.annotate_parameters(p, &name, position as usize, operator_qualifier);
-        }
-
-        // Attempt to resolve the generic signature here
-        self.update_generic_call_statement(
-            generics_candidates,
-            operator_qualifier,
-            operator,
-            arguments_node,
-            ctx.to_owned(),
-        );
+        type_name.to_string()
     }
 }
 
@@ -2325,9 +2280,9 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(annotation) = builtins::get_builtin(&operator_qualifier).and_then(BuiltIn::get_annotation)
         {
             annotation(self, statement, operator, parameters_stmt, ctx.to_owned());
-        } else {
+        } else if let Some(arguments) = parameters_stmt {
             //This is skipped for builtins that provide their own annotation-logic
-            self.annotate_call_statement(operator, parameters_stmt, &ctx);
+            self.annotate_arguments(operator, arguments, &ctx);
         };
 
         match self.annotation_map.get(operator) {
@@ -2393,19 +2348,23 @@ impl<'i> TypeAnnotator<'i> {
         operator_qualifier
     }
 
-    pub(crate) fn annotate_parameters(&mut self, p: &AstNode, type_name: &str, position: usize, pou: &str) {
-        if let Some(effective_member_type) = self.index.find_effective_type_by_name(type_name) {
-            //update the type hint
-            // self.annotation_map.annotate_type_hint(p, StatementAnnotation::value(effective_member_type.get_name()))
-            self.annotation_map.annotate_type_hint(
-                p,
-                StatementAnnotation::Argument {
-                    resulting_type: effective_member_type.get_name().to_string(),
-                    position,
-                    depth: 0,
-                    pou: pou.to_string(),
-                },
-            );
+    fn annotate_argument(
+        &mut self,
+        pou_name: &str,
+        argument: &AstNode,
+        type_name: &str,
+        depth: usize,
+        position: usize,
+    ) {
+        if let Some(resulting_type) = self.index.find_effective_type_by_name(type_name) {
+            let annotation = StatementAnnotation::Argument {
+                resulting_type: resulting_type.get_name().to_string(),
+                position,
+                depth,
+                pou: pou_name.to_string(),
+            };
+
+            self.annotation_map.annotate_type_hint(argument, annotation);
         }
     }
 

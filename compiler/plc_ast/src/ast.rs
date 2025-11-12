@@ -1485,7 +1485,8 @@ impl AstNode {
         matches!(self.stmt, AstStatement::Literal(AstLiteral::Real(_), ..))
     }
 
-    pub fn get_name_of_lhs_of_assignment(&self) -> Option<&str> {
+    /// Returns the identifier of the left-hand side if this is an assignment statement
+    pub fn get_assignment_identifier(&self) -> Option<&str> {
         match &self.stmt {
             AstStatement::Assignment(Assignment { left, .. })
             | AstStatement::OutputAssignment(Assignment { left, .. })

@@ -1483,7 +1483,7 @@ fn validate_call<T: AnnotationMap>(
         return;
     };
     let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
-    let parameters = context.index.get_declared_parameters_2nd(pou.get_name());
+    let parameters = context.index.get_declared_parameters(pou.get_name());
 
     if builtins::get_builtin(pou.get_name()).is_none() {
         validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
@@ -1504,7 +1504,7 @@ fn validate_call<T: AnnotationMap>(
                     validate_call_by_ref(validator, left, argument);
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
-                    variable_location_in_parent.push(left.get_location_in_parent());
+                    variable_location_in_parent.push(left.get_position());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -1553,7 +1553,7 @@ fn validate_call<T: AnnotationMap>(
         if !declared_in_out_params.is_empty() {
             // Check if all IN_OUT arguments were passed by cross-checking with the parameters
             declared_in_out_params.into_iter().for_each(|p| {
-                if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
+                if !variable_location_in_parent.contains(&p.get_position()) {
                     validator.push_diagnostic(
                         Diagnostic::new(format!("Argument `{}` is missing", p.get_name()))
                             .with_error_code("E030")
@@ -1832,7 +1832,7 @@ fn validate_argument_count<T: AnnotationMap>(
     arguments: &[&AstNode],
     operator_location: &SourceLocation,
 ) {
-    let parameters = context.index.get_declared_parameters_2nd(pou.get_name());
+    let parameters = context.index.get_declared_parameters(pou.get_name());
     let has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
 
     let argument_count_is_incorrect = match pou {
