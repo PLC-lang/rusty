@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].contents"
+expression: "&generated_headers[0].get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -9,17 +9,11 @@ expression: "&generated_headers[0].contents"
 
 #include <dependencies.plc.h>
 
-
-
-
-
-
-// Functions, Function Blocks and Programs
 typedef struct {
     uint64_t* __vtable;
-	int16_t varInt;
-	int16_t* outVarInt;
-	int16_t* inOutVarInt;
+    int16_t varInt;
+    int16_t* outVarInt;
+    int16_t* inOutVarInt;
 } fbThatHasSimpleTypes_type;
 
 void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);

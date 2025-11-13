@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].contents"
+expression: "&generated_headers[0].get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -9,35 +9,28 @@ expression: "&generated_headers[0].contents"
 
 #include <dependencies.plc.h>
 
-
-
-
-// User-defined data types
 typedef enum eComplexEnumType {
     orange = 10,
-	yellow = 20,
-	purple = 30
+    yellow = 20,
+    purple = 30
 } ComplexEnumType;
 
 typedef struct {
     uint8_t Field1;
-	int16_t Field2;
-	int32_t Field3;
+    int16_t Field2;
+    int32_t Field3;
 } StructWithPrimitiveTypes;
 
 typedef struct {
     uint8_t byteField;
-	int16_t intField;
-	int32_t dIntField;
-	char stringField[256];
-	int16_t wStringField[6001];
-	ComplexEnumType complexEnumTypeField;
-	int16_t intArrayField[10];
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[256];
+    int16_t wStringField[6001];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
 } StructWithComplexTypes;
 
-
-
-// Functions, Function Blocks and Programs
 void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
 
 void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);

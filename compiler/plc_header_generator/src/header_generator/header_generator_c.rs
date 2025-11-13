@@ -1,26 +1,20 @@
+use std::collections::HashMap;
+
 use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
 use plc_ast::ast::{
-    self, ArgumentProperty, AstNode, AstStatement, CompilationUnit, Pou, PouType, UserTypeDeclaration,
-    Variable, VariableBlock, VariableBlockType,
+    self, ArgumentProperty, CompilationUnit, Identifier, Pou, PouType, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use tera::{Context, Tera};
+use tera::{Context, Tera, from_value, to_value};
 
 use crate::header_generator::{
-    coalesce_optional_strings_with_default, extract_array_size, extract_enum_field_name_from_statement,
-    extract_enum_field_value_from_statement, extract_string_size,
-    file_helper::HeaderFileInformation,
-    get_type_from_data_type_decleration, get_user_generated_type_by_name,
-    symbol_helper::SymbolHelper,
-    template_helper::{Template, TemplateHelper, TemplateType},
-    type_helper::{TypeAttribute, TypeHelper},
-    ExtendedTypeName, GeneratedHeader, GenerationSource,
+    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType, coalesce_optional_strings_with_default, extract_array_size, extract_enum_declaration_from_elements, extract_string_size, file_helper::HeaderFileInformation, get_type_from_data_type_decleration, get_user_generated_type_by_name, symbol_helper::SymbolHelper, template_helper::{TemplateHelper, TemplateType}, type_helper::{TypeAttribute, TypeHelper}
 };
 
 pub struct GeneratedHeaderForC {
     pub file_information: HeaderFileInformation,
     contents: String,
-    declared_user_types: Vec<String>,
+    template_data: TemplateData,
 }
 
 impl Default for GeneratedHeaderForC {
@@ -36,6 +30,10 @@ impl GeneratedHeader for GeneratedHeaderForC {
             && self.contents.is_empty()
     }
 
+    fn get_template_data(&self) -> &TemplateData {
+        &self.template_data
+    }
+
     fn get_contents(&self) -> &str {
         &self.contents
     }
@@ -48,7 +46,16 @@ impl GeneratedHeader for GeneratedHeaderForC {
         &self.file_information.path
     }
 
-    fn generate_headers(&mut self, compilation_unit: &CompilationUnit) -> Result<(), Diagnostic> {
+    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit) {
+        let builtin_types = get_builtin_types();
+
+        self.prepare_global_variables(compilation_unit, &builtin_types);
+        self.prepare_user_types(compilation_unit, &builtin_types);
+        self.prepare_functions(compilation_unit, &builtin_types);
+    }
+
+
+    fn generate_headers(&mut self) -> Result<(), Diagnostic> {
         // Configure tera
         let mut tera = Tera::default();
         let mut context = Context::new();
@@ -56,20 +63,13 @@ impl GeneratedHeader for GeneratedHeaderForC {
         let template = self.get_template(TemplateType::Header);
         tera.add_raw_template(&template.name, &template.content)
             .expect("Unable to add the 'header' template to tera!");
+        tera.register_function("format_variable_for_parameter", format_variable_for_parameter(self.get_reference_symbol(), self.get_variadic_symbol()));
+        tera.register_function("format_variable_for_definition", format_variable_for_definition());
+        tera.register_function("format_variable_for_enum_definition", format_variable_for_enum_definition());
 
-        let builtin_types = get_builtin_types();
-
-        // 1 - Add global variables
-        let global_variables = self.build_global_variables(compilation_unit, &builtin_types);
-        context.insert("global_variables", &global_variables);
-
-        // 2 - Add pous (functions, function blocks and programs)
-        let functions = self.build_pous(compilation_unit, &builtin_types);
-        context.insert("functions", &functions);
-
-        // 3 - Add user-defined data types
-        let user_defined_data_types = self.build_user_types(compilation_unit, &builtin_types);
-        context.insert("user_defined_data_types", &user_defined_data_types);
+        context.insert("global_variables", &self.template_data.global_variables);
+        context.insert("user_defined_types", &self.template_data.user_defined_types);
+        context.insert("functions", &self.template_data.functions);
 
         // Set the outputs
         self.contents = tera.render(&template.name, &context).unwrap();
@@ -82,32 +82,31 @@ impl GeneratedHeaderForC {
     pub const fn new() -> Self {
         GeneratedHeaderForC {
             file_information: HeaderFileInformation::new(),
+            template_data: TemplateData::new(),
             contents: String::new(),
-            declared_user_types: Vec::new(),
         }
     }
 
-    fn build_global_variables(
-        &mut self,
-        compilation_unit: &CompilationUnit,
-        builtin_types: &[DataType],
-    ) -> String {
-        let global_variables = self.get_variables_from_variable_blocks(
+    fn prepare_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
+        for user_type in &compilation_unit.user_types {
+            self.prepare_user_type(
+                user_type,
+                builtin_types,
+                &compilation_unit.user_types
+            );
+        }
+    }
+
+    fn prepare_global_variables(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
+        self.template_data.global_variables = self.get_variables_from_variable_blocks(
             &compilation_unit.global_vars,
             builtin_types,
             &[VariableBlockType::Global],
             &compilation_unit.user_types,
-            &GenerationSource::GlobalVariable,
         );
-
-        self.format_global_variables(&global_variables)
     }
 
-    fn build_pous(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) -> String {
-        let mut pous: Vec<String> = Vec::new();
-        let mut tera = Tera::default();
-        let mut context = Context::new();
-
+    fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for pou in &compilation_unit.pous {
             match pou.kind {
                 PouType::Function => {
@@ -116,7 +115,7 @@ impl GeneratedHeaderForC {
                         builtin_types,
                     );
 
-                    let input_variables = self.get_variables_from_variable_blocks(
+                    let parameters = self.get_variables_from_variable_blocks(
                         &pou.variable_blocks,
                         builtin_types,
                         &[
@@ -126,75 +125,89 @@ impl GeneratedHeaderForC {
                             VariableBlockType::Output,
                         ],
                         &compilation_unit.user_types,
-                        &GenerationSource::FunctionParameter,
                     );
-                    let input_variables = self.format_function_parameters(&input_variables);
 
-                    let content = self.build_function(&pou.name, &type_info.name, &input_variables);
-                    pous.push(content);
+                    self.template_data.functions.push(Function {
+                        name: pou.name.to_string(),
+                        return_type: type_info.name.to_string(),
+                        parameters
+                    });
                 }
                 PouType::FunctionBlock => {
-                    pous.append(&mut self.build_function_block(
-                        &mut tera,
-                        &mut context,
+                    self.prepare_function_block(
                         pou,
                         compilation_unit,
                         builtin_types,
-                    ));
+                    );
                 }
                 PouType::Program => {
                     let program_name = pou.name.to_string();
                     let data_type = format!("{program_name}_type");
 
-                    let template = self.prepare_and_get_tera_variable_template(
-                        &mut tera,
-                        &mut context,
-                        &data_type,
-                        &format!("{program_name}_instance"),
-                        &String::new(),
-                    );
+                    self.template_data.global_variables.push(crate::header_generator::Variable {
+                        data_type,
+                        name: format!("{program_name}_instance"),
+                        variable_type: VariableType::Default
+                    });
 
-                    let content = tera.render(&template.name, &context).unwrap().trim().to_string();
-                    pous.push(self.format_global_variables(&[content]));
-
-                    pous.append(&mut self.build_function_block(
-                        &mut tera,
-                        &mut context,
+                    self.prepare_function_block(
                         pou,
                         compilation_unit,
                         builtin_types,
-                    ));
+                    );
                 }
                 _ => continue,
             }
         }
-
-        self.format_functions(&pous)
     }
 
-    fn build_function(&mut self, name: &str, data_type: &str, input_variables: &str) -> String {
-        let mut tera = Tera::default();
-        let mut context = Context::new();
-        let template = self.get_template(TemplateType::Function);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'function' template to tera!");
-
-        context.insert("data_type", data_type);
-        context.insert("name", name);
-        context.insert("variables", input_variables);
-
-        tera.render(&template.name, &context).unwrap().trim().to_string()
-    }
-
-    fn build_function_block(
+    fn prepare_user_type(
         &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
+        user_type: &UserTypeDeclaration,
+        builtin_types: &[DataType],
+        user_types: &[UserTypeDeclaration]
+    ) {
+        // We generally want to skip the declaration of user types that are only internally relevant
+        if let Some(data_type_name) = &user_type.data_type.get_name() {
+            if data_type_name.starts_with("__") {
+                return;
+            }
+        }
+
+        match &user_type.data_type {
+            ast::DataType::StructType { name, variables } => {
+                let formatted_variables = self.get_formatted_variables_from_variables(
+                    variables,
+                    builtin_types,
+                    false,
+                    user_types,
+                );
+
+                self.template_data.user_defined_types.structs.push(UserType {
+                    name: name.clone().unwrap_or_default(),
+                    variables: formatted_variables
+                });
+            }
+            ast::DataType::EnumType { name, elements, .. } => {
+                let enum_declerations = extract_enum_declaration_from_elements(elements);
+
+                self.template_data.user_defined_types.enums.push(UserType {
+                    name: name.clone().unwrap_or_default(),
+                    variables: enum_declerations
+                });
+            }
+            _ => {
+                // The remainder of user types are not handled by this process
+            }
+        }
+    }
+
+    fn prepare_function_block(
+        &mut self,
         pou: &Pou,
         compilation_unit: &CompilationUnit,
         builtin_types: &[DataType],
-    ) -> Vec<String> {
-        let mut functions: Vec<String> = Vec::new();
+    )  {
         let type_info = &self
             .get_type_name_for_type(&get_type_from_data_type_decleration(&pou.return_type), builtin_types);
 
@@ -213,278 +226,57 @@ impl GeneratedHeaderForC {
                 VariableBlockType::Local,
             ],
             &compilation_unit.user_types,
-            &GenerationSource::Struct,
         );
 
-        let template =
-            self.prepare_and_get_tera_user_type_struct_template(tera, context, &data_type, &input_variables);
-
-        let content = tera.render(&template.name, context).unwrap().trim().to_string();
-        functions.push(content);
-
-        // Create the template for the function block function
-        let template = self.prepare_and_get_tera_param_struct_template(
-            tera,
-            context,
-            Some(&String::from("self")),
-            Some(&data_type),
-        );
-        let input_variables = tera.render(&template.name, context).unwrap().trim().to_string();
-
-        let content = self.build_function(&function_name, &type_info.name, &input_variables);
-        functions.push(content);
-
-        functions
-    }
-
-    fn build_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) -> String {
-        let mut user_types: Vec<String> = Vec::new();
-
-        for user_type in &compilation_unit.user_types {
-            let formatted_user_type = self.build_user_type(
-                user_type,
-                builtin_types,
-                &compilation_unit.user_types,
-                None,
-                None,
-                &GenerationSource::UserType,
-            );
-
-            if let Some(value) = formatted_user_type {
-                user_types.push(value);
-            }
+        if pou.super_class.is_some() {
+            self.template_data.user_defined_types.structs.push(UserType {
+                name: data_type.to_string(),
+                variables: self.modify_function_block_variables_for_inheritance(&input_variables, &pou.super_class)
+            });
+        }
+        else {
+            self.template_data.user_defined_types.structs.push(UserType {
+                name: data_type.to_string(),
+                variables: input_variables
+            });
         }
 
-        self.format_user_types(&user_types)
+        let mut parameters: Vec<crate::header_generator::Variable> = Vec::new();
+        parameters.push(crate::header_generator::Variable {
+            data_type: format!("{data_type}{}", self.get_reference_symbol()),
+            name: String::from("self"),
+            variable_type: VariableType::Default
+        });
+
+        self.template_data.functions.push(Function {
+            return_type: type_info.name.to_string(),
+            name: function_name,
+            parameters
+        });
     }
 
-    fn build_user_type(
-        &mut self,
-        user_type: &UserTypeDeclaration,
-        builtin_types: &[DataType],
-        user_types: &[UserTypeDeclaration],
-        field_name_override: Option<&String>,
-        type_name_override: Option<&String>,
-        generation_source: &GenerationSource,
-    ) -> Option<String> {
-        let mut tera = Tera::default();
-        let mut context = Context::new();
+    fn modify_function_block_variables_for_inheritance(&self, input_variables: &[crate::header_generator::Variable], pou_super_class: &Option<Identifier>) -> Vec<crate::header_generator::Variable> {
+        let mut modified_input_variables: Vec<crate::header_generator::Variable> = Vec::new();
 
-        let type_name = String::from(user_type.data_type.get_name().unwrap_or(""));
-        if self.declared_user_types.contains(&type_name)
-            && matches!(generation_source, GenerationSource::UserType)
-        {
-            return None;
-        }
-
-        // We generally want to skip the declaration of user types that are only internally relevant
-        if let Some(data_type_name) = &user_type.data_type.get_name() {
-            if data_type_name.starts_with("__") {
-                if let Some(field_name) = field_name_override {
-                    if field_name.starts_with("__") {
-                        return None;
-                    }
+        if let Some(super_class) = &pou_super_class {
+            for input_variable in input_variables {
+                if input_variable.data_type == super_class.name {
+                    modified_input_variables.push(crate::header_generator::Variable {
+                        name: input_variable.name.clone(),
+                        data_type: format!("{}_type", input_variable.data_type),
+                        variable_type: input_variable.variable_type.clone()
+                    });
                 } else {
-                    return None;
+                    modified_input_variables.push(crate::header_generator::Variable {
+                        name: input_variable.name.clone(),
+                        data_type: input_variable.data_type.clone(),
+                        variable_type: input_variable.variable_type.clone()
+                    });
                 }
             }
         }
 
-        match &user_type.data_type {
-            ast::DataType::StructType { name, variables } => {
-                let template = match generation_source {
-                    GenerationSource::GlobalVariable | GenerationSource::UserType => {
-                        let formatted_variables = self.get_formatted_variables_from_variables(
-                            variables,
-                            builtin_types,
-                            false,
-                            user_types,
-                            &GenerationSource::Struct,
-                        );
-
-                        self.prepare_and_get_tera_user_type_struct_template(
-                            &mut tera,
-                            &mut context,
-                            &coalesce_optional_strings_with_default(name, field_name_override),
-                            &formatted_variables,
-                        )
-                    }
-                    GenerationSource::Struct | GenerationSource::FunctionParameter => self
-                        .prepare_and_get_tera_param_struct_template(
-                            &mut tera,
-                            &mut context,
-                            field_name_override,
-                            type_name_override,
-                        ),
-                };
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::EnumType { name, elements, .. } => {
-                let template = match generation_source {
-                    GenerationSource::GlobalVariable | GenerationSource::UserType => {
-                        let template = self.get_template(TemplateType::UserTypeEnum);
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'user type enum' template to tera!");
-
-                        let formatted_enum_declerations =
-                            self.extract_enum_declaration_from_elements(elements);
-                        context.insert(
-                            "name",
-                            &coalesce_optional_strings_with_default(name, field_name_override),
-                        );
-                        context.insert("variables", &formatted_enum_declerations);
-
-                        template
-                    }
-                    GenerationSource::Struct | GenerationSource::FunctionParameter => {
-                        let template = self.get_template(TemplateType::ParamEnum);
-                        tera.add_raw_template(&template.name, &template.content)
-                            .expect("Unable to add the 'param enum' template to tera!");
-
-                        context.insert(
-                            "name",
-                            &field_name_override
-                                .expect("Field name expected for generation source type: 'Parameter'!"),
-                        );
-                        context.insert(
-                            "data_type",
-                            &type_name_override
-                                .expect("Data Type expected for generation source type: 'Parameter'!"),
-                        );
-
-                        template
-                    }
-                };
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::StringType { name, size, is_wide } => {
-                let template = match generation_source {
-                    GenerationSource::GlobalVariable
-                    | GenerationSource::Struct
-                    | GenerationSource::UserType => self.prepare_and_get_tera_user_type_array_template(
-                        &mut tera,
-                        &mut context,
-                        &self.get_type_name_for_string(is_wide),
-                        &coalesce_optional_strings_with_default(name, field_name_override),
-                        &extract_string_size(size),
-                    ),
-                    GenerationSource::FunctionParameter => self.prepare_and_get_tera_param_array_template(
-                        &mut tera,
-                        &mut context,
-                        &self.get_type_name_for_string(is_wide),
-                        field_name_override
-                            .expect("Field name expected for generation source type: 'Parameter'!"),
-                    ),
-                };
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
-                let template = match generation_source {
-                    GenerationSource::GlobalVariable
-                    | GenerationSource::Struct
-                    | GenerationSource::UserType => {
-                        let type_info = self.get_type_name_for_type(
-                            &ExtendedTypeName {
-                                type_name: referenced_type.get_name().unwrap().to_string(),
-                                is_variadic: false,
-                            },
-                            builtin_types,
-                        );
-
-                        self.prepare_and_get_tera_user_type_array_template(
-                            &mut tera,
-                            &mut context,
-                            &type_info.name,
-                            &coalesce_optional_strings_with_default(name, field_name_override),
-                            &extract_array_size(bounds),
-                        )
-                    }
-                    GenerationSource::FunctionParameter => {
-                        let type_info = self.get_type_name_for_type(
-                            &ExtendedTypeName {
-                                type_name: referenced_type.get_name().unwrap().to_string(),
-                                is_variadic: false,
-                            },
-                            builtin_types,
-                        );
-
-                        self.prepare_and_get_tera_param_array_template(
-                            &mut tera,
-                            &mut context,
-                            &type_info.name,
-                            field_name_override
-                                .expect("Field name expected for generation source type: 'Parameter'!"),
-                        )
-                    }
-                };
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::PointerType { name, referenced_type, .. } => {
-                let type_info = self.get_type_name_for_type(
-                    &ExtendedTypeName {
-                        type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false,
-                    },
-                    builtin_types,
-                );
-
-                let template = self.prepare_and_get_tera_variable_template(
-                    &mut tera,
-                    &mut context,
-                    &type_info.name,
-                    &coalesce_optional_strings_with_default(name, field_name_override),
-                    &self.get_reference_symbol(),
-                );
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::SubRangeType { name, referenced_type, .. } => {
-                let type_info = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
-                    builtin_types,
-                );
-
-                let template = self.prepare_and_get_tera_variable_template(
-                    &mut tera,
-                    &mut context,
-                    &type_info.name,
-                    &coalesce_optional_strings_with_default(name, field_name_override),
-                    &String::new(),
-                );
-
-                Some(tera.render(&template.name, &context).unwrap().trim().to_string())
-            }
-            ast::DataType::VarArgs { .. } => Some(self.get_variadic_symbol()),
-            ast::DataType::GenericType { .. } => {
-                // Currently out of scope
-                None
-            }
-        }
-    }
-
-    fn extract_enum_declaration_from_elements(&self, node: &AstNode) -> String {
-        match &node.stmt {
-            AstStatement::ExpressionList(exp_nodes) => {
-                let mut formatted_enum_declarations: Vec<String> = Vec::new();
-                for exp_node in exp_nodes {
-                    match &exp_node.stmt {
-                        AstStatement::Assignment(assignment) => {
-                            let left = extract_enum_field_name_from_statement(&assignment.left.stmt);
-                            let right = extract_enum_field_value_from_statement(&assignment.right.stmt);
-
-                            formatted_enum_declarations.push(self.format_variable_declaration(left, right));
-                        }
-                        _ => continue,
-                    }
-                }
-                self.format_enum_fields(&formatted_enum_declarations)
-            }
-            _ => String::new(),
-        }
+        modified_input_variables
     }
 
     fn get_variables_from_variable_blocks(
@@ -493,9 +285,8 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         variable_block_types: &[VariableBlockType],
         user_types: &[UserTypeDeclaration],
-        generation_source: &GenerationSource,
-    ) -> Vec<String> {
-        let mut variables: Vec<String> = Vec::new();
+    ) -> Vec<crate::header_generator::Variable> {
+        let mut variables: Vec<crate::header_generator::Variable> = Vec::new();
 
         for variable_block in variable_blocks {
             if variable_block_types.contains(&variable_block.kind) {
@@ -508,7 +299,6 @@ impl GeneratedHeaderForC {
                     builtin_types,
                     is_reference,
                     user_types,
-                    generation_source,
                 ));
             }
         }
@@ -522,12 +312,8 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         is_reference: bool,
         user_types: &[UserTypeDeclaration],
-        generation_source: &GenerationSource,
-    ) -> Vec<String> {
-        let mut tera = Tera::default();
-        let mut context = Context::new();
-        let mut variables: Vec<String> = Vec::new();
-
+    ) -> Vec<crate::header_generator::Variable> {
+        let mut variables: Vec<crate::header_generator::Variable> = Vec::new();
         let mut reference_symbol = if is_reference { self.get_reference_symbol() } else { String::new() };
 
         for variable in variable_block_variables {
@@ -546,51 +332,44 @@ impl GeneratedHeaderForC {
                 )
             };
 
+            let data_type = format!("{}{reference_symbol}", type_info.name);
+
             match type_info.attribute {
                 TypeAttribute::UserGenerated => {
                     let option_user_type = get_user_generated_type_by_name(&type_info.name, user_types);
 
                     if let Some(user_type) = option_user_type {
-                        let formatted_user_type = self.build_user_type(
+                        let user_type_variable = self.get_user_type_variable(
                             user_type,
                             builtin_types,
-                            user_types,
                             Some(&String::from(variable.get_name())),
                             Some(&type_info.name),
-                            generation_source,
                         );
 
-                        if let Some(value) = formatted_user_type {
-                            if !self.user_type_can_be_declared_outside_of_a_function(user_type) {
-                                self.declared_user_types.push(type_info.name.clone());
-                            }
+                        if let Some(value) = user_type_variable {
                             variables.push(value);
                         }
                     } else {
-                        let template = self.prepare_and_get_tera_variable_template(
-                            &mut tera,
-                            &mut context,
-                            &type_info.name,
-                            &variable.get_name().to_string(),
-                            &reference_symbol,
-                        );
-
-                        variables.push(tera.render(&template.name, &context).unwrap().trim().to_string());
+                        variables.push(crate::header_generator::Variable {
+                            data_type,
+                            name: variable.get_name().to_string(),
+                            variable_type: VariableType::Default
+                        });
                     }
                 }
                 TypeAttribute::Variadic => {
-                    variables.push(self.get_variadic_symbol());
+                    variables.push(crate::header_generator::Variable {
+                        data_type,
+                        name: variable.get_name().to_string(),
+                        variable_type: VariableType::Variadic
+                    });
                 }
                 TypeAttribute::Other => {
-                    let template = self.prepare_and_get_tera_variable_template(
-                        &mut tera,
-                        &mut context,
-                        &type_info.name,
-                        &variable.get_name().to_string(),
-                        &reference_symbol,
-                    );
-
-                    variables.push(tera.render(&template.name, &context).unwrap().trim().to_string());
+                    variables.push(crate::header_generator::Variable {
+                        data_type,
+                        name: variable.get_name().to_string(),
+                        variable_type: VariableType::Default
+                    });
                 }
             }
         }
@@ -598,93 +377,161 @@ impl GeneratedHeaderForC {
         variables
     }
 
-    // -- Template Preparation -- \\
-    fn prepare_and_get_tera_user_type_struct_template(
+    fn get_user_type_variable(
         &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
-        name: &String,
-        variables: &[String],
-    ) -> Template {
-        let template = self.get_template(TemplateType::UserTypeStruct);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'user type struct' template to tera!");
+        user_type: &UserTypeDeclaration,
+        builtin_types: &[DataType],
+        field_name_override: Option<&String>,
+        type_name_override: Option<&String>
+    ) -> Option<crate::header_generator::Variable> {
+        // We generally want to skip the declaration of user types that are only internally relevant
+        if let Some(data_type_name) = &user_type.data_type.get_name() {
+            if data_type_name.starts_with("__") {
+                if let Some(field_name) = field_name_override {
+                    if field_name.starts_with("__") {
+                        return None;
+                    }
+                } else {
+                    return None;
+                }
+            }
+        }
 
-        context.insert("name", name);
-        context.insert("variables", &self.format_struct_fields(variables));
+        match &user_type.data_type {
+            ast::DataType::StructType { name, .. } => {
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type: type_name_override.unwrap().to_string(),
+                    variable_type: VariableType::Struct,
+                })
+            }
+            ast::DataType::EnumType { name, .. } => {
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type: type_name_override.unwrap().to_string(),
+                    variable_type: VariableType::Default,
+                })
+            }
+            ast::DataType::StringType { name, size, is_wide } => {
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type: self.get_type_name_for_string(is_wide),
+                    variable_type: VariableType::Array(extract_string_size(size)),
+                })
+            }
+            ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
+                let type_info = self.get_type_name_for_type(
+                    &ExtendedTypeName {
+                        type_name: referenced_type.get_name().unwrap().to_string(),
+                        is_variadic: false,
+                    },
+                    builtin_types,
+                );
 
-        template
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type: type_info.name,
+                    variable_type: VariableType::Array(extract_array_size(bounds)),
+                })
+            }
+            ast::DataType::PointerType { name, referenced_type, .. } => {
+                let type_info = self.get_type_name_for_type(
+                    &ExtendedTypeName {
+                        type_name: referenced_type.get_name().unwrap().to_string(),
+                        is_variadic: false,
+                    },
+                    builtin_types,
+                );
+
+                let data_type = format!("{}{}", type_info.name, self.get_reference_symbol());
+
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type,
+                    variable_type: VariableType::Default,
+                })
+            }
+            ast::DataType::SubRangeType { name, referenced_type, .. } => {
+                let type_info = self.get_type_name_for_type(
+                    &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
+                    builtin_types,
+                );
+
+                Some(crate::header_generator::Variable {
+                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                    data_type: type_info.name,
+                    variable_type: VariableType::Default,
+                })
+            }
+            ast::DataType::VarArgs { .. } => Some(crate::header_generator::Variable {
+                name: String::new(),
+                data_type: String::new(),
+                variable_type: VariableType::Variadic,
+            }),
+            ast::DataType::GenericType { .. } => {
+                // Currently out of scope
+                None
+            }
+        }
     }
+}
 
-    fn prepare_and_get_tera_param_struct_template(
-        &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
-        name: Option<&String>,
-        data_type: Option<&String>,
-    ) -> Template {
-        let template = self.get_template(TemplateType::ParamStruct);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'param struct' template to tera!");
+fn format_variable_for_enum_definition() -> impl tera::Function {
+    Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
+        match args.get("variable") {
+            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+                Ok(variable) => {
+                    match variable.variable_type {
+                        VariableType::Declaration(right) => {
+                            Ok(to_value(format!("{} = {}", variable.name, right)).unwrap())
+                        },
+                        _ => Ok(to_value(format!("{}{}", variable.data_type, variable.name)).unwrap())
+                    }
+                }
+                Err(_) => Err("Unable to format variable for parameter!".into()),
+            },
+            None => Err("Unable to format variable for parameter!".into()),
+        }
+    })
+}
 
-        context.insert("name", &name.expect("Field name expected for 'param struct' template!"));
-        context.insert("data_type", &data_type.expect("Data Type expected for 'param struct' template!"));
+fn format_variable_for_definition() -> impl tera::Function {
+    Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
+        match args.get("variable") {
+            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+                Ok(variable) => {
+                    match variable.variable_type {
+                        VariableType::Array(size) => {
+                            Ok(to_value(format!("{} {}[{}]", variable.data_type, variable.name, size)).unwrap())
+                        },
+                        _ => Ok(to_value(format!("{} {}", variable.data_type, variable.name)).unwrap())
+                    }
+                }
+                Err(_) => Err("Unable to format variable for parameter!".into()),
+            },
+            None => Err("Unable to format variable for parameter!".into()),
+        }
+    })
+}
 
-        template
-    }
-
-    fn prepare_and_get_tera_variable_template(
-        &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
-        data_type: &String,
-        name: &String,
-        reference_symbol: &String,
-    ) -> Template {
-        let template = self.get_template(TemplateType::Variable);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'variable' template to tera!");
-
-        context.insert("data_type", data_type);
-        context.insert("name", name);
-        context.insert("reference_symbol", reference_symbol);
-
-        template
-    }
-
-    fn prepare_and_get_tera_param_array_template(
-        &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
-        data_type: &String,
-        name: &String,
-    ) -> Template {
-        let template = self.get_template(TemplateType::ParamArray);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'param array' template to tera!");
-
-        context.insert("data_type", data_type);
-        context.insert("name", name);
-
-        template
-    }
-
-    fn prepare_and_get_tera_user_type_array_template(
-        &mut self,
-        tera: &mut Tera,
-        context: &mut Context,
-        data_type: &String,
-        name: &String,
-        size: &String,
-    ) -> Template {
-        let template = self.get_template(TemplateType::UserTypeArray);
-        tera.add_raw_template(&template.name, &template.content)
-            .expect("Unable to add the 'user type array' template to tera!");
-
-        context.insert("data_type", data_type);
-        context.insert("name", name);
-        context.insert("size", size);
-
-        template
-    }
+fn format_variable_for_parameter(reference_symbol: String, variadic_symbol: String) -> impl tera::Function {
+    Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
+        match args.get("variable") {
+            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+                Ok(variable) => {
+                    match variable.variable_type {
+                        VariableType::Array(_) | VariableType::Struct => {
+                            Ok(to_value(format!("{}{} {}", variable.data_type, reference_symbol, variable.name)).unwrap())
+                        },
+                        VariableType::Variadic => {
+                            Ok(to_value(variadic_symbol.to_string()).unwrap())
+                        },
+                        _ => Ok(to_value(format!("{} {}", variable.data_type, variable.name)).unwrap())
+                    }
+                }
+                Err(_) => Err("Unable to format variable for parameter!".into()),
+            },
+            None => Err("Unable to format variable for parameter!".into()),
+        }
+    })
 }

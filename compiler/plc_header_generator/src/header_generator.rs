@@ -6,6 +6,7 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     header_generator::{
@@ -26,7 +27,9 @@ pub trait GeneratedHeader: FileHelper + TypeHelper + TemplateHelper + SymbolHelp
     fn get_directory(&self) -> &str;
     fn get_path(&self) -> &str;
     fn get_contents(&self) -> &str;
-    fn generate_headers(&mut self, compilation_unit: &CompilationUnit) -> Result<(), Diagnostic>;
+    fn get_template_data(&self) -> &TemplateData;
+    fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit);
+    fn generate_headers(&mut self) -> Result<(), Diagnostic>;
 }
 
 pub fn get_generated_header(
@@ -47,17 +50,89 @@ pub fn get_generated_header(
         return Ok(generated_header);
     }
 
+    // Prepare the template data
+    generated_header.prepare_template_data(compilation_unit);
+
     // Generate the headers
-    generated_header.generate_headers(compilation_unit)?;
+    generated_header.generate_headers()?;
 
     Ok(generated_header)
 }
 
-pub enum GenerationSource {
-    GlobalVariable,
-    UserType,
-    Struct,
-    FunctionParameter,
+#[derive(Serialize, Deserialize)]
+pub struct TemplateData {
+    pub user_defined_types: UserDefinedTypes,
+    pub global_variables: Vec<Variable>,
+    pub functions: Vec<Function>
+}
+
+impl Default for TemplateData {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl TemplateData {
+    pub const fn new() -> Self {
+        TemplateData {
+            user_defined_types: UserDefinedTypes::new(),
+            global_variables: Vec::new(),
+            functions: Vec::new()
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserDefinedTypes {
+    pub aliases: Vec<Variable>,
+    pub structs: Vec<UserType>,
+    pub enums: Vec<UserType>
+}
+
+impl Default for UserDefinedTypes {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl UserDefinedTypes {
+    pub const fn new() -> Self {
+        UserDefinedTypes {
+            aliases: Vec::new(),
+            structs: Vec::new(),
+            enums: Vec::new()
+        }
+    }
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct UserType {
+    pub name: String,
+    pub variables: Vec<Variable>
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Variable {
+    pub data_type: String,
+    pub name: String,
+    pub variable_type: VariableType
+}
+
+#[derive(Serialize, Deserialize, Clone)]
+pub enum VariableType {
+    Default,
+    Array(i128),
+    Declaration(String),
+    Alias(String),
+    Variadic,
+    Struct
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct Function {
+    pub return_type: String,
+    pub name: String,
+    pub parameters: Vec<Variable>
 }
 
 pub struct ExtendedTypeName {
@@ -86,6 +161,41 @@ fn coalesce_optional_strings_with_default(
     } else {
         name.clone().unwrap_or_default()
     }
+}
+
+fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
+    let mut enum_declarations: Vec<Variable> = Vec::new();
+
+    match &node.stmt {
+        AstStatement::ExpressionList(exp_nodes) => {
+            for exp_node in exp_nodes {
+                match &exp_node.stmt {
+                    AstStatement::Assignment(assignment) => {
+                        let left = extract_enum_field_name_from_statement(&assignment.left.stmt);
+                        let right = extract_enum_field_value_from_statement(&assignment.right.stmt);
+
+                        if right.is_empty() {
+                            enum_declarations.push(Variable {
+                                data_type: String::new(),
+                                name: left,
+                                variable_type: VariableType::Default
+                            });
+                        } else {
+                            enum_declarations.push(Variable {
+                                data_type: String::new(),
+                                name: left,
+                                variable_type: VariableType::Declaration(right)
+                            });
+                        }
+                    }
+                    _ => continue,
+                }
+            }
+        }
+        _ => todo!(),
+    }
+
+    enum_declarations
 }
 
 fn extract_enum_field_name_from_statement(statement: &AstStatement) -> String {
@@ -143,9 +253,9 @@ fn get_user_generated_type_by_name<'a>(
     None
 }
 
-fn extract_string_size(size: &Option<AstNode>) -> String {
+fn extract_string_size(size: &Option<AstNode>) -> i128 {
     if size.is_none() {
-        return String::new();
+        return i128::default();
     }
 
     let size = size.clone().unwrap();
@@ -153,12 +263,12 @@ fn extract_string_size(size: &Option<AstNode>) -> String {
     match size.stmt {
         // TODO: Verify this is necessary
         // +1 character for the string-termination-marker
-        AstStatement::Literal(AstLiteral::Integer(value)) => format!("{}", value + 1),
-        _ => String::new(),
+        AstStatement::Literal(AstLiteral::Integer(value)) => value + 1,
+        _ => i128::default(),
     }
 }
 
-fn extract_array_size(bounds: &AstNode) -> String {
+fn extract_array_size(bounds: &AstNode) -> i128 {
     match &bounds.stmt {
         AstStatement::RangeStatement(range_stmt) => {
             let start_value = match range_stmt.start.get_stmt() {
@@ -171,262 +281,8 @@ fn extract_array_size(bounds: &AstNode) -> String {
                 _ => i128::default(),
             };
 
-            format!("{}", end_value - start_value + 1)
+            end_value - start_value + 1
         }
-        _ => String::new(),
+        _ => i128::default(),
     }
 }
-
-/*
-    Refactor Notes:
-
-    ---------------------------------------------
-    -- Struct return type for header rendering --
-    ---------------------------------------------
-
-    {
-        "global_variables": [
-            {
-                "data_type": "some-data-type", // Could include the reference
-                "name": "some-field-name",
-                "size": null
-            },
-            ...
-        ],
-        "user_defined_data_types": {
-            "structs": [
-                {
-                    "name": "some-struct-name",
-                    "variables": [
-                        {
-                            "data_type": "some-data-type",
-                            "name": "some-field-name"
-                        },
-                        ...
-                    ]
-                },
-                ...
-            ],
-            "enums": [
-                {
-                    "name": "some-enum-name",
-                    "variables": [
-                        {
-                            "name": "some-enum-field-name",
-                            "value": null
-                        },
-                        ...
-                    ]
-                },
-                ...
-            ]
-        },
-        "functions": [
-            {
-                "return_type": "some-data-type",
-                "name": "some-function-name",
-                "parameters": [
-                    {
-                        "data_type": "some-data-type",
-                        "name": "some-field-name"
-                    },
-                    ...
-                ],
-                "is_variadic": false
-            },
-            ...
-        ]
-    }
-
-    -------------
-    -- EXAMPLE --
-    -------------
-    The following ST interface (.pli file):
-    ```st
-    VAR_GLOBAL
-        globalCounter: INT;
-    END_VAR
-
-    TYPE RGB : (
-            red,
-            green,
-            blue
-        );
-    END_TYPE
-
-    TYPE ColourInfo:
-        STRUCT
-            timesPicked : INT;
-            primaryColour : RGB;
-        END_STRUCT
-    END_TYPE
-
-    FUNCTION PrintStatistics
-    VAR_INPUT
-        runCount: INT;
-        colours: {sized} ColourInfo...;
-    END_VAR
-    END_FUNCTION
-
-    FUNCTION_BLOCK ColourTracker
-    VAR
-        internalCount : INT;
-    END_VAR
-    VAR_OUTPUT
-        printedInfo : STRING;
-    END_VAR
-    VAR_IN_OUT
-        colour : ColourInfo;
-    END_VAR
-    END_FUNCTION_BLOCK
-    ```
-
-    ... will result in the following struct:
-    ```json
-    {
-        "global_variables": [
-            {
-                "data_type": "int16_t",
-                "name": "globalCounter",
-                "is_reference": false,
-                "size": null
-            }
-        ],
-        "user_defined_data_types": {
-            "structs": [
-                {
-                    "name": "ColourInfo",
-                    "variables": [
-                        {
-                            "data_type": "int16_t",
-                            "name": "timesPicked"
-                        },
-                        {
-                            "data_type": "RGB",
-                            "name": "primaryColour"
-                        }
-                    ]
-                },
-                {
-                    "name": "ColourTracker_type",
-                    "variables": [
-                        {
-                            "data_type": "uint64_t*",
-                            "name": "__vtable"
-                        },
-                        {
-                            "data_type": "int16_t",
-                            "name": "internalCount"
-                        },
-                        {
-                            "data_type": "char*",
-                            "name": "printedInfo"
-                        },
-                        {
-                            "data_type": "ColourInfo*",
-                            "name": "colour"
-                        }
-                    ]
-                }
-            ],
-            "enums": [
-                {
-                    "name": "eRGB",
-                    "variables": [
-                        {
-                            "name": "red",
-                            "value": "0"
-                        },
-                        {
-                            "name": "green",
-                            "value": null
-                        },
-                        {
-                            "name": "blue",
-                            "value": null
-                        }
-                    ]
-                }
-            ]
-        },
-        "functions": [
-            {
-                "return_type": "void",
-                "name": "PrintStatistics",
-                "parameters": [
-                    {
-                        "data_type": "int16_t",
-                        "name": "runCount"
-                    }
-                ],
-                "is_variadic": true
-            },
-            {
-                "return_type": "void",
-                "name": "ColourTracker",
-                "parameters": [
-                    {
-                        "data_type": "ColourTracker_type*",
-                        "name": "self"
-                    }
-                ],
-                "is_variadic": false
-            }
-        ]
-    }
-    ```
-
-    ... and that will result in the follow C header:
-    ```c
-    extern int16_t globalCounter;
-
-    typedef enum eRGB {
-        red = 0,
-        green,
-        blue
-    } RGB;
-
-    typedef struct {
-        int16_t timesPicked;
-        RGB primaryColour;
-    } ColourInfo;
-
-    typedef struct {
-        uint64_t* __vtable;
-        int16_t internalCount;
-        char* printedInfo;
-        ColourInfo* colour;
-    } ColourTracker_type;
-
-    void PrintStatistics(int16_t runCount, ...);
-
-    void ColourTracker(ColourTracker_type* self);
-    ```
-*/
-
-/*
-    enum DataType {
-        Struct,
-        Enum,
-        Array,
-        Pointer(String),
-        Reference(String),
-    }
-
-    struct Variable;
-
-    struct Function;
-
-    struct Model {
-        types: HashMap<String, DataType>,
-        variables: HashMap<String, Variable>,
-        functions: HashMap<String, Function>,
-    }
-
-    trait Declare {
-        fn declare_var(&self) -> String;
-        fn declare_type(&self) -> String;
-        fn declare_func(&self) -> String;
-    }
-
-*/

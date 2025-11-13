@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].contents"
+expression: "&generated_headers[0].get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -9,8 +9,6 @@ expression: "&generated_headers[0].contents"
 
 #include <dependencies.plc.h>
 
-
-// Global Variables
 extern char gVarString[256];
 extern int16_t gVarWString[6001];
 extern int16_t gVarIntArray[12];

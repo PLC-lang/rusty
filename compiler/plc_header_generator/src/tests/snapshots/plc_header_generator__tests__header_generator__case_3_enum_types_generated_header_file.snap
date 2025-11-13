@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].contents"
+expression: "&generated_headers[0].get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -9,18 +9,14 @@ expression: "&generated_headers[0].contents"
 
 #include <dependencies.plc.h>
 
-
-
-
-// User-defined data types
 typedef enum eSimpleEnumType {
     red = 0,
-	green,
-	blue
+    green,
+    blue
 } SimpleEnumType;
 
 typedef enum eComplexEnumType {
     orange = 10,
-	yellow = 20,
-	purple = 30
+    yellow = 20,
+    purple = 30
 } ComplexEnumType;

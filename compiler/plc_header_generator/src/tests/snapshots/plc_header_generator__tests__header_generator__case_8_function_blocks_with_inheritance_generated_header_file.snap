@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].contents"
+expression: "&generated_headers[0].get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -9,36 +9,30 @@ expression: "&generated_headers[0].contents"
 
 #include <dependencies.plc.h>
 
-
-
-
-
-
-// Functions, Function Blocks and Programs
 typedef struct {
     uint64_t* __vtable;
-	int16_t varGreatGrandParentInt;
+    int16_t varGreatGrandParentInt;
 } fbGreatGrandParent_type;
+
+typedef struct {
+    fbGreatGrandParent_type __fbGreatGrandParent;
+    int16_t varGrandParentInt;
+} fbGrandParent_type;
+
+typedef struct {
+    fbGrandParent_type __fbGrandParent;
+    int16_t varParentInt;
+} fbParent_type;
+
+typedef struct {
+    fbParent_type __fbParent;
+    int16_t varChildInt;
+} fbChild_type;
 
 void fbGreatGrandParent(fbGreatGrandParent_type* self);
 
-typedef struct {
-    fbGreatGrandParent __fbGreatGrandParent;
-	int16_t varGrandParentInt;
-} fbGrandParent_type;
-
 void fbGrandParent(fbGrandParent_type* self);
 
-typedef struct {
-    fbGrandParent __fbGrandParent;
-	int16_t varParentInt;
-} fbParent_type;
-
 void fbParent(fbParent_type* self);
-
-typedef struct {
-    fbParent __fbParent;
-	int16_t varChildInt;
-} fbChild_type;
 
 void fbChild(fbChild_type* self);

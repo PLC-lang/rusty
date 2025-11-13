@@ -1,6 +1,5 @@
 use crate::header_generator::ExtendedTypeName;
 use plc::typesystem::DataType;
-use plc_ast::ast::UserTypeDeclaration;
 
 mod type_helper_c;
 
@@ -35,8 +34,6 @@ pub trait TypeHelper {
     ) -> TypeInformation;
 
     fn get_type_name_for_string(&self, is_wide: &bool) -> String;
-
-    fn user_type_can_be_declared_outside_of_a_function(&self, user_type: &UserTypeDeclaration) -> bool;
 }
 
 fn determine_type_attribute(is_variadic: bool, is_user_generated: bool) -> TypeAttribute {

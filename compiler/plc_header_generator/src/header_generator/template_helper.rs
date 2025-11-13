@@ -10,13 +10,5 @@ pub struct Template {
 }
 
 pub enum TemplateType {
-    Header,
-    Function,
-    ParamArray,
-    ParamEnum,
-    ParamStruct,
-    UserTypeArray,
-    UserTypeEnum,
-    UserTypeStruct,
-    Variable,
+    Header
 }

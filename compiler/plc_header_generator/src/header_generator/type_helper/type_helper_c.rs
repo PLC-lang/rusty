@@ -4,7 +4,7 @@ use crate::header_generator::{
     ExtendedTypeName,
 };
 use plc::typesystem::{DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, REAL_SIZE};
-use plc_ast::ast::{self, TypeNature, UserTypeDeclaration};
+use plc_ast::ast::TypeNature;
 
 impl TypeHelper for GeneratedHeaderForC {
     fn get_type_name_for_type(
@@ -99,16 +99,6 @@ impl TypeHelper for GeneratedHeaderForC {
         }
 
         String::from(C_CHAR)
-    }
-
-    fn user_type_can_be_declared_outside_of_a_function(&self, user_type: &UserTypeDeclaration) -> bool {
-        !matches!(
-            user_type.data_type,
-            ast::DataType::StringType { .. }
-                | ast::DataType::ArrayType { .. }
-                | ast::DataType::PointerType { .. }
-                | ast::DataType::SubRangeType { .. }
-        )
     }
 }
 
