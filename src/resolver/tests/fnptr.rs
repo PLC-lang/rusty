@@ -535,6 +535,7 @@ fn function_pointer_arguments_have_correct_type_hint() {
                 location: SourceLocation {
                     span: None,
                 },
+                linkage: Internal,
             },
         )
         "#);

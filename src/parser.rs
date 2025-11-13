@@ -869,6 +869,7 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
                     initializer,
                     location: name_location,
                     scope: lexer.scope.clone(),
+                    linkage: LinkageType::Internal,
                 });
             }
         }
