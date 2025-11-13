@@ -57,6 +57,7 @@ serial_test = "*"
 tempfile = "3"
 encoding_rs.workspace = true
 encoding_rs_io.workspace = true
+tabled = "0.20.0"
 
 [lib]
 name = "rusty"
