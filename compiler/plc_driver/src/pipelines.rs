@@ -41,7 +41,10 @@ use plc_diagnostics::{
     diagnostician::Diagnostician,
     diagnostics::{Diagnostic, Severity},
 };
-use plc_header_generator::{GenerateHeaderOptions, header_generator::{GeneratedHeader, get_generated_header}};
+use plc_header_generator::{
+    header_generator::{get_generated_header, GeneratedHeader},
+    GenerateHeaderOptions,
+};
 use plc_index::GlobalContext;
 use plc_lowering::inheritance::InheritanceLowerer;
 use project::{

@@ -10,5 +10,5 @@ pub struct Template {
 }
 
 pub enum TemplateType {
-    Header
+    Header,
 }

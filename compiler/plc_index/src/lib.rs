@@ -5,7 +5,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_source::{SourceCode, SourceContainer};
 use rustc_hash::FxHashMap;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 // TODO: The clone is super expensive here, eventually we should have a inner type wrapped around Arc, e.g.
 //       `struct GlobalContext { inner: Arc<GlobalContextInner> }`

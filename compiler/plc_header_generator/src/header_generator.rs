@@ -63,7 +63,7 @@ pub fn get_generated_header(
 pub struct TemplateData {
     pub user_defined_types: UserDefinedTypes,
     pub global_variables: Vec<Variable>,
-    pub functions: Vec<Function>
+    pub functions: Vec<Function>,
 }
 
 impl Default for TemplateData {
@@ -77,7 +77,7 @@ impl TemplateData {
         TemplateData {
             user_defined_types: UserDefinedTypes::new(),
             global_variables: Vec::new(),
-            functions: Vec::new()
+            functions: Vec::new(),
         }
     }
 }
@@ -86,7 +86,7 @@ impl TemplateData {
 pub struct UserDefinedTypes {
     pub aliases: Vec<Variable>,
     pub structs: Vec<UserType>,
-    pub enums: Vec<UserType>
+    pub enums: Vec<UserType>,
 }
 
 impl Default for UserDefinedTypes {
@@ -97,25 +97,21 @@ impl Default for UserDefinedTypes {
 
 impl UserDefinedTypes {
     pub const fn new() -> Self {
-        UserDefinedTypes {
-            aliases: Vec::new(),
-            structs: Vec::new(),
-            enums: Vec::new()
-        }
+        UserDefinedTypes { aliases: Vec::new(), structs: Vec::new(), enums: Vec::new() }
     }
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct UserType {
     pub name: String,
-    pub variables: Vec<Variable>
+    pub variables: Vec<Variable>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Variable {
     pub data_type: String,
     pub name: String,
-    pub variable_type: VariableType
+    pub variable_type: VariableType,
 }
 
 #[derive(Serialize, Deserialize, Clone)]
@@ -125,14 +121,14 @@ pub enum VariableType {
     Declaration(String),
     Alias(String),
     Variadic,
-    Struct
+    Struct,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct Function {
     pub return_type: String,
     pub name: String,
-    pub parameters: Vec<Variable>
+    pub parameters: Vec<Variable>,
 }
 
 pub struct ExtendedTypeName {
@@ -178,13 +174,13 @@ fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
                             enum_declarations.push(Variable {
                                 data_type: String::new(),
                                 name: left,
-                                variable_type: VariableType::Default
+                                variable_type: VariableType::Default,
                             });
                         } else {
                             enum_declarations.push(Variable {
                                 data_type: String::new(),
                                 name: left,
-                                variable_type: VariableType::Declaration(right)
+                                variable_type: VariableType::Declaration(right),
                             });
                         }
                     }

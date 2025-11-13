@@ -1,5 +1,5 @@
-use std::fmt::Debug;
 use serde::{Deserialize, Serialize};
+use std::fmt::Debug;
 
 use plc_source::source_location::SourceLocation;
 
