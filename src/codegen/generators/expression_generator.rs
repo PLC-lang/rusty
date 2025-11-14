@@ -855,6 +855,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn build_parameter_struct_gep(&self, context: &CallParameterAssignment<'ink, 'b>) -> PointerValue<'ink> {
         unsafe {
+            // Assuming we have an inheritance hierarchy of `A <- B <- C` and a call `objC(inA := 1, ...)`
+            // then in order to access `inA` in `C` we have to generate some IR of form `objC.__B.__A.inA`.
+            // Because the parent structs are always the first member of these function blocks / classes, we
+            // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
+            // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
             let mut gep_index = vec![0; (context.depth + 1) as usize];
             gep_index.push(context.position);
 
