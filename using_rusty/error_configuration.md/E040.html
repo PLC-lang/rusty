@@ -175,9 +175,9 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="invalid-enum-variant"><a class="header" href="#invalid-enum-variant">Invalid Enum Variant</a></h1>
-<p>This error indicates the right-hand side in an enum assignment is invalid.
-For example an enum such as <code>TYPE Color : (red := 0, green := 1, blue := 2); END_TYPE</code> can only take values
+                        <h1 id="non-standard-enum-variant"><a class="header" href="#non-standard-enum-variant">Non-Standard Enum Variant</a></h1>
+<p>This warning indicates the right-hand side in an enum assignment does not match a defined variant.
+For example an enum such as <code>TYPE Color : (red := 0, green := 1, blue := 2); END_TYPE</code> is expected to take values
 which (internally) yield a literal integer 0, 1 or 2.</p>
 
                     </main>
