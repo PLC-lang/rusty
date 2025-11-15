@@ -1504,7 +1504,7 @@ fn validate_call<T: AnnotationMap>(
                     validate_call_by_ref(validator, left, argument);
                     // 'parameter location in parent' and 'variable location in parent' are not the same (e.g VAR blocks are not counted as param).
                     // save actual location in parent for InOut validation
-                    variable_location_in_parent.push(left.get_location_in_parent());
+                    variable_location_in_parent.push(left.get_position());
                 }
 
                 // explicit call parameter assignments will be handled by
@@ -1553,7 +1553,7 @@ fn validate_call<T: AnnotationMap>(
         if !declared_in_out_params.is_empty() {
             // Check if all IN_OUT arguments were passed by cross-checking with the parameters
             declared_in_out_params.into_iter().for_each(|p| {
-                if !variable_location_in_parent.contains(&p.get_location_in_parent()) {
+                if !variable_location_in_parent.contains(&p.get_position()) {
                     validator.push_diagnostic(
                         Diagnostic::new(format!("Argument `{}` is missing", p.get_name()))
                             .with_error_code("E030")

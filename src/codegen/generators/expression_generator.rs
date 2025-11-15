@@ -68,13 +68,25 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 /// context information to generate a parameter
 #[derive(Debug)]
 struct CallParameterAssignment<'a, 'b> {
-    /// the assignmentstatement in the call-argument list (a:=3)
+    /// The named argument node of the function call (e.g. `foo(in := 3)`)
     assignment: &'b AstNode,
-    /// the name of the function we're calling
+
+    /// The name of the POU being called
     function_name: &'b str,
-    /// the position of the argument in the POU's argument's list
-    index: u32,
-    /// a pointer to the struct instance that carries the call's arguments
+
+    /// The position of the parameter in the POUs variable declaration list.
+    /// See also [`StatementAnnotation::Argument::position`].
+    position: u32,
+
+    /// The depth between where the parameter is declared versus where it is being called from.
+    /// See also [`StatementAnnotation::Argument::depth`].
+    depth: u32,
+
+    /// The name of the POU where the parameter is declared
+    /// See also [`StatementAnnotation::Argument::pou`].
+    pou_parameter: &'b str,
+
+    /// The pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
 }
 
@@ -702,14 +714,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
+                let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
+                    self.annotations.get_hint(assignment_statement)
+                else {
+                    panic!()
+                };
+
                 self.assign_output_value(&CallParameterAssignment {
                     assignment: assignment_statement,
                     function_name,
-                    index: self
-                        .annotations
-                        .get_hint(assignment_statement)
-                        .and_then(StatementAnnotation::get_location_in_parent)
-                        .expect("arguments must have a type hint"),
+                    position: *position as u32,
+                    depth: *depth as u32,
+                    pou_parameter: pou,
                     parameter_struct,
                 })?
             }
@@ -720,11 +736,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), CodegenError> {
         match &param_context.assignment.stmt {
-            AstStatement::OutputAssignment(assignment) => self.generate_explicit_output_assignment(
-                param_context.parameter_struct,
-                param_context.function_name,
-                assignment,
-            ),
+            AstStatement::OutputAssignment(assignment) => {
+                self.generate_explicit_output_assignment(param_context, assignment)
+            }
 
             _ => self.generate_output_assignment(param_context),
         }
@@ -839,8 +853,36 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
+    fn build_parameter_struct_gep(&self, context: &CallParameterAssignment<'ink, 'b>) -> PointerValue<'ink> {
+        unsafe {
+            // Assuming we have an inheritance hierarchy of `A <- B <- C` and a call `objC(inA := 1, ...)`
+            // then in order to access `inA` in `C` we have to generate some IR of form `objC.__B.__A.inA`.
+            // Because the parent structs are always the first member of these function blocks / classes, we
+            // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
+            // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
+            let mut gep_index = vec![0; (context.depth + 1) as usize];
+            gep_index.push(context.position);
+
+            let i32_type = self.llvm.context.i32_type();
+            let gep_index = gep_index
+                .into_iter()
+                .map(|value| i32_type.const_int(value as u64, false))
+                .collect::<Vec<_>>();
+
+            self.llvm.builder.build_gep(context.parameter_struct, &gep_index, "").unwrap()
+        }
+    }
+
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), CodegenError> {
-        let &CallParameterAssignment { assignment: expr, function_name, index, parameter_struct } = context;
+        let &CallParameterAssignment {
+            assignment: expr,
+            function_name,
+            position: index,
+            depth: _,
+            pou_parameter: arg_pou,
+            parameter_struct,
+        } = context;
+
         let builder = &self.llvm.builder;
 
         // We don't want to generate any code if the right side of an assignment is empty, e.g. `foo(out =>)`
@@ -848,7 +890,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(());
         }
 
-        let parameter = self.index.get_declared_parameter(function_name, index).expect("must exist");
+        let parameter = self.index.get_declared_parameter(arg_pou, index).expect("must exist");
 
         match expr.get_stmt() {
             AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
@@ -889,12 +931,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-                let output = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        format!("Cannot build generate parameter: {parameter:#?}"),
-                        &parameter.source_location,
-                    )
-                })?;
+                let output = self.build_parameter_struct_gep(context);
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
@@ -919,24 +956,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn generate_explicit_output_assignment(
         &self,
-        parameter_struct: PointerValue<'ink>,
-        function_name: &str,
+        param_context: &CallParameterAssignment,
         assignment: &Assignment,
     ) -> Result<(), CodegenError> {
+        let parameter_struct = param_context.parameter_struct;
+        let function_name = param_context.function_name;
         let Assignment { left, right } = assignment;
 
-        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
-            let parameter = self
-                .index
-                .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.as_ref()))?;
-            let index = parameter.get_location_in_parent();
-
+        if let Some(StatementAnnotation::Variable { .. }) = self.annotations.get(left) {
             self.generate_output_assignment(&CallParameterAssignment {
                 assignment: right,
                 function_name,
-                index,
+                position: param_context.position,
+                depth: param_context.depth,
                 parameter_struct,
+                pou_parameter: param_context.pou_parameter,
             })?
         };
 
@@ -1280,14 +1314,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
         for argument in arguments.iter() {
+            let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
+                self.annotations.get_hint(argument)
+            else {
+                panic!()
+            };
+
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
-                index: self
-                    .annotations
-                    .get_hint(argument)
-                    .and_then(StatementAnnotation::get_location_in_parent)
-                    .expect("arguments must have a type hint"),
+                position: *position as u32,
+                depth: *depth as u32,
+                pou_parameter: pou,
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {
@@ -1378,11 +1416,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
-        let index = param_context.index;
-        let parameter_struct = param_context.parameter_struct;
+        // let function_name = param_context.function_name;
+        let index = param_context.position;
         let expression = param_context.assignment;
-        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
+
+        if let Some(parameter) = self.index.get_declared_parameter(param_context.pou_parameter, index) {
             // this happens before the pou call
             // before the call statement we may only consider inputs and inouts
             // after the call we need to copy the output values to the correct assigned variables
@@ -1390,16 +1428,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let pointer_to_param = builder.build_struct_gep(parameter_struct, index, "").map_err(|_| {
-                Diagnostic::codegen_error(
-                    format!("Cannot build generate parameter: {expression:#?}"),
-                    expression,
-                )
-            })?;
+            let pointer_to_param = self.build_parameter_struct_gep(param_context);
 
             let parameter = self
                 .index
-                .find_parameter(function_name, index)
+                .find_parameter(param_context.pou_parameter, index)
                 .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -1444,21 +1477,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left))?;
-            let index = parameter.get_location_in_parent();
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
             let is_auto_deref = self
                 .index
                 .find_effective_type_by_name(parameter.get_type_name())
-                .map(|var| var.get_type_information())
-                .unwrap_or(self.index.get_void_type().get_type_information())
+                .map(DataType::get_type_information)
+                .unwrap_or_else(|| self.index.get_void_type().get_type_information())
                 .is_auto_deref();
+
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
                     function_name,
-                    index,
+                    position: param_context.position,
+                    depth: param_context.depth,
+                    pou_parameter: param_context.pou_parameter,
                     parameter_struct,
                 })?;
             };
@@ -1504,7 +1539,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let member_location = self
                         .index
                         .find_fully_qualified_variable(qualified_name)
-                        .map(VariableIndexEntry::get_location_in_parent)
+                        .map(VariableIndexEntry::get_position)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
                     let gep: PointerValue<'_> =
                         self.llvm.get_member_pointer_from_struct(*qualifier, member_location, name)?;
@@ -2246,7 +2281,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 Diagnostic::unresolved_reference(qualified_name, data.left.as_ref())
                             })?;
 
-                        let index_in_parent = member.get_location_in_parent();
+                        let index_in_parent = member.get_position();
                         let value = self.generate_expression(data.right.as_ref())?;
 
                         uninitialized_members.remove(member);
@@ -2278,7 +2313,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
                     })?;
 
-                member_values.push((member.get_location_in_parent(), initial_value));
+                member_values.push((member.get_position(), initial_value));
             }
             let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {

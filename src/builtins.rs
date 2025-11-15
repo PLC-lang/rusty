@@ -672,7 +672,7 @@ fn annotate_comparison_function(
             .has_nature(TypeNature::Elementary, annotator.index)
     }) {
         // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
-        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
 
@@ -741,7 +741,7 @@ fn annotate_arithmetic_function(
             .has_nature(TypeNature::Num, annotator.index)
     }) {
         // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
-        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
 

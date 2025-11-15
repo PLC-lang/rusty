@@ -354,12 +354,12 @@ fn calling_a_function_block() {
       %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %fb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      %1 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 0
+      %1 = getelementptr %main_fb, %main_fb* %fb, i32 0, i32 0
       store i16 1, i16* %1, align 2
-      %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
+      %2 = getelementptr %main_fb, %main_fb* %fb, i32 0, i32 1
       store i16* %y, i16** %2, align 8
       call void @main_fb(%main_fb* %fb)
-      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
+      %3 = getelementptr %main_fb, %main_fb* %fb, i32 0, i32 2
       %4 = load i16, i16* %3, align 2
       store i16 %4, i16* %x, align 2
       ret void
