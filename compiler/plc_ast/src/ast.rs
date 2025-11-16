@@ -300,6 +300,14 @@ impl Pou {
     pub fn is_stateful(&self) -> bool {
         matches!(self.kind, PouType::Program | PouType::FunctionBlock | PouType::Action | PouType::Class)
     }
+
+    pub fn is_external(&self) -> bool {
+        matches!(self.linkage, LinkageType::External)
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        matches!(self.linkage, LinkageType::BuiltIn)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -542,6 +550,14 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Local)
+    }
+
+    pub fn is_temp(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Temp)
     }
 }
 

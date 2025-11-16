@@ -247,21 +247,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-    /// Register all default participants (excluding codegen/linking)
-    pub fn register_default_participants(&mut self) {
+
+    pub fn get_default_mut_particitants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
         use participant::InitParticipant;
 
-        // XXX: should we use a static array of participants?
-        let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+        vec![
             Box::new(VirtualTableGenerator::new(self.context.provider())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-        ];
+        ]
+    }
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_mut_participants(&mut self) {
+        // XXX: should we use a static array of participants?
+        let mut_participants = self.get_default_mut_particitants();
+        self.register_mut_participants(mut_participants);
+    }
 
-        for participant in mut_participants {
+    pub fn register_mut_participants(&mut self, participants: Vec<Box<dyn PipelineParticipantMut>>) {
+        for participant in participants {
             self.register_mut_participant(participant)
         }
     }

@@ -37,7 +37,7 @@ pub fn parse_and_validate_buffered_ast(src: &str) -> Vec<CompilationUnit> {
             project.validate(&pipeline.context, &mut pipeline.diagnostician).unwrap();
             project.units.into_iter().map(CompilationUnit::from).collect()
         }
-        Err(diagnostician) => panic!("{}", diagnostician.buffer().unwrap()),
+        Err(diagnostics) => panic!("{diagnostics}"),
     }
 }
 
