@@ -17,7 +17,7 @@ impl Default for TypeInformation {
 pub enum TypeAttribute {
     Other,
     UserGenerated,
-    Variadic
+    Variadic,
 }
 
 impl TypeInformation {

@@ -9,7 +9,14 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
 
 use crate::header_generator::{
-    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType, coalesce_optional_strings_with_default, data_type_is_system_generated, extract_array_size, extract_enum_declaration_from_elements, extract_string_size, file_helper::HeaderFileInformation, get_type_from_data_type_decleration, get_user_generated_type_by_name, symbol_helper::SymbolHelper, template_helper::{TemplateHelper, TemplateType}, type_helper::{TypeAttribute, TypeHelper}
+    coalesce_optional_strings_with_default, data_type_is_system_generated, extract_array_size,
+    extract_enum_declaration_from_elements, extract_string_size,
+    file_helper::HeaderFileInformation,
+    get_type_from_data_type_decleration, get_user_generated_type_by_name,
+    symbol_helper::SymbolHelper,
+    template_helper::{TemplateHelper, TemplateType},
+    type_helper::{TypeAttribute, TypeHelper},
+    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType,
 };
 
 pub struct GeneratedHeaderForC {
@@ -183,11 +190,11 @@ impl GeneratedHeaderForC {
                     .enums
                     .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
             }
-            ast::DataType::ArrayType { name , bounds, referenced_type, .. } => {
+            ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
                 self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
                     data_type: referenced_type.get_name().unwrap_or_default().to_string(),
                     name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Array(extract_array_size(bounds))
+                    variable_type: VariableType::Array(extract_array_size(bounds)),
                 });
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
@@ -196,21 +203,21 @@ impl GeneratedHeaderForC {
                 self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
                     data_type,
                     name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Default
+                    variable_type: VariableType::Default,
                 });
             }
             ast::DataType::StringType { name, is_wide, size } => {
                 self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
                     data_type: self.get_type_name_for_string(is_wide),
                     name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Array(extract_string_size(size))
+                    variable_type: VariableType::Array(extract_string_size(size)),
                 });
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
                 self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
                     data_type: referenced_type.clone(),
                     name: name.clone().unwrap_or_default(),
-                    variable_type: VariableType::Default
+                    variable_type: VariableType::Default,
                 });
             }
             _ => {
@@ -374,10 +381,9 @@ impl GeneratedHeaderForC {
                                 variables.push(crate::header_generator::Variable {
                                     data_type: type_name,
                                     name: value.name,
-                                    variable_type: value.variable_type
+                                    variable_type: value.variable_type,
                                 })
-                            }
-                            else {
+                            } else {
                                 variables.push(value);
                             }
                         }
@@ -449,7 +455,7 @@ impl GeneratedHeaderForC {
                 let type_info = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false
+                        is_variadic: false,
                     },
                     builtin_types,
                 );
@@ -464,7 +470,7 @@ impl GeneratedHeaderForC {
                 let type_info = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false
+                        is_variadic: false,
                     },
                     builtin_types,
                 );

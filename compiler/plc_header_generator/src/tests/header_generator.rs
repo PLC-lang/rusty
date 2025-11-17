@@ -245,6 +245,7 @@ fn extract_string_item_from_snapshot(test_name: &str) -> &'static str {
 /// Gets the full snapshot path of the given test for this test instance
 fn get_full_snapshot_path_to_test_with_test_name(test_name: &str) -> PathBuf {
     // TODO: The pathing should probably be re-evaluated
-    let path = format!("../plc_driver/src/tests/snapshots/plc_driver__tests__header_generator__{test_name}.snap");
+    let path =
+        format!("../plc_driver/src/tests/snapshots/plc_driver__tests__header_generator__{test_name}.snap");
     Path::new(&path).to_owned()
 }
