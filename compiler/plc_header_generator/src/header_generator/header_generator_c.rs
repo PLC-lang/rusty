@@ -9,14 +9,7 @@ use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
 
 use crate::header_generator::{
-    coalesce_optional_strings_with_default, extract_array_size, extract_enum_declaration_from_elements,
-    extract_string_size,
-    file_helper::HeaderFileInformation,
-    get_type_from_data_type_decleration, get_user_generated_type_by_name,
-    symbol_helper::SymbolHelper,
-    template_helper::{TemplateHelper, TemplateType},
-    type_helper::{TypeAttribute, TypeHelper},
-    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType,
+    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType, coalesce_optional_strings_with_default, data_type_is_system_generated, extract_array_size, extract_enum_declaration_from_elements, extract_string_size, file_helper::HeaderFileInformation, get_type_from_data_type_decleration, get_user_generated_type_by_name, symbol_helper::SymbolHelper, template_helper::{TemplateHelper, TemplateType}, type_helper::{TypeAttribute, TypeHelper}
 };
 
 pub struct GeneratedHeaderForC {
@@ -135,7 +128,7 @@ impl GeneratedHeaderForC {
 
                     self.template_data.functions.push(Function {
                         name: pou.name.to_string(),
-                        return_type: type_info.name.to_string(),
+                        return_type: type_info.get_type_name(),
                         parameters,
                     });
                 }
@@ -190,8 +183,38 @@ impl GeneratedHeaderForC {
                     .enums
                     .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
             }
+            ast::DataType::ArrayType { name , bounds, referenced_type, .. } => {
+                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                    data_type: referenced_type.get_name().unwrap_or_default().to_string(),
+                    name: name.clone().unwrap_or_default(),
+                    variable_type: VariableType::Array(extract_array_size(bounds))
+                });
+            }
+            ast::DataType::PointerType { name, referenced_type, .. } => {
+                let data_type = format!("{}*", referenced_type.get_name().unwrap_or_default());
+
+                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                    data_type,
+                    name: name.clone().unwrap_or_default(),
+                    variable_type: VariableType::Default
+                });
+            }
+            ast::DataType::StringType { name, is_wide, size } => {
+                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                    data_type: self.get_type_name_for_string(is_wide),
+                    name: name.clone().unwrap_or_default(),
+                    variable_type: VariableType::Array(extract_string_size(size))
+                });
+            }
+            ast::DataType::SubRangeType { name, referenced_type, .. } => {
+                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                    data_type: referenced_type.clone(),
+                    name: name.clone().unwrap_or_default(),
+                    variable_type: VariableType::Default
+                });
+            }
             _ => {
-                // The remainder of user types are not handled by this process
+                // The rest of these are not managed here
             }
         }
     }
@@ -243,7 +266,7 @@ impl GeneratedHeaderForC {
         });
 
         self.template_data.functions.push(Function {
-            return_type: type_info.name.to_string(),
+            return_type: type_info.get_type_name(),
             name: function_name,
             parameters,
         });
@@ -330,22 +353,33 @@ impl GeneratedHeaderForC {
                 )
             };
 
-            let data_type = format!("{}{reference_symbol}", type_info.name);
+            let data_type = format!("{}{reference_symbol}", type_info.get_type_name());
 
             match type_info.attribute {
                 TypeAttribute::UserGenerated => {
-                    let option_user_type = get_user_generated_type_by_name(&type_info.name, user_types);
+                    let type_name = type_info.get_type_name();
+                    let option_user_type = get_user_generated_type_by_name(&type_name, user_types);
 
                     if let Some(user_type) = option_user_type {
                         let user_type_variable = self.get_user_type_variable(
                             user_type,
                             builtin_types,
                             Some(&String::from(variable.get_name())),
-                            Some(&type_info.name),
+                            Some(&type_name),
                         );
 
                         if let Some(value) = user_type_variable {
-                            variables.push(value);
+                            // This is an alias
+                            if type_name != value.data_type && !data_type_is_system_generated(&type_name) {
+                                variables.push(crate::header_generator::Variable {
+                                    data_type: type_name,
+                                    name: value.name,
+                                    variable_type: value.variable_type
+                                })
+                            }
+                            else {
+                                variables.push(value);
+                            }
                         }
                     } else {
                         variables.push(crate::header_generator::Variable {
@@ -383,10 +417,10 @@ impl GeneratedHeaderForC {
         type_name_override: Option<&String>,
     ) -> Option<crate::header_generator::Variable> {
         // We generally want to skip the declaration of user types that are only internally relevant
-        if let Some(data_type_name) = &user_type.data_type.get_name() {
-            if data_type_name.starts_with("__") {
+        if let Some(data_type_name) = user_type.data_type.get_name() {
+            if data_type_is_system_generated(data_type_name) {
                 if let Some(field_name) = field_name_override {
-                    if field_name.starts_with("__") {
+                    if data_type_is_system_generated(field_name) {
                         return None;
                     }
                 } else {
@@ -415,14 +449,14 @@ impl GeneratedHeaderForC {
                 let type_info = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false,
+                        is_variadic: false
                     },
                     builtin_types,
                 );
 
                 Some(crate::header_generator::Variable {
                     name: coalesce_optional_strings_with_default(name, field_name_override),
-                    data_type: type_info.name,
+                    data_type: type_info.get_type_name(),
                     variable_type: VariableType::Array(extract_array_size(bounds)),
                 })
             }
@@ -430,12 +464,12 @@ impl GeneratedHeaderForC {
                 let type_info = self.get_type_name_for_type(
                     &ExtendedTypeName {
                         type_name: referenced_type.get_name().unwrap().to_string(),
-                        is_variadic: false,
+                        is_variadic: false
                     },
                     builtin_types,
                 );
 
-                let data_type = format!("{}{}", type_info.name, self.get_reference_symbol());
+                let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
 
                 Some(crate::header_generator::Variable {
                     name: coalesce_optional_strings_with_default(name, field_name_override),
@@ -451,7 +485,7 @@ impl GeneratedHeaderForC {
 
                 Some(crate::header_generator::Variable {
                     name: coalesce_optional_strings_with_default(name, field_name_override),
-                    data_type: type_info.name,
+                    data_type: type_info.get_type_name(),
                     variable_type: VariableType::Default,
                 })
             }

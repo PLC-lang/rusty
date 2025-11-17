@@ -119,7 +119,6 @@ pub enum VariableType {
     Default,
     Array(i128),
     Declaration(String),
-    Alias(String),
     Variadic,
     Struct,
 }
@@ -281,4 +280,12 @@ fn extract_array_size(bounds: &AstNode) -> i128 {
         }
         _ => i128::default(),
     }
+}
+
+fn data_type_is_system_generated(data_type: &str) -> bool {
+    if data_type.starts_with("__") {
+        return true;
+    }
+
+    false
 }

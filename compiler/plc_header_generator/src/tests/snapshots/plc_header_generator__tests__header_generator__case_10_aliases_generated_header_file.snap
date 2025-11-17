@@ -1,0 +1,20 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#include <dependencies.plc.h>
+
+typedef char T_String[51];
+
+typedef DINT T_DInt;
+
+typedef INT T_Array[12];
+
+typedef BOOL T_Bool;
+
+void fnThatUsesAliases(T_String* varStringInput, T_DInt varDIntInput, T_Array* varArrayOfIntInput, T_Bool varBoolInput);

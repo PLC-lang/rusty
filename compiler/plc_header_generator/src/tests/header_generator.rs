@@ -165,6 +165,23 @@ fn case_9_programs_generated_header_file() {
     assert_snapshot!(&generated_headers[0].get_contents());
 }
 
+// ------------------ //
+// -- Test Case 10 -- //
+// ------------------ //
+
+#[test]
+fn case_10_aliases_generated_header_file() {
+    let generated_headers = get_all_generated_header_contents("case_10_aliases_compilation_units");
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    // Ensure the path has been configured correctly
+    assert!(generated_headers[0].get_path() == "aliases.h");
+
+    assert_snapshot!(&generated_headers[0].get_contents());
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //
@@ -184,7 +201,7 @@ fn case_9_programs_generated_header_file() {
 fn get_all_generated_header_contents(test_name: &str) -> Vec<Box<dyn GeneratedHeader>> {
     let snapshot_string = extract_string_item_from_snapshot(test_name);
     let compilation_units = serde_json::from_str::<Vec<CompilationUnit>>(snapshot_string)
-        .expect("Failed to deserialize snapshot content into an AnnotatedProject!");
+        .expect("Failed to deserialize snapshot content into the compilation units!");
 
     // Fetch all of the headers
     let generate_header_options = GenerateHeaderOptions {

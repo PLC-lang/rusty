@@ -9,7 +9,9 @@
 
 {#- Aliases -#}
 {% for alias in user_defined_types.aliases -%}
-// Alias
+typedef {{ format_variable_for_definition(variable=alias) }};
+{% raw %}
+{% endraw %}
 {%- endfor %}
 
 {#- Enums -#}

@@ -627,6 +627,66 @@ fn case_9_programs_compilation_units(annotated_project: &AnnotatedProject) {
     assert_snapshot!(json);
 }
 
+// ------------------ //
+// -- Test Case 10 -- //
+// ------------------ //
+
+fn get_source_code_for_case_10_aliases() -> SourceCode {
+    SourceCode::new(
+        "
+    TYPE T_String : STRING[50];
+    END_TYPE
+
+    TYPE T_DInt : DINT;
+    END_TYPE
+
+    TYPE T_Array : ARRAY[0..11] OF INT;
+    END_TYPE
+
+    TYPE T_Bool : BOOL;
+    END_TYPE
+
+    FUNCTION fnThatUsesAliases
+    VAR_INPUT
+        varStringInput: T_String;
+        varDIntInput: T_DInt;
+        varArrayOfIntInput: T_Array;
+        varBoolInput: T_Bool;
+    END_VAR
+    END_FUNCTION
+    ",
+        "aliases.pli",
+    )
+}
+
+#[test]
+fn case_10_aliases_parsed_content() {
+    let json = get_parsed_content(get_source_code_for_case_10_aliases());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_10_aliases_indexed_content() {
+    let json = get_indexed_content("case_10_aliases_parsed_content", get_source_code_for_case_10_aliases());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_10_aliases_annotated_content() {
+    let annotated_project =
+        get_annotated_project("case_10_aliases_indexed_content", get_source_code_for_case_10_aliases());
+
+    let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
+    assert_snapshot!(json);
+
+    case_10_aliases_compilation_units(&annotated_project);
+}
+
+fn case_10_aliases_compilation_units(annotated_project: &AnnotatedProject) {
+    let json = get_compilation_units_content(annotated_project);
+    assert_snapshot!(json);
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //

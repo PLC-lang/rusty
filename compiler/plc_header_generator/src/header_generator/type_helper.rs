@@ -17,12 +17,16 @@ impl Default for TypeInformation {
 pub enum TypeAttribute {
     Other,
     UserGenerated,
-    Variadic,
+    Variadic
 }
 
 impl TypeInformation {
     pub const fn new() -> Self {
         TypeInformation { name: String::new(), attribute: TypeAttribute::Other }
+    }
+
+    pub fn get_type_name(&self) -> String {
+        self.name.clone()
     }
 }
 
