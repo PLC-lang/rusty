@@ -6,32 +6,61 @@ use plc_ast::{
     literals::AstLiteral,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use serde::{Deserialize, Serialize};
 
 use crate::{
     header_generator::{
-        file_helper::FileHelper, header_generator_c::GeneratedHeaderForC, symbol_helper::SymbolHelper,
-        template_helper::TemplateHelper, type_helper::TypeHelper,
+        file_helper::FileHelper,
+        header_generator_c::GeneratedHeaderForC,
+        symbol_helper::SymbolHelper,
+        template_helper::{TemplateHelper, Variable, VariableType},
+        type_helper::TypeHelper,
     },
     GenerateHeaderOptions, GenerateLanguage,
 };
 
-mod file_helper;
+pub mod file_helper;
 mod header_generator_c;
 mod symbol_helper;
 mod template_helper;
 mod type_helper;
 
+/// A combined trait containing all of the necessary implementations for generating a header
 pub trait GeneratedHeader: FileHelper + TypeHelper + TemplateHelper + SymbolHelper {
+    /// Returns whether or not this generated header is empty
+    ///
+    /// ---
+    ///
+    /// This must return true if the generation process has not yet occured,
+    /// or was aborted in a valid case.
     fn is_empty(&self) -> bool;
-    fn get_directory(&self) -> &str;
-    fn get_path(&self) -> &str;
+
+    /// Returns the contents of the header file
     fn get_contents(&self) -> &str;
-    fn get_template_data(&self) -> &TemplateData;
+
+    /// Prepares the template data for this header given a compilation unit
+    ///
+    /// ---
+    ///
+    /// The outcome of this method must be a populated "TemplateData" on the generated header
+    /// that contains all of the data necessary to run the templating engine.
     fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit);
+
+    /// Runs the templating engine and generates the header file contents
+    ///
+    /// ---
+    ///
+    /// The outcome of this method must be a populated "contents" (accessible via the "get_contents" method)
+    /// on the generated header.
     fn generate_headers(&mut self) -> Result<(), Diagnostic>;
 }
 
+/// Returns a generated header given the options for generation and a compilation unit.
+///
+/// ---
+///
+/// Should the process fail to determine an output directory and path for the header file
+/// a none-generated header will be returned, this is a valid outcome as some compilation units
+/// are not related to a file.
 pub fn get_generated_header(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
@@ -59,77 +88,7 @@ pub fn get_generated_header(
     Ok(generated_header)
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct TemplateData {
-    pub user_defined_types: UserDefinedTypes,
-    pub global_variables: Vec<Variable>,
-    pub functions: Vec<Function>,
-}
-
-impl Default for TemplateData {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl TemplateData {
-    pub const fn new() -> Self {
-        TemplateData {
-            user_defined_types: UserDefinedTypes::new(),
-            global_variables: Vec::new(),
-            functions: Vec::new(),
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UserDefinedTypes {
-    pub aliases: Vec<Variable>,
-    pub structs: Vec<UserType>,
-    pub enums: Vec<UserType>,
-}
-
-impl Default for UserDefinedTypes {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl UserDefinedTypes {
-    pub const fn new() -> Self {
-        UserDefinedTypes { aliases: Vec::new(), structs: Vec::new(), enums: Vec::new() }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct UserType {
-    pub name: String,
-    pub variables: Vec<Variable>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Variable {
-    pub data_type: String,
-    pub name: String,
-    pub variable_type: VariableType,
-}
-
-#[derive(Serialize, Deserialize, Clone)]
-pub enum VariableType {
-    Default,
-    Array(i128),
-    Declaration(String),
-    Variadic,
-    Struct,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct Function {
-    pub return_type: String,
-    pub name: String,
-    pub parameters: Vec<Variable>,
-}
-
+/// A wrapper for a type name with extended information
 pub struct ExtendedTypeName {
     pub type_name: String,
     pub is_variadic: bool,
@@ -147,7 +106,8 @@ impl ExtendedTypeName {
     }
 }
 
-fn coalesce_optional_strings_with_default(
+/// Given a name and a field name override, this will return the field name if present, the name if not, or default if the name is empty.
+fn coalesce_field_name_override_with_default(
     name: &Option<String>,
     field_name_override: Option<&String>,
 ) -> String {
@@ -158,6 +118,9 @@ fn coalesce_optional_strings_with_default(
     }
 }
 
+/// Given an ast node this will extract the enum declarations an return a Vec<Variable>.
+///
+/// Will return an empty Vec if the statement of the node is not type [ExpressionList](plc_ast::ast::AstStatement::ExpressionList)
 fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
     let mut enum_declarations: Vec<Variable> = Vec::new();
 
@@ -193,6 +156,11 @@ fn extract_enum_declaration_from_elements(node: &AstNode) -> Vec<Variable> {
     enum_declarations
 }
 
+/// Given an AstStatement, this will extract the name of the enum field.
+///
+/// Will return a new string if the AstStatement type not [ReferenceExpr](plc_ast::ast::AstStatement::ReferenceExpr),
+/// the access of that expression is not type [Member](plc_ast::ast::ReferenceAccess::Member)
+/// and the statement of that member is not type [Identifier](plc_ast::ast::AstStatement::Identifier).
 fn extract_enum_field_name_from_statement(statement: &AstStatement) -> String {
     match statement {
         AstStatement::ReferenceExpr(reference_expression) => match &reference_expression.access {
@@ -209,6 +177,9 @@ fn extract_enum_field_name_from_statement(statement: &AstStatement) -> String {
     }
 }
 
+/// Extracts the value from an AstStatement type [Literal](plc_ast::ast::AstStatement::Literal).
+///
+/// Will return a new string if the AstStatement type is not [Literal](plc_ast::ast::AstStatement::Literal).
 fn extract_enum_field_value_from_statement(statement: &AstStatement) -> String {
     match statement {
         AstStatement::Literal(literal) => literal.get_literal_value(),
@@ -216,6 +187,9 @@ fn extract_enum_field_value_from_statement(statement: &AstStatement) -> String {
     }
 }
 
+/// Creates an ExtendedTypeName from a given Option<DataTypeDeclaration>.
+///
+/// Will return the default for ExtendedTypeName if the data type declaration is not [Reference](plc_ast::ast::DataTypeDeclaration::Reference) or [Definition](plc_ast::ast::DataTypeDeclaration::Definition).
 fn get_type_from_data_type_decleration(
     data_type_declaration: &Option<DataTypeDeclaration>,
 ) -> ExtendedTypeName {
@@ -233,6 +207,10 @@ fn get_type_from_data_type_decleration(
     }
 }
 
+/// Given a data type name and a list of user type declarations,
+/// this will extract the user type declaration with a data type name that matches the given data type name.
+///
+/// This will return None in the case that the given data type name does not match the data type name of the user type declaration.
 fn get_user_generated_type_by_name<'a>(
     name: &'a str,
     user_types: &'a [UserTypeDeclaration],
@@ -248,6 +226,9 @@ fn get_user_generated_type_by_name<'a>(
     None
 }
 
+/// Given an Option<AstNode> containing a [Literal](plc_ast::ast::AstStatement::Literal), this will determine the [i128] size of a string.
+///
+/// This will return [i128] default in the case the AstNode is None or does not match the expected [Literal](plc_ast::ast::AstStatement::Literal).
 fn extract_string_size(size: &Option<AstNode>) -> i128 {
     if size.is_none() {
         return i128::default();
@@ -263,6 +244,9 @@ fn extract_string_size(size: &Option<AstNode>) -> i128 {
     }
 }
 
+/// Given an AstNode containing a [RangeStatement](plc_ast::ast::AstStatement::RangeStatement), this will determine the [i128] size of an array.
+///
+/// This will return [i128] default in the case the AstNode does not match the expected [RangeStatement](plc_ast::ast::AstStatement::RangeStatement).
 fn extract_array_size(bounds: &AstNode) -> i128 {
     match &bounds.stmt {
         AstStatement::RangeStatement(range_stmt) => {
@@ -282,6 +266,9 @@ fn extract_array_size(bounds: &AstNode) -> i128 {
     }
 }
 
+/// Common method for determining if the string representation of the data type name is system generated.
+///
+/// i.e. Starts with "__"
 fn data_type_is_system_generated(data_type: &str) -> bool {
     if data_type.starts_with("__") {
         return true;

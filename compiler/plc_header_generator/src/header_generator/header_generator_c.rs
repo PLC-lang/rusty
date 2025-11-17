@@ -2,27 +2,29 @@ use std::collections::HashMap;
 
 use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
 use plc_ast::ast::{
-    self, ArgumentProperty, CompilationUnit, Identifier, Pou, PouType, UserTypeDeclaration, Variable,
-    VariableBlock, VariableBlockType,
+    self, ArgumentProperty, CompilationUnit, Identifier, Pou, PouType, UserTypeDeclaration, VariableBlock,
+    VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
 
 use crate::header_generator::{
-    coalesce_optional_strings_with_default, data_type_is_system_generated, extract_array_size,
+    coalesce_field_name_override_with_default, data_type_is_system_generated, extract_array_size,
     extract_enum_declaration_from_elements, extract_string_size,
     file_helper::HeaderFileInformation,
     get_type_from_data_type_decleration, get_user_generated_type_by_name,
     symbol_helper::SymbolHelper,
-    template_helper::{TemplateHelper, TemplateType},
+    template_helper::{
+        Function, TemplateData, TemplateHelper, TemplateType, UserType, Variable, VariableType,
+    },
     type_helper::{TypeAttribute, TypeHelper},
-    ExtendedTypeName, Function, GeneratedHeader, TemplateData, UserType, VariableType,
+    ExtendedTypeName, GeneratedHeader,
 };
 
 pub struct GeneratedHeaderForC {
     pub file_information: HeaderFileInformation,
     contents: String,
-    template_data: TemplateData,
+    pub template_data: TemplateData,
 }
 
 impl Default for GeneratedHeaderForC {
@@ -38,20 +40,8 @@ impl GeneratedHeader for GeneratedHeaderForC {
             && self.contents.is_empty()
     }
 
-    fn get_template_data(&self) -> &TemplateData {
-        &self.template_data
-    }
-
     fn get_contents(&self) -> &str {
         &self.contents
-    }
-
-    fn get_directory(&self) -> &str {
-        &self.file_information.directory
-    }
-
-    fn get_path(&self) -> &str {
-        &self.file_information.path
     }
 
     fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit) {
@@ -146,7 +136,7 @@ impl GeneratedHeaderForC {
                     let program_name = pou.name.to_string();
                     let data_type = format!("{program_name}_type");
 
-                    self.template_data.global_variables.push(crate::header_generator::Variable {
+                    self.template_data.global_variables.push(Variable {
                         data_type,
                         name: format!("{program_name}_instance"),
                         variable_type: VariableType::Default,
@@ -175,7 +165,7 @@ impl GeneratedHeaderForC {
         match &user_type.data_type {
             ast::DataType::StructType { name, variables } => {
                 let formatted_variables =
-                    self.get_formatted_variables_from_variables(variables, builtin_types, false, user_types);
+                    self.get_transformed_variables_from_variables(variables, builtin_types, false, user_types);
 
                 self.template_data.user_defined_types.structs.push(UserType {
                     name: name.clone().unwrap_or_default(),
@@ -191,30 +181,34 @@ impl GeneratedHeaderForC {
                     .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
             }
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
-                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                self.template_data.user_defined_types.aliases.push(Variable {
                     data_type: referenced_type.get_name().unwrap_or_default().to_string(),
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Array(extract_array_size(bounds)),
                 });
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
-                let data_type = format!("{}*", referenced_type.get_name().unwrap_or_default());
+                let data_type = format!(
+                    "{}{}",
+                    referenced_type.get_name().unwrap_or_default(),
+                    self.get_reference_symbol()
+                );
 
-                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                self.template_data.user_defined_types.aliases.push(Variable {
                     data_type,
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Default,
                 });
             }
             ast::DataType::StringType { name, is_wide, size } => {
-                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                self.template_data.user_defined_types.aliases.push(Variable {
                     data_type: self.get_type_name_for_string(is_wide),
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Array(extract_string_size(size)),
                 });
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
-                self.template_data.user_defined_types.aliases.push(crate::header_generator::Variable {
+                self.template_data.user_defined_types.aliases.push(Variable {
                     data_type: referenced_type.clone(),
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Default,
@@ -265,8 +259,8 @@ impl GeneratedHeaderForC {
                 .push(UserType { name: data_type.to_string(), variables: input_variables });
         }
 
-        let mut parameters: Vec<crate::header_generator::Variable> = Vec::new();
-        parameters.push(crate::header_generator::Variable {
+        let mut parameters: Vec<Variable> = Vec::new();
+        parameters.push(Variable {
             data_type: format!("{data_type}{}", self.get_reference_symbol()),
             name: String::from("self"),
             variable_type: VariableType::Default,
@@ -279,23 +273,24 @@ impl GeneratedHeaderForC {
         });
     }
 
+    /// Modifies the variables from a function block to account for differences in the naming convention of the super class.
     fn modify_function_block_variables_for_inheritance(
         &self,
-        input_variables: &[crate::header_generator::Variable],
+        input_variables: &[Variable],
         pou_super_class: &Option<Identifier>,
-    ) -> Vec<crate::header_generator::Variable> {
-        let mut modified_input_variables: Vec<crate::header_generator::Variable> = Vec::new();
+    ) -> Vec<Variable> {
+        let mut modified_input_variables: Vec<Variable> = Vec::new();
 
         if let Some(super_class) = &pou_super_class {
             for input_variable in input_variables {
                 if input_variable.data_type == super_class.name {
-                    modified_input_variables.push(crate::header_generator::Variable {
+                    modified_input_variables.push(Variable {
                         name: input_variable.name.clone(),
                         data_type: format!("{}_type", input_variable.data_type),
                         variable_type: input_variable.variable_type.clone(),
                     });
                 } else {
-                    modified_input_variables.push(crate::header_generator::Variable {
+                    modified_input_variables.push(Variable {
                         name: input_variable.name.clone(),
                         data_type: input_variable.data_type.clone(),
                         variable_type: input_variable.variable_type.clone(),
@@ -307,14 +302,16 @@ impl GeneratedHeaderForC {
         modified_input_variables
     }
 
+    /// Transforms the variables in an array of [variable blocks](plc_ast::ast::VariableBlock) into simplified [variables](crate::header_generator::template_helper::Variable)
+    /// that can be rendered by the template.
     fn get_variables_from_variable_blocks(
         &mut self,
         variable_blocks: &[VariableBlock],
         builtin_types: &[DataType],
         variable_block_types: &[VariableBlockType],
         user_types: &[UserTypeDeclaration],
-    ) -> Vec<crate::header_generator::Variable> {
-        let mut variables: Vec<crate::header_generator::Variable> = Vec::new();
+    ) -> Vec<Variable> {
+        let mut variables: Vec<Variable> = Vec::new();
 
         for variable_block in variable_blocks {
             if variable_block_types.contains(&variable_block.kind) {
@@ -322,7 +319,7 @@ impl GeneratedHeaderForC {
                     || variable_block.kind == VariableBlockType::InOut
                     || variable_block.kind == VariableBlockType::Output;
 
-                variables.append(&mut self.get_formatted_variables_from_variables(
+                variables.append(&mut self.get_transformed_variables_from_variables(
                     &variable_block.variables,
                     builtin_types,
                     is_reference,
@@ -334,14 +331,16 @@ impl GeneratedHeaderForC {
         variables
     }
 
-    fn get_formatted_variables_from_variables(
+    /// Transforms an array of [ast variables](plc_ast::ast::Variable) into simplified [variables](crate::header_generator::template_helper::Variable)
+    /// that can be rendered by the template.
+    fn get_transformed_variables_from_variables(
         &mut self,
-        variable_block_variables: &[Variable],
+        variable_block_variables: &[plc_ast::ast::Variable],
         builtin_types: &[DataType],
         is_reference: bool,
         user_types: &[UserTypeDeclaration],
-    ) -> Vec<crate::header_generator::Variable> {
-        let mut variables: Vec<crate::header_generator::Variable> = Vec::new();
+    ) -> Vec<Variable> {
+        let mut variables: Vec<Variable> = Vec::new();
         let mut reference_symbol = if is_reference { self.get_reference_symbol() } else { String::new() };
 
         for variable in variable_block_variables {
@@ -378,7 +377,7 @@ impl GeneratedHeaderForC {
                         if let Some(value) = user_type_variable {
                             // This is an alias
                             if type_name != value.data_type && !data_type_is_system_generated(&type_name) {
-                                variables.push(crate::header_generator::Variable {
+                                variables.push(Variable {
                                     data_type: type_name,
                                     name: value.name,
                                     variable_type: value.variable_type,
@@ -388,7 +387,7 @@ impl GeneratedHeaderForC {
                             }
                         }
                     } else {
-                        variables.push(crate::header_generator::Variable {
+                        variables.push(Variable {
                             data_type,
                             name: variable.get_name().to_string(),
                             variable_type: VariableType::Default,
@@ -396,14 +395,14 @@ impl GeneratedHeaderForC {
                     }
                 }
                 TypeAttribute::Variadic => {
-                    variables.push(crate::header_generator::Variable {
+                    variables.push(Variable {
                         data_type,
                         name: variable.get_name().to_string(),
                         variable_type: VariableType::Variadic,
                     });
                 }
                 TypeAttribute::Other => {
-                    variables.push(crate::header_generator::Variable {
+                    variables.push(Variable {
                         data_type,
                         name: variable.get_name().to_string(),
                         variable_type: VariableType::Default,
@@ -415,13 +414,19 @@ impl GeneratedHeaderForC {
         variables
     }
 
+    /// Returns an [Variable] based on a given [UserTypeDeclaration]
+    ///
+    /// ---
+    ///
+    /// Might return [None] if the data type name of the [UserTypeDeclaration] is system generated.
+    /// This is because these system generated user types are not relevant to the header.
     fn get_user_type_variable(
         &mut self,
         user_type: &UserTypeDeclaration,
         builtin_types: &[DataType],
         field_name_override: Option<&String>,
         type_name_override: Option<&String>,
-    ) -> Option<crate::header_generator::Variable> {
+    ) -> Option<Variable> {
         // We generally want to skip the declaration of user types that are only internally relevant
         if let Some(data_type_name) = user_type.data_type.get_name() {
             if data_type_is_system_generated(data_type_name) {
@@ -436,18 +441,18 @@ impl GeneratedHeaderForC {
         }
 
         match &user_type.data_type {
-            ast::DataType::StructType { name, .. } => Some(crate::header_generator::Variable {
-                name: coalesce_optional_strings_with_default(name, field_name_override),
+            ast::DataType::StructType { name, .. } => Some(Variable {
+                name: coalesce_field_name_override_with_default(name, field_name_override),
                 data_type: type_name_override.unwrap().to_string(),
                 variable_type: VariableType::Struct,
             }),
-            ast::DataType::EnumType { name, .. } => Some(crate::header_generator::Variable {
-                name: coalesce_optional_strings_with_default(name, field_name_override),
+            ast::DataType::EnumType { name, .. } => Some(Variable {
+                name: coalesce_field_name_override_with_default(name, field_name_override),
                 data_type: type_name_override.unwrap().to_string(),
                 variable_type: VariableType::Default,
             }),
-            ast::DataType::StringType { name, size, is_wide } => Some(crate::header_generator::Variable {
-                name: coalesce_optional_strings_with_default(name, field_name_override),
+            ast::DataType::StringType { name, size, is_wide } => Some(Variable {
+                name: coalesce_field_name_override_with_default(name, field_name_override),
                 data_type: self.get_type_name_for_string(is_wide),
                 variable_type: VariableType::Array(extract_string_size(size)),
             }),
@@ -460,8 +465,8 @@ impl GeneratedHeaderForC {
                     builtin_types,
                 );
 
-                Some(crate::header_generator::Variable {
-                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                Some(Variable {
+                    name: coalesce_field_name_override_with_default(name, field_name_override),
                     data_type: type_info.get_type_name(),
                     variable_type: VariableType::Array(extract_array_size(bounds)),
                 })
@@ -477,8 +482,8 @@ impl GeneratedHeaderForC {
 
                 let data_type = format!("{}{}", type_info.get_type_name(), self.get_reference_symbol());
 
-                Some(crate::header_generator::Variable {
-                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                Some(Variable {
+                    name: coalesce_field_name_override_with_default(name, field_name_override),
                     data_type,
                     variable_type: VariableType::Default,
                 })
@@ -489,13 +494,13 @@ impl GeneratedHeaderForC {
                     builtin_types,
                 );
 
-                Some(crate::header_generator::Variable {
-                    name: coalesce_optional_strings_with_default(name, field_name_override),
+                Some(Variable {
+                    name: coalesce_field_name_override_with_default(name, field_name_override),
                     data_type: type_info.get_type_name(),
                     variable_type: VariableType::Default,
                 })
             }
-            ast::DataType::VarArgs { .. } => Some(crate::header_generator::Variable {
+            ast::DataType::VarArgs { .. } => Some(Variable {
                 name: String::new(),
                 data_type: String::new(),
                 variable_type: VariableType::Variadic,
@@ -508,10 +513,17 @@ impl GeneratedHeaderForC {
     }
 }
 
+/// Formats a variable for definition within an enum block.
+///
+/// It handles the case where a enum may contiain a value on the right side for definition, or none.
+///
+/// ---
+///
+/// This function is used by the templating engine [tera](https://keats.github.io/tera/).
 fn format_variable_for_enum_definition() -> impl tera::Function {
     Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
         match args.get("variable") {
-            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+            Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Declaration(right) => {
                         Ok(to_value(format!("{} = {}", variable.name, right)).unwrap())
@@ -525,10 +537,15 @@ fn format_variable_for_enum_definition() -> impl tera::Function {
     })
 }
 
+/// Formats a variable for standalone definition.
+///
+/// ---
+///
+/// This function is used by the templating engine [tera](https://keats.github.io/tera/).
 fn format_variable_for_definition() -> impl tera::Function {
     Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
         match args.get("variable") {
-            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+            Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Array(size) => {
                         Ok(to_value(format!("{} {}[{}]", variable.data_type, variable.name, size)).unwrap())
@@ -542,10 +559,17 @@ fn format_variable_for_definition() -> impl tera::Function {
     })
 }
 
+/// Formats a variable for definition as a parameter.
+///
+/// i.e. When defined within a function's brackets "()"
+///
+/// ---
+///
+/// This function is used by the templating engine [tera](https://keats.github.io/tera/).
 fn format_variable_for_parameter(reference_symbol: String, variadic_symbol: String) -> impl tera::Function {
     Box::new(move |args: &HashMap<String, serde_json::Value>| -> tera::Result<serde_json::Value> {
         match args.get("variable") {
-            Some(value) => match from_value::<crate::header_generator::Variable>(value.clone()) {
+            Some(value) => match from_value::<Variable>(value.clone()) {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Array(_) | VariableType::Struct => {
                         Ok(to_value(format!("{}{} {}", variable.data_type, reference_symbol, variable.name))

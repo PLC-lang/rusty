@@ -8,6 +8,23 @@ use crate::GenerateHeaderOptions;
 mod file_helper_c;
 
 pub trait FileHelper {
+    /// Returns the directory the header should be written to
+    ///
+    /// ---
+    ///
+    /// This should return the directory for writing the header to (without the header file).
+    /// It can return an empty string if the header is being written to the same directory as the interface itself.
+    fn get_directory(&self) -> &str;
+
+    /// Returns the file path that the header file should be written to
+    fn get_path(&self) -> &str;
+
+    /// Determines file information for the header file and returns whether or not the determination was successful
+    ///
+    /// ---
+    ///
+    /// The succesful result of this method must be that the "directory" (accessible via the "get_directory" method)
+    /// and the "path" (accessible via the "get_path" method) are both populated with valid results.
     fn determine_header_file_information(
         &mut self,
         generate_header_options: &GenerateHeaderOptions,
@@ -15,6 +32,9 @@ pub trait FileHelper {
     ) -> bool;
 }
 
+/// Given a GenerateHeaderOptions, CompilationUnit and a file extension (string)
+/// this will return a struct containing header file information,
+/// and a boolean defining whether or not the process was successful.
 fn get_header_file_information(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
@@ -64,6 +84,11 @@ fn get_header_file_information(
     )
 }
 
+/// Returns the file name from a path buffer without the extension
+///
+/// ---
+///
+/// Will return [None] if no file name is found or if the file name has no extension.
 fn get_file_name_from_path_buf_without_extension(file_path: PathBuf) -> Option<String> {
     if file_path.file_name().is_some() {
         let file_name = file_path.file_name().unwrap().to_str();

@@ -9,6 +9,14 @@ use crate::{
 };
 
 impl FileHelper for GeneratedHeaderForC {
+    fn get_directory(&self) -> &str {
+        &self.file_information.directory
+    }
+
+    fn get_path(&self) -> &str {
+        &self.file_information.path
+    }
+
     fn determine_header_file_information(
         &mut self,
         generate_header_options: &GenerateHeaderOptions,

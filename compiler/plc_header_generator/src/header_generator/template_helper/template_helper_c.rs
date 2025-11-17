@@ -1,9 +1,13 @@
 use crate::header_generator::{
     header_generator_c::GeneratedHeaderForC,
-    template_helper::{Template, TemplateHelper, TemplateType},
+    template_helper::{Template, TemplateData, TemplateHelper, TemplateType},
 };
 
 impl TemplateHelper for GeneratedHeaderForC {
+    fn get_template_data(&self) -> &TemplateData {
+        &self.template_data
+    }
+
     fn get_template(&self, template_type: TemplateType) -> Template {
         match template_type {
             TemplateType::Header => Template {
