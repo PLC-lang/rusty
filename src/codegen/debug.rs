@@ -326,6 +326,7 @@ impl<'ink> DebugBuilder<'ink> {
 
         let mut types = vec![];
 
+        let super_ty_name = index.find_pou(name).and_then(|it| it.get_super_class());
         for (element_index, (member_name, dt, location, is_constant)) in index_types.iter().enumerate() {
             let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
             let di_type = self.apply_const_type_if_needed(di_type.into(), *is_constant);
@@ -342,6 +343,16 @@ impl<'ink> DebugBuilder<'ink> {
                 .offset_of_element(&struct_type, element_index as u32)
                 .map(|offset| offset * 8)
                 .unwrap_or(0);
+
+            let member_name = if let Some(super_ty_name) = &super_ty_name {
+                if member_name == &format!("__{super_ty_name}") {
+                    "SUPER"
+                } else {
+                    member_name
+                }
+            } else {
+                member_name
+            };
 
             // Create the member type with LLVM's calculated offset
             types.push(
