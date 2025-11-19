@@ -344,15 +344,9 @@ impl<'ink> DebugBuilder<'ink> {
                 .map(|offset| offset * 8)
                 .unwrap_or(0);
 
-            let member_name = if let Some(super_ty_name) = &super_ty_name {
-                if member_name == &format!("__{super_ty_name}") {
-                    "SUPER"
-                } else {
-                    member_name
-                }
-            } else {
-                member_name
-            };
+            let member_name = super_ty_name
+                .filter(|name| member_name == &format!("__{name}"))
+                .map_or(*member_name, |_| "SUPER");
 
             // Create the member type with LLVM's calculated offset
             types.push(
