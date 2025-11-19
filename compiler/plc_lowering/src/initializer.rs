@@ -40,9 +40,9 @@ enum Body {
     None,
 }
 
-pub struct Initializer<'idx> {
+pub struct Initializer {
     id_provider: IdProvider,
-    index: &'idx Index,
+    index: Index,
     /// Stateful constructor per POU/struct
     constructors: FxIndexMap<String, Body>,
     /// Constructors for temp and stack variables per POU
@@ -52,7 +52,7 @@ pub struct Initializer<'idx> {
 }
 
 //TODO: might need to be a mutable ast visitor
-impl AstVisitor for Initializer<'_> {
+impl AstVisitor for Initializer {
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         match pou.linkage {
             plc_ast::ast::LinkageType::External => {
@@ -93,13 +93,25 @@ impl AstVisitor for Initializer<'_> {
         self.stack_constructor.insert(pou.name.clone(), Body::Internal(stack_constructor));
     }
 
-    fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {}
+    fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
+        match user_type.linkage {
+            plc_ast::ast::LinkageType::External => {
+                self.constructors.insert(user_type.name.clone(), Body::External);
+                return;
+            }
+            plc_ast::ast::LinkageType::BuiltIn => {
+                self.constructors.insert(user_type.name.clone(), Body::None);
+                return;
+            }
+            _ => {}
+        };
 
-    fn visit_variable_block(&mut self, var_block: &plc_ast::ast::VariableBlock) {}
+        let mut constructor = vec![];
+    }
 }
 
-impl Initializer<'_> {
-    pub fn new(id_provider: IdProvider, index: &Index) -> Initializer<'_> {
+impl Initializer {
+    pub fn new(id_provider: IdProvider, index: Index) -> Initializer {
         Initializer {
             id_provider,
             index,
@@ -110,9 +122,14 @@ impl Initializer<'_> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
+    use plc_driver::pipelines::BuildPipeline;
+    use plc_source::SourceCode;
+
+    use crate::initializer::Initializer;
 
     fn print_to_string(nodes: &[AstNode]) -> String {
         nodes.iter().map(|it| it.as_string()).collect::<Vec<_>>().join("\n")
@@ -126,6 +143,20 @@ mod tests {
         }
     }
 
+    fn parse_and_init(src: &str) -> Initializer {
+        let src: SourceCode = src.into();
+        let diagnostician = Diagnostician::buffered();
+        let mut pipeline = BuildPipeline::from_sources("test.st", vec![(src)], diagnostician).unwrap();
+        let mut project = pipeline.parse_and_annotate().unwrap();
+        // Visit the AST with the Initializer
+        let mut initializer =
+            super::Initializer::new(pipeline.context.provider(), std::mem::take(&mut project.index));
+        for unit in &project.units {
+            initializer.visit_compilation_unit(unit.get_unit());
+        }
+        initializer
+    }
+
     #[test]
     fn struct_gets_imlicit_initializer_and_constructor() {
         let src = r#"
@@ -134,18 +165,10 @@ mod tests {
             b : REAL := 3.14;
             c : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Expecting a function declaration: void MyStruct_ctor(MyStruct* self)
         // Expecting assignments inside the constructor: self->a = 5; self->b = 3.14; self->c = 1;
         insta::assert_debug_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r#""#);
@@ -158,23 +181,16 @@ mod tests {
             x : INT := 10;
             y : INT := 20;
         END_STRUCT
+        END_TYPE
 
         TYPE OuterStruct : STRUCT
             inner : InnerStruct;
             z : REAL := 2.71;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for constructors
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->x = 10; self->y = 20;
@@ -192,24 +208,17 @@ mod tests {
             x : INT := 10;
             y : INT := 20;
         END_STRUCT
+        END_TYPE
 
         TYPE OuterStruct : STRUCT
             inner : InnerStruct := (x := 1, y := 2);
             inner2 : InnerStruct := (y := 3);
             z : REAL := 2.71;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for constructors
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->x = 10; self->y = 20;
@@ -235,18 +244,10 @@ mod tests {
             b : POINTER TO INT := ADR(gVar);
             c : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for constructor
         // Expecting a function declaration: void MyStruct_ctor(MyStruct* self)
         // Expecting assignments inside the constructor: self->a = 5; self->c = 1;
@@ -257,23 +258,15 @@ mod tests {
     #[test]
     fn enum_default_values_in_struct() {
         let src = r#"
-        TYPE MyEnum : (Option1, Option2, Option3) := Option3;
+        TYPE MyEnum : (Option1, Option2, Option3) := Option3; END_TYPE
         TYPE MyStruct : STRUCT
             e : MyEnum := Option2;
             n : INT := 42;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Expecting a function declaration: void MyEnum_ctor(MyEnum* self)
         // Expecting an assignment inside the constructor: *self = 2;
         insta::assert_debug_snapshot!(print_body_to_string(initializer.constructors.get("MyEnum").unwrap()), @r#""#);
@@ -295,6 +288,7 @@ mod tests {
             a : INT := 1;
             b : POINTER TO INT := ADR(gVar);
         END_STRUCT
+        END_TYPE
 
         TYPE InnerStruct2 : STRUCT
             c : INT := 4;
@@ -302,6 +296,7 @@ mod tests {
             inner : InnerStruct := (a := 6);
             inner2 : InnerStruct := (b := ADR(gVar));
         END_STRUCT
+        END_TYPE
 
         TYPE OuterStruct : STRUCT
             e : INT := 0;
@@ -309,18 +304,10 @@ mod tests {
             inner2 : InnerStruct2 := (d := 8, inner := (b := ADR(gVar)));
             inner3 : InnerStruct2 := (inner (a := 9));
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for constructors
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->a = 1; self->b = &gVar;
@@ -356,18 +343,10 @@ mod tests {
             b : POINTER TO INT := ADR(gVar1);
             c : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for global constructor
         // Expecting a call to MyStruct_ctor(&gStructVar);
         insta::assert_debug_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
@@ -386,18 +365,10 @@ mod tests {
             a : INT := 5;
             b : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for function constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
         insta::assert_debug_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @r#""#);
@@ -413,23 +384,16 @@ mod tests {
         VAR
             localStruct : MyStruct;
         END_VAR
+        END_PROGRAM
 
         TYPE MyStruct : STRUCT
             a : INT := 5;
             b : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for program constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
         insta::assert_debug_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyProgram").unwrap()), @r#""#);
@@ -446,16 +410,7 @@ mod tests {
         END_PROGRAM
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for program constructor
         // Expecting a call to MyProgram_ctor(&progStruct);
         insta::assert_debug_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
@@ -478,18 +433,10 @@ mod tests {
             a : INT := 5;
             b : BOOL := TRUE;
         END_STRUCT
+        END_TYPE
         "#;
 
-        let diagnostician = Diagnostician::buffered();
-        let mut pipeline =
-            plc_driver::pipelines::BuildPipeline::from_sources("test.st", vec![(src)], diagnostician)
-                .unwrap();
-        let project = pipeline.parse_and_annotate().unwrap();
-        // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider(), &project.index);
-        for unit in &project.units {
-            initializer.visit_compilation_unit(unit.get_unit());
-        }
+        let initializer = parse_and_init(src);
         // Check for internal var assignment in global constructor
         // Expecting a call to MyExtStruct_ctor(&internalVar);
         // No call to MyExtStruct_ctor(&extVar);

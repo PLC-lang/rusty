@@ -200,9 +200,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
     pub fn from_sources(name: &str, src: Vec<T>, diagnostician: Diagnostician) -> Result<Self, Diagnostic> {
         // Parse the source to ast
         let project = Project::new(name.to_string()).with_sources(src);
-        let Ok(context) = GlobalContext::new().with_source(project.get_sources(), None) else {
-            return Err(Diagnostic::new(diagnostician.buffer().unwrap_or_default()));
-        };
+        let context = GlobalContext::new().with_source(project.get_sources(), None)?;
         let pipeline = BuildPipeline {
             context,
             project,
@@ -219,15 +217,9 @@ impl<T: SourceContainer> BuildPipeline<T> {
     /// Parses, indexes and annotates the project, returning any diagnostics found along the way
     /// Used for tests where we don't want to run the full pipeline
     pub fn parse_and_annotate(&mut self) -> Result<AnnotatedProject, Diagnostic> {
-        let Ok(project) = self.parse() else {
-            return Err(Diagnostic::new(self.diagnostician.buffer().unwrap_or_default()));
-        };
-        let Ok(project) = self.index(project) else {
-            return Err(Diagnostic::new(self.diagnostician.buffer().unwrap_or_default()));
-        };
-        let Ok(project) = self.annotate(project) else {
-            return Err(Diagnostic::new(self.diagnostician.buffer().unwrap_or_default()));
-        };
+        let project = self.parse()?;
+        let project = self.index(project)?;
+        let project = self.annotate(project)?;
         Ok(project)
     }
 }
