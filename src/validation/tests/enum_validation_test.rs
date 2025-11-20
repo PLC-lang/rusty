@@ -12,7 +12,7 @@ fn enum_variants_mismatch() {
         PROGRAM main
                 VAR
                     color       : (red := 0, green := 1, blue := 2);
-                    localState  : State;
+                    localState  : State := 99;
 
                     validReferenceForEnum   : DINT := 0;
                     invalidReferenceForEnum : DINT := 99; // ...problems but a ~~bi-~~ validation ain't one

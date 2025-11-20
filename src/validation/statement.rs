@@ -1266,7 +1266,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         None => {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Invalid enum value `{}` for `{}`",
+                    "Non-standard enum value `{}` for `{}`",
                     validator.context.slice(&right.location),
                     validator.get_type_name_or_slice(left_dt)
                 ))
