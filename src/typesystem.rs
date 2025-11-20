@@ -237,7 +237,7 @@ impl DataType {
             members
                 .iter()
                 .filter(|item| item.is_parameter() && !item.is_variadic())
-                .find(|member| member.get_location_in_parent() == location)
+                .find(|member| member.get_position() == location)
         } else {
             None
         }
