@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -84,27 +83,27 @@ entry:
   %h = getelementptr inbounds %main, %main* %0, i32 0, i32 7
   %i = getelementptr inbounds %main, %main* %0, i32 0, i32 8
   %j = getelementptr inbounds %main, %main* %0, i32 0, i32 9
-  %call = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
+  %call = call i32 @CheckRangeUnsigned(i32 1, i64 0, i64 100)
   %1 = trunc i32 %call to i8
   store i8 %1, i8* %a, align 1
-  %call1 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
+  %call1 = call i32 @CheckRangeSigned(i32 1, i64 -100, i64 100)
   %2 = trunc i32 %call1 to i8
   store i8 %2, i8* %b, align 1
-  %call2 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
+  %call2 = call i32 @CheckRangeUnsigned(i32 1, i64 0, i64 100)
   %3 = trunc i32 %call2 to i8
   store i8 %3, i8* %c, align 1
-  %call3 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
+  %call3 = call i32 @CheckRangeUnsigned(i32 1, i64 0, i64 100)
   %4 = trunc i32 %call3 to i16
   store i16 %4, i16* %d, align 2
-  %call4 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
+  %call4 = call i32 @CheckRangeSigned(i32 1, i64 -100, i64 100)
   %5 = trunc i32 %call4 to i16
   store i16 %5, i16* %e, align 2
-  %call5 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
+  %call5 = call i32 @CheckRangeUnsigned(i32 1, i64 0, i64 100)
   %6 = trunc i32 %call5 to i16
   store i16 %6, i16* %f, align 2
-  %call6 = call i32 @CheckRangeSigned(i32 1, i32 -100, i32 100)
+  %call6 = call i32 @CheckRangeSigned(i32 1, i64 -100, i64 100)
   store i32 %call6, i32* %g, align 4
-  %call7 = call i32 @CheckRangeUnsigned(i32 1, i32 0, i32 100)
+  %call7 = call i32 @CheckRangeUnsigned(i32 1, i64 0, i64 100)
   store i32 %call7, i32* %h, align 4
   %call8 = call i64 @CheckLRangeSigned(i64 1, i64 -100, i64 100)
   store i64 %call8, i64* %i, align 8

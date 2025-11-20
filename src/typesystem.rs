@@ -367,6 +367,20 @@ impl TypeSize {
             TypeSize::Undetermined => unreachable!(),
         }
     }
+
+    /// Converts this TypeSize to an AstNode, creating a literal for integer values
+    /// or returning the stored const expression
+    pub fn to_ast_node(&self, index: &Index) -> Option<AstNode> {
+        match self {
+            TypeSize::LiteralInteger(v) => {
+                Some(AstNode::new_literal(AstLiteral::new_integer(*v as i128), 0, SourceLocation::internal()))
+            }
+            TypeSize::ConstExpression(id) => {
+                index.get_const_expressions().get_constant_statement(id).cloned()
+            }
+            TypeSize::Undetermined => None,
+        }
+    }
 }
 
 /// indicates where this Struct origins from.
@@ -437,7 +451,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: TypeId,
         referenced_type: TypeId,
-        sub_range: Box<Range<AstNode>>,
+        sub_range: Range<TypeSize>,
     },
     Alias {
         name: TypeId,

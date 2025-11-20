@@ -1294,17 +1294,23 @@ impl<'i> TypeAnnotator<'i> {
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
             if let DataTypeInformation::SubRange { sub_range, .. } = expected_type.get_type_information() {
-                if let Some(statement) = self
-                    .index
-                    .find_range_check_implementation_for(expected_type.get_type_information())
-                    .map(|f| {
-                        AstFactory::create_call_to_check_function_ast(
-                            f.get_call_name(),
-                            right_side.clone(),
-                            *sub_range.clone(),
-                            &annotated_left_side.get_location(),
-                            ctx.id_provider.clone(),
-                        )
+                if let Some(statement) = sub_range
+                    .start
+                    .to_ast_node(self.index)
+                    .zip(sub_range.end.to_ast_node(self.index))
+                    .map(|(start, end)| start..end)
+                    .and_then(|range| {
+                        self.index
+                            .find_range_check_implementation_for(expected_type.get_type_information())
+                            .map(|f| {
+                                AstFactory::create_call_to_check_function_ast(
+                                    f.get_call_name(),
+                                    right_side.clone(),
+                                    range,
+                                    &annotated_left_side.get_location(),
+                                    ctx.id_provider.clone(),
+                                )
+                            })
                     })
                 {
                     self.visit_call_statement(&statement, ctx);
