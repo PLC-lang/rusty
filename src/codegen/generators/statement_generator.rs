@@ -457,10 +457,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, "")?,
+                ExpressionValue::LValue(ty, ptr) => builder.build_load(ty, ptr, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "")?;
+
+            let counter_value = {
+                let annotation = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+                let ty = self.llvm_index.get_associated_type(annotation.get_name()).unwrap();
+                builder.build_load(ty, counter, "")?
+            };
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,7 +499,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // increment counter
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "")?;
+        let counter_value = {
+            let annotation = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+            let ty = self.llvm_index.get_associated_type(annotation.get_name()).unwrap();
+
+            builder.build_load(ty, counter, "")?
+        };
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -825,7 +835,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+
+                let ty = {
+                    let dt = self.index.find_effective_type_by_name(ret_v.get_type_name()).unwrap();
+                    self.llvm_index.get_associated_type(dt.get_name()).unwrap()
+                };
+                let loaded_value = self.llvm.load_pointer(ty, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {

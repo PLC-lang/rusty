@@ -122,30 +122,16 @@ impl<'a> Llvm<'a> {
     /// - `name` the name of the resulting variable
     pub fn load_array_element(
         &self,
+        pointee_type: BasicTypeEnum<'a>,
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
         unsafe {
             self.builder
-                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)
+                .build_in_bounds_gep(pointee_type, pointer_to_array_instance, accessor_sequence, name)
                 .map_err(Into::into)
         }
-    }
-
-    /// creates a pointervalue that points to a member of a struct
-    ///
-    /// - `pointer_to_struct_instance` a pointer to the struct
-    /// - `member_index` the index of the member we want a pointer to
-    /// - `name` the name of the temporary variable
-    /// - `offset` the location in case of a Diagnostic
-    pub fn get_member_pointer_from_struct(
-        &self,
-        pointer_to_struct_instance: PointerValue<'a>,
-        member_index: u32,
-        name: &str,
-    ) -> Result<PointerValue<'a>, CodegenError> {
-        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(Into::into)
     }
 
     /// loads the value behind the given pointer
@@ -154,10 +140,11 @@ impl<'a> Llvm<'a> {
     /// - `name` the name of the temporary variable
     pub fn load_pointer(
         &self,
+        pointee_type: BasicTypeEnum<'a>,
         lvalue: &PointerValue<'a>,
         name: &str,
     ) -> Result<BasicValueEnum<'a>, CodegenError> {
-        self.builder.build_load(lvalue.to_owned(), name).map_err(Into::into)
+        self.builder.build_load(pointee_type, lvalue.to_owned(), name).map_err(Into::into)
     }
 
     /// creates a placeholder datatype for a struct with the given name
@@ -408,19 +395,20 @@ pub(crate) trait FundamentalElementType<'a> {
     fn into_fundamental_type(self) -> BasicTypeEnum<'a>;
 }
 
-impl<'a> FundamentalElementType<'a> for PointerValue<'a> {
-    /// Gets the fundamental element type from a pointer to nested arrays
-    ///
-    /// For example: `[2 x [81 x i8]]*` -> `i8`, `[3 x i32]*` -> `i32`
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
-        let element_type = self.get_type().get_element_type();
-        if element_type.is_array_type() {
-            element_type.into_array_type().into_fundamental_type()
-        } else {
-            element_type.try_into().expect("Expected basic type")
-        }
-    }
-}
+// TODO: I think this is not needed anymore since we use opaque pointers
+// impl<'a> FundamentalElementType<'a> for PointerValue<'a> {
+//     /// Gets the fundamental element type from a pointer to nested arrays
+//     ///
+//     /// For example: `[2 x [81 x i8]]*` -> `i8`, `[3 x i32]*` -> `i32`
+//     fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
+//         let element_type = self.get_type().get_element_type();
+//         if element_type.is_array_type() {
+//             element_type.into_array_type().into_fundamental_type()
+//         } else {
+//             element_type.try_into().expect("Expected basic type")
+//         }
+//     }
+// }
 
 impl<'a> FundamentalElementType<'a> for ArrayType<'a> {
     /// Recursively gets the fundamental element type from nested arrays

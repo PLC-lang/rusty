@@ -404,14 +404,15 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 source: StructSource::Internal(InternalType::VariableLengthArray { .. }),
                 ..
             } => {
-                // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref")?.cast(cast_data)?;
+                // // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
+                // let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref")?.cast(cast_data)?;
 
-                // create a pointer to the generated StructValue
-                let struct_ptr =
-                    cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr")?;
-                cast_data.llvm.builder.build_store(struct_ptr, struct_val)?;
-                Ok(struct_ptr.into())
+                // // create a pointer to the generated StructValue
+                // let struct_ptr =
+                //     cast_data.llvm.builder.build_alloca(struct_val.get_type(), "vla_struct_ptr")?;
+                // cast_data.llvm.builder.build_store(struct_ptr, struct_val)?;
+                // Ok(struct_ptr.into())
+                todo!("vla")
             }
             _ => Err(CodegenError::new(
                 format!("Cannot cast pointer value to {}", cast_data.target_type.get_name()),
@@ -439,58 +440,61 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
         if !cast_data.target_type.is_vla() {
             return Ok(self.into());
         }
-        let builder = &cast_data.llvm.builder;
-        let zero = cast_data.llvm.i32_type().const_zero();
 
-        let associated_type =
-            cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
+        todo!("vla")
 
-        // Get array annotation from parent POU and get pointer to array
-        let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation else {
-            return Err(CodegenError::new(
-                format!("Undefined reference: {}", cast_data.value_type.get_name()),
-                SourceLocation::undefined(),
-            ));
-        };
-        let array_pointer = cast_data
-            .llvm_type_index
-            .find_loaded_associated_variable_value(qualified_name.as_str())
-            .ok_or_else(|| {
-                CodegenError::new(
-                    format!("Cannot find array pointer for {}", cast_data.value_type.get_name()),
-                    SourceLocation::undefined(),
-                )
-            })?;
+        // let builder = &cast_data.llvm.builder;
+        // let zero = cast_data.llvm.i32_type().const_zero();
 
-        // gep into the original array. the resulting address will be stored in the VLA struct
-        let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep")? };
+        // let associated_type =
+        //     cast_data.llvm_type_index.get_associated_type(cast_data.target_type.get_name())?;
 
-        // -- Generate struct & arr_ptr --
-        let ty = associated_type.into_struct_type();
-        let vla_struct = builder.build_alloca(ty, "vla_struct")?;
+        // // Get array annotation from parent POU and get pointer to array
+        // let Some(StatementAnnotation::Variable { qualified_name, .. }) = cast_data.annotation else {
+        //     return Err(CodegenError::new(
+        //         format!("Undefined reference: {}", cast_data.value_type.get_name()),
+        //         SourceLocation::undefined(),
+        //     ));
+        // };
+        // let array_pointer = cast_data
+        //     .llvm_type_index
+        //     .find_loaded_associated_variable_value(qualified_name.as_str())
+        //     .ok_or_else(|| {
+        //         CodegenError::new(
+        //             format!("Cannot find array pointer for {}", cast_data.value_type.get_name()),
+        //             SourceLocation::undefined(),
+        //         )
+        //     })?;
 
-        let vla_arr_ptr = builder.build_struct_gep(vla_struct, 0, "vla_array_gep")?;
+        // // gep into the original array. the resulting address will be stored in the VLA struct
+        // let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep")? };
 
-        let vla_dimensions_ptr = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep")?;
+        // // -- Generate struct & arr_ptr --
+        // let ty = associated_type.into_struct_type();
+        // let vla_struct = builder.build_alloca(ty, "vla_struct")?;
 
-        // -- Generate dimensions --
-        let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
-        let mut dims = Vec::new();
-        for dim in dimensions {
-            dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
-            dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
-        }
+        // let vla_arr_ptr = builder.build_struct_gep(vla_struct, 0, "vla_array_gep")?;
 
-        // Populate each array element
-        let dimensions =
-            dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
-        let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
-        // FIXME: should be memcopied, but is an rvalue. can only initialize global variables with value types. any other way for alloca'd variables than using store?
-        builder.build_store(vla_dimensions_ptr, array_value)?;
+        // let vla_dimensions_ptr = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep")?;
 
-        builder.build_store(vla_arr_ptr, arr_gep)?;
+        // // -- Generate dimensions --
+        // let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
+        // let mut dims = Vec::new();
+        // for dim in dimensions {
+        //     dims.push(dim.start_offset.as_int_value(cast_data.index).unwrap());
+        //     dims.push(dim.end_offset.as_int_value(cast_data.index).unwrap());
+        // }
 
-        builder.build_load(vla_struct, "").map_err(Into::into)
+        // // Populate each array element
+        // let dimensions =
+        //     dims.iter().map(|it| cast_data.llvm.i32_type().const_int(*it as u64, true)).collect::<Vec<_>>();
+        // let array_value = cast_data.llvm.i32_type().const_array(&dimensions);
+        // // FIXME: should be memcopied, but is an rvalue. can only initialize global variables with value types. any other way for alloca'd variables than using store?
+        // builder.build_store(vla_dimensions_ptr, array_value)?;
+
+        // builder.build_store(vla_arr_ptr, arr_gep)?;
+
+        // builder.build_load(vla_struct, "").map_err(Into::into)
     }
 
     fn cast_constant(

@@ -216,19 +216,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
                 match param {
                     Some(v)
-                        if v.is_in_parameter_by_ref() &&
-                        // parameters by ref will always be a pointer
-                        p.into_pointer_type().get_element_type().is_array_type() =>
+                        if v.is_in_parameter_by_ref()
+                            && self
+                                .index
+                                .get_effective_type_by_name(v.get_type_name())
+                                .unwrap()
+                                .is_array() =>
                     {
-                        // for by-ref array types we will generate a pointer to the fundamental element type
-                        // not a pointer to array
-                        let fundamental_element_type = p
-                            .into_pointer_type()
-                            .get_element_type()
-                            .into_array_type()
-                            .into_fundamental_type();
-
-                        let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+                        let ty = p.into_pointer_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
 
                         // set the new type for further codegen
                         let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
@@ -696,6 +691,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .get_nth_param(0)
             .map(BasicValueEnum::into_pointer_value)
             .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
+        let param_pointer_type = {
+            let ty = self.index.find_effective_type_by_name(&members.get(0).unwrap().data_type_name).unwrap();
+            self.llvm_index.get_associated_type(ty.get_name()).unwrap()
+        };
+
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
@@ -731,7 +731,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let ptr = self
                     .llvm
                     .builder
-                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
+                    .build_struct_gep(param_pointer_type, param_pointer, var_count as u32, parameter_name)
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;
@@ -787,11 +787,15 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .map(|it| it.get_type_information())
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
+                    let left_type = {
+                        let var =
+                            self.index.find_fully_qualified_variable(variable.get_qualified_name()).unwrap();
+                        let ty = self.index.find_effective_type_by_name(&var.data_type_name).unwrap();
+
+                        self.llvm_index.get_associated_type(ty.get_name()).unwrap()
+                    };
                     // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    self.llvm.builder.build_store(
-                        left,
-                        left.get_type().get_element_type().into_pointer_type().const_null(),
-                    )?;
+                    self.llvm.builder.build_store(left, left_type.into_pointer_type().const_null())?;
                     continue;
                 };
                 let right_stmt =
