@@ -1,25 +1,14 @@
 use std::{fmt::Debug, path::PathBuf};
 
-use plc::{
-    lowering::{
-        calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator,
-    },
-    DebugLevel,
-};
+use plc::DebugLevel;
 use plc_diagnostics::{diagnostician::Diagnostician, diagnostics::Diagnostic};
 use plc_index::GlobalContext;
-use plc_lowering::inheritance::InheritanceLowerer;
 use project::project::Project;
 use serde::{Deserialize, Serialize};
 use source_code::SourceContainer;
 
 use crate::{
-    pipelines::{
-        self,
-        participant::{InitParticipant, PipelineParticipantMut},
-        AnnotatedProject, IndexedProject, ParsedProject,
-    },
+    pipelines::{self, AnnotatedProject, BuildPipeline, IndexedProject, ParsedProject, Pipeline},
     CompileOptions,
 };
 
@@ -104,17 +93,17 @@ where
     S: SourceContainer + Debug,
     T: IntoIterator<Item = S>,
 {
-    let mut diagnostician = Diagnostician::null_diagnostician();
     let project = construct_project_from_sources_and_includes(sources, includes);
     let context = GlobalContext::new()
         .with_source(project.get_sources(), None)
         .expect("Failed to generate global context with sources!")
         .with_source(project.get_includes(), None)
         .expect("Failed to generate global context with includes!");
+    let mut pipeline = get_pipeline(project, context);
 
-    let parsed_project = pipelines::ParsedProject::parse(&context, &project, &mut diagnostician)?;
+    let parsed_project = pipeline.parse()?;
 
-    Ok(ParsedProjectWrapper { parsed_project, context })
+    Ok(ParsedProjectWrapper { parsed_project, context: pipeline.context })
 }
 
 pub fn progress_pipeline_to_step_indexed<S, T>(
@@ -127,10 +116,11 @@ where
     T: IntoIterator<Item = S>,
 {
     let project = construct_project_from_sources_and_includes(sources, includes);
-    let indexed_project =
-        index(parsed_project_wrapper.parsed_project, project, &parsed_project_wrapper.context)?;
+    let mut pipeline = get_pipeline(project, parsed_project_wrapper.context);
 
-    Ok(IndexedProjectWrapper { indexed_project, context: parsed_project_wrapper.context })
+    let indexed_project = pipeline.index(parsed_project_wrapper.parsed_project)?;
+
+    Ok(IndexedProjectWrapper { indexed_project, context: pipeline.context })
 }
 
 pub fn progress_pipeline_to_step_annotated<S, T>(
@@ -143,10 +133,11 @@ where
     T: IntoIterator<Item = S>,
 {
     let project = construct_project_from_sources_and_includes(sources, includes);
-    let annotated_project =
-        annotate(indexed_project_wrapper.indexed_project, project, &indexed_project_wrapper.context)?;
+    let mut pipeline = get_pipeline(project, indexed_project_wrapper.context);
 
-    Ok(AnnotatedProjectWrapper { annotated_project, context: indexed_project_wrapper.context })
+    let annotated_project = pipeline.annotate(indexed_project_wrapper.indexed_project)?;
+
+    Ok(AnnotatedProjectWrapper { annotated_project, context: pipeline.context })
 }
 
 fn construct_project_from_sources_and_includes<S, T>(sources: T, includes: T) -> Project<S>
@@ -158,60 +149,23 @@ where
     Project::new("TestProject".into()).with_sources(sources).with_source_includes(includes)
 }
 
-// ---------- //
-// -- TODO -- //
-// ---------- //
-// These should probably be accessed via the pipeline, for now I am replicating the behaviour from outside of it.
-// Solution found, see runner.rs ...
-
-fn index<S>(
-    project: ParsedProject,
-    project_info: Project<S>,
-    context: &GlobalContext,
-) -> Result<IndexedProject, Diagnostic>
+fn get_pipeline<S>(project: Project<S>, context: GlobalContext) -> BuildPipeline<S>
 where
     S: SourceContainer + Debug,
 {
-    let mut mutable_participants = get_mutable_participants(project_info, context);
-    let project = mutable_participants.iter_mut().fold(project, |project, p| p.pre_index(project));
-    let indexed_project = project.index(context.provider());
-    let project = mutable_participants.iter_mut().fold(indexed_project, |project, p| p.post_index(project));
+    let diagnostician = Diagnostician::null_diagnostician();
+    let mut pipeline = BuildPipeline {
+        context,
+        project,
+        diagnostician,
+        compile_parameters: None,
+        linker: plc::linker::LinkerType::Internal,
+        mutable_participants: Default::default(),
+        participants: Default::default(),
+        module_name: Some("<internal>".to_string()),
+    };
 
-    Ok(project)
-}
+    pipeline.register_default_participants();
 
-fn annotate<S>(
-    project: IndexedProject,
-    project_info: Project<S>,
-    context: &GlobalContext,
-) -> Result<AnnotatedProject, Diagnostic>
-where
-    S: SourceContainer + Debug,
-{
-    let mut mutable_participants = get_mutable_participants(project_info, context);
-    let project = mutable_participants.iter_mut().fold(project, |project, p| p.pre_annotate(project));
-    let annotated_project = project.annotate(context.provider());
-    let annotated_project =
-        mutable_participants.iter_mut().fold(annotated_project, |project, p| p.post_annotate(project));
-
-    Ok(annotated_project)
-}
-
-fn get_mutable_participants<S>(
-    project: Project<S>,
-    context: &GlobalContext,
-) -> Vec<Box<dyn PipelineParticipantMut>>
-where
-    S: SourceContainer + Debug,
-{
-    let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
-        Box::new(VirtualTableGenerator::new(context.provider())),
-        Box::new(PolymorphicCallLowerer::new(context.provider())),
-        Box::new(PropertyLowerer::new(context.provider())),
-        Box::new(InitParticipant::new(project.get_init_symbol_name(), context.provider())),
-        Box::new(AggregateTypeLowerer::new(context.provider())),
-        Box::new(InheritanceLowerer::new(context.provider())),
-    ];
-
-    mut_participants
+    pipeline
 }

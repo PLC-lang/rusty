@@ -21,6 +21,9 @@ use crate::header_generator::{
     ExtendedTypeName, GeneratedHeader,
 };
 
+/// The constant value for the string that is appended to types added by the header generation process
+const TYPE_APPEND: &str = "_type";
+
 pub struct GeneratedHeaderForC {
     pub file_information: HeaderFileInformation,
     contents: String,
@@ -87,12 +90,14 @@ impl GeneratedHeaderForC {
         }
     }
 
+    /// Populates the self scoped [TemplateData] instance with the user types that should be added to the generated header file
     fn prepare_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for user_type in &compilation_unit.user_types {
             self.prepare_user_type(user_type, builtin_types, &compilation_unit.user_types);
         }
     }
 
+    /// Populates the self scoped [TemplateData] instance with the global variables that should be added to the generated header file
     fn prepare_global_variables(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         self.template_data.global_variables = self.get_variables_from_variable_blocks(
             &compilation_unit.global_vars,
@@ -102,6 +107,7 @@ impl GeneratedHeaderForC {
         );
     }
 
+    /// Populates the self scoped [TemplateData] instance with the functions that should be added to the generated header file
     fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for pou in &compilation_unit.pous {
             match pou.kind {
@@ -134,8 +140,9 @@ impl GeneratedHeaderForC {
                 }
                 PouType::Program => {
                     let program_name = pou.name.to_string();
-                    let data_type = format!("{program_name}_type");
+                    let data_type = format!("{program_name}{TYPE_APPEND}");
 
+                    // Adds the global variable instance for this program
                     self.template_data.global_variables.push(Variable {
                         data_type,
                         name: format!("{program_name}_instance"),
@@ -149,6 +156,7 @@ impl GeneratedHeaderForC {
         }
     }
 
+    /// Populates the self scoped [TemplateData] instance with the user type that should be added to the generated header file
     fn prepare_user_type(
         &mut self,
         user_type: &UserTypeDeclaration,
@@ -164,8 +172,12 @@ impl GeneratedHeaderForC {
 
         match &user_type.data_type {
             ast::DataType::StructType { name, variables } => {
-                let formatted_variables =
-                    self.get_transformed_variables_from_variables(variables, builtin_types, false, user_types);
+                let formatted_variables = self.get_transformed_variables_from_variables(
+                    variables,
+                    builtin_types,
+                    false,
+                    user_types,
+                );
 
                 self.template_data.user_defined_types.structs.push(UserType {
                     name: name.clone().unwrap_or_default(),
@@ -220,6 +232,7 @@ impl GeneratedHeaderForC {
         }
     }
 
+    /// Populates the self scoped [TemplateData] instance with the necessary structs and functions created by a function block implementation
     fn prepare_function_block(
         &mut self,
         pou: &Pou,
@@ -230,7 +243,7 @@ impl GeneratedHeaderForC {
             .get_type_name_for_type(&get_type_from_data_type_decleration(&pou.return_type), builtin_types);
 
         let function_name = pou.name.to_string();
-        let data_type = format!("{function_name}_type");
+        let data_type = format!("{function_name}{TYPE_APPEND}");
 
         // Create the template for the function block user type
         let input_variables = self.get_variables_from_variable_blocks(
@@ -246,11 +259,11 @@ impl GeneratedHeaderForC {
             &compilation_unit.user_types,
         );
 
-        if pou.super_class.is_some() {
+        if let Some(super_class) = &pou.super_class {
             self.template_data.user_defined_types.structs.push(UserType {
                 name: data_type.to_string(),
                 variables: self
-                    .modify_function_block_variables_for_inheritance(&input_variables, &pou.super_class),
+                    .modify_function_block_variables_for_inheritance(&input_variables, super_class),
             });
         } else {
             self.template_data
@@ -277,25 +290,23 @@ impl GeneratedHeaderForC {
     fn modify_function_block_variables_for_inheritance(
         &self,
         input_variables: &[Variable],
-        pou_super_class: &Option<Identifier>,
+        super_class: &Identifier,
     ) -> Vec<Variable> {
         let mut modified_input_variables: Vec<Variable> = Vec::new();
 
-        if let Some(super_class) = &pou_super_class {
-            for input_variable in input_variables {
-                if input_variable.data_type == super_class.name {
-                    modified_input_variables.push(Variable {
-                        name: input_variable.name.clone(),
-                        data_type: format!("{}_type", input_variable.data_type),
-                        variable_type: input_variable.variable_type.clone(),
-                    });
-                } else {
-                    modified_input_variables.push(Variable {
-                        name: input_variable.name.clone(),
-                        data_type: input_variable.data_type.clone(),
-                        variable_type: input_variable.variable_type.clone(),
-                    });
-                }
+        for input_variable in input_variables {
+            if input_variable.data_type == super_class.name {
+                modified_input_variables.push(Variable {
+                    name: input_variable.name.clone(),
+                    data_type: format!("{}{TYPE_APPEND}", input_variable.data_type),
+                    variable_type: input_variable.variable_type.clone(),
+                });
+            } else {
+                modified_input_variables.push(Variable {
+                    name: input_variable.name.clone(),
+                    data_type: input_variable.data_type.clone(),
+                    variable_type: input_variable.variable_type.clone(),
+                });
             }
         }
 
@@ -304,6 +315,10 @@ impl GeneratedHeaderForC {
 
     /// Transforms the variables in an array of [variable blocks](plc_ast::ast::VariableBlock) into simplified [variables](crate::header_generator::template_helper::Variable)
     /// that can be rendered by the template.
+    ///
+    /// ---
+    ///
+    /// Might return an empty [Vec<Variable>] if no variables are found within the variable blocks.
     fn get_variables_from_variable_blocks(
         &mut self,
         variable_blocks: &[VariableBlock],
@@ -333,6 +348,10 @@ impl GeneratedHeaderForC {
 
     /// Transforms an array of [ast variables](plc_ast::ast::Variable) into simplified [variables](crate::header_generator::template_helper::Variable)
     /// that can be rendered by the template.
+    ///
+    /// ---
+    ///
+    /// Might return an empty [Vec<Variable>] if no variables are supplied.
     fn get_transformed_variables_from_variables(
         &mut self,
         variable_block_variables: &[plc_ast::ast::Variable],
@@ -401,7 +420,7 @@ impl GeneratedHeaderForC {
                         variable_type: VariableType::Variadic,
                     });
                 }
-                TypeAttribute::Other => {
+                TypeAttribute::Default => {
                     variables.push(Variable {
                         data_type,
                         name: variable.get_name().to_string(),

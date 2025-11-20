@@ -41,7 +41,7 @@ pub trait GeneratedHeader: FileHelper + TypeHelper + TemplateHelper + SymbolHelp
     ///
     /// ---
     ///
-    /// The outcome of this method must be a populated "TemplateData" on the generated header
+    /// The outcome of this method must be a populated [TemplateData](crate::header_generator::template_helper::TemplateData) on the generated header
     /// that contains all of the data necessary to run the templating engine.
     fn prepare_template_data(&mut self, compilation_unit: &CompilationUnit);
 

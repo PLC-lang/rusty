@@ -15,14 +15,15 @@ impl Default for TypeInformation {
 }
 
 pub enum TypeAttribute {
-    Other,
+    /// This type is an unremarkable type
+    Default,
     UserGenerated,
     Variadic,
 }
 
 impl TypeInformation {
     pub const fn new() -> Self {
-        TypeInformation { name: String::new(), attribute: TypeAttribute::Other }
+        TypeInformation { name: String::new(), attribute: TypeAttribute::Default }
     }
 
     pub fn get_type_name(&self) -> String {
@@ -31,12 +32,23 @@ impl TypeInformation {
 }
 
 pub trait TypeHelper {
+    /// Given an extended type name and all of the defined builtin types, this will determine the type name for this type.
+    ///
+    /// ---
+    ///
+    /// This must return a [TypeInformation] object, that contains the type name in the language this is implemented for and
+    /// some additional information about the type (whether it is UserGenerated, Variadic or Default)
     fn get_type_name_for_type(
         &self,
         extended_type_name: &ExtendedTypeName,
         builtin_types: &[DataType],
     ) -> TypeInformation;
 
+    /// Given a boolean indicating whether or not this is a wide string, this will determine the type name for this string type.
+    ///
+    /// ---
+    ///
+    /// This must return a [String] that specifies the type name in the language that this is implemented for.
     fn get_type_name_for_string(&self, is_wide: &bool) -> String;
 }
 
@@ -49,5 +61,5 @@ fn determine_type_attribute(is_variadic: bool, is_user_generated: bool) -> TypeA
         return TypeAttribute::UserGenerated;
     }
 
-    TypeAttribute::Other
+    TypeAttribute::Default
 }
