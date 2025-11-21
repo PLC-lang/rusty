@@ -11,7 +11,7 @@ use std::{
     sync::{Arc, Mutex, RwLock},
 };
 
-use ast::provider::IdProvider;
+use ast::{provider::IdProvider, visitor::AstVisitor};
 use plc::{
     codegen::GeneratedModule,
     lowering::{
@@ -21,7 +21,7 @@ use plc::{
     ConfigFormat, OnlineChange, Target,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
-use plc_lowering::inheritance::InheritanceLowerer;
+use plc_lowering::{inheritance::InheritanceLowerer, initializer::Initializer};
 use project::{object::Object, project::LibraryInformation};
 use source_code::SourceContainer;
 
@@ -224,8 +224,33 @@ impl InitParticipant {
 }
 
 impl PipelineParticipantMut for InitParticipant {
+    /*
+
+    /// Adds additional, internally generated units to provide functions to be called by a runtime
+    /// in order to initialize pointers before first cycle.
+    ///
+    /// This method will consume the provided indexed project, modify the AST and re-index each unit
+    pub fn extend_with_init_units(
+        self,
+        symbol_name: &'static str,
+        id_provider: IdProvider,
+    ) -> IndexedProject {
+        let units = self.project.units;
+        let lowered =
+            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
+        ParsedProject { units: lowered }.index(id_provider.clone())
+    }
+    */
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
-        indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
+        // Create a new init lowerer
+        let IndexedProject { mut project, index, .. } = indexed_project;
+        for unit in project.units.iter_mut() {
+            let mut initializer = Initializer::new(self.id_provider.clone());
+            initializer.apply_initialization(unit, &index);
+        }
+        // indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
+        // Append new units and constructor to the ast and re-index
+        project.index(self.id_provider.clone())
     }
 }
 

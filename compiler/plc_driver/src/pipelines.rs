@@ -255,9 +255,9 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(VirtualTableGenerator::new(self.context.provider())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
+            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
         ]
     }
     /// Register all default participants (excluding codegen/linking)
@@ -604,21 +604,6 @@ impl IndexedProject {
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
         AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(
-        self,
-        symbol_name: &'static str,
-        id_provider: IdProvider,
-    ) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 

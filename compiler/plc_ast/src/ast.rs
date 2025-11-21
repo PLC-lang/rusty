@@ -500,6 +500,15 @@ pub enum VariableBlockType {
     InOut,
     External,
 }
+impl VariableBlockType {
+    pub fn is_temp(&self) -> bool {
+        matches!(self, VariableBlockType::Temp)
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self, VariableBlockType::Local)
+    }
+}
 
 impl Display for VariableBlockType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
