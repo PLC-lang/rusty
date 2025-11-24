@@ -1,7 +1,17 @@
 ---
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
+snapshot_kind: text
 ---
+warning[E040]: Non-standard enum value `99` for `State`
+  ┌─ <internal>:9:44
+  │
+2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
+  │              ----- see also
+  ·
+9 │                     localState  : State := 99;
+  │                                            ^^ Non-standard enum value `99` for `State`
+
 note[E092]: Replace `0` with `Idle`
    ┌─ <internal>:18:31
    │
@@ -83,32 +93,32 @@ note[E092]: Replace `validReferenceForEnum` with `Idle`
 32 │                 localState := validReferenceForEnum;
    │                               ^^^^^^^^^^^^^^^^^^^^^ Replace `validReferenceForEnum` with `Idle`
 
-error[E040]: Invalid enum value `99` for `(red := 0, green := 1, blue := 2)`
+warning[E040]: Non-standard enum value `99` for `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:38:26
    │
  8 │                     color       : (red := 0, green := 1, blue := 2);
    │                                   --------------------------------- see also
    ·
 38 │                 color := 99;
-   │                          ^^ Invalid enum value `99` for `(red := 0, green := 1, blue := 2)`
+   │                          ^^ Non-standard enum value `99` for `(red := 0, green := 1, blue := 2)`
 
-error[E040]: Invalid enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
+warning[E040]: Non-standard enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:39:26
    │
  8 │                     color       : (red := 0, green := 1, blue := 2);
    │                                   --------------------------------- see also
    ·
 39 │                 color := State.Working;
-   │                          ^^^^^^^^^^^^^ Invalid enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
+   │                          ^^^^^^^^^^^^^ Non-standard enum value `State.Working` for `(red := 0, green := 1, blue := 2)`
 
-error[E040]: Invalid enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
+warning[E040]: Non-standard enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:40:26
    │
  8 │                     color       : (red := 0, green := 1, blue := 2);
    │                                   --------------------------------- see also
    ·
 40 │                 color := invalidReferenceForEnum;
-   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Invalid enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
+   │                          ^^^^^^^^^^^^^^^^^^^^^^^ Non-standard enum value `invalidReferenceForEnum` for `(red := 0, green := 1, blue := 2)`
 
 warning[E091]: Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
    ┌─ <internal>:41:26
@@ -119,38 +129,38 @@ warning[E091]: Value evaluated at run-time, use an enum variant from `(red := 0,
 41 │                 color := foo(); // Value of `foo()` unknown, might be outside of variants range
    │                          ^^^^^^ Value evaluated at run-time, use an enum variant from `(red := 0, green := 1, blue := 2)`
 
-error[E040]: Invalid enum value `99` for `State`
+warning[E040]: Non-standard enum value `99` for `State`
    ┌─ <internal>:43:31
    │
  2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
    │              ----- see also
    ·
 43 │                 localState := 99;
-   │                               ^^ Invalid enum value `99` for `State`
+   │                               ^^ Non-standard enum value `99` for `State`
 
-error[E040]: Invalid enum value `green` for `State`
+warning[E040]: Non-standard enum value `green` for `State`
    ┌─ <internal>:44:31
    │
  2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
    │              ----- see also
    ·
 44 │                 localState := green;
-   │                               ^^^^^ Invalid enum value `green` for `State`
+   │                               ^^^^^ Non-standard enum value `green` for `State`
 
-error[E040]: Invalid enum value `blue` for `State`
+warning[E040]: Non-standard enum value `blue` for `State`
    ┌─ <internal>:45:31
    │
  2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
    │              ----- see also
    ·
 45 │                 localState := blue;
-   │                               ^^^^ Invalid enum value `blue` for `State`
+   │                               ^^^^ Non-standard enum value `blue` for `State`
 
-error[E040]: Invalid enum value `invalidReferenceForEnum` for `State`
+warning[E040]: Non-standard enum value `invalidReferenceForEnum` for `State`
    ┌─ <internal>:46:31
    │
  2 │         TYPE State : (Idle := 0, Working := 100); END_TYPE
    │              ----- see also
    ·
 46 │                 localState := invalidReferenceForEnum;
-   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Invalid enum value `invalidReferenceForEnum` for `State`
+   │                               ^^^^^^^^^^^^^^^^^^^^^^^ Non-standard enum value `invalidReferenceForEnum` for `State`
