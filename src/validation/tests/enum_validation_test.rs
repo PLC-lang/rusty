@@ -185,7 +185,7 @@ fn enum_with_invalid_type() {
         // Valid: BOOL (Codesys syntax)
         TYPE ValidEnum10 : (false_val := 0, true_val := 1) BOOL; END_TYPE
 
-        // Valid: All integer types (61131 syntax)
+        // Valid: Integer types (61131 syntax)
         TYPE ValidEnum11 : LINT (a := 1, b := 2); END_TYPE
         TYPE ValidEnum12 : ULINT (a := 1, b := 2); END_TYPE
         TYPE ValidEnum13 : USINT (a := 1, b := 2); END_TYPE
@@ -196,11 +196,16 @@ fn enum_with_invalid_type() {
         TYPE ValidEnum18 : SINT (a := 1, b := 2); END_TYPE
         TYPE ValidEnum19 : DINT (a := 1, b := 2); END_TYPE
 
-        // Valid: Some integer types (Codesys syntax)
+        // Valid: Integer types (Codesys syntax)
         TYPE ValidEnum20 : (a := 1, b := 2) LINT; END_TYPE
         TYPE ValidEnum21 : (a := 1, b := 2) ULINT; END_TYPE
-        TYPE ValidEnum22 : (a := 1, b := 2) WORD; END_TYPE
-        TYPE ValidEnum23 : (a := 1, b := 2) LWORD; END_TYPE
+        TYPE ValidEnum22 : (a := 1, b := 2) USINT; END_TYPE
+        TYPE ValidEnum23 : (a := 1, b := 2) UINT; END_TYPE
+        TYPE ValidEnum24 : (a := 1, b := 2) UDINT; END_TYPE
+        TYPE ValidEnum25 : (a := 1, b := 2) WORD; END_TYPE
+        TYPE ValidEnum26 : (a := 1, b := 2) LWORD; END_TYPE
+        TYPE ValidEnum27 : (a := 1, b := 2) SINT; END_TYPE
+        TYPE ValidEnum28 : (a := 1, b := 2) DINT; END_TYPE
         ",
     );
 

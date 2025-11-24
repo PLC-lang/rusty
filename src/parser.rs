@@ -1094,7 +1094,8 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
             let size_expr = parse_expression(lexer);
             let error_range = lexer.source_range_factory.create_range(opening_location..lexer.range().end);
 
-            // Don't emit warnings if this looks like an enum (will be caught by validation)
+            // Don't emit warnings if this looks like an enum (will be caught by validation).
+            // e.g. `TYPE attemptAtStringEnum : STRING (a := 1, b := 2);` should not warn about parentheses.
             let is_enum_like = matches!(size_expr.get_stmt(), AstStatement::ExpressionList(_));
 
             if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)

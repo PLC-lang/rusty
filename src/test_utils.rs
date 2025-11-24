@@ -141,8 +141,6 @@ pub mod tests {
         id_provider: IdProvider,
     ) -> Lowered {
         let (mut index, _) = evaluate_constants(index);
-        index.finalize_enum_defaults();
-
         let mut all_annotations = AnnotationMapImpl::default();
 
         let (mut annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider.clone());
@@ -304,7 +302,6 @@ pub mod tests {
             },
         );
         let (mut index, ..) = evaluate_constants(index);
-        index.finalize_enum_defaults();
         let mut all_annotations = AnnotationMapImpl::default();
         let units = units
             .into_iter()
