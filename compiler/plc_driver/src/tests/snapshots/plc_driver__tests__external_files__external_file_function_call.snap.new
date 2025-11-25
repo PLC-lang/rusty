@@ -1,0 +1,39 @@
+---
+source: compiler/plc_driver/src/tests/external_files.rs
+assertion_line: 29
+expression: "results.join(\"\\n\")"
+---
+; ModuleID = 'main.st'
+source_filename = "main.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+define i16 @main() {
+entry:
+  %main = alloca i16, align 2
+  store i16 0, ptr %main, align 2
+  %call = call i16 @external()
+  %main_ret = load i16, ptr %main, align 2
+  ret i16 %main_ret
+}
+
+declare i16 @external()
+
+; ModuleID = 'external.st'
+source_filename = "external.st"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+declare i16 @external()
+
+; ModuleID = '__init___TestProject'
+source_filename = "__init___TestProject"
+target datalayout = "[filtered]"
+target triple = "[filtered]"
+
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
+
+define void @__init___TestProject() {
+entry:
+  ret void
+}

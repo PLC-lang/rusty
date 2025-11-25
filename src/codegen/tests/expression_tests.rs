@@ -980,13 +980,13 @@ fn builtin_div_with_named_arguments() {
       %main = alloca i32, align 4
       %x = alloca i32, align 4
       %y = alloca i32, align 4
-      store i32 20, i32* %x, align 4
-      store i32 4, i32* %y, align 4
-      store i32 0, i32* %main, align 4
-      %load_x = load i32, i32* %x, align 4
-      %load_y = load i32, i32* %y, align 4
+      store i32 20, ptr %x, align 4
+      store i32 4, ptr %y, align 4
+      store i32 0, ptr %main, align 4
+      %load_x = load i32, ptr %x, align 4
+      %load_y = load i32, ptr %y, align 4
       %tmpVar = sdiv i32 %load_x, %load_y
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
     "#);
@@ -1017,13 +1017,13 @@ fn builtin_sub_with_named_arguments() {
       %main = alloca i32, align 4
       %x = alloca i32, align 4
       %y = alloca i32, align 4
-      store i32 20, i32* %x, align 4
-      store i32 4, i32* %y, align 4
-      store i32 0, i32* %main, align 4
-      %load_x = load i32, i32* %x, align 4
-      %load_y = load i32, i32* %y, align 4
+      store i32 20, ptr %x, align 4
+      store i32 4, ptr %y, align 4
+      store i32 0, ptr %main, align 4
+      %load_x = load i32, ptr %x, align 4
+      %load_y = load i32, ptr %y, align 4
       %tmpVar = sub i32 %load_x, %load_y
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
     "#);

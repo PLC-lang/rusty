@@ -224,7 +224,7 @@ fn switch_case_debug_info() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
@@ -232,14 +232,14 @@ fn switch_case_debug_info() {
       %x1 = alloca i16, align 2
       %x2 = alloca i16, align 2
       %x3 = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata i16* %x1, metadata !8, metadata !DIExpression()), !dbg !10
-      store i16 0, i16* %x1, align 2
-      call void @llvm.dbg.declare(metadata i16* %x2, metadata !11, metadata !DIExpression()), !dbg !12
-      store i16 0, i16* %x2, align 2
-      call void @llvm.dbg.declare(metadata i16* %x3, metadata !13, metadata !DIExpression()), !dbg !14
-      store i16 0, i16* %x3, align 2
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !15, metadata !DIExpression()), !dbg !17
-      store i32 0, i32* %main, align 4
+      call void @llvm.dbg.declare(metadata ptr %x1, metadata !8, metadata !DIExpression()), !dbg !10
+      store i16 0, ptr %x1, align 2
+      call void @llvm.dbg.declare(metadata ptr %x2, metadata !11, metadata !DIExpression()), !dbg !12
+      store i16 0, ptr %x2, align 2
+      call void @llvm.dbg.declare(metadata ptr %x3, metadata !13, metadata !DIExpression()), !dbg !14
+      store i16 0, ptr %x3, align 2
+      call void @llvm.dbg.declare(metadata ptr %main, metadata !15, metadata !DIExpression()), !dbg !17
+      store i32 0, ptr %main, align 4
       br label %condition_check, !dbg !18
 
     condition_check:                                  ; preds = %continue2, %entry
@@ -249,7 +249,7 @@ fn switch_case_debug_info() {
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
     continue:                                         ; preds = %condition_body, %condition_check
-      %main_ret = load i32, i32* %main, align 4, !dbg !20
+      %main_ret = load i32, ptr %main, align 4, !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
@@ -259,12 +259,12 @@ fn switch_case_debug_info() {
       br label %continue1, !dbg !21
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %load_x1 = load i16, i16* %x1, align 2, !dbg !22
+      %load_x1 = load i16, ptr %x1, align 2, !dbg !22
       %0 = sext i16 %load_x1 to i32, !dbg !22
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
-      store i16 %1, i16* %x1, align 2, !dbg !22
-      %load_x13 = load i16, i16* %x1, align 2, !dbg !22
+      store i16 %1, ptr %x1, align 2, !dbg !22
+      %load_x13 = load i16, ptr %x1, align 2, !dbg !22
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
@@ -272,28 +272,28 @@ fn switch_case_debug_info() {
       ], !dbg !23
 
     case:                                             ; preds = %continue1
-      store i16 1, i16* %x2, align 2, !dbg !24
+      store i16 1, ptr %x2, align 2, !dbg !24
       br label %continue2, !dbg !25
 
     case4:                                            ; preds = %continue1
-      store i16 2, i16* %x2, align 2, !dbg !26
+      store i16 2, ptr %x2, align 2, !dbg !26
       br label %continue2, !dbg !25
 
     case5:                                            ; preds = %continue1
-      store i16 3, i16* %x2, align 2, !dbg !27
+      store i16 3, ptr %x2, align 2, !dbg !27
       br label %continue2, !dbg !25
 
     else:                                             ; preds = %continue1
-      store i16 0, i16* %x1, align 2, !dbg !28
-      store i16 1, i16* %x2, align 2, !dbg !29
-      store i16 2, i16* %x3, align 2, !dbg !30
+      store i16 0, ptr %x1, align 2, !dbg !28
+      store i16 1, ptr %x2, align 2, !dbg !29
+      store i16 2, ptr %x3, align 2, !dbg !30
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
       br label %condition_check, !dbg !18
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
@@ -301,7 +301,7 @@ fn switch_case_debug_info() {
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -1074,24 +1074,24 @@ fn test_debug_info_regular_pointer_types() {
 
     %myStruct = type { i32, i8 }
 
-    @basic_ptr = global i32* null, !dbg !0
-    @array_ptr = global [11 x i32]* null, !dbg !6
-    @struct_ptr = global %myStruct* null, !dbg !13
-    @string_ptr = global [81 x i8]* null, !dbg !22
+    @basic_ptr = global ptr null, !dbg !0
+    @array_ptr = global ptr null, !dbg !6
+    @struct_ptr = global ptr null, !dbg !13
+    @string_ptr = global ptr null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
@@ -1303,7 +1303,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     END_STRUCT END_TYPE
     "#,
     );
-    filtered_assert_snapshot!(codegen, @r###"
+    filtered_assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1311,33 +1311,33 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
     @global_struct = global %myStruct zeroinitializer, !dbg !10
     @global_var = global i32 42, !dbg !12
-    @alias_int = global i32* null, !dbg !14
-    @alias_struct = global %myStruct* null, !dbg !18
+    @alias_int = global ptr null, !dbg !14
+    @alias_struct = global ptr null, !dbg !18
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mystruct(%myStruct* @global_struct)
-      store i32* @global_var, i32** @alias_int, align 8
-      store %myStruct* @global_struct, %myStruct** @alias_struct, align 8
-      call void @__user_init_myStruct(%myStruct* @global_struct)
+      call void @__init_mystruct(ptr @global_struct)
+      store ptr @global_var, ptr @alias_int, align 8
+      store ptr @global_struct, ptr @alias_struct, align 8
+      call void @__user_init_myStruct(ptr @global_struct)
       ret void
     }
 
@@ -1370,7 +1370,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
     !25 = !{!12, !14, !10, !0, !18}
-    "###)
+    "#)
 }
 
 #[test]
@@ -1678,24 +1678,24 @@ fn range_datatype_debug() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
       %main = alloca i32, align 4
       %r = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %r, metadata !8, metadata !DIExpression()), !dbg !11
-      store i32 0, i32* %r, align 4
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !13
-      store i32 0, i32* %main, align 4
-      store i32 50, i32* %r, align 4, !dbg !14
-      %load_r = load i32, i32* %r, align 4, !dbg !15
-      store i32 %load_r, i32* %main, align 4, !dbg !15
-      %main_ret = load i32, i32* %main, align 4, !dbg !16
+      call void @llvm.dbg.declare(metadata ptr %r, metadata !8, metadata !DIExpression()), !dbg !11
+      store i32 0, ptr %r, align 4
+      call void @llvm.dbg.declare(metadata ptr %main, metadata !12, metadata !DIExpression()), !dbg !13
+      store i32 0, ptr %main, align 4
+      store i32 50, ptr %r, align 4, !dbg !14
+      %load_r = load i32, ptr %r, align 4, !dbg !15
+      store i32 %load_r, ptr %main, align 4, !dbg !15
+      %main_ret = load i32, ptr %main, align 4, !dbg !16
       ret i32 %main_ret, !dbg !16
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
@@ -1703,7 +1703,7 @@ fn range_datatype_debug() {
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}

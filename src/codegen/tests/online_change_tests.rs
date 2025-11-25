@@ -20,15 +20,15 @@ fn generate_function_with_online_change() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @__custom_got = weak_odr global [2 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [2 x ptr] zeroinitializer
 
     define i32 @foo() section "$RUSTY$fn-foo:i32[]" {
     entry:
       %foo = alloca i32, align 4
       %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      store i32 0, ptr %x, align 4
+      store i32 0, ptr %foo, align 4
+      %foo_ret = load i32, ptr %foo, align 4
       ret i32 %foo_ret
     }
     "#)
@@ -127,18 +127,17 @@ fn generate_function_and_var_with_online_change() {
     target triple = "[filtered]"
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
-    @__custom_got = weak_odr global [4 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [4 x ptr] zeroinitializer
 
     define i32 @foo() section "$RUSTY$fn-foo:i32[]" {
     entry:
       %foo = alloca i32, align 4
       %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %foo, align 4
-      %0 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align 8
-      %load_x = load i32, i32* %x, align 4
-      store i32 %load_x, i32* %0, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      store i32 0, ptr %x, align 4
+      store i32 0, ptr %foo, align 4
+      %load_x = load i32, ptr %x, align 4
+      store i32 %load_x, ptr @gV, align 4
+      %foo_ret = load i32, ptr %foo, align 4
       ret i32 %foo_ret
     }
     "#)
