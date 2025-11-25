@@ -352,18 +352,18 @@ fn enum_typed_varargs_get_promoted() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %e1 = alloca i16, align 2
-      %i1 = alloca i16, align 2
-      store i16 10, i16* %e1, align 2
-      store i16 10, i16* %i1, align 2
-      store i32 0, i32* %main, align 4
-      %load_e1 = load i16, i16* %e1, align 2
+      %main = alloca i32, align [filtered]
+      %e1 = alloca i16, align [filtered]
+      %i1 = alloca i16, align [filtered]
+      store i16 10, i16* %e1, align [filtered]
+      store i16 10, i16* %i1, align [filtered]
+      store i32 0, i32* %main, align [filtered]
+      %load_e1 = load i16, i16* %e1, align [filtered]
       %0 = sext i16 %load_e1 to i32
-      %load_i1 = load i16, i16* %i1, align 2
+      %load_i1 = load i16, i16* %i1, align [filtered]
       %1 = sext i16 %load_i1 to i32
       %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @utf08_literal_0, i32 0, i32 0), i32 %0, i32 %1)
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, i32* %main, align [filtered]
       ret i32 %main_ret
     }
     "#);
