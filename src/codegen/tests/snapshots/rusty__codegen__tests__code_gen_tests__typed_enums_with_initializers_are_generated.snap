@@ -8,9 +8,9 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-@x = global i8 0
-@y = global i16 0
-@z = global i32 0
+@x = global i8 1
+@y = global i16 10
+@z = global i32 22
 @MyEnum.red = unnamed_addr constant i8 1
 @MyEnum.yellow = unnamed_addr constant i8 2
 @MyEnum.green = unnamed_addr constant i8 3

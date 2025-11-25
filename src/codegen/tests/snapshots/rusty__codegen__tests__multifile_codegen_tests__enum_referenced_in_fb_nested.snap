@@ -1,6 +1,7 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
+snapshot_kind: text
 ---
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
@@ -18,7 +19,7 @@ target triple = "[filtered]"
 
 %fb = type { i32 }
 
-@__fb__init = unnamed_addr constant %fb zeroinitializer
+@__fb__init = unnamed_addr constant %fb { i32 1 }
 
 define void @fb(%fb* %0) {
 entry:
@@ -36,7 +37,7 @@ target triple = "[filtered]"
 %myStruct = type { %fb.2 }
 %fb.2 = type { i32 }
 
-@__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
+@__myStruct__init = unnamed_addr constant %myStruct { %fb.2 { i32 1 } }
 @__fb__init = external unnamed_addr constant %fb.2
 
 declare void @fb(%fb.2*)
@@ -50,7 +51,7 @@ target triple = "[filtered]"
 %myStruct.4 = type { %fb.5 }
 %fb.5 = type { i32 }
 
-@__fb2__init = unnamed_addr constant %fb2 zeroinitializer
+@__fb2__init = unnamed_addr constant %fb2 { %myStruct.4 { %fb.5 { i32 1 } } }
 @__myStruct__init = external unnamed_addr constant %myStruct.4
 @__fb__init = external unnamed_addr constant %fb.5
 

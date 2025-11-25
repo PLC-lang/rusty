@@ -313,6 +313,63 @@ fn small_int_varargs_get_promoted_while_32bit_and_higher_keep_their_type() {
 }
 
 #[test]
+fn enum_typed_varargs_get_promoted() {
+    let src = r#"
+    {external}
+    FUNCTION printf : DINT
+    VAR_IN_OUT
+        format: STRING;
+    END_VAR
+    VAR_INPUT
+        args: ...;
+    END_VAR
+    END_FUNCTION
+
+    TYPE MyEnum : INT (a := 10, b := 20);
+    END_TYPE
+
+    FUNCTION main : DINT
+    VAR
+        e1 : MyEnum := a;
+        i1 : INT := 10;
+    END_VAR
+        printf('result : %d %d$N', e1, i1);
+    END_FUNCTION
+    "#;
+
+    let result = codegen(src);
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @MyEnum.a = unnamed_addr constant i16 10
+    @MyEnum.b = unnamed_addr constant i16 20
+    @utf08_literal_0 = private unnamed_addr constant [16 x i8] c"result : %d %d\0A\00"
+
+    declare i32 @printf(i8*, ...)
+
+    define i32 @main() {
+    entry:
+      %main = alloca i32, align 4
+      %e1 = alloca i16, align 2
+      %i1 = alloca i16, align 2
+      store i16 10, i16* %e1, align 2
+      store i16 10, i16* %i1, align 2
+      store i32 0, i32* %main, align 4
+      %load_e1 = load i16, i16* %e1, align 2
+      %0 = sext i16 %load_e1 to i32
+      %load_i1 = load i16, i16* %i1, align 2
+      %1 = sext i16 %load_i1 to i32
+      %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @utf08_literal_0, i32 0, i32 0), i32 %0, i32 %1)
+      %main_ret = load i32, i32* %main, align 4
+      ret i32 %main_ret
+    }
+    "#);
+}
+
+#[test]
 fn self_referential_struct_via_reference_codegen() {
     let result = codegen(
         r#"
