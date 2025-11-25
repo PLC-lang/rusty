@@ -11,13 +11,13 @@ target triple = "[filtered]"
 
 @mainProg_instance = external global %mainProg
 
-define i16 @main() {
+define i32 @main() {
 entry:
-  %main = alloca i16, align 2
-  store i16 0, i16* %main, align 2
+  %main = alloca i32, align 4
+  store i32 0, i32* %main, align 4
   call void @mainProg(%mainProg* @mainProg_instance)
-  %main_ret = load i16, i16* %main, align 2
-  ret i16 %main_ret
+  %main_ret = load i32, i32* %main, align 4
+  ret i32 %main_ret
 }
 
 declare void @mainProg(%mainProg*)

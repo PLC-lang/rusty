@@ -18,7 +18,15 @@ fn main() {
     build.cpp(true).file("src/cpp/llvm_wrapper.cpp").flag("-std=c++14");
 
     for flag in cxxflags.split_whitespace() {
-        if flag.starts_with("-I") || flag.starts_with("-D") {
+        if flag.starts_with("-I") {
+            // Found an include path, re-add it as a system include path
+            let path = flag.trim_start_matches("-I");
+            build.flag(format!("-isystem{path}"));
+        } else if flag.starts_with("-D") {
+            // Keep definitions as they are
+            build.flag(flag);
+        } else {
+            // For other flags (like -fno-exceptions etc.)
             build.flag(flag);
         }
     }

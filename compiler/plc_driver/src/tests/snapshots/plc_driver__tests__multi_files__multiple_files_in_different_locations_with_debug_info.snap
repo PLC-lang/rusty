@@ -11,14 +11,14 @@ target triple = "[filtered]"
 
 @mainProg_instance = external global %mainProg
 
-define i16 @main() !dbg !4 {
+define i32 @main() !dbg !4 {
 entry:
-  %main = alloca i16, align 2
-  call void @llvm.dbg.declare(metadata i16* %main, metadata !9, metadata !DIExpression()), !dbg !11
-  store i16 0, i16* %main, align 2
+  %main = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %main, metadata !9, metadata !DIExpression()), !dbg !11
+  store i32 0, i32* %main, align 4
   call void @mainProg(%mainProg* @mainProg_instance), !dbg !12
-  %main_ret = load i16, i16* %main, align 2, !dbg !13
-  ret i16 %main_ret, !dbg !13
+  %main_ret = load i32, i32* %main, align 4, !dbg !13
+  ret i32 %main_ret, !dbg !13
 }
 
 declare !dbg !14 void @mainProg(%mainProg*)
@@ -40,8 +40,8 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align: 16)
-!10 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+!9 = !DILocalVariable(name: "main", scope: !4, file: !5, line: 2, type: !10, align: 32)
+!10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 13, scope: !4)
 !12 = !DILocation(line: 10, column: 4, scope: !4)
 !13 = !DILocation(line: 11, column: 4, scope: !4)
