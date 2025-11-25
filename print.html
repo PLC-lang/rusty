@@ -1324,6 +1324,50 @@ TYPE type2 : type1; END_TYPE
 <pre><code class="language-st">TYPE typeA : DINT; END_TYPE      (* Points to concrete type *)
 TYPE typeB : typeA; END_TYPE     (* Points to another alias, but ultimately resolves to DINT *)
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="e122-invalid-enum-base-type"><a class="header" href="#e122-invalid-enum-base-type">E122: Invalid enum base type</a></h1>
+<p>This error occurs when an enum is declared with a base type that is not a valid integer type. Enums in IEC 61131-3 can only use integer types as their underlying representation.</p>
+<h2 id="example-4"><a class="header" href="#example-4">Example</a></h2>
+<pre><code class="language-st">TYPE Color : STRING (red := 1, green := 2, blue := 3);
+END_TYPE
+
+TYPE Status : REAL (active := 1, inactive := 0);
+END_TYPE
+
+TYPE Timestamp : TIME (start := 0, stop := 1);
+END_TYPE
+</code></pre>
+<p>These examples show invalid base types:</p>
+<ul>
+<li><code>STRING</code> is not a valid base type for an enum. Only integer types are allowed.</li>
+<li><code>REAL</code> is a floating-point type, not an integer type</li>
+<li><code>TIME</code> is a time/date type, which although internally represented as an integer, should not be used as an enum base type</li>
+</ul>
+<h2 id="valid-integer-types"><a class="header" href="#valid-integer-types">Valid integer types</a></h2>
+<p>The following integer types are valid for enum base types:</p>
+<ul>
+<li><code>INT</code>, <code>UINT</code> - 16-bit integers</li>
+<li><code>SINT</code>, <code>USINT</code> - 8-bit integers</li>
+<li><code>DINT</code>, <code>UDINT</code> - 32-bit integers</li>
+<li><code>LINT</code>, <code>ULINT</code> - 64-bit integers</li>
+<li><code>BYTE</code> - 8-bit unsigned</li>
+<li><code>WORD</code> - 16-bit unsigned</li>
+<li><code>DWORD</code> - 32-bit unsigned</li>
+<li><code>LWORD</code> - 64-bit unsigned</li>
+</ul>
+<h2 id="how-to-fix-2"><a class="header" href="#how-to-fix-2">How to fix</a></h2>
+<p><strong>Use a valid integer type</strong></p>
+<p>Change the base type to one of the supported integer types:</p>
+<pre><code class="language-st">TYPE Color : INT (red := 1, green := 2, blue := 3);
+END_TYPE
+
+TYPE Status : BYTE (active := 1, inactive := 0);
+END_TYPE
+</code></pre>
+<p><strong>Or omit the type specification</strong></p>
+<p>If no specific size is required, you can omit the type specification (will default to <code>DINT</code>):</p>
+<pre><code class="language-st">TYPE Color (red := 1, green := 2, blue := 3);
+END_TYPE
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>
@@ -1452,7 +1496,7 @@ To achieve this, the called function must be defined in a <code>C</code> compati
 <li>or be declared in <code>ST</code> using the <code>{external}</code> keyword</li>
 </ul>
 <p>When including multiple header files/function interfaces, the <code>-i</code> flag must precede each individual file, e.g. <code>-i file1.st -i file2.st -i file3.st</code>. Alternatively, when including an entire folder with <code>-i '/liblocation/*.st'</code>, the path must be put in quotes, otherwise the command-line might parse the arguments in a way that is incompatible (i.e. does not precede each file with <code>-i</code>).</p>
-<h3 id="example-4"><a class="header" href="#example-4">Example</a></h3>
+<h3 id="example-5"><a class="header" href="#example-5">Example</a></h3>
 <p>Given a <code>min</code> function defined in <code>C</code> as follows:</p>
 <pre><code class="language-C">int min(int a, int b) {
 //...
@@ -2026,7 +2070,7 @@ END_ACTION
 <p>Variable declaration blocks can be delcared as CONSTANT.
 All variables of a constant declaration block become constants.
 Constant variables can not be changed and need to be initialized.</p>
-<h2 id="example-5"><a class="header" href="#example-5">Example</a></h2>
+<h2 id="example-6"><a class="header" href="#example-6">Example</a></h2>
 <pre><code class="language-iecst">TYPE OneInt : INT := 1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -2049,7 +2093,7 @@ Note that initializers must not contain recursive definitions.</p>
 <h3 id="array-initialization"><a class="header" href="#array-initialization">Array Initialization</a></h3>
 <p>Arrays can be initialized using array literals.
 If the array-initial value does not contain all required elements, the array's inner type's default value will be used to fill the missing values.</p>
-<h2 id="example-6"><a class="header" href="#example-6">Example</a></h2>
+<h2 id="example-7"><a class="header" href="#example-7">Example</a></h2>
 <pre><code class="language-iecst">TYPE SignalValue : INT := -1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -2096,7 +2140,7 @@ END_PROGRAM
 </li>
 </ul>
 <p>It is important to note that if there are pointer initializations present in your project, failing to call the initialization function in your runtime or in <code>main</code> will result in <strong>null pointer dereferences</strong> at runtime.</p>
-<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
+<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
 <p><em>myProject.st</em>:</p>
 <pre><code class="language-iecst">VAR_GLOBAL
     myGlobal : STRING;
@@ -2285,7 +2329,7 @@ RuSTy supports this functionalty and extends it to support all <code>INT</code> 
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
+<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2314,7 +2358,7 @@ The provided varibale has to be a direct Reference variable (non Qualified).</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
-<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
+<h3 id="example-10"><a class="header" href="#example-10">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2441,7 +2485,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-10"><a class="header" href="#example-10">Example</a></h4>
+<h4 id="example-11"><a class="header" href="#example-11">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
