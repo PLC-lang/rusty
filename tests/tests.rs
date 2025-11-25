@@ -53,7 +53,6 @@ mod integration {
     mod cfc;
     mod command_line_compile;
     mod external_files;
-    mod header_generator_tests;
     mod linking;
     mod multi_files;
 }

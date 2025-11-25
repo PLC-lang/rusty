@@ -12,7 +12,7 @@ use crate::header_generator::{
     coalesce_field_name_override_with_default, data_type_is_system_generated, extract_array_size,
     extract_enum_declaration_from_elements, extract_string_size,
     file_helper::HeaderFileInformation,
-    get_type_from_data_type_decleration, get_user_generated_type_by_name,
+    get_type_from_data_type_decleration, get_user_generated_type_by_name, sanitize_method_name,
     symbol_helper::SymbolHelper,
     template_helper::{
         Function, TemplateData, TemplateHelper, TemplateType, UserType, Variable, VariableType,
@@ -73,6 +73,7 @@ impl GeneratedHeader for GeneratedHeaderForC {
         context.insert("global_variables", &self.template_data.global_variables);
         context.insert("user_defined_types", &self.template_data.user_defined_types);
         context.insert("functions", &self.template_data.functions);
+        context.insert("file_name_caps", &self.file_information.name);
 
         // Set the outputs
         self.contents = tera.render(&template.name, &context).unwrap();
@@ -110,7 +111,7 @@ impl GeneratedHeaderForC {
     /// Populates the self scoped [TemplateData] instance with the functions that should be added to the generated header file
     fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for pou in &compilation_unit.pous {
-            match pou.kind {
+            match &pou.kind {
                 PouType::Function => {
                     let type_info = &self.get_type_name_for_type(
                         &get_type_from_data_type_decleration(&pou.return_type),
@@ -130,7 +131,7 @@ impl GeneratedHeaderForC {
                     );
 
                     self.template_data.functions.push(Function {
-                        name: pou.name.to_string(),
+                        name: sanitize_method_name(&pou.name),
                         return_type: type_info.get_type_name(),
                         parameters,
                     });
@@ -150,6 +151,39 @@ impl GeneratedHeaderForC {
                     });
 
                     self.prepare_function_block(pou, compilation_unit, builtin_types);
+                }
+                PouType::Method { parent, .. } => {
+                    let type_info = &self.get_type_name_for_type(
+                        &get_type_from_data_type_decleration(&pou.return_type),
+                        builtin_types,
+                    );
+
+                    let data_type = format!("{parent}{TYPE_APPEND}");
+
+                    let mut parameters: Vec<Variable> = Vec::new();
+                    parameters.push(Variable {
+                        data_type: format!("{data_type}{}", self.get_reference_symbol()),
+                        name: String::from("self"),
+                        variable_type: VariableType::Default,
+                    });
+
+                    parameters.append(&mut self.get_variables_from_variable_blocks(
+                        &pou.variable_blocks,
+                        builtin_types,
+                        &[
+                            VariableBlockType::Input(ArgumentProperty::ByRef),
+                            VariableBlockType::Input(ArgumentProperty::ByVal),
+                            VariableBlockType::InOut,
+                            VariableBlockType::Output,
+                        ],
+                        &compilation_unit.user_types,
+                    ));
+
+                    self.template_data.functions.push(Function {
+                        name: sanitize_method_name(&pou.name),
+                        return_type: type_info.get_type_name(),
+                        parameters,
+                    });
                 }
                 _ => continue,
             }
@@ -272,6 +306,14 @@ impl GeneratedHeaderForC {
                 .push(UserType { name: data_type.to_string(), variables: input_variables });
         }
 
+        // Push the initialization global variable
+        self.template_data.global_variables.push(Variable {
+            data_type: data_type.to_string(),
+            name: format!("__{function_name}__init"),
+            variable_type: VariableType::Declaration(String::from("{ 0 }")),
+        });
+
+        // Push the parameters for the function
         let mut parameters: Vec<Variable> = Vec::new();
         parameters.push(Variable {
             data_type: format!("{data_type}{}", self.get_reference_symbol()),
@@ -568,6 +610,9 @@ fn format_variable_for_definition() -> impl tera::Function {
                 Ok(variable) => match variable.variable_type {
                     VariableType::Array(size) => {
                         Ok(to_value(format!("{} {}[{}]", variable.data_type, variable.name, size)).unwrap())
+                    }
+                    VariableType::Declaration(right) => {
+                        Ok(to_value(format!("{} {} = {}", variable.data_type, variable.name, right)).unwrap())
                     }
                     _ => Ok(to_value(format!("{} {}", variable.data_type, variable.name)).unwrap()),
                 },

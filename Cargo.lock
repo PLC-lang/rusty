@@ -2996,6 +2996,7 @@ dependencies = [
  "plc_ast",
  "plc_diagnostics",
  "plc_source",
+ "regex",
  "rusty",
  "serde",
  "serde_json",

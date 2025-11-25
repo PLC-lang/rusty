@@ -10,7 +10,7 @@ expression: json
         "var_config": [],
         "pous": [
           {
-            "id": 1,
+            "id": 2,
             "name": "fbThatHasSimpleTypes",
             "kind": "FunctionBlock",
             "variable_blocks": [
@@ -253,9 +253,9 @@ expression: json
                     "offset": 5
                   },
                   "end": {
-                    "line": 11,
+                    "line": 13,
                     "column": 22,
-                    "offset": 211
+                    "offset": 253
                   }
                 }
               },
@@ -289,9 +289,140 @@ expression: json
             "is_const": false,
             "interfaces": [],
             "properties": []
+          },
+          {
+            "id": 1,
+            "name": "fbThatHasSimpleTypes.FB_INIT",
+            "kind": {
+              "Method": {
+                "parent": "fbThatHasSimpleTypes",
+                "property": null,
+                "declaration_kind": "Concrete"
+              }
+            },
+            "variable_blocks": [],
+            "return_type": null,
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 11,
+                    "column": 8,
+                    "offset": 197
+                  },
+                  "end": {
+                    "line": 12,
+                    "column": 18,
+                    "offset": 230
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "name_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 11,
+                    "column": 15,
+                    "offset": 204
+                  },
+                  "end": {
+                    "line": 11,
+                    "column": 22,
+                    "offset": 211
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "poly_mode": "None",
+            "generics": [],
+            "linkage": "Internal",
+            "super_class": null,
+            "is_const": false,
+            "interfaces": [],
+            "properties": []
           }
         ],
         "implementations": [
+          {
+            "name": "fbThatHasSimpleTypes.FB_INIT",
+            "type_name": "fbThatHasSimpleTypes.FB_INIT",
+            "linkage": "Internal",
+            "pou_type": {
+              "Method": {
+                "parent": "fbThatHasSimpleTypes",
+                "property": null,
+                "declaration_kind": "Concrete"
+              }
+            },
+            "statements": [],
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 12,
+                    "column": 8,
+                    "offset": 220
+                  },
+                  "end": {
+                    "line": 11,
+                    "column": 22,
+                    "offset": 211
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "name_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 11,
+                    "column": 15,
+                    "offset": 204
+                  },
+                  "end": {
+                    "line": 11,
+                    "column": 22,
+                    "offset": 211
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "end_location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 12,
+                    "column": 8,
+                    "offset": 220
+                  },
+                  "end": {
+                    "line": 12,
+                    "column": 18,
+                    "offset": 230
+                  }
+                }
+              },
+              "file": {
+                "File": "function_blocks.pli"
+              }
+            },
+            "overriding": false,
+            "generic": false,
+            "access": "Protected"
+          },
           {
             "name": "fbThatHasSimpleTypes",
             "type_name": "fbThatHasSimpleTypes",
@@ -302,14 +433,14 @@ expression: json
               "span": {
                 "Range": {
                   "start": {
-                    "line": 11,
+                    "line": 13,
                     "column": 4,
-                    "offset": 193
+                    "offset": 235
                   },
                   "end": {
-                    "line": 10,
-                    "column": 11,
-                    "offset": 188
+                    "line": 12,
+                    "column": 18,
+                    "offset": 230
                   }
                 }
               },
@@ -340,14 +471,14 @@ expression: json
               "span": {
                 "Range": {
                   "start": {
-                    "line": 11,
+                    "line": 13,
                     "column": 4,
-                    "offset": 193
+                    "offset": 235
                   },
                   "end": {
-                    "line": 11,
+                    "line": 13,
                     "column": 22,
-                    "offset": 211
+                    "offset": 253
                   }
                 }
               },
@@ -371,12 +502,12 @@ expression: json
   "context": {
     "sources": {
       "function_blocks.pli": {
-        "source": "\n    FUNCTION_BLOCK fbThatHasSimpleTypes\n    VAR\n        varInt : INT;\n    END_VAR\n    VAR_OUTPUT\n        outVarInt : INT;\n    END_VAR\n    VAR_IN_OUT\n        inOutVarInt : INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n    ",
+        "source": "\n    FUNCTION_BLOCK fbThatHasSimpleTypes\n    VAR\n        varInt : INT;\n    END_VAR\n    VAR_OUTPUT\n        outVarInt : INT;\n    END_VAR\n    VAR_IN_OUT\n        inOutVarInt : INT;\n    END_VAR\n        METHOD FB_INIT\n        END_METHOD\n    END_FUNCTION_BLOCK\n    ",
         "path": "function_blocks.pli"
       }
     },
     "provider": {
-      "current_id": 2
+      "current_id": 3
     },
     "error_fmt": "Rich"
   }

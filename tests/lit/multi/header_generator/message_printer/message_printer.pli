@@ -1,0 +1,8 @@
+TYPE T_Message : STRING[255];
+END_TYPE
+
+FUNCTION PrintMessage
+VAR_INPUT
+    message: T_Message;
+END_VAR
+END_FUNCTION

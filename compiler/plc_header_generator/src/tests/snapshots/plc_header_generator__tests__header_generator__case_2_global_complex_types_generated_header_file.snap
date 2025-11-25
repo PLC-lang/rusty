@@ -7,13 +7,18 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef GLOBAL_COMPLEX_TYPES
+#define GLOBAL_COMPLEX_TYPES
+
 #include <dependencies.plc.h>
 
-extern char gVarString[256];
-extern int16_t gVarWString[6001];
+extern char gVarString[255];
+extern int16_t gVarWString[6000];
 extern int16_t gVarIntArray[12];
 extern int16_t* gVarRefToInt;
 extern int16_t* gVarPointerToInt;
 extern time_t* gVarRefToDate;
 extern time_t* gVarPointerToDate;
 extern int16_t gVarIntWithRange;
+
+#endif /* !GLOBAL_COMPLEX_TYPES */

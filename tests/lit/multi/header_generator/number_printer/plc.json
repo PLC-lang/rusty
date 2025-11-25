@@ -1,7 +1,7 @@
 {
-	"name" : "VariableProject",
+	"name" : "HeaderGeneratorProject",
 	"files" : [
-		"../src/**/*.pli"
+		"number_printer.pli"
 	],
 	"compile_type" : "Shared",
 	"output" : "prog.so",

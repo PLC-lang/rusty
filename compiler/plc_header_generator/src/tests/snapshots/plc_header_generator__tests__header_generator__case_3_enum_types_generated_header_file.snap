@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef ENUM_TYPES
+#define ENUM_TYPES
+
 #include <dependencies.plc.h>
 
 typedef enum eSimpleEnumType {
@@ -20,3 +23,5 @@ typedef enum eComplexEnumType {
     yellow = 20,
     purple = 30
 } ComplexEnumType;
+
+#endif /* !ENUM_TYPES */

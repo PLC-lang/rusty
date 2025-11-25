@@ -1,0 +1,30 @@
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef COLOUR_TRACKER
+#define COLOUR_TRACKER
+
+#include <dependencies.plc.h>
+
+typedef enum eRGB {
+    red = 0,
+    green,
+    blue
+} RGB;
+
+typedef struct {
+    int32_t timesPicked;
+    RGB primaryColour;
+} ColourInfo;
+
+extern int16_t globalCounter;
+
+void PrintStatistics(int32_t argumentCount, ColourInfo* colours);
+
+void TestPrinter();
+
+void PrintColourInfo(ColourInfo* colourInfo);
+
+#endif /* !COLOUR_TRACKER */

@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef FUNCTION_BLOCKS
+#define FUNCTION_BLOCKS
+
 #include <dependencies.plc.h>
 
 typedef struct {
@@ -16,4 +19,10 @@ typedef struct {
     int16_t* inOutVarInt;
 } fbThatHasSimpleTypes_type;
 
+extern fbThatHasSimpleTypes_type __fbThatHasSimpleTypes__init = { 0 };
+
 void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);
+
+#endif /* !FUNCTION_BLOCKS */

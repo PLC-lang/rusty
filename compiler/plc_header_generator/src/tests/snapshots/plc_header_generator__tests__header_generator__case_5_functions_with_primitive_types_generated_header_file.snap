@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef FUNCTIONS_WITH_PRIMITIVE_TYPES
+#define FUNCTIONS_WITH_PRIMITIVE_TYPES
+
 #include <dependencies.plc.h>
 
 void fnThatIsVoid(int16_t varIntInput);
@@ -14,3 +17,5 @@ void fnThatIsVoid(int16_t varIntInput);
 int16_t fnThatReturnsInt(float_t varRealInputToFunc, int16_t varIntInputToFunc, time_t varDateAndTimeInputToFunc, float_t* varRealInOutFunc, int16_t* varIntOutputFunc);
 
 time_t fnThatReturnsTimeOfDay(time_t varDateTimeInput);
+
+#endif /* !FUNCTIONS_WITH_PRIMITIVE_TYPES */

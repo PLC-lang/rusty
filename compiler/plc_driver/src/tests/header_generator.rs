@@ -467,6 +467,8 @@ fn get_source_code_for_case_7_function_blocks() -> SourceCode {
     VAR_IN_OUT
         inOutVarInt : INT;
     END_VAR
+        METHOD FB_INIT
+        END_METHOD
     END_FUNCTION_BLOCK
     ",
         "function_blocks.pli",

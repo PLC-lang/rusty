@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef FUNCTIONS_WITH_COMPLEX_TYPES
+#define FUNCTIONS_WITH_COMPLEX_TYPES
+
 #include <dependencies.plc.h>
 
 typedef enum eComplexEnumType {
@@ -25,8 +28,8 @@ typedef struct {
     uint8_t byteField;
     int16_t intField;
     int32_t dIntField;
-    char stringField[256];
-    int16_t wStringField[6001];
+    char stringField[255];
+    int16_t wStringField[6000];
     ComplexEnumType complexEnumTypeField;
     int16_t intArrayField[10];
 } StructWithComplexTypes;
@@ -44,3 +47,5 @@ void fnThatHasVariadicIntInput(int16_t varIntInput, ...);
 void fnThatHasVariadicStringInput(int16_t varIntInput, ...);
 
 void fnThatHasVariadicComplexTypeInput(int16_t varIntInput, ...);
+
+#endif /* !FUNCTIONS_WITH_COMPLEX_TYPES */

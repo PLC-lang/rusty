@@ -3,6 +3,9 @@
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef {{ file_name_caps }}
+#define {{ file_name_caps }}
+
 #include <dependencies.plc.h>
 {% raw %}
 {% endraw %}
@@ -70,4 +73,6 @@ extern {{ format_variable_for_definition(variable=global_variable) }};
     {%- endfor -%});
 {% raw %}
 {% endraw %}
-{%- endfor %}
+{%- endfor -%}
+
+#endif /* !{{ file_name_caps }} */

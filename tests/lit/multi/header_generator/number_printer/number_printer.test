@@ -1,0 +1,2 @@
+RUN: %COMPILE %S/number_printer_prog.st && %RUN | %CHECK %s
+CHECK: The number you asked for: 42

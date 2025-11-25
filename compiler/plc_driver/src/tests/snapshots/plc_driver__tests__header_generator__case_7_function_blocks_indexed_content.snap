@@ -63,7 +63,7 @@ expression: json
           "var_config": [],
           "pous": [
             {
-              "id": 1,
+              "id": 2,
               "name": "fbThatHasSimpleTypes",
               "kind": "FunctionBlock",
               "variable_blocks": [
@@ -343,9 +343,9 @@ expression: json
                       "offset": 5
                     },
                     "end": {
-                      "line": 11,
+                      "line": 13,
                       "column": 22,
-                      "offset": 211
+                      "offset": 253
                     }
                   }
                 },
@@ -379,9 +379,140 @@ expression: json
               "is_const": false,
               "interfaces": [],
               "properties": []
+            },
+            {
+              "id": 1,
+              "name": "fbThatHasSimpleTypes.FB_INIT",
+              "kind": {
+                "Method": {
+                  "parent": "fbThatHasSimpleTypes",
+                  "property": null,
+                  "declaration_kind": "Concrete"
+                }
+              },
+              "variable_blocks": [],
+              "return_type": null,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 11,
+                      "column": 8,
+                      "offset": 197
+                    },
+                    "end": {
+                      "line": 12,
+                      "column": 18,
+                      "offset": 230
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 11,
+                      "column": 15,
+                      "offset": 204
+                    },
+                    "end": {
+                      "line": 11,
+                      "column": 22,
+                      "offset": 211
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "poly_mode": "None",
+              "generics": [],
+              "linkage": "Internal",
+              "super_class": null,
+              "is_const": false,
+              "interfaces": [],
+              "properties": []
             }
           ],
           "implementations": [
+            {
+              "name": "fbThatHasSimpleTypes.FB_INIT",
+              "type_name": "fbThatHasSimpleTypes.FB_INIT",
+              "linkage": "Internal",
+              "pou_type": {
+                "Method": {
+                  "parent": "fbThatHasSimpleTypes",
+                  "property": null,
+                  "declaration_kind": "Concrete"
+                }
+              },
+              "statements": [],
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 12,
+                      "column": 8,
+                      "offset": 220
+                    },
+                    "end": {
+                      "line": 11,
+                      "column": 22,
+                      "offset": 211
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "name_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 11,
+                      "column": 15,
+                      "offset": 204
+                    },
+                    "end": {
+                      "line": 11,
+                      "column": 22,
+                      "offset": 211
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "end_location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 12,
+                      "column": 8,
+                      "offset": 220
+                    },
+                    "end": {
+                      "line": 12,
+                      "column": 18,
+                      "offset": 230
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "overriding": false,
+              "generic": false,
+              "access": "Protected"
+            },
             {
               "name": "fbThatHasSimpleTypes",
               "type_name": "fbThatHasSimpleTypes",
@@ -392,14 +523,14 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 11,
+                      "line": 13,
                       "column": 4,
-                      "offset": 193
+                      "offset": 235
                     },
                     "end": {
-                      "line": 10,
-                      "column": 11,
-                      "offset": 188
+                      "line": 12,
+                      "column": 18,
+                      "offset": 230
                     }
                   }
                 },
@@ -430,14 +561,14 @@ expression: json
                 "span": {
                   "Range": {
                     "start": {
-                      "line": 11,
+                      "line": 13,
                       "column": 4,
-                      "offset": 193
+                      "offset": 235
                     },
                     "end": {
-                      "line": 11,
+                      "line": 13,
                       "column": 22,
-                      "offset": 211
+                      "offset": 253
                     }
                   }
                 },
@@ -481,7 +612,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "ADR"
                                       },
-                                      "id": 20,
+                                      "id": 21,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -494,7 +625,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 21,
+                              "id": 22,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -511,7 +642,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "fbThatHasSimpleTypes"
                                       },
-                                      "id": 22,
+                                      "id": 23,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -524,7 +655,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 23,
+                              "id": 24,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -535,7 +666,131 @@ expression: json
                             }
                           }
                         },
-                        "id": 24,
+                        "id": 25,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "address": null,
+                      "location": {
+                        "span": "None",
+                        "file": {
+                          "File": "function_blocks.pli"
+                        }
+                      }
+                    },
+                    {
+                      "name": "FB_INIT",
+                      "data_type_declaration": {
+                        "Reference": {
+                          "referenced_type": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "File": "function_blocks.pli"
+                            }
+                          }
+                        }
+                      },
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 26,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 27,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "FB_INIT"
+                                      },
+                                      "id": 28,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": {
+                                    "stmt": {
+                                      "ReferenceExpr": {
+                                        "access": {
+                                          "Member": {
+                                            "stmt": {
+                                              "Identifier": "fbThatHasSimpleTypes"
+                                            },
+                                            "id": 29,
+                                            "location": {
+                                              "span": "None",
+                                              "file": {
+                                                "Internal": "<internal>"
+                                              }
+                                            },
+                                            "metadata": null
+                                          }
+                                        },
+                                        "base": null
+                                      }
+                                    },
+                                    "id": 30,
+                                    "location": {
+                                      "span": "None",
+                                      "file": {
+                                        "Internal": "<internal>"
+                                      }
+                                    },
+                                    "metadata": null
+                                  }
+                                }
+                              },
+                              "id": 31,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 32,
                         "location": {
                           "span": "None",
                           "file": {
@@ -607,6 +862,48 @@ expression: json
                               "line": 1,
                               "column": 4,
                               "offset": 5
+                            },
+                            "end": {
+                              "line": 13,
+                              "column": 22,
+                              "offset": 253
+                            }
+                          }
+                        },
+                        "file": {
+                          "File": "function_blocks.pli"
+                        }
+                      }
+                    }
+                  },
+                  "auto_deref": null,
+                  "type_safe": false,
+                  "is_function": true
+                }
+              },
+              "initializer": null,
+              "location": {
+                "span": "None",
+                "file": {
+                  "File": "function_blocks.pli"
+                }
+              },
+              "scope": null
+            },
+            {
+              "data_type": {
+                "PointerType": {
+                  "name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                  "referenced_type": {
+                    "Reference": {
+                      "referenced_type": "fbThatHasSimpleTypes.FB_INIT",
+                      "location": {
+                        "span": {
+                          "Range": {
+                            "start": {
+                              "line": 11,
+                              "column": 15,
+                              "offset": 204
                             },
                             "end": {
                               "line": 11,
@@ -766,6 +1063,38 @@ expression: json
                 "super_class": null,
                 "interfaces": [],
                 "properties": {}
+              }
+            }
+          ],
+          "fbthathassimpletypes.fb_init": [
+            {
+              "Method": {
+                "name": "fbThatHasSimpleTypes.FB_INIT",
+                "parent_name": "fbThatHasSimpleTypes",
+                "property": null,
+                "declaration_kind": "Concrete",
+                "return_type": "VOID",
+                "instance_struct_name": "fbThatHasSimpleTypes.FB_INIT",
+                "linkage": "Internal",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 11,
+                        "column": 15,
+                        "offset": 204
+                      },
+                      "end": {
+                        "line": 11,
+                        "column": 22,
+                        "offset": 211
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
               }
             }
           ],
@@ -1424,6 +1753,32 @@ expression: json
         "inner_map": {}
       },
       "implementations": {
+        "fbthathassimpletypes.fb_init": {
+          "call_name": "fbThatHasSimpleTypes.FB_INIT",
+          "type_name": "fbThatHasSimpleTypes.FB_INIT",
+          "associated_class": "fbThatHasSimpleTypes",
+          "implementation_type": "Method",
+          "generic": false,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 12,
+                  "column": 8,
+                  "offset": 220
+                },
+                "end": {
+                  "line": 11,
+                  "column": 22,
+                  "offset": 211
+                }
+              }
+            },
+            "file": {
+              "File": "function_blocks.pli"
+            }
+          }
+        },
         "fbthathassimpletypes": {
           "call_name": "fbThatHasSimpleTypes",
           "type_name": "fbThatHasSimpleTypes",
@@ -1434,14 +1789,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 11,
+                  "line": 13,
                   "column": 4,
-                  "offset": 193
+                  "offset": 235
                 },
                 "end": {
-                  "line": 10,
-                  "column": 11,
-                  "offset": 188
+                  "line": 12,
+                  "column": 18,
+                  "offset": 230
                 }
               }
             },
@@ -1917,6 +2272,30 @@ expression: json
                           }
                         },
                         "varargs": null
+                      },
+                      {
+                        "name": "FB_INIT",
+                        "qualified_name": "__vtable_fbThatHasSimpleTypes.FB_INIT",
+                        "initial_value": [
+                          1,
+                          0
+                        ],
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                        "location_in_parent": 1,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": "None",
+                          "file": {
+                            "File": "function_blocks.pli"
+                          }
+                        },
+                        "varargs": null
                       }
                     ],
                     "source": "OriginalDeclaration"
@@ -1961,6 +2340,28 @@ expression: json
                   "Pointer": {
                     "name": "____vtable_fbThatHasSimpleTypes___body",
                     "inner_type_name": "fbThatHasSimpleTypes",
+                    "auto_deref": null,
+                    "type_safe": false,
+                    "is_function": true
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "____vtable_fbthathassimpletypes_fb_init": [
+              {
+                "name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                "initial_value": null,
+                "information": {
+                  "Pointer": {
+                    "name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                    "inner_type_name": "fbThatHasSimpleTypes.FB_INIT",
                     "auto_deref": null,
                     "type_safe": false,
                     "is_function": true
@@ -3674,6 +4075,47 @@ expression: json
                         "line": 1,
                         "column": 39,
                         "offset": 40
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_blocks.pli"
+                  }
+                }
+              }
+            ],
+            "fbthathassimpletypes.fb_init": [
+              {
+                "name": "fbThatHasSimpleTypes.FB_INIT",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "fbThatHasSimpleTypes.FB_INIT",
+                    "members": [],
+                    "source": {
+                      "Pou": {
+                        "Method": {
+                          "parent": "fbThatHasSimpleTypes",
+                          "property": null,
+                          "declaration_kind": "Concrete"
+                        }
+                      }
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 11,
+                        "column": 15,
+                        "offset": 204
+                      },
+                      "end": {
+                        "line": 11,
+                        "column": 22,
+                        "offset": 211
                       }
                     }
                   },
@@ -5752,7 +6194,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "ADR"
                                   },
-                                  "id": 20,
+                                  "id": 21,
                                   "location": {
                                     "span": "None",
                                     "file": {
@@ -5765,7 +6207,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 21,
+                          "id": 22,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5782,7 +6224,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "fbThatHasSimpleTypes"
                                   },
-                                  "id": 22,
+                                  "id": 23,
                                   "location": {
                                     "span": "None",
                                     "file": {
@@ -5795,7 +6237,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 23,
+                          "id": 24,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5806,7 +6248,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 24,
+                    "id": 25,
                     "location": {
                       "span": "None",
                       "file": {
@@ -5828,7 +6270,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "ADR"
                                       },
-                                      "id": 20,
+                                      "id": 21,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -5841,7 +6283,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 21,
+                              "id": 22,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -5858,7 +6300,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "fbThatHasSimpleTypes"
                                       },
-                                      "id": 22,
+                                      "id": 23,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -5871,7 +6313,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 23,
+                              "id": 24,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -5882,7 +6324,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 24,
+                        "id": 25,
                         "location": {
                           "span": "None",
                           "file": {
@@ -5901,7 +6343,229 @@ expression: json
               "target_type_name": "____vtable_fbThatHasSimpleTypes___body"
             }
           ],
-          null,
+          [
+            0,
+            {
+              "expr": {
+                "Unresolvable": {
+                  "statement": {
+                    "stmt": {
+                      "CallStatement": {
+                        "operator": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "ADR"
+                                  },
+                                  "id": 26,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 27,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        },
+                        "parameters": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "FB_INIT"
+                                  },
+                                  "id": 28,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": {
+                                "stmt": {
+                                  "ReferenceExpr": {
+                                    "access": {
+                                      "Member": {
+                                        "stmt": {
+                                          "Identifier": "fbThatHasSimpleTypes"
+                                        },
+                                        "id": 29,
+                                        "location": {
+                                          "span": "None",
+                                          "file": {
+                                            "Internal": "<internal>"
+                                          }
+                                        },
+                                        "metadata": null
+                                      }
+                                    },
+                                    "base": null
+                                  }
+                                },
+                                "id": 30,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            }
+                          },
+                          "id": 31,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 32,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "reason": {
+                    "Address": {
+                      "initializer": {
+                        "stmt": {
+                          "CallStatement": {
+                            "operator": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "ADR"
+                                      },
+                                      "id": 26,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": null
+                                }
+                              },
+                              "id": 27,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            },
+                            "parameters": {
+                              "stmt": {
+                                "ReferenceExpr": {
+                                  "access": {
+                                    "Member": {
+                                      "stmt": {
+                                        "Identifier": "FB_INIT"
+                                      },
+                                      "id": 28,
+                                      "location": {
+                                        "span": "None",
+                                        "file": {
+                                          "Internal": "<internal>"
+                                        }
+                                      },
+                                      "metadata": null
+                                    }
+                                  },
+                                  "base": {
+                                    "stmt": {
+                                      "ReferenceExpr": {
+                                        "access": {
+                                          "Member": {
+                                            "stmt": {
+                                              "Identifier": "fbThatHasSimpleTypes"
+                                            },
+                                            "id": 29,
+                                            "location": {
+                                              "span": "None",
+                                              "file": {
+                                                "Internal": "<internal>"
+                                              }
+                                            },
+                                            "metadata": null
+                                          }
+                                        },
+                                        "base": null
+                                      }
+                                    },
+                                    "id": 30,
+                                    "location": {
+                                      "span": "None",
+                                      "file": {
+                                        "Internal": "<internal>"
+                                      }
+                                    },
+                                    "metadata": null
+                                  }
+                                }
+                              },
+                              "id": 31,
+                              "location": {
+                                "span": "None",
+                                "file": {
+                                  "Internal": "<internal>"
+                                }
+                              },
+                              "metadata": null
+                            }
+                          }
+                        },
+                        "id": 32,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      },
+                      "target_type_name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+                      "scope": "__vtable_fbThatHasSimpleTypes",
+                      "lhs": "FB_INIT"
+                    }
+                  }
+                }
+              },
+              "target_type_name": "____vtable_fbThatHasSimpleTypes_FB_INIT"
+            }
+          ],
           null,
           null
         ]
@@ -5941,7 +6605,7 @@ expression: json
                             "stmt": {
                               "Identifier": "ADR"
                             },
-                            "id": 20,
+                            "id": 21,
                             "location": {
                               "span": "None",
                               "file": {
@@ -5954,7 +6618,7 @@ expression: json
                         "base": null
                       }
                     },
-                    "id": 21,
+                    "id": 22,
                     "location": {
                       "span": "None",
                       "file": {
@@ -5971,7 +6635,7 @@ expression: json
                             "stmt": {
                               "Identifier": "fbThatHasSimpleTypes"
                             },
-                            "id": 22,
+                            "id": 23,
                             "location": {
                               "span": "None",
                               "file": {
@@ -5984,7 +6648,7 @@ expression: json
                         "base": null
                       }
                     },
-                    "id": 23,
+                    "id": 24,
                     "location": {
                       "span": "None",
                       "file": {
@@ -5995,7 +6659,7 @@ expression: json
                   }
                 }
               },
-              "id": 24,
+              "id": 25,
               "location": {
                 "span": "None",
                 "file": {
@@ -6009,18 +6673,134 @@ expression: json
             "lhs": "__body"
           }
         }
+      },
+      {
+        "id": [
+          1,
+          0
+        ],
+        "kind": {
+          "Address": {
+            "initializer": {
+              "stmt": {
+                "CallStatement": {
+                  "operator": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "ADR"
+                            },
+                            "id": 26,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": null
+                      }
+                    },
+                    "id": 27,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "parameters": {
+                    "stmt": {
+                      "ReferenceExpr": {
+                        "access": {
+                          "Member": {
+                            "stmt": {
+                              "Identifier": "FB_INIT"
+                            },
+                            "id": 28,
+                            "location": {
+                              "span": "None",
+                              "file": {
+                                "Internal": "<internal>"
+                              }
+                            },
+                            "metadata": null
+                          }
+                        },
+                        "base": {
+                          "stmt": {
+                            "ReferenceExpr": {
+                              "access": {
+                                "Member": {
+                                  "stmt": {
+                                    "Identifier": "fbThatHasSimpleTypes"
+                                  },
+                                  "id": 29,
+                                  "location": {
+                                    "span": "None",
+                                    "file": {
+                                      "Internal": "<internal>"
+                                    }
+                                  },
+                                  "metadata": null
+                                }
+                              },
+                              "base": null
+                            }
+                          },
+                          "id": 30,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      }
+                    },
+                    "id": 31,
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "Internal": "<internal>"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 32,
+              "location": {
+                "span": "None",
+                "file": {
+                  "Internal": "<internal>"
+                }
+              },
+              "metadata": null
+            },
+            "target_type_name": "____vtable_fbThatHasSimpleTypes_FB_INIT",
+            "scope": "__vtable_fbThatHasSimpleTypes",
+            "lhs": "FB_INIT"
+          }
+        }
       }
     ]
   },
   "context": {
     "sources": {
       "function_blocks.pli": {
-        "source": "\n    FUNCTION_BLOCK fbThatHasSimpleTypes\n    VAR\n        varInt : INT;\n    END_VAR\n    VAR_OUTPUT\n        outVarInt : INT;\n    END_VAR\n    VAR_IN_OUT\n        inOutVarInt : INT;\n    END_VAR\n    END_FUNCTION_BLOCK\n    ",
+        "source": "\n    FUNCTION_BLOCK fbThatHasSimpleTypes\n    VAR\n        varInt : INT;\n    END_VAR\n    VAR_OUTPUT\n        outVarInt : INT;\n    END_VAR\n    VAR_IN_OUT\n        inOutVarInt : INT;\n    END_VAR\n        METHOD FB_INIT\n        END_METHOD\n    END_FUNCTION_BLOCK\n    ",
         "path": "function_blocks.pli"
       }
     },
     "provider": {
-      "current_id": 61
+      "current_id": 69
     },
     "error_fmt": "Rich"
   }

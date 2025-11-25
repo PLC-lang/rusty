@@ -237,9 +237,8 @@ fn extract_string_size(size: &Option<AstNode>) -> i128 {
     let size = size.clone().unwrap();
 
     match size.stmt {
-        // TODO: Verify this is necessary
-        // +1 character for the string-termination-marker
-        AstStatement::Literal(AstLiteral::Integer(value)) => value + 1,
+        // TODO: Verify if the string-termination-marker needs to be accounted for
+        AstStatement::Literal(AstLiteral::Integer(value)) => value,
         _ => i128::default(),
     }
 }
@@ -275,4 +274,11 @@ fn data_type_is_system_generated(data_type: &str) -> bool {
     }
 
     false
+}
+
+/// Prepares a method name for a header file
+///
+/// i.e. Any "." character will be replaced with "__"
+fn sanitize_method_name(method_name: &str) -> String {
+    method_name.replace(".", "__").to_string()
 }

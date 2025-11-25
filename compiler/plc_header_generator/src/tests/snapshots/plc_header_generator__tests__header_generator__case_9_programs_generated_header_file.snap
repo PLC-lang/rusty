@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef PROGRAMS
+#define PROGRAMS
+
 #include <dependencies.plc.h>
 
 typedef enum eComplexEnumType {
@@ -21,5 +24,8 @@ typedef struct {
 } prog_type;
 
 extern prog_type prog_instance;
+extern prog_type __prog__init = { 0 };
 
 void prog(prog_type* self);
+
+#endif /* !PROGRAMS */

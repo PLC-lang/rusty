@@ -1,0 +1,15 @@
+FUNCTION_BLOCK Rectangle
+VAR
+    x : DINT;
+    y : DINT;
+END_VAR
+    METHOD FB_INIT
+    END_METHOD
+END_FUNCTION_BLOCK
+
+FUNCTION DrawRectangle
+VAR_INPUT
+    x : DINT;
+    y : DINT;
+END_VAR
+END_FUNCTION

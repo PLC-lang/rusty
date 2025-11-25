@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use plc_ast::ast::CompilationUnit;
 use plc_source::source_location::FileMarker;
 
+use regex::Regex;
+
 use crate::GenerateHeaderOptions;
 
 mod file_helper_c;
@@ -56,15 +58,18 @@ fn get_header_file_information(
     };
 
     let output_dir = output_path.clone();
-    let output_name = if generate_header_options.prefix.is_empty() {
-        let file_name = get_file_name_from_path_buf_without_extension(file_path);
-        if file_name.is_some() {
-            format!("{}.{}", file_name.unwrap(), file_extension)
+    let (output_name, file_name) = if generate_header_options.prefix.is_empty() {
+        let option_file_name = get_file_name_from_path_buf_without_extension(file_path);
+        if let Some(file_name) = option_file_name {
+            (format!("{}.{}", file_name, file_extension), format_file_name(&file_name))
         } else {
-            String::new()
+            (String::new(), String::new())
         }
     } else {
-        format!("{}.{}", generate_header_options.prefix, file_extension)
+        (
+            format!("{}.{}", generate_header_options.prefix, file_extension),
+            format_file_name(&generate_header_options.prefix),
+        )
     };
 
     if output_name.is_empty() {
@@ -79,6 +84,7 @@ fn get_header_file_information(
         HeaderFileInformation {
             directory: String::from(output_dir.to_str().expect("Unable to determine the output directory!")),
             path: String::from(output_path.to_str().expect("Unable to determine the output path!")),
+            name: file_name.to_string(),
         },
         true,
     )
@@ -106,9 +112,39 @@ fn get_file_name_from_path_buf_without_extension(file_path: PathBuf) -> Option<S
     }
 }
 
+/// Formats and returns a file name that is safe for definition usage
+///
+/// ---
+///
+/// Example:
+/// ```
+/// "I a!m  a   v@3#r$y     s%t^r&a*n(g)e      f`i~l[e_n]4{m}e t\\h/a:t s;h'o\"u<l>d b,e f.i?x-ed"
+/// ```
+/// ... should be formatted to ...
+/// ```
+/// "I_AM_A_V3RY_STRANGE_FILE_N4ME_THAT_SHOULD_BE_FIXED"
+/// ```
+fn format_file_name(file_name: &str) -> String {
+    let white_space_regex = Regex::new(r"\s").unwrap();
+    let white_space_formatted = white_space_regex.replace_all(file_name, "_").to_string();
+
+    let underscore_regex = Regex::new(r"\_{2,}").unwrap();
+    let underscore_formatted = underscore_regex.replace_all(&white_space_formatted, "_").to_string();
+
+    let character_regex = Regex::new(r"[A-Z]*[a-z]*[0-9]*\_*").unwrap();
+
+    let mut formatted_file_name = String::new();
+    for caps in character_regex.captures_iter(&underscore_formatted) {
+        formatted_file_name += caps.get(0).unwrap().as_str();
+    }
+
+    formatted_file_name.to_uppercase()
+}
+
 pub struct HeaderFileInformation {
     pub directory: String,
     pub path: String,
+    pub name: String,
 }
 
 impl Default for HeaderFileInformation {
@@ -119,6 +155,18 @@ impl Default for HeaderFileInformation {
 
 impl HeaderFileInformation {
     pub const fn new() -> Self {
-        HeaderFileInformation { directory: String::new(), path: String::new() }
+        HeaderFileInformation { directory: String::new(), path: String::new(), name: String::new() }
+    }
+}
+
+#[cfg(test)]
+mod file_helper_tests {
+    use crate::header_generator::file_helper::format_file_name;
+
+    #[test]
+    fn test_format_file_name_weird_file_characters() {
+        let valid_file_name =
+            "I a!m  a   v@3#r$y     s%t^r&a*n(g)e      f`i~l[e_n]4{m}e t\\h/a:t s;h'o\"u<l>d b,e f.i?x-ed";
+        assert_eq!(format_file_name(valid_file_name), "I_AM_A_V3RY_STRANGE_FILE_N4ME_THAT_SHOULD_BE_FIXED");
     }
 }

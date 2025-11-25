@@ -7,6 +7,9 @@ expression: "&generated_headers[0].get_contents()"
 // Manual changes made to this file will be overwritten //
 // ---------------------------------------------------- //
 
+#ifndef GLOBAL_PRIMITIVES
+#define GLOBAL_PRIMITIVES
+
 #include <dependencies.plc.h>
 
 extern bool gVarBool;
@@ -22,3 +25,5 @@ extern float_t gVarReal;
 extern double_t gVarLReal;
 extern time_t gVarDate;
 extern time_t gVarDateAndTime;
+
+#endif /* !GLOBAL_PRIMITIVES */
