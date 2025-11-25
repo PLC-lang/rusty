@@ -54,6 +54,23 @@ pub fn visit_data_type<T: AnnotationMap>(
         DataType::PointerType { referenced_type, .. } => {
             visit_data_type_declaration(validator, referenced_type.as_ref(), context);
         }
+        DataType::EnumType { numeric_type, .. } => {
+            if let Some(resolved_type) = context.index.find_effective_type_by_name(numeric_type) {
+                let type_info = resolved_type.get_type_information();
+                if !type_info.is_int() || type_info.is_date_or_time_type() {
+                    validator.push_diagnostic(
+                        Diagnostic::new(format!(
+                            "Invalid type '{}' for enum. Only integer types are allowed",
+                            numeric_type
+                        ))
+                        .with_error_code("E122")
+                        .with_location(location),
+                    );
+                }
+            } else {
+                validator.push_diagnostic(Diagnostic::unknown_type(numeric_type, location));
+            }
+        }
         _ => {}
     }
 }

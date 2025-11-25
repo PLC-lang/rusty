@@ -562,6 +562,7 @@ impl ParsedProject {
 
         //TODO: evaluate constants should probably be a participant
         let (index, unresolvables) = plc::resolver::const_evaluator::evaluate_constants(global_index);
+
         IndexedProject { project: ParsedProject { units }, index, unresolvables }
     }
 }
