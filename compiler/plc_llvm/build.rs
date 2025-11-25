@@ -5,6 +5,7 @@ fn main() {
         std::env::var("LLVM_CONFIG").unwrap_or_else(|_| "llvm-config-14".to_string())
     };
 
+    // Fetch CXXFLAGS from llvm-config
     let cxxflags = String::from_utf8(
         std::process::Command::new(&llvm_config)
             .arg("--cxxflags")
@@ -17,22 +18,38 @@ fn main() {
     let mut build = cc::Build::new();
     build.cpp(true).file("src/cpp/llvm_wrapper.cpp").flag("-std=c++14");
 
+    let is_msvc = std::env::var("TARGET").unwrap().ends_with("msvc");
+
+    if is_msvc {
+        // MSVC's way to treat included paths as system headers (suppress warnings)
+        // If the LLVM includes are coming through -I, we want to convert them
+        // to MSVC's equivalent.
+        // This is complex, so let's simplify by using the overall warning flags:
+
+        // This flag tells Clang/MSVC not to emit warnings from external headers
+        // It should be applied to the compiler invocation overall.
+        build.flag("/external:W0");
+    }
+
     for flag in cxxflags.split_whitespace() {
         if flag.starts_with("-I") {
-            // Found an include path, re-add it as a system include path
             let path = flag.trim_start_matches("-I");
-            build.flag(format!("-isystem{path}"));
+
+            // On non-MSVC (GNU/Clang) targets, use -isystem
+            if !is_msvc {
+                build.flag(format!("-isystem{path}"));
+            } else {
+                // MSVC doesn't use -I or -isystem. It uses /I.
+                // We assume llvm-config outputs -I flags even for Windows,
+                // so we just pass them through if we use /external:W0 above.
+                build.flag(flag);
+            }
         } else if flag.starts_with("-D") {
-            // Keep definitions as they are
-            build.flag(flag);
-        } else {
-            // For other flags (like -fno-exceptions etc.)
             build.flag(flag);
         }
     }
 
     build.compile("llvm_wrapper");
-
     println!("cargo:rerun-if-changed=src/cpp/llvm_wrapper.cpp");
 }
 
