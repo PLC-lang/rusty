@@ -117,11 +117,11 @@ fn get_file_name_from_path_buf_without_extension(file_path: PathBuf) -> Option<S
 /// ---
 ///
 /// Example:
-/// ```
+/// ```ignore
 /// "I a!m  a   v@3#r$y     s%t^r&a*n(g)e      f`i~l[e_n]4{m}e t\\h/a:t s;h'o\"u<l>d b,e f.i?x-ed"
 /// ```
 /// ... should be formatted to ...
-/// ```
+/// ```ignore
 /// "I_AM_A_V3RY_STRANGE_FILE_N4ME_THAT_SHOULD_BE_FIXED"
 /// ```
 fn format_file_name(file_name: &str) -> String {
