@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,11 +9,11 @@ target triple = "[filtered]"
 
 define i32 @myFunc() !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4
+  %myFunc = alloca i32, align [filtered]
   call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !9, metadata !DIExpression()), !dbg !11
-  store i32 0, i32* %myFunc, align 4
-  %load_myFunc = load i32, i32* %myFunc, align 4, !dbg !12
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !13
+  store i32 0, i32* %myFunc, align [filtered]
+  %load_myFunc = load i32, i32* %myFunc, align [filtered], !dbg !12
+  %myFunc_ret = load i32, i32* %myFunc, align [filtered], !dbg !13
   ret i32 %myFunc_ret, !dbg !13
 }
 

@@ -14,7 +14,7 @@ entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  store i32 0, i32* %a, align 4, !dbg !18
+  store i32 0, i32* %a, align [filtered], !dbg !18
   call void @main__newAction(%main* %0), !dbg !17
   call void @main__newAction2(%main* %0), !dbg !19
   ret void, !dbg !20
@@ -25,9 +25,9 @@ entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_a = load i32, i32* %a, align 4, !dbg !21
+  %load_a = load i32, i32* %a, align [filtered], !dbg !21
   %tmpVar = add i32 %load_a, 1, !dbg !21
-  store i32 %tmpVar, i32* %a, align 4, !dbg !21
+  store i32 %tmpVar, i32* %a, align [filtered], !dbg !21
   ret void, !dbg !22
 }
 
@@ -36,9 +36,9 @@ entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_b = load i32, i32* %b, align 4, !dbg !23
+  %load_b = load i32, i32* %b, align [filtered], !dbg !23
   %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, i32* %b, align 4, !dbg !23
+  store i32 %tmpVar, i32* %b, align [filtered], !dbg !23
   ret void, !dbg !22
 }
 
@@ -47,15 +47,15 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init_main(%main* %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
   ret void
 }
 
 define void @__user_init_main(%main* %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
   ret void
 }
 

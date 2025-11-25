@@ -16,12 +16,12 @@ entry:
   br label %lbl, !dbg !17
 
 lbl:                                              ; preds = %lbl, %entry
-  %load_val = load i32, i32* %val, align 4, !dbg !16
+  %load_val = load i32, i32* %val, align [filtered], !dbg !16
   %tmpVar = icmp eq i32 %load_val, 0, !dbg !16
   br i1 %tmpVar, label %lbl, label %else_block, !dbg !18
 
 else_block:                                       ; preds = %lbl
-  store i32 1, i32* %val, align 4, !dbg !19
+  store i32 1, i32* %val, align [filtered], !dbg !19
   ret void, !dbg !20
 }
 
@@ -30,15 +30,15 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init_foo(%foo* %0) {
 entry:
-  %self = alloca %foo*, align 8
-  store %foo* %0, %foo** %self, align 8
+  %self = alloca %foo*, align [filtered]
+  store %foo* %0, %foo** %self, align [filtered]
   ret void
 }
 
 define void @__user_init_foo(%foo* %0) {
 entry:
-  %self = alloca %foo*, align 8
-  store %foo* %0, %foo** %self, align 8
+  %self = alloca %foo*, align [filtered]
+  store %foo* %0, %foo** %self, align [filtered]
   ret void
 }
 

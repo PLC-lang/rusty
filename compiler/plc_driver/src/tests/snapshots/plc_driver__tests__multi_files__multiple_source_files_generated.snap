@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  store i32 0, i32* %main, align 4
+  %main = alloca i32, align [filtered]
+  store i32 0, i32* %main, align [filtered]
   call void @mainProg(%mainProg* @mainProg_instance)
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align [filtered]
   ret i32 %main_ret
 }
 
@@ -47,8 +47,8 @@ target triple = "[filtered]"
 
 define void @__init_mainprog(%mainProg* %0) {
 entry:
-  %self = alloca %mainProg*, align 8
-  store %mainProg* %0, %mainProg** %self, align 8
+  %self = alloca %mainProg*, align [filtered]
+  store %mainProg* %0, %mainProg** %self, align [filtered]
   ret void
 }
 
@@ -56,8 +56,8 @@ declare void @mainProg(%mainProg*)
 
 define void @__user_init_mainProg(%mainProg* %0) {
 entry:
-  %self = alloca %mainProg*, align 8
-  store %mainProg* %0, %mainProg** %self, align 8
+  %self = alloca %mainProg*, align [filtered]
+  store %mainProg* %0, %mainProg** %self, align [filtered]
   ret void
 }
 

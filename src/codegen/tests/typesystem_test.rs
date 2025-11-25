@@ -351,13 +351,13 @@ fn self_referential_struct_via_reference_codegen() {
       %node1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %node2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
       %data = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 0
-      store i32 42, i32* %data, align 4
+      store i32 42, i32* %data, align [filtered]
       %data1 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 0
-      store i32 84, i32* %data1, align 4
+      store i32 84, i32* %data1, align [filtered]
       %next = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 1
-      store %Node* %node2, %Node** %next, align 8
+      store %Node* %node2, %Node** %next, align [filtered]
       %next2 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 1
-      store %Node* %node1, %Node** %next2, align 8
+      store %Node* %node1, %Node** %next2, align [filtered]
       ret void
     }
     "#);

@@ -22,8 +22,8 @@ target triple = "[filtered]"
 
 define void @fb(%fb* %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca %fb*, align [filtered]
+  store %fb* %0, %fb** %this, align [filtered]
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
@@ -56,8 +56,8 @@ target triple = "[filtered]"
 
 define void @fb2(%fb2* %0) {
 entry:
-  %this = alloca %fb2*, align 8
-  store %fb2* %0, %fb2** %this, align 8
+  %this = alloca %fb2*, align [filtered]
+  store %fb2* %0, %fb2** %this, align [filtered]
   %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
   ret void
 }
@@ -75,7 +75,7 @@ target triple = "[filtered]"
 
 define void @fb3(%fb3* %0) {
 entry:
-  %this = alloca %fb3*, align 8
-  store %fb3* %0, %fb3** %this, align 8
+  %this = alloca %fb3*, align [filtered]
+  store %fb3* %0, %fb3** %this, align [filtered]
   ret void
 }

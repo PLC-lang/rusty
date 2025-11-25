@@ -39,8 +39,8 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @foo(%foo* %0) !dbg !32 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !36, metadata !DIExpression()), !dbg !37
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %a = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
@@ -51,8 +51,8 @@ fn members_from_base_class_are_available_in_subclasses() {
     define void @bar(%bar* %0) !dbg !38 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !41, metadata !DIExpression()), !dbg !42
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
+      %this = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %this, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void, !dbg !42
     }
@@ -62,60 +62,60 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @__init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      store void (%foo*)* @foo, void (%foo*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
+      store void (%bar*)* @bar, void (%bar*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
+      %deref = load %foo*, %foo** %self, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
-      %deref1 = load %bar*, %bar** %self, align 8
+      %deref1 = load %bar*, %bar** %self, align [filtered]
       %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
-      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__user_init_foo(%foo* %__foo)
       ret void
@@ -123,15 +123,15 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @__user_init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
       ret void
     }
 
@@ -245,8 +245,8 @@ fn write_to_parent_variable_qualified_access() {
     define void @fb(%fb* %0) !dbg !32 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !36, metadata !DIExpression()), !dbg !37
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
+      %this = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %this, align [filtered]
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 1
       %y = getelementptr inbounds %fb, %fb* %0, i32 0, i32 2
@@ -256,8 +256,8 @@ fn write_to_parent_variable_qualified_access() {
     define void @fb2(%fb2* %0) !dbg !38 {
     entry:
       call void @llvm.dbg.declare(metadata %fb2* %0, metadata !41, metadata !DIExpression()), !dbg !42
-      %this = alloca %fb2*, align 8
-      store %fb2* %0, %fb2** %this, align 8
+      %this = alloca %fb2*, align [filtered]
+      store %fb2* %0, %fb2** %this, align [filtered]
       %__fb = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
       ret void, !dbg !42
     }
@@ -265,13 +265,13 @@ fn write_to_parent_variable_qualified_access() {
     define void @foo(%foo* %0) !dbg !43 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !46, metadata !DIExpression()), !dbg !47
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %myFb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %__fb = getelementptr inbounds %fb2, %fb2* %myFb, i32 0, i32 0, !dbg !47
       %x = getelementptr inbounds %fb, %fb* %__fb, i32 0, i32 1, !dbg !47
-      store i16 1, i16* %x, align 2, !dbg !47
+      store i16 1, i16* %x, align [filtered], !dbg !47
       ret void, !dbg !48
     }
 
@@ -280,83 +280,83 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @__init___vtable_fb(%__vtable_fb* %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
-      %deref = load %__vtable_fb*, %__vtable_fb** %self, align 8
+      %self = alloca %__vtable_fb*, align [filtered]
+      store %__vtable_fb* %0, %__vtable_fb** %self, align [filtered]
+      %deref = load %__vtable_fb*, %__vtable_fb** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 0
-      store void (%fb*)* @fb, void (%fb*)** %__body, align 8
+      store void (%fb*)* @fb, void (%fb*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_fb2(%__vtable_fb2* %0) {
     entry:
-      %self = alloca %__vtable_fb2*, align 8
-      store %__vtable_fb2* %0, %__vtable_fb2** %self, align 8
-      %deref = load %__vtable_fb2*, %__vtable_fb2** %self, align 8
+      %self = alloca %__vtable_fb2*, align [filtered]
+      store %__vtable_fb2* %0, %__vtable_fb2** %self, align [filtered]
+      %deref = load %__vtable_fb2*, %__vtable_fb2** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_fb2, %__vtable_fb2* %deref, i32 0, i32 0
-      store void (%fb2*)* @fb2, void (%fb2*)** %__body, align 8
+      store void (%fb2*)* @fb2, void (%fb2*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      store void (%foo*)* @foo, void (%foo*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init_fb2(%fb2* %0) {
     entry:
-      %self = alloca %fb2*, align 8
-      store %fb2* %0, %fb2** %self, align 8
-      %deref = load %fb2*, %fb2** %self, align 8
+      %self = alloca %fb2*, align [filtered]
+      store %fb2* %0, %fb2** %self, align [filtered]
+      %deref = load %fb2*, %fb2** %self, align [filtered]
       %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
       call void @__init_fb(%fb* %__fb)
-      %deref1 = load %fb2*, %fb2** %self, align 8
+      %deref1 = load %fb2*, %fb2** %self, align [filtered]
       %__fb2 = getelementptr inbounds %fb2, %fb2* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %fb, %fb* %__fb2, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb2* @__vtable_fb2_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_fb2* @__vtable_fb2_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_fb(%fb* %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
-      %deref = load %fb*, %fb** %self, align 8
+      %self = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %self, align [filtered]
+      %deref = load %fb*, %fb** %self, align [filtered]
       %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
+      %deref = load %foo*, %foo** %self, align [filtered]
       %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__init_fb2(%fb2* %myFb)
-      %deref1 = load %foo*, %foo** %self, align 8
+      %deref1 = load %foo*, %foo** %self, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_fb(%fb* %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
+      %self = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_fb2(%fb2* %0) {
     entry:
-      %self = alloca %fb2*, align 8
-      store %fb2* %0, %fb2** %self, align 8
-      %deref = load %fb2*, %fb2** %self, align 8
+      %self = alloca %fb2*, align [filtered]
+      store %fb2* %0, %fb2** %self, align [filtered]
+      %deref = load %fb2*, %fb2** %self, align [filtered]
       %__fb = getelementptr inbounds %fb2, %fb2* %deref, i32 0, i32 0
       call void @__user_init_fb(%fb* %__fb)
       ret void
@@ -364,30 +364,30 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @__user_init___vtable_fb(%__vtable_fb* %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      %self = alloca %__vtable_fb*, align [filtered]
+      store %__vtable_fb* %0, %__vtable_fb** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_fb2(%__vtable_fb2* %0) {
     entry:
-      %self = alloca %__vtable_fb2*, align 8
-      store %__vtable_fb2* %0, %__vtable_fb2** %self, align 8
+      %self = alloca %__vtable_fb2*, align [filtered]
+      store %__vtable_fb2* %0, %__vtable_fb2** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
+      %deref = load %foo*, %foo** %self, align [filtered]
       %myFb = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 1
       call void @__user_init_fb2(%fb2* %myFb)
       ret void
@@ -512,8 +512,8 @@ fn write_to_parent_variable_in_instance() {
     define void @foo(%foo* %0) !dbg !26 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !30, metadata !DIExpression()), !dbg !31
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       ret void, !dbg !31
@@ -522,37 +522,37 @@ fn write_to_parent_variable_in_instance() {
     define void @foo__baz(%foo* %0) !dbg !32 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !33, metadata !DIExpression()), !dbg !34
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
       %1 = bitcast [81 x i8]* %s to i8*, !dbg !34
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !34
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !34
       ret void, !dbg !35
     }
 
     define void @bar(%bar* %0) !dbg !36 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !39, metadata !DIExpression()), !dbg !40
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
+      %this = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %this, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       %s = getelementptr inbounds %foo, %foo* %__foo, i32 0, i32 1, !dbg !40
       %1 = bitcast [81 x i8]* %s to i8*, !dbg !40
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !40
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false), !dbg !40
       ret void, !dbg !41
     }
 
     define void @main() !dbg !42 {
     entry:
-      %s = alloca [81 x i8], align 1
-      %fb = alloca %bar, align 8
+      %s = alloca [81 x i8], align [filtered]
+      %fb = alloca %bar, align [filtered]
       call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !45, metadata !DIExpression()), !dbg !46
       %0 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata %bar* %fb, metadata !47, metadata !DIExpression()), !dbg !48
       %1 = bitcast %bar* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] bitcast (%bar* @__bar__init to i8*), i64 ptrtoint (%bar* getelementptr (%bar, %bar* null, i32 1) to i64), i1 false)
       call void @__init_bar(%bar* %fb), !dbg !49
       call void @__user_init_bar(%bar* %fb), !dbg !49
       %__foo = getelementptr inbounds %bar, %bar* %fb, i32 0, i32 0, !dbg !49
@@ -575,66 +575,66 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
-      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      store void (%foo*)* @foo, void (%foo*)** %__body, align [filtered]
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %baz = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
-      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      store void (%bar*)* @bar, void (%bar*)** %__body, align [filtered]
+      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align [filtered]
       %baz = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align [filtered]
       ret void
     }
 
     define void @__init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
-      %deref1 = load %bar*, %bar** %self, align 8
+      %deref1 = load %bar*, %bar** %self, align [filtered]
       %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
-      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
+      %deref = load %foo*, %foo** %self, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__user_init_foo(%foo* %__foo)
       ret void
@@ -642,15 +642,15 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__user_init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
       ret void
     }
 
@@ -789,8 +789,8 @@ fn array_in_parent_generated() {
     define void @grandparent(%grandparent* %0) !dbg !38 {
     entry:
       call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !42, metadata !DIExpression()), !dbg !43
-      %this = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %this, align 8
+      %this = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %this, align [filtered]
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
@@ -800,8 +800,8 @@ fn array_in_parent_generated() {
     define void @parent(%parent* %0) !dbg !44 {
     entry:
       call void @llvm.dbg.declare(metadata %parent* %0, metadata !47, metadata !DIExpression()), !dbg !48
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
+      %this = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %this, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
@@ -811,8 +811,8 @@ fn array_in_parent_generated() {
     define void @child(%child* %0) !dbg !49 {
     entry:
       call void @llvm.dbg.declare(metadata %child* %0, metadata !52, metadata !DIExpression()), !dbg !53
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
+      %this = alloca %child*, align [filtered]
+      store %child* %0, %child** %this, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void, !dbg !53
@@ -820,34 +820,34 @@ fn array_in_parent_generated() {
 
     define void @main() !dbg !54 {
     entry:
-      %arr = alloca [11 x %child], align 8
+      %arr = alloca [11 x %child], align [filtered]
       call void @llvm.dbg.declare(metadata [11 x %child]* %arr, metadata !57, metadata !DIExpression()), !dbg !59
       %0 = bitcast [11 x %child]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([11 x %child]* getelementptr ([11 x %child], [11 x %child]* null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !60
       %__parent = getelementptr inbounds %child, %child* %tmpVar, i32 0, i32 0, !dbg !60
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !60
       %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 2, !dbg !60
-      store i16 10, i16* %a, align 2, !dbg !60
+      store i16 10, i16* %a, align [filtered], !dbg !60
       %tmpVar1 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 0, !dbg !61
       %__parent2 = getelementptr inbounds %child, %child* %tmpVar1, i32 0, i32 0, !dbg !61
       %__grandparent3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0, !dbg !61
       %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent3, i32 0, i32 1, !dbg !61
       %tmpVar4 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 0, !dbg !61
-      store i16 20, i16* %tmpVar4, align 2, !dbg !61
+      store i16 20, i16* %tmpVar4, align [filtered], !dbg !61
       %tmpVar5 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !62
       %__parent6 = getelementptr inbounds %child, %child* %tmpVar5, i32 0, i32 0, !dbg !62
       %b = getelementptr inbounds %parent, %parent* %__parent6, i32 0, i32 2, !dbg !62
-      store i16 30, i16* %b, align 2, !dbg !62
+      store i16 30, i16* %b, align [filtered], !dbg !62
       %tmpVar7 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 1, !dbg !63
       %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !63
       %x = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !63
       %tmpVar9 = getelementptr inbounds [11 x i16], [11 x i16]* %x, i32 0, i32 1, !dbg !63
-      store i16 40, i16* %tmpVar9, align 2, !dbg !63
+      store i16 40, i16* %tmpVar9, align [filtered], !dbg !63
       %tmpVar10 = getelementptr inbounds [11 x %child], [11 x %child]* %arr, i32 0, i32 2, !dbg !64
       %z = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !64
       %tmpVar11 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 2, !dbg !64
-      store i16 50, i16* %tmpVar11, align 2, !dbg !64
+      store i16 50, i16* %tmpVar11, align [filtered], !dbg !64
       ret void, !dbg !65
     }
 
@@ -859,106 +859,106 @@ fn array_in_parent_generated() {
 
     define void @__init___vtable_grandparent(%__vtable_grandparent* %0) {
     entry:
-      %self = alloca %__vtable_grandparent*, align 8
-      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
-      %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
+      %self = alloca %__vtable_grandparent*, align [filtered]
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align [filtered]
+      %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 0
-      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align 8
+      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      store void (%parent*)* @parent, void (%parent*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
+      %deref = load %__vtable_child*, %__vtable_child** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      store void (%child*)* @child, void (%child*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
+      %deref1 = load %child*, %child** %self, align [filtered]
       %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
+      %deref = load %parent*, %parent** %self, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
-      %deref1 = load %parent*, %parent** %self, align 8
+      %deref1 = load %parent*, %parent** %self, align [filtered]
       %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_grandparent(%grandparent* %0) {
     entry:
-      %self = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %self, align 8
-      %deref = load %grandparent*, %grandparent** %self, align 8
+      %self = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %self, align [filtered]
+      %deref = load %grandparent*, %grandparent** %self, align [filtered]
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_grandparent* @__vtable_grandparent_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_grandparent* @__vtable_grandparent_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_grandparent(%grandparent* %0) {
     entry:
-      %self = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %self, align 8
+      %self = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandparent(%__vtable_grandparent* %0) {
     entry:
-      %self = alloca %__vtable_grandparent*, align 8
-      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
+      %self = alloca %__vtable_grandparent*, align [filtered]
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__user_init_parent(%parent* %__parent)
       ret void
@@ -966,9 +966,9 @@ fn array_in_parent_generated() {
 
     define void @__user_init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
+      %deref = load %parent*, %parent** %self, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__user_init_grandparent(%grandparent* %__grandparent)
       ret void
@@ -1114,8 +1114,8 @@ fn complex_array_access_generated() {
     define void @grandparent(%grandparent* %0) !dbg !38 {
     entry:
       call void @llvm.dbg.declare(metadata %grandparent* %0, metadata !42, metadata !DIExpression()), !dbg !43
-      %this = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %this, align 8
+      %this = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %this, align [filtered]
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 0
       %y = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 1
       %a = getelementptr inbounds %grandparent, %grandparent* %0, i32 0, i32 2
@@ -1125,8 +1125,8 @@ fn complex_array_access_generated() {
     define void @parent(%parent* %0) !dbg !44 {
     entry:
       call void @llvm.dbg.declare(metadata %parent* %0, metadata !47, metadata !DIExpression()), !dbg !48
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
+      %this = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %this, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %x = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       %b = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
@@ -1136,34 +1136,34 @@ fn complex_array_access_generated() {
     define void @child(%child* %0) !dbg !49 {
     entry:
       call void @llvm.dbg.declare(metadata %child* %0, metadata !52, metadata !DIExpression()), !dbg !53
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
+      %this = alloca %child*, align [filtered]
+      store %child* %0, %child** %this, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %z = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !53
       %y = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 1, !dbg !53
       %b = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !53
-      %load_b = load i16, i16* %b, align 2, !dbg !53
+      %load_b = load i16, i16* %b, align [filtered], !dbg !53
       %1 = sext i16 %load_b to i32, !dbg !53
       %b1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2, !dbg !53
-      %load_b2 = load i16, i16* %b1, align 2, !dbg !53
+      %load_b2 = load i16, i16* %b1, align [filtered], !dbg !53
       %2 = sext i16 %load_b2 to i32, !dbg !53
       %tmpVar = mul i32 %2, 2, !dbg !53
       %tmpVar3 = mul i32 1, %tmpVar, !dbg !53
       %tmpVar4 = add i32 %tmpVar3, 0, !dbg !53
       %tmpVar5 = getelementptr inbounds [11 x i16], [11 x i16]* %z, i32 0, i32 %tmpVar4, !dbg !53
-      %load_tmpVar = load i16, i16* %tmpVar5, align 2, !dbg !53
+      %load_tmpVar = load i16, i16* %tmpVar5, align [filtered], !dbg !53
       %3 = sext i16 %load_tmpVar to i32, !dbg !53
       %tmpVar6 = add i32 %1, %3, !dbg !53
       %__grandparent7 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0, !dbg !53
       %a = getelementptr inbounds %grandparent, %grandparent* %__grandparent7, i32 0, i32 2, !dbg !53
-      %load_a = load i16, i16* %a, align 2, !dbg !53
+      %load_a = load i16, i16* %a, align [filtered], !dbg !53
       %4 = sext i16 %load_a to i32, !dbg !53
       %tmpVar8 = sub i32 %tmpVar6, %4, !dbg !53
       %tmpVar9 = mul i32 1, %tmpVar8, !dbg !53
       %tmpVar10 = add i32 %tmpVar9, 0, !dbg !53
       %tmpVar11 = getelementptr inbounds [6 x i16], [6 x i16]* %y, i32 0, i32 %tmpVar10, !dbg !53
-      store i16 20, i16* %tmpVar11, align 2, !dbg !53
+      store i16 20, i16* %tmpVar11, align [filtered], !dbg !53
       ret void, !dbg !54
     }
 
@@ -1172,106 +1172,106 @@ fn complex_array_access_generated() {
 
     define void @__init___vtable_grandparent(%__vtable_grandparent* %0) {
     entry:
-      %self = alloca %__vtable_grandparent*, align 8
-      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
-      %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align 8
+      %self = alloca %__vtable_grandparent*, align [filtered]
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align [filtered]
+      %deref = load %__vtable_grandparent*, %__vtable_grandparent** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_grandparent, %__vtable_grandparent* %deref, i32 0, i32 0
-      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align 8
+      store void (%grandparent*)* @grandparent, void (%grandparent*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      store void (%parent*)* @parent, void (%parent*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
+      %deref = load %__vtable_child*, %__vtable_child** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      store void (%child*)* @child, void (%child*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
+      %deref = load %parent*, %parent** %self, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__init_grandparent(%grandparent* %__grandparent)
-      %deref1 = load %parent*, %parent** %self, align 8
+      %deref1 = load %parent*, %parent** %self, align [filtered]
       %__grandparent2 = getelementptr inbounds %parent, %parent* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_grandparent(%grandparent* %0) {
     entry:
-      %self = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %self, align 8
-      %deref = load %grandparent*, %grandparent** %self, align 8
+      %self = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %self, align [filtered]
+      %deref = load %grandparent*, %grandparent** %self, align [filtered]
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_grandparent* @__vtable_grandparent_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_grandparent* @__vtable_grandparent_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
+      %deref1 = load %child*, %child** %self, align [filtered]
       %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
       %__grandparent = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
       %__vtable = getelementptr inbounds %grandparent, %grandparent* %__grandparent, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_grandparent(%grandparent* %0) {
     entry:
-      %self = alloca %grandparent*, align 8
-      store %grandparent* %0, %grandparent** %self, align 8
+      %self = alloca %grandparent*, align [filtered]
+      store %grandparent* %0, %grandparent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandparent(%__vtable_grandparent* %0) {
     entry:
-      %self = alloca %__vtable_grandparent*, align 8
-      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align 8
+      %self = alloca %__vtable_grandparent*, align [filtered]
+      store %__vtable_grandparent* %0, %__vtable_grandparent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__user_init_parent(%parent* %__parent)
       ret void
@@ -1279,9 +1279,9 @@ fn complex_array_access_generated() {
 
     define void @__user_init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
+      %deref = load %parent*, %parent** %self, align [filtered]
       %__grandparent = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
       call void @__user_init_grandparent(%grandparent* %__grandparent)
       ret void
@@ -1396,8 +1396,8 @@ fn function_block_method_debug_info() {
     define void @foo(%foo* %0) !dbg !20 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !24, metadata !DIExpression()), !dbg !25
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void, !dbg !25
     }
@@ -1405,8 +1405,8 @@ fn function_block_method_debug_info() {
     define void @foo__baz(%foo* %0) !dbg !26 {
     entry:
       call void @llvm.dbg.declare(metadata %foo* %0, metadata !27, metadata !DIExpression()), !dbg !28
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
+      %this = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %this, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
       ret void, !dbg !28
     }
@@ -1414,8 +1414,8 @@ fn function_block_method_debug_info() {
     define void @bar(%bar* %0) !dbg !29 {
     entry:
       call void @llvm.dbg.declare(metadata %bar* %0, metadata !32, metadata !DIExpression()), !dbg !33
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
+      %this = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %this, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
       ret void, !dbg !33
     }
@@ -1425,66 +1425,66 @@ fn function_block_method_debug_info() {
 
     define void @__init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
+      %deref = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
-      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align 8
+      store void (%foo*)* @foo, void (%foo*)** %__body, align [filtered]
+      %deref1 = load %__vtable_foo*, %__vtable_foo** %self, align [filtered]
       %baz = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align [filtered]
       ret void
     }
 
     define void @__init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
+      %deref = load %__vtable_bar*, %__vtable_bar** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
-      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align 8
+      store void (%bar*)* @bar, void (%bar*)** %__body, align [filtered]
+      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align [filtered]
       %baz = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align [filtered]
       ret void
     }
 
     define void @__init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
+      %deref = load %foo*, %foo** %self, align [filtered]
       %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__init_foo(%foo* %__foo)
-      %deref1 = load %bar*, %bar** %self, align 8
+      %deref1 = load %bar*, %bar** %self, align [filtered]
       %__foo2 = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %foo, %foo* %__foo2, i32 0, i32 0
-      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_bar(%__vtable_bar* %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %self = alloca %__vtable_bar*, align [filtered]
+      store %__vtable_bar* %0, %__vtable_bar** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_bar(%bar* %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
+      %self = alloca %bar*, align [filtered]
+      store %bar* %0, %bar** %self, align [filtered]
+      %deref = load %bar*, %bar** %self, align [filtered]
       %__foo = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
       call void @__user_init_foo(%foo* %__foo)
       ret void
@@ -1492,15 +1492,15 @@ fn function_block_method_debug_info() {
 
     define void @__user_init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_foo(%__vtable_foo* %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %self = alloca %__vtable_foo*, align [filtered]
+      store %__vtable_foo* %0, %__vtable_foo** %self, align [filtered]
       ret void
     }
 
@@ -1644,8 +1644,8 @@ END_FUNCTION
     define void @parent(%parent* %0) !dbg !30 {
     entry:
       call void @llvm.dbg.declare(metadata %parent* %0, metadata !34, metadata !DIExpression()), !dbg !35
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
+      %this = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %this, align [filtered]
       %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
       %a = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
       ret void, !dbg !35
@@ -1654,8 +1654,8 @@ END_FUNCTION
     define void @child(%child* %0) !dbg !36 {
     entry:
       call void @llvm.dbg.declare(metadata %child* %0, metadata !39, metadata !DIExpression()), !dbg !40
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
+      %this = alloca %child*, align [filtered]
+      store %child* %0, %child** %this, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
       %b = getelementptr inbounds %child, %child* %0, i32 0, i32 1
       ret void, !dbg !40
@@ -1664,8 +1664,8 @@ END_FUNCTION
     define void @grandchild(%grandchild* %0) !dbg !41 {
     entry:
       call void @llvm.dbg.declare(metadata %grandchild* %0, metadata !44, metadata !DIExpression()), !dbg !45
-      %this = alloca %grandchild*, align 8
-      store %grandchild* %0, %grandchild** %this, align 8
+      %this = alloca %grandchild*, align [filtered]
+      store %grandchild* %0, %grandchild** %this, align [filtered]
       %__child = getelementptr inbounds %grandchild, %grandchild* %0, i32 0, i32 0
       %c = getelementptr inbounds %grandchild, %grandchild* %0, i32 0, i32 1
       ret void, !dbg !45
@@ -1673,33 +1673,33 @@ END_FUNCTION
 
     define i32 @main() !dbg !46 {
     entry:
-      %main = alloca i32, align 4
-      %array_of_parent = alloca [3 x %parent], align 8
-      %array_of_child = alloca [3 x %child], align 8
-      %array_of_grandchild = alloca [3 x %grandchild], align 8
-      %parent1 = alloca %parent, align 8
-      %child1 = alloca %child, align 8
-      %grandchild1 = alloca %grandchild, align 8
+      %main = alloca i32, align [filtered]
+      %array_of_parent = alloca [3 x %parent], align [filtered]
+      %array_of_child = alloca [3 x %child], align [filtered]
+      %array_of_grandchild = alloca [3 x %grandchild], align [filtered]
+      %parent1 = alloca %parent, align [filtered]
+      %child1 = alloca %child, align [filtered]
+      %grandchild1 = alloca %grandchild, align [filtered]
       call void @llvm.dbg.declare(metadata [3 x %parent]* %array_of_parent, metadata !49, metadata !DIExpression()), !dbg !53
       %0 = bitcast [3 x %parent]* %array_of_parent to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([3 x %parent]* getelementptr ([3 x %parent], [3 x %parent]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([3 x %parent]* getelementptr ([3 x %parent], [3 x %parent]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata [3 x %child]* %array_of_child, metadata !54, metadata !DIExpression()), !dbg !56
       %1 = bitcast [3 x %child]* %array_of_child to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([3 x %child]* getelementptr ([3 x %child], [3 x %child]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %1, i8 0, i64 ptrtoint ([3 x %child]* getelementptr ([3 x %child], [3 x %child]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata [3 x %grandchild]* %array_of_grandchild, metadata !57, metadata !DIExpression()), !dbg !59
       %2 = bitcast [3 x %grandchild]* %array_of_grandchild to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x %grandchild]* getelementptr ([3 x %grandchild], [3 x %grandchild]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %2, i8 0, i64 ptrtoint ([3 x %grandchild]* getelementptr ([3 x %grandchild], [3 x %grandchild]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata %parent* %parent1, metadata !60, metadata !DIExpression()), !dbg !61
       %3 = bitcast %parent* %parent1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%parent* @__parent__init to i8*), i64 ptrtoint (%parent* getelementptr (%parent, %parent* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %3, i8* align [filtered] bitcast (%parent* @__parent__init to i8*), i64 ptrtoint (%parent* getelementptr (%parent, %parent* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata %child* %child1, metadata !62, metadata !DIExpression()), !dbg !63
       %4 = bitcast %child* %child1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %4, i8* align 1 bitcast (%child* @__child__init to i8*), i64 ptrtoint (%child* getelementptr (%child, %child* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %4, i8* align [filtered] bitcast (%child* @__child__init to i8*), i64 ptrtoint (%child* getelementptr (%child, %child* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata %grandchild* %grandchild1, metadata !64, metadata !DIExpression()), !dbg !65
       %5 = bitcast %grandchild* %grandchild1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %5, i8* align 1 bitcast (%grandchild* @__grandchild__init to i8*), i64 ptrtoint (%grandchild* getelementptr (%grandchild, %grandchild* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %5, i8* align [filtered] bitcast (%grandchild* @__grandchild__init to i8*), i64 ptrtoint (%grandchild* getelementptr (%grandchild, %grandchild* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata i32* %main, metadata !66, metadata !DIExpression()), !dbg !67
-      store i32 0, i32* %main, align 4
+      store i32 0, i32* %main, align [filtered]
       call void @__init_parent(%parent* %parent1), !dbg !68
       call void @__init_child(%child* %child1), !dbg !68
       call void @__init_grandchild(%grandchild* %grandchild1), !dbg !68
@@ -1707,88 +1707,88 @@ END_FUNCTION
       call void @__user_init_child(%child* %child1), !dbg !68
       call void @__user_init_grandchild(%grandchild* %grandchild1), !dbg !68
       %a = getelementptr inbounds %parent, %parent* %parent1, i32 0, i32 1, !dbg !69
-      store i32 1, i32* %a, align 4, !dbg !69
+      store i32 1, i32* %a, align [filtered], !dbg !69
       %__parent = getelementptr inbounds %child, %child* %child1, i32 0, i32 0, !dbg !70
       %a1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1, !dbg !70
-      store i32 2, i32* %a1, align 4, !dbg !70
+      store i32 2, i32* %a1, align [filtered], !dbg !70
       %b = getelementptr inbounds %child, %child* %child1, i32 0, i32 1, !dbg !71
-      store i32 3, i32* %b, align 4, !dbg !71
+      store i32 3, i32* %b, align [filtered], !dbg !71
       %__child = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !72
       %__parent2 = getelementptr inbounds %child, %child* %__child, i32 0, i32 0, !dbg !72
       %a3 = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 1, !dbg !72
-      store i32 4, i32* %a3, align 4, !dbg !72
+      store i32 4, i32* %a3, align [filtered], !dbg !72
       %__child4 = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 0, !dbg !73
       %b5 = getelementptr inbounds %child, %child* %__child4, i32 0, i32 1, !dbg !73
-      store i32 5, i32* %b5, align 4, !dbg !73
+      store i32 5, i32* %b5, align [filtered], !dbg !73
       %c = getelementptr inbounds %grandchild, %grandchild* %grandchild1, i32 0, i32 1, !dbg !74
-      store i32 6, i32* %c, align 4, !dbg !74
+      store i32 6, i32* %c, align [filtered], !dbg !74
       %tmpVar = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 0, !dbg !75
       %a6 = getelementptr inbounds %parent, %parent* %tmpVar, i32 0, i32 1, !dbg !75
-      store i32 7, i32* %a6, align 4, !dbg !75
+      store i32 7, i32* %a6, align [filtered], !dbg !75
       %tmpVar7 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !76
       %__parent8 = getelementptr inbounds %child, %child* %tmpVar7, i32 0, i32 0, !dbg !76
       %a9 = getelementptr inbounds %parent, %parent* %__parent8, i32 0, i32 1, !dbg !76
-      store i32 8, i32* %a9, align 4, !dbg !76
+      store i32 8, i32* %a9, align [filtered], !dbg !76
       %tmpVar10 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 0, !dbg !77
       %b11 = getelementptr inbounds %child, %child* %tmpVar10, i32 0, i32 1, !dbg !77
-      store i32 9, i32* %b11, align 4, !dbg !77
+      store i32 9, i32* %b11, align [filtered], !dbg !77
       %tmpVar12 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !78
       %__child13 = getelementptr inbounds %grandchild, %grandchild* %tmpVar12, i32 0, i32 0, !dbg !78
       %__parent14 = getelementptr inbounds %child, %child* %__child13, i32 0, i32 0, !dbg !78
       %a15 = getelementptr inbounds %parent, %parent* %__parent14, i32 0, i32 1, !dbg !78
-      store i32 10, i32* %a15, align 4, !dbg !78
+      store i32 10, i32* %a15, align [filtered], !dbg !78
       %tmpVar16 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !79
       %__child17 = getelementptr inbounds %grandchild, %grandchild* %tmpVar16, i32 0, i32 0, !dbg !79
       %b18 = getelementptr inbounds %child, %child* %__child17, i32 0, i32 1, !dbg !79
-      store i32 11, i32* %b18, align 4, !dbg !79
+      store i32 11, i32* %b18, align [filtered], !dbg !79
       %tmpVar19 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 0, !dbg !80
       %c20 = getelementptr inbounds %grandchild, %grandchild* %tmpVar19, i32 0, i32 1, !dbg !80
-      store i32 12, i32* %c20, align 4, !dbg !80
+      store i32 12, i32* %c20, align [filtered], !dbg !80
       %tmpVar21 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 1, !dbg !81
       %a22 = getelementptr inbounds %parent, %parent* %tmpVar21, i32 0, i32 1, !dbg !81
-      store i32 13, i32* %a22, align 4, !dbg !81
+      store i32 13, i32* %a22, align [filtered], !dbg !81
       %tmpVar23 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !82
       %__parent24 = getelementptr inbounds %child, %child* %tmpVar23, i32 0, i32 0, !dbg !82
       %a25 = getelementptr inbounds %parent, %parent* %__parent24, i32 0, i32 1, !dbg !82
-      store i32 14, i32* %a25, align 4, !dbg !82
+      store i32 14, i32* %a25, align [filtered], !dbg !82
       %tmpVar26 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 1, !dbg !83
       %b27 = getelementptr inbounds %child, %child* %tmpVar26, i32 0, i32 1, !dbg !83
-      store i32 15, i32* %b27, align 4, !dbg !83
+      store i32 15, i32* %b27, align [filtered], !dbg !83
       %tmpVar28 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !84
       %__child29 = getelementptr inbounds %grandchild, %grandchild* %tmpVar28, i32 0, i32 0, !dbg !84
       %__parent30 = getelementptr inbounds %child, %child* %__child29, i32 0, i32 0, !dbg !84
       %a31 = getelementptr inbounds %parent, %parent* %__parent30, i32 0, i32 1, !dbg !84
-      store i32 16, i32* %a31, align 4, !dbg !84
+      store i32 16, i32* %a31, align [filtered], !dbg !84
       %tmpVar32 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !85
       %__child33 = getelementptr inbounds %grandchild, %grandchild* %tmpVar32, i32 0, i32 0, !dbg !85
       %b34 = getelementptr inbounds %child, %child* %__child33, i32 0, i32 1, !dbg !85
-      store i32 17, i32* %b34, align 4, !dbg !85
+      store i32 17, i32* %b34, align [filtered], !dbg !85
       %tmpVar35 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 1, !dbg !86
       %c36 = getelementptr inbounds %grandchild, %grandchild* %tmpVar35, i32 0, i32 1, !dbg !86
-      store i32 18, i32* %c36, align 4, !dbg !86
+      store i32 18, i32* %c36, align [filtered], !dbg !86
       %tmpVar37 = getelementptr inbounds [3 x %parent], [3 x %parent]* %array_of_parent, i32 0, i32 2, !dbg !87
       %a38 = getelementptr inbounds %parent, %parent* %tmpVar37, i32 0, i32 1, !dbg !87
-      store i32 19, i32* %a38, align 4, !dbg !87
+      store i32 19, i32* %a38, align [filtered], !dbg !87
       %tmpVar39 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !88
       %__parent40 = getelementptr inbounds %child, %child* %tmpVar39, i32 0, i32 0, !dbg !88
       %a41 = getelementptr inbounds %parent, %parent* %__parent40, i32 0, i32 1, !dbg !88
-      store i32 20, i32* %a41, align 4, !dbg !88
+      store i32 20, i32* %a41, align [filtered], !dbg !88
       %tmpVar42 = getelementptr inbounds [3 x %child], [3 x %child]* %array_of_child, i32 0, i32 2, !dbg !89
       %b43 = getelementptr inbounds %child, %child* %tmpVar42, i32 0, i32 1, !dbg !89
-      store i32 21, i32* %b43, align 4, !dbg !89
+      store i32 21, i32* %b43, align [filtered], !dbg !89
       %tmpVar44 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !90
       %__child45 = getelementptr inbounds %grandchild, %grandchild* %tmpVar44, i32 0, i32 0, !dbg !90
       %__parent46 = getelementptr inbounds %child, %child* %__child45, i32 0, i32 0, !dbg !90
       %a47 = getelementptr inbounds %parent, %parent* %__parent46, i32 0, i32 1, !dbg !90
-      store i32 22, i32* %a47, align 4, !dbg !90
+      store i32 22, i32* %a47, align [filtered], !dbg !90
       %tmpVar48 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !91
       %__child49 = getelementptr inbounds %grandchild, %grandchild* %tmpVar48, i32 0, i32 0, !dbg !91
       %b50 = getelementptr inbounds %child, %child* %__child49, i32 0, i32 1, !dbg !91
-      store i32 23, i32* %b50, align 4, !dbg !91
+      store i32 23, i32* %b50, align [filtered], !dbg !91
       %tmpVar51 = getelementptr inbounds [3 x %grandchild], [3 x %grandchild]* %array_of_grandchild, i32 0, i32 2, !dbg !92
       %c52 = getelementptr inbounds %grandchild, %grandchild* %tmpVar51, i32 0, i32 1, !dbg !92
-      store i32 24, i32* %c52, align 4, !dbg !92
-      %main_ret = load i32, i32* %main, align 4, !dbg !93
+      store i32 24, i32* %c52, align [filtered], !dbg !92
+      %main_ret = load i32, i32* %main, align [filtered], !dbg !93
       ret i32 %main_ret, !dbg !93
     }
 
@@ -1803,106 +1803,106 @@ END_FUNCTION
 
     define void @__init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
+      %deref = load %__vtable_parent*, %__vtable_parent** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      store void (%parent*)* @parent, void (%parent*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
+      %deref = load %__vtable_child*, %__vtable_child** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      store void (%child*)* @child, void (%child*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init___vtable_grandchild(%__vtable_grandchild* %0) {
     entry:
-      %self = alloca %__vtable_grandchild*, align 8
-      store %__vtable_grandchild* %0, %__vtable_grandchild** %self, align 8
-      %deref = load %__vtable_grandchild*, %__vtable_grandchild** %self, align 8
+      %self = alloca %__vtable_grandchild*, align [filtered]
+      store %__vtable_grandchild* %0, %__vtable_grandchild** %self, align [filtered]
+      %deref = load %__vtable_grandchild*, %__vtable_grandchild** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_grandchild, %__vtable_grandchild* %deref, i32 0, i32 0
-      store void (%grandchild*)* @grandchild, void (%grandchild*)** %__body, align 8
+      store void (%grandchild*)* @grandchild, void (%grandchild*)** %__body, align [filtered]
       ret void
     }
 
     define void @__init_grandchild(%grandchild* %0) {
     entry:
-      %self = alloca %grandchild*, align 8
-      store %grandchild* %0, %grandchild** %self, align 8
-      %deref = load %grandchild*, %grandchild** %self, align 8
+      %self = alloca %grandchild*, align [filtered]
+      store %grandchild* %0, %grandchild** %self, align [filtered]
+      %deref = load %grandchild*, %grandchild** %self, align [filtered]
       %__child = getelementptr inbounds %grandchild, %grandchild* %deref, i32 0, i32 0
       call void @__init_child(%child* %__child)
-      %deref1 = load %grandchild*, %grandchild** %self, align 8
+      %deref1 = load %grandchild*, %grandchild** %self, align [filtered]
       %__child2 = getelementptr inbounds %grandchild, %grandchild* %deref1, i32 0, i32 0
       %__parent = getelementptr inbounds %child, %child* %__child2, i32 0, i32 0
       %__vtable = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 0
-      store i32* bitcast (%__vtable_grandchild* @__vtable_grandchild_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_grandchild* @__vtable_grandchild_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
+      %deref1 = load %child*, %child** %self, align [filtered]
       %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
       %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
+      %deref = load %parent*, %parent** %self, align [filtered]
       %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_parent(%parent* %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
+      %self = alloca %parent*, align [filtered]
+      store %parent* %0, %parent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_parent(%__vtable_parent* %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca %__vtable_parent*, align [filtered]
+      store %__vtable_parent* %0, %__vtable_parent** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_grandchild(%__vtable_grandchild* %0) {
     entry:
-      %self = alloca %__vtable_grandchild*, align 8
-      store %__vtable_grandchild* %0, %__vtable_grandchild** %self, align 8
+      %self = alloca %__vtable_grandchild*, align [filtered]
+      store %__vtable_grandchild* %0, %__vtable_grandchild** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_child(%__vtable_child* %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca %__vtable_child*, align [filtered]
+      store %__vtable_child* %0, %__vtable_child** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_child(%child* %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
+      %self = alloca %child*, align [filtered]
+      store %child* %0, %child** %self, align [filtered]
+      %deref = load %child*, %child** %self, align [filtered]
       %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
       call void @__user_init_parent(%parent* %__parent)
       ret void
@@ -1910,9 +1910,9 @@ END_FUNCTION
 
     define void @__user_init_grandchild(%grandchild* %0) {
     entry:
-      %self = alloca %grandchild*, align 8
-      store %grandchild* %0, %grandchild** %self, align 8
-      %deref = load %grandchild*, %grandchild** %self, align 8
+      %self = alloca %grandchild*, align [filtered]
+      store %grandchild* %0, %grandchild** %self, align [filtered]
+      %deref = load %grandchild*, %grandchild** %self, align [filtered]
       %__child = getelementptr inbounds %grandchild, %grandchild* %deref, i32 0, i32 0
       call void @__user_init_child(%child* %__child)
       ret void

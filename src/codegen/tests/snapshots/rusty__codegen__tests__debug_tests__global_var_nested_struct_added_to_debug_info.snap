@@ -17,9 +17,9 @@ target triple = "[filtered]"
 
 define void @__init_mystruct(%myStruct* %0) {
 entry:
-  %self = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %self, align 8
-  %deref = load %myStruct*, %myStruct** %self, align 8
+  %self = alloca %myStruct*, align [filtered]
+  store %myStruct* %0, %myStruct** %self, align [filtered]
+  %deref = load %myStruct*, %myStruct** %self, align [filtered]
   %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
   call void @__init_mystruct2(%myStruct2* %b)
   ret void
@@ -27,16 +27,16 @@ entry:
 
 define void @__init_mystruct2(%myStruct2* %0) {
 entry:
-  %self = alloca %myStruct2*, align 8
-  store %myStruct2* %0, %myStruct2** %self, align 8
+  %self = alloca %myStruct2*, align [filtered]
+  store %myStruct2* %0, %myStruct2** %self, align [filtered]
   ret void
 }
 
 define void @__user_init_myStruct(%myStruct* %0) {
 entry:
-  %self = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %self, align 8
-  %deref = load %myStruct*, %myStruct** %self, align 8
+  %self = alloca %myStruct*, align [filtered]
+  store %myStruct* %0, %myStruct** %self, align [filtered]
+  %deref = load %myStruct*, %myStruct** %self, align [filtered]
   %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
   call void @__user_init_myStruct2(%myStruct2* %b)
   ret void
@@ -44,8 +44,8 @@ entry:
 
 define void @__user_init_myStruct2(%myStruct2* %0) {
 entry:
-  %self = alloca %myStruct2*, align 8
-  store %myStruct2* %0, %myStruct2** %self, align 8
+  %self = alloca %myStruct2*, align [filtered]
+  store %myStruct2* %0, %myStruct2** %self, align [filtered]
   ret void
 }
 

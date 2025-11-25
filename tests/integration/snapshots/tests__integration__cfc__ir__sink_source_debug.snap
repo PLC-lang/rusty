@@ -13,7 +13,7 @@ define void @main(%main* %0) !dbg !11 {
 entry:
   call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !16
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  store i32 5, i32* %x, align 4, !dbg !17
+  store i32 5, i32* %x, align [filtered], !dbg !17
   ret void, !dbg !18
 }
 
@@ -22,15 +22,15 @@ declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init_main(%main* %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
   ret void
 }
 
 define void @__user_init_main(%main* %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca %main*, align [filtered]
+  store %main* %0, %main** %self, align [filtered]
   ret void
 }
 

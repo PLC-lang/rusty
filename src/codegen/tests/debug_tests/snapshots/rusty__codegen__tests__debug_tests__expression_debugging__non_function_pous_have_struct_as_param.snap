@@ -17,21 +17,21 @@ define void @myProg(%myProg* %0) !dbg !18 {
 entry:
   call void @llvm.dbg.declare(metadata %myProg* %0, metadata !22, metadata !DIExpression()), !dbg !23
   %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4, !dbg !23
+  %load_x = load i32, i32* %x, align [filtered], !dbg !23
   %tmpVar = add i32 %load_x, 2, !dbg !23
-  store i32 %tmpVar, i32* %x, align 4, !dbg !23
+  store i32 %tmpVar, i32* %x, align [filtered], !dbg !23
   ret void, !dbg !24
 }
 
 define void @fb(%fb* %0) !dbg !25 {
 entry:
   call void @llvm.dbg.declare(metadata %fb* %0, metadata !28, metadata !DIExpression()), !dbg !29
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca %fb*, align [filtered]
+  store %fb* %0, %fb** %this, align [filtered]
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4, !dbg !29
+  %load_x = load i32, i32* %x, align [filtered], !dbg !29
   %tmpVar = add i32 %load_x, 2, !dbg !29
-  store i32 %tmpVar, i32* %x, align 4, !dbg !29
+  store i32 %tmpVar, i32* %x, align [filtered], !dbg !29
   ret void, !dbg !30
 }
 

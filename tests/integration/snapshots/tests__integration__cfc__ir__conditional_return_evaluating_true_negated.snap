@@ -14,23 +14,23 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %my_val = alloca i32, align 4
-  %conditional = alloca %conditional_return, align 8
-  store i32 5, i32* %my_val, align 4
+  %main = alloca i32, align [filtered]
+  %my_val = alloca i32, align [filtered]
+  %conditional = alloca %conditional_return, align [filtered]
+  store i32 5, i32* %my_val, align [filtered]
   %0 = bitcast %conditional_return* %conditional to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%conditional_return* @__conditional_return__init to i8*), i64 ptrtoint (%conditional_return* getelementptr (%conditional_return, %conditional_return* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %main, align 4
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%conditional_return* @__conditional_return__init to i8*), i64 ptrtoint (%conditional_return* getelementptr (%conditional_return, %conditional_return* null, i32 1) to i64), i1 false)
+  store i32 0, i32* %main, align [filtered]
   call void @__init_conditional_return(%conditional_return* %conditional)
   call void @__user_init_conditional_return(%conditional_return* %conditional)
   %val = getelementptr inbounds %conditional_return, %conditional_return* %conditional, i32 0, i32 1
-  %load_my_val = load i32, i32* %my_val, align 4
-  store i32 %load_my_val, i32* %val, align 4
+  %load_my_val = load i32, i32* %my_val, align [filtered]
+  store i32 %load_my_val, i32* %val, align [filtered]
   call void @conditional_return(%conditional_return* %conditional)
   %val1 = getelementptr inbounds %conditional_return, %conditional_return* %conditional, i32 0, i32 1
-  %load_val = load i32, i32* %val1, align 4
-  store i32 %load_val, i32* %main, align 4
-  %main_ret = load i32, i32* %main, align 4
+  %load_val = load i32, i32* %val1, align [filtered]
+  store i32 %load_val, i32* %main, align [filtered]
+  %main_ret = load i32, i32* %main, align [filtered]
   ret i32 %main_ret
 }
 
@@ -39,11 +39,11 @@ declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noa
 
 define void @conditional_return(%conditional_return* %0) {
 entry:
-  %this = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %this, align 8
+  %this = alloca %conditional_return*, align [filtered]
+  store %conditional_return* %0, %conditional_return** %this, align [filtered]
   %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
   %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 1
-  %load_val = load i32, i32* %val, align 4
+  %load_val = load i32, i32* %val, align [filtered]
   %tmpVar = icmp eq i32 %load_val, 5
   %tmpVar1 = xor i1 %tmpVar, true
   br i1 %tmpVar1, label %then_block, label %else_block
@@ -52,41 +52,41 @@ then_block:                                       ; preds = %entry
   ret void
 
 else_block:                                       ; preds = %entry
-  store i32 10, i32* %val, align 4
+  store i32 10, i32* %val, align [filtered]
   ret void
 }
 
 define void @__init___vtable_conditional_return(%__vtable_conditional_return* %0) {
 entry:
-  %self = alloca %__vtable_conditional_return*, align 8
-  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align 8
-  %deref = load %__vtable_conditional_return*, %__vtable_conditional_return** %self, align 8
+  %self = alloca %__vtable_conditional_return*, align [filtered]
+  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align [filtered]
+  %deref = load %__vtable_conditional_return*, %__vtable_conditional_return** %self, align [filtered]
   %__body = getelementptr inbounds %__vtable_conditional_return, %__vtable_conditional_return* %deref, i32 0, i32 0
-  store void (%conditional_return*)* @conditional_return, void (%conditional_return*)** %__body, align 8
+  store void (%conditional_return*)* @conditional_return, void (%conditional_return*)** %__body, align [filtered]
   ret void
 }
 
 define void @__init_conditional_return(%conditional_return* %0) {
 entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
-  %deref = load %conditional_return*, %conditional_return** %self, align 8
+  %self = alloca %conditional_return*, align [filtered]
+  store %conditional_return* %0, %conditional_return** %self, align [filtered]
+  %deref = load %conditional_return*, %conditional_return** %self, align [filtered]
   %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %deref, i32 0, i32 0
-  store i32* bitcast (%__vtable_conditional_return* @__vtable_conditional_return_instance to i32*), i32** %__vtable, align 8
+  store i32* bitcast (%__vtable_conditional_return* @__vtable_conditional_return_instance to i32*), i32** %__vtable, align [filtered]
   ret void
 }
 
 define void @__user_init___vtable_conditional_return(%__vtable_conditional_return* %0) {
 entry:
-  %self = alloca %__vtable_conditional_return*, align 8
-  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align 8
+  %self = alloca %__vtable_conditional_return*, align [filtered]
+  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align [filtered]
   ret void
 }
 
 define void @__user_init_conditional_return(%conditional_return* %0) {
 entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
+  %self = alloca %conditional_return*, align [filtered]
+  store %conditional_return* %0, %conditional_return** %self, align [filtered]
   ret void
 }
 

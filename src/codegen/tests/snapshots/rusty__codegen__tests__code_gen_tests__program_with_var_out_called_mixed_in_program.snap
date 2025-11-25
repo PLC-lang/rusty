@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -24,9 +23,9 @@ entry:
 define void @prg(%prg* %0) {
 entry:
   %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i32 2, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
+  store i32 2, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align [filtered]
   call void @foo(%foo* @foo_instance)
-  %1 = load i8, i8* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 1
-  store i8 %1, i8* %baz, align 1
+  %1 = load i8, i8* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align [filtered]
+  store i8 %1, i8* %baz, align [filtered]
   ret void
 }

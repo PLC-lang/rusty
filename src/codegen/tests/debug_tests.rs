@@ -228,18 +228,18 @@ fn switch_case_debug_info() {
 
     define i32 @main() !dbg !4 {
     entry:
-      %main = alloca i32, align 4
-      %x1 = alloca i16, align 2
-      %x2 = alloca i16, align 2
-      %x3 = alloca i16, align 2
+      %main = alloca i32, align [filtered]
+      %x1 = alloca i16, align [filtered]
+      %x2 = alloca i16, align [filtered]
+      %x3 = alloca i16, align [filtered]
       call void @llvm.dbg.declare(metadata i16* %x1, metadata !8, metadata !DIExpression()), !dbg !10
-      store i16 0, i16* %x1, align 2
+      store i16 0, i16* %x1, align [filtered]
       call void @llvm.dbg.declare(metadata i16* %x2, metadata !11, metadata !DIExpression()), !dbg !12
-      store i16 0, i16* %x2, align 2
+      store i16 0, i16* %x2, align [filtered]
       call void @llvm.dbg.declare(metadata i16* %x3, metadata !13, metadata !DIExpression()), !dbg !14
-      store i16 0, i16* %x3, align 2
+      store i16 0, i16* %x3, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %main, metadata !15, metadata !DIExpression()), !dbg !17
-      store i32 0, i32* %main, align 4
+      store i32 0, i32* %main, align [filtered]
       br label %condition_check, !dbg !18
 
     condition_check:                                  ; preds = %continue2, %entry
@@ -249,7 +249,7 @@ fn switch_case_debug_info() {
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
     continue:                                         ; preds = %condition_body, %condition_check
-      %main_ret = load i32, i32* %main, align 4, !dbg !20
+      %main_ret = load i32, i32* %main, align [filtered], !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
@@ -259,12 +259,12 @@ fn switch_case_debug_info() {
       br label %continue1, !dbg !21
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %load_x1 = load i16, i16* %x1, align 2, !dbg !22
+      %load_x1 = load i16, i16* %x1, align [filtered], !dbg !22
       %0 = sext i16 %load_x1 to i32, !dbg !22
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
-      store i16 %1, i16* %x1, align 2, !dbg !22
-      %load_x13 = load i16, i16* %x1, align 2, !dbg !22
+      store i16 %1, i16* %x1, align [filtered], !dbg !22
+      %load_x13 = load i16, i16* %x1, align [filtered], !dbg !22
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
@@ -272,21 +272,21 @@ fn switch_case_debug_info() {
       ], !dbg !23
 
     case:                                             ; preds = %continue1
-      store i16 1, i16* %x2, align 2, !dbg !24
+      store i16 1, i16* %x2, align [filtered], !dbg !24
       br label %continue2, !dbg !25
 
     case4:                                            ; preds = %continue1
-      store i16 2, i16* %x2, align 2, !dbg !26
+      store i16 2, i16* %x2, align [filtered], !dbg !26
       br label %continue2, !dbg !25
 
     case5:                                            ; preds = %continue1
-      store i16 3, i16* %x2, align 2, !dbg !27
+      store i16 3, i16* %x2, align [filtered], !dbg !27
       br label %continue2, !dbg !25
 
     else:                                             ; preds = %continue1
-      store i16 0, i16* %x1, align 2, !dbg !28
-      store i16 1, i16* %x2, align 2, !dbg !29
-      store i16 2, i16* %x3, align 2, !dbg !30
+      store i16 0, i16* %x1, align [filtered], !dbg !28
+      store i16 1, i16* %x2, align [filtered], !dbg !29
+      store i16 2, i16* %x3, align [filtered], !dbg !30
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
@@ -368,8 +368,8 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     define void @fb(%fb* %0) !dbg !14 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !18, metadata !DIExpression()), !dbg !19
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
+      %this = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %this, align [filtered]
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void, !dbg !19
     }
@@ -377,8 +377,8 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     define void @fb__foo(%fb* %0) !dbg !20 {
     entry:
       call void @llvm.dbg.declare(metadata %fb* %0, metadata !21, metadata !DIExpression()), !dbg !22
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
+      %this = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %this, align [filtered]
       %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
       ret void, !dbg !22
     }
@@ -388,38 +388,38 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     define void @__init___vtable_fb(%__vtable_fb* %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
-      %deref = load %__vtable_fb*, %__vtable_fb** %self, align 8
+      %self = alloca %__vtable_fb*, align [filtered]
+      store %__vtable_fb* %0, %__vtable_fb** %self, align [filtered]
+      %deref = load %__vtable_fb*, %__vtable_fb** %self, align [filtered]
       %__body = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 0
-      store void (%fb*)* @fb, void (%fb*)** %__body, align 8
-      %deref1 = load %__vtable_fb*, %__vtable_fb** %self, align 8
+      store void (%fb*)* @fb, void (%fb*)** %__body, align [filtered]
+      %deref1 = load %__vtable_fb*, %__vtable_fb** %self, align [filtered]
       %foo = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref1, i32 0, i32 1
-      store void (%fb*)* @fb__foo, void (%fb*)** %foo, align 8
+      store void (%fb*)* @fb__foo, void (%fb*)** %foo, align [filtered]
       ret void
     }
 
     define void @__init_fb(%fb* %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
-      %deref = load %fb*, %fb** %self, align 8
+      %self = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %self, align [filtered]
+      %deref = load %fb*, %fb** %self, align [filtered]
       %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
+      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align [filtered]
       ret void
     }
 
     define void @__user_init_fb(%fb* %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
+      %self = alloca %fb*, align [filtered]
+      store %fb* %0, %fb** %self, align [filtered]
       ret void
     }
 
     define void @__user_init___vtable_fb(%__vtable_fb* %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      %self = alloca %__vtable_fb*, align [filtered]
+      store %__vtable_fb* %0, %__vtable_fb** %self, align [filtered]
       ret void
     }
 
@@ -499,34 +499,34 @@ fn action_with_var_temp() {
 
     define i32 @main() !dbg !9 {
     entry:
-      %main = alloca i32, align 4
+      %main = alloca i32, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !14
-      store i32 0, i32* %main, align 4
+      store i32 0, i32* %main, align [filtered]
       call void @PLC_PRG(%PLC_PRG* @PLC_PRG_instance), !dbg !15
       call void @PLC_PRG__act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
-      %main_ret = load i32, i32* %main, align 4, !dbg !17
+      %main_ret = load i32, i32* %main, align [filtered], !dbg !17
       ret i32 %main_ret, !dbg !17
     }
 
     define void @PLC_PRG(%PLC_PRG* %0) !dbg !18 {
     entry:
       call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !21, metadata !DIExpression()), !dbg !22
-      %x = alloca i32, align 4
+      %x = alloca i32, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %x, metadata !23, metadata !DIExpression()), !dbg !24
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %x, align 4, !dbg !22
+      store i32 0, i32* %x, align [filtered]
+      store i32 0, i32* %x, align [filtered], !dbg !22
       ret void, !dbg !25
     }
 
     define void @PLC_PRG__act(%PLC_PRG* %0) !dbg !26 {
     entry:
       call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !27, metadata !DIExpression()), !dbg !28
-      %x = alloca i32, align 4
+      %x = alloca i32, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %x, metadata !29, metadata !DIExpression()), !dbg !30
-      store i32 0, i32* %x, align 4
-      %load_x = load i32, i32* %x, align 4, !dbg !28
+      store i32 0, i32* %x, align [filtered]
+      %load_x = load i32, i32* %x, align [filtered], !dbg !28
       %tmpVar = add i32 %load_x, 1, !dbg !28
-      store i32 %tmpVar, i32* %x, align 4, !dbg !28
+      store i32 %tmpVar, i32* %x, align [filtered], !dbg !28
       ret void, !dbg !31
     }
 
@@ -535,15 +535,15 @@ fn action_with_var_temp() {
 
     define void @__init_plc_prg(%PLC_PRG* %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca %PLC_PRG*, align [filtered]
+      store %PLC_PRG* %0, %PLC_PRG** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca %PLC_PRG*, align [filtered]
+      store %PLC_PRG* %0, %PLC_PRG** %self, align [filtered]
       ret void
     }
 
@@ -661,78 +661,78 @@ END_FUNCTION
 
     define void @main() !dbg !39 {
     entry:
-      %st = alloca %struct_, align 8
-      %s = alloca [81 x i8], align 1
-      %b = alloca i8, align 1
-      %arr = alloca [3 x [81 x i8]], align 1
-      %i = alloca i16, align 2
+      %st = alloca %struct_, align [filtered]
+      %s = alloca [81 x i8], align [filtered]
+      %b = alloca i8, align [filtered]
+      %arr = alloca [3 x [81 x i8]], align [filtered]
+      %i = alloca i16, align [filtered]
       call void @llvm.dbg.declare(metadata %struct_* %st, metadata !43, metadata !DIExpression()), !dbg !44
       %0 = bitcast %struct_* %st to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%struct_, %struct_* @__struct___init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%struct_* getelementptr (%struct_, %struct_* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] getelementptr inbounds (%struct_, %struct_* @__struct___init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%struct_* getelementptr (%struct_, %struct_* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !45, metadata !DIExpression()), !dbg !46
       %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata i8* %b, metadata !47, metadata !DIExpression()), !dbg !48
-      store i8 0, i8* %b, align 1
+      store i8 0, i8* %b, align [filtered]
       call void @llvm.dbg.declare(metadata [3 x [81 x i8]]* %arr, metadata !49, metadata !DIExpression()), !dbg !50
       %2 = bitcast [3 x [81 x i8]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %2, i8 0, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false)
       call void @llvm.dbg.declare(metadata i16* %i, metadata !51, metadata !DIExpression()), !dbg !52
-      store i16 0, i16* %i, align 2
+      store i16 0, i16* %i, align [filtered]
       call void @__init_struct_(%struct_* %st), !dbg !53
       call void @__user_init_struct_(%struct_* %st), !dbg !53
       %s1 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 2, !dbg !54
       %3 = bitcast [81 x i8]* %s to i8*, !dbg !54
       %4 = bitcast [81 x i8]* %s1 to i8*, !dbg !54
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false), !dbg !54
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %3, i8* align [filtered] %4, i32 80, i1 false), !dbg !54
       %inner = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !55
       %s2 = getelementptr inbounds %inner, %inner* %inner, i32 0, i32 0, !dbg !55
       %5 = bitcast [81 x i8]* %s to i8*, !dbg !55
       %6 = bitcast [81 x i8]* %s2 to i8*, !dbg !55
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 80, i1 false), !dbg !55
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %5, i8* align [filtered] %6, i32 80, i1 false), !dbg !55
       %b3 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 3, !dbg !56
-      %load_b = load i8, i8* %b3, align 1, !dbg !56
-      store i8 %load_b, i8* %b, align 1, !dbg !56
+      %load_b = load i8, i8* %b3, align [filtered], !dbg !56
+      store i8 %load_b, i8* %b, align [filtered], !dbg !56
       %inner4 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !57
       %b5 = getelementptr inbounds %inner, %inner* %inner4, i32 0, i32 1, !dbg !57
-      %load_b6 = load i8, i8* %b5, align 1, !dbg !57
-      store i8 %load_b6, i8* %b, align 1, !dbg !57
+      %load_b6 = load i8, i8* %b5, align [filtered], !dbg !57
+      store i8 %load_b6, i8* %b, align [filtered], !dbg !57
       %arr7 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !58
       %7 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !58
       %8 = bitcast [3 x [81 x i8]]* %arr7 to i8*, !dbg !58
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !58
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %7, i8* align [filtered] %8, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !58
       %inner8 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !59
       %arr9 = getelementptr inbounds %inner, %inner* %inner8, i32 0, i32 3, !dbg !59
       %9 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !59
       %10 = bitcast [3 x [81 x i8]]* %arr9 to i8*, !dbg !59
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !59
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %9, i8* align [filtered] %10, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !59
       %i10 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 6, !dbg !60
-      %load_i = load i16, i16* %i10, align 2, !dbg !60
-      store i16 %load_i, i16* %i, align 2, !dbg !60
+      %load_i = load i16, i16* %i10, align [filtered], !dbg !60
+      store i16 %load_i, i16* %i, align [filtered], !dbg !60
       %inner11 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !61
       %i12 = getelementptr inbounds %inner, %inner* %inner11, i32 0, i32 4, !dbg !61
-      %load_i13 = load i16, i16* %i12, align 2, !dbg !61
-      store i16 %load_i13, i16* %i, align 2, !dbg !61
+      %load_i13 = load i16, i16* %i12, align [filtered], !dbg !61
+      store i16 %load_i13, i16* %i, align [filtered], !dbg !61
       %tmpVar = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 0, !dbg !62
       %arr14 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !62
       %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr14, i32 0, i32 0, !dbg !62
       %11 = bitcast [81 x i8]* %tmpVar to i8*, !dbg !62
       %12 = bitcast [81 x i8]* %tmpVar15 to i8*, !dbg !62
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false), !dbg !62
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %11, i8* align [filtered] %12, i32 80, i1 false), !dbg !62
       %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 1, !dbg !63
       %inner17 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !63
       %arr18 = getelementptr inbounds %inner, %inner* %inner17, i32 0, i32 3, !dbg !63
       %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr18, i32 0, i32 1, !dbg !63
       %13 = bitcast [81 x i8]* %tmpVar16 to i8*, !dbg !63
       %14 = bitcast [81 x i8]* %tmpVar19 to i8*, !dbg !63
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 80, i1 false), !dbg !63
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %13, i8* align [filtered] %14, i32 80, i1 false), !dbg !63
       %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 2, !dbg !64
       %inner21 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !64
       %arr22 = getelementptr inbounds %inner, %inner* %inner21, i32 0, i32 3, !dbg !64
       %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr22, i32 0, i32 2, !dbg !64
       %15 = bitcast [81 x i8]* %tmpVar20 to i8*, !dbg !64
       %16 = bitcast [81 x i8]* %tmpVar23 to i8*, !dbg !64
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %15, i8* align 1 %16, i32 80, i1 false), !dbg !64
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %15, i8* align [filtered] %16, i32 80, i1 false), !dbg !64
       ret void, !dbg !65
     }
 
@@ -750,59 +750,59 @@ END_FUNCTION
 
     define void @__init_struct_(%struct_* %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
+      %self = alloca %struct_*, align [filtered]
+      store %struct_* %0, %struct_** %self, align [filtered]
+      %deref = load %struct_*, %struct_** %self, align [filtered]
       %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
       call void @__init_inner(%inner* %inner)
-      %deref1 = load %struct_*, %struct_** %self, align 8
+      %deref1 = load %struct_*, %struct_** %self, align [filtered]
       %s = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 2
       %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref2 = load %struct_*, %struct_** %self, align 8
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      %deref2 = load %struct_*, %struct_** %self, align [filtered]
       %b = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 3
-      store i8 1, i8* %b, align 1
-      %deref3 = load %struct_*, %struct_** %self, align 8
+      store i8 1, i8* %b, align [filtered]
+      %deref3 = load %struct_*, %struct_** %self, align [filtered]
       %r = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 4
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref4 = load %struct_*, %struct_** %self, align 8
+      store float 0x400921CAC0000000, float* %r, align [filtered]
+      %deref4 = load %struct_*, %struct_** %self, align [filtered]
       %i = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 6
-      store i16 42, i16* %i, align 2
+      store i16 42, i16* %i, align [filtered]
       ret void
     }
 
     define void @__init_inner(%inner* %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
-      %deref = load %inner*, %inner** %self, align 8
+      %self = alloca %inner*, align [filtered]
+      store %inner* %0, %inner** %self, align [filtered]
+      %deref = load %inner*, %inner** %self, align [filtered]
       %s = getelementptr inbounds %inner, %inner* %deref, i32 0, i32 0
       %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load %inner*, %inner** %self, align 8
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      %deref1 = load %inner*, %inner** %self, align [filtered]
       %b = getelementptr inbounds %inner, %inner* %deref1, i32 0, i32 1
-      store i8 1, i8* %b, align 1
-      %deref2 = load %inner*, %inner** %self, align 8
+      store i8 1, i8* %b, align [filtered]
+      %deref2 = load %inner*, %inner** %self, align [filtered]
       %r = getelementptr inbounds %inner, %inner* %deref2, i32 0, i32 2
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref3 = load %inner*, %inner** %self, align 8
+      store float 0x400921CAC0000000, float* %r, align [filtered]
+      %deref3 = load %inner*, %inner** %self, align [filtered]
       %i = getelementptr inbounds %inner, %inner* %deref3, i32 0, i32 4
-      store i16 42, i16* %i, align 2
+      store i16 42, i16* %i, align [filtered]
       ret void
     }
 
     define void @__user_init_inner(%inner* %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
+      %self = alloca %inner*, align [filtered]
+      store %inner* %0, %inner** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_struct_(%struct_* %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
+      %self = alloca %struct_*, align [filtered]
+      store %struct_* %0, %struct_** %self, align [filtered]
+      %deref = load %struct_*, %struct_** %self, align [filtered]
       %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
       call void @__user_init_inner(%inner* %inner)
       ret void
@@ -945,13 +945,13 @@ fn constants_are_tagged_as_such() {
 
     define i32 @bar() !dbg !38 {
     entry:
-      %bar = alloca i32, align 4
-      %d = alloca i32, align 4
+      %bar = alloca i32, align [filtered]
+      %d = alloca i32, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %d, metadata !41, metadata !DIExpression()), !dbg !42
-      store i32 42, i32* %d, align 4
+      store i32 42, i32* %d, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %bar, metadata !43, metadata !DIExpression()), !dbg !44
-      store i32 0, i32* %bar, align 4
-      %bar_ret = load i32, i32* %bar, align 4, !dbg !45
+      store i32 0, i32* %bar, align [filtered]
+      %bar_ret = load i32, i32* %bar, align [filtered], !dbg !45
       ret i32 %bar_ret, !dbg !45
     }
 
@@ -960,29 +960,29 @@ fn constants_are_tagged_as_such() {
 
     define void @__init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
       ret void
     }
 
     define void @__init_prog(%prog* %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca %prog*, align [filtered]
+      store %prog* %0, %prog** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_foo(%foo* %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca %foo*, align [filtered]
+      store %foo* %0, %foo** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_prog(%prog* %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca %prog*, align [filtered]
+      store %prog* %0, %prog** %self, align [filtered]
       ret void
     }
 
@@ -1083,15 +1083,15 @@ fn test_debug_info_regular_pointer_types() {
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
@@ -1197,29 +1197,29 @@ fn test_debug_info_auto_deref_parameters() {
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__init_test_with_ref_params(%test_with_ref_params* %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca %test_with_ref_params*, align [filtered]
+      store %test_with_ref_params* %0, %test_with_ref_params** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_test_with_ref_params(%test_with_ref_params* %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca %test_with_ref_params*, align [filtered]
+      store %test_with_ref_params* %0, %test_with_ref_params** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
@@ -1320,23 +1320,23 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__init___Test() {
     entry:
       call void @__init_mystruct(%myStruct* @global_struct)
-      store i32* @global_var, i32** @alias_int, align 8
-      store %myStruct* @global_struct, %myStruct** @alias_struct, align 8
+      store i32* @global_var, i32** @alias_int, align [filtered]
+      store %myStruct* @global_struct, %myStruct** @alias_struct, align [filtered]
       call void @__user_init_myStruct(%myStruct* @global_struct)
       ret void
     }
@@ -1424,22 +1424,22 @@ fn test_debug_info_mixed_pointer_types() {
 
     define void @__init_mixed_ptr(%mixed_ptr* %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca %mixed_ptr*, align [filtered]
+      store %mixed_ptr* %0, %mixed_ptr** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_mixed_ptr(%mixed_ptr* %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca %mixed_ptr*, align [filtered]
+      store %mixed_ptr* %0, %mixed_ptr** %self, align [filtered]
       ret void
     }
 
     define void @__init___Test() {
     entry:
       call void @__init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
-      store i32** @regular_ptr, i32*** @alias_var, align 8
+      store i32** @regular_ptr, i32*** @alias_var, align [filtered]
       call void @__user_init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
       ret void
     }
@@ -1554,29 +1554,29 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
 
     define void @__init_mystruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__init_test_with_reference_params(%test_with_reference_params* %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca %test_with_reference_params*, align [filtered]
+      store %test_with_reference_params* %0, %test_with_reference_params** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_myStruct(%myStruct* %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca %myStruct*, align [filtered]
+      store %myStruct* %0, %myStruct** %self, align [filtered]
       ret void
     }
 
     define void @__user_init_test_with_reference_params(%test_with_reference_params* %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca %test_with_reference_params*, align [filtered]
+      store %test_with_reference_params* %0, %test_with_reference_params** %self, align [filtered]
       ret void
     }
 
@@ -1682,16 +1682,16 @@ fn range_datatype_debug() {
 
     define i32 @main() !dbg !4 {
     entry:
-      %main = alloca i32, align 4
-      %r = alloca i32, align 4
+      %main = alloca i32, align [filtered]
+      %r = alloca i32, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %r, metadata !8, metadata !DIExpression()), !dbg !11
-      store i32 0, i32* %r, align 4
+      store i32 0, i32* %r, align [filtered]
       call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !13
-      store i32 0, i32* %main, align 4
-      store i32 50, i32* %r, align 4, !dbg !14
-      %load_r = load i32, i32* %r, align 4, !dbg !15
-      store i32 %load_r, i32* %main, align 4, !dbg !15
-      %main_ret = load i32, i32* %main, align 4, !dbg !16
+      store i32 0, i32* %main, align [filtered]
+      store i32 50, i32* %r, align [filtered], !dbg !14
+      %load_r = load i32, i32* %r, align [filtered], !dbg !15
+      store i32 %load_r, i32* %main, align [filtered], !dbg !15
+      %main_ret = load i32, i32* %main, align [filtered], !dbg !16
       ret i32 %main_ret, !dbg !16
     }
 

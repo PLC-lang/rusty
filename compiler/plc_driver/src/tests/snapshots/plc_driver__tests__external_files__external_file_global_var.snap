@@ -12,12 +12,12 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  store i32 0, i32* %main, align 4
-  store i16 2, i16* @x, align 2
-  store i16 2, i16* @y, align 2
+  %main = alloca i32, align [filtered]
+  store i32 0, i32* %main, align [filtered]
+  store i16 2, i16* @x, align [filtered]
+  store i16 2, i16* @y, align [filtered]
   %call = call i32 @external()
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align [filtered]
   ret i32 %main_ret
 }
 
