@@ -5583,7 +5583,10 @@ expression: json
             "complexenumtype": [
               {
                 "name": "ComplexEnumType",
-                "initial_value": null,
+                "initial_value": [
+                  0,
+                  0
+                ],
                 "information": {
                   "Enum": {
                     "name": "ComplexEnumType",
