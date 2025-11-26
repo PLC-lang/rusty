@@ -251,6 +251,9 @@ pub struct CompileParameters {
     )]
     pub online_change: bool,
 
+    #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile", global = true)]
+    pub generate_headers_only: bool,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -467,7 +470,11 @@ impl CompileParameters {
 
     /// If set, header files will be generated
     pub fn is_header_generator(&self) -> bool {
-        matches!(self.commands, Some(SubCommands::Generate { option: GenerateOption::Headers { .. }, .. }))
+        self.generate_headers_only
+            || matches!(
+                self.commands,
+                Some(SubCommands::Generate { option: GenerateOption::Headers { .. }, .. })
+            )
     }
 
     /// return the selected output format, or the default if none.
@@ -536,13 +543,12 @@ impl CompileParameters {
     fn has_config(&self) -> Result<bool, Diagnostic> {
         let res = match &self.commands {
             None | Some(SubCommands::Explain { .. }) => false,
-            Some(SubCommands::Build { .. })
-            | Some(SubCommands::Check { .. })
-            | Some(SubCommands::Generate { .. }) => true,
+            Some(SubCommands::Build { .. }) | Some(SubCommands::Check { .. }) => true,
             Some(SubCommands::Config { build_config, .. }) => {
                 let current_dir = env::current_dir()?;
                 build_config.is_some() || super::get_config(&current_dir).exists()
             }
+            Some(SubCommands::Generate { build_config, .. }) => build_config.is_some(),
         };
         Ok(res)
     }

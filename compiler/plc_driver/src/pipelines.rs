@@ -229,8 +229,8 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
-        self.compile_parameters.as_ref().map(|params| match params.commands.as_ref().unwrap() {
-            SubCommands::Generate { option, .. } => match option {
+        self.compile_parameters.as_ref().map(|params| match params.commands.as_ref() {
+            Some(SubCommands::Generate { option, .. }) => match option {
                 GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
                     GenerateHeaderOptions {
                         include_stubs: *include_stubs,
