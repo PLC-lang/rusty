@@ -1266,7 +1266,7 @@ pub(crate) fn validate_enum_variant_assignment<T: AnnotationMap>(
         None => {
             validator.push_diagnostic(
                 Diagnostic::new(format!(
-                    "Invalid enum value `{}` for `{}`",
+                    "Non-standard enum value `{}` for `{}`",
                     validator.context.slice(&right.location),
                     validator.get_type_name_or_slice(left_dt)
                 ))
@@ -1685,7 +1685,8 @@ fn validate_type_nature<T: AnnotationMap>(
         if let DataTypeInformation::Generic { generic_symbol, nature, .. } = type_hint.get_type_information()
         {
             // we might be validating an identifier of a formal parameter assignment (FOO(x := 0))
-            if let AstStatement::Identifier(_) = statement.get_stmt() {
+            // This includes both Identifier and ReferenceExpr nodes for named arguments
+            if let AstStatement::Identifier(_) | AstStatement::ReferenceExpr(_) = statement.get_stmt() {
                 return;
             }
             validator.push_diagnostic(

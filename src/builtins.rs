@@ -53,6 +53,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        let reference = extract_actual_parameter(reference);
                         // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
                         match generator.annotations.get(reference) {
                             Some(StatementAnnotation::Function { qualified_name, .. }) => {
@@ -99,19 +100,22 @@ lazy_static! {
                     let Some(params) = parameters else { return; };
                     // Get the input and annotate it with a pointer type
                     let input = flatten_expression_list(params);
-                    let Some(input) = input.first()  else { return; };
+                    let actual_input = extract_actual_parameter(input.first().expect("must exist; covered by validation"));
                     let input_type = annotator.annotation_map
-                        .get_type_or_void(input, annotator.index)
-                        .get_type_information()
-                        .get_name()
-                        .to_owned();
+                                            .get_type_or_void(actual_input, annotator.index)
+                                            .get_type_information()
+                                            .get_name()
+                                            .to_owned();
 
                     let ptr_type = resolver::add_pointer_type(
                         &mut annotator.annotation_map.new_index,
-                        input_type,
+                        input_type.clone(),
                         true,
                     );
 
+                    if input.first().is_some_and(|opt| opt.is_assignment()){
+                        annotator.annotation_map.annotate_type_hint(actual_input, StatementAnnotation::value(input_type));
+                    }
                     annotator.annotate(
                         operator, resolver::StatementAnnotation::Function {
                             return_type: ptr_type, qualified_name: "REF".to_string(), generic_name: None, call_name: None
@@ -124,6 +128,7 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let [reference] = params {
+                        let reference = extract_actual_parameter(reference);
                         // Return the pointer value of a function when dealing with them, e.g. `ADR(MyFb.myMethod)`
                         if let Some(StatementAnnotation::Function { qualified_name, .. }) = generator.annotations.get(reference) {
                             if let Some(fn_value) = generator.llvm_index.find_associated_implementation(qualified_name) {
@@ -212,20 +217,23 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code: |generator, params, location| {
                     if let &[g,in0,in1] = params {
+                        // Handle named arguments by extracting actual parameters
+                        let [actual_g, actual_in0, actual_in1] = [g, in0, in1].map(extract_actual_parameter);
+
                         // evaluate the parameters
-                        let cond = expression_generator::to_i1(generator.generate_expression(g)?.into_int_value(), &generator.llvm.builder)?;
+                        let cond = expression_generator::to_i1(generator.generate_expression(actual_g)?.into_int_value(), &generator.llvm.builder)?;
                         // for aggregate types we need a ptr to perform memcpy
                         // use generate_expression_value(), this will return a gep
                         // generate_expression() would load the ptr
-                        let in0 = if generator.annotations.get_type(in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(in0)?.get_basic_value_enum()
+                        let in0 = if generator.annotations.get_type(actual_in0,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(actual_in0)?.get_basic_value_enum()
                         } else {
-                            generator.generate_expression(in0)?
+                            generator.generate_expression(actual_in0)?
                         };
-                        let in1 = if generator.annotations.get_type(in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
-                            generator.generate_expression_value(in1)?.get_basic_value_enum()
+                        let in1 = if generator.annotations.get_type(actual_in1,generator.index).map(|it| it.get_type_information().is_aggregate()).unwrap_or_default() {
+                            generator.generate_expression_value(actual_in1)?.get_basic_value_enum()
                         } else {
-                            generator.generate_expression(in1)?
+                            generator.generate_expression(actual_in1)?
                         };
                         // generate an llvm select instruction
                         let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
@@ -255,7 +263,8 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if params.len() == 1 {
-                        generator.generate_expression(params[0]).map(ExpressionValue::RValue)
+                        let actual_param = extract_actual_parameter(params[0]);
+                        generator.generate_expression(actual_param).map(ExpressionValue::RValue)
                     } else {
                         Err(Diagnostic::codegen_error("MOVE expects exactly one parameter", location).into())
                     }
@@ -275,9 +284,10 @@ lazy_static! {
                 generic_name_resolver: no_generic_name_resolver,
                 code : |generator, params, location| {
                     if let [reference] = params {
+                        let actual_param = extract_actual_parameter(reference);
                         // get name of datatype behind reference
                         let type_name = generator.annotations
-                            .get_type(reference, generator.index)
+                            .get_type(actual_param, generator.index)
                             .map(|it| generator.index.get_effective_type_or_void_by_name(it.get_name()))
                             .unwrap()
                             .get_name();
@@ -605,7 +615,8 @@ fn validate_types(
 ) {
     let Some(params) = parameters else { return };
 
-    let types = flatten_expression_list(params);
+    let types: Vec<_> =
+        flatten_expression_list(params).into_iter().map(|it| extract_actual_parameter(it).clone()).collect();
     let mut types = types.iter().peekable();
 
     while let Some(left) = types.next() {
@@ -704,11 +715,29 @@ fn annotate_arithmetic_function(
     ctx: VisitorContext,
     operation: Operator,
 ) {
-    let params_flattened = flatten_expression_list(parameters);
-    if params_flattened.iter().any(|it| {
+    let params = flatten_expression_list(parameters);
+    let params_extracted: Vec<_> =
+        params.iter().map(|param| extract_actual_parameter(param).clone()).collect();
+
+    // Add type hints (only named arguments)
+    params
+        .iter()
+        .zip(&params_extracted)
+        .filter(|(it, _)| matches!(it.get_stmt(), AstStatement::Assignment(_)))
+        .for_each(|(_, extracted)| {
+            let param_type = annotator
+                .annotation_map
+                .get_type_or_void(extracted, annotator.index)
+                .get_type_information()
+                .get_name()
+                .to_owned();
+            annotator.annotation_map.annotate_type_hint(extracted, StatementAnnotation::value(param_type));
+        });
+
+    if params_extracted.iter().any(|param| {
         !annotator
             .annotation_map
-            .get_type_or_void(it, annotator.index)
+            .get_type_or_void(param, annotator.index)
             .has_nature(TypeNature::Num, annotator.index)
     }) {
         // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
@@ -722,9 +751,9 @@ fn annotate_arithmetic_function(
     let find_biggest_param_type_name = |annotator: &TypeAnnotator| {
         let mut bigger = annotator
             .annotation_map
-            .get_type_or_void(params_flattened.first().expect("must have this parameter"), annotator.index);
+            .get_type_or_void(params_extracted.first().expect("must have this parameter"), annotator.index);
 
-        for param in params_flattened.iter().skip(1) {
+        for param in params_extracted.iter().skip(1) {
             let right_type = annotator.annotation_map.get_type_or_void(param, annotator.index);
             bigger = get_bigger_type(bigger, right_type, annotator.index);
         }
@@ -736,8 +765,8 @@ fn annotate_arithmetic_function(
 
     // create nested AstStatement::BinaryExpression for each parameter, such that
     // ADD(a, b, c, d) ends up as (((a + b) + c) + d)
-    let left = (*params_flattened.first().expect("Must exist")).clone();
-    let new_statement = params_flattened.into_iter().skip(1).fold(left, |left, right| {
+    let left = (*params_extracted.first().expect("Must exist")).clone();
+    let new_statement = params_extracted.into_iter().skip(1).fold(left, |left, right| {
         AstFactory::create_binary_expression(left, operation, right.clone(), ctx.id_provider.next_id())
     });
 
@@ -752,25 +781,33 @@ fn annotate_variable_length_array_bound_function(
     parameters: Option<&AstNode>,
 ) {
     let Some(parameters) = parameters else {
-        // caught during validation
         return;
     };
     let params = ast::flatten_expression_list(parameters);
-    let Some(vla) = params.first() else {
-        // caught during validation
-        return;
-    };
-
+    let vla = params.first().expect("must exist; covered by validation");
+    let vla_param = extract_actual_parameter(vla);
     // if the VLA parameter is a VLA struct, annotate it as such
-    let vla_type = annotator.annotation_map.get_type_or_void(vla, annotator.index);
+    let vla_type = annotator.annotation_map.get_type_or_void(vla_param, annotator.index);
     let vla_type_name = if vla_type.get_nature() == TypeNature::__VLA {
         vla_type.get_name()
     } else {
         // otherwise annotate it with an internal, reserved VLA type
         typesystem::__VLA_TYPE
     };
-
-    annotator.annotation_map.annotate_type_hint(vla, StatementAnnotation::value(vla_type_name));
+    annotator.annotation_map.annotate_type_hint(vla_param, StatementAnnotation::value(vla_type_name));
+    if let Some(dim) = params.get(1) {
+        let dim_param = extract_actual_parameter(dim);
+        let dim_type = annotator.annotation_map.get_type_or_void(dim_param, annotator.index);
+        if !dim_type.is_void() {
+            // Use the actual type of the dimension parameter
+            annotator
+                .annotation_map
+                .annotate_type_hint(dim_param, StatementAnnotation::value(dim_type.get_name()));
+        } else {
+            // Fallback to a default integer type if no type is available
+            annotator.annotation_map.annotate_type_hint(dim_param, StatementAnnotation::value("DINT"));
+        }
+    }
 }
 
 fn validate_variable_length_array_bound_function(
@@ -789,46 +826,42 @@ fn validate_variable_length_array_bound_function(
 
     let params = ast::flatten_expression_list(parameters);
 
-    if params.len() > 2 {
-        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
-    }
+    if let &[vla, dim] = params.as_slice() {
+        let [actual_vla, actual_idx] = [vla, dim].map(extract_actual_parameter);
 
-    match (params.first(), params.get(1)) {
-        (Some(vla), Some(idx)) => {
-            let idx_type = annotations.get_type_or_void(idx, index);
+        let idx_type = annotations.get_type_or_void(actual_idx, index);
 
-            if !idx_type.has_nature(TypeNature::Int, index) {
+        if !idx_type.has_nature(TypeNature::Int, index) {
+            validator.push_diagnostic(
+                Diagnostic::new(format!(
+                    "Invalid type nature for generic argument. {} is no {}",
+                    idx_type.get_name(),
+                    TypeNature::Int
+                ))
+                .with_error_code("E062")
+                .with_location(actual_idx),
+            )
+        }
+
+        // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
+        if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = actual_idx.get_stmt() {
+            let dimension_idx = *dimension_idx as usize;
+
+            let Some(n_dimensions) =
+                annotations.get_type_or_void(actual_vla, index).get_type_information().get_dimension_count()
+            else {
+                // not a vla, validated via type nature
+                return;
+            };
+
+            if dimension_idx < 1 || dimension_idx > n_dimensions {
                 validator.push_diagnostic(
-                    Diagnostic::new(format!(
-                        "Invalid type nature for generic argument. {} is no {}",
-                        idx_type.get_name(),
-                        TypeNature::Int
-                    ))
-                    .with_error_code("E062")
-                    .with_location(*idx),
+                    Diagnostic::new("Index out of bound").with_error_code("E046").with_location(operator),
                 )
             }
-
-            // TODO: consider adding validation for consts and enums once https://github.com/PLC-lang/rusty/issues/847 has been implemented
-            if let AstStatement::Literal(AstLiteral::Integer(dimension_idx)) = idx.get_stmt() {
-                let dimension_idx = *dimension_idx as usize;
-
-                let Some(n_dimensions) =
-                    annotations.get_type_or_void(vla, index).get_type_information().get_dimension_count()
-                else {
-                    // not a vla, validated via type nature
-                    return;
-                };
-
-                if dimension_idx < 1 || dimension_idx > n_dimensions {
-                    validator.push_diagnostic(
-                        Diagnostic::new("Index out of bound").with_error_code("E046").with_location(operator),
-                    )
-                }
-            };
-        }
-        (Some(_), None) => validator.push_diagnostic(Diagnostic::invalid_argument_count(2, 1, operator)),
-        _ => unreachable!(),
+        };
+    } else {
+        validator.push_diagnostic(Diagnostic::invalid_argument_count(2, params.len(), operator));
     }
 }
 
@@ -850,6 +883,19 @@ fn validate_argument_count(
     }
 }
 
+/// Helper function to extract the actual parameter from Assignment nodes when dealing with named arguments
+/// For named arguments like `func(param := value)`, the AST contains an Assignment node where we need
+/// to extract the right-hand side (the actual value). For positional arguments, use the parameter directly.
+fn extract_actual_parameter(param: &AstNode) -> &AstNode {
+    if let AstStatement::Assignment(assignment) = param.get_stmt() {
+        // Named argument: extract the actual value from the right side of the assignment
+        assignment.right.as_ref()
+    } else {
+        // Positional argument: use the parameter directly
+        param
+    }
+}
+
 /// Generates the code for the LOWER- AND UPPER_BOUND built-in functions, returning an error if the function
 /// arguments are incorrect.
 fn generate_variable_length_array_bound_function<'ink>(
@@ -860,67 +906,73 @@ fn generate_variable_length_array_bound_function<'ink>(
 ) -> Result<ExpressionValue<'ink>, CodegenError> {
     let llvm = generator.llvm;
     let builder = &generator.llvm.builder;
-    let data_type_information =
-        generator.annotations.get_type_or_void(params[0], generator.index).get_type_information();
 
-    // TODO: most of the codegen errors should already be caught during validation.
-    // once we abort codegen on critical errors, revisit and change to unreachable where possible
-    if !data_type_information.is_vla() {
-        return Err(CodegenError::GenericError(
-            format!("Expected VLA type, received {}", data_type_information.get_name()),
-            location,
-        ));
-    };
+    if let &[vla, dim] = params {
+        let [actual_vla, actual_dim] = [vla, dim].map(extract_actual_parameter);
 
-    let vla = generator.generate_lvalue(params[0]).unwrap();
-    let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+        let data_type_information =
+            generator.annotations.get_type_or_void(actual_vla, generator.index).get_type_information();
 
-    let accessor = match params[1].get_stmt() {
-        // e.g. LOWER_BOUND(arr, 1)
-        AstStatement::Literal(kind) => {
-            let AstLiteral::Integer(value) = kind else {
-                let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
-                    unreachable!("type cannot be VOID")
+        // TODO: most of the codegen errors should already be caught during validation.
+        // once we abort codegen on critical errors, revisit and change to unreachable where possible
+        if !data_type_information.is_vla() {
+            return Err(CodegenError::GenericError(
+                format!("Expected VLA type, received {}", data_type_information.get_name()),
+                location,
+            ));
+        };
+
+        let vla = generator.generate_lvalue(actual_vla).unwrap();
+        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+
+        let accessor = match actual_dim.get_stmt() {
+            // e.g. LOWER_BOUND(arr, 1)
+            AstStatement::Literal(kind) => {
+                let AstLiteral::Integer(value) = kind else {
+                    let Some(type_name) = get_literal_actual_signed_type_name(kind, false) else {
+                        unreachable!("type cannot be VOID")
+                    };
+                    return Err(CodegenError::GenericError(
+                        format!("Invalid literal type. Expected INT type, received {type_name} type"),
+                        location,
+                    ));
                 };
-                return Err(CodegenError::GenericError(
-                    format!("Invalid literal type. Expected INT type, received {type_name} type"),
-                    location,
-                ));
-            };
-            // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
-            // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
-            let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
-            llvm.i32_type().const_int(offset, false)
-        }
-        // e.g. LOWER_BOUND(arr, idx + 3)
-        _ => {
-            let expression_value = generator.generate_expression(params[1])?;
-            if !expression_value.is_int_value() {
-                todo!()
-            };
-            // this operation mirrors the offset calculation of literal ints, but at runtime
-            let offset = builder.build_int_mul(
-                llvm.i32_type().const_int(2, false),
-                builder.build_int_sub(
-                    expression_value.into_int_value(),
-                    llvm.i32_type().const_int(1, false),
-                    "",
-                )?,
-                "",
-            )?;
-            if !is_lower {
-                builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")?
-            } else {
-                offset
+                // array offset start- and end-values are adjacent values in a flattened array -> 2 values per dimension, so in order
+                // to read the correct values, the given index needs to be doubled. Additionally, the value is adjusted for 0-indexing.
+                let offset = if is_lower { (value - 1) as u64 * 2 } else { (value - 1) as u64 * 2 + 1 };
+                llvm.i32_type().const_int(offset, false)
             }
-        }
-    };
+            // e.g. LOWER_BOUND(arr, idx + 3)
+            _ => {
+                let expression_value = generator.generate_expression(actual_dim)?;
+                if !expression_value.is_int_value() {
+                    todo!()
+                };
+                // this operation mirrors the offset calculation of literal ints, but at runtime
+                let offset = builder.build_int_mul(
+                    llvm.i32_type().const_int(2, false),
+                    builder.build_int_sub(
+                        expression_value.into_int_value(),
+                        llvm.i32_type().const_int(1, false),
+                        "",
+                    )?,
+                    "",
+                )?;
+                if !is_lower {
+                    builder.build_int_add(offset, llvm.i32_type().const_int(1, false), "")?
+                } else {
+                    offset
+                }
+            }
+        };
+        let gep_bound =
+            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") }?;
+        let bound = llvm.builder.build_load(gep_bound, "")?;
 
-    let gep_bound =
-        unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "")? };
-    let bound = llvm.builder.build_load(gep_bound, "")?;
-
-    Ok(ExpressionValue::RValue(bound))
+        Ok(ExpressionValue::RValue(bound))
+    } else {
+        Err(CodegenError::GenericError("Invalid signature for LOWER_BOUND/UPPER_BOUND".to_string(), location))
+    }
 }
 
 type AnnotationFunction = fn(&mut TypeAnnotator, &AstNode, &AstNode, Option<&AstNode>, VisitorContext);

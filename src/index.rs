@@ -2034,6 +2034,59 @@ impl Index {
         self.type_index.pou_types.insert(datatype.get_name().to_lowercase(), datatype);
     }
 
+    /// Fixes up enum types to set their default initial values.
+    /// This must be called after constant resolution, as it needs to evaluate
+    /// constant expressions to determine which variant is zero.
+    ///
+    /// For each enum without an explicit initializer, this sets the initial_value to:
+    /// 1. The zero-variant (if one exists), or
+    /// 2. The first variant (as fallback)
+    pub fn finalize_enum_defaults(&mut self) {
+        // Process all types and update enum defaults
+        let mut fixed_types = Vec::new();
+
+        for (name, mut datatypes) in self.type_index.types.drain(..) {
+            for mut datatype in datatypes.drain(..) {
+                if let DataTypeInformation::Enum { variants, .. } = &datatype.information {
+                    // Only process if there's no explicit initializer
+                    if datatype.initial_value.is_none() && !variants.is_empty() {
+                        let mut zero_variant_id: Option<ConstId> = None;
+                        let mut first_variant_id: Option<ConstId> = None;
+
+                        // Look for a variant that evaluates to zero, or use the first one
+                        for (idx, variant) in variants.iter().enumerate() {
+                            if let Some(variant_init) = variant.initial_value {
+                                if idx == 0 {
+                                    first_variant_id = Some(variant_init);
+                                }
+
+                                if let Ok(0) =
+                                    self.constant_expressions.get_constant_int_statement_value(&variant_init)
+                                {
+                                    zero_variant_id = Some(variant_init);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Prefer zero variant, fall back to first variant
+                        let default_value = zero_variant_id.or(first_variant_id);
+                        if let Some(const_id) = default_value {
+                            datatype.initial_value = Some(const_id);
+                        }
+                    }
+                }
+
+                fixed_types.push((name.clone(), datatype));
+            }
+        }
+
+        // Re-insert all types
+        for (name, datatype) in fixed_types {
+            self.type_index.types.insert(name, datatype);
+        }
+    }
+
     pub fn find_callable_instance_variable(
         &self,
         context: Option<&str>,

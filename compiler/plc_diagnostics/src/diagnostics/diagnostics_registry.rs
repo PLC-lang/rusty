@@ -141,7 +141,7 @@ lazy_static! {
         E037,   Error,      include_str!("./error_codes/E037.md"),
         E038,   Error,      include_str!("./error_codes/E038.md"), // Missing type
         E039,   Warning,    include_str!("./error_codes/E039.md"),
-        E040,   Error,      include_str!("./error_codes/E040.md"),
+        E040,   Warning,    include_str!("./error_codes/E040.md"),
         E041,   Error,      include_str!("./error_codes/E041.md"),
         E042,   Warning,    include_str!("./error_codes/E042.md"), // Assignment to reference
         E043,   Error,      include_str!("./error_codes/E043.md"),
@@ -223,6 +223,7 @@ lazy_static! {
         E119,   Error,      include_str!("./error_codes/E119.md"),  // Invalid use of `SUPER` keyword
         E120,   Error,      include_str!("./error_codes/E120.md"),  // Invalid use of `THIS` keyword
         E121,   Error,      include_str!("./error_codes/E121.md"),  // Recursive type alias
+        E122,   Error,      include_str!("./error_codes/E122.md"),  // Invalid enum base type
     );
 }
 

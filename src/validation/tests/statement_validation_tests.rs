@@ -724,6 +724,417 @@ fn ref_builtin_function_reports_invalid_param_count() {
 }
 
 #[test]
+fn builtin_functions_named_arguments_mixed_with_positional_arguments() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..5] OF INT;
+            a, b: INT;
+            sel: BOOL;
+        END_VAR
+            // SEL with mixed named and positional parameter
+            a := SEL(G := sel, IN0 := a, b);
+
+            // SIZEOF only has one parameter so no mixing possible
+
+            // MOVE only has one parameter so no mixing possible
+
+            // ADR only has one parameter so no mixing possible
+
+            // REF only has one parameter so no mixing possible
+
+            // UPPER_BOUND with mixed named and positional parameter
+            a := UPPER_BOUND(arr := arr, 1);
+
+            // LOWER_BOUND with mixed named and positional parameter
+            a := LOWER_BOUND(arr := arr, 1);
+
+            // LOWER_BOUND with mixed named and positional parameter
+            a := DIV(IN1 := a, b);
+
+            // LOWER_BOUND with mixed named and positional parameter
+            a := SUB(IN1 := a, b);
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E031]: Cannot mix implicit and explicit call parameters!
+      ┌─ <internal>:9:42
+      │
+    9 │             a := SEL(G := sel, IN0 := a, b);
+      │                                          ^ Cannot mix implicit and explicit call parameters!
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:20:30
+       │
+    20 │             a := UPPER_BOUND(arr := arr, 1);
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    error[E031]: Cannot mix implicit and explicit call parameters!
+       ┌─ <internal>:20:42
+       │
+    20 │             a := UPPER_BOUND(arr := arr, 1);
+       │                                          ^ Cannot mix implicit and explicit call parameters!
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:20:18
+       │
+    20 │             a := UPPER_BOUND(arr := arr, 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:23:30
+       │
+    23 │             a := LOWER_BOUND(arr := arr, 1);
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    error[E031]: Cannot mix implicit and explicit call parameters!
+       ┌─ <internal>:23:42
+       │
+    23 │             a := LOWER_BOUND(arr := arr, 1);
+       │                                          ^ Cannot mix implicit and explicit call parameters!
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:23:18
+       │
+    23 │             a := LOWER_BOUND(arr := arr, 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E031]: Cannot mix implicit and explicit call parameters!
+       ┌─ <internal>:26:32
+       │
+    26 │             a := DIV(IN1 := a, b);
+       │                                ^ Cannot mix implicit and explicit call parameters!
+
+    error[E031]: Cannot mix implicit and explicit call parameters!
+       ┌─ <internal>:29:32
+       │
+    29 │             a := SUB(IN1 := a, b);
+       │                                ^ Cannot mix implicit and explicit call parameters!
+    ");
+}
+
+#[test]
+fn builtin_functions_named_arguments_invalid_parameter_names() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..5] OF INT;
+            arr2: ARRAY[0..5] OF INT;
+            a, b: INT;
+            sel: BOOL;
+        END_VAR
+            // SEL with wrong parameter names
+            a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+            a := SEL(G := sel, INVALID := a, IN1 := b);
+
+            // MOVE with wrong parameter name
+            arr2 := MOVE(SOURCE := arr);
+
+            // SIZEOF with wrong parameter name
+            a := SIZEOF(INVALID := arr);
+
+            // ADR with wrong parameter name
+            ADR(WRONG := arr);
+
+            // REF with wrong parameter name
+            REF(INVALID := arr);
+
+            // UPPER_BOUND with wrong parameter names
+            a := UPPER_BOUND(INVALID := arr, DIM := 1);
+            a := UPPER_BOUND(ARR := arr, WRONG := 1);
+
+            // LOWER_BOUND with wrong parameter names
+            a := LOWER_BOUND(WRONG := arr, DIM := 1);
+            a := LOWER_BOUND(ARR := arr, INVALID := 1);
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:10:22
+       │
+    10 │             a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+       │                      ^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to WRONG
+       ┌─ <internal>:10:22
+       │
+    10 │             a := SEL(WRONG := sel, IN0 := a, IN1 := b);
+       │                      ^^^^^ Could not resolve reference to WRONG
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:11:32
+       │
+    11 │             a := SEL(G := sel, INVALID := a, IN1 := b);
+       │                                ^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to INVALID
+       ┌─ <internal>:11:32
+       │
+    11 │             a := SEL(G := sel, INVALID := a, IN1 := b);
+       │                                ^^^^^^^ Could not resolve reference to INVALID
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:14:26
+       │
+    14 │             arr2 := MOVE(SOURCE := arr);
+       │                          ^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to SOURCE
+       ┌─ <internal>:14:26
+       │
+    14 │             arr2 := MOVE(SOURCE := arr);
+       │                          ^^^^^^ Could not resolve reference to SOURCE
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:17:25
+       │
+    17 │             a := SIZEOF(INVALID := arr);
+       │                         ^^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to INVALID
+       ┌─ <internal>:17:25
+       │
+    17 │             a := SIZEOF(INVALID := arr);
+       │                         ^^^^^^^ Could not resolve reference to INVALID
+
+    warning[E067]: Implicit downcast from 'ULINT' to 'INT'.
+       ┌─ <internal>:17:18
+       │
+    17 │             a := SIZEOF(INVALID := arr);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'ULINT' to 'INT'.
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:20:17
+       │
+    20 │             ADR(WRONG := arr);
+       │                 ^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to WRONG
+       ┌─ <internal>:20:17
+       │
+    20 │             ADR(WRONG := arr);
+       │                 ^^^^^ Could not resolve reference to WRONG
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:23:17
+       │
+    23 │             REF(INVALID := arr);
+       │                 ^^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to INVALID
+       ┌─ <internal>:23:17
+       │
+    23 │             REF(INVALID := arr);
+       │                 ^^^^^^^ Could not resolve reference to INVALID
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:26:30
+       │
+    26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+       │                              ^^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to INVALID
+       ┌─ <internal>:26:30
+       │
+    26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+       │                              ^^^^^^^ Could not resolve reference to INVALID
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:26:18
+       │
+    26 │             a := UPPER_BOUND(INVALID := arr, DIM := 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:27:30
+       │
+    27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:27:42
+       │
+    27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+       │                                          ^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to WRONG
+       ┌─ <internal>:27:42
+       │
+    27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+       │                                          ^^^^^ Could not resolve reference to WRONG
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:27:18
+       │
+    27 │             a := UPPER_BOUND(ARR := arr, WRONG := 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:30:30
+       │
+    30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+       │                              ^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to WRONG
+       ┌─ <internal>:30:30
+       │
+    30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+       │                              ^^^^^ Could not resolve reference to WRONG
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:30:18
+       │
+    30 │             a := LOWER_BOUND(WRONG := arr, DIM := 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:31:30
+       │
+    31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:31:42
+       │
+    31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+       │                                          ^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to INVALID
+       ┌─ <internal>:31:42
+       │
+    31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+       │                                          ^^^^^^^ Could not resolve reference to INVALID
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:31:18
+       │
+    31 │             a := LOWER_BOUND(ARR := arr, INVALID := 1);
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+    ");
+}
+
+#[test]
+fn builtin_functions_named_arguments_type_mismatches() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main : DINT
+        VAR
+            arr: ARRAY[0..5] OF INT;
+            a, b: INT;
+            sel: BOOL;
+            str_val: STRING;
+        END_VAR
+            // SEL with type mismatches
+            a := SEL(G := str_val, IN0 := a, IN1 := b);  // wrong type for selector
+
+            // MOVE with type mismatches
+            MOVE(IN := a, OUT := str_val);  // incompatible array types
+
+            // SIZEOF - should work with any type, so no type mismatch possible
+
+            // ADR - should work with any type, so no type mismatch possible
+
+            // REF - should work with any type, so no type mismatch possible
+
+            // UPPER_BOUND with type mismatches
+            a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+            a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+
+            // LOWER_BOUND with type mismatches
+            a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+            a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+        END_FUNCTION
+    ",
+    );
+
+    assert_snapshot!(diagnostics, @r"
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'BOOL'
+       ┌─ <internal>:10:22
+       │
+    10 │             a := SEL(G := str_val, IN0 := a, IN1 := b);  // wrong type for selector
+       │                      ^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'BOOL'
+
+    error[E089]: Invalid call parameters
+       ┌─ <internal>:13:27
+       │
+    13 │             MOVE(IN := a, OUT := str_val);  // incompatible array types
+       │                           ^^^^^^^^^^^^^^ Invalid call parameters
+
+    error[E048]: Could not resolve reference to OUT
+       ┌─ <internal>:13:27
+       │
+    13 │             MOVE(IN := a, OUT := str_val);  // incompatible array types
+       │                           ^^^ Could not resolve reference to OUT
+
+    error[E037]: Invalid assignment: cannot assign 'INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:22:30
+       │
+    22 │             a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+       │                              ^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'VARIABLE LENGTH ARRAY'
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:22:18
+       │
+    22 │             a := UPPER_BOUND(ARR := a, DIM := 1);  // not an array
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E062]: Invalid type nature for generic argument. STRING is no ANY_INT
+       ┌─ <internal>:23:49
+       │
+    23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+       │                                                 ^^^^^^^ Invalid type nature for generic argument. STRING is no ANY_INT
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:23:30
+       │
+    23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:23:18
+       │
+    23 │             a := UPPER_BOUND(ARR := arr, DIM := str_val);  // wrong type for dimension
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:26:30
+       │
+    26 │             a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+       │                              ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:26:18
+       │
+    26 │             a := LOWER_BOUND(ARR := str_val, DIM := 1);  // not an array
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+
+    error[E062]: Invalid type nature for generic argument. BOOL is no ANY_INT
+       ┌─ <internal>:27:49
+       │
+    27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+       │                                                 ^^^ Invalid type nature for generic argument. BOOL is no ANY_INT
+
+    error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+       ┌─ <internal>:27:30
+       │
+    27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+       │                              ^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5] OF INT' to 'VARIABLE LENGTH ARRAY'
+
+    warning[E067]: Implicit downcast from 'DINT' to 'INT'.
+       ┌─ <internal>:27:18
+       │
+    27 │             a := LOWER_BOUND(ARR := arr, DIM := sel);  // wrong type for dimension
+       │                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Implicit downcast from 'DINT' to 'INT'.
+    ");
+}
+
+#[test]
 fn address_of_operations() {
     let diagnostics = parse_and_validate_buffered(
         "
