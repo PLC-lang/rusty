@@ -4058,7 +4058,7 @@ fn methods_var_output() {
         "
         FUNCTION_BLOCK foo
         METHOD baz
-        VAR_OUTPUT 
+        VAR_OUTPUT
             out : STRING;
         END_VAR
             out := 'hello';
@@ -4066,7 +4066,7 @@ fn methods_var_output() {
         END_FUNCTION_BLOCK
 
         FUNCTION main
-        VAR 
+        VAR
             s: STRING;
             fb: foo;
         END_VAR
