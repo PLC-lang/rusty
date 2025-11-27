@@ -229,22 +229,25 @@ impl<T: SourceContainer> BuildPipeline<T> {
     }
 
     pub fn get_generate_header_options(&self) -> Option<GenerateHeaderOptions> {
+        let header_output_path =
+            self.compile_parameters.as_ref().map(|params| params.header_output.clone().unwrap_or_default());
+
+        let output_path = if let Some(output_path) = header_output_path {
+            PathBuf::from(output_path)
+        } else {
+            PathBuf::from(String::new())
+        };
+
         self.compile_parameters.as_ref().map(|params| match params.commands.as_ref() {
             Some(SubCommands::Generate { option, .. }) => match option {
-                GenerateOption::Headers { include_stubs, language, output, prefix, .. } => {
-                    GenerateHeaderOptions {
-                        include_stubs: *include_stubs,
-                        language: *language,
-                        output_path: if output.is_some() {
-                            PathBuf::from(output.clone().unwrap())
-                        } else {
-                            PathBuf::from(String::new())
-                        },
-                        prefix: prefix.clone().unwrap_or(String::new()),
-                    }
-                }
+                GenerateOption::Headers { include_stubs, language, prefix, .. } => GenerateHeaderOptions {
+                    include_stubs: *include_stubs,
+                    language: *language,
+                    output_path,
+                    prefix: prefix.clone().unwrap_or(String::new()),
+                },
             },
-            _ => GenerateHeaderOptions::default(),
+            _ => GenerateHeaderOptions { output_path, ..Default::default() },
         })
     }
 

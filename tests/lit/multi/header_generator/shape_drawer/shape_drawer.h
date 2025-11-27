@@ -6,6 +6,10 @@
 #ifndef SHAPE_DRAWER
 #define SHAPE_DRAWER
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 
 typedef struct {

@@ -1,3 +1,7 @@
+---
+source: tests/integration/header_generator_tests.rs
+expression: "fs::read_to_string(gen_dir.join(\"colour_tracker.h\").to_str().unwrap()).unwrap()"
+---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
 // Manual changes made to this file will be overwritten //

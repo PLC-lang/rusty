@@ -10,6 +10,10 @@ expression: "&generated_headers[0].get_contents()"
 #ifndef FUNCTION_BLOCKS_WITH_INHERITANCE
 #define FUNCTION_BLOCKS_WITH_INHERITANCE
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 
 typedef struct {

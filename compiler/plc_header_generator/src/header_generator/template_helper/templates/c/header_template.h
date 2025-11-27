@@ -6,6 +6,10 @@
 #ifndef {{ file_name_caps }}
 #define {{ file_name_caps }}
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 {% raw %}
 {% endraw %}

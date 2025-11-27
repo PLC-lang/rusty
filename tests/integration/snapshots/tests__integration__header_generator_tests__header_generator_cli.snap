@@ -10,6 +10,10 @@ expression: "fs::read_to_string(dir.path().join(\"colour_tracker.h\").to_str().u
 #ifndef COLOUR_TRACKER
 #define COLOUR_TRACKER
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 
 typedef enum eRGB {

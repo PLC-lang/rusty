@@ -6,6 +6,10 @@
 #ifndef NUMBER_PRINTER
 #define NUMBER_PRINTER
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 
 void PrintNumber(int16_t valueToPrint);

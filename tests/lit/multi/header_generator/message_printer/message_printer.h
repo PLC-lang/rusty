@@ -6,6 +6,10 @@
 #ifndef MESSAGE_PRINTER
 #define MESSAGE_PRINTER
 
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
 #include <dependencies.plc.h>
 
 typedef char T_Message[255];

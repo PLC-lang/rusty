@@ -251,8 +251,16 @@ pub struct CompileParameters {
     )]
     pub online_change: bool,
 
-    #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile", global = true)]
+    #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile.", global = true)]
     pub generate_headers_only: bool,
+
+    #[clap(
+        name = "header-output",
+        long,
+        help = "The output folder where generated headers will be placed.",
+        global = true
+    )]
+    pub header_output: Option<String>,
 
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
@@ -357,13 +365,6 @@ pub enum GenerateOption {
             default_value = "c"
         )]
         language: GenerateLanguage,
-
-        #[clap(
-            name = "header-output",
-            long,
-            help = "The output folder where generated headers and stubs will be placed."
-        )]
-        output: Option<String>,
 
         #[clap(
             name = "header-prefix",
@@ -974,8 +975,6 @@ mod cli_tests {
             "--include-stubs",
             "--header-language",
             "rust",
-            "--header-output",
-            "some_dir",
             "--header-prefix",
             "myLib"
         ))
@@ -985,10 +984,9 @@ mod cli_tests {
                 SubCommands::Generate { build_config, option, .. } => {
                     assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
                     match option {
-                        GenerateOption::Headers { include_stubs, language, output, prefix } => {
+                        GenerateOption::Headers { include_stubs, language, prefix } => {
                             assert_eq!(include_stubs, true);
                             assert_eq!(language, GenerateLanguage::Rust);
-                            assert_eq!(output, Some("some_dir".to_string()));
                             assert_eq!(prefix, Some("myLib".to_string()));
                         }
                     }
