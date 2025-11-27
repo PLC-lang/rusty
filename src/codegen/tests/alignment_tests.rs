@@ -32,16 +32,16 @@ END_FUNCTION
 
     define void @main() {
     entry:
-      %a = alloca i8, align 1
-      %b = alloca i16, align 2
+      %a = alloca i8, align 4
+      %b = alloca i16, align 4
       %c = alloca i32, align 4
       %d = alloca i64, align 8
-      %e = alloca i16, align 2
+      %e = alloca i16, align 4
       %f = alloca i32, align 4
       %g = alloca i64, align 8
       %h = alloca float, align 4
       %i = alloca double, align 8
-      %j = alloca i8, align 1
+      %j = alloca i8, align 4
       store i8 0, i8* %a, align 1
       store i16 0, i16* %b, align 2
       store i32 0, i32* %c, align 4
@@ -134,7 +134,7 @@ fn test_struct_alignment() {
     entry:
       %x = alloca %MyStruct, align 8
       %y = alloca %MyStruct, align 8
-      %a = alloca i8, align 1
+      %a = alloca i8, align 4
       %0 = bitcast %MyStruct* %x to i8*
       call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%MyStruct, %MyStruct* @__MyStruct__init, i32 0, i32 0), i64 ptrtoint (%MyStruct* getelementptr (%MyStruct, %MyStruct* null, i32 1) to i64), i1 false)
       %1 = bitcast %MyStruct* %y to i8*
