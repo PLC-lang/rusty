@@ -1,7 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 68
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,7 +14,7 @@ target triple = "[filtered]"
 @gY = external global i8
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
   ret void
 }

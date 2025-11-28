@@ -151,12 +151,12 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
 
     @__FOO__init = unnamed_addr constant %FOO zeroinitializer
 
-    define void @FOO(%FOO* %0) {
+    define void @FOO(ptr %0) {
     entry:
-      %this = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %this, align 8
-      %X = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
-      %Y = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 1
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %X = getelementptr inbounds %FOO, ptr %0, i32 0, i32 0
+      %Y = getelementptr inbounds %FOO, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -165,63 +165,62 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
       %f = alloca %FOO, align 8
-      store i8 0, i8* %error_bits, align 1
-      %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %load_error_bits = load i8, i8* %error_bits, align 1
+      store i8 0, ptr %error_bits, align 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align 4
+      %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %load_error_bits = load i8, ptr %error_bits, align 1
       %shift = lshr i8 %load_error_bits, 0
-      %2 = and i8 %shift, 1
-      store i8 %2, i8* %1, align 1
-      call void @FOO(%FOO* %f)
-      %3 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
-      %4 = load i8, i8* %error_bits, align 1
-      %5 = load i8, i8* %3, align 1
-      %erase = and i8 %4, -2
-      %value = shl i8 %5, 0
+      %1 = and i8 %shift, 1
+      store i8 %1, ptr %0, align 1
+      call void @FOO(ptr %f)
+      %2 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 1
+      %3 = load i8, ptr %error_bits, align 1
+      %4 = load i8, ptr %2, align 1
+      %erase = and i8 %3, -2
+      %value = shl i8 %4, 0
       %or = or i8 %erase, %value
-      store i8 %or, i8* %error_bits, align 1
-      %6 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %load_error_bits1 = load i8, i8* %error_bits, align 1
+      store i8 %or, ptr %error_bits, align 1
+      %5 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %load_error_bits1 = load i8, ptr %error_bits, align 1
       %shift2 = lshr i8 %load_error_bits1, 0
-      %7 = and i8 %shift2, 1
-      store i8 %7, i8* %6, align 1
-      call void @FOO(%FOO* %f)
-      %8 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
-      %9 = load i8, i8* %error_bits, align 1
-      %10 = load i8, i8* %8, align 1
-      %erase3 = and i8 %9, -2
-      %value4 = shl i8 %10, 0
+      %6 = and i8 %shift2, 1
+      store i8 %6, ptr %5, align 1
+      call void @FOO(ptr %f)
+      %7 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 1
+      %8 = load i8, ptr %error_bits, align 1
+      %9 = load i8, ptr %7, align 1
+      %erase3 = and i8 %8, -2
+      %value4 = shl i8 %9, 0
       %or5 = or i8 %erase3, %value4
-      store i8 %or5, i8* %error_bits, align 1
-      %11 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %load_error_bits6 = load i8, i8* %error_bits, align 1
+      store i8 %or5, ptr %error_bits, align 1
+      %10 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %load_error_bits6 = load i8, ptr %error_bits, align 1
       %shift7 = lshr i8 %load_error_bits6, 0
-      %12 = and i8 %shift7, 1
-      store i8 %12, i8* %11, align 1
-      call void @FOO(%FOO* %f)
-      %13 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 1
-      %14 = load i8, i8* %error_bits, align 1
-      %15 = load i8, i8* %13, align 1
-      %erase8 = and i8 %14, -2
-      %value9 = shl i8 %15, 0
+      %11 = and i8 %shift7, 1
+      store i8 %11, ptr %10, align 1
+      call void @FOO(ptr %f)
+      %12 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 1
+      %13 = load i8, ptr %error_bits, align 1
+      %14 = load i8, ptr %12, align 1
+      %erase8 = and i8 %13, -2
+      %value9 = shl i8 %14, 0
       %or10 = or i8 %erase8, %value9
-      store i8 %or10, i8* %error_bits, align 1
-      %16 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %load_error_bits11 = load i8, i8* %error_bits, align 1
+      store i8 %or10, ptr %error_bits, align 1
+      %15 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %load_error_bits11 = load i8, ptr %error_bits, align 1
       %shift12 = lshr i8 %load_error_bits11, 0
-      %17 = and i8 %shift12, 1
-      store i8 %17, i8* %16, align 1
-      call void @FOO(%FOO* %f)
-      %main_ret = load i32, i32* %main, align 4
+      %16 = and i8 %shift12, 1
+      store i8 %16, ptr %15, align 1
+      call void @FOO(ptr %f)
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 
@@ -256,11 +255,11 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
 
     @__FOO__init = unnamed_addr constant %FOO { i8 1 }
 
-    define void @FOO(%FOO* %0) {
+    define void @FOO(ptr %0) {
     entry:
-      %this = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %this, align 8
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %Q = getelementptr inbounds %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -269,26 +268,25 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
       %f = alloca %FOO, align 8
-      store i8 -17, i8* %error_bits, align 1
-      %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %2 = load i8, i8* %error_bits, align 1
-      %3 = load i8, i8* %1, align 1
-      %erase = and i8 %2, -17
-      %value = shl i8 %3, 4
+      store i8 -17, ptr %error_bits, align 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align 4
+      call void @FOO(ptr %f)
+      %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %1 = load i8, ptr %error_bits, align 1
+      %2 = load i8, ptr %0, align 1
+      %erase = and i8 %1, -17
+      %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, i8* %error_bits, align 1
-      %main_ret = load i32, i32* %main, align 4
+      store i8 %or, ptr %error_bits, align 1
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 
@@ -323,11 +321,11 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
 
     @__FOO__init = unnamed_addr constant %FOO { i8 1 }
 
-    define void @FOO(%FOO* %0) {
+    define void @FOO(ptr %0) {
     entry:
-      %this = alloca %FOO*, align 8
-      store %FOO* %0, %FOO** %this, align 8
-      %Q = getelementptr inbounds %FOO, %FOO* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %Q = getelementptr inbounds %FOO, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -336,26 +334,25 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
       %main = alloca i32, align 4
       %error_bits = alloca i8, align 1
       %f = alloca %FOO, align 8
-      store i8 -17, i8* %error_bits, align 1
-      %0 = bitcast %FOO* %f to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%FOO, %FOO* @__FOO__init, i32 0, i32 0), i64 ptrtoint (%FOO* getelementptr (%FOO, %FOO* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      call void @FOO(%FOO* %f)
-      %1 = getelementptr inbounds %FOO, %FOO* %f, i32 0, i32 0
-      %2 = load i8, i8* %error_bits, align 1
-      %3 = load i8, i8* %1, align 1
-      %erase = and i8 %2, -17
-      %value = shl i8 %3, 4
+      store i8 -17, ptr %error_bits, align 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %main, align 4
+      call void @FOO(ptr %f)
+      %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
+      %1 = load i8, ptr %error_bits, align 1
+      %2 = load i8, ptr %0, align 1
+      %erase = and i8 %1, -17
+      %value = shl i8 %2, 4
       %or = or i8 %erase, %value
-      store i8 %or, i8* %error_bits, align 1
-      %main_ret = load i32, i32* %main, align 4
+      store i8 %or, ptr %error_bits, align 1
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 

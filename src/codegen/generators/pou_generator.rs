@@ -692,7 +692,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             .map(BasicValueEnum::into_pointer_value)
             .ok_or_else(|| CodegenError::from(Diagnostic::missing_function(location)))?;
         let param_pointer_type = {
-            let ty = self.index.find_effective_type_by_name(&members.get(0).unwrap().data_type_name).unwrap();
+            let ty = self.index.find_effective_type_by_name(type_name).unwrap();
             self.llvm_index.get_associated_type(ty.get_name()).unwrap()
         };
 

@@ -55,11 +55,11 @@ fn generate_program_with_online_change() {
     %prg = type { i32 }
 
     @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [6 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [6 x ptr] zeroinitializer
 
-    define void @prg(%prg* %0) section "$RUSTY$fn-prg:v[]" {
+    define void @prg(ptr %0) section "$RUSTY$fn-prg:v[]" {
     entry:
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
       ret void
     }
     "#)
@@ -91,9 +91,9 @@ fn generate_program_and_var_with_online_change() {
 
     @gV = global i32 0, section "$RUSTY$var-gv:i32"
     @prg_instance = global %prg zeroinitializer, section "$RUSTY$var-prg_instance:r1i32"
-    @__custom_got = weak_odr global [8 x i8*] zeroinitializer
+    @__custom_got = weak_odr global [8 x ptr] zeroinitializer
 
-    define void @prg(%prg* %0) section "$RUSTY$fn-prg:v[]" {
+    define void @prg(ptr %0) section "$RUSTY$fn-prg:v[]" {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
       %1 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align 8

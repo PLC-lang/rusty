@@ -1,7 +1,7 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
+assertion_line: 101
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,7 +12,7 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
   ret void
 }
