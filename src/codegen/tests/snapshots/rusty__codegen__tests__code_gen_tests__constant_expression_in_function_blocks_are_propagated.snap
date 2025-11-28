@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define void @fbWithConstant(%fbWithConstant* %0) {
 entry:
-  %this = alloca %fbWithConstant*, align 8
-  store %fbWithConstant* %0, %fbWithConstant** %this, align 8
+  %this = alloca %fbWithConstant*, align [filtered]
+  store %fbWithConstant* %0, %fbWithConstant** %this, align [filtered]
   %x = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 0
   %const = getelementptr inbounds %fbWithConstant, %fbWithConstant* %0, i32 0, i32 1
-  store i16 2, i16* %x, align 2
+  store i16 2, i16* %x, align [filtered]
   ret void
 }

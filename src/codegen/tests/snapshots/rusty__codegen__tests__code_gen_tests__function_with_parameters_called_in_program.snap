@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,12 +13,12 @@ target triple = "[filtered]"
 
 define i32 @foo(i32 %0) {
 entry:
-  %foo = alloca i32, align 4
-  %bar = alloca i32, align 4
-  store i32 %0, i32* %bar, align 4
-  store i32 0, i32* %foo, align 4
-  store i32 1, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  %foo = alloca i32, align [filtered]
+  %bar = alloca i32, align [filtered]
+  store i32 %0, i32* %bar, align [filtered]
+  store i32 0, i32* %foo, align [filtered]
+  store i32 1, i32* %foo, align [filtered]
+  %foo_ret = load i32, i32* %foo, align [filtered]
   ret i32 %foo_ret
 }
 
@@ -27,6 +26,6 @@ define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %call = call i32 @foo(i32 2)
-  store i32 %call, i32* %x, align 4
+  store i32 %call, i32* %x, align [filtered]
   ret void
 }

@@ -15,23 +15,23 @@ target triple = "[filtered]"
 
 define void @fb(%fb* %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca %fb*, align [filtered]
+  store %fb* %0, %fb** %this, align [filtered]
   ret void
 }
 
 define i32 @func(%fb* %0) {
 entry:
-  %func = alloca i32, align 4
-  %in = alloca %fb, align 8
+  %func = alloca i32, align [filtered]
+  %in = alloca %fb, align [filtered]
   %1 = bitcast %fb* %in to i8*
   %2 = bitcast %fb* %0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
-  %x = alloca %fb, align 8
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] %2, i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
+  %x = alloca %fb, align [filtered]
   %3 = bitcast %fb* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %3, i8* align [filtered] bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
+  store i32 0, i32* %func, align [filtered]
+  %func_ret = load i32, i32* %func, align [filtered]
   ret i32 %func_ret
 }
 

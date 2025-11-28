@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,8 +9,8 @@ target triple = "[filtered]"
 
 define i16 @foo() {
 entry:
-  %foo = alloca i16, align 2
-  store i16 0, i16* %foo, align 2
-  %foo_ret = load i16, i16* %foo, align 2
+  %foo = alloca i16, align [filtered]
+  store i16 0, i16* %foo, align [filtered]
+  %foo_ret = load i16, i16* %foo, align [filtered]
   ret i16 %foo_ret
 }

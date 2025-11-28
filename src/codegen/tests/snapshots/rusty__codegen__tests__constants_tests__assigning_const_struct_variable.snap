@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/constants_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -19,7 +18,7 @@ define void @main(%main* %0) {
 entry:
   %strct = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = bitcast %Point* %strct to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%Point* @const_strct to i8*), i64 ptrtoint (%Point* getelementptr (%Point, %Point* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] bitcast (%Point* @const_strct to i8*), i64 ptrtoint (%Point* getelementptr (%Point, %Point* null, i32 1) to i64), i1 false)
   ret void
 }
 

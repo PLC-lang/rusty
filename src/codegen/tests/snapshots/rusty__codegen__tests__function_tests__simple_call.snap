@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,21 +13,21 @@ target triple = "[filtered]"
 
 define i32 @func(i32 %0) {
 entry:
-  %func = alloca i32, align 4
-  %x = alloca i32, align 4
-  store i32 %0, i32* %x, align 4
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  %func = alloca i32, align [filtered]
+  %x = alloca i32, align [filtered]
+  store i32 %0, i32* %x, align [filtered]
+  store i32 0, i32* %func, align [filtered]
+  %func_ret = load i32, i32* %func, align [filtered]
   ret i32 %func_ret
 }
 
 define void @main(%main* %0) {
 entry:
   %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %load_a = load i32, i32* %a, align 4
+  %load_a = load i32, i32* %a, align [filtered]
   %call = call i32 @func(i32 %load_a)
   %call1 = call i32 @func(i32 1)
-  %load_a2 = load i32, i32* %a, align 4
+  %load_a2 = load i32, i32* %a, align [filtered]
   %tmpVar = add i32 1, %load_a2
   %call3 = call i32 @func(i32 %tmpVar)
   ret void

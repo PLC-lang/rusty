@@ -22,17 +22,17 @@ entry:
 
 define void @fb(%fb* %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca %fb*, align [filtered]
+  store %fb* %0, %fb** %this, align [filtered]
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
   ret void
 }
 
 define void @fb__foo(%fb* %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca %fb*, align [filtered]
+  store %fb* %0, %fb** %this, align [filtered]
   %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-  store i32 2, i32* %x, align 4
+  store i32 2, i32* %x, align [filtered]
   ret void
 }

@@ -19,28 +19,28 @@ entry:
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
   %out2 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 2
   %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
-  store i8* %out1, i8** %1, align 8
+  store i8* %out1, i8** %1, align [filtered]
   %2 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
-  store i8* %out2, i8** %2, align 8
+  store i8* %out2, i8** %2, align [filtered]
   call void @fb_t(%fb_t* %fb)
   %3 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
-  store i8* %out1, i8** %3, align 8
+  store i8* %out1, i8** %3, align [filtered]
   %4 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
-  store i8* %out2, i8** %4, align 8
+  store i8* %out2, i8** %4, align [filtered]
   call void @fb_t(%fb_t* %fb)
-  %load_out2 = load i8, i8* %out2, align 1
-  %load_out1 = load i8, i8* %out1, align 1
+  %load_out2 = load i8, i8* %out2, align [filtered]
+  %load_out1 = load i8, i8* %out1, align [filtered]
   call void @fb_t__foo(%fb_t* %fb)
-  %load_out21 = load i8, i8* %out2, align 1
-  %load_out12 = load i8, i8* %out1, align 1
+  %load_out21 = load i8, i8* %out2, align [filtered]
+  %load_out12 = load i8, i8* %out1, align [filtered]
   call void @fb_t__foo(%fb_t* %fb)
   ret void
 }
 
 define void @fb_t(%fb_t* %0) {
 entry:
-  %this = alloca %fb_t*, align 8
-  store %fb_t* %0, %fb_t** %this, align 8
+  %this = alloca %fb_t*, align [filtered]
+  store %fb_t* %0, %fb_t** %this, align [filtered]
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
@@ -51,16 +51,16 @@ entry:
 
 define void @fb_t__foo(%fb_t* %0) {
 entry:
-  %this = alloca %fb_t*, align 8
-  store %fb_t* %0, %fb_t** %this, align 8
+  %this = alloca %fb_t*, align [filtered]
+  store %fb_t* %0, %fb_t** %this, align [filtered]
   %myVar = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %myInput = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   %myInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 2
   %myOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 3
   %myOtherInOut = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 4
-  %deref = load i8*, i8** %myInOut, align 8
-  %deref1 = load i8*, i8** %myOtherInOut, align 8
-  %load_myOtherInOut = load i8, i8* %deref1, align 1
-  store i8 %load_myOtherInOut, i8* %deref, align 1
+  %deref = load i8*, i8** %myInOut, align [filtered]
+  %deref1 = load i8*, i8** %myOtherInOut, align [filtered]
+  %load_myOtherInOut = load i8, i8* %deref1, align [filtered]
+  store i8 %load_myOtherInOut, i8* %deref, align [filtered]
   ret void
 }

@@ -88,9 +88,10 @@ pub struct LinkOptions {
 
 #[derive(Clone, Default, Debug)]
 pub enum LinkerScript {
-    #[default]
+    #[deprecated = "No longer used, the default build script is enough"]
     Builtin,
     Path(String),
+    #[default]
     None,
 }
 

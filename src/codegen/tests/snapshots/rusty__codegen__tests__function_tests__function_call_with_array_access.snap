@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,25 +9,25 @@ target triple = "[filtered]"
 
 define void @foo(i32* %0) {
 entry:
-  %foo = alloca i32*, align 8
-  store i32* %0, i32** %foo, align 8
-  %deref = load i32*, i32** %foo, align 8
-  store [5 x i32] [i32 5, i32 4, i32 3, i32 2, i32 1], i32* %deref, align 4
+  %foo = alloca i32*, align [filtered]
+  store i32* %0, i32** %foo, align [filtered]
+  %deref = load i32*, i32** %foo, align [filtered]
+  store [5 x i32] [i32 5, i32 4, i32 3, i32 2, i32 1], i32* %deref, align [filtered]
   ret void
 }
 
 define void @main() {
 entry:
-  %value = alloca i32, align 4
-  store i32 0, i32* %value, align 4
-  %__foo0 = alloca [5 x i32], align 4
+  %value = alloca i32, align [filtered]
+  store i32 0, i32* %value, align [filtered]
+  %__foo0 = alloca [5 x i32], align [filtered]
   %0 = bitcast [5 x i32]* %__foo0 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
   %1 = bitcast [5 x i32]* %__foo0 to i32*
   call void @foo(i32* %1)
   %tmpVar = getelementptr inbounds [5 x i32], [5 x i32]* %__foo0, i32 0, i32 2
-  %load_tmpVar = load i32, i32* %tmpVar, align 4
-  store i32 %load_tmpVar, i32* %value, align 4
+  %load_tmpVar = load i32, i32* %tmpVar, align [filtered]
+  store i32 %load_tmpVar, i32* %value, align [filtered]
   ret void
 }
 

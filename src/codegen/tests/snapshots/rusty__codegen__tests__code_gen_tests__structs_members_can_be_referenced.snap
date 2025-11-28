@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,6 +17,6 @@ define void @MainProg(%MainProg* %0) {
 entry:
   %Cord = getelementptr inbounds %MainProg, %MainProg* %0, i32 0, i32 0
   %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
-  store i32 0, i32* %a, align 4
+  store i32 0, i32* %a, align [filtered]
   ret void
 }

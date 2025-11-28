@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -31,11 +30,11 @@ entry:
 
 define void @main(%main* %0) {
 entry:
-  store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
-  store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
+  store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align [filtered]
+  store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(%prog* @prog_instance)
-  store %STRUCT_params* bitcast (i32* @global4 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
-  store %STRUCT_params* bitcast ([81 x i8]* @global5 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
+  store %STRUCT_params* bitcast (i32* @global4 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align [filtered]
+  store %STRUCT_params* bitcast ([81 x i8]* @global5 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align [filtered]
   call void @prog(%prog* @prog_instance)
   ret void
 }
