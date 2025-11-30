@@ -18,16 +18,14 @@
 //! - External variables are not re-initialized in the global constructor, they are assumed to be
 //!   initialized externally.
 //! - Built-in types and variables are not re-initialized in the global
-//! constructor.
-
-use std::{any::Any, default};
+//!   constructor.
 
 use plc::{
     index::{FxIndexMap, Index},
-    lowering::helper::{create_assignment, create_call_statement},
+    lowering::helper::{create_assignment, create_call_statement, create_member_reference},
 };
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, PouType, VariableBlockType},
+    ast::{AstFactory, AstNode, CompilationUnit, VariableBlockType},
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -40,9 +38,10 @@ enum Body {
     None,
 }
 
-pub struct Initializer<'idx> {
+#[derive(Debug)]
+pub struct Initializer {
     pub id_provider: IdProvider,
-    index: Option<&'idx Index>,
+    index: Option<Index>,
     /// Stateful constructor per POU/struct
     constructors: FxIndexMap<String, Body>,
     /// User defined constructor names per POU/datatype
@@ -50,11 +49,11 @@ pub struct Initializer<'idx> {
     /// Constructors for temp and stack variables per POU
     stack_constructor: FxIndexMap<String, Body>,
     /// Global constructor statements
-    global_constructor: (Vec<AstNode>, Vec<AstNode>),
+    global_constructor: Vec<AstNode>,
     context: Context,
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct Context {
     pub current_pou: Option<String>,
     pub current_datatype: Option<String>,
@@ -82,8 +81,9 @@ impl Context {
     }
 }
 
-//TODO: might need to be a mutable ast visitor
-impl AstVisitor for Initializer<'_> {
+//T
+//ODO: might need to be a mutable ast visitor
+impl AstVisitor for Initializer {
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         self.context.enter_pou(pou.name.as_str());
         self.user_defined_constructors.insert(pou.name.clone(), "FB_INIT".to_string());
@@ -98,10 +98,14 @@ impl AstVisitor for Initializer<'_> {
             }
             _ => {}
         };
-        pou.walk(self);
-
         self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
         self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
+        pou.walk(self);
+        // call the user defined constructor here
+        if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(&pou.name, "self") {
+            self.add_to_current_constructor(vec![user_defined_ctor_call]);
+        }
+        // If a program, add a constructor call to the global variables
         self.context.exit_pou();
     }
 
@@ -113,7 +117,7 @@ impl AstVisitor for Initializer<'_> {
 
     fn visit_variable(&mut self, variable: &plc_ast::ast::Variable) {
         // grab the index
-        let index = self.index.expect("index is set at this stage");
+        let index = self.index.as_ref().expect("index is set at this stage");
         let variable_block_type =
             self.context.current_variable_block.expect("variable block is set at this stage");
         // Find if the parent is stateful
@@ -123,35 +127,64 @@ impl AstVisitor for Initializer<'_> {
             true
         };
         if let Some(initializer) = &variable.initializer {
+            let mut stmts = vec![];
             // Create a call to the type constructor
-            // Create a call to the type's user defined constructor
+            if let Some(constructor) = variable
+                .data_type_declaration
+                .get_referenced_type()
+                .and_then(|it| self.get_constructor_call(it, variable.get_name()))
+            {
+                stmts.push(constructor);
+            }
             // Create an assignment "self.<variable.name> := <initializer>"
             let assignment =
                 create_assignment(variable.get_name(), Some("self"), initializer, self.id_provider.clone());
-            if variable_block_type.is_temp() || (variable_block_type.is_local() && is_stateful) {
-                self.add_to_current_stack_constructor(assignment);
+            stmts.push(assignment);
+            if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
+                self.add_to_current_stack_constructor(stmts);
             } else {
-                self.add_to_current_constructor(assignment);
+                self.add_to_current_constructor(stmts);
             }
         }
     }
 
     fn visit_user_type_declaration(&mut self, user_type: &plc_ast::ast::UserTypeDeclaration) {
-        let name = user_type.data_type.get_name().expect("name is set at this stage").to_string();
+        let name = user_type.data_type.get_name().expect("name is set at this stage");
+        self.context.enter_datatype(name);
         match user_type.linkage {
             plc_ast::ast::LinkageType::External => {
-                self.constructors.insert(name, Body::External);
+                self.constructors.insert(name.to_string(), Body::External);
                 return;
             }
             plc_ast::ast::LinkageType::BuiltIn => {
-                self.constructors.insert(name, Body::None);
+                self.constructors.insert(name.to_string(), Body::None);
                 return;
             }
             _ => {}
         };
+        self.constructors.insert(name.to_string(), Body::Internal(vec![]));
+        self.visit_data_type(&user_type.data_type);
+        let mut stmts = vec![];
+        // TODO: call the user defined constructor here, don't know yet how we find it
+        // if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(name, "self") {
+        //     stmts.push(user_defined_ctor_call);
+        // }
 
-        let mut constructor = vec![];
-        if let plc_ast::ast::DataType::StructType { variables, .. } = &user_type.data_type {
+        // Explicitly add the initializer call here
+        if let Some(initializer) = &user_type.initializer {
+            let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
+            stmts.push(assignment);
+        }
+        self.add_to_current_constructor(stmts);
+        self.context.exit_datatype();
+    }
+
+    fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
+        // Only structs get constructors
+        if let plc_ast::ast::DataType::StructType { variables, .. } = data_type {
+            let name = data_type.get_name().expect("name is set at this stage").to_string();
+
+            let mut constructor = vec![];
             for variable in variables.iter() {
                 if let Some(initializer) = &variable.initializer {
                     // Create an assignment "self.<variable.name> := <initializer>"
@@ -164,18 +197,13 @@ impl AstVisitor for Initializer<'_> {
                     constructor.push(assignment);
                 }
             }
+            self.add_to_current_constructor(constructor);
         }
-        // Insert the initializer as the assignment to self
-        if let Some(initializer) = &user_type.initializer {
-            let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
-            constructor.push(assignment);
-        }
-        self.constructors.insert(name.to_string(), Body::Internal(constructor));
     }
 }
 
-impl<'idx> Initializer<'idx> {
-    pub fn new(id_provider: IdProvider) -> Initializer<'idx> {
+impl Initializer {
+    pub fn new(id_provider: IdProvider) -> Initializer {
         Initializer {
             id_provider,
             index: None,
@@ -187,37 +215,39 @@ impl<'idx> Initializer<'idx> {
         }
     }
 
-    pub fn apply_initialization(&mut self, unit: &mut CompilationUnit, index: &'idx Index) {
+    pub fn apply_initialization(
+        &mut self,
+        units: Vec<CompilationUnit>,
+        index: Index,
+    ) -> Vec<CompilationUnit> {
         // Set the index
         self.index = Some(index);
-        // Visit the unit and prepare constructors
-        // Add each constructor function to the unit as a new function
-        // Add the construction calls for stack variables to each function
-        // Remove the index
-        self.index = None
+        for unit in units.iter() {
+            self.visit_compilation_unit(unit);
+            // Add each constructor function to the unit as a new function
+            // Add the construction calls for stack variables to each function
+        }
+        units
     }
 
     fn add_to_current_stack_constructor(&mut self, node: Vec<AstNode>) {
         if let Some(current_pou) = self.context.current_pou.as_ref() {
-            if let Some(body) = self.stack_constructor.get_mut(current_pou) {
-                match body {
-                    Body::Internal(nodes) => nodes.extend(node),
-                    _ => {}
-                }
+            if let Some(Body::Internal(nodes)) = self.stack_constructor.get_mut(current_pou) {
+                nodes.extend(node);
             }
         }
     }
 
     fn add_to_current_constructor(&mut self, node: Vec<AstNode>) {
         if let Some(current_struct) =
-            self.context.current_pou.as_ref().or_else(|| self.context.current_datatype.as_ref())
+            self.context.current_pou.as_ref().or(self.context.current_datatype.as_ref())
         {
-            if let Some(body) = self.constructors.get_mut(current_struct) {
-                match body {
-                    Body::Internal(nodes) => nodes.extend(node),
-                    _ => {}
-                }
+            if let Some(Body::Internal(nodes)) = self.constructors.get_mut(current_struct) {
+                nodes.extend(node)
             }
+        } else if self.context.current_variable_block.is_some_and(|it| it.is_global()) {
+            // Global constructor
+            self.global_constructor.extend(node);
         }
     }
 
@@ -236,18 +266,34 @@ impl<'idx> Initializer<'idx> {
         }
     }
 
-    fn get_user_defined_constructor_call(&self, type_name: &str, var_name: &str) -> Option<AstNode> {
-        if let Some(index) = self.index {
+    fn get_user_defined_constructor_call(&mut self, type_name: &str, var_name: &str) -> Option<AstNode> {
+        //TODO: datatypes work differently if they support user defined init
+        if let Some(index) = self.index.as_ref() {
             // Search for the user defined constructor for the given struct
-            None
-        } else {
-            None
+            if let Some(user_defined_ctor_name) = self.user_defined_constructors.get(type_name) {
+                if let Some(pou) = index.find_method(type_name, user_defined_ctor_name) {
+                    let op = create_member_reference(
+                        &format!("{var_name}.{user_defined_ctor_name}"),
+                        self.id_provider.clone(),
+                        None,
+                    );
+                    let call = AstFactory::create_call_statement(
+                        op,
+                        None,
+                        self.id_provider.next_id(),
+                        SourceLocation::internal(),
+                    );
+                    return Some(call);
+                }
+            }
         }
+        None
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use plc::lowering::vtable::VirtualTableGenerator;
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
     use plc_driver::pipelines::{AnnotatedProject, BuildPipeline};
@@ -271,12 +317,17 @@ mod tests {
         let src: SourceCode = src.into();
         let diagnostician = Diagnostician::buffered();
         let mut pipeline = BuildPipeline::from_sources("test.st", vec![(src)], diagnostician).unwrap();
-        let AnnotatedProject { units, .. } = pipeline.parse_and_annotate().unwrap();
+        pipeline.register_mut_participants(vec![Box::new(VirtualTableGenerator::new(
+            pipeline.context.provider(),
+        ))]);
+        let AnnotatedProject { units, index, .. } = pipeline.parse_and_annotate().unwrap();
         // Visit the AST with the Initializer
         let mut initializer = super::Initializer::new(pipeline.context.provider());
+        initializer.index = Some(index);
         for unit in units {
             initializer.visit_compilation_unit(unit.get_unit());
         }
+        initializer.index = None;
         initializer
     }
 
@@ -408,8 +459,6 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        // Expecting a function declaration: void MyEnum_ctor(MyEnum* self)
-        // Expecting an assignment inside the constructor: *self = 2;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyEnum").unwrap()), @"self := Option3");
         // Expecting a function declaration: void MyStruct_ctor(MyStruct* self)
         // Expecting a call to MyEnum_ctor(&self->e);
@@ -506,7 +555,7 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for global constructor
         // Expecting a call to MyStruct_ctor(&gStructVar);
-        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"self.gVar1 := 10");
     }
 
     #[test]
@@ -600,5 +649,71 @@ mod tests {
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
         // Check that no constructor is generated for MyExtStruct
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @"extern");
+    }
+
+    #[test]
+    fn function_block_fb_init_called_in_constructor() {
+        let src = r#"
+        FUNCTION_BLOCK MyFB
+        VAR
+            fbVar : INT;
+        END_VAR
+        METHOD FB_INIT : VOID
+            fbVar := 1;
+        END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+        let initializer = parse_and_init(src);
+        // Check for FB_INIT call in constructor
+        // Expecting a call to MyFB.FB_INIT(&self);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @"self.FB_INIT()");
+    }
+
+    #[test]
+    fn function_block_inheritance_chain_called_in_constructor() {
+        let src = r#"
+        FUNCTION_BLOCK MyBaseFB
+        VAR
+            baseVar : INT := 5;
+        END_VAR
+        METHOD baseMeth
+        END_METHOD
+        METHOD overrideMeth
+        END_METHOD
+        END_FUNCTION_BLOCK
+        FUNCTION_BLOCK MyFB EXTENDS MyBaseFB
+        VAR
+            fbVar : INT := 10;
+        END_VAR
+        METHOD FB_INIT : VOID
+            fbVar := 1;
+        END_METHOD
+        METHOD overrideMeth
+        END_METHOD
+        METHOD localMeth
+        END_METHOD
+        END_FUNCTION_BLOCK
+        "#;
+        let initializer = parse_and_init(src);
+        // Check that there's a constructor function for MyBaseFB
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyBaseFB").unwrap()), @"self.baseVar := 5");
+        // Check that the constructor for MyFB calls the base FB constructor
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @r"
+        self.fbVar := 10
+        self.FB_INIT()
+        ");
+        // Check that there's a constructor function for the vtables
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyBaseFB").unwrap()), @r"
+        self.__body := ADR(MyBaseFB)
+        self.baseMeth := ADR(MyBaseFB.baseMeth)
+        self.overrideMeth := ADR(MyBaseFB.overrideMeth)
+        ");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyFB").unwrap()), @r"
+        self.__body := ADR(MyFB)
+        self.baseMeth := ADR(MyBaseFB.baseMeth)
+        self.overrideMeth := ADR(MyFB.overrideMeth)
+        self.FB_INIT := ADR(MyFB.FB_INIT)
+        self.localMeth := ADR(MyFB.localMeth)
+        ");
     }
 }

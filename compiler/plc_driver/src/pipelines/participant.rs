@@ -243,13 +243,11 @@ impl PipelineParticipantMut for InitParticipant {
     */
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         // Create a new init lowerer
-        let IndexedProject { mut project, index, .. } = indexed_project;
-        for unit in project.units.iter_mut() {
-            let mut initializer = Initializer::new(self.id_provider.clone());
-            initializer.apply_initialization(unit, &index);
-        }
-        // indexed_project.extend_with_init_units(self.symbol_name, self.id_provider.clone())
+        let IndexedProject { project: ParsedProject { units }, index, .. } = indexed_project;
+        let mut initializer = Initializer::new(self.id_provider.clone());
+        let units = initializer.apply_initialization(units, index);
         // Append new units and constructor to the ast and re-index
+        let project = ParsedProject { units };
         project.index(self.id_provider.clone())
     }
 }

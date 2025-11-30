@@ -508,6 +508,10 @@ impl VariableBlockType {
     pub fn is_local(&self) -> bool {
         matches!(self, VariableBlockType::Local)
     }
+
+    pub fn is_global(&self) -> bool {
+        matches!(self, VariableBlockType::Global)
+    }
 }
 
 impl Display for VariableBlockType {
@@ -682,9 +686,9 @@ impl DataTypeDeclaration {
         }
     }
 
-    pub fn get_referenced_type(&self) -> Option<String> {
+    pub fn get_referenced_type(&self) -> Option<&str> {
         let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
-        Some(referenced_type.to_owned())
+        Some(referenced_type.as_str())
     }
 
     pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {

@@ -126,7 +126,7 @@ pub fn visit_variable_block<T: AnnotationMap>(
         visit_variable(validator, variable, context);
 
         if let Some(referenced_type) = variable.data_type_declaration.get_referenced_type() {
-            if context.index.get_type_information_or_void(&referenced_type).is_vla() {
+            if context.index.get_type_information_or_void(referenced_type).is_vla() {
                 validate_vla(validator, pou, block, variable);
             }
         }
