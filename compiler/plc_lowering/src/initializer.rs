@@ -20,12 +20,14 @@
 //! - Built-in types and variables are not re-initialized in the global
 //!   constructor.
 
+use std::rc::Rc;
+
 use plc::{
     index::{FxIndexMap, Index},
-    lowering::helper::{create_assignment, create_call_statement, create_member_reference},
+    lowering::helper::{create_assignment, create_call_statement, create_member_reference, new_constructor},
 };
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, VariableBlockType},
+    ast::{AstFactory, AstNode, CompilationUnit, LinkageType, VariableBlockType},
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -34,14 +36,14 @@ use plc_source::source_location::SourceLocation;
 #[derive(Debug, PartialEq)]
 enum Body {
     Internal(Vec<AstNode>),
-    External,
+    External(Vec<AstNode>),
     None,
 }
 
 #[derive(Debug)]
 pub struct Initializer {
     pub id_provider: IdProvider,
-    index: Option<Index>,
+    index: Option<Rc<Index>>,
     /// Stateful constructor per POU/struct
     constructors: FxIndexMap<String, Body>,
     /// User defined constructor names per POU/datatype
@@ -81,25 +83,25 @@ impl Context {
     }
 }
 
-//T
-//ODO: might need to be a mutable ast visitor
+//TODO: might need to be a mutable ast visitor
 impl AstVisitor for Initializer {
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         self.context.enter_pou(pou.name.as_str());
         self.user_defined_constructors.insert(pou.name.clone(), "FB_INIT".to_string());
         match pou.linkage {
+            plc_ast::ast::LinkageType::Internal => {
+                self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
+                self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
+            }
             plc_ast::ast::LinkageType::External => {
-                self.constructors.insert(pou.name.clone(), Body::External);
-                return;
+                self.constructors.insert(pou.name.clone(), Body::External(vec![]));
+                self.stack_constructor.insert(pou.name.clone(), Body::External(vec![]));
             }
             plc_ast::ast::LinkageType::BuiltIn => {
                 self.constructors.insert(pou.name.clone(), Body::None);
                 return;
             }
-            _ => {}
         };
-        self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
-        self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
         pou.walk(self);
         // call the user defined constructor here
         if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(&pou.name, "self") {
@@ -152,17 +154,17 @@ impl AstVisitor for Initializer {
         let name = user_type.data_type.get_name().expect("name is set at this stage");
         self.context.enter_datatype(name);
         match user_type.linkage {
+            plc_ast::ast::LinkageType::Internal => {
+                self.constructors.insert(name.to_string(), Body::Internal(vec![]));
+            }
             plc_ast::ast::LinkageType::External => {
-                self.constructors.insert(name.to_string(), Body::External);
-                return;
+                self.constructors.insert(name.to_string(), Body::External(vec![]));
             }
             plc_ast::ast::LinkageType::BuiltIn => {
                 self.constructors.insert(name.to_string(), Body::None);
                 return;
             }
-            _ => {}
         };
-        self.constructors.insert(name.to_string(), Body::Internal(vec![]));
         self.visit_data_type(&user_type.data_type);
         let mut stmts = vec![];
         // TODO: call the user defined constructor here, don't know yet how we find it
@@ -182,8 +184,6 @@ impl AstVisitor for Initializer {
     fn visit_data_type(&mut self, data_type: &plc_ast::ast::DataType) {
         // Only structs get constructors
         if let plc_ast::ast::DataType::StructType { variables, .. } = data_type {
-            let name = data_type.get_name().expect("name is set at this stage").to_string();
-
             let mut constructor = vec![];
             for variable in variables.iter() {
                 if let Some(initializer) = &variable.initializer {
@@ -215,24 +215,38 @@ impl Initializer {
         }
     }
 
-    pub fn apply_initialization(
-        &mut self,
-        units: Vec<CompilationUnit>,
-        index: Index,
-    ) -> Vec<CompilationUnit> {
+    pub fn apply_initialization(mut self, mut unit: CompilationUnit, index: Rc<Index>) -> CompilationUnit {
         // Set the index
         self.index = Some(index);
-        for unit in units.iter() {
-            self.visit_compilation_unit(unit);
-            // Add each constructor function to the unit as a new function
-            // Add the construction calls for stack variables to each function
+        self.visit_compilation_unit(&unit);
+        // Add each constructor function to the unit as a new function
+        for (name, body) in self.constructors {
+            match body {
+                Body::Internal(nodes) => {
+                    let (pou, implementation) =
+                        new_constructor(&name, LinkageType::Internal, nodes, self.id_provider.clone());
+                    unit.pous.push(pou);
+                    unit.implementations.push(implementation);
+                }
+                Body::External(nodes) => {
+                    let (pou, implementation) =
+                        new_constructor(&name, LinkageType::External, nodes, self.id_provider.clone());
+                    unit.pous.push(pou);
+                    unit.implementations.push(implementation);
+                }
+                Body::None => {}
+            }
         }
-        units
+        // Add the construction calls for stack variables to each function
+        // Add a global constructor function with the global constructor calls
+        unit
     }
 
     fn add_to_current_stack_constructor(&mut self, node: Vec<AstNode>) {
         if let Some(current_pou) = self.context.current_pou.as_ref() {
-            if let Some(Body::Internal(nodes)) = self.stack_constructor.get_mut(current_pou) {
+            if let Some(Body::Internal(nodes) | Body::External(nodes)) =
+                self.stack_constructor.get_mut(current_pou)
+            {
                 nodes.extend(node);
             }
         }
@@ -242,7 +256,9 @@ impl Initializer {
         if let Some(current_struct) =
             self.context.current_pou.as_ref().or(self.context.current_datatype.as_ref())
         {
-            if let Some(Body::Internal(nodes)) = self.constructors.get_mut(current_struct) {
+            if let Some(Body::Internal(nodes) | Body::External(nodes)) =
+                self.constructors.get_mut(current_struct)
+            {
                 nodes.extend(node)
             }
         } else if self.context.current_variable_block.is_some_and(|it| it.is_global()) {
@@ -293,6 +309,8 @@ impl Initializer {
 
 #[cfg(test)]
 mod tests {
+    use std::rc::Rc;
+
     use plc::lowering::vtable::VirtualTableGenerator;
     use plc_ast::{ast::AstNode, visitor::AstVisitor};
     use plc_diagnostics::diagnostician::Diagnostician;
@@ -307,8 +325,28 @@ mod tests {
 
     fn print_body_to_string(body: &super::Body) -> String {
         match body {
-            super::Body::Internal(nodes) => print_to_string(nodes),
-            super::Body::External => "extern".to_string(),
+            super::Body::Internal(nodes) => {
+                if nodes.is_empty() {
+                    "".into()
+                } else {
+                    format!(
+                        r"intern:
+{}",
+                        print_to_string(nodes)
+                    )
+                }
+            }
+            super::Body::External(nodes) => {
+                if nodes.is_empty() {
+                    "".into()
+                } else {
+                    format!(
+                        r"extern:
+{}",
+                        print_to_string(nodes)
+                    )
+                }
+            }
             super::Body::None => "none".to_string(),
         }
     }
@@ -323,7 +361,7 @@ mod tests {
         let AnnotatedProject { units, index, .. } = pipeline.parse_and_annotate().unwrap();
         // Visit the AST with the Initializer
         let mut initializer = super::Initializer::new(pipeline.context.provider());
-        initializer.index = Some(index);
+        initializer.index = Some(Rc::new(index));
         for unit in units {
             initializer.visit_compilation_unit(unit.get_unit());
         }
@@ -346,6 +384,7 @@ mod tests {
         // Expecting a function declaration: void MyStruct_ctor(MyStruct* self)
         // Expecting assignments inside the constructor: self->a = 5; self->b = 3.14; self->c = 1;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r"
+        intern:
         self.a := 5
         self.b := 3.14
         self.c := TRUE
@@ -373,13 +412,17 @@ mod tests {
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->x = 10; self->y = 20;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct").unwrap()), @r"
+        intern:
         self.x := 10
         self.y := 20
         ");
         // Expecting a function declaration: void OuterStruct_ctor(OuterStruct* self)
         // Expecting a call to InnerStruct_ctor(&self->inner);
         // Expecting an assignment: self->z = 2.71;
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("OuterStruct").unwrap()), @"self.z := 2.71");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("OuterStruct").unwrap()), @r"
+        intern:
+        self.z := 2.71
+        ");
     }
 
     #[test]
@@ -404,6 +447,7 @@ mod tests {
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->x = 10; self->y = 20;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct").unwrap()), @r"
+        intern:
         self.x := 10
         self.y := 20
         ");
@@ -414,6 +458,7 @@ mod tests {
         // Expecting assignments: self->inner2.y = 3;
         // Expecting an assignment: self->z = 2.71;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("OuterStruct").unwrap()), @r"
+        intern:
         self.inner := (x := 1, y := 2)
         self.inner2 := (y := 3)
         self.z := 2.71
@@ -441,6 +486,7 @@ mod tests {
         // Expecting assignments inside the constructor: self->a = 5; self->c = 1;
         // Expecting an assignment: self->b = &gVar;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r"
+        intern:
         self.a := 5
         self.b := ADR(gVar)
         self.c := TRUE
@@ -459,12 +505,16 @@ mod tests {
         "#;
 
         let initializer = parse_and_init(src);
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyEnum").unwrap()), @"self := Option3");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyEnum").unwrap()), @r"
+        intern:
+        self := Option3
+        ");
         // Expecting a function declaration: void MyStruct_ctor(MyStruct* self)
         // Expecting a call to MyEnum_ctor(&self->e);
         // Expecting an assignment: self->e = 1;
         // Expecting an assignment: self->n = 42;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyStruct").unwrap()), @r"
+        intern:
         self.e := Option2
         self.n := 42
         ");
@@ -505,6 +555,7 @@ mod tests {
         // Expecting a function declaration: void InnerStruct_ctor(InnerStruct* self)
         // Expecting assignments inside the constructor: self->a = 1; self->b = &gVar;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct").unwrap()), @r"
+        intern:
         self.a := 1
         self.b := ADR(gVar)
         ");
@@ -514,6 +565,7 @@ mod tests {
         // Expecting assignments: self->c = 4; self->d = 5;
         // Expecting assignments: self->inner.a = 6; self->inner2.b = &gvar;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("InnerStruct2").unwrap()), @r"
+        intern:
         self.c := 4
         self.d := 5
         self.inner := (a := 6)
@@ -528,6 +580,7 @@ mod tests {
         // Expecting assignments: self->inner2.d = 8; self->inner2.inner.b = &gVar;
         // Expecting assignments: self->inner3.inner.a = 9;
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("OuterStruct").unwrap()), @r"
+        intern:
         self.e := 0
         self.inner := (a := 1, b := 2, inner := (a := 3))
         self.inner2 := (d := 8, inner := (b := ADR(gVar)))
@@ -577,7 +630,7 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for function constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
-        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @r#""#);
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"");
     }
 
     #[test]
@@ -602,9 +655,9 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for program constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
-        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyProgram").unwrap()), @r#""#);
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyProgram").unwrap()), @"");
         // Check for program constructor
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProgram").unwrap()), @r#""#);
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProgram").unwrap()), @"");
     }
 
     #[test]
@@ -648,7 +701,11 @@ mod tests {
         // No call to MyExtStruct_ctor(&extVar);
         insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
         // Check that no constructor is generated for MyExtStruct
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @"extern");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
+        extern:
+        self.a := 5
+        self.b := TRUE
+        ");
     }
 
     #[test]
@@ -666,7 +723,10 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for FB_INIT call in constructor
         // Expecting a call to MyFB.FB_INIT(&self);
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @"self.FB_INIT()");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @r"
+        intern:
+        self.FB_INIT()
+        ");
     }
 
     #[test]
@@ -696,19 +756,25 @@ mod tests {
         "#;
         let initializer = parse_and_init(src);
         // Check that there's a constructor function for MyBaseFB
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyBaseFB").unwrap()), @"self.baseVar := 5");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyBaseFB").unwrap()), @r"
+        intern:
+        self.baseVar := 5
+        ");
         // Check that the constructor for MyFB calls the base FB constructor
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @r"
+        intern:
         self.fbVar := 10
         self.FB_INIT()
         ");
         // Check that there's a constructor function for the vtables
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyBaseFB").unwrap()), @r"
+        intern:
         self.__body := ADR(MyBaseFB)
         self.baseMeth := ADR(MyBaseFB.baseMeth)
         self.overrideMeth := ADR(MyBaseFB.overrideMeth)
         ");
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("__vtable_MyFB").unwrap()), @r"
+        intern:
         self.__body := ADR(MyFB)
         self.baseMeth := ADR(MyBaseFB.baseMeth)
         self.overrideMeth := ADR(MyFB.overrideMeth)

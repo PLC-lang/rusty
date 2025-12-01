@@ -8,6 +8,7 @@ use std::{
     collections::HashMap,
     env, fs,
     path::{Path, PathBuf},
+    rc::Rc,
     sync::{Arc, Mutex, RwLock},
 };
 
@@ -244,10 +245,15 @@ impl PipelineParticipantMut for InitParticipant {
     fn pre_annotate(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         // Create a new init lowerer
         let IndexedProject { project: ParsedProject { units }, index, .. } = indexed_project;
-        let mut initializer = Initializer::new(self.id_provider.clone());
-        let units = initializer.apply_initialization(units, index);
+        let mut resulting_units = vec![];
+        let index = Rc::new(index);
+        for unit in units {
+            let initializer = Initializer::new(self.id_provider.clone());
+            let unit = initializer.apply_initialization(unit, index.clone());
+            resulting_units.push(unit);
+        }
         // Append new units and constructor to the ast and re-index
-        let project = ParsedProject { units };
+        let project = ParsedProject { units: resulting_units };
         project.index(self.id_provider.clone())
     }
 }

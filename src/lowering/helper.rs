@@ -1,5 +1,8 @@
 use plc_ast::{
-    ast::{Assignment, AstFactory, AstNode, AstStatement, ReferenceExpr},
+    ast::{
+        Assignment, AstFactory, AstId, AstNode, AstStatement, DataTypeDeclaration, Implementation,
+        LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock,
+    },
     provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
@@ -167,4 +170,89 @@ pub fn create_call_statement(
         base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
     );
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
+}
+
+pub fn new_constructor(
+    base_name: &str,
+    linkage: LinkageType,
+    statements: Vec<AstNode>,
+    mut id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    let ctor_name = format!("{base_name}_ctor");
+    // Create a VAR_IN_OUT block with self as parameter
+    let self_block = VariableBlock::default()
+        .with_block_type(plc_ast::ast::VariableBlockType::InOut)
+        .with_variables(vec![new_variable("self", base_name)]);
+    let pou = new_pou(
+        &ctor_name,
+        id_provider.next_id(),
+        vec![self_block],
+        PouType::Init,
+        linkage,
+        &SourceLocation::internal(),
+    );
+    let implementation =
+        new_implementation(&ctor_name, statements, PouType::Init, linkage, SourceLocation::internal());
+    (pou, implementation)
+}
+
+pub fn new_variable(name: &str, data_type_name: &str) -> Variable {
+    Variable {
+        name: name.into(),
+        data_type_declaration: DataTypeDeclaration::Reference {
+            referenced_type: data_type_name.into(),
+            location: SourceLocation::internal(),
+        },
+        initializer: None,
+        address: None,
+        location: SourceLocation::internal(),
+    }
+}
+
+pub fn new_pou(
+    name: &str,
+    id: AstId,
+    variable_blocks: Vec<VariableBlock>,
+    kind: PouType,
+    linkage: LinkageType,
+    location: &SourceLocation,
+) -> Pou {
+    Pou {
+        name: name.into(),
+        id,
+        variable_blocks,
+        kind,
+        return_type: None,
+        location: location.clone(),
+        name_location: location.to_owned(),
+        poly_mode: None,
+        generics: vec![],
+        linkage,
+        super_class: None,
+        interfaces: vec![],
+        properties: vec![],
+        is_const: false,
+    }
+}
+
+pub fn new_implementation(
+    name: &str,
+    statements: Vec<AstNode>,
+    pou_type: PouType,
+    linkage: LinkageType,
+    location: SourceLocation,
+) -> Implementation {
+    Implementation {
+        name: name.into(),
+        type_name: name.into(),
+        linkage,
+        pou_type,
+        statements,
+        location: location.clone(),
+        name_location: location.clone(),
+        end_location: location,
+        overriding: false,
+        generic: false,
+        access: None,
+    }
 }
