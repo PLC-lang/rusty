@@ -296,6 +296,18 @@ impl Pou {
     pub fn is_generic(&self) -> bool {
         !self.generics.is_empty()
     }
+
+    pub fn is_stateful(&self) -> bool {
+        matches!(self.kind, PouType::Program | PouType::FunctionBlock | PouType::Action | PouType::Class)
+    }
+
+    pub fn is_external(&self) -> bool {
+        matches!(self.linkage, LinkageType::External)
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        matches!(self.linkage, LinkageType::BuiltIn)
+    }
 }
 
 #[derive(Debug, PartialEq)]
@@ -313,11 +325,19 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
+/// Marks declaration and linking requirements for an ast member
 #[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
 pub enum LinkageType {
+    /// The element is declared in the project currently being complied
     Internal,
+    /// The element is declared externally and being used by the project
     External,
+    /// This indicates an element that should not have any declarations within the compiled project
+    /// For example a built in function is implied to exist but not declared
     BuiltIn,
+    // TODO: A private linkage indicates an internal element that should not be visible externally
+    // This is for example a static constructor that should not leak outside its module
+    // Private,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -480,6 +500,19 @@ pub enum VariableBlockType {
     InOut,
     External,
 }
+impl VariableBlockType {
+    pub fn is_temp(&self) -> bool {
+        matches!(self, VariableBlockType::Temp)
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self, VariableBlockType::Local)
+    }
+
+    pub fn is_global(&self) -> bool {
+        matches!(self, VariableBlockType::Global)
+    }
+}
 
 impl Display for VariableBlockType {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -517,6 +550,11 @@ impl VariableBlock {
         VariableBlock::default().with_block_type(VariableBlockType::Global)
     }
 
+    pub fn with_linkage(mut self, linkage: LinkageType) -> Self {
+        self.linkage = linkage;
+        self
+    }
+
     pub fn with_block_type(mut self, block_type: VariableBlockType) -> Self {
         self.kind = block_type;
         self
@@ -525,6 +563,14 @@ impl VariableBlock {
     pub fn with_variables(mut self, variables: Vec<Variable>) -> Self {
         self.variables = variables;
         self
+    }
+
+    pub fn is_local(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Local)
+    }
+
+    pub fn is_temp(&self) -> bool {
+        matches!(self.kind, VariableBlockType::Temp)
     }
 }
 
@@ -640,9 +686,9 @@ impl DataTypeDeclaration {
         }
     }
 
-    pub fn get_referenced_type(&self) -> Option<String> {
+    pub fn get_referenced_type(&self) -> Option<&str> {
         let DataTypeDeclaration::Reference { referenced_type, .. } = self else { return None };
-        Some(referenced_type.to_owned())
+        Some(referenced_type.as_str())
     }
 
     pub fn get_inner_pointer_ty(&self) -> Option<DataTypeDeclaration> {
@@ -679,6 +725,7 @@ pub struct UserTypeDeclaration {
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
+    pub linkage: LinkageType,
 }
 
 impl Debug for UserTypeDeclaration {

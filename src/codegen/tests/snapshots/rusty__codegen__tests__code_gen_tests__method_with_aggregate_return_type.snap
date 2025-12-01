@@ -14,36 +14,36 @@ target triple = "[filtered]"
 
 define void @fb_with_method(%fb_with_method* %0) {
 entry:
-  %this = alloca %fb_with_method*, align 8
-  store %fb_with_method* %0, %fb_with_method** %this, align 8
-  %ret = alloca [81 x i8], align 1
+  %this = alloca %fb_with_method*, align [filtered]
+  store %fb_with_method* %0, %fb_with_method** %this, align [filtered]
+  %ret = alloca [81 x i8], align [filtered]
   %1 = bitcast [81 x i8]* %ret to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-  %__method_with_aggregagte_return0 = alloca [81 x i8], align 1
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  %__method_with_aggregagte_return0 = alloca [81 x i8], align [filtered]
   %2 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %2, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   %3 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
   call void @fb_with_method__method_with_aggregagte_return(%fb_with_method* %0, i8* %3, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
   %4 = bitcast [81 x i8]* %ret to i8*
   %5 = bitcast [81 x i8]* %__method_with_aggregagte_return0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 %5, i32 80, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %4, i8* align [filtered] %5, i32 80, i1 false)
   ret void
 }
 
 define void @fb_with_method__method_with_aggregagte_return(%fb_with_method* %0, i8* %1, i8* %2) {
 entry:
-  %this = alloca %fb_with_method*, align 8
-  store %fb_with_method* %0, %fb_with_method** %this, align 8
-  %ret = alloca [81 x i8], align 1
-  %method_with_aggregagte_return = alloca i8*, align 8
-  store i8* %1, i8** %method_with_aggregagte_return, align 8
-  %in = alloca [81 x i8], align 1
+  %this = alloca %fb_with_method*, align [filtered]
+  store %fb_with_method* %0, %fb_with_method** %this, align [filtered]
+  %ret = alloca [81 x i8], align [filtered]
+  %method_with_aggregagte_return = alloca i8*, align [filtered]
+  store i8* %1, i8** %method_with_aggregagte_return, align [filtered]
+  %in = alloca [81 x i8], align [filtered]
   %bitcast = bitcast [81 x i8]* %in to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 81, i1 false)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %2, i64 80, i1 false)
-  %deref = load i8*, i8** %method_with_aggregagte_return, align 8
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %bitcast, i8 0, i64 81, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %bitcast, i8* align [filtered] %2, i64 80, i1 false)
+  %deref = load i8*, i8** %method_with_aggregagte_return, align [filtered]
   %3 = bitcast [81 x i8]* %in to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 %3, i32 80, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %deref, i8* align [filtered] %3, i32 80, i1 false)
   ret void
 }
 

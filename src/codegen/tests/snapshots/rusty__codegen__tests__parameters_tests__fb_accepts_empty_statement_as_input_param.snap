@@ -15,8 +15,8 @@ target triple = "[filtered]"
 
 define void @fb_t(%fb_t* %0) {
 entry:
-  %this = alloca %fb_t*, align 8
-  store %fb_t* %0, %fb_t** %this, align 8
+  %this = alloca %fb_t*, align [filtered]
+  store %fb_t* %0, %fb_t** %this, align [filtered]
   %in1 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 0
   %in2 = getelementptr inbounds %fb_t, %fb_t* %0, i32 0, i32 1
   ret void
@@ -26,7 +26,7 @@ define void @main(%main* %0) {
 entry:
   %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 0
-  store i32 1, i32* %1, align 4
+  store i32 1, i32* %1, align [filtered]
   call void @fb_t(%fb_t* %fb)
   ret void
 }

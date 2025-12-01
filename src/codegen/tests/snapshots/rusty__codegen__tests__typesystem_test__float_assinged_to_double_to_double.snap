@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/typesystem_test.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,8 +15,8 @@ define void @prg(%prg* %0) {
 entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_a = load float, float* %a, align 4
+  %load_a = load float, float* %a, align [filtered]
   %1 = fpext float %load_a to double
-  store double %1, double* %b, align 8
+  store double %1, double* %b, align [filtered]
   ret void
 }

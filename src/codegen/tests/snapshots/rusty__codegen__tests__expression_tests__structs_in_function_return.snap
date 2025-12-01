@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,9 +13,9 @@ target triple = "[filtered]"
 
 define void @func(%myStruct* %0, %myStruct* %1) {
 entry:
-  %func = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %func, align 8
-  %xxx = alloca %myStruct*, align 8
-  store %myStruct* %1, %myStruct** %xxx, align 8
+  %func = alloca %myStruct*, align [filtered]
+  store %myStruct* %0, %myStruct** %func, align [filtered]
+  %xxx = alloca %myStruct*, align [filtered]
+  store %myStruct* %1, %myStruct** %xxx, align [filtered]
   ret void
 }

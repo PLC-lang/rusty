@@ -88,9 +88,10 @@ pub struct LinkOptions {
 
 #[derive(Clone, Default, Debug)]
 pub enum LinkerScript {
-    #[default]
+    #[deprecated = "No longer used, the default build script is enough"]
     Builtin,
     Path(String),
+    #[default]
     None,
 }
 
@@ -155,7 +156,7 @@ pub fn compile_with_pipeline<T: SourceContainer + Clone + 'static>(
     mut pipeline: BuildPipeline<T>,
 ) -> Result<()> {
     //register participants
-    pipeline.register_default_participants();
+    pipeline.register_default_mut_participants();
     let target = pipeline.compile_parameters.as_ref().and_then(|it| it.target.clone()).unwrap_or_default();
     let codegen_participant = CodegenParticipant {
         compile_options: pipeline.get_compile_options().unwrap(),
@@ -191,35 +192,48 @@ pub fn parse_and_annotate<T: SourceContainer + Clone>(
     name: &str,
     src: Vec<T>,
 ) -> Result<(GlobalContext, AnnotatedProject), Diagnostic> {
-    let (pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())
-        .map_err(|it| Diagnostic::new(it.buffer().unwrap_or_default()))?;
+    let (pipeline, project) = parse_and_annotate_with_diagnostics(name, src, Diagnostician::buffered())?;
     Ok((pipeline.context, project))
+}
+
+impl<T: SourceContainer> BuildPipeline<T> {
+    pub fn from_sources(name: &str, src: Vec<T>, diagnostician: Diagnostician) -> Result<Self, Diagnostic> {
+        // Parse the source to ast
+        let project = Project::new(name.to_string()).with_sources(src);
+        let context = GlobalContext::new().with_source(project.get_sources(), None)?;
+        let pipeline = BuildPipeline {
+            context,
+            project,
+            diagnostician,
+            compile_parameters: None,
+            linker: LinkerType::Internal,
+            mutable_participants: Vec::default(),
+            participants: Vec::default(),
+            module_name: Some("<internal>".to_string()),
+        };
+        Ok(pipeline)
+    }
+
+    /// Parses, indexes and annotates the project, returning any diagnostics found along the way
+    /// Used for tests where we don't want to run the full pipeline
+    pub fn parse_and_annotate(&mut self) -> Result<AnnotatedProject, Diagnostic> {
+        let project = self.parse()?;
+        let project = self.index(project)?;
+        let project = self.annotate(project)?;
+        Ok(project)
+    }
 }
 
 pub fn parse_and_annotate_with_diagnostics<T: SourceContainer + Clone>(
     name: &str,
     src: Vec<T>,
     diagnostician: Diagnostician,
-) -> Result<(BuildPipeline<T>, AnnotatedProject), Diagnostician> {
+) -> Result<(BuildPipeline<T>, AnnotatedProject), Diagnostic> {
     // Parse the source to ast
-    let project = Project::new(name.to_string()).with_sources(src);
-    let Ok(context) = GlobalContext::new().with_source(project.get_sources(), None) else {
-        return Err(diagnostician);
-    };
-    let mut pipeline = BuildPipeline {
-        context,
-        project,
-        diagnostician,
-        compile_parameters: None,
-        linker: LinkerType::Internal,
-        mutable_participants: Vec::default(),
-        participants: Vec::default(),
-        module_name: Some("<internal>".to_string()),
-    };
-    pipeline.register_default_participants();
-    let Ok(project) = pipeline.parse() else { return Err(pipeline.diagnostician) };
-    let Ok(project) = pipeline.index(project) else { return Err(pipeline.diagnostician) };
-    let Ok(project) = pipeline.annotate(project) else { return Err(pipeline.diagnostician) };
+    let mut pipeline = BuildPipeline::from_sources(name, src, diagnostician)?;
+    pipeline.register_default_mut_participants();
+    let project = pipeline.parse_and_annotate()?;
+    let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
     Ok((pipeline, project))
 }
 
@@ -229,7 +243,7 @@ pub fn parse_and_validate<T: SourceContainer + Clone>(name: &str, src: Vec<T>) -
             let _ = project.validate(&pipeline.context, &mut pipeline.diagnostician);
             pipeline.diagnostician.buffer().unwrap()
         }
-        Err(diagnostician) => diagnostician.buffer().unwrap(),
+        Err(diagnostic) => diagnostic.to_string(),
     }
 }
 
@@ -265,7 +279,7 @@ fn generate_to_string_internal<T: SourceContainer>(
         participants: Vec::default(),
         module_name: Some("<internal>".to_string()),
     };
-    pipeline.register_default_participants();
+    pipeline.register_default_mut_participants();
     let project = pipeline.parse()?;
     let project = pipeline.index(project)?;
     let project = pipeline.annotate(project)?;

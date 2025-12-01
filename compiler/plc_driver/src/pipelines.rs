@@ -18,7 +18,6 @@ use ast::{
 };
 
 use itertools::Itertools;
-use log::debug;
 use participant::{PipelineParticipant, PipelineParticipantMut};
 use plc::{
     codegen::{CodegenContext, GeneratedModule},
@@ -26,7 +25,7 @@ use plc::{
     linker::LinkerType,
     lowering::{
         calls::AggregateTypeLowerer, polymorphism::PolymorphicCallLowerer, property::PropertyLowerer,
-        vtable::VirtualTableGenerator, InitVisitor,
+        vtable::VirtualTableGenerator,
     },
     output::FormatOption,
     parser::parse_file,
@@ -51,7 +50,6 @@ use rayon::prelude::*;
 use source_code::{source_location::SourceLocation, SourceContainer};
 
 use serde_json;
-use tempfile::NamedTempFile;
 use toml;
 
 pub mod participant;
@@ -203,11 +201,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
 
             library_paths.extend_from_slice(self.project.get_library_paths());
             //Get the specified linker script or load the default linker script in a temp file
-            let linker_script = if params.no_linker_script {
-                LinkerScript::None
-            } else {
-                params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default()
-            };
+            let linker_script = params.linker_script.clone().map(LinkerScript::Path).unwrap_or_default();
 
             LinkOptions {
                 libraries,
@@ -253,21 +247,28 @@ impl<T: SourceContainer> BuildPipeline<T> {
             log::info!("{err}")
         }
     }
-    /// Register all default participants (excluding codegen/linking)
-    pub fn register_default_participants(&mut self) {
+
+    pub fn get_default_mut_particitants(&self) -> Vec<Box<dyn PipelineParticipantMut>> {
         use participant::InitParticipant;
 
-        // XXX: should we use a static array of participants?
-        let mut_participants: Vec<Box<dyn PipelineParticipantMut>> = vec![
+        vec![
             Box::new(VirtualTableGenerator::new(self.context.provider())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-        ];
+            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+        ]
+    }
+    /// Register all default participants (excluding codegen/linking)
+    pub fn register_default_mut_participants(&mut self) {
+        // XXX: should we use a static array of participants?
+        let mut_participants = self.get_default_mut_particitants();
+        self.register_mut_participants(mut_participants);
+    }
 
-        for participant in mut_participants {
+    pub fn register_mut_participants(&mut self, participants: Vec<Box<dyn PipelineParticipantMut>>) {
+        for participant in participants {
             self.register_mut_participant(participant)
         }
     }
@@ -603,21 +604,6 @@ impl IndexedProject {
         let annotations = AstAnnotations::new(all_annotations, id_provider.next_id());
 
         AnnotatedProject { units: annotated_units, index, annotations }
-    }
-
-    /// Adds additional, internally generated units to provide functions to be called by a runtime
-    /// in order to initialize pointers before first cycle.
-    ///
-    /// This method will consume the provided indexed project, modify the AST and re-index each unit
-    pub fn extend_with_init_units(
-        self,
-        symbol_name: &'static str,
-        id_provider: IdProvider,
-    ) -> IndexedProject {
-        let units = self.project.units;
-        let lowered =
-            InitVisitor::visit(units, self.index, self.unresolvables, id_provider.clone(), symbol_name);
-        ParsedProject { units: lowered }.index(id_provider.clone())
     }
 }
 
@@ -983,29 +969,11 @@ impl GeneratedProject {
                 //HACK: Create a temp file that would contain the bultin linker script
                 //FIXME: This has to be done regardless if the file is used or not because it has
                 //to be in scope by the time we call the linker
-                let mut file = NamedTempFile::new()?;
                 match link_options.linker_script {
-                    LinkerScript::Builtin => {
-                        let target = self.target.get_target_triple().to_string();
-                        //Only do this on linux systems
-                        if target.contains("linux") {
-                            if target.contains("x86_64") {
-                                let content = include_str!("../../../scripts/linker/x86_64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else if target.contains("aarch64") {
-                                let content = include_str!("../../../scripts/linker/aarch64.script");
-                                writeln!(file, "{content}")?;
-                                linker.set_linker_script(file.get_location_str().to_string());
-                            } else {
-                                debug!("No script for target : {target}");
-                            }
-                        } else {
-                            debug!("No script for target : {target}");
-                        }
-                    }
                     LinkerScript::Path(script) => linker.set_linker_script(script),
                     LinkerScript::None => {}
+                    #[allow(deprecated)]
+                    LinkerScript::Builtin => {}
                 };
 
                 match link_options.format {
