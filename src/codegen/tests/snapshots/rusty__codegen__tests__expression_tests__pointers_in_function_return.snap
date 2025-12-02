@@ -1,17 +1,16 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i16* @func() {
+define ptr @func() {
 entry:
-  %func = alloca i16*, align 8
-  store i16* null, i16** %func, align 8
-  %func_ret = load i16*, i16** %func, align 8
-  ret i16* %func_ret
+  %func = alloca ptr, align 8
+  store ptr null, ptr %func, align 8
+  %func_ret = load ptr, ptr %func, align 8
+  ret ptr %func_ret
 }

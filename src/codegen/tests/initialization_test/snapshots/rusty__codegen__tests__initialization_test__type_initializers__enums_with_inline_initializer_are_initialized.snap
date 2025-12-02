@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -31,11 +30,11 @@ entry:
   %var1 = alloca i32, align 4
   %var2 = alloca i32, align 4
   %var3 = alloca i32, align 4
-  store i32 2, i32* %y, align 4
-  store i32 1, i32* %var1, align 4
-  store i32 2, i32* %var2, align 4
-  store i32 1, i32* %var3, align 4
-  store i32 0, i32* %main, align 4
-  %main_ret = load i32, i32* %main, align 4
+  store i32 2, ptr %y, align 4
+  store i32 1, ptr %var1, align 4
+  store i32 2, ptr %var2, align 4
+  store i32 1, ptr %var3, align 4
+  store i32 0, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }

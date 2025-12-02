@@ -657,44 +657,44 @@ fn generating_init_functions() {
         ";
 
     let res = generate_to_string("Test", vec![SourceCode::from(src)]).unwrap();
-    filtered_assert_snapshot!(res, @r###"
+    filtered_assert_snapshot!(res, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
     %myStruct = type { i8, i8 }
-    %myRefStruct = type { %myStruct* }
+    %myRefStruct = type { ptr }
 
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @__myRefStruct__init = unnamed_addr constant %myRefStruct zeroinitializer
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_myrefstruct(%myRefStruct* %0) {
+    define void @__init_myrefstruct(ptr %0) {
     entry:
-      %self = alloca %myRefStruct*, align 8
-      store %myRefStruct* %0, %myRefStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myRefStruct(%myRefStruct* %0) {
+    define void @__user_init_myRefStruct(ptr %0) {
     entry:
-      %self = alloca %myRefStruct*, align 8
-      store %myRefStruct* %0, %myRefStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
@@ -702,7 +702,7 @@ fn generating_init_functions() {
     entry:
       ret void
     }
-    "###);
+    "#);
 
     // The second example shows how each initializer function delegates member-initialization to the respective member-init-function
     // The wrapping init function contains a single call-statement to `__init_baz`, since `baz` is the only global instance in need of

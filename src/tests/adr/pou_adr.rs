@@ -405,21 +405,21 @@ fn function_get_a_method_with_by_ref_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
-      store i16 %0, i16* %i, align 2
-      %io = alloca i8*, align 8
-      store i8* %1, i8** %io, align 8
-      %o = alloca i64*, align 8
-      store i64* %2, i64** %o, align 8
+      store i16 %0, ptr %i, align 2
+      %io = alloca ptr, align 8
+      store ptr %1, ptr %io, align 8
+      %o = alloca ptr, align 8
+      store ptr %2, ptr %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      store i16 1, i16* %v, align 2
-      store i16 2, i16* %vt, align 2
-      store i32 0, i32* %main_fun, align 4
-      %main_fun_ret = load i32, i32* %main_fun, align 4
+      store i16 1, ptr %v, align 2
+      store i16 2, ptr %vt, align 2
+      store i32 0, ptr %main_fun, align 4
+      %main_fun_ret = load i32, ptr %main_fun, align 4
       ret i32 %main_fun_ret
     }
     "#);

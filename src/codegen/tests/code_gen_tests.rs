@@ -3990,19 +3990,19 @@ fn variables_in_var_external_block_are_not_generated() {
       ret void
     }
 
-    define void @bar(%bar* %0) {
+    define void @bar(ptr %0) {
     entry:
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
       ret void
     }
 
-    define void @baz(%baz* %0) {
+    define void @baz(ptr %0) {
     entry:
       ret void
     }
 
-    define void @qux(%qux* %0) {
+    define void @qux(ptr %0) {
     entry:
       ret void
     }

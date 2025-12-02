@@ -209,11 +209,11 @@ fn ref_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
+      %a = alloca ptr, align 8
       %b = alloca i32, align 4
-      store i32* null, i32** %a, align 8
-      store i32 0, i32* %b, align 4
-      store i32* %b, i32** %a, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %b, align 4
+      store ptr %b, ptr %a, align 8
       ret void
     }
     "#);
@@ -240,9 +240,9 @@ fn ref_assignment_to_null() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
-      store i32* null, i32** %a, align 8
-      store i32 0, i32** %a, align 4
+      %a = alloca ptr, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %a, align 4
       ret void
     }
     "#);
@@ -366,10 +366,10 @@ fn local_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca i32*, align 8
+      %foo = alloca ptr, align 8
       %bar = alloca i32, align 4
-      store i32* null, i32** %foo, align 8
-      store i32 0, i32* %bar, align 4
+      store ptr null, ptr %foo, align 8
+      store i32 0, ptr %bar, align 4
       ret void
     }
     "#);
@@ -396,18 +396,17 @@ fn local_string_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca [81 x i8]*, align 8
+      %foo = alloca ptr, align 8
       %bar = alloca [81 x i8], align 1
-      store [81 x i8]* null, [81 x i8]** %foo, align 8
-      %0 = bitcast [81 x i8]* %bar to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store ptr null, ptr %foo, align 8
+      call void @llvm.memset.p0.i64(ptr align 1 %bar, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#);
 }
 

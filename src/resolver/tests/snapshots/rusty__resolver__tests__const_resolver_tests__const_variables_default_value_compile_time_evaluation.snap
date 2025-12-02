@@ -1,7 +1,6 @@
 ---
 source: src/resolver/tests/const_resolver_tests.rs
 expression: ir
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,7 +11,7 @@ target triple = "[filtered]"
 @zero_int = unnamed_addr constant i16 0
 @zero_real = unnamed_addr constant double 0.000000e+00
 @empty_string = unnamed_addr constant [81 x i8] zeroinitializer
-@null_ptr = unnamed_addr constant i16* null
+@null_ptr = unnamed_addr constant ptr null
 @zero_enum = unnamed_addr constant i32 0
 @myEnum.a = unnamed_addr constant i32 0
 @myEnum.b = unnamed_addr constant i32 1

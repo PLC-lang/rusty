@@ -1074,24 +1074,24 @@ fn test_debug_info_regular_pointer_types() {
 
     %myStruct = type { i32, i8 }
 
-    @basic_ptr = global i32* null, !dbg !0
-    @array_ptr = global [11 x i32]* null, !dbg !6
-    @struct_ptr = global %myStruct* null, !dbg !13
-    @string_ptr = global [81 x i8]* null, !dbg !22
+    @basic_ptr = global ptr null, !dbg !0
+    @array_ptr = global ptr null, !dbg !6
+    @struct_ptr = global ptr null, !dbg !13
+    @string_ptr = global ptr null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
@@ -1303,7 +1303,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     END_STRUCT END_TYPE
     "#,
     );
-    filtered_assert_snapshot!(codegen, @r###"
+    filtered_assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1311,33 +1311,33 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
     @global_struct = global %myStruct zeroinitializer, !dbg !10
     @global_var = global i32 42, !dbg !12
-    @alias_int = global i32* null, !dbg !14
-    @alias_struct = global %myStruct* null, !dbg !18
+    @alias_int = global ptr null, !dbg !14
+    @alias_struct = global ptr null, !dbg !18
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mystruct(%myStruct* @global_struct)
-      store i32* @global_var, i32** @alias_int, align 8
-      store %myStruct* @global_struct, %myStruct** @alias_struct, align 8
-      call void @__user_init_myStruct(%myStruct* @global_struct)
+      call void @__init_mystruct(ptr @global_struct)
+      store ptr @global_var, ptr @alias_int, align 8
+      store ptr @global_struct, ptr @alias_struct, align 8
+      call void @__user_init_myStruct(ptr @global_struct)
       ret void
     }
 
@@ -1370,7 +1370,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
     !25 = !{!12, !14, !10, !0, !18}
-    "###)
+    "#)
 }
 
 #[test]
