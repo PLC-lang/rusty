@@ -298,16 +298,16 @@ fn builtin_function_call_adr() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main = type { i32*, i32 }
+    %main = type { ptr, i32 }
 
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32* %b, i32** %a, align 8
-      store i32* %b, i32** %a, align 8
+      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      store ptr %b, ptr %a, align 8
+      store ptr %b, ptr %a, align 8
       ret void
     }
     "#);
@@ -336,16 +336,16 @@ fn builtin_function_call_ref() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main = type { i32*, i32 }
+    %main = type { ptr, i32 }
 
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32* %b, i32** %a, align 8
-      store i32* %b, i32** %a, align 8
+      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      store ptr %b, ptr %a, align 8
+      store ptr %b, ptr %a, align 8
       ret void
     }
     "#);
@@ -491,12 +491,12 @@ fn builtin_function_call_sizeof() {
 
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
-      store i32 ptrtoint (i64* getelementptr (i64, i64* null, i32 1) to i32), i32* %a, align 4
+      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      store i32 ptrtoint (ptr getelementptr (i64, ptr null, i32 1) to i32), ptr %a, align 4
+      store i32 ptrtoint (ptr getelementptr (i64, ptr null, i32 1) to i32), ptr %a, align 4
       ret void
     }
     "#);

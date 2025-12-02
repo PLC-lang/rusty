@@ -683,12 +683,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn generate_local_pou_variable_accessors(
         &self,
         index: &mut LlvmTypedIndex<'ink>,
-        type_name: &str,
+        pou_type_name: &str,
         function_context: &FunctionContext<'ink, '_>,
         location: &SourceLocation,
         debug: &DebugBuilderEnum<'ink>,
     ) -> Result<(), CodegenError> {
-        let members = self.index.get_pou_members(type_name);
+        let members = self.index.get_pou_members(pou_type_name);
         let param_pointer = function_context
             .function
             .get_nth_param(0)
@@ -697,7 +697,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //Generate POU struct declaration for debug
         if let Some(block) = self.llvm.builder.get_insert_block() {
             debug.add_variable_declaration(
-                type_name,
+                pou_type_name,
                 param_pointer,
                 function_context,
                 block,
@@ -707,13 +707,13 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         }
 
         if ((function_context.linking_context.is_method() || function_context.linking_context.is_action())
-            && self.index.find_pou(type_name).is_some_and(|it| it.is_function_block()))
+            && self.index.find_pou(pou_type_name).is_some_and(|it| it.is_function_block()))
             || function_context.linking_context.get_implementation_type()
                 == &ImplementationType::FunctionBlock
         {
             let alloca = self.llvm.builder.build_alloca(param_pointer.get_type(), "this")?;
             self.llvm.builder.build_store(alloca, param_pointer)?;
-            index.associate_loaded_local_variable(type_name, "__THIS", alloca)?;
+            index.associate_loaded_local_variable(pou_type_name, "__THIS", alloca)?;
         }
 
         //Generate reference to parameter
@@ -726,7 +726,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
-                let llvmty: BasicTypeEnum = todo!();
+                let llvmty = self.llvm_index.get_associated_type(pou_type_name).unwrap();
                 let ptr = self
                     .llvm
                     .builder
@@ -738,7 +738,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 (parameter_name, ptr)
             };
 
-            index.associate_loaded_local_variable(type_name, name, variable)?;
+            index.associate_loaded_local_variable(pou_type_name, name, variable)?;
         }
 
         Ok(())

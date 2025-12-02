@@ -918,7 +918,7 @@ fn constants_are_tagged_as_such() {
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -929,17 +929,17 @@ fn constants_are_tagged_as_such() {
 
     @x = unnamed_addr constant i32 0, !dbg !0
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog zeroinitializer, !dbg !13
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !20
     @f = unnamed_addr constant %foo zeroinitializer, !dbg !26
 
-    define void @prog(%prog* %0) !dbg !32 {
+    define void @prog(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata %prog* %0, metadata !36, metadata !DIExpression()), !dbg !37
-      %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-      %c = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !36, metadata !DIExpression()), !dbg !37
+      %a = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
       ret void, !dbg !37
     }
 
@@ -947,55 +947,55 @@ fn constants_are_tagged_as_such() {
     entry:
       %bar = alloca i32, align 4
       %d = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %d, metadata !41, metadata !DIExpression()), !dbg !42
-      store i32 42, i32* %d, align 4
-      call void @llvm.dbg.declare(metadata i32* %bar, metadata !43, metadata !DIExpression()), !dbg !44
-      store i32 0, i32* %bar, align 4
-      %bar_ret = load i32, i32* %bar, align 4, !dbg !45
+      call void @llvm.dbg.declare(metadata ptr %d, metadata !41, metadata !DIExpression()), !dbg !42
+      store i32 42, ptr %d, align 4
+      call void @llvm.dbg.declare(metadata ptr %bar, metadata !43, metadata !DIExpression()), !dbg !44
+      store i32 0, ptr %bar, align 4
+      %bar_ret = load i32, ptr %bar, align 4, !dbg !45
       ret i32 %bar_ret, !dbg !45
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init_foo(%foo* %0) {
+    define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_prog(%prog* %0) {
+    define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_foo(%foo* %0) {
+    define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_prog(%prog* %0) {
+    define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_prog(%prog* @prog_instance)
-      call void @__init_foo(%foo* @f)
-      call void @__user_init_prog(%prog* @prog_instance)
-      call void @__user_init_foo(%foo* @f)
+      call void @__init_prog(ptr @prog_instance)
+      call void @__init_foo(ptr @f)
+      call void @__user_init_prog(ptr @prog_instance)
+      call void @__user_init_foo(ptr @f)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -1046,7 +1046,7 @@ fn constants_are_tagged_as_such() {
     !43 = !DILocalVariable(name: "bar", scope: !38, file: !2, line: 19, type: !4, align: 32)
     !44 = !DILocation(line: 19, column: 17, scope: !38)
     !45 = !DILocation(line: 23, column: 8, scope: !38)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1174,63 +1174,63 @@ fn test_debug_info_auto_deref_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %test_with_ref_params = type { [81 x i8]*, [6 x i32]*, i32*, %myStruct*, i32* }
+    %test_with_ref_params = type { ptr, ptr, ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !34
 
-    define void @test_with_ref_params(%test_with_ref_params* %0) !dbg !41 {
+    define void @test_with_ref_params(ptr %0) !dbg !41 {
     entry:
-      call void @llvm.dbg.declare(metadata %test_with_ref_params* %0, metadata !45, metadata !DIExpression()), !dbg !46
-      %input_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 0
-      %array_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 1
-      %inout_value = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 2
-      %inout_struct = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 3
-      %local_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 4
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !45, metadata !DIExpression()), !dbg !46
+      %input_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 0
+      %array_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 1
+      %inout_value = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 2
+      %inout_struct = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 3
+      %local_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 4
       ret void, !dbg !46
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_test_with_ref_params(%test_with_ref_params* %0) {
+    define void @__init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_test_with_ref_params(%test_with_ref_params* %0) {
+    define void @__user_init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_test_with_ref_params(%test_with_ref_params* @test_with_ref_params_instance)
-      call void @__user_init_test_with_ref_params(%test_with_ref_params* @test_with_ref_params_instance)
+      call void @__init_test_with_ref_params(ptr @test_with_ref_params_instance)
+      call void @__user_init_test_with_ref_params(ptr @test_with_ref_params_instance)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!37, !38}
     !llvm.dbg.cu = !{!39}
@@ -1402,49 +1402,49 @@ fn test_debug_info_mixed_pointer_types() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %mixed_ptr = type { [81 x i8]*, i32*, i8*, i8* }
+    %mixed_ptr = type { ptr, ptr, ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !0
-    @regular_ptr = global i32* null, !dbg !24
-    @alias_var = global i32** null, !dbg !28
+    @regular_ptr = global ptr null, !dbg !24
+    @alias_var = global ptr null, !dbg !28
 
-    define void @mixed_ptr(%mixed_ptr* %0) !dbg !38 {
+    define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata %mixed_ptr* %0, metadata !42, metadata !DIExpression()), !dbg !43
-      %ref_param = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 0
-      %inout_param = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 1
-      %local_ptr = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 2
-      %local_ref = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 3
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !42, metadata !DIExpression()), !dbg !43
+      %ref_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 0
+      %inout_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 1
+      %local_ptr = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 2
+      %local_ref = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 3
       ret void, !dbg !43
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init_mixed_ptr(%mixed_ptr* %0) {
+    define void @__init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_mixed_ptr(%mixed_ptr* %0) {
+    define void @__user_init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
-      store i32** @regular_ptr, i32*** @alias_var, align 8
-      call void @__user_init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
+      call void @__init_mixed_ptr(ptr @mixed_ptr_instance)
+      store ptr @regular_ptr, ptr @alias_var, align 8
+      call void @__user_init_mixed_ptr(ptr @mixed_ptr_instance)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1529,65 +1529,65 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
+    %test_with_reference_params = type { ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
-    %test_with_reference_params = type { i32*, [6 x i8]*, %myStruct* }
 
-    @basic_reference = global i32* null, !dbg !0
-    @array_reference = global [11 x i32]* null, !dbg !6
-    @struct_reference = global %myStruct* null, !dbg !13
-    @string_reference = global [81 x i8]* null, !dbg !22
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @basic_reference = global ptr null, !dbg !0
+    @array_reference = global ptr null, !dbg !6
+    @struct_reference = global ptr null, !dbg !13
+    @string_reference = global ptr null, !dbg !22
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !47
 
-    define void @test_with_reference_params(%test_with_reference_params* %0) !dbg !54 {
+    define void @test_with_reference_params(ptr %0) !dbg !54 {
     entry:
-      call void @llvm.dbg.declare(metadata %test_with_reference_params* %0, metadata !58, metadata !DIExpression()), !dbg !59
-      %ref_param = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 0
-      %array_ref_param = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 1
-      %local_reference = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 2
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !58, metadata !DIExpression()), !dbg !59
+      %ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 0
+      %array_ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 1
+      %local_reference = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 2
       ret void, !dbg !59
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_test_with_reference_params(%test_with_reference_params* %0) {
+    define void @__init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_test_with_reference_params(%test_with_reference_params* %0) {
+    define void @__user_init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_test_with_reference_params(%test_with_reference_params* @test_with_reference_params_instance)
-      call void @__user_init_test_with_reference_params(%test_with_reference_params* @test_with_reference_params_instance)
+      call void @__init_test_with_reference_params(ptr @test_with_reference_params_instance)
+      call void @__user_init_test_with_reference_params(ptr @test_with_reference_params_instance)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!50, !51}
     !llvm.dbg.cu = !{!52}
