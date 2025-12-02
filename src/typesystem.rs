@@ -9,6 +9,7 @@ use anyhow::{anyhow, Result};
 use plc_ast::{
     ast::{AstNode, AutoDerefType, Operator, PouType, TypeNature},
     literals::{AstLiteral, StringValue},
+    provider::IdProvider,
 };
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashSet;
@@ -367,6 +368,22 @@ impl TypeSize {
             TypeSize::Undetermined => unreachable!(),
         }
     }
+
+    /// Converts this TypeSize to an AstNode, creating a literal for integer values
+    /// or returning the stored const expression
+    pub fn to_ast_node(&self, index: &Index, id_provider: &IdProvider) -> Option<AstNode> {
+        match self {
+            TypeSize::LiteralInteger(v) => Some(AstNode::new_literal(
+                AstLiteral::new_integer(*v as i128),
+                id_provider.clone().next_id(),
+                SourceLocation::internal(),
+            )),
+            TypeSize::ConstExpression(id) => {
+                index.get_const_expressions().get_constant_statement(id).cloned()
+            }
+            TypeSize::Undetermined => None,
+        }
+    }
 }
 
 /// indicates where this Struct origins from.
@@ -437,7 +454,7 @@ pub enum DataTypeInformation {
     SubRange {
         name: TypeId,
         referenced_type: TypeId,
-        sub_range: Box<Range<AstNode>>,
+        sub_range: Range<TypeSize>,
     },
     Alias {
         name: TypeId,

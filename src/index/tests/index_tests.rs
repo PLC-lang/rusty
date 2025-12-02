@@ -929,7 +929,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: Box::new(literal_int(7)..literal_int(1000)),
+        sub_range: TypeSize::from_literal(7)..TypeSize::from_literal(1000),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
