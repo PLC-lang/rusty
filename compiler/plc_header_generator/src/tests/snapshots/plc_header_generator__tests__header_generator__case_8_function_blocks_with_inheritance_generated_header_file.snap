@@ -1,0 +1,52 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTION_BLOCKS_WITH_INHERITANCE
+#define FUNCTION_BLOCKS_WITH_INHERITANCE
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
+#include <dependencies.plc.h>
+
+typedef struct {
+    uint64_t* __vtable;
+    int16_t varGreatGrandParentInt;
+} fbGreatGrandParent_type;
+
+typedef struct {
+    fbGreatGrandParent_type __fbGreatGrandParent;
+    int16_t varGrandParentInt;
+} fbGrandParent_type;
+
+typedef struct {
+    fbGrandParent_type __fbGrandParent;
+    int16_t varParentInt;
+} fbParent_type;
+
+typedef struct {
+    fbParent_type __fbParent;
+    int16_t varChildInt;
+} fbChild_type;
+
+extern fbGreatGrandParent_type __fbGreatGrandParent__init = { 0 };
+extern fbGrandParent_type __fbGrandParent__init = { 0 };
+extern fbParent_type __fbParent__init = { 0 };
+extern fbChild_type __fbChild__init = { 0 };
+
+void fbGreatGrandParent(fbGreatGrandParent_type* self);
+
+void fbGrandParent(fbGrandParent_type* self);
+
+void fbParent(fbParent_type* self);
+
+void fbChild(fbChild_type* self);
+
+#endif /* !FUNCTION_BLOCKS_WITH_INHERITANCE */

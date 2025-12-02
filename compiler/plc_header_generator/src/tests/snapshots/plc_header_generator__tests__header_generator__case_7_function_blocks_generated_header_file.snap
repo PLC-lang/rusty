@@ -1,0 +1,32 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTION_BLOCKS
+#define FUNCTION_BLOCKS
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+
+#include <dependencies.plc.h>
+
+typedef struct {
+    uint64_t* __vtable;
+    int16_t varInt;
+    int16_t* outVarInt;
+    int16_t* inOutVarInt;
+} fbThatHasSimpleTypes_type;
+
+extern fbThatHasSimpleTypes_type __fbThatHasSimpleTypes__init = { 0 };
+
+void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);
+
+#endif /* !FUNCTION_BLOCKS */

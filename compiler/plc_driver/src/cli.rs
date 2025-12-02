@@ -3,6 +3,7 @@ use anyhow::{bail, Result};
 use clap::{ArgGroup, Parser, Subcommand};
 use encoding_rs::Encoding;
 use plc_diagnostics::diagnostics::{diagnostics_registry::DiagnosticsConfiguration, Diagnostic};
+use plc_header_generator::GenerateLanguage;
 use std::{env, ffi::OsStr, num::ParseIntError, path::PathBuf};
 
 use plc::output::FormatOption;
@@ -250,6 +251,17 @@ pub struct CompileParameters {
     )]
     pub online_change: bool,
 
+    #[clap(name = "generate-headers", long, help = "Generate headers only, do not compile.", global = true)]
+    pub generate_headers_only: bool,
+
+    #[clap(
+        name = "header-output",
+        long,
+        help = "The output folder where generated headers will be placed.",
+        global = true
+    )]
+    pub header_output: Option<String>,
+
     #[clap(subcommand)]
     pub commands: Option<SubCommands>,
 }
@@ -311,6 +323,20 @@ pub enum SubCommands {
         #[clap(help = "Error code to explain, for example `E001`")]
         error: String,
     },
+
+    /// Generates code for a given project
+    ///
+    /// Sub-command(s):
+    ///     Header : Generates the Header files
+    Generate {
+        #[clap(
+            parse(try_from_str = validate_config)
+        )]
+        build_config: Option<String>,
+
+        #[clap(subcommand)]
+        option: GenerateOption,
+    },
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug, Subcommand)]
@@ -321,11 +347,40 @@ pub enum ConfigOption {
     Diagnostics,
 }
 
+#[derive(Debug, Subcommand)]
+pub enum GenerateOption {
+    Headers {
+        #[clap(
+            name = "include-stubs",
+            long,
+            help = "Whether or not to include generated code stubs for the library."
+        )]
+        include_stubs: bool,
+
+        #[clap(
+            name = "header-language",
+            long,
+            arg_enum,
+            help = "The language used to generate the header file. Currently supported language(s) are: C",
+            default_value = "c"
+        )]
+        language: GenerateLanguage,
+
+        #[clap(
+            name = "header-prefix",
+            long,
+            help = "The prefix for the generated header file(s). Will default to the project name if not supplied."
+        )]
+        prefix: Option<String>,
+    },
+}
+
 impl SubCommands {
     pub fn get_build_configuration(&self) -> Option<&str> {
         let (SubCommands::Build { build_config, .. }
         | SubCommands::Check { build_config }
-        | SubCommands::Config { build_config, .. }) = self
+        | SubCommands::Config { build_config, .. }
+        | SubCommands::Generate { build_config, .. }) = self
         else {
             return None;
         };
@@ -414,6 +469,15 @@ impl CompileParameters {
         self.check_only || matches!(self.commands, Some(SubCommands::Check { .. }))
     }
 
+    /// If set, header files will be generated
+    pub fn is_header_generator(&self) -> bool {
+        self.generate_headers_only
+            || matches!(
+                self.commands,
+                Some(SubCommands::Generate { option: GenerateOption::Headers { .. }, .. })
+            )
+    }
+
     /// return the selected output format, or the default if none.
     #[cfg(test)]
     pub fn output_format_or_default(&self) -> FormatOption {
@@ -485,6 +549,7 @@ impl CompileParameters {
                 let current_dir = env::current_dir()?;
                 build_config.is_some() || super::get_config(&current_dir).exists()
             }
+            Some(SubCommands::Generate { build_config, .. }) => build_config.is_some(),
         };
         Ok(res)
     }
@@ -506,7 +571,7 @@ impl CompileParameters {
 
 #[cfg(test)]
 mod cli_tests {
-    use crate::cli::ConfigOption;
+    use crate::cli::{ConfigOption, GenerateLanguage, GenerateOption};
 
     use super::{CompileParameters, SubCommands};
     use clap::ErrorKind;
@@ -878,6 +943,53 @@ mod cli_tests {
                     assert_eq!(build_config, None);
                     assert_eq!(option, ConfigOption::Schema);
                     assert_eq!(format, ConfigFormat::TOML)
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+    }
+
+    #[test]
+    fn generate_subcommand() {
+        let parameters =
+            CompileParameters::parse(vec_of_strings!("generate", "src/ProjectPlc.json", "headers")).unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, .. } => {
+                            assert_eq!(include_stubs, false);
+                            assert_eq!(language, GenerateLanguage::C);
+                        }
+                    }
+                }
+                _ => panic!("Unexpected command"),
+            };
+        }
+
+        let parameters = CompileParameters::parse(vec_of_strings!(
+            "generate",
+            "src/ProjectPlc.json",
+            "headers",
+            "--include-stubs",
+            "--header-language",
+            "rust",
+            "--header-prefix",
+            "myLib"
+        ))
+        .unwrap();
+        if let Some(commands) = parameters.commands {
+            match commands {
+                SubCommands::Generate { build_config, option, .. } => {
+                    assert_eq!(build_config, Some("src/ProjectPlc.json".to_string()));
+                    match option {
+                        GenerateOption::Headers { include_stubs, language, prefix } => {
+                            assert_eq!(include_stubs, true);
+                            assert_eq!(language, GenerateLanguage::Rust);
+                            assert_eq!(prefix, Some("myLib".to_string()));
+                        }
+                    }
                 }
                 _ => panic!("Unexpected command"),
             };

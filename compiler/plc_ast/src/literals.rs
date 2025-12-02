@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Formatter};
 
 use chrono::NaiveDate;
+use serde::{Deserialize, Serialize};
 
 use crate::ast::AstNode;
 use derive_more::TryInto;
@@ -15,7 +16,8 @@ macro_rules! impl_getters {
     }
 }
 
-#[derive(Clone, PartialEq, TryInto)]
+#[derive(Clone, PartialEq, TryInto, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 #[try_into(ref)]
 pub enum AstLiteral {
     /// a null literal used to initialize pointers
@@ -40,14 +42,14 @@ pub enum AstLiteral {
     Array(Array),
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Date {
     year: i32,
     month: u32,
     day: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DateAndTime {
     year: i32,
     month: u32,
@@ -58,7 +60,7 @@ pub struct DateAndTime {
     nano: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TimeOfDay {
     hour: u32,
     min: u32,
@@ -66,7 +68,7 @@ pub struct TimeOfDay {
     nano: u32,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Time {
     pub day: f64,
     pub hour: f64,
@@ -78,13 +80,14 @@ pub struct Time {
     pub negative: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct StringValue {
     pub value: String,
     pub is_wide: bool,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Array {
     pub elements: Option<Box<AstNode>>, // expression-list
 }
