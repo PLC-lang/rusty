@@ -17,6 +17,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
+    types::BasicTypeEnum,
     values::{FunctionValue, PointerValue},
 };
 use plc_ast::{
@@ -455,12 +456,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 _ => unreachable!(),
             });
 
+            let llvmty: BasicTypeEnum = todo!();
             let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, "")?,
+                ExpressionValue::LValue(ptr) => builder.build_load(llvmty, ptr, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "")?;
+            let counter_value = builder.build_load(llvmty, counter, "")?;
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -492,9 +494,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         // increment counter
+        let llvmty: BasicTypeEnum = todo!();
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "")?;
+        let counter_value = builder.build_load(llvmty, counter, "")?;
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -825,7 +828,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+
+                let llvmty: BasicTypeEnum = todo!();
+                let loaded_value = self.llvm.load_pointer(llvmty, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {

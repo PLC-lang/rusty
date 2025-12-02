@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     context::Context,
-    types::{FloatType, IntType},
+    types::{BasicTypeEnum, FloatType, IntType},
     values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
 };
 use plc_source::source_location::SourceLocation;
@@ -405,7 +405,9 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let struct_val = cast_data.llvm.builder.build_load(self, "auto_deref")?.cast(cast_data)?;
+                let llvmty: BasicTypeEnum = todo!();
+                let struct_val =
+                    cast_data.llvm.builder.build_load(llvmty, self, "auto_deref")?.cast(cast_data)?;
 
                 // create a pointer to the generated StructValue
                 let struct_ptr =
@@ -463,15 +465,17 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             })?;
 
         // gep into the original array. the resulting address will be stored in the VLA struct
-        let arr_gep = unsafe { builder.build_in_bounds_gep(array_pointer, &[zero, zero], "outer_arr_gep")? };
+        let llvmty: BasicTypeEnum = todo!();
+        let arr_gep =
+            unsafe { builder.build_in_bounds_gep(llvmty, array_pointer, &[zero, zero], "outer_arr_gep")? };
 
         // -- Generate struct & arr_ptr --
         let ty = associated_type.into_struct_type();
         let vla_struct = builder.build_alloca(ty, "vla_struct")?;
 
-        let vla_arr_ptr = builder.build_struct_gep(vla_struct, 0, "vla_array_gep")?;
+        let vla_arr_ptr = builder.build_struct_gep(llvmty, vla_struct, 0, "vla_array_gep")?;
 
-        let vla_dimensions_ptr = builder.build_struct_gep(vla_struct, 1, "vla_dimensions_gep")?;
+        let vla_dimensions_ptr = builder.build_struct_gep(llvmty, vla_struct, 1, "vla_dimensions_gep")?;
 
         // -- Generate dimensions --
         let DataTypeInformation::Array { dimensions, .. } = cast_data.value_type else { unreachable!() };
@@ -490,7 +494,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
 
         builder.build_store(vla_arr_ptr, arr_gep)?;
 
-        builder.build_load(vla_struct, "").map_err(Into::into)
+        builder.build_load(llvmty, vla_struct, "").map_err(Into::into)
     }
 
     fn cast_constant(

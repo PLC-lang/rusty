@@ -1,6 +1,6 @@
 use inkwell::{
     basic_block::BasicBlock,
-    types::BasicType,
+    types::{BasicType, BasicTypeEnum},
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
@@ -922,8 +922,9 @@ fn generate_variable_length_array_bound_function<'ink>(
             ));
         };
 
+        let llvmty: BasicTypeEnum = todo!();
         let vla = generator.generate_lvalue(actual_vla).unwrap();
-        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+        let dim = builder.build_struct_gep(llvmty, vla, 1, "dim").unwrap();
 
         let accessor = match actual_dim.get_stmt() {
             // e.g. LOWER_BOUND(arr, 1)
@@ -965,9 +966,11 @@ fn generate_variable_length_array_bound_function<'ink>(
                 }
             }
         };
-        let gep_bound =
-            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") }?;
-        let bound = llvm.builder.build_load(gep_bound, "")?;
+        let llvmty: BasicTypeEnum = todo!();
+        let gep_bound = unsafe {
+            llvm.builder.build_in_bounds_gep(llvmty, dim, &[llvm.i32_type().const_zero(), accessor], "")
+        }?;
+        let bound = llvm.builder.build_load(llvmty, gep_bound, "")?;
 
         Ok(ExpressionValue::RValue(bound))
     } else {

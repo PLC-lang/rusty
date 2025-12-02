@@ -1006,6 +1006,11 @@ impl AstAnnotations {
     pub fn get_bool_id(&self) -> AstId {
         self.bool_id
     }
+
+    // TEMP
+    pub fn temp_fn<'a>(&'a self, node: &AstNode, index: &'a Index) -> &'a typesystem::DataType {
+        self.get_type_hint(node, index).or_else(|| self.get_type(node, index)).unwrap()
+    }
 }
 
 #[derive(Default, Debug)]
