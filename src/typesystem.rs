@@ -517,7 +517,7 @@ impl DataTypeInformation {
     }
 
     pub fn is_int(&self) -> bool {
-        // internally an enum is represented as a DINT
+        // includes enums as they are represented as integers internally
         matches!(self, DataTypeInformation::Integer { .. } | DataTypeInformation::Enum { .. })
     }
 
