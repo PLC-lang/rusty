@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/directaccess_test.rs
 expression: prog
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,26 +12,26 @@ entry:
   %main = alloca i16, align 2
   %a = alloca i8, align 1
   %b = alloca i16, align 2
-  store i8 0, i8* %a, align 1
-  store i16 1, i16* %b, align 2
-  store i16 0, i16* %main, align 2
-  %0 = load i8, i8* %a, align 1
+  store i8 0, ptr %a, align 1
+  store i16 1, ptr %b, align 2
+  store i16 0, ptr %main, align 2
+  %0 = load i8, ptr %a, align 1
   %erase = and i8 %0, -3
   %or = or i8 %erase, 2
-  store i8 %or, i8* %a, align 1
-  %1 = load i8, i8* %a, align 1
+  store i8 %or, ptr %a, align 1
+  %1 = load i8, ptr %a, align 1
   %erase1 = and i8 %1, -5
   %or2 = or i8 %erase1, 0
-  store i8 %or2, i8* %a, align 1
-  %2 = load i8, i8* %a, align 1
-  %load_b = load i16, i16* %b, align 2
+  store i8 %or2, ptr %a, align 1
+  %2 = load i8, ptr %a, align 1
+  %load_b = load i16, ptr %b, align 2
   %3 = trunc i16 %load_b to i8
   %shift = shl i8 1, %3
   %invert = xor i8 %shift, -1
   %erase3 = and i8 %2, %invert
   %value = shl i8 0, %3
   %or4 = or i8 %erase3, %value
-  store i8 %or4, i8* %a, align 1
-  %main_ret = load i16, i16* %main, align 2
+  store i8 %or4, ptr %a, align 1
+  %main_ret = load i16, ptr %main, align 2
   ret i16 %main_ret
 }

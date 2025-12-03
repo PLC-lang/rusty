@@ -17,6 +17,12 @@ rustflags = [
 ]
 linker = "clang"
 
+[target.aarch64-apple-darwin]
+rustflags = [
+    "-C",
+    "link-arg=-lxar"
+]
+
 [profile.profiling]
 inherits = "release"
 debug = true

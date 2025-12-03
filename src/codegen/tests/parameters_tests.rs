@@ -1199,7 +1199,7 @@ fn array_of_string_parameter_with_stride_calculation() {
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1208,38 +1208,36 @@ fn array_of_string_parameter_with_stride_calculation() {
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"World\00"
 
-    define void @foo(i8* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %strings = alloca i8*, align 8
-      store i8* %0, i8** %strings, align 8
-      %deref = load i8*, i8** %strings, align 8
-      %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load i8*, i8** %strings, align 8
-      %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 81
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
+      %strings = alloca ptr, align 8
+      store ptr %0, ptr %strings, align 8
+      %deref = load ptr, ptr %strings, align 8
+      %tmpVar = getelementptr inbounds [2 x [81 x i8]], ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref1 = load ptr, ptr %strings, align 8
+      %tmpVar2 = getelementptr inbounds [2 x [81 x i8]], ptr %deref1, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar2, ptr align 1 @utf08_literal_1, i32 6, i1 false)
       ret void
     }
 
     define void @main() {
     entry:
       %arr = alloca [2 x [81 x i8]], align 1
-      %0 = bitcast [2 x [81 x i8]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [81 x i8]]* getelementptr ([2 x [81 x i8]], [2 x [81 x i8]]* null, i32 1) to i64), i1 false)
-      %1 = bitcast [2 x [81 x i8]]* %arr to i8*
-      call void @foo(i8* %1)
+      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %arr)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
-    "###)
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    "#)
 }
 
 #[test]
@@ -1271,43 +1269,41 @@ fn array_of_array_integer_parameter_with_stride_calculation() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define void @foo(i32* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %numbers = alloca i32*, align 8
-      store i32* %0, i32** %numbers, align 8
-      %deref = load i32*, i32** %numbers, align 8
-      %tmpVar = getelementptr inbounds i32, i32* %deref, i32 0
-      %tmpVar1 = getelementptr inbounds i32, i32* %tmpVar, i32 0
-      store i32 1, i32* %tmpVar1, align 4
-      %deref2 = load i32*, i32** %numbers, align 8
-      %tmpVar3 = getelementptr inbounds i32, i32* %deref2, i32 0
-      %tmpVar4 = getelementptr inbounds i32, i32* %tmpVar3, i32 1
-      store i32 2, i32* %tmpVar4, align 4
-      %deref5 = load i32*, i32** %numbers, align 8
-      %tmpVar6 = getelementptr inbounds i32, i32* %deref5, i32 3
-      %tmpVar7 = getelementptr inbounds i32, i32* %tmpVar6, i32 0
-      store i32 3, i32* %tmpVar7, align 4
-      %deref8 = load i32*, i32** %numbers, align 8
-      %tmpVar9 = getelementptr inbounds i32, i32* %deref8, i32 3
-      %tmpVar10 = getelementptr inbounds i32, i32* %tmpVar9, i32 1
-      store i32 4, i32* %tmpVar10, align 4
+      %numbers = alloca ptr, align 8
+      store ptr %0, ptr %numbers, align 8
+      %deref = load ptr, ptr %numbers, align 8
+      %tmpVar = getelementptr inbounds [2 x [3 x i32]], ptr %deref, i32 0, i32 0
+      %tmpVar1 = getelementptr inbounds [3 x i32], ptr %tmpVar, i32 0, i32 0
+      store i32 1, ptr %tmpVar1, align 4
+      %deref2 = load ptr, ptr %numbers, align 8
+      %tmpVar3 = getelementptr inbounds [2 x [3 x i32]], ptr %deref2, i32 0, i32 0
+      %tmpVar4 = getelementptr inbounds [3 x i32], ptr %tmpVar3, i32 0, i32 1
+      store i32 2, ptr %tmpVar4, align 4
+      %deref5 = load ptr, ptr %numbers, align 8
+      %tmpVar6 = getelementptr inbounds [2 x [3 x i32]], ptr %deref5, i32 0, i32 1
+      %tmpVar7 = getelementptr inbounds [3 x i32], ptr %tmpVar6, i32 0, i32 0
+      store i32 3, ptr %tmpVar7, align 4
+      %deref8 = load ptr, ptr %numbers, align 8
+      %tmpVar9 = getelementptr inbounds [2 x [3 x i32]], ptr %deref8, i32 0, i32 1
+      %tmpVar10 = getelementptr inbounds [3 x i32], ptr %tmpVar9, i32 0, i32 1
+      store i32 4, ptr %tmpVar10, align 4
       ret void
     }
 
     define void @main() {
     entry:
       %arr = alloca [2 x [3 x i32]], align 4
-      %0 = bitcast [2 x [3 x i32]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [3 x i32]]* getelementptr ([2 x [3 x i32]], [2 x [3 x i32]]* null, i32 1) to i64), i1 false)
-      %1 = bitcast [2 x [3 x i32]]* %arr to i32*
-      call void @foo(i32* %1)
+      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [3 x i32]], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %arr)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#)
 }
 
@@ -1342,37 +1338,35 @@ fn mixed_string_lengths_parameter_compatibility() {
     @utf08_literal_0 = private unnamed_addr constant [4 x i8] c"Bye\00"
     @utf08_literal_1 = private unnamed_addr constant [3 x i8] c"Hi\00"
 
-    define void @foo(i8* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %short_strings = alloca i8*, align 8
-      store i8* %0, i8** %short_strings, align 8
-      %deref = load i8*, i8** %short_strings, align 8
-      %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([3 x i8], [3 x i8]* @utf08_literal_1, i32 0, i32 0), i32 3, i1 false)
-      %deref1 = load i8*, i8** %short_strings, align 8
-      %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 11
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([4 x i8], [4 x i8]* @utf08_literal_0, i32 0, i32 0), i32 4, i1 false)
+      %short_strings = alloca ptr, align 8
+      store ptr %0, ptr %short_strings, align 8
+      %deref = load ptr, ptr %short_strings, align 8
+      %tmpVar = getelementptr inbounds [2 x [11 x i8]], ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_1, i32 3, i1 false)
+      %deref1 = load ptr, ptr %short_strings, align 8
+      %tmpVar2 = getelementptr inbounds [2 x [11 x i8]], ptr %deref1, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar2, ptr align 1 @utf08_literal_0, i32 4, i1 false)
       ret void
     }
 
     define void @main() {
     entry:
       %long_strings = alloca [2 x [81 x i8]], align 1
-      %0 = bitcast [2 x [81 x i8]]* %long_strings to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [81 x i8]]* getelementptr ([2 x [81 x i8]], [2 x [81 x i8]]* null, i32 1) to i64), i1 false)
-      %1 = bitcast [2 x [81 x i8]]* %long_strings to i8*
-      call void @foo(i8* %1)
+      call void @llvm.memset.p0.i64(ptr align 1 %long_strings, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %long_strings)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#)
 }
 
@@ -1556,37 +1550,36 @@ fn method_with_var_in_out_array_of_strings() {
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"World\00"
 
-    define void @StringHandler(%StringHandler* %0) {
+    define void @StringHandler(ptr %0) {
     entry:
       ret void
     }
 
-    define void @StringHandler__process_strings(%StringHandler* %0, i8* %1) {
+    define void @StringHandler__process_strings(ptr %0, ptr %1) {
     entry:
-      %string_list = alloca i8*, align 8
-      store i8* %1, i8** %string_list, align 8
-      %deref = load i8*, i8** %string_list, align 8
-      %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load i8*, i8** %string_list, align 8
-      %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 31
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
+      %string_list = alloca ptr, align 8
+      store ptr %1, ptr %string_list, align 8
+      %deref = load ptr, ptr %string_list, align 8
+      %tmpVar = getelementptr inbounds [2 x [31 x i8]], ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref1 = load ptr, ptr %string_list, align 8
+      %tmpVar2 = getelementptr inbounds [2 x [31 x i8]], ptr %deref1, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar2, ptr align 1 @utf08_literal_1, i32 6, i1 false)
       ret void
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %handler = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %my_strings = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %1 = bitcast [2 x [31 x i8]]* %my_strings to i8*
-      call void @StringHandler__process_strings(%StringHandler* %handler, i8* %1)
+      %handler = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %my_strings = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      call void @StringHandler__process_strings(ptr %handler, ptr %my_strings)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#)
 }
 
@@ -1628,44 +1621,43 @@ fn method_with_var_in_out_nested_integer_arrays() {
     @__DataProcessor__init = unnamed_addr constant %DataProcessor zeroinitializer
     @main_instance = global %main zeroinitializer
 
-    define void @DataProcessor(%DataProcessor* %0) {
+    define void @DataProcessor(ptr %0) {
     entry:
-      %this = alloca %DataProcessor*, align 8
-      store %DataProcessor* %0, %DataProcessor** %this, align 8
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
       ret void
     }
 
-    define void @DataProcessor__process_matrix(%DataProcessor* %0, i32* %1) {
+    define void @DataProcessor__process_matrix(ptr %0, ptr %1) {
     entry:
-      %this = alloca %DataProcessor*, align 8
-      store %DataProcessor* %0, %DataProcessor** %this, align 8
-      %data = alloca i32*, align 8
-      store i32* %1, i32** %data, align 8
-      %deref = load i32*, i32** %data, align 8
-      %tmpVar = getelementptr inbounds i32, i32* %deref, i32 0
-      %tmpVar1 = getelementptr inbounds i32, i32* %tmpVar, i32 0
-      store i32 10, i32* %tmpVar1, align 4
-      %deref2 = load i32*, i32** %data, align 8
-      %tmpVar3 = getelementptr inbounds i32, i32* %deref2, i32 0
-      %tmpVar4 = getelementptr inbounds i32, i32* %tmpVar3, i32 1
-      store i32 20, i32* %tmpVar4, align 4
-      %deref5 = load i32*, i32** %data, align 8
-      %tmpVar6 = getelementptr inbounds i32, i32* %deref5, i32 2
-      %tmpVar7 = getelementptr inbounds i32, i32* %tmpVar6, i32 0
-      store i32 30, i32* %tmpVar7, align 4
-      %deref8 = load i32*, i32** %data, align 8
-      %tmpVar9 = getelementptr inbounds i32, i32* %deref8, i32 2
-      %tmpVar10 = getelementptr inbounds i32, i32* %tmpVar9, i32 1
-      store i32 40, i32* %tmpVar10, align 4
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %data = alloca ptr, align 8
+      store ptr %1, ptr %data, align 8
+      %deref = load ptr, ptr %data, align 8
+      %tmpVar = getelementptr inbounds [2 x [2 x i32]], ptr %deref, i32 0, i32 0
+      %tmpVar1 = getelementptr inbounds [2 x i32], ptr %tmpVar, i32 0, i32 0
+      store i32 10, ptr %tmpVar1, align 4
+      %deref2 = load ptr, ptr %data, align 8
+      %tmpVar3 = getelementptr inbounds [2 x [2 x i32]], ptr %deref2, i32 0, i32 0
+      %tmpVar4 = getelementptr inbounds [2 x i32], ptr %tmpVar3, i32 0, i32 1
+      store i32 20, ptr %tmpVar4, align 4
+      %deref5 = load ptr, ptr %data, align 8
+      %tmpVar6 = getelementptr inbounds [2 x [2 x i32]], ptr %deref5, i32 0, i32 1
+      %tmpVar7 = getelementptr inbounds [2 x i32], ptr %tmpVar6, i32 0, i32 0
+      store i32 30, ptr %tmpVar7, align 4
+      %deref8 = load ptr, ptr %data, align 8
+      %tmpVar9 = getelementptr inbounds [2 x [2 x i32]], ptr %deref8, i32 0, i32 1
+      %tmpVar10 = getelementptr inbounds [2 x i32], ptr %tmpVar9, i32 0, i32 1
+      store i32 40, ptr %tmpVar10, align 4
       ret void
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %processor = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %matrix = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %1 = bitcast [2 x [2 x i32]]* %matrix to i32*
-      call void @DataProcessor__process_matrix(%DataProcessor* %processor, i32* %1)
+      %processor = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %matrix = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      call void @DataProcessor__process_matrix(ptr %processor, ptr %matrix)
       ret void
     }
     "#)
@@ -1713,53 +1705,51 @@ fn method_with_mixed_array_types() {
     @utf08_literal_0 = private unnamed_addr constant [5 x i8] c"Data\00"
     @utf08_literal_1 = private unnamed_addr constant [11 x i8] c"Processing\00"
 
-    define void @ComplexHandler(%ComplexHandler* %0) {
+    define void @ComplexHandler(ptr %0) {
     entry:
-      %this = alloca %ComplexHandler*, align 8
-      store %ComplexHandler* %0, %ComplexHandler** %this, align 8
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
       ret void
     }
 
-    define void @ComplexHandler__handle_data(%ComplexHandler* %0, i8* %1, i16* %2) {
+    define void @ComplexHandler__handle_data(ptr %0, ptr %1, ptr %2) {
     entry:
-      %this = alloca %ComplexHandler*, align 8
-      store %ComplexHandler* %0, %ComplexHandler** %this, align 8
-      %strings = alloca i8*, align 8
-      store i8* %1, i8** %strings, align 8
-      %numbers = alloca i16*, align 8
-      store i16* %2, i16** %numbers, align 8
-      %deref = load i8*, i8** %strings, align 8
-      %tmpVar = getelementptr inbounds i8, i8* %deref, i32 0
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar, i8* align 1 getelementptr inbounds ([5 x i8], [5 x i8]* @utf08_literal_0, i32 0, i32 0), i32 5, i1 false)
-      %deref1 = load i8*, i8** %strings, align 8
-      %tmpVar2 = getelementptr inbounds i8, i8* %deref1, i32 21
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %tmpVar2, i8* align 1 getelementptr inbounds ([11 x i8], [11 x i8]* @utf08_literal_1, i32 0, i32 0), i32 11, i1 false)
-      %deref3 = load i16*, i16** %numbers, align 8
-      %tmpVar4 = getelementptr inbounds i16, i16* %deref3, i32 0
-      %tmpVar5 = getelementptr inbounds i16, i16* %tmpVar4, i32 0
-      store i16 100, i16* %tmpVar5, align 2
-      %deref6 = load i16*, i16** %numbers, align 8
-      %tmpVar7 = getelementptr inbounds i16, i16* %deref6, i32 2
-      %tmpVar8 = getelementptr inbounds i16, i16* %tmpVar7, i32 1
-      store i16 200, i16* %tmpVar8, align 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %strings = alloca ptr, align 8
+      store ptr %1, ptr %strings, align 8
+      %numbers = alloca ptr, align 8
+      store ptr %2, ptr %numbers, align 8
+      %deref = load ptr, ptr %strings, align 8
+      %tmpVar = getelementptr inbounds [2 x [21 x i8]], ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_0, i32 5, i1 false)
+      %deref1 = load ptr, ptr %strings, align 8
+      %tmpVar2 = getelementptr inbounds [2 x [21 x i8]], ptr %deref1, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar2, ptr align 1 @utf08_literal_1, i32 11, i1 false)
+      %deref3 = load ptr, ptr %numbers, align 8
+      %tmpVar4 = getelementptr inbounds [3 x [2 x i16]], ptr %deref3, i32 0, i32 0
+      %tmpVar5 = getelementptr inbounds [2 x i16], ptr %tmpVar4, i32 0, i32 0
+      store i16 100, ptr %tmpVar5, align 2
+      %deref6 = load ptr, ptr %numbers, align 8
+      %tmpVar7 = getelementptr inbounds [3 x [2 x i16]], ptr %deref6, i32 0, i32 1
+      %tmpVar8 = getelementptr inbounds [2 x i16], ptr %tmpVar7, i32 0, i32 1
+      store i16 200, ptr %tmpVar8, align 2
       ret void
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %handler = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %text_data = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %num_data = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-      %1 = bitcast [2 x [21 x i8]]* %text_data to i8*
-      %2 = bitcast [3 x [2 x i16]]* %num_data to i16*
-      call void @ComplexHandler__handle_data(%ComplexHandler* %handler, i8* %1, i16* %2)
+      %handler = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %text_data = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %num_data = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+      call void @ComplexHandler__handle_data(ptr %handler, ptr %text_data, ptr %num_data)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#)
 }
 
@@ -1820,109 +1810,86 @@ fn function_with_array_of_array_return() {
     @utf08_literal_1 = private unnamed_addr constant [6 x i8] c"Three\00"
     @utf08_literal_2 = private unnamed_addr constant [4 x i8] c"Two\00"
 
-    define void @foo(i16* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %foo = alloca i16*, align 8
-      store i16* %0, i16** %foo, align 8
+      %foo = alloca ptr, align 8
+      store ptr %0, ptr %foo, align 8
       %result = alloca [2 x [2 x i16]], align 2
-      %1 = bitcast [2 x [2 x i16]]* %result to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
-      %tmpVar = getelementptr inbounds [2 x [2 x i16]], [2 x [2 x i16]]* %result, i32 0, i32 0
-      %tmpVar1 = getelementptr inbounds [2 x i16], [2 x i16]* %tmpVar, i32 0, i32 0
-      store i16 5, i16* %tmpVar1, align 2
-      %tmpVar2 = getelementptr inbounds [2 x [2 x i16]], [2 x [2 x i16]]* %result, i32 0, i32 0
-      %tmpVar3 = getelementptr inbounds [2 x i16], [2 x i16]* %tmpVar2, i32 0, i32 1
-      store i16 10, i16* %tmpVar3, align 2
-      %tmpVar4 = getelementptr inbounds [2 x [2 x i16]], [2 x [2 x i16]]* %result, i32 0, i32 1
-      %tmpVar5 = getelementptr inbounds [2 x i16], [2 x i16]* %tmpVar4, i32 0, i32 0
-      store i16 15, i16* %tmpVar5, align 2
-      %tmpVar6 = getelementptr inbounds [2 x [2 x i16]], [2 x [2 x i16]]* %result, i32 0, i32 1
-      %tmpVar7 = getelementptr inbounds [2 x i16], [2 x i16]* %tmpVar6, i32 0, i32 1
-      store i16 20, i16* %tmpVar7, align 2
-      %deref = load i16*, i16** %foo, align 8
-      %2 = bitcast i16* %deref to i8*
-      %3 = bitcast [2 x [2 x i16]]* %result to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 %3, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %result, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
+      %tmpVar = getelementptr inbounds [2 x [2 x i16]], ptr %result, i32 0, i32 0
+      %tmpVar1 = getelementptr inbounds [2 x i16], ptr %tmpVar, i32 0, i32 0
+      store i16 5, ptr %tmpVar1, align 2
+      %tmpVar2 = getelementptr inbounds [2 x [2 x i16]], ptr %result, i32 0, i32 0
+      %tmpVar3 = getelementptr inbounds [2 x i16], ptr %tmpVar2, i32 0, i32 1
+      store i16 10, ptr %tmpVar3, align 2
+      %tmpVar4 = getelementptr inbounds [2 x [2 x i16]], ptr %result, i32 0, i32 1
+      %tmpVar5 = getelementptr inbounds [2 x i16], ptr %tmpVar4, i32 0, i32 0
+      store i16 15, ptr %tmpVar5, align 2
+      %tmpVar6 = getelementptr inbounds [2 x [2 x i16]], ptr %result, i32 0, i32 1
+      %tmpVar7 = getelementptr inbounds [2 x i16], ptr %tmpVar6, i32 0, i32 1
+      store i16 20, ptr %tmpVar7, align 2
+      %deref = load ptr, ptr %foo, align 8
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %deref, ptr align 1 %result, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    define void @bar(i16* %0) {
+    define void @bar(ptr %0) {
     entry:
-      %bar = alloca i16*, align 8
-      store i16* %0, i16** %bar, align 8
+      %bar = alloca ptr, align 8
+      store ptr %0, ptr %bar, align 8
       %data = alloca [2 x [2 x i16]], align 2
-      %1 = bitcast [2 x [2 x i16]]* %data to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %data, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
       %__foo0 = alloca [2 x [2 x i16]], align 2
-      %2 = bitcast [2 x [2 x i16]]* %__foo0 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
-      %3 = bitcast [2 x [2 x i16]]* %__foo0 to i16*
-      call void @foo(i16* %3)
-      %4 = bitcast [2 x [2 x i16]]* %data to i8*
-      %5 = bitcast [2 x [2 x i16]]* %__foo0 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %4, i8* align 1 %5, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
-      %deref = load i16*, i16** %bar, align 8
-      %6 = bitcast i16* %deref to i8*
-      %7 = bitcast [2 x [2 x i16]]* %data to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %6, i8* align 1 %7, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %__foo0)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %data, ptr align 1 %__foo0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
+      %deref = load ptr, ptr %bar, align 8
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %deref, ptr align 1 %data, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    define void @baz(i8* %0) {
+    define void @baz(ptr %0) {
     entry:
-      %baz = alloca i8*, align 8
-      store i8* %0, i8** %baz, align 8
+      %baz = alloca ptr, align 8
+      store ptr %0, ptr %baz, align 8
       %texts = alloca [3 x [21 x i8]], align 1
-      %1 = bitcast [3 x [21 x i8]]* %texts to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([3 x [21 x i8]]* getelementptr ([3 x [21 x i8]], [3 x [21 x i8]]* null, i32 1) to i64), i1 false)
-      %tmpVar = getelementptr inbounds [3 x [21 x i8]], [3 x [21 x i8]]* %texts, i32 0, i32 0
-      %2 = bitcast [21 x i8]* %tmpVar to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([4 x i8], [4 x i8]* @utf08_literal_0, i32 0, i32 0), i32 4, i1 false)
-      %tmpVar1 = getelementptr inbounds [3 x [21 x i8]], [3 x [21 x i8]]* %texts, i32 0, i32 1
-      %3 = bitcast [21 x i8]* %tmpVar1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 getelementptr inbounds ([4 x i8], [4 x i8]* @utf08_literal_2, i32 0, i32 0), i32 4, i1 false)
-      %tmpVar2 = getelementptr inbounds [3 x [21 x i8]], [3 x [21 x i8]]* %texts, i32 0, i32 2
-      %4 = bitcast [21 x i8]* %tmpVar2 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %4, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_1, i32 0, i32 0), i32 6, i1 false)
-      %deref = load i8*, i8** %baz, align 8
-      %5 = bitcast [3 x [21 x i8]]* %texts to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %deref, i8* align 1 %5, i64 ptrtoint ([3 x [21 x i8]]* getelementptr ([3 x [21 x i8]], [3 x [21 x i8]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %texts, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [21 x i8]], ptr null, i32 1) to i64), i1 false)
+      %tmpVar = getelementptr inbounds [3 x [21 x i8]], ptr %texts, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_0, i32 4, i1 false)
+      %tmpVar1 = getelementptr inbounds [3 x [21 x i8]], ptr %texts, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar1, ptr align 1 @utf08_literal_2, i32 4, i1 false)
+      %tmpVar2 = getelementptr inbounds [3 x [21 x i8]], ptr %texts, i32 0, i32 2
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar2, ptr align 1 @utf08_literal_1, i32 6, i1 false)
+      %deref = load ptr, ptr %baz, align 8
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %deref, ptr align 1 %texts, i64 ptrtoint (ptr getelementptr ([3 x [21 x i8]], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %numbers = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %strings = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+      %numbers = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %strings = getelementptr inbounds %main, ptr %0, i32 0, i32 1
       %__bar1 = alloca [2 x [2 x i16]], align 2
-      %1 = bitcast [2 x [2 x i16]]* %__bar1 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
-      %2 = bitcast [2 x [2 x i16]]* %__bar1 to i16*
-      call void @bar(i16* %2)
-      %3 = bitcast [2 x [2 x i16]]* %numbers to i8*
-      %4 = bitcast [2 x [2 x i16]]* %__bar1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 %4, i64 ptrtoint ([2 x [2 x i16]]* getelementptr ([2 x [2 x i16]], [2 x [2 x i16]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %__bar1, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
+      call void @bar(ptr %__bar1)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %numbers, ptr align 1 %__bar1, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
       %__baz2 = alloca [3 x [21 x i8]], align 1
-      %5 = bitcast [3 x [21 x i8]]* %__baz2 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %5, i8 0, i64 ptrtoint ([3 x [21 x i8]]* getelementptr ([3 x [21 x i8]], [3 x [21 x i8]]* null, i32 1) to i64), i1 false)
-      %6 = bitcast [3 x [21 x i8]]* %__baz2 to i8*
-      call void @baz(i8* %6)
-      %7 = bitcast [3 x [21 x i8]]* %strings to i8*
-      %8 = bitcast [3 x [21 x i8]]* %__baz2 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([3 x [21 x i8]]* getelementptr ([3 x [21 x i8]], [3 x [21 x i8]]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %__baz2, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [21 x i8]], ptr null, i32 1) to i64), i1 false)
+      call void @baz(ptr %__baz2)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %strings, ptr align 1 %__baz2, i64 ptrtoint (ptr getelementptr ([3 x [21 x i8]], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }

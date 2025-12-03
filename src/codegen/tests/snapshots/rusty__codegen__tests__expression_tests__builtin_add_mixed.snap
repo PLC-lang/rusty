@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,20 +14,20 @@ entry:
   %x2 = alloca float, align 4
   %x3 = alloca float, align 4
   %l1 = alloca i64, align 8
-  store float 0.000000e+00, float* %x1, align 4
-  store float 0.000000e+00, float* %x2, align 4
-  store float 0.000000e+00, float* %x3, align 4
-  store i64 0, i64* %l1, align 8
-  store i32 0, i32* %main, align 4
-  %load_x1 = load float, float* %x1, align 4
-  %load_x2 = load float, float* %x2, align 4
+  store float 0.000000e+00, ptr %x1, align 4
+  store float 0.000000e+00, ptr %x2, align 4
+  store float 0.000000e+00, ptr %x3, align 4
+  store i64 0, ptr %l1, align 8
+  store i32 0, ptr %main, align 4
+  %load_x1 = load float, ptr %x1, align 4
+  %load_x2 = load float, ptr %x2, align 4
   %tmpVar = fadd float %load_x1, %load_x2
-  %load_x3 = load float, float* %x3, align 4
+  %load_x3 = load float, ptr %x3, align 4
   %tmpVar1 = fadd float %tmpVar, %load_x3
   %0 = fpext float %tmpVar1 to double
-  %load_l1 = load i64, i64* %l1, align 8
+  %load_l1 = load i64, ptr %l1, align 8
   %1 = sitofp i64 %load_l1 to double
   %tmpVar2 = fadd double %0, %1
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }

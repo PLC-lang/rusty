@@ -453,31 +453,31 @@ fn calling_a_function() {
 
     @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %load_x = load i16, i16* %x, align 2
+      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %load_x = load i16, ptr %x, align 2
       %1 = alloca i64, align 8
-      %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
+      %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
       ret void
     }
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
-      store i16 %0, i16* %i, align 2
-      %io = alloca i8*, align 8
-      store i8* %1, i8** %io, align 8
-      %o = alloca i64*, align 8
-      store i64* %2, i64** %o, align 8
+      store i16 %0, ptr %i, align 2
+      %io = alloca ptr, align 8
+      store ptr %1, ptr %io, align 8
+      %o = alloca ptr, align 8
+      store ptr %2, ptr %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      store i16 1, i16* %v, align 2
-      store i16 2, i16* %vt, align 2
-      store i32 0, i32* %main_fun, align 4
-      %main_fun_ret = load i32, i32* %main_fun, align 4
+      store i16 1, ptr %v, align 2
+      store i16 2, ptr %vt, align 2
+      store i32 0, ptr %main_fun, align 4
+      %main_fun_ret = load i32, ptr %main_fun, align 4
       ret i32 %main_fun_ret
     }
     "#);
@@ -518,37 +518,33 @@ fn return_a_complex_type_from_function() {
     @prg_instance = global %prg zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @foo(i8* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %foo = alloca i8*, align 8
-      store i8* %0, i8** %foo, align 8
-      %deref = load i8*, i8** %foo, align 8
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      %foo = alloca ptr, align 8
+      store ptr %0, ptr %foo, align 8
+      %deref = load ptr, ptr %foo, align 8
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 13, i1 false)
       ret void
     }
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %s = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
       %__foo0 = alloca [81 x i8], align 1
-      %1 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      %2 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @foo(i8* %2)
-      %3 = bitcast [81 x i8]* %s to i8*
-      %4 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %__foo0)
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %__foo0, i32 80, i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#);
 }
 

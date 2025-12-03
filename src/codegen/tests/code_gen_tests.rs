@@ -1115,32 +1115,32 @@ fn fb_method_called_locally() {
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(%foo* %0, i16 42)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
-    define i32 @foo__addToBar(%foo* %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
-      store i16 %1, i16* %in, align 2
-      store i32 0, i32* %foo.addToBar, align 4
-      %load_in = load i16, i16* %in, align 2
+      store i16 %1, ptr %in, align 2
+      store i32 0, ptr %foo.addToBar, align 4
+      %load_in = load i16, ptr %in, align 2
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, i32* %bar, align 4
+      %load_bar = load i32, ptr %bar, align 4
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, i32* %bar, align 4
-      %load_bar1 = load i32, i32* %bar, align 4
-      store i32 %load_bar1, i32* %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align 4
+      %load_bar1 = load i32, ptr %bar, align 4
+      store i32 %load_bar1, ptr %foo.addToBar, align 4
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
       ret i32 %foo__addToBar_ret
     }
 
@@ -1148,18 +1148,17 @@ fn fb_method_called_locally() {
     entry:
       %fb = alloca %foo, align 8
       %x = alloca i32, align 4
-      %0 = bitcast %foo* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %x, align 4
-      %call = call i32 @foo__addToBar(%foo* %fb, i16 3)
-      store i32 %call, i32* %x, align 4
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align 4
+      %call = call i32 @foo__addToBar(ptr %fb, i16 3)
+      store i32 %call, ptr %x, align 4
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#)
 }
 
@@ -1204,34 +1203,34 @@ fn fb_local_method_var_shadows_parent_var() {
 
     @__foo__init = unnamed_addr constant %foo { i32 42 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(%foo* %0, i16 42)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
-    define i32 @foo__addToBar(%foo* %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
-      store i16 %1, i16* %in, align 2
+      store i16 %1, ptr %in, align 2
       %bar1 = alloca i32, align 4
-      store i32 69, i32* %bar1, align 4
-      store i32 0, i32* %foo.addToBar, align 4
-      %load_in = load i16, i16* %in, align 2
+      store i32 69, ptr %bar1, align 4
+      store i32 0, ptr %foo.addToBar, align 4
+      %load_in = load i16, ptr %in, align 2
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, i32* %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align 4
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, i32* %bar1, align 4
-      %load_bar2 = load i32, i32* %bar1, align 4
-      store i32 %load_bar2, i32* %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align 4
+      %load_bar2 = load i32, ptr %bar1, align 4
+      store i32 %load_bar2, ptr %foo.addToBar, align 4
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
       ret i32 %foo__addToBar_ret
     }
 
@@ -1239,18 +1238,17 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %fb = alloca %foo, align 8
       %x = alloca i32, align 4
-      %0 = bitcast %foo* %fb to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %x, align 4
-      %call = call i32 @foo__addToBar(%foo* %fb, i16 3)
-      store i32 %call, i32* %x, align 4
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      store i32 0, ptr %x, align 4
+      %call = call i32 @foo__addToBar(ptr %fb, i16 3)
+      store i32 %call, ptr %x, align 4
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#)
 }
 
@@ -1292,37 +1290,37 @@ fn prog_method_called_locally() {
 
     @foo_instance = global %foo { i32 42 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(%foo* %0, i16 42)
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
-    define i32 @foo__addToBar(%foo* %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
-      store i16 %1, i16* %in, align 2
-      store i32 0, i32* %foo.addToBar, align 4
-      %load_in = load i16, i16* %in, align 2
+      store i16 %1, ptr %in, align 2
+      store i32 0, ptr %foo.addToBar, align 4
+      %load_in = load i16, ptr %in, align 2
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, i32* %bar, align 4
+      %load_bar = load i32, ptr %bar, align 4
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, i32* %bar, align 4
-      %load_bar1 = load i32, i32* %bar, align 4
-      store i32 %load_bar1, i32* %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar, align 4
+      %load_bar1 = load i32, ptr %bar, align 4
+      store i32 %load_bar1, ptr %foo.addToBar, align 4
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
       %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      %call = call i32 @foo__addToBar(%foo* @foo_instance, i16 3)
-      store i32 %call, i32* %x, align 4
+      store i32 0, ptr %x, align 4
+      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
+      store i32 %call, ptr %x, align 4
       ret void
     }
     "#)
@@ -1368,39 +1366,39 @@ fn prog_local_method_var_shadows_parent_var() {
 
     @foo_instance = global %foo { i32 42 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %call = call i32 @foo__addToBar(%foo* %0, i16 42)
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
-    define i32 @foo__addToBar(%foo* %0, i16 %1) {
+    define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
-      store i16 %1, i16* %in, align 2
+      store i16 %1, ptr %in, align 2
       %bar1 = alloca i32, align 4
-      store i32 69, i32* %bar1, align 4
-      store i32 0, i32* %foo.addToBar, align 4
-      %load_in = load i16, i16* %in, align 2
+      store i32 69, ptr %bar1, align 4
+      store i32 0, ptr %foo.addToBar, align 4
+      %load_in = load i16, ptr %in, align 2
       %2 = sext i16 %load_in to i32
-      %load_bar = load i32, i32* %bar1, align 4
+      %load_bar = load i32, ptr %bar1, align 4
       %tmpVar = add i32 %2, %load_bar
-      store i32 %tmpVar, i32* %bar1, align 4
-      %load_bar2 = load i32, i32* %bar1, align 4
-      store i32 %load_bar2, i32* %foo.addToBar, align 4
-      %foo__addToBar_ret = load i32, i32* %foo.addToBar, align 4
+      store i32 %tmpVar, ptr %bar1, align 4
+      %load_bar2 = load i32, ptr %bar1, align 4
+      store i32 %load_bar2, ptr %foo.addToBar, align 4
+      %foo__addToBar_ret = load i32, ptr %foo.addToBar, align 4
       ret i32 %foo__addToBar_ret
     }
 
     define void @main() {
     entry:
       %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      %call = call i32 @foo__addToBar(%foo* @foo_instance, i16 3)
-      store i32 %call, i32* %x, align 4
+      store i32 0, ptr %x, align 4
+      %call = call i32 @foo__addToBar(ptr @foo_instance, i16 3)
+      store i32 %call, ptr %x, align 4
       ret void
     }
     "#)

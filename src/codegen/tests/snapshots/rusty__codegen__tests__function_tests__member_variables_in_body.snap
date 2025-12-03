@@ -1,46 +1,45 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i32 @func(i16 %0, i8* %1, i64* %2) {
+define i32 @func(i16 %0, ptr %1, ptr %2) {
 entry:
   %func = alloca i32, align 4
   %i = alloca i16, align 2
-  store i16 %0, i16* %i, align 2
-  %io = alloca i8*, align 8
-  store i8* %1, i8** %io, align 8
-  %o = alloca i64*, align 8
-  store i64* %2, i64** %o, align 8
+  store i16 %0, ptr %i, align 2
+  %io = alloca ptr, align 8
+  store ptr %1, ptr %io, align 8
+  %o = alloca ptr, align 8
+  store ptr %2, ptr %o, align 8
   %v = alloca i16, align 2
   %vt = alloca i16, align 2
-  store i16 1, i16* %v, align 2
-  store i16 2, i16* %vt, align 2
-  store i32 0, i32* %func, align 4
-  %load_i = load i16, i16* %i, align 2
+  store i16 1, ptr %v, align 2
+  store i16 2, ptr %vt, align 2
+  store i32 0, ptr %func, align 4
+  %load_i = load i16, ptr %i, align 2
   %3 = sext i16 %load_i to i32
-  %deref = load i8*, i8** %io, align 8
-  %load_io = load i8, i8* %deref, align 1
+  %deref = load ptr, ptr %io, align 8
+  %load_io = load i8, ptr %deref, align 1
   %4 = sext i8 %load_io to i32
   %tmpVar = mul i32 %3, %4
   %5 = sext i32 %tmpVar to i64
-  %deref1 = load i64*, i64** %o, align 8
-  %load_o = load i64, i64* %deref1, align 8
+  %deref1 = load ptr, ptr %o, align 8
+  %load_o = load i64, ptr %deref1, align 8
   %tmpVar2 = sub i64 %5, %load_o
-  %load_v = load i16, i16* %v, align 2
+  %load_v = load i16, ptr %v, align 2
   %6 = sext i16 %load_v to i32
-  %load_vt = load i16, i16* %vt, align 2
+  %load_vt = load i16, ptr %vt, align 2
   %7 = sext i16 %load_vt to i32
   %tmpVar3 = mul i32 %6, %7
   %8 = sext i32 %tmpVar3 to i64
   %tmpVar4 = add i64 %tmpVar2, %8
   %9 = trunc i64 %tmpVar4 to i32
-  store i32 %9, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  store i32 %9, ptr %func, align 4
+  %func_ret = load i32, ptr %func, align 4
   ret i32 %func_ret
 }

@@ -212,16 +212,16 @@ fn accessing_struct_members() {
     @__Rect__init = unnamed_addr constant %Rect zeroinitializer
     @__Point__init = unnamed_addr constant %Point zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %topLeft = getelementptr inbounds %Rect, %Rect* %rect1, i32 0, i32 0
-      %x = getelementptr inbounds %Point, %Point* %topLeft, i32 0, i32 0
-      %bottomRight = getelementptr inbounds %Rect, %Rect* %rect2, i32 0, i32 1
-      %x1 = getelementptr inbounds %Point, %Point* %bottomRight, i32 0, i32 0
-      %load_x = load i16, i16* %x1, align 2
-      store i16 %load_x, i16* %x, align 2
+      %rect1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %topLeft = getelementptr inbounds %Rect, ptr %rect1, i32 0, i32 0
+      %x = getelementptr inbounds %Point, ptr %topLeft, i32 0, i32 0
+      %bottomRight = getelementptr inbounds %Rect, ptr %rect2, i32 0, i32 1
+      %x1 = getelementptr inbounds %Point, ptr %bottomRight, i32 0, i32 0
+      %load_x = load i16, ptr %x1, align 2
+      store i16 %load_x, ptr %x, align 2
       ret void
     }
     "#);

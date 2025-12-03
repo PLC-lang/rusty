@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,16 +12,16 @@ entry:
   %main = alloca i32, align 4
   %i = alloca i32, align 4
   %j = alloca i16, align 2
-  %arr_ptr = alloca [3 x float]*, align 8
-  store i32 0, i32* %i, align 4
-  store i16 0, i16* %j, align 2
-  store [3 x float]* null, [3 x float]** %arr_ptr, align 8
-  store i32 0, i32* %main, align 4
-  %load_j = load i16, i16* %j, align 2
+  %arr_ptr = alloca ptr, align 8
+  store i32 0, ptr %i, align 4
+  store i16 0, ptr %j, align 2
+  store ptr null, ptr %arr_ptr, align 8
+  store i32 0, ptr %main, align 4
+  %load_j = load i16, ptr %j, align 2
   %0 = zext i16 %load_j to i64
-  %tmpVar = sub i64 %0, ptrtoint ([3 x float]** getelementptr ([3 x float]*, [3 x float]** null, i32 1) to i64)
+  %tmpVar = sub i64 %0, ptrtoint (ptr getelementptr (ptr, ptr null, i32 1) to i64)
   %1 = trunc i64 %tmpVar to i32
-  store i32 %1, i32* %i, align 4
-  %main_ret = load i32, i32* %main, align 4
+  store i32 %1, ptr %i, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }

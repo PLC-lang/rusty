@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,20 +12,20 @@ entry:
   %baz = alloca i16, align 2
   %x = alloca i16, align 2
   %y = alloca i16, align 2
-  store i16 0, i16* %x, align 2
-  store i16 0, i16* %y, align 2
-  store i16 0, i16* %baz, align 2
-  %load_x = load i16, i16* %x, align 2
+  store i16 0, ptr %x, align 2
+  store i16 0, ptr %y, align 2
+  store i16 0, ptr %baz, align 2
+  %load_x = load i16, ptr %x, align 2
   %0 = sext i16 %load_x to i32
   %tmpVar = icmp eq i32 %0, 3
-  %load_x1 = load i16, i16* %x, align 2
+  %load_x1 = load i16, ptr %x, align 2
   %1 = sext i16 %load_x1 to i32
-  %load_y = load i16, i16* %y, align 2
+  %load_y = load i16, ptr %y, align 2
   %2 = sext i16 %load_y to i32
   %tmpVar2 = icmp slt i32 %1, %2
-  %load_y3 = load i16, i16* %y, align 2
+  %load_y3 = load i16, ptr %y, align 2
   %3 = sext i16 %load_y3 to i32
   %tmpVar4 = icmp sle i32 %3, 0
-  %baz_ret = load i16, i16* %baz, align 2
+  %baz_ret = load i16, ptr %baz, align 2
   ret i16 %baz_ret
 }

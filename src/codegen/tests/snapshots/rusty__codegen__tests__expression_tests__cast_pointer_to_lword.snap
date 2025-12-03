@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -11,14 +10,14 @@ target triple = "[filtered]"
 define i16 @baz() {
 entry:
   %baz = alloca i16, align 2
-  %ptr_x = alloca i16*, align 8
+  %ptr_x = alloca ptr, align 8
   %y = alloca i64, align 8
-  store i16* null, i16** %ptr_x, align 8
-  store i64 0, i64* %y, align 8
-  store i16 0, i16* %baz, align 2
-  %load_ptr_x = load i16*, i16** %ptr_x, align 8
-  %0 = ptrtoint i16* %load_ptr_x to i64
-  store i64 %0, i64* %y, align 8
-  %baz_ret = load i16, i16* %baz, align 2
+  store ptr null, ptr %ptr_x, align 8
+  store i64 0, ptr %y, align 8
+  store i16 0, ptr %baz, align 2
+  %load_ptr_x = load ptr, ptr %ptr_x, align 8
+  %0 = ptrtoint ptr %load_ptr_x to i64
+  store i64 %0, ptr %y, align 8
+  %baz_ret = load i16, ptr %baz, align 2
   ret i16 %baz_ret
 }

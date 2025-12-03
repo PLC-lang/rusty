@@ -251,7 +251,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         // auto-deref might not deref if not annotated as such so perhaps we must not ignore
                         // the pointee from the match-expression, but also maybe inline the auto_deref function
                         let value = self.auto_deref_if_necessary(val, expression)?;
-                        let pointee = todo!("llvm-15");
+                        let pointee = {
+                            let datatype = self.annotations.get_type(expression, self.index).unwrap();
+                            self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                        };
                         ExpressionValue::LValue(value, pointee)
                     }
                     ExpressionValue::RValue(val) => {
@@ -261,6 +264,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         } else {
                             val
                         };
+
                         ExpressionValue::RValue(val)
                     }
                 };
@@ -268,7 +272,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::HardwareAccess(..) => {
                 let value = self.create_llvm_pointer_value_for_reference(None, "address", expression)?;
-                let pointee = todo!("llvm-15");
+                let pointee = {
+                    let datatype = self.annotations.get_type(expression, self.index).unwrap();
+                    self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                };
 
                 Ok(ExpressionValue::LValue(value, pointee))
             }
@@ -1476,12 +1483,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `context` the statement to obtain the location from when returning an error
     fn create_llvm_pointer_value_for_reference(
         &self,
-        qualifier: Option<&PointerValue<'ink>>,
+        qualifier: Option<&ExpressionValue<'ink>>,
         name: &str,
         context: &AstNode,
     ) -> Result<PointerValue<'ink>, CodegenError> {
         let offset = &context.get_location();
-        if let Some(qualifier) = qualifier {
+        if let Some(ExpressionValue::LValue(qualifier, pointee)) = qualifier {
             //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
             match self.annotations.get(context) {
@@ -1497,8 +1504,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let gep: PointerValue<'_> =
-                        self.llvm.get_member_pointer_from_struct(*qualifier, member_location, name)?;
+
+                    let gep = self.llvm.builder.build_struct_gep(*pointee, *qualifier, member_location, name).unwrap();
 
                     return Ok(gep);
                 }
@@ -1530,10 +1537,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn deref(&self, accessor_ptr: PointerValue<'ink>) -> Result<PointerValue<'ink>, CodegenError> {
-        let pointee: BasicTypeEnum = todo!("llvm-15");
-        Ok(self.llvm.load_pointer(pointee, &accessor_ptr, "deref")?.into_pointer_value())
-    }
 
     pub fn ptr_as_value(&self, ptr: PointerValue<'ink>) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_type = self.llvm.context.i64_type();
@@ -1559,8 +1562,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         accessor_ptr: PointerValue<'ink>,
         statement: &AstNode,
     ) -> Result<PointerValue<'ink>, CodegenError> {
+        // TODO: Inline into functions
         if self.annotations.get(statement).is_some_and(|opt| opt.is_auto_deref()) {
-            self.deref(accessor_ptr)
+            let pointee = self.llvm.context.ptr_type(AddressSpace::default()).into();
+            Ok(self.llvm.load_pointer(pointee, &accessor_ptr, "deref")?.into_pointer_value())
         } else {
             Ok(accessor_ptr)
         }
@@ -1616,7 +1621,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     ) -> Result<PointerValue<'ink>, CodegenError> {
         //Load the reference
         self.generate_expression_value(reference)
-            .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
                 if let DataTypeInformation::Array { dimensions, inner_type_name, .. } =
                     self.get_type_hint_info_for(reference)?
@@ -1696,14 +1700,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             .map_err(|_| Diagnostic::codegen_error("non-numeric index-access", access).into())
                     })?;
 
-                    // TODO(vosa): Not sure if this is needed? Re-check with tests
-                    // let accessor_sequence = if lvalue.get_type().get_element_type().is_array_type() {
-                    //     // For typed array pointers (e.g.: [81 x i32]*):
-                    //     // the first index (0) will point to the array -> [81 x i32]
-                    //     // the second index (index_access) will point to the element in the array
-                    //     vec![self.llvm.i32_type().const_zero(), index_access]
-                    // } else
+                    let ExpressionValue::LValue(lvalue, pointee) = lvalue else {
+                        // TODO: Not enitrely sure if this is correct
+                        panic!("expected LValue here");
+                    };
                     let accessor_sequence =
+                    // TODO(vosa): Not sure if this is needed? Re-check with tests
+                     if pointee.is_array_type() {
+                        // For typed array pointers (e.g.: [81 x i32]*):
+                        // the first index (0) will point to the array -> [81 x i32]
+                        // the second index (index_access) will point to the element in the array
+                        vec![self.llvm.i32_type().const_zero(), index_access]
+                    } else
                         if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
                             matches!(
                                 it.get_type_information(),
@@ -1759,10 +1767,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         };
 
                     // load the access from that array
-                    let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
+                    let pointer = unsafe {
+                        // let ExpressionValue::LValue(lvalue, pointee) = lvalue else { panic!("expected an LValue here"); };
+                        self.llvm.builder.build_in_bounds_gep(pointee, lvalue, &accessor_sequence, "tmpVar").unwrap()
+                    };
 
                     return Ok(pointer);
                 }
+
                 Err(Diagnostic::codegen_error("Invalid array access", access).into())
             })
     }
@@ -2149,7 +2161,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             self.llvm_index.find_utf08_literal_string(value).map(|it| it.as_pointer_value());
                         if let Some((literal_value, _)) = literal.zip(self.function_context) {
                             //global constant string
-                            let pointee: BasicTypeEnum = todo!("llvm-15");
+                            // let pointee: BasicTypeEnum = todo!("llvm-15");
+                            let pointee = self.llvm_index.get_associated_type(expected_type.get_name()).unwrap();
                             Ok(ExpressionValue::LValue(literal_value, pointee))
                         } else {
                             //note that .len() will give us the number of bytes, not the number of characters
@@ -2170,7 +2183,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             //global constant string
                             Ok(literal
                                 .map(|it| {
-                                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                                    let pointee = self.llvm_index.get_associated_type(expected_type.get_name()).unwrap();
                                     ExpressionValue::LValue(it.as_pointer_value(), pointee)
                                 })
                                 .unwrap())
@@ -2784,11 +2797,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
                     let value = 
                     self.create_llvm_pointer_value_for_reference(
-                        base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
+                        base_value.as_ref(),
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
                     )?;
-                    let pointee = todo!("llvm-15");
+                    let pointee = {
+                        let datatype = self.annotations.get_type(member, self.index).unwrap();
+                        self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                    };
 
                     Ok(ExpressionValue::LValue(value, pointee))
                 }
@@ -2809,7 +2825,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     // normal array expression
                     let value = self.generate_element_pointer_for_array(base, array_idx)?;
-                    let pointee = todo!();
+                    let pointee = {
+                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    };
+
                     Ok(ExpressionValue::LValue(value, pointee))
                 }
             }
