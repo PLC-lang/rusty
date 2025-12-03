@@ -127,9 +127,9 @@ impl<'a> Llvm<'a> {
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
         unsafe {
-            let llvmty: BasicTypeEnum = todo!();
+            let pointee: BasicTypeEnum = todo!("llvm-15");
             self.builder
-                .build_in_bounds_gep(llvmty, pointer_to_array_instance, accessor_sequence, name)
+                .build_in_bounds_gep(pointee, pointer_to_array_instance, accessor_sequence, name)
                 .map_err(Into::into)
         }
     }
@@ -146,9 +146,9 @@ impl<'a> Llvm<'a> {
         member_index: u32,
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
-        let llvmty: BasicTypeEnum = todo!();
+        let pointee: BasicTypeEnum = todo!("llvm-15");
         self.builder
-            .build_struct_gep(llvmty, pointer_to_struct_instance, member_index, name)
+            .build_struct_gep(pointee, pointer_to_struct_instance, member_index, name)
             .map_err(Into::into)
     }
 

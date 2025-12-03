@@ -726,11 +726,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
-                let llvmty = self.llvm_index.get_associated_type(pou_type_name).unwrap();
+                let pointee = self.llvm_index.get_associated_type(pou_type_name).unwrap();
                 let ptr = self
                     .llvm
                     .builder
-                    .build_struct_gep(llvmty, param_pointer, var_count as u32, parameter_name)
+                    .build_struct_gep(pointee, param_pointer, var_count as u32, parameter_name)
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;

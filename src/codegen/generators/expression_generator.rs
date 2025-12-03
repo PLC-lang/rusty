@@ -82,7 +82,7 @@ struct CallParameterAssignment<'a, 'b> {
 pub enum ExpressionValue<'ink> {
     /// A Locator-Value
     /// An lvalue (locator value) represents an object that occupies some identifiable location in memory (i.e. has an address).
-    LValue(PointerValue<'ink>),
+    LValue(PointerValue<'ink>, BasicTypeEnum<'ink>),
     /// An expression that does not represent an object occupying some identifiable location in memory.
     RValue(BasicValueEnum<'ink>),
 }
@@ -91,8 +91,8 @@ impl<'ink> ExpressionValue<'ink> {
     /// returns the value represented by this ExpressionValue
     pub fn get_basic_value_enum(&self) -> BasicValueEnum<'ink> {
         match self {
-            ExpressionValue::LValue(it) => it.as_basic_value_enum(),
-            ExpressionValue::RValue(it) => it.to_owned(),
+            ExpressionValue::LValue(value, _) => value.as_basic_value_enum(),
+            ExpressionValue::RValue(value) => value.to_owned(),
         }
     }
 
@@ -104,11 +104,10 @@ impl<'ink> ExpressionValue<'ink> {
         load_name: Option<String>,
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match self {
-            ExpressionValue::LValue(it) => {
-                let llvmty: BasicTypeEnum = todo!();
-                llvm.load_pointer(llvmty, it, load_name.as_deref().unwrap_or(""))
+            ExpressionValue::LValue(value, pointee) => {
+                llvm.load_pointer(*pointee, value, load_name.as_deref().unwrap_or(""))
             }
-            ExpressionValue::RValue(it) => Ok(it.to_owned()),
+            ExpressionValue::RValue(value) => Ok(value.to_owned()),
         }
     }
 }
@@ -238,14 +237,22 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         let message = format!("Cannot find '{}' in associated variable values", this_name);
                         Diagnostic::codegen_error(message, expression)
                     })?;
-                Ok(ExpressionValue::LValue(this_value))
+
+                let pointee = todo!("llvm-15");
+                Ok(ExpressionValue::LValue(this_value, pointee))
             }
             AstStatement::ReferenceExpr(data) => {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
-                    ExpressionValue::LValue(val) => {
-                        ExpressionValue::LValue(self.auto_deref_if_necessary(val, expression)?)
+                    ExpressionValue::LValue(val, pointee) => {
+                        // TODO(vosa): Is it correct to ignore the pointee from the match-expression?
+                        // Should be right, because we create another lvalue with the auto_deref? Actually,
+                        // auto-deref might not deref if not annotated as such so perhaps we must not ignore
+                        // the pointee from the match-expression, but also maybe inline the auto_deref function
+                        let value = self.auto_deref_if_necessary(val, expression)?;
+                        let pointee = todo!("llvm-15");
+                        ExpressionValue::LValue(value, pointee)
                     }
                     ExpressionValue::RValue(val) => {
                         let val = if val.is_pointer_value() {
@@ -259,9 +266,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 };
                 Ok(val)
             }
-            AstStatement::HardwareAccess(..) => self
-                .create_llvm_pointer_value_for_reference(None, "address", expression)
-                .map(ExpressionValue::LValue),
+            AstStatement::HardwareAccess(..) => {
+                let value = self.create_llvm_pointer_value_for_reference(None, "address", expression)?;
+                let pointee = todo!("llvm-15");
+
+                Ok(ExpressionValue::LValue(value, pointee))
+            }
+
             AstStatement::BinaryExpression(data) => self
                 .generate_binary_expression(&data.left, &data.right, &data.operator, expression)
                 .map(ExpressionValue::RValue),
@@ -333,8 +344,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             &[self.llvm.context.i32_type().const_int(idx, false)],
                             "",
                         )?;
-                        let llvmty: BasicTypeEnum = todo!();
-                        Ok(self.llvm.load_pointer(llvmty, &ptr, "")?.into_pointer_value())
+                        let pointee: BasicTypeEnum = todo!("llvm-15");
+                        Ok(self.llvm.load_pointer(pointee, &ptr, "")?.into_pointer_value())
                     })
                     .transpose()
             }
@@ -590,9 +601,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // Get the associated variable then load it, e.g. `%localFnPtrVariable = alloca void (%Fb*)*, align 8`
         // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
         let fnptr = match self.generate_expression_value(base)? {
-            ExpressionValue::LValue(value) => {
-                let llvmty: BasicTypeEnum = todo!();
-                self.llvm.builder.build_load(llvmty, value, "").unwrap().into_pointer_value()
+            ExpressionValue::LValue(value, pointee) => {
+                self.llvm.builder.build_load(pointee, value, "").unwrap().into_pointer_value()
             }
             ExpressionValue::RValue(_) => unreachable!(),
         };
@@ -795,11 +805,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         right_pointer: PointerValue,
         right_type: &DataType,
     ) -> Result<(), CodegenError> {
-        let llvmty: BasicTypeEnum = todo!();
-        let left_value = self.llvm.builder.build_load(llvmty, left_pointer, "")?.into_int_value();
+        let pointee: BasicTypeEnum = todo!("llvm-15");
+        let left_value = self.llvm.builder.build_load(pointee, left_pointer, "")?.into_int_value();
 
         //Generate an expression for the right size
-        let right = self.llvm.builder.build_load(llvmty, right_pointer, "")?;
+        let right = self.llvm.builder.build_load(pointee, right_pointer, "")?;
         self.generate_assignment_with_direct_access(
             left_statement,
             left_value,
@@ -846,9 +856,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let (base, _) = collect_base_and_direct_access_for_assignment(base).unwrap();
 
                     let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
-                    let llvmty: BasicTypeEnum = todo!();
+                    let pointee: BasicTypeEnum = todo!("llvm-15");
                     let rhs =
-                        self.llvm.builder.build_struct_gep(llvmty, parameter_struct, index, "").unwrap();
+                        self.llvm.builder.build_struct_gep(pointee, parameter_struct, index, "").unwrap();
 
                     self.generate_output_assignment_with_direct_access(
                         expr,
@@ -863,13 +873,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-                let llvmty: BasicTypeEnum = todo!();
-                let output = builder.build_struct_gep(llvmty, parameter_struct, index, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        format!("Cannot build generate parameter: {parameter:#?}"),
-                        &parameter.source_location,
-                    )
-                })?;
+                let pointee: BasicTypeEnum = todo!("llvm-15");
+                let output =
+                    builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
+                        Diagnostic::codegen_error(
+                            format!("Cannot build generate parameter: {parameter:#?}"),
+                            &parameter.source_location,
+                        )
+                    })?;
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
@@ -883,8 +894,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         parameter.source_location.clone(),
                     )?;
                 } else {
-                    let llvmty: BasicTypeEnum = todo!();
-                    let output_value = builder.build_load(llvmty, output, "")?;
+                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                    let output_value = builder.build_load(pointee, output, "")?;
                     builder.build_store(assigned_output, output_value)?;
                 }
             }
@@ -1102,8 +1113,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         let value = {
             let value = self.generate_expression_value(argument)?;
             match value {
-                ExpressionValue::LValue(v) => v,
-                ExpressionValue::RValue(_v) => {
+                ExpressionValue::LValue(value, _) => value,
+                ExpressionValue::RValue(_) => {
                     // Passed a literal to a byref parameter?
                     let value = self.generate_expression(argument)?;
                     let argument = self.llvm.builder.build_alloca(value.get_type(), "")?;
@@ -1299,8 +1310,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_expression(initial_value)
                 } else {
                     let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-                    let llvmty: BasicTypeEnum = todo!();
-                    Ok(self.llvm.load_pointer(llvmty, &ptr_value, "")?)
+                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                    Ok(self.llvm.load_pointer(pointee, &ptr_value, "")?)
                 }
             }
             _ => {
@@ -1368,9 +1379,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let llvmty: BasicTypeEnum = todo!();
+            let pointee: BasicTypeEnum = todo!("llvm-15");
             let pointer_to_param =
-                builder.build_struct_gep(llvmty, parameter_struct, index, "").map_err(|_| {
+                builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
                         format!("Cannot build generate parameter: {expression:#?}"),
                         expression,
@@ -1520,8 +1531,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn deref(&self, accessor_ptr: PointerValue<'ink>) -> Result<PointerValue<'ink>, CodegenError> {
-        let llvmty: BasicTypeEnum = todo!();
-        Ok(self.llvm.load_pointer(llvmty, &accessor_ptr, "deref")?.into_pointer_value())
+        let pointee: BasicTypeEnum = todo!("llvm-15");
+        Ok(self.llvm.load_pointer(pointee, &accessor_ptr, "deref")?.into_pointer_value())
     }
 
     pub fn ptr_as_value(&self, ptr: PointerValue<'ink>) -> Result<BasicValueEnum<'ink>, CodegenError> {
@@ -2138,7 +2149,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             self.llvm_index.find_utf08_literal_string(value).map(|it| it.as_pointer_value());
                         if let Some((literal_value, _)) = literal.zip(self.function_context) {
                             //global constant string
-                            Ok(ExpressionValue::LValue(literal_value))
+                            let pointee: BasicTypeEnum = todo!("llvm-15");
+                            Ok(ExpressionValue::LValue(literal_value, pointee))
                         } else {
                             //note that .len() will give us the number of bytes, not the number of characters
                             let actual_length = value.chars().count() + 1; // +1 to account for a final \0
@@ -2156,7 +2168,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             && self.function_context.is_some()
                         {
                             //global constant string
-                            Ok(literal.map(|it| ExpressionValue::LValue(it.as_pointer_value())).unwrap())
+                            Ok(literal
+                                .map(|it| {
+                                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                                    ExpressionValue::LValue(it.as_pointer_value(), pointee)
+                                })
+                                .unwrap())
                         } else {
                             //note that .len() will give us the number of bytes, not the number of characters
                             let actual_length = value.encode_utf16().count() + 1; // +1 to account for a final \0
@@ -2743,11 +2760,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Global(node), _) => {
                 let name = node.get_flat_reference_name().unwrap_or("unknown");
 
-                self.create_llvm_pointer_value_for_reference(
+                let value = self.create_llvm_pointer_value_for_reference(
                     None,
                     self.get_load_name(node).as_deref().unwrap_or(name),
                     node,
-                ).map(ExpressionValue::LValue)
+                )?;
+                let pointee = todo!("llvm-15");
+
+                Ok(ExpressionValue::LValue(value, pointee))
             }
 
             // `base.member` or just `member`
@@ -2762,28 +2782,35 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
 
+                    let value = 
                     self.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
-                    ).map(ExpressionValue::LValue)
+                    )?;
+                    let pointee = todo!("llvm-15");
+
+                    Ok(ExpressionValue::LValue(value, pointee))
                 }
             }
 
             // `base[idx]`
             (ReferenceAccess::Index(array_idx), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
-                    // vla array needs special handling
-                    self.generate_element_pointer_for_vla(
-                        self.generate_expression_value(base)?,
-                        self.annotations.get(base).expect(""),
-                        array_idx.as_ref(),
-                    )
-                        .map_err(|_| unreachable!("invalid access statement"))
-                        .map(ExpressionValue::LValue)
+                    // // vla array needs special handling
+                    // self.generate_element_pointer_for_vla(
+                    //     self.generate_expression_value(base)?,
+                    //     self.annotations.get(base).expect(""),
+                    //     array_idx.as_ref(),
+                    // )
+                    //     .map_err(|_| unreachable!("invalid access statement"))
+                    //     .map(ExpressionValue::LValue)
+                    todo!("llvm-15, vla")
                 } else {
                     // normal array expression
-                    self.generate_element_pointer_for_array(base, array_idx).map(ExpressionValue::LValue)
+                    let value = self.generate_element_pointer_for_array(base, array_idx)?;
+                    let pointee = todo!();
+                    Ok(ExpressionValue::LValue(value, pointee))
                 }
             }
 
@@ -2819,14 +2846,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             // `base^`
             (ReferenceAccess::Deref, Some(base)) => {
-                let ptr = self.generate_expression_value(base)?;
+                let base_lvalue = self.generate_expression_value(base)?;
 
-                let llvmty:BasicTypeEnum = todo!();
-                Ok(ExpressionValue::LValue(
-                    self.llvm
-                        .load_pointer(llvmty, &ptr.get_basic_value_enum().into_pointer_value(), "deref")?
-                        .into_pointer_value(),
-                ))
+                let pointee = todo!("llvm-15");
+                let value = self.llvm.load_pointer(pointee, &base_lvalue.get_basic_value_enum().into_pointer_value(), "deref")?;
+                Ok(ExpressionValue::LValue(value.into_pointer_value(), pointee))
             }
 
             // `&base`

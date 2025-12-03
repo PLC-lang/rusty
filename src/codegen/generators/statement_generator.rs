@@ -456,13 +456,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 _ => unreachable!(),
             });
 
-            let llvmty: BasicTypeEnum = todo!();
             let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(llvmty, ptr, "")?,
+                ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(llvmty, counter, "")?;
+            let pointee: BasicTypeEnum = todo!("llvm-15");
+            let counter_value = builder.build_load(pointee, counter, "")?;
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,10 +494,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         // increment counter
-        let llvmty: BasicTypeEnum = todo!();
+        let pointee: BasicTypeEnum = todo!("llvm-15");
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(llvmty, counter, "")?;
+        let counter_value = builder.build_load(pointee, counter, "")?;
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -829,12 +829,12 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         )
                     })?;
 
-                let llvmty = {
+                let pointee = {
                     let datatype = self.index.find_effective_type_by_name(ret_v.get_type_name()).unwrap();
                     self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
                 };
 
-                let loaded_value = self.llvm.load_pointer(llvmty, &value_ptr, var_name.as_str())?;
+                let loaded_value = self.llvm.load_pointer(pointee, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {
