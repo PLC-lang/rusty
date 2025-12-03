@@ -18,7 +18,7 @@ fn aliased_address_in_global_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
     "#);
 }
@@ -40,9 +40,9 @@ fn duplicate_aliased_address_in_global_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
-    @baz = global i8* null
+    @baz = global ptr null
     "#);
 }
 
@@ -70,17 +70,17 @@ fn address_variable_used_with_symbolic_name() {
 
     %mainProg = type {}
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
-    @baz = global i8* null
+    @baz = global ptr null
     @mainProg_instance = global %mainProg zeroinitializer
 
-    define void @mainProg(%mainProg* %0) {
+    define void @mainProg(ptr %0) {
     entry:
-      %deref = load i8*, i8** @foo, align 8
-      store i8 0, i8* %deref, align 1
-      %deref1 = load i8*, i8** @baz, align 8
-      store i8 1, i8* %deref1, align 1
+      %deref = load ptr, ptr @foo, align 8
+      store i8 0, ptr %deref, align 1
+      %deref1 = load ptr, ptr @baz, align 8
+      store i8 1, ptr %deref1, align 1
       ret void
     }
     "#);
@@ -111,18 +111,18 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
-    @baz = global i8* null
+    @baz = global ptr null
     @__PI_1_2_3_5 = global i8 0
     @x = global i8 1
     @mainProg_instance = global %mainProg zeroinitializer
 
-    define void @mainProg(%mainProg* %0) {
+    define void @mainProg(ptr %0) {
     entry:
-      store i8 1, i8* @__PI_1_2_3_4, align 1
-      %1 = load i8, i8* @__PI_1_2_3_5, align 1
-      store i8 %1, i8* @x, align 1
+      store i8 1, ptr @__PI_1_2_3_4, align 1
+      %1 = load i8, ptr @__PI_1_2_3_5, align 1
+      store i8 %1, ptr @x, align 1
       ret void
     }
     "#);

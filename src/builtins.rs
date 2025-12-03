@@ -1,6 +1,6 @@
 use inkwell::{
     basic_block::BasicBlock,
-    types::BasicType,
+    types::{BasicType, BasicTypeEnum},
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;
@@ -194,7 +194,8 @@ lazy_static! {
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases)?;
                         builder.position_at_end(continue_block);
-                        Ok(ExpressionValue::LValue(result_var))
+                        let pointee = todo!("llvm-15");
+                        Ok(ExpressionValue::LValue(result_var, pointee))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                     }
@@ -239,7 +240,8 @@ lazy_static! {
                         let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
 
                         if sel.is_pointer_value(){
-                            Ok(ExpressionValue::LValue(sel.into_pointer_value()))
+                            let pointee = todo!("llvm-15");
+                            Ok(ExpressionValue::LValue(sel.into_pointer_value(), pointee))
                         } else {
                             Ok(ExpressionValue::RValue(sel))
                         }
@@ -922,8 +924,9 @@ fn generate_variable_length_array_bound_function<'ink>(
             ));
         };
 
+        let pointee: BasicTypeEnum = todo!("llvm-15");
         let vla = generator.generate_lvalue(actual_vla).unwrap();
-        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+        let dim = builder.build_struct_gep(pointee, vla, 1, "dim").unwrap();
 
         let accessor = match actual_dim.get_stmt() {
             // e.g. LOWER_BOUND(arr, 1)
@@ -965,9 +968,11 @@ fn generate_variable_length_array_bound_function<'ink>(
                 }
             }
         };
-        let gep_bound =
-            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") }?;
-        let bound = llvm.builder.build_load(gep_bound, "")?;
+        let pointee: BasicTypeEnum = todo!("llvm-15");
+        let gep_bound = unsafe {
+            llvm.builder.build_in_bounds_gep(pointee, dim, &[llvm.i32_type().const_zero(), accessor], "")
+        }?;
+        let bound = llvm.builder.build_load(pointee, gep_bound, "")?;
 
         Ok(ExpressionValue::RValue(bound))
     } else {

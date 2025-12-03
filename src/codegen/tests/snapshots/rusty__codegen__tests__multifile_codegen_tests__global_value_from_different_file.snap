@@ -32,8 +32,8 @@ target triple = "[filtered]"
 @c = external unnamed_addr constant i32
 @x = external global i32
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  store i32 7, i32* @x, align 4
+  store i32 7, ptr @x, align 4
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -17,9 +16,9 @@ define i32 @foo() {
 entry:
   %foo = alloca i32, align 4
   %position = alloca i32, align 4
-  store i32 1, i32* %position, align 4
-  store i32 0, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  store i32 1, ptr %position, align 4
+  store i32 0, ptr %foo, align 4
+  %foo_ret = load i32, ptr %foo, align 4
   ret i32 %foo_ret
 }
 
@@ -27,8 +26,8 @@ define i32 @bar() {
 entry:
   %bar = alloca i32, align 4
   %position = alloca i32, align 4
-  store i32 3, i32* %position, align 4
-  store i32 0, i32* %bar, align 4
-  %bar_ret = load i32, i32* %bar, align 4
+  store i32 3, ptr %position, align 4
+  store i32 0, ptr %bar, align 4
+  %bar_ret = load i32, ptr %bar, align 4
   ret i32 %bar_ret
 }

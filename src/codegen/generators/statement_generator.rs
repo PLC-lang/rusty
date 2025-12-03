@@ -17,6 +17,7 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
+    types::BasicTypeEnum,
     values::{FunctionValue, PointerValue},
 };
 use plc_ast::{
@@ -455,12 +456,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 _ => unreachable!(),
             });
 
-            let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
-            let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, "")?,
+            let end_value = match exp_gen.generate_expression_value(&stmt.end).unwrap() {
+                ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "")?;
+
+            let counter_value = {
+                let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+                let pointee = self.llvm_index.get_associated_type(&datatype.name).unwrap();
+
+                builder.build_load(pointee, counter, "")?
+            };
+
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,7 +501,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // increment counter
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "")?;
+
+        let counter_value = {
+            let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+            let pointee = self.llvm_index.get_associated_type(&datatype.name).unwrap();
+
+            builder.build_load(pointee, counter, "")?
+        };
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -825,7 +838,13 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+
+                let pointee = {
+                    let datatype = self.index.find_effective_type_by_name(ret_v.get_type_name()).unwrap();
+                    self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                };
+
+                let loaded_value = self.llvm.load_pointer(pointee, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {
