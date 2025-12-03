@@ -456,13 +456,18 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 _ => unreachable!(),
             });
 
-            let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
-            let end_value = match end {
+            let end_value = match exp_gen.generate_expression_value(&stmt.end).unwrap() {
                 ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let pointee: BasicTypeEnum = todo!("llvm-15");
-            let counter_value = builder.build_load(pointee, counter, "")?;
+
+            let counter_value = {
+                let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+                let pointee = self.llvm_index.get_associated_type(&datatype.name).unwrap();
+
+                builder.build_load(pointee, counter, "")?
+            };
+
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,10 +499,15 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         // increment counter
-        let pointee: BasicTypeEnum = todo!("llvm-15");
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(pointee, counter, "")?;
+
+        let counter_value = {
+            let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+            let pointee = self.llvm_index.get_associated_type(&datatype.name).unwrap();
+
+            builder.build_load(pointee, counter, "")?
+        };
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),

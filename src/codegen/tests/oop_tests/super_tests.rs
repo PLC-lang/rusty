@@ -1099,59 +1099,59 @@ fn super_with_pointer_operations() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { void (%parent*)* }
-    %parent = type { i32*, i16, i16* }
-    %__vtable_child = type { void (%child*)* }
+    %__vtable_parent = type { ptr }
+    %parent = type { ptr, i16, ptr }
+    %__vtable_child = type { ptr }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { i32* null, i16 10, i16* null }
+    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10, ptr null }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { i32* null, i16 10, i16* null } }
+    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10, ptr null } }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
 
-    define void @parent(%parent* %0) {
+    define void @parent(ptr %0) {
     entry:
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %ptr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
+      %ptr = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
       ret void
     }
 
-    define void @child(%child* %0) {
+    define void @child(ptr %0) {
     entry:
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
-      %ptr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
-      %val = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      store i16* %val, i16** %ptr, align 8
-      %val1 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      %ptr2 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
-      %deref = load i16*, i16** %ptr2, align 8
-      %load_tmpVar = load i16, i16* %deref, align 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
+      %ptr = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2
+      %val = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      store ptr %val, ptr %ptr, align 8
+      %val1 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      %ptr2 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2
+      %deref = load ptr, ptr %ptr2, align 8
+      %load_tmpVar = load i16, ptr %deref, align 2
       %1 = sext i16 %load_tmpVar to i32
       %tmpVar = add i32 %1, 5
       %2 = trunc i32 %tmpVar to i16
-      store i16 %2, i16* %val1, align 2
+      store i16 %2, ptr %val1, align 2
       ret void
     }
 
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      store ptr @parent, ptr %__body, align 8
       ret void
     }
 
-    define void @__init___vtable_child(%__vtable_child* %0) {
+    define void @__init___vtable_child(ptr %0) {
     entry:
       %self = alloca %__vtable_child*, align 8
       store %__vtable_child* %0, %__vtable_child** %self, align 8
@@ -1161,67 +1161,67 @@ fn super_with_pointer_operations() {
       ret void
     }
 
-    define void @__init_parent(%parent* %0) {
+    define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__init_child(%child* %0) {
+    define void @__init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
-      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__init_parent(ptr %__parent)
+      %deref1 = load ptr, ptr %self, align 8
+      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
+      store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__user_init_parent(%parent* %0) {
+    define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_child(%__vtable_child* %0) {
+    define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_child(%child* %0) {
+    define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__user_init_parent(%parent* %__parent)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__user_init_parent(ptr %__parent)
       ret void
     }
 
-    define void @__user_init___vtable_parent(%__vtable_parent* %0) {
+    define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__init___vtable_child(%__vtable_child* @__vtable_child_instance)
-      call void @__user_init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__user_init___vtable_child(%__vtable_child* @__vtable_child_instance)
+      call void @__init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__init___vtable_child(ptr @__vtable_child_instance)
+      call void @__user_init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__user_init___vtable_child(ptr @__vtable_child_instance)
       ret void
     }
     "#);
@@ -1616,164 +1616,162 @@ fn super_as_function_parameter() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { void (%parent*)* }
-    %parent = type { i32*, i16 }
-    %__vtable_child = type { void (%child*)*, void (%child*)* }
+    %__vtable_parent = type { ptr }
+    %parent = type { ptr, i16 }
+    %__vtable_child = type { ptr, ptr }
     %child = type { %parent }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { i32* null, i16 10 }
+    @__parent__init = unnamed_addr constant %parent { ptr null, i16 10 }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { i32* null, i16 10 } }
+    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 10 } }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
 
-    define void @parent(%parent* %0) {
+    define void @parent(ptr %0) {
     entry:
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %val = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
       ret void
     }
 
-    define void @child(%child* %0) {
+    define void @child(ptr %0) {
     entry:
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
       ret void
     }
 
-    define void @child__test(%child* %0) {
+    define void @child__test(ptr %0) {
     entry:
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
-      %call = call i16 @process_ref(%parent* %__parent)
-      %call1 = call i16 @process_val(%parent* %__parent)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
+      %call = call i16 @process_ref(ptr %__parent)
+      %call1 = call i16 @process_val(ptr %__parent)
       ret void
     }
 
-    define i16 @process_ref(%parent* %0) {
+    define i16 @process_ref(ptr %0) {
     entry:
       %process_ref = alloca i16, align 2
-      %ref = alloca %parent*, align 8
-      store %parent* %0, %parent** %ref, align 8
-      store i16 0, i16* %process_ref, align 2
-      %deref = load %parent*, %parent** %ref, align 8
-      %val = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 1
-      store i16 20, i16* %val, align 2
-      %process_ref_ret = load i16, i16* %process_ref, align 2
+      %ref = alloca ptr, align 8
+      store ptr %0, ptr %ref, align 8
+      store i16 0, ptr %process_ref, align 2
+      %deref = load ptr, ptr %ref, align 8
+      %val = getelementptr inbounds %parent, ptr %deref, i32 0, i32 1
+      store i16 20, ptr %val, align 2
+      %process_ref_ret = load i16, ptr %process_ref, align 2
       ret i16 %process_ref_ret
     }
 
-    define i16 @process_val(%parent* %0) {
+    define i16 @process_val(ptr %0) {
     entry:
       %process_val = alloca i16, align 2
       %val = alloca %parent, align 8
-      %1 = bitcast %parent* %val to i8*
-      %2 = bitcast %parent* %0 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%parent* getelementptr (%parent, %parent* null, i32 1) to i64), i1 false)
-      store i16 0, i16* %process_val, align 2
-      %val1 = getelementptr inbounds %parent, %parent* %val, i32 0, i32 1
-      store i16 30, i16* %val1, align 2
-      %process_val_ret = load i16, i16* %process_val, align 2
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %val, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%parent, ptr null, i32 1) to i64), i1 false)
+      store i16 0, ptr %process_val, align 2
+      %val1 = getelementptr inbounds %parent, ptr %val, i32 0, i32 1
+      store i16 30, ptr %val1, align 2
+      %process_val_ret = load i16, ptr %process_val, align 2
       ret i16 %process_val_ret
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      store ptr @parent, ptr %__body, align 8
       ret void
     }
 
-    define void @__init___vtable_child(%__vtable_child* %0) {
+    define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
-      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %test = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
-      store void (%child*)* @child__test, void (%child*)** %test, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, ptr %deref, i32 0, i32 0
+      store ptr @child, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %test = getelementptr inbounds %__vtable_child, ptr %deref1, i32 0, i32 1
+      store ptr @child__test, ptr %test, align 8
       ret void
     }
 
-    define void @__init_parent(%parent* %0) {
+    define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__init_child(%child* %0) {
+    define void @__init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
-      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__init_parent(ptr %__parent)
+      %deref1 = load ptr, ptr %self, align 8
+      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
+      store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__user_init_parent(%parent* %0) {
+    define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_child(%__vtable_child* %0) {
+    define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_child(%child* %0) {
+    define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__user_init_parent(%parent* %__parent)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__user_init_parent(ptr %__parent)
       ret void
     }
 
-    define void @__user_init___vtable_parent(%__vtable_parent* %0) {
+    define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__init___vtable_child(%__vtable_child* @__vtable_child_instance)
-      call void @__user_init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__user_init___vtable_child(%__vtable_child* @__vtable_child_instance)
+      call void @__init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__init___vtable_child(ptr @__vtable_child_instance)
+      call void @__user_init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__user_init___vtable_child(ptr @__vtable_child_instance)
       ret void
     }
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 
@@ -2038,100 +2036,100 @@ fn super_in_loop_constructs() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_parent = type { void (%parent*)*, void (%parent*)* }
-    %parent = type { i32*, i16, [6 x i16] }
-    %__vtable_child = type { void (%child*)*, void (%parent*)*, void (%child*)* }
+    %__vtable_parent = type { ptr, ptr }
+    %parent = type { ptr, i16, [6 x i16] }
+    %__vtable_child = type { ptr, ptr, ptr }
     %child = type { %parent }
 
     @__parent.arr__init = unnamed_addr constant [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6]
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @____vtable_parent__init = unnamed_addr constant %__vtable_parent zeroinitializer
-    @__parent__init = unnamed_addr constant %parent { i32* null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
+    @__parent__init = unnamed_addr constant %parent { ptr null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] }
     @__vtable_parent_instance = global %__vtable_parent zeroinitializer
     @____vtable_child__init = unnamed_addr constant %__vtable_child zeroinitializer
-    @__child__init = unnamed_addr constant %child { %parent { i32* null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
+    @__child__init = unnamed_addr constant %child { %parent { ptr null, i16 0, [6 x i16] [i16 1, i16 2, i16 3, i16 4, i16 5, i16 6] } }
     @__vtable_child_instance = global %__vtable_child zeroinitializer
 
-    define void @parent(%parent* %0) {
+    define void @parent(ptr %0) {
     entry:
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
+      %counter = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
+      %arr = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
       ret void
     }
 
-    define void @parent__increment(%parent* %0) {
+    define void @parent__increment(ptr %0) {
     entry:
-      %this = alloca %parent*, align 8
-      store %parent* %0, %parent** %this, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %0, i32 0, i32 0
-      %counter = getelementptr inbounds %parent, %parent* %0, i32 0, i32 1
-      %arr = getelementptr inbounds %parent, %parent* %0, i32 0, i32 2
-      %load_counter = load i16, i16* %counter, align 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
+      %counter = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
+      %arr = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
+      %load_counter = load i16, ptr %counter, align 2
       %1 = sext i16 %load_counter to i32
       %tmpVar = add i32 %1, 1
       %2 = trunc i32 %tmpVar to i16
-      store i16 %2, i16* %counter, align 2
+      store i16 %2, ptr %counter, align 2
       ret void
     }
 
-    define void @child(%child* %0) {
+    define void @child(ptr %0) {
     entry:
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
       ret void
     }
 
-    define void @child__process(%child* %0) {
+    define void @child__process(ptr %0) {
     entry:
-      %this = alloca %child*, align 8
-      store %child* %0, %child** %this, align 8
-      %__parent = getelementptr inbounds %child, %child* %0, i32 0, i32 0
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
       %i = alloca i16, align 2
       %sum = alloca i16, align 2
-      store i16 0, i16* %i, align 2
-      store i16 0, i16* %sum, align 2
-      store i16 0, i16* %i, align 2
+      store i16 0, ptr %i, align 2
+      store i16 0, ptr %sum, align 2
+      store i16 0, ptr %i, align 2
       br i1 true, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %1 = load i16, i16* %i, align 2
+      %1 = load i16, ptr %i, align 2
       %2 = sext i16 %1 to i32
       %condition = icmp sle i32 %2, 5
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %3 = load i16, i16* %i, align 2
+      %3 = load i16, ptr %i, align 2
       %4 = sext i16 %3 to i32
       %condition1 = icmp sge i32 %4, 5
       br i1 %condition1, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_sum = load i16, i16* %sum, align 2
+      %load_sum = load i16, ptr %sum, align 2
       %5 = sext i16 %load_sum to i32
-      %arr = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 2
-      %load_i = load i16, i16* %i, align 2
+      %arr = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2
+      %load_i = load i16, ptr %i, align 2
       %6 = sext i16 %load_i to i32
       %tmpVar = mul i32 1, %6
       %tmpVar2 = add i32 %tmpVar, 0
-      %tmpVar3 = getelementptr inbounds [6 x i16], [6 x i16]* %arr, i32 0, i32 %tmpVar2
-      %load_tmpVar = load i16, i16* %tmpVar3, align 2
+      %tmpVar3 = getelementptr inbounds [6 x i16], ptr %arr, i32 0, i32 %tmpVar2
+      %load_tmpVar = load i16, ptr %tmpVar3, align 2
       %7 = sext i16 %load_tmpVar to i32
       %tmpVar4 = add i32 %5, %7
       %8 = trunc i32 %tmpVar4 to i16
-      store i16 %8, i16* %sum, align 2
-      call void @parent__increment(%parent* %__parent)
+      store i16 %8, ptr %sum, align 2
+      call void @parent__increment(ptr %__parent)
       br label %increment
 
     increment:                                        ; preds = %loop
-      %9 = load i16, i16* %i, align 2
+      %9 = load i16, ptr %i, align 2
       %10 = sext i16 %9 to i32
       %next = add i32 1, %10
       %11 = trunc i32 %next to i16
-      store i16 %11, i16* %i, align 2
+      store i16 %11, ptr %i, align 2
       br i1 true, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -2141,8 +2139,8 @@ fn super_in_loop_constructs() {
       br i1 true, label %while_body, label %continue5
 
     while_body:                                       ; preds = %condition_check
-      %counter = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      %load_counter = load i16, i16* %counter, align 2
+      %counter = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      %load_counter = load i16, ptr %counter, align 2
       %12 = sext i16 %load_counter to i32
       %tmpVar7 = icmp slt i32 %12, 10
       %13 = zext i1 %tmpVar7 to i8
@@ -2160,22 +2158,22 @@ fn super_in_loop_constructs() {
       br label %continue6
 
     continue6:                                        ; preds = %buffer_block, %while_body
-      call void @parent__increment(%parent* %__parent)
+      call void @parent__increment(ptr %__parent)
       br label %condition_check
 
     condition_check9:                                 ; preds = %continue16, %continue5
       br i1 true, label %while_body10, label %continue11
 
     while_body10:                                     ; preds = %condition_check9
-      %counter12 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      %counter13 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      %load_counter14 = load i16, i16* %counter13, align 2
+      %counter12 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      %counter13 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      %load_counter14 = load i16, ptr %counter13, align 2
       %15 = sext i16 %load_counter14 to i32
       %tmpVar15 = sub i32 %15, 1
       %16 = trunc i32 %tmpVar15 to i16
-      store i16 %16, i16* %counter12, align 2
-      %counter17 = getelementptr inbounds %parent, %parent* %__parent, i32 0, i32 1
-      %load_counter18 = load i16, i16* %counter17, align 2
+      store i16 %16, ptr %counter12, align 2
+      %counter17 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1
+      %load_counter18 = load i16, ptr %counter17, align 2
       %17 = sext i16 %load_counter18 to i32
       %tmpVar19 = icmp sle i32 %17, 0
       %18 = zext i1 %tmpVar19 to i8
@@ -2195,96 +2193,96 @@ fn super_in_loop_constructs() {
       br label %condition_check9
     }
 
-    define void @__init___vtable_parent(%__vtable_parent* %0) {
+    define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
-      %deref1 = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %increment = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref1, i32 0, i32 1
-      store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      store ptr @parent, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %increment = getelementptr inbounds %__vtable_parent, ptr %deref1, i32 0, i32 1
+      store ptr @parent__increment, ptr %increment, align 8
       ret void
     }
 
-    define void @__init___vtable_child(%__vtable_child* %0) {
+    define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
-      %deref1 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %increment = getelementptr inbounds %__vtable_child, %__vtable_child* %deref1, i32 0, i32 1
-      store void (%parent*)* @parent__increment, void (%parent*)** %increment, align 8
-      %deref2 = load %__vtable_child*, %__vtable_child** %self, align 8
-      %process = getelementptr inbounds %__vtable_child, %__vtable_child* %deref2, i32 0, i32 2
-      store void (%child*)* @child__process, void (%child*)** %process, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_child, ptr %deref, i32 0, i32 0
+      store ptr @child, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %increment = getelementptr inbounds %__vtable_child, ptr %deref1, i32 0, i32 1
+      store ptr @parent__increment, ptr %increment, align 8
+      %deref2 = load ptr, ptr %self, align 8
+      %process = getelementptr inbounds %__vtable_child, ptr %deref2, i32 0, i32 2
+      store ptr @child__process, ptr %process, align 8
       ret void
     }
 
-    define void @__init_parent(%parent* %0) {
+    define void @__init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
-      %deref = load %parent*, %parent** %self, align 8
-      %__vtable = getelementptr inbounds %parent, %parent* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_parent* @__vtable_parent_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__init_child(%child* %0) {
+    define void @__init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__init_parent(%parent* %__parent)
-      %deref1 = load %child*, %child** %self, align 8
-      %__parent2 = getelementptr inbounds %child, %child* %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %parent, %parent* %__parent2, i32 0, i32 0
-      store i32* bitcast (%__vtable_child* @__vtable_child_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__init_parent(ptr %__parent)
+      %deref1 = load ptr, ptr %self, align 8
+      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
+      store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__user_init_parent(%parent* %0) {
+    define void @__user_init_parent(ptr %0) {
     entry:
-      %self = alloca %parent*, align 8
-      store %parent* %0, %parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_child(%__vtable_child* %0) {
+    define void @__user_init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_child(%child* %0) {
+    define void @__user_init_child(ptr %0) {
     entry:
-      %self = alloca %child*, align 8
-      store %child* %0, %child** %self, align 8
-      %deref = load %child*, %child** %self, align 8
-      %__parent = getelementptr inbounds %child, %child* %deref, i32 0, i32 0
-      call void @__user_init_parent(%parent* %__parent)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      call void @__user_init_parent(ptr %__parent)
       ret void
     }
 
-    define void @__user_init___vtable_parent(%__vtable_parent* %0) {
+    define void @__user_init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__init___vtable_child(%__vtable_child* @__vtable_child_instance)
-      call void @__user_init___vtable_parent(%__vtable_parent* @__vtable_parent_instance)
-      call void @__user_init___vtable_child(%__vtable_child* @__vtable_child_instance)
+      call void @__init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__init___vtable_child(ptr @__vtable_child_instance)
+      call void @__user_init___vtable_parent(ptr @__vtable_parent_instance)
+      call void @__user_init___vtable_child(ptr @__vtable_child_instance)
       ret void
     }
     "#);

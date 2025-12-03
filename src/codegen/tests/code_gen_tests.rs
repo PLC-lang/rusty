@@ -1621,44 +1621,44 @@ fn for_statement_with_binary_expressions() {
 
     @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %step = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-      %load_y = load i32, i32* %y, align 4
+      %step = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %y = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
+      %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 3
+      %load_y = load i32, ptr %y, align 4
       %tmpVar = add i32 %load_y, 1
-      store i32 %tmpVar, i32* %x, align 4
-      %load_step = load i32, i32* %step, align 4
+      store i32 %tmpVar, ptr %x, align 4
+      %load_step = load i32, ptr %step, align 4
       %tmpVar1 = mul i32 %load_step, 3
       %is_incrementing = icmp sgt i32 %tmpVar1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %load_z = load i32, i32* %z, align 4
+      %load_z = load i32, ptr %z, align 4
       %tmpVar2 = sub i32 %load_z, 2
-      %1 = load i32, i32* %x, align 4
+      %1 = load i32, ptr %x, align 4
       %condition = icmp sle i32 %1, %tmpVar2
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %load_z3 = load i32, i32* %z, align 4
+      %load_z3 = load i32, ptr %z, align 4
       %tmpVar4 = sub i32 %load_z3, 2
-      %2 = load i32, i32* %x, align 4
+      %2 = load i32, ptr %x, align 4
       %condition5 = icmp sge i32 %2, %tmpVar4
       br i1 %condition5, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_x = load i32, i32* %x, align 4
+      %load_x = load i32, ptr %x, align 4
       br label %increment
 
     increment:                                        ; preds = %loop
-      %3 = load i32, i32* %x, align 4
-      %load_step6 = load i32, i32* %step, align 4
+      %3 = load i32, ptr %x, align 4
+      %load_step6 = load i32, ptr %step, align 4
       %tmpVar7 = mul i32 %load_step6, 3
       %next = add i32 %tmpVar7, %3
-      store i32 %next, i32* %x, align 4
+      store i32 %next, ptr %x, align 4
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle
@@ -1690,44 +1690,44 @@ fn for_statement_type_casting() {
     entry:
       %a = alloca i8, align 1
       %b = alloca i16, align 2
-      store i8 0, i8* %a, align 1
-      store i16 1, i16* %b, align 2
-      store i8 0, i8* %a, align 1
-      %load_b = load i16, i16* %b, align 2
+      store i8 0, ptr %a, align 1
+      store i16 1, ptr %b, align 2
+      store i8 0, ptr %a, align 1
+      %load_b = load i16, ptr %b, align 2
       %0 = trunc i16 %load_b to i8
       %1 = sext i8 %0 to i32
       %is_incrementing = icmp sgt i32 %1, 0
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     predicate_sle:                                    ; preds = %increment, %entry
-      %2 = load i8, i8* %a, align 1
+      %2 = load i8, ptr %a, align 1
       %3 = zext i8 %2 to i32
       %condition = icmp sle i32 %3, 10
       br i1 %condition, label %loop, label %continue
 
     predicate_sge:                                    ; preds = %increment, %entry
-      %4 = load i8, i8* %a, align 1
+      %4 = load i8, ptr %a, align 1
       %5 = zext i8 %4 to i32
       %condition1 = icmp sge i32 %5, 10
       br i1 %condition1, label %loop, label %continue
 
     loop:                                             ; preds = %predicate_sge, %predicate_sle
-      %load_b2 = load i16, i16* %b, align 2
+      %load_b2 = load i16, ptr %b, align 2
       %6 = sext i16 %load_b2 to i32
       %tmpVar = mul i32 %6, 3
       %7 = trunc i32 %tmpVar to i16
-      store i16 %7, i16* %b, align 2
+      store i16 %7, ptr %b, align 2
       br label %increment
 
     increment:                                        ; preds = %loop
-      %8 = load i8, i8* %a, align 1
-      %load_b3 = load i16, i16* %b, align 2
+      %8 = load i8, ptr %a, align 1
+      %load_b3 = load i16, ptr %b, align 2
       %9 = trunc i16 %load_b3 to i8
       %10 = sext i8 %9 to i32
       %11 = zext i8 %8 to i32
       %next = add i32 %10, %11
       %12 = trunc i32 %next to i8
-      store i8 %12, i8* %a, align 1
+      store i8 %12, ptr %a, align 1
       br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
     continue:                                         ; preds = %predicate_sge, %predicate_sle

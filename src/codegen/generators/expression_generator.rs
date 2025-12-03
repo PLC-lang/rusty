@@ -1386,7 +1386,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let pointee: BasicTypeEnum = todo!("llvm-15");
+            let pointee = 
+                self.llvm_index.get_associated_pou_type(param_context.function_name).unwrap();
+            
             let pointer_to_param =
                 builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
@@ -2868,8 +2870,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Deref, Some(base)) => {
                 let base_lvalue = self.generate_expression_value(base)?;
 
-                let pointee = todo!("llvm-15");
+                let pointee = self.llvm.context.ptr_type(AddressSpace::default()).into();
                 let value = self.llvm.load_pointer(pointee, &base_lvalue.get_basic_value_enum().into_pointer_value(), "deref")?;
+
+                let pointee = {
+                    let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                    self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                };
                 Ok(ExpressionValue::LValue(value.into_pointer_value(), pointee))
             }
 
