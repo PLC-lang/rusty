@@ -142,6 +142,20 @@ fn typed_inline_enum_with_initial_values_can_be_parsed() {
 }
 
 #[test]
+fn enum_with_equality_operator_instead_of_assignment_should_error() {
+    let (result, diagnostics) = parse_buffered(
+        r#"
+        TYPE State : (Idle := 0, Running = 1);
+        END_TYPE
+        "#,
+    );
+    // Should have a parse error instead of panic in preprocessor
+    assert!(!diagnostics.is_empty(), "Expected parse error for enum using = instead of :=");
+    assert_snapshot!(diagnostics);
+    insta::assert_debug_snapshot!(result.user_types);
+}
+
+#[test]
 fn type_alias_can_be_parsed() {
     let (result, ..) = parse(
         r#"
