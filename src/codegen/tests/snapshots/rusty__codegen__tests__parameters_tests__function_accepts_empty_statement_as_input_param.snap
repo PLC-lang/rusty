@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,16 +14,16 @@ target triple = "[filtered]"
 define void @foo(i32 %0, i32 %1) {
 entry:
   %in1 = alloca i32, align 4
-  store i32 %0, i32* %in1, align 4
+  store i32 %0, ptr %in1, align 4
   %in2 = alloca i32, align 4
-  store i32 %1, i32* %in2, align 4
+  store i32 %1, ptr %in2, align 4
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
   %1 = alloca i32, align 4
-  %2 = load i32, i32* %1, align 4
+  %2 = load i32, ptr %1, align 4
   call void @foo(i32 1, i32 %2)
   ret void
 }

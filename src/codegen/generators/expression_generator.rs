@@ -1159,23 +1159,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        // TODO(vosa): This shouldn't be neccessary with LLVM 15 and opaque pointers
-        todo!(
-            r#"
-        // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
-        if value.get_type().get_element_type().is_array_type() {{
-            let fundamental_element_type = value.into_fundamental_type();
-            let res = self.llvm.builder.build_bit_cast(
-                value,
-                fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
-                "",
-            )?;
-        
-            return Ok(res.into_pointer_value().into());
-        }}
-        "#
-        );
-
         // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
         Ok(value.into())
     }
@@ -1319,7 +1302,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.generate_expression(initial_value)
                 } else {
                     let ptr_value = self.llvm.builder.build_alloca(parameter_type, "")?;
-                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                    let pointee = parameter_type;
                     Ok(self.llvm.load_pointer(pointee, &ptr_value, "")?)
                 }
             }
