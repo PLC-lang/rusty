@@ -7,8 +7,8 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-@a = global i32* null, !dbg !0
-@b = global [11 x i32]* null, !dbg !6
+@a = global ptr null, !dbg !0
+@b = global ptr null, !dbg !6
 
 !llvm.module.flags = !{!13, !14}
 !llvm.dbg.cu = !{!15}

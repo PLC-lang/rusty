@@ -195,18 +195,18 @@ fn codegen_of_a_program_pou() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main_prg = type { i16, i16*, i16, i16 }
+    %main_prg = type { i16, ptr, i16, i16 }
 
     @main_prg_instance = global %main_prg zeroinitializer
 
-    define void @main_prg(%main_prg* %0) {
+    define void @main_prg(ptr %0) {
     entry:
-      %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 0, i16* %vt, align 2
+      store i16 0, ptr %vt, align 2
       ret void
     }
     "#);
@@ -235,7 +235,7 @@ fn calling_a_program() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main_prg = type { i16, i16*, i16, i16 }
+    %main_prg = type { i16, ptr, i16, i16 }
 
     @main_prg_instance = global %main_prg zeroinitializer
 
@@ -244,26 +244,26 @@ fn calling_a_program() {
       %foo = alloca i16, align 2
       %x = alloca i16, align 2
       %y = alloca i16, align 2
-      store i16 0, i16* %x, align 2
-      store i16 0, i16* %y, align 2
-      store i16 0, i16* %foo, align 2
-      store i16 1, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 0), align 2
-      store i16* %y, i16** getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 1), align 8
-      call void @main_prg(%main_prg* @main_prg_instance)
-      %0 = load i16, i16* getelementptr inbounds (%main_prg, %main_prg* @main_prg_instance, i32 0, i32 2), align 2
-      store i16 %0, i16* %x, align 2
-      %foo_ret = load i16, i16* %foo, align 2
+      store i16 0, ptr %x, align 2
+      store i16 0, ptr %y, align 2
+      store i16 0, ptr %foo, align 2
+      store i16 1, ptr @main_prg_instance, align 2
+      store ptr %y, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
+      call void @main_prg(ptr @main_prg_instance)
+      %0 = load i16, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
+      store i16 %0, ptr %x, align 2
+      %foo_ret = load i16, ptr %foo, align 2
       ret i16 %foo_ret
     }
 
-    define void @main_prg(%main_prg* %0) {
+    define void @main_prg(ptr %0) {
     entry:
-      %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 0, i16* %vt, align 2
+      store i16 0, ptr %vt, align 2
       ret void
     }
     "#);
@@ -300,20 +300,20 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main_fb = type { i16, i16*, i16, i16 }
+    %main_fb = type { i16, ptr, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
 
-    define void @main_fb(%main_fb* %0) {
+    define void @main_fb(ptr %0) {
     entry:
-      %this = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %this, align 8
-      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %i = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 2, i16* %vt, align 2
+      store i16 2, ptr %vt, align 2
       ret void
     }
     "#);
@@ -344,37 +344,37 @@ fn calling_a_function_block() {
     target triple = "[filtered]"
 
     %foo = type { i16, i16, %main_fb }
-    %main_fb = type { i16, i16*, i16, i16 }
+    %main_fb = type { i16, ptr, i16, i16 }
 
-    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, i16* null, i16 0, i16 1 } }
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @foo_instance = global %foo { i16 0, i16 0, %main_fb { i16 6, ptr null, i16 0, i16 1 } }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %fb = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      %1 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 0
-      store i16 1, i16* %1, align 2
-      %2 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 1
-      store i16* %y, i16** %2, align 8
-      call void @main_fb(%main_fb* %fb)
-      %3 = getelementptr inbounds %main_fb, %main_fb* %fb, i32 0, i32 2
-      %4 = load i16, i16* %3, align 2
-      store i16 %4, i16* %x, align 2
+      %x = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %fb = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
+      %1 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 0
+      store i16 1, ptr %1, align 2
+      %2 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 1
+      store ptr %y, ptr %2, align 8
+      call void @main_fb(ptr %fb)
+      %3 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 2
+      %4 = load i16, ptr %3, align 2
+      store i16 %4, ptr %x, align 2
       ret void
     }
 
-    define void @main_fb(%main_fb* %0) {
+    define void @main_fb(ptr %0) {
     entry:
-      %this = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %this, align 8
-      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %i = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 2, i16* %vt, align 2
+      store i16 2, ptr %vt, align 2
       ret void
     }
     "#);
@@ -405,21 +405,21 @@ fn function_get_a_method_with_by_ref_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
-      store i16 %0, i16* %i, align 2
-      %io = alloca i8*, align 8
-      store i8* %1, i8** %io, align 8
-      %o = alloca i64*, align 8
-      store i64* %2, i64** %o, align 8
+      store i16 %0, ptr %i, align 2
+      %io = alloca ptr, align 8
+      store ptr %1, ptr %io, align 8
+      %o = alloca ptr, align 8
+      store ptr %2, ptr %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      store i16 1, i16* %v, align 2
-      store i16 2, i16* %vt, align 2
-      store i32 0, i32* %main_fun, align 4
-      %main_fun_ret = load i32, i32* %main_fun, align 4
+      store i16 1, ptr %v, align 2
+      store i16 2, ptr %vt, align 2
+      store i32 0, ptr %main_fun, align 4
+      %main_fun_ret = load i32, ptr %main_fun, align 4
       ret i32 %main_fun_ret
     }
     "#);
@@ -453,31 +453,31 @@ fn calling_a_function() {
 
     @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %load_x = load i16, i16* %x, align 2
+      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %load_x = load i16, ptr %x, align 2
       %1 = alloca i64, align 8
-      %call = call i32 @main_fun(i16 %load_x, i8* %z, i64* %1)
+      %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
       ret void
     }
 
-    define i32 @main_fun(i16 %0, i8* %1, i64* %2) {
+    define i32 @main_fun(i16 %0, ptr %1, ptr %2) {
     entry:
       %main_fun = alloca i32, align 4
       %i = alloca i16, align 2
-      store i16 %0, i16* %i, align 2
-      %io = alloca i8*, align 8
-      store i8* %1, i8** %io, align 8
-      %o = alloca i64*, align 8
-      store i64* %2, i64** %o, align 8
+      store i16 %0, ptr %i, align 2
+      %io = alloca ptr, align 8
+      store ptr %1, ptr %io, align 8
+      %o = alloca ptr, align 8
+      store ptr %2, ptr %o, align 8
       %v = alloca i16, align 2
       %vt = alloca i16, align 2
-      store i16 1, i16* %v, align 2
-      store i16 2, i16* %vt, align 2
-      store i32 0, i32* %main_fun, align 4
-      %main_fun_ret = load i32, i32* %main_fun, align 4
+      store i16 1, ptr %v, align 2
+      store i16 2, ptr %vt, align 2
+      store i32 0, ptr %main_fun, align 4
+      %main_fun_ret = load i32, ptr %main_fun, align 4
       ret i32 %main_fun_ret
     }
     "#);
@@ -518,37 +518,33 @@ fn return_a_complex_type_from_function() {
     @prg_instance = global %prg zeroinitializer
     @utf08_literal_0 = private unnamed_addr constant [13 x i8] c"hello world!\00"
 
-    define void @foo(i8* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %foo = alloca i8*, align 8
-      store i8* %0, i8** %foo, align 8
-      %deref = load i8*, i8** %foo, align 8
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 getelementptr inbounds ([13 x i8], [13 x i8]* @utf08_literal_0, i32 0, i32 0), i32 13, i1 false)
+      %foo = alloca ptr, align 8
+      store ptr %0, ptr %foo, align 8
+      %deref = load ptr, ptr %foo, align 8
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 13, i1 false)
       ret void
     }
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+      %s = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
       %__foo0 = alloca [81 x i8], align 1
-      %1 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      %2 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @foo(i8* %2)
-      %3 = bitcast [81 x i8]* %s to i8*
-      %4 = bitcast [81 x i8]* %__foo0 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %__foo0)
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %__foo0, i32 80, i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#);
 }
 
@@ -602,52 +598,39 @@ fn passing_aggregate_types_to_functions_by_value() {
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
     @main_instance = global %main zeroinitializer
 
-    define void @foo(i8* %0, i16* %1, i32* %2, %myStruct* %3) {
+    define void @foo(ptr %0, ptr %1, ptr %2, ptr %3) {
     entry:
       %s = alloca [81 x i8], align 1
-      %bitcast = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 81, i1 false)
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 80, i1 false)
+      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 81, i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %s, ptr align 1 %0, i64 80, i1 false)
       %ws = alloca [81 x i16], align 2
-      %bitcast1 = bitcast [81 x i16]* %ws to i16*
-      %4 = bitcast i16* %bitcast1 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 2 %4, i8 0, i64 162, i1 false)
-      %5 = bitcast i16* %bitcast1 to i8*
-      %6 = bitcast i16* %1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 2 %5, i8* align 2 %6, i64 160, i1 false)
+      call void @llvm.memset.p0.i64(ptr align 2 %ws, i8 0, i64 162, i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 2 %ws, ptr align 2 %1, i64 160, i1 false)
       %arr = alloca [30000 x i32], align 4
-      %bitcast2 = bitcast [30000 x i32]* %arr to i32*
-      %7 = bitcast i32* %bitcast2 to i8*
-      %8 = bitcast i32* %2 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([30000 x i32]* getelementptr ([30000 x i32], [30000 x i32]* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %2, i64 ptrtoint (ptr getelementptr ([30000 x i32], ptr null, i32 1) to i64), i1 false)
       %st = alloca %myStruct, align 8
-      %9 = bitcast %myStruct* %st to i8*
-      %10 = bitcast %myStruct* %3 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint (%myStruct* getelementptr (%myStruct, %myStruct* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 %3, i64 ptrtoint (ptr getelementptr (%myStruct, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %string1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %string2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %array1 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-      %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-      %1 = bitcast [81 x i8]* %string1 to i8*
-      %2 = bitcast [81 x i16]* %string2 to i16*
-      %3 = bitcast [30000 x i32]* %array1 to i32*
-      call void @foo(i8* %1, i16* %2, i32* %3, %myStruct* %struct1)
+      %string1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %string2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %array1 = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+      %struct1 = getelementptr inbounds %main, ptr %0, i32 0, i32 3
+      call void @foo(ptr %string1, ptr %string2, ptr %array1, ptr %struct1)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 
@@ -688,25 +671,23 @@ fn passing_by_ref_to_functions() {
 
     @main_instance = global %main zeroinitializer
 
-    define i8 @StrEqual(i8* %0, i8* %1) {
+    define i8 @StrEqual(ptr %0, ptr %1) {
     entry:
       %StrEqual = alloca i8, align 1
-      %o1 = alloca i8*, align 8
-      store i8* %0, i8** %o1, align 8
-      %o2 = alloca i8*, align 8
-      store i8* %1, i8** %o2, align 8
-      store i8 0, i8* %StrEqual, align 1
-      %StrEqual_ret = load i8, i8* %StrEqual, align 1
+      %o1 = alloca ptr, align 8
+      store ptr %0, ptr %o1, align 8
+      %o2 = alloca ptr, align 8
+      store ptr %1, ptr %o2, align 8
+      store i8 0, ptr %StrEqual, align 1
+      %StrEqual_ret = load i8, ptr %StrEqual, align 1
       ret i8 %StrEqual_ret
     }
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %str1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %str2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %1 = bitcast [81 x i8]* %str1 to i8*
-      %2 = bitcast [81 x i8]* %str2 to i8*
-      %call = call i8 @StrEqual(i8* %1, i8* %2)
+      %str1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %str2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %call = call i8 @StrEqual(ptr %str1, ptr %str2)
       ret void
     }
     "#);

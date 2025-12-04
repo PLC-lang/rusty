@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/directaccess_test.rs
 expression: prog
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,12 +11,12 @@ define i16 @main() {
 entry:
   %main = alloca i16, align 2
   %d = alloca i64, align 8
-  store i64 0, i64* %d, align 8
-  store i16 0, i16* %main, align 2
-  %0 = load i64, i64* %d, align 8
+  store i64 0, ptr %d, align 8
+  store i16 0, ptr %main, align 2
+  %0 = load i64, ptr %d, align 8
   %erase = and i64 %0, -4294967296
   %or = or i64 %erase, 11259375
-  store i64 %or, i64* %d, align 8
-  %main_ret = load i16, i16* %main, align 2
+  store i64 %or, ptr %d, align 8
+  %main_ret = load i16, ptr %main, align 2
   ret i16 %main_ret
 }

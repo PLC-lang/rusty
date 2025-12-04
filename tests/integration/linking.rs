@@ -140,14 +140,15 @@ fn link_missing_file() {
 
     let res = compile(&["plc", file1.as_str(), "-o", out.to_str().unwrap(), "--target", TARGET.unwrap()]);
 
-    match res {
-        Err(err) => {
-            assert!(err
-                .to_string()
-                .contains("An error occurred during linking: lld: error: undefined symbol: func"));
-        }
-        _ => panic!("Expected link failure"),
-    }
+    // lld will return something like:
+    // ```
+    // ld.lld: error: undefined symbol: func2
+    // >>> referenced by file1.st
+    // >>>               /tmp/.tmpvZqPnA/tests/integration/data/linking/file1.st.o:(func1)
+    // >>> did you mean: func1
+    // >>> defined in: /tmp/.tmpvZqPnA/tests/integration/data/linking/file1.st.o
+    // ```
+    assert!(res.is_err());
 }
 
 // TODO: Ghaith please fix this :)

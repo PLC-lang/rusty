@@ -1,28 +1,27 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i32 @func(i64* %0, i64* %1) {
+define i32 @func(ptr %0, ptr %1) {
 entry:
   %func = alloca i32, align 4
-  %d_and_t = alloca i64*, align 8
-  store i64* %0, i64** %d_and_t, align 8
-  %time_var = alloca i64*, align 8
-  store i64* %1, i64** %time_var, align 8
-  store i32 0, i32* %func, align 4
-  %deref = load i64*, i64** %d_and_t, align 8
-  %deref1 = load i64*, i64** %d_and_t, align 8
-  %load_d_and_t = load i64, i64* %deref1, align 8
-  %deref2 = load i64*, i64** %time_var, align 8
-  %load_time_var = load i64, i64* %deref2, align 8
+  %d_and_t = alloca ptr, align 8
+  store ptr %0, ptr %d_and_t, align 8
+  %time_var = alloca ptr, align 8
+  store ptr %1, ptr %time_var, align 8
+  store i32 0, ptr %func, align 4
+  %deref = load ptr, ptr %d_and_t, align 8
+  %deref1 = load ptr, ptr %d_and_t, align 8
+  %load_d_and_t = load i64, ptr %deref1, align 8
+  %deref2 = load ptr, ptr %time_var, align 8
+  %load_time_var = load i64, ptr %deref2, align 8
   %tmpVar = add i64 %load_d_and_t, %load_time_var
-  store i64 %tmpVar, i64* %deref, align 8
-  %func_ret = load i32, i32* %func, align 4
+  store i64 %tmpVar, ptr %deref, align 8
+  %func_ret = load i32, ptr %func, align 4
   ret i32 %func_ret
 }
