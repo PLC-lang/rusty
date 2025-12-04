@@ -458,19 +458,19 @@ fn regular_pointers_to_function_blocks_are_called_directly() {
 
     @__A__init = unnamed_addr constant %A zeroinitializer
 
-    define void @A(%A* %0) {
+    define void @A(ptr %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
       ret void
     }
 
     define void @main() {
     entry:
-      %fooPtr = alloca %A*, align 8
-      store %A* null, %A** %fooPtr, align 8
-      %deref = load %A*, %A** %fooPtr, align 8
-      call void @A(%A* %deref)
+      %fooPtr = alloca ptr, align 8
+      store ptr null, ptr %fooPtr, align 8
+      %deref = load ptr, ptr %fooPtr, align 8
+      call void @A(ptr %deref)
       ret void
     }
     "#);

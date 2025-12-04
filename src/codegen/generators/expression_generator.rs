@@ -2843,8 +2843,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (ReferenceAccess::Deref, Some(base)) => {
                 let base_lvalue = self.generate_expression_value(base)?;
 
-                let pointee = todo!("llvm-15");
-                let value = self.llvm.load_pointer(pointee, &base_lvalue.get_basic_value_enum().into_pointer_value(), "deref")?;
+                let value = self.llvm.load_pointer(
+                    // Normally it wouldn't be safe to just assume the pointee in the `load_pointer` call to
+                    // be of type `ptr`. However, we call `into_pointer_value` on the result of it, as such
+                    // LLVM actually expects the type to be `ptr` as it will panic otherwise.
+                    self.llvm.context.ptr_type(
+                        AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
+                        &base_lvalue.get_basic_value_enum().into_pointer_value(),
+                        "deref"
+                    )?;
+
+                    let pointee = {
+                        // TODO: Not 100% sure if correct
+                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    };
                 Ok(ExpressionValue::LValue(value.into_pointer_value(), pointee))
             }
 
