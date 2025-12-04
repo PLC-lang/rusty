@@ -195,18 +195,18 @@ fn codegen_of_a_program_pou() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main_prg = type { i16, i16*, i16, i16 }
+    %main_prg = type { i16, ptr, i16, i16 }
 
     @main_prg_instance = global %main_prg zeroinitializer
 
-    define void @main_prg(%main_prg* %0) {
+    define void @main_prg(ptr %0) {
     entry:
-      %i = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg, %main_prg* %0, i32 0, i32 3
+      %i = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 0, i16* %vt, align 2
+      store i16 0, ptr %vt, align 2
       ret void
     }
     "#);
@@ -300,20 +300,20 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %main_fb = type { i16, i16*, i16, i16 }
+    %main_fb = type { i16, ptr, i16, i16 }
 
-    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, i16* null, i16 0, i16 1 }
+    @__main_fb__init = unnamed_addr constant %main_fb { i16 6, ptr null, i16 0, i16 1 }
 
-    define void @main_fb(%main_fb* %0) {
+    define void @main_fb(ptr %0) {
     entry:
-      %this = alloca %main_fb*, align 8
-      store %main_fb* %0, %main_fb** %this, align 8
-      %i = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, %main_fb* %0, i32 0, i32 3
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %i = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
-      store i16 2, i16* %vt, align 2
+      store i16 2, ptr %vt, align 2
       ret void
     }
     "#);

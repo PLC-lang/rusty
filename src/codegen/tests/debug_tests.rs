@@ -1074,24 +1074,24 @@ fn test_debug_info_regular_pointer_types() {
 
     %myStruct = type { i32, i8 }
 
-    @basic_ptr = global i32* null, !dbg !0
-    @array_ptr = global [11 x i32]* null, !dbg !6
-    @struct_ptr = global %myStruct* null, !dbg !13
-    @string_ptr = global [81 x i8]* null, !dbg !22
+    @basic_ptr = global ptr null, !dbg !0
+    @array_ptr = global ptr null, !dbg !6
+    @struct_ptr = global ptr null, !dbg !13
+    @string_ptr = global ptr null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 

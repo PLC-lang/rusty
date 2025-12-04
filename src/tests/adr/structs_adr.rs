@@ -109,10 +109,10 @@ fn initializing_a_struct() {
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+      %rect1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
       ret void
     }
     "#);

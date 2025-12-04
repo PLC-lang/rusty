@@ -215,28 +215,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let param = declared_parameters.get(i);
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
                 match param {
-                    Some(v)
-                        if v.is_in_parameter_by_ref()
-                            && todo!("p.into_pointer_type().get_element_type().is_array_type()") =>
-                    {
-                        todo!(
-                            "
-                            // for by-ref array types we will generate a pointer to the fundamental element type
-                            // not a pointer to array
-                            let fundamental_element_type = p
-                                .into_pointer_type()
-                                .get_element_type()
-                                .into_array_type()
-                                .into_fundamental_type();
-
-                            let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
-
-                            // set the new type for further codegen
-                            let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
-
-                            ty.into()
-                            "
-                        )
+                    Some(v) if v.is_in_parameter_by_ref() => {
+                        // TODO: Not sure if this is 100% correct, previously it was `v.is_in_parameter_by_ref() && p.into_pointer_type().get_element_type().is_array_type()` but we don't distinguish between pointer types so just a `ptr` is fine here?
+                        let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+                        let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+                        ty.into()
                     }
                     _ => {
                         dti.map(|it| {
@@ -731,7 +714,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
-                let pointee: BasicTypeEnum = todo!("llvm-15");
+                let pointee = self.llvm_index.get_associated_pou_type(type_name).unwrap();
                 let ptr = self
                     .llvm
                     .builder
