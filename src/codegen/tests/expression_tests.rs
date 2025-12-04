@@ -1061,23 +1061,23 @@ fn global_namespace_operator() {
     @foo = global i32 0
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %foo = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %load_foo = load i32, i32* @foo, align 4
-      store i32 %load_foo, i32* %foo, align 4
-      %load_foo1 = load i32, i32* @foo, align 4
+      %foo = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %load_foo = load i32, ptr @foo, align 4
+      store i32 %load_foo, ptr %foo, align 4
+      %load_foo1 = load i32, ptr @foo, align 4
       %tmpVar = add i32 %load_foo1, 1
-      store i32 %tmpVar, i32* %foo, align 4
-      %load_foo2 = load i32, i32* @foo, align 4
-      %load_foo3 = load i32, i32* @foo, align 4
+      store i32 %tmpVar, ptr %foo, align 4
+      %load_foo2 = load i32, ptr @foo, align 4
+      %load_foo3 = load i32, ptr @foo, align 4
       %tmpVar4 = add i32 %load_foo2, %load_foo3
-      store i32 %tmpVar4, i32* %foo, align 4
-      %load_foo5 = load i32, i32* %foo, align 4
-      store i32 %load_foo5, i32* @foo, align 4
-      %load_foo6 = load i32, i32* @foo, align 4
+      store i32 %tmpVar4, ptr %foo, align 4
+      %load_foo5 = load i32, ptr %foo, align 4
+      store i32 %load_foo5, ptr @foo, align 4
+      %load_foo6 = load i32, ptr @foo, align 4
       %tmpVar7 = add i32 %load_foo6, 1
-      store i32 %tmpVar7, i32* @foo, align 4
+      store i32 %tmpVar7, ptr @foo, align 4
       ret void
     }
     "#);

@@ -2752,7 +2752,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     self.get_load_name(node).as_deref().unwrap_or(name),
                     node,
                 )?;
-                let pointee = todo!("llvm-15");
+
+                let pointee = {
+                    let datatype = self.annotations.get_type(&node, self.index).unwrap();
+                    self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                };
 
                 Ok(ExpressionValue::LValue(value, pointee))
             }
