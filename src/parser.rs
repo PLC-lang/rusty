@@ -964,7 +964,6 @@ fn parse_data_type_definition(
     } else if lexer.try_consume(KeywordRef) {
         parse_pointer_definition(lexer, name, lexer.last_range.start, None, true, false)
     } else if lexer.try_consume(KeywordParensOpen) {
-        //enum without datatype
         parse_enum_type_definition(lexer, name)
     } else if lexer.token == KeywordString || lexer.token == KeywordWideString {
         parse_string_type_definition(lexer, name)
@@ -1096,6 +1095,10 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
             let size_expr = parse_expression(lexer);
             let error_range = lexer.source_range_factory.create_range(opening_location..lexer.range().end);
 
+            // Don't emit warnings if this looks like an enum (will be caught by validation).
+            // e.g. `TYPE attemptAtStringEnum : STRING (a := 1, b := 2);` should not warn about parentheses.
+            let is_enum_like = matches!(size_expr.get_stmt(), AstStatement::ExpressionList(_));
+
             if (opening_token == KeywordParensOpen && lexer.token == KeywordSquareParensClose)
                 || (opening_token == KeywordSquareParensOpen && lexer.token == KeywordParensClose)
             {
@@ -1104,7 +1107,9 @@ fn parse_string_size_expression(lexer: &mut ParseSession) -> Option<AstNode> {
                         .with_location(error_range)
                         .with_error_code("E009"),
                 );
-            } else if opening_token == KeywordParensOpen || lexer.token == KeywordParensClose {
+            } else if !is_enum_like
+                && (opening_token == KeywordParensOpen || lexer.token == KeywordParensClose)
+            {
                 lexer.accept_diagnostic(Diagnostic::new(
                     "Unusual type of parentheses around string size expression, consider using square parentheses '[]'").
                     with_location(error_range)
@@ -1132,13 +1137,25 @@ fn parse_string_type_definition(
     let end = lexer.last_range.end;
     let location = lexer.source_range_factory.create_range(start..end);
 
-    match (size, &name) {
-        (Some(size), _) => Some(DataTypeDeclaration::Definition {
+    // Check if this is actually an enum type (e.g., STRING (a := 1, b := 2))
+    let is_enum_like = matches!(&size, Some(AstNode { stmt: AstStatement::ExpressionList(_), .. }));
+
+    match (size, &name, is_enum_like) {
+        (Some(size), _, true) => {
+            // This looks like an enum definition with STRING/WSTRING as the type
+            // Create an EnumType so validation can catch it as invalid
+            Some(DataTypeDeclaration::Definition {
+                data_type: Box::new(DataType::EnumType { name, numeric_type: text, elements: size }),
+                location,
+                scope: lexer.scope.clone(),
+            })
+        }
+        (Some(size), _, false) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::StringType { name, is_wide, size: Some(size) }),
             location,
             scope: lexer.scope.clone(),
         }),
-        (None, Some(name)) => Some(DataTypeDeclaration::Definition {
+        (None, Some(name), _) => Some(DataTypeDeclaration::Definition {
             data_type: Box::new(DataType::SubRangeType {
                 name: Some(name.into()),
                 referenced_type: text,
@@ -1166,10 +1183,16 @@ fn parse_enum_type_definition(
         validate_enum_elements(&elements, lexer);
         Some(elements)
     })?;
+
+    // Check for Codesys-style type specification after the enum list
+    // TYPE COLOR : (...) DWORD;
+    let numeric_type =
+        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
+
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
-            data_type: Box::new(DataType::EnumType { name, elements, numeric_type: DINT_TYPE.to_string() }),
+            data_type: Box::new(DataType::EnumType { name, elements, numeric_type }),
             location: start.span(&lexer.last_location()),
             scope: lexer.scope.clone(),
         },

@@ -9,7 +9,7 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 @twenty = unnamed_addr constant i16 20
-@x = global i8 0
+@x = global i8 7
 @MyEnum.red = unnamed_addr constant i8 7
 @MyEnum.yellow = unnamed_addr constant i8 8
 @MyEnum.green = unnamed_addr constant i8 9
