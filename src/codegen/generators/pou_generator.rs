@@ -32,7 +32,7 @@ use index::VariableType;
 
 use inkwell::{
     module::{Linkage, Module},
-    types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
+    types::{AnyTypeEnum, BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
 };
@@ -216,24 +216,27 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
                 match param {
                     Some(v)
-                        if v.is_in_parameter_by_ref() &&
-                        // parameters by ref will always be a pointer
-                        p.into_pointer_type().get_element_type().is_array_type() =>
+                        if v.is_in_parameter_by_ref()
+                            && todo!("p.into_pointer_type().get_element_type().is_array_type()") =>
                     {
-                        // for by-ref array types we will generate a pointer to the fundamental element type
-                        // not a pointer to array
-                        let fundamental_element_type = p
-                            .into_pointer_type()
-                            .get_element_type()
-                            .into_array_type()
-                            .into_fundamental_type();
+                        todo!(
+                            "
+                            // for by-ref array types we will generate a pointer to the fundamental element type
+                            // not a pointer to array
+                            let fundamental_element_type = p
+                                .into_pointer_type()
+                                .get_element_type()
+                                .into_array_type()
+                                .into_fundamental_type();
 
-                        let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+                            let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
 
-                        // set the new type for further codegen
-                        let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
+                            // set the new type for further codegen
+                            let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
 
-                        ty.into()
+                            ty.into()
+                            "
+                        )
                     }
                     _ => {
                         dti.map(|it| {
@@ -728,10 +731,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
+                let pointee: BasicTypeEnum = todo!("llvm-15");
                 let ptr = self
                     .llvm
                     .builder
-                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
+                    .build_struct_gep(pointee, param_pointer, var_count as u32, parameter_name)
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;
@@ -788,10 +792,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
                     // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    self.llvm.builder.build_store(
-                        left,
-                        left.get_type().get_element_type().into_pointer_type().const_null(),
-                    )?;
+                    let zero: BasicValueEnum = todo!("llvm-15; left_type.into_pointer_type().const_null()");
+                    self.llvm.builder.build_store(left, zero)?;
                     continue;
                 };
                 let right_stmt =
