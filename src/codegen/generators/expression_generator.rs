@@ -105,8 +105,7 @@ impl<'ink> ExpressionValue<'ink> {
     ) -> Result<BasicValueEnum<'ink>, CodegenError> {
         match self {
             ExpressionValue::LValue(value, pointee) => {
-                todo!("llvm-15");
-                llvm.load_pointer(*pointee, value, load_name.as_deref().unwrap_or(""))
+                llvm.load_pointer(*pointee, value, load_name.as_deref().unwrap_or_default())
             }
             ExpressionValue::RValue(value) => Ok(value.to_owned()),
         }

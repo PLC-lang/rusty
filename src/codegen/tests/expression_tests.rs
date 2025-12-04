@@ -401,19 +401,19 @@ fn builtin_function_call_sel() {
 
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %c = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-      %load_b = load i32, i32* %b, align 4
-      %load_c = load i32, i32* %c, align 4
+      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+      %load_b = load i32, ptr %b, align 4
+      %load_c = load i32, ptr %c, align 4
       %1 = select i1 true, i32 %load_c, i32 %load_b
-      store i32 %1, i32* %a, align 4
-      %load_b1 = load i32, i32* %b, align 4
-      %load_c2 = load i32, i32* %c, align 4
+      store i32 %1, ptr %a, align 4
+      %load_b1 = load i32, ptr %b, align 4
+      %load_c2 = load i32, ptr %c, align 4
       %2 = select i1 true, i32 %load_c2, i32 %load_b1
-      store i32 %2, i32* %a, align 4
+      store i32 %2, ptr %a, align 4
       ret void
     }
     "#);
@@ -455,14 +455,14 @@ fn builtin_function_call_move() {
 
     @main_instance = global %main zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %load_b = load i32, i32* %b, align 4
-      store i32 %load_b, i32* %a, align 4
-      %load_b1 = load i32, i32* %b, align 4
-      store i32 %load_b1, i32* %a, align 4
+      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %load_b = load i32, ptr %b, align 4
+      store i32 %load_b, ptr %a, align 4
+      %load_b1 = load i32, ptr %b, align 4
+      store i32 %load_b1, ptr %a, align 4
       ret void
     }
     "#);
