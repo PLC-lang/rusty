@@ -154,20 +154,18 @@ fn assigning_structs() {
     @prg_instance = global %prg zeroinitializer
     @__Point__init = unnamed_addr constant %Point zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %p1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %p2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %1 = bitcast %Point* %p1 to i8*
-      %2 = bitcast %Point* %p2 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%Point* getelementptr (%Point, %Point* null, i32 1) to i64), i1 false)
+      %p1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %p2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %p1, ptr align 1 %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 

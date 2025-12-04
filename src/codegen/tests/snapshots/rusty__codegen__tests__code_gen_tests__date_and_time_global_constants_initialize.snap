@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -28,7 +27,7 @@ target triple = "[filtered]"
 @cLDT_SHORT = unnamed_addr constant i64 172799123000000
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
   %t1 = alloca i64, align 8
   %t2 = alloca i64, align 8
@@ -46,37 +45,37 @@ entry:
   %dt2 = alloca i64, align 8
   %ldt1 = alloca i64, align 8
   %ldt2 = alloca i64, align 8
-  store i64 0, i64* %t1, align 8
-  store i64 0, i64* %t2, align 8
-  store i64 0, i64* %lt1, align 8
-  store i64 0, i64* %lt2, align 8
-  store i64 0, i64* %d1, align 8
-  store i64 0, i64* %d2, align 8
-  store i64 0, i64* %ld1, align 8
-  store i64 0, i64* %ld2, align 8
-  store i64 0, i64* %tod1, align 8
-  store i64 0, i64* %tod2, align 8
-  store i64 0, i64* %ltod1, align 8
-  store i64 0, i64* %ltod2, align 8
-  store i64 0, i64* %dt1, align 8
-  store i64 0, i64* %dt2, align 8
-  store i64 0, i64* %ldt1, align 8
-  store i64 0, i64* %ldt2, align 8
-  store i64 1000000000, i64* %t1, align 8
-  store i64 1000000000, i64* %t2, align 8
-  store i64 1000000000000, i64* %lt1, align 8
-  store i64 1000000000000, i64* %lt2, align 8
-  store i64 0, i64* %d1, align 8
-  store i64 161308800000000000, i64* %d2, align 8
-  store i64 161308800000000000, i64* %ld1, align 8
-  store i64 161308800000000000, i64* %ld2, align 8
-  store i64 0, i64* %tod1, align 8
-  store i64 0, i64* %tod2, align 8
-  store i64 86399999999999, i64* %ltod1, align 8
-  store i64 86399999999999, i64* %ltod2, align 8
-  store i64 172799000000000, i64* %dt1, align 8
-  store i64 172799000000000, i64* %dt2, align 8
-  store i64 172799123000000, i64* %ldt1, align 8
-  store i64 172799123000000, i64* %ldt2, align 8
+  store i64 0, ptr %t1, align 8
+  store i64 0, ptr %t2, align 8
+  store i64 0, ptr %lt1, align 8
+  store i64 0, ptr %lt2, align 8
+  store i64 0, ptr %d1, align 8
+  store i64 0, ptr %d2, align 8
+  store i64 0, ptr %ld1, align 8
+  store i64 0, ptr %ld2, align 8
+  store i64 0, ptr %tod1, align 8
+  store i64 0, ptr %tod2, align 8
+  store i64 0, ptr %ltod1, align 8
+  store i64 0, ptr %ltod2, align 8
+  store i64 0, ptr %dt1, align 8
+  store i64 0, ptr %dt2, align 8
+  store i64 0, ptr %ldt1, align 8
+  store i64 0, ptr %ldt2, align 8
+  store i64 1000000000, ptr %t1, align 8
+  store i64 1000000000, ptr %t2, align 8
+  store i64 1000000000000, ptr %lt1, align 8
+  store i64 1000000000000, ptr %lt2, align 8
+  store i64 0, ptr %d1, align 8
+  store i64 161308800000000000, ptr %d2, align 8
+  store i64 161308800000000000, ptr %ld1, align 8
+  store i64 161308800000000000, ptr %ld2, align 8
+  store i64 0, ptr %tod1, align 8
+  store i64 0, ptr %tod2, align 8
+  store i64 86399999999999, ptr %ltod1, align 8
+  store i64 86399999999999, ptr %ltod2, align 8
+  store i64 172799000000000, ptr %dt1, align 8
+  store i64 172799000000000, ptr %dt2, align 8
+  store i64 172799123000000, ptr %ldt1, align 8
+  store i64 172799123000000, ptr %ldt2, align 8
   ret void
 }

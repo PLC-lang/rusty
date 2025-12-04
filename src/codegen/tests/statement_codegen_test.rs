@@ -209,11 +209,11 @@ fn ref_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
+      %a = alloca ptr, align 8
       %b = alloca i32, align 4
-      store i32* null, i32** %a, align 8
-      store i32 0, i32* %b, align 4
-      store i32* %b, i32** %a, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %b, align 4
+      store ptr %b, ptr %a, align 8
       ret void
     }
     "#);
@@ -240,9 +240,9 @@ fn ref_assignment_to_null() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
-      store i32* null, i32** %a, align 8
-      store i32 0, i32** %a, align 4
+      %a = alloca ptr, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %a, align 4
       ret void
     }
     "#);

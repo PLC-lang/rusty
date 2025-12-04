@@ -76,20 +76,18 @@ fn assigning_strings() {
 
     @prg_instance = global %prg zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %1 = bitcast [11 x i8]* %a to i8*
-      %2 = bitcast [11 x i8]* %b to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 %2, i32 10, i1 false)
+      %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 %b, i32 10, i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 

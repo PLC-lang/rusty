@@ -1,9 +1,13 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 
 use inkwell::{
-    AddressSpace, FloatPredicate, IntPredicate, builder::Builder, types::{BasicType, BasicTypeEnum}, values::{
-        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, FloatValue, IntValue, PointerValue, ScalableVectorValue, StructValue, VectorValue
-    }
+    builder::Builder,
+    types::{BasicType, BasicTypeEnum},
+    values::{
+        ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, FloatValue, IntValue,
+        PointerValue, ScalableVectorValue, StructValue, VectorValue,
+    },
+    AddressSpace, FloatPredicate, IntPredicate,
 };
 use itertools::Either;
 use rustc_hash::FxHashSet;
@@ -242,13 +246,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let res =
                     self.generate_reference_expression(&data.access, data.base.as_deref(), expression)?;
                 let val = match res {
-                    ExpressionValue::LValue(val, pointee) => {
-                        // TODO(vosa): Is it correct to ignore the pointee from the match-expression?
-                        // Should be right, because we create another lvalue with the auto_deref? Actually,
-                        // auto-deref might not deref if not annotated as such so perhaps we must not ignore
-                        // the pointee from the match-expression, but also maybe inline the auto_deref function
-                        let value = self.auto_deref_if_necessary(val, expression)?;
-                        let pointee = todo!("llvm-15");
+                    ExpressionValue::LValue(value, _) => {
+                        let value = self.auto_deref_if_necessary(value, expression)?;
+                        let pointee = {
+                            // TODO: I think it should be safe to fetch the pointee this way and return it
+                            // as a result in `ExpressionValue::LValue` but not 100% sure
+                            let datatype = self.annotations.get_type(expression, self.index).unwrap();
+                            self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                        };
+
                         ExpressionValue::LValue(value, pointee)
                     }
                     ExpressionValue::RValue(val) => {
@@ -641,11 +647,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         // Finally generate the function pointer call
         let callable = todo!("CallableValue::try_from(function_pointer_value).unwrap()");
-        let call: CallSiteValue = todo!(r#"self
+        let call: CallSiteValue = todo!(
+            r#"self
             .llvm
             .builder
             .build_call(callable, &arguments_llvm, "fnptr_call")
-            .map_err(CodegenError::from)?;"#);
+            .map_err(CodegenError::from)?;"#
+        );
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
@@ -1153,7 +1161,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
 
         // TODO(vosa): This shouldn't be neccessary with LLVM 15 and opaque pointers
-        todo!(r#"
+        todo!(
+            r#"
         // ...check if we can bitcast an array to a pointer, i.e. `[81 x i8]*` should be passed as a `i8*`
         if value.get_type().get_element_type().is_array_type() {{
             let fundamental_element_type = value.into_fundamental_type();
@@ -1165,7 +1174,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         
             return Ok(res.into_pointer_value().into());
         }}
-        "#);
+        "#
+        );
 
         // ...otherwise no bitcasting was needed, thus return the generated element pointer as is
         Ok(value.into())
@@ -1530,11 +1540,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         }
     }
 
-    fn deref(&self, accessor_ptr: PointerValue<'ink>) -> Result<PointerValue<'ink>, CodegenError> {
-        let pointee: BasicTypeEnum = todo!("llvm-15");
-        Ok(self.llvm.load_pointer(pointee, &accessor_ptr, "deref")?.into_pointer_value())
-    }
-
     pub fn ptr_as_value(&self, ptr: PointerValue<'ink>) -> Result<BasicValueEnum<'ink>, CodegenError> {
         let int_type = self.llvm.context.i64_type();
         Ok(if ptr.is_const() {
@@ -1559,11 +1564,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         accessor_ptr: PointerValue<'ink>,
         statement: &AstNode,
     ) -> Result<PointerValue<'ink>, CodegenError> {
-        if self.annotations.get(statement).is_some_and(|opt| opt.is_auto_deref()) {
-            self.deref(accessor_ptr)
-        } else {
-            Ok(accessor_ptr)
+        if self.annotations.get(statement).is_some_and(StatementAnnotation::is_auto_deref) {
+            // Normally it wouldn't be safe to just assume the pointee in the `load_pointer` call is just of
+            // type `ptr`. However, we return a `PointerValue` here, so LLVM actually expects a `ptr` type
+            // from us as it would panic with any other type otherwise.
+            let pointee = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
+            return Ok(self.llvm.load_pointer(pointee, &accessor_ptr, "deref")?.into_pointer_value());
         }
+
+        Ok(accessor_ptr)
     }
 
     /// generates the access-expression for an array-reference
@@ -1702,58 +1711,57 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         // the second index (index_access) will point to the element in the array
                         vec![self.llvm.i32_type().const_zero(), index_access]
                     } else if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
-                            matches!(
-                                it.get_type_information(),
-                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
+                        matches!(
+                            it.get_type_information(),
+                            DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
+                        )
+                    }) {
+                        // For flattened array-of-array parameters (fundamental element pointer):
+                        // Calculate proper stride: index * element_size
+                        // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
+                        let DataTypeInformation::Array { inner_type_name, .. } =
+                            self.get_type_hint_info_for(reference)?
+                        else {
+                            log::error!("Uncaught resolve error for inner type of nested array");
+                            return Err(Diagnostic::codegen_error(
+                                "Expected inner type to be resolvable",
+                                reference,
                             )
-                        }) {
-                            // For flattened array-of-array parameters (fundamental element pointer):
-                            // Calculate proper stride: index * element_size
-                            // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
-                            let DataTypeInformation::Array { inner_type_name, .. } =
-                                self.get_type_hint_info_for(reference)?
-                            else {
-                                log::error!("Uncaught resolve error for inner type of nested array");
-                                return Err(Diagnostic::codegen_error(
-                                    "Expected inner type to be resolvable",
-                                    reference,
-                                )
-                                .into());
-                            };
-
-                            // Get the size of the inner type (STRING or nested array)
-                            // TODO: use `if let Some(...) if <guard>` once rust is updated and get rid of "is_nested_array" above
-                            let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name)
-                            else {
-                                unreachable!("type must exist in index due to previous checks")
-                            };
-
-                            let element_size = match inner_type.get_type_information() {
-                                DataTypeInformation::String { size, .. } => size
-                                    .as_int_value(self.index)
-                                    .unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
-                                    as u64,
-                                DataTypeInformation::Array { dimensions, .. } => {
-                                    // For nested arrays, calculate total size
-                                    dimensions
-                                        .iter()
-                                        .map(|d| d.get_length(self.index).unwrap_or(1) as u64)
-                                        .product()
-                                }
-                                _ => unreachable!("Must be STRING or ARRAY type due to previous checks"),
-                            };
-
-                            let byte_offset = self.llvm.builder.build_int_mul(
-                                index_access,
-                                self.llvm.i32_type().const_int(element_size, false),
-                                "array_stride_offset",
-                            )?;
-                            vec![byte_offset]
-                        } else {
-                            // lvalue is a simple pointer to type -> e.g.: i32*
-                            // only one index (index_access) is needed to access the element
-                            vec![index_access]
+                            .into());
                         };
+
+                        // Get the size of the inner type (STRING or nested array)
+                        // TODO: use `if let Some(...) if <guard>` once rust is updated and get rid of "is_nested_array" above
+                        let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) else {
+                            unreachable!("type must exist in index due to previous checks")
+                        };
+
+                        let element_size = match inner_type.get_type_information() {
+                            DataTypeInformation::String { size, .. } => {
+                                size.as_int_value(self.index).unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
+                                    as u64
+                            }
+                            DataTypeInformation::Array { dimensions, .. } => {
+                                // For nested arrays, calculate total size
+                                dimensions
+                                    .iter()
+                                    .map(|d| d.get_length(self.index).unwrap_or(1) as u64)
+                                    .product()
+                            }
+                            _ => unreachable!("Must be STRING or ARRAY type due to previous checks"),
+                        };
+
+                        let byte_offset = self.llvm.builder.build_int_mul(
+                            index_access,
+                            self.llvm.i32_type().const_int(element_size, false),
+                            "array_stride_offset",
+                        )?;
+                        vec![byte_offset]
+                    } else {
+                        // lvalue is a simple pointer to type -> e.g.: i32*
+                        // only one index (index_access) is needed to access the element
+                        vec![index_access]
+                    };
 
                     // load the access from that array
                     let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
@@ -2779,13 +2787,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
 
-                    let value = 
-                    self.create_llvm_pointer_value_for_reference(
+                    let value = self.create_llvm_pointer_value_for_reference(
                         base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
                     )?;
-                    let pointee = todo!("llvm-15");
+
+                    let pointee = {
+                        // TODO: Not 100% sure if correct; also I feel like `create_llvm_pointer_value_for_reference` should return an ExpressionValue?
+                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    };
 
                     Ok(ExpressionValue::LValue(value, pointee))
                 }
