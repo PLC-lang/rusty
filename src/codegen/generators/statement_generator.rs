@@ -829,8 +829,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                         )
                     })?;
 
-                let llvmty: BasicTypeEnum = todo!();
-                let loaded_value = self.llvm.load_pointer(llvmty, &value_ptr, var_name.as_str())?;
+                let pointee = self.llvm_index.get_associated_type(ret_v.get_type_name()).unwrap();
+                let loaded_value = self.llvm.load_pointer(pointee, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {

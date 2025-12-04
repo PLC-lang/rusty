@@ -980,13 +980,13 @@ fn builtin_div_with_named_arguments() {
       %main = alloca i32, align 4
       %x = alloca i32, align 4
       %y = alloca i32, align 4
-      store i32 20, i32* %x, align 4
-      store i32 4, i32* %y, align 4
-      store i32 0, i32* %main, align 4
-      %load_x = load i32, i32* %x, align 4
-      %load_y = load i32, i32* %y, align 4
+      store i32 20, ptr %x, align 4
+      store i32 4, ptr %y, align 4
+      store i32 0, ptr %main, align 4
+      %load_x = load i32, ptr %x, align 4
+      %load_y = load i32, ptr %y, align 4
       %tmpVar = sdiv i32 %load_x, %load_y
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
     "#);
@@ -1017,13 +1017,13 @@ fn builtin_sub_with_named_arguments() {
       %main = alloca i32, align 4
       %x = alloca i32, align 4
       %y = alloca i32, align 4
-      store i32 20, i32* %x, align 4
-      store i32 4, i32* %y, align 4
-      store i32 0, i32* %main, align 4
-      %load_x = load i32, i32* %x, align 4
-      %load_y = load i32, i32* %y, align 4
+      store i32 20, ptr %x, align 4
+      store i32 4, ptr %y, align 4
+      store i32 0, ptr %main, align 4
+      %load_x = load i32, ptr %x, align 4
+      %load_y = load i32, ptr %y, align 4
       %tmpVar = sub i32 %load_x, %load_y
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
     "#);
@@ -1117,19 +1117,19 @@ fn unary_plus_expression_test() {
 
     @exp_instance = global %exp zeroinitializer
 
-    define void @exp(%exp* %0) {
+    define void @exp(ptr %0) {
     entry:
-      %x = getelementptr inbounds %exp, %exp* %0, i32 0, i32 0
-      %load_x = load i32, i32* %x, align 4
-      %load_x1 = load i32, i32* %x, align 4
+      %x = getelementptr inbounds %exp, ptr %0, i32 0, i32 0
+      %load_x = load i32, ptr %x, align 4
+      %load_x1 = load i32, ptr %x, align 4
       %tmpVar = add i32 %load_x1, 4
-      store i32 %tmpVar, i32* %x, align 4
-      store i32 1, i32* %x, align 4
-      %load_x2 = load i32, i32* %x, align 4
+      store i32 %tmpVar, ptr %x, align 4
+      store i32 1, ptr %x, align 4
+      %load_x2 = load i32, ptr %x, align 4
       %tmpVar3 = sub i32 0, %load_x2
-      %load_x4 = load i32, i32* %x, align 4
+      %load_x4 = load i32, ptr %x, align 4
       %call = call i32 @foo(i32 %load_x4)
-      store i32 %call, i32* %x, align 4
+      store i32 %call, ptr %x, align 4
       ret void
     }
 
@@ -1137,11 +1137,11 @@ fn unary_plus_expression_test() {
     entry:
       %foo = alloca i32, align 4
       %x = alloca i32, align 4
-      store i32 %0, i32* %x, align 4
-      store i32 0, i32* %foo, align 4
-      %load_x = load i32, i32* %x, align 4
-      store i32 %load_x, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      store i32 %0, ptr %x, align 4
+      store i32 0, ptr %foo, align 4
+      %load_x = load i32, ptr %x, align 4
+      store i32 %load_x, ptr %foo, align 4
+      %foo_ret = load i32, ptr %foo, align 4
       ret i32 %foo_ret
     }
     "#)

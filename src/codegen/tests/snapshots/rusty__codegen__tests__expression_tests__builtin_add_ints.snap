@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,23 +15,23 @@ entry:
   %x3 = alloca i32, align 4
   %l1 = alloca i64, align 8
   %s1 = alloca i8, align 1
-  store i32 0, i32* %x1, align 4
-  store i32 0, i32* %x2, align 4
-  store i32 0, i32* %x3, align 4
-  store i64 0, i64* %l1, align 8
-  store i8 0, i8* %s1, align 1
-  store i32 0, i32* %main, align 4
-  %load_x1 = load i32, i32* %x1, align 4
-  %load_x2 = load i32, i32* %x2, align 4
+  store i32 0, ptr %x1, align 4
+  store i32 0, ptr %x2, align 4
+  store i32 0, ptr %x3, align 4
+  store i64 0, ptr %l1, align 8
+  store i8 0, ptr %s1, align 1
+  store i32 0, ptr %main, align 4
+  %load_x1 = load i32, ptr %x1, align 4
+  %load_x2 = load i32, ptr %x2, align 4
   %tmpVar = add i32 %load_x1, %load_x2
-  %load_x3 = load i32, i32* %x3, align 4
+  %load_x3 = load i32, ptr %x3, align 4
   %tmpVar1 = add i32 %tmpVar, %load_x3
   %0 = sext i32 %tmpVar1 to i64
-  %load_l1 = load i64, i64* %l1, align 8
+  %load_l1 = load i64, ptr %l1, align 8
   %tmpVar2 = add i64 %0, %load_l1
-  %load_s1 = load i8, i8* %s1, align 1
+  %load_s1 = load i8, ptr %s1, align 1
   %1 = sext i8 %load_s1 to i64
   %tmpVar3 = add i64 %tmpVar2, %1
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }
