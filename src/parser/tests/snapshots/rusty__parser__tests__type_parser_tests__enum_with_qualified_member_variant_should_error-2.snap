@@ -1,0 +1,67 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: result.user_types
+---
+[
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "State",
+            ),
+            numeric_type: "DINT",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "Idle",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "Fast",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "Running",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "Slow",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "Running",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ],
+            },
+        },
+        initializer: None,
+        scope: None,
+    },
+]

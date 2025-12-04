@@ -1,0 +1,15 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: diagnostics
+---
+error[E124]: Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')
+  ┌─ <internal>:2:34
+  │
+2 │         TYPE State : (Idle := 0, Running.Fast, Running.Slow);
+  │                                  ^^^^^^^^^^^^ Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')
+
+error[E124]: Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')
+  ┌─ <internal>:2:48
+  │
+2 │         TYPE State : (Idle := 0, Running.Fast, Running.Slow);
+  │                                                ^^^^^^^^^^^^ Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')

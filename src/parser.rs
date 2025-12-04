@@ -1205,7 +1205,8 @@ fn validate_enum_elements(elements: &AstNode, lexer: &mut ParseSession) {
     for element in flatten_expression_list(elements) {
         match &element.stmt {
             // Valid: simple identifier like `Red` or `Green`
-            AstStatement::ReferenceExpr(_) | AstStatement::Identifier(_) => {}
+            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), base: None })
+            | AstStatement::Identifier(_) => {}
             // Valid: assignment like `Red := 1`
             AstStatement::Assignment(_) => {}
             // Invalid: empty statement, is validated elsewhere so we skip it here
@@ -1223,7 +1224,7 @@ fn validate_enum_elements(elements: &AstNode, lexer: &mut ParseSession) {
             // Invalid: any other expression type in enum
             _ => {
                 lexer.accept_diagnostic(
-                    Diagnostic::new("Enum elements must be either identifiers or assignments (e.g., 'Value := 1')")
+                    Diagnostic::new("Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')")
                         .with_error_code("E124")
                         .with_location(element.get_location())
                 );
