@@ -1,0 +1,44 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: result.user_types
+---
+[
+    UserTypeDeclaration {
+        data_type: EnumType {
+            name: Some(
+                "State",
+            ),
+            numeric_type: "DINT",
+            elements: ExpressionList {
+                expressions: [
+                    Assignment {
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "Idle",
+                                },
+                            ),
+                            base: None,
+                        },
+                        right: LiteralInteger {
+                            value: 0,
+                        },
+                    },
+                    CallStatement {
+                        operator: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo",
+                                },
+                            ),
+                            base: None,
+                        },
+                        parameters: None,
+                    },
+                ],
+            },
+        },
+        initializer: None,
+        scope: None,
+    },
+]

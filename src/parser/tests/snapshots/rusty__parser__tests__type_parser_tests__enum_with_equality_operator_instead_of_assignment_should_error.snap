@@ -2,7 +2,7 @@
 source: src/parser/tests/type_parser_tests.rs
 expression: diagnostics
 ---
-error[E122]: Enum element initialization must use ':=' (assignment), not '=' (equality comparison)
+error[E123]: Enum element initialization must use ':=' (assignment), not '=' (equality comparison)
   ┌─ <internal>:2:34
   │
 2 │         TYPE State : (Idle := 0, Running = 1);

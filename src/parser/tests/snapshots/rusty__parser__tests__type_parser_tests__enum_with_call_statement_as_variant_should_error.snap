@@ -1,0 +1,9 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: diagnostics
+---
+error[E124]: Enum elements must be either identifiers or assignments (e.g., 'Value := 1')
+  ┌─ <internal>:2:34
+  │
+2 │         TYPE State : (Idle := 0, foo());
+  │                                  ^^^^^^ Enum elements must be either identifiers or assignments (e.g., 'Value := 1')

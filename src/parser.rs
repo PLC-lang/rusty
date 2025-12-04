@@ -1185,13 +1185,15 @@ fn validate_enum_elements(elements: &AstNode, lexer: &mut ParseSession) {
             AstStatement::ReferenceExpr(_) | AstStatement::Identifier(_) => {}
             // Valid: assignment like `Red := 1`
             AstStatement::Assignment(_) => {}
+            // Invalid: empty statement, is validated elsewhere so we skip it here
+            AstStatement::EmptyStatement(_) => {}
             // Invalid: binary expression like `Red = 1` (equality comparison)
             AstStatement::BinaryExpression(BinaryExpression { operator: Operator::Equal, .. }) => {
                 lexer.accept_diagnostic(
                     Diagnostic::new(
                         "Enum element initialization must use ':=' (assignment), not '=' (equality comparison)"
                     )
-                    .with_error_code("E122")
+                    .with_error_code("E123")
                     .with_location(element.get_location())
                 );
             }
@@ -1199,7 +1201,7 @@ fn validate_enum_elements(elements: &AstNode, lexer: &mut ParseSession) {
             _ => {
                 lexer.accept_diagnostic(
                     Diagnostic::new("Enum elements must be either identifiers or assignments (e.g., 'Value := 1')")
-                        .with_error_code("E123")
+                        .with_error_code("E124")
                         .with_location(element.get_location())
                 );
             }
