@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,4 +11,4 @@ target triple = "[filtered]"
 
 @prg_instance = external global %prg
 
-declare void @prg(%prg*)
+declare void @prg(ptr)

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,7 +13,7 @@ target triple = "[filtered]"
 
 declare i32 @foo()
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
   %call = call i32 @foo()
   ret void

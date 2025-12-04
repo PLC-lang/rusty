@@ -18,7 +18,7 @@ fn aliased_address_in_global_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
     "#);
 }
@@ -40,9 +40,9 @@ fn duplicate_aliased_address_in_global_generated() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
-    @baz = global i8* null
+    @baz = global ptr null
     "#);
 }
 
