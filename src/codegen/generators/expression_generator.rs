@@ -2118,13 +2118,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )
                 })? as usize;
 
+                let pointee = self.llvm_index.get_associated_type(expected_type.get_name()).unwrap();
                 match encoding {
                     StringEncoding::Utf8 => {
                         let literal =
                             self.llvm_index.find_utf08_literal_string(value).map(|it| it.as_pointer_value());
                         if let Some((literal_value, _)) = literal.zip(self.function_context) {
                             //global constant string
-                            let pointee: BasicTypeEnum = todo!("llvm-15");
                             Ok(ExpressionValue::LValue(literal_value, pointee))
                         } else {
                             //note that .len() will give us the number of bytes, not the number of characters
@@ -2144,10 +2144,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         {
                             //global constant string
                             Ok(literal
-                                .map(|it| {
-                                    let pointee: BasicTypeEnum = todo!("llvm-15");
-                                    ExpressionValue::LValue(it.as_pointer_value(), pointee)
-                                })
+                                .map(|it| ExpressionValue::LValue(it.as_pointer_value(), pointee))
                                 .unwrap())
                         } else {
                             //note that .len() will give us the number of bytes, not the number of characters
