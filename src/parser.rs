@@ -4,12 +4,11 @@ use std::ops::Range;
 
 use plc_ast::{
     ast::{
-        flatten_expression_list, AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement,
-        AutoDerefType, BinaryExpression, CompilationUnit, ConfigVariable, DataType, DataTypeDeclaration,
-        DeclarationKind, DirectAccessType, GenericBinding, HardwareAccessType, Identifier, Implementation,
-        Interface, LinkageType, Operator, PolymorphismMode, Pou, PouType, PropertyBlock,
-        PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr, TypeNature,
-        UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
+        AccessModifier, ArgumentProperty, AstFactory, AstNode, AstStatement, AutoDerefType, CompilationUnit,
+        ConfigVariable, DataType, DataTypeDeclaration, DeclarationKind, DirectAccessType, GenericBinding,
+        HardwareAccessType, Identifier, Implementation, Interface, LinkageType, PolymorphismMode, Pou,
+        PouType, PropertyBlock, PropertyImplementation, PropertyKind, ReferenceAccess, ReferenceExpr,
+        TypeNature, UserTypeDeclaration, Variable, VariableBlock, VariableBlockType,
     },
     provider::IdProvider,
 };
@@ -1180,7 +1179,6 @@ fn parse_enum_type_definition(
     let elements = parse_any_in_region(lexer, vec![KeywordParensClose], |lexer| {
         // Parse Enum - we expect at least one element
         let elements = parse_expression_list(lexer);
-        validate_enum_elements(&elements, lexer);
         Some(elements)
     })?;
 
@@ -1198,39 +1196,6 @@ fn parse_enum_type_definition(
         },
         initializer,
     ))
-}
-
-/// Validates that enum elements are either identifiers or assignments
-fn validate_enum_elements(elements: &AstNode, lexer: &mut ParseSession) {
-    for element in flatten_expression_list(elements) {
-        match &element.stmt {
-            // Valid: simple identifier like `Red` or `Green`
-            AstStatement::ReferenceExpr(ReferenceExpr { access: ReferenceAccess::Member(_), base: None })
-            | AstStatement::Identifier(_) => {}
-            // Valid: assignment like `Red := 1`
-            AstStatement::Assignment(_) => {}
-            // Invalid: empty statement, is validated elsewhere so we skip it here
-            AstStatement::EmptyStatement(_) => {}
-            // Invalid: binary expression like `Red = 1` (equality comparison)
-            AstStatement::BinaryExpression(BinaryExpression { operator: Operator::Equal, .. }) => {
-                lexer.accept_diagnostic(
-                    Diagnostic::new(
-                        "Enum element initialization must use ':=' (assignment), not '=' (equality comparison)"
-                    )
-                    .with_error_code("E123")
-                    .with_location(element.get_location())
-                );
-            }
-            // Invalid: any other expression type in enum
-            _ => {
-                lexer.accept_diagnostic(
-                    Diagnostic::new("Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')")
-                        .with_error_code("E124")
-                        .with_location(element.get_location())
-                );
-            }
-        }
-    }
 }
 
 fn parse_array_type_definition(
