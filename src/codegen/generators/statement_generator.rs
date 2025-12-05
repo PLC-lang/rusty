@@ -434,6 +434,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         self.generate_assignment_statement(llvm_index, &stmt.counter, &stmt.start)?;
         let counter = exp_gen.generate_lvalue(&stmt.counter)?;
+        let counter_pointee = {
+            let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+            self.llvm_index.get_associated_type(&datatype.name).unwrap()
+        };
 
         // generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
@@ -461,8 +465,8 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                 ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let pointee: BasicTypeEnum = todo!("llvm-15");
-            let counter_value = builder.build_load(pointee, counter, "")?;
+
+            let counter_value = builder.build_load(counter_pointee, counter, "")?;
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,10 +498,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         );
 
         // increment counter
-        let pointee: BasicTypeEnum = todo!("llvm-15");
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(pointee, counter, "")?;
+        let counter_value = builder.build_load(counter_pointee, counter, "")?;
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
