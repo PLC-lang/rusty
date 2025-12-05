@@ -269,7 +269,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
             AstStatement::HardwareAccess(..) => {
                 let value = self.create_llvm_pointer_value_for_reference(None, "address", expression)?;
-                let pointee = todo!("llvm-15");
+                let pointee = {
+                    let datatype = self.annotations.get_type(expression, self.index).unwrap();
+                    self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                };
 
                 Ok(ExpressionValue::LValue(value, pointee))
             }

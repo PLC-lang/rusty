@@ -111,18 +111,18 @@ fn address_used_in_body() {
 
     %mainProg = type {}
 
-    @foo = global i8* null
+    @foo = global ptr null
     @__PI_1_2_3_4 = global i8 0
-    @baz = global i8* null
+    @baz = global ptr null
     @__PI_1_2_3_5 = global i8 0
     @x = global i8 1
     @mainProg_instance = global %mainProg zeroinitializer
 
-    define void @mainProg(%mainProg* %0) {
+    define void @mainProg(ptr %0) {
     entry:
-      store i8 1, i8* @__PI_1_2_3_4, align 1
-      %1 = load i8, i8* @__PI_1_2_3_5, align 1
-      store i8 %1, i8* @x, align 1
+      store i8 1, ptr @__PI_1_2_3_4, align 1
+      %1 = load i8, ptr @__PI_1_2_3_5, align 1
+      store i8 %1, ptr @x, align 1
       ret void
     }
     "#);
