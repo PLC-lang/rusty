@@ -1271,43 +1271,41 @@ fn array_of_array_integer_parameter_with_stride_calculation() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    define void @foo(i32* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %numbers = alloca i32*, align 8
-      store i32* %0, i32** %numbers, align 8
-      %deref = load i32*, i32** %numbers, align 8
-      %tmpVar = getelementptr inbounds i32, i32* %deref, i32 0
-      %tmpVar1 = getelementptr inbounds i32, i32* %tmpVar, i32 0
-      store i32 1, i32* %tmpVar1, align 4
-      %deref2 = load i32*, i32** %numbers, align 8
-      %tmpVar3 = getelementptr inbounds i32, i32* %deref2, i32 0
-      %tmpVar4 = getelementptr inbounds i32, i32* %tmpVar3, i32 1
-      store i32 2, i32* %tmpVar4, align 4
-      %deref5 = load i32*, i32** %numbers, align 8
-      %tmpVar6 = getelementptr inbounds i32, i32* %deref5, i32 3
-      %tmpVar7 = getelementptr inbounds i32, i32* %tmpVar6, i32 0
-      store i32 3, i32* %tmpVar7, align 4
-      %deref8 = load i32*, i32** %numbers, align 8
-      %tmpVar9 = getelementptr inbounds i32, i32* %deref8, i32 3
-      %tmpVar10 = getelementptr inbounds i32, i32* %tmpVar9, i32 1
-      store i32 4, i32* %tmpVar10, align 4
+      %numbers = alloca ptr, align 8
+      store ptr %0, ptr %numbers, align 8
+      %deref = load ptr, ptr %numbers, align 8
+      %tmpVar = getelementptr inbounds [2 x [3 x i32]], ptr %deref, i32 0, i32 0
+      %tmpVar1 = getelementptr inbounds [3 x i32], ptr %tmpVar, i32 0, i32 0
+      store i32 1, ptr %tmpVar1, align 4
+      %deref2 = load ptr, ptr %numbers, align 8
+      %tmpVar3 = getelementptr inbounds [2 x [3 x i32]], ptr %deref2, i32 0, i32 0
+      %tmpVar4 = getelementptr inbounds [3 x i32], ptr %tmpVar3, i32 0, i32 1
+      store i32 2, ptr %tmpVar4, align 4
+      %deref5 = load ptr, ptr %numbers, align 8
+      %tmpVar6 = getelementptr inbounds [2 x [3 x i32]], ptr %deref5, i32 0, i32 1
+      %tmpVar7 = getelementptr inbounds [3 x i32], ptr %tmpVar6, i32 0, i32 0
+      store i32 3, ptr %tmpVar7, align 4
+      %deref8 = load ptr, ptr %numbers, align 8
+      %tmpVar9 = getelementptr inbounds [2 x [3 x i32]], ptr %deref8, i32 0, i32 1
+      %tmpVar10 = getelementptr inbounds [3 x i32], ptr %tmpVar9, i32 0, i32 1
+      store i32 4, ptr %tmpVar10, align 4
       ret void
     }
 
     define void @main() {
     entry:
       %arr = alloca [2 x [3 x i32]], align 4
-      %0 = bitcast [2 x [3 x i32]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x [3 x i32]]* getelementptr ([2 x [3 x i32]], [2 x [3 x i32]]* null, i32 1) to i64), i1 false)
-      %1 = bitcast [2 x [3 x i32]]* %arr to i32*
-      call void @foo(i32* %1)
+      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [3 x i32]], ptr null, i32 1) to i64), i1 false)
+      call void @foo(ptr %arr)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#)
 }
 

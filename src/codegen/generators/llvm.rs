@@ -122,12 +122,12 @@ impl<'a> Llvm<'a> {
     /// - `name` the name of the resulting variable
     pub fn load_array_element(
         &self,
+        pointee: BasicTypeEnum<'a>,
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
         unsafe {
-            let pointee: BasicTypeEnum = todo!("llvm-15");
             self.builder
                 .build_in_bounds_gep(pointee, pointer_to_array_instance, accessor_sequence, name)
                 .map_err(Into::into)

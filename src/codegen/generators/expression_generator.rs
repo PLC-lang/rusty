@@ -27,7 +27,6 @@ use plc_util::convention::qualified_name;
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
         llvm_typesystem::{cast_if_needed, get_llvm_int_type},
         CodegenError,
@@ -329,30 +328,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         context: &AstNode,
         llvm_type: &BasicTypeEnum<'ink>,
     ) -> Result<Option<PointerValue<'ink>>, CodegenError> {
-        match self.annotations.get(context) {
-            Some(StatementAnnotation::Variable { qualified_name, .. }) => {
-                // We will generate a GEP, which has as its base address the magic constant which
-                // will eventually be replaced by the location of the GOT.
-                let base =
-                    self.llvm.context.i64_type().const_int(0xdeadbeef00000000, false).const_to_pointer(
-                        llvm_type.ptr_type(AddressSpace::default()).ptr_type(AddressSpace::default()),
-                    );
-
-                self.llvm_index
-                    .find_got_index(qualified_name)
-                    .map(|idx| {
-                        let ptr = self.llvm.load_array_element(
-                            base,
-                            &[self.llvm.context.i32_type().const_int(idx, false)],
-                            "",
-                        )?;
-                        let pointee: BasicTypeEnum = todo!("llvm-15");
-                        Ok(self.llvm.load_pointer(pointee, &ptr, "")?.into_pointer_value())
-                    })
-                    .transpose()
-            }
-            _ => Ok(None),
-        }
+        // TODO: remove
+        Ok(None)
     }
 
     /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
@@ -1215,6 +1192,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let arr_storage = self.llvm.builder.build_alloca(arr, "")?;
                 for (i, ele) in generated_params.iter().enumerate() {
                     let ele_ptr = self.llvm.load_array_element(
+                        arr.as_basic_type_enum(),
                         arr_storage,
                         &[
                             self.llvm.context.i32_type().const_zero(),
@@ -1609,7 +1587,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(reference)
             .map(|it| it.get_basic_value_enum().into_pointer_value())
             .and_then(|lvalue| {
-                if let DataTypeInformation::Array { dimensions, inner_type_name, .. } =
+                if let DataTypeInformation::Array { name, dimensions, inner_type_name } =
                     self.get_type_hint_info_for(reference)?
                 {
                     // make sure dimensions match statement list
@@ -1687,66 +1665,71 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             .map_err(|_| Diagnostic::codegen_error("non-numeric index-access", access).into())
                     })?;
 
-                    let accessor_sequence = if todo!("lvalue.get_type().get_element_type().is_array_type()") {
-                        // For typed array pointers (e.g.: [81 x i32]*):
-                        // the first index (0) will point to the array -> [81 x i32]
-                        // the second index (index_access) will point to the element in the array
-                        vec![self.llvm.i32_type().const_zero(), index_access]
-                    } else if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
-                        matches!(
-                            it.get_type_information(),
-                            DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
-                        )
-                    }) {
-                        // For flattened array-of-array parameters (fundamental element pointer):
-                        // Calculate proper stride: index * element_size
-                        // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
-                        let DataTypeInformation::Array { inner_type_name, .. } =
-                            self.get_type_hint_info_for(reference)?
-                        else {
-                            log::error!("Uncaught resolve error for inner type of nested array");
-                            return Err(Diagnostic::codegen_error(
-                                "Expected inner type to be resolvable",
-                                reference,
+                    // let accessor_sequence = if todo!("lvalue.get_type().get_element_type().is_array_type()") {
+                    let accessor_sequence =
+                        if self.llvm_index.get_associated_type(name.as_str())?.is_array_type() {
+                            // For typed array pointers (e.g.: [81 x i32]*):
+                            // the first index (0) will point to the array -> [81 x i32]
+                            // the second index (index_access) will point to the element in the array
+                            vec![self.llvm.i32_type().const_zero(), index_access]
+                        } else if self.index.find_effective_type_by_name(inner_type_name).is_some_and(|it| {
+                            matches!(
+                                it.get_type_information(),
+                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. }
                             )
-                            .into());
-                        };
+                        }) {
+                            // For flattened array-of-array parameters (fundamental element pointer):
+                            // Calculate proper stride: index * element_size
+                            // This handles cases like i8* representing [N x STRING]* or i32* representing [N x [M x i32]]*
+                            let DataTypeInformation::Array { inner_type_name, .. } =
+                                self.get_type_hint_info_for(reference)?
+                            else {
+                                log::error!("Uncaught resolve error for inner type of nested array");
+                                return Err(Diagnostic::codegen_error(
+                                    "Expected inner type to be resolvable",
+                                    reference,
+                                )
+                                .into());
+                            };
 
-                        // Get the size of the inner type (STRING or nested array)
-                        // TODO: use `if let Some(...) if <guard>` once rust is updated and get rid of "is_nested_array" above
-                        let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name) else {
-                            unreachable!("type must exist in index due to previous checks")
-                        };
+                            // Get the size of the inner type (STRING or nested array)
+                            // TODO: use `if let Some(...) if <guard>` once rust is updated and get rid of "is_nested_array" above
+                            let Some(inner_type) = self.index.find_effective_type_by_name(inner_type_name)
+                            else {
+                                unreachable!("type must exist in index due to previous checks")
+                            };
 
-                        let element_size = match inner_type.get_type_information() {
-                            DataTypeInformation::String { size, .. } => {
-                                size.as_int_value(self.index).unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
-                                    as u64
-                            }
-                            DataTypeInformation::Array { dimensions, .. } => {
-                                // For nested arrays, calculate total size
-                                dimensions
-                                    .iter()
-                                    .map(|d| d.get_length(self.index).unwrap_or(1) as u64)
-                                    .product()
-                            }
-                            _ => unreachable!("Must be STRING or ARRAY type due to previous checks"),
-                        };
+                            let element_size = match inner_type.get_type_information() {
+                                DataTypeInformation::String { size, .. } => size
+                                    .as_int_value(self.index)
+                                    .unwrap_or((DEFAULT_STRING_LEN + 1_u32).into())
+                                    as u64,
+                                DataTypeInformation::Array { dimensions, .. } => {
+                                    // For nested arrays, calculate total size
+                                    dimensions
+                                        .iter()
+                                        .map(|d| d.get_length(self.index).unwrap_or(1) as u64)
+                                        .product()
+                                }
+                                _ => unreachable!("Must be STRING or ARRAY type due to previous checks"),
+                            };
 
-                        let byte_offset = self.llvm.builder.build_int_mul(
-                            index_access,
-                            self.llvm.i32_type().const_int(element_size, false),
-                            "array_stride_offset",
-                        )?;
-                        vec![byte_offset]
-                    } else {
-                        // lvalue is a simple pointer to type -> e.g.: i32*
-                        // only one index (index_access) is needed to access the element
-                        vec![index_access]
-                    };
+                            let byte_offset = self.llvm.builder.build_int_mul(
+                                index_access,
+                                self.llvm.i32_type().const_int(element_size, false),
+                                "array_stride_offset",
+                            )?;
+                            vec![byte_offset]
+                        } else {
+                            // lvalue is a simple pointer to type -> e.g.: i32*
+                            // only one index (index_access) is needed to access the element
+                            vec![index_access]
+                        };
 
                     // load the access from that array
-                    let pointer = self.llvm.load_array_element(lvalue, &accessor_sequence, "tmpVar")?;
+                    let pointee = self.llvm_index.get_associated_type(&name).unwrap();
+                    let pointer =
+                        self.llvm.load_array_element(pointee, lvalue, &accessor_sequence, "tmpVar")?;
 
                     return Ok(pointer);
                 }
@@ -1776,28 +1759,33 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let result = match operator {
             Operator::Plus | Operator::Minus => {
-                let (ptr, index, name) = if left_type.is_pointer() && right_type.is_int() {
+                let (ptr, pointee, index, name) = if left_type.is_pointer() && right_type.is_int() {
                     let ptr = left_expr.into_pointer_value();
+                    let pointee = self.llvm_index.get_associated_type(left_type.get_inner_name()).unwrap();
                     let index = right_expr.into_int_value();
                     let name = format!("access_{}", left_type.get_name());
-                    (Some(ptr), Some(index), Some(name))
+                    (Some(ptr), Some(pointee), Some(index), Some(name))
                 } else if left_type.is_int() && right_type.is_pointer() {
                     let ptr = right_expr.into_pointer_value();
+                    let pointee = self.llvm_index.get_associated_type(right_type.get_inner_name()).unwrap();
                     let index = left_expr.into_int_value();
                     let name = format!("access_{}", right_type.get_name());
-                    (Some(ptr), Some(index), Some(name))
+                    (Some(ptr), Some(pointee), Some(index), Some(name))
                 } else {
                     // if left and right are both pointers we can not perform plus/minus
-                    (None, None, None)
+                    (None, None, None, None)
                 };
 
-                if let (Some(ptr), Some(mut index), Some(name)) = (ptr, index, name) {
+                if let (Some(ptr), Some(pointee), Some(mut index), Some(name)) = (ptr, pointee, index, name) {
                     // if operator is minus we need to negate the index
                     if let Operator::Minus = operator {
                         index = self.int_neg(index)?;
                     }
 
-                    Ok(self.llvm.load_array_element(ptr, &[index], name.as_str())?.as_basic_value_enum())
+                    Ok(self
+                        .llvm
+                        .load_array_element(pointee, ptr, &[index], name.as_str())?
+                        .as_basic_value_enum())
                 } else {
                     Err(Diagnostic::codegen_error(
                         format!("'{operator}' operation must contain one int type").as_str(),
@@ -2804,7 +2792,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 } else {
                     // normal array expression
                     let value = self.generate_element_pointer_for_array(base, array_idx)?;
-                    let pointee = todo!();
+                    let pointee = {
+                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                        self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                    };
+
                     Ok(ExpressionValue::LValue(value, pointee))
                 }
             }

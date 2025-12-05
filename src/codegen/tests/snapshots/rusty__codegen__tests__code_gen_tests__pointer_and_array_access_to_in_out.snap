@@ -1,31 +1,30 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-define i16 @main(i16** %0, i16* %1) {
+define i16 @main(ptr %0, ptr %1) {
 entry:
   %main = alloca i16, align 2
-  %a = alloca i16**, align 8
-  store i16** %0, i16*** %a, align 8
-  %b = alloca i16*, align 8
-  store i16* %1, i16** %b, align 8
+  %a = alloca ptr, align 8
+  store ptr %0, ptr %a, align 8
+  %b = alloca ptr, align 8
+  store ptr %1, ptr %b, align 8
   %c = alloca i16, align 2
-  store i16 0, i16* %c, align 2
-  store i16 0, i16* %main, align 2
-  %deref = load i16**, i16*** %a, align 8
-  %deref1 = load i16*, i16** %deref, align 8
-  %load_tmpVar = load i16, i16* %deref1, align 2
-  store i16 %load_tmpVar, i16* %c, align 2
-  %deref2 = load i16*, i16** %b, align 8
-  %tmpVar = getelementptr inbounds i16, i16* %deref2, i32 0
-  %load_tmpVar3 = load i16, i16* %tmpVar, align 2
-  store i16 %load_tmpVar3, i16* %c, align 2
-  %main_ret = load i16, i16* %main, align 2
+  store i16 0, ptr %c, align 2
+  store i16 0, ptr %main, align 2
+  %deref = load ptr, ptr %a, align 8
+  %deref1 = load ptr, ptr %deref, align 8
+  %load_tmpVar = load i16, ptr %deref1, align 2
+  store i16 %load_tmpVar, ptr %c, align 2
+  %deref2 = load ptr, ptr %b, align 8
+  %tmpVar = getelementptr inbounds [2 x i16], ptr %deref2, i32 0, i32 0
+  %load_tmpVar3 = load i16, ptr %tmpVar, align 2
+  store i16 %load_tmpVar3, ptr %c, align 2
+  %main_ret = load i16, ptr %main, align 2
   ret i16 %main_ret
 }
