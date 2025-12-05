@@ -142,6 +142,42 @@ fn typed_inline_enum_with_initial_values_can_be_parsed() {
 }
 
 #[test]
+fn enum_with_equality_operator_instead_of_assignment_should_error() {
+    let (_, diagnostics) = parse_buffered(
+        r#"
+        TYPE State : (Idle := 0, Running = 1);
+        END_TYPE
+        "#,
+    );
+    assert!(!diagnostics.is_empty(), "Expected parse error for enum using = instead of :=");
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn enum_with_call_statement_as_variant_should_error() {
+    let (_, diagnostics) = parse_buffered(
+        r#"
+        TYPE State : (Idle := 0, foo());
+        END_TYPE
+        "#,
+    );
+    assert!(!diagnostics.is_empty(), "Expected parse error for invalid enum variant");
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
+fn enum_with_qualified_member_variant_should_error() {
+    let (_, diagnostics) = parse_buffered(
+        r#"
+        TYPE State : (Idle := 0, Running.Fast, Running.Slow);
+        END_TYPE
+        "#,
+    );
+    assert!(!diagnostics.is_empty(), "Expected parse error for invalid enum variant");
+    assert_snapshot!(diagnostics);
+}
+
+#[test]
 fn type_alias_can_be_parsed() {
     let (result, ..) = parse(
         r#"
@@ -796,26 +832,20 @@ fn enum_with_no_elements_produces_syntax_error() {
         TYPE ANOTHER_EMPTY_ENUM : () INT;
         "#,
     );
-    assert!(diagnostics.len() > 0);
-    assert_snapshot!(diagnostics, @r"
+    assert!(!diagnostics.is_empty());
+    assert_snapshot!(diagnostics, @r###"
     error[E007]: Unexpected token: expected Literal but found )
       ┌─ <internal>:2:32
       │
     2 │         TYPE EMPTY_ENUM : INT ();
       │                                ^ Unexpected token: expected Literal but found )
 
-    error[E007]: Unexpected token: expected Literal but found )
-      ┌─ <internal>:5:36
-      │
-    5 │         TYPE ANOTHER_EMPTY_ENUM : () INT;
-      │                                    ^ Unexpected token: expected Literal but found )
-
     error[E007]: Unexpected token: expected KeywordEndType but found ''
       ┌─ <internal>:6:9
       │
     6 │         
       │         ^ Unexpected token: expected KeywordEndType but found ''
-    ");
+    "###);
     // User type should still be created despite the error (error recovery)
     assert_debug_snapshot!(result.user_types[0], @r#"
     UserTypeDeclaration {
