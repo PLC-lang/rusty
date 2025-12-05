@@ -2,8 +2,8 @@
 source: src/parser/tests/type_parser_tests.rs
 expression: diagnostics
 ---
-error[E123]: Enum element initialization must use ':=' (assignment), not '=' (equality comparison)
-  ┌─ <internal>:2:34
+error[E007]: Unexpected token: expected KeywordParensClose but found '= 1'
+  ┌─ <internal>:2:42
   │
 2 │         TYPE State : (Idle := 0, Running = 1);
-  │                                  ^^^^^^^^^^^ Enum element initialization must use ':=' (assignment), not '=' (equality comparison)
+  │                                          ^^^ Unexpected token: expected KeywordParensClose but found '= 1'

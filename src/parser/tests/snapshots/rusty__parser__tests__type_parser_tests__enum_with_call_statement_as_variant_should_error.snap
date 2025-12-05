@@ -2,8 +2,14 @@
 source: src/parser/tests/type_parser_tests.rs
 expression: diagnostics
 ---
-error[E124]: Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')
-  ┌─ <internal>:2:34
+error[E007]: Unexpected token: expected KeywordParensClose but found '('
+  ┌─ <internal>:2:37
   │
 2 │         TYPE State : (Idle := 0, foo());
-  │                                  ^^^^^^ Enum elements must be either flat identifiers or assignments (e.g., 'Value' or 'Value := 1')
+  │                                     ^ Unexpected token: expected KeywordParensClose but found '('
+
+error[E007]: Unexpected token: expected KeywordSemicolon but found ')'
+  ┌─ <internal>:2:39
+  │
+2 │         TYPE State : (Idle := 0, foo());
+  │                                       ^ Unexpected token: expected KeywordSemicolon but found ')'

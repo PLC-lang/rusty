@@ -1177,7 +1177,11 @@ fn parse_enum_type_definition(
 ) -> Option<(DataTypeDeclaration, Option<AstNode>)> {
     let start = lexer.last_location();
 
-    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements(lexer))?;
+    let elements = parse_any_in_region(lexer, vec![KeywordParensClose], parse_enum_elements)?;
+    // Check for Codesys-style type specification after the enum list
+    // TYPE COLOR : (...) DWORD;
+    let numeric_type =
+        if lexer.token == Identifier { lexer.slice_and_advance() } else { DINT_TYPE.to_string() };
     let initializer = lexer.try_consume(KeywordAssignment).then(|| parse_expression(lexer));
     Some((
         DataTypeDeclaration::Definition {
@@ -1195,18 +1199,27 @@ fn parse_enum_elements(lexer: &mut ParseSession) -> Option<AstNode> {
     let mut elements = vec![];
 
     loop {
+        // Check if we've hit the closing token (e.g., ')') immediately
+        // This handles empty enums like `()` for error recovery
+        if lexer.closes_open_region(&lexer.token) {
+            break;
+        }
+
         let element = parse_enum_element(lexer)?;
         elements.push(element);
 
-        // check for comma
         if !lexer.try_consume(KeywordComma) {
             break;
         }
 
-        // check for trailing comma
         if lexer.closes_open_region(&lexer.token) {
             break;
         }
+    }
+
+    // Handle empty enum case (no elements parsed)
+    if elements.is_empty() {
+        return Some(AstFactory::create_empty_statement(start, lexer.next_id()));
     }
 
     if elements.len() == 1 {
@@ -1223,14 +1236,14 @@ fn parse_enum_element(lexer: &mut ParseSession) -> Option<AstNode> {
     let idfr = parse_identifier(lexer)?;
 
     let identifier_node = AstFactory::create_identifier(&idfr.0, start, lexer.next_id());
+    let ref_expr = AstFactory::create_member_reference(identifier_node, None, lexer.next_id());
 
     if lexer.try_consume(KeywordAssignment) {
         let value = parse_range_statement(lexer);
-        let result = AstFactory::create_assignment(identifier_node, value, lexer.next_id());
+        let result = AstFactory::create_assignment(ref_expr, value, lexer.next_id());
         return Some(result);
     }
 
-    let ref_expr = AstFactory::create_member_reference(identifier_node, None, lexer.next_id());
 
     Some(ref_expr)
 }
