@@ -1244,7 +1244,6 @@ fn parse_enum_element(lexer: &mut ParseSession) -> Option<AstNode> {
         return Some(result);
     }
 
-
     Some(ref_expr)
 }
 
