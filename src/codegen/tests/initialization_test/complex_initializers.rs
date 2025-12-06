@@ -2175,35 +2175,34 @@ fn temporary_variable_ref_to_temporary_variable() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define void @foo() {
     entry:
-      %ptr = alloca [81 x i8]*, align 8
-      %alias = alloca [81 x i8]*, align 8
+      %ptr = alloca ptr, align 8
+      %alias = alloca ptr, align 8
       %s = alloca [81 x i8], align 1
-      %reference_to = alloca [81 x i8]*, align 8
-      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
-      store [81 x i8]* null, [81 x i8]** %alias, align 8
-      %0 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      store [81 x i8]* null, [81 x i8]** %reference_to, align 8
-      store [81 x i8]* %s, [81 x i8]** %ptr, align 8
-      store [81 x i8]* %s, [81 x i8]** %alias, align 8
-      %deref = load [81 x i8]*, [81 x i8]** %alias, align 8
-      store [81 x i8]* %deref, [81 x i8]** %reference_to, align 8
+      %reference_to = alloca ptr, align 8
+      store ptr %s, ptr %ptr, align 8
+      store ptr null, ptr %alias, align 8
+      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      store ptr null, ptr %reference_to, align 8
+      store ptr %s, ptr %ptr, align 8
+      store ptr %s, ptr %alias, align 8
+      %deref = load ptr, ptr %alias, align 8
+      store ptr %deref, ptr %reference_to, align 8
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
     define void @__init___Test() {
     entry:
       ret void
     }
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
     "#)
 }
 

@@ -775,8 +775,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
                     // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    let zero: BasicValueEnum = todo!("llvm-15; left_type.into_pointer_type().const_null()");
-                    self.llvm.builder.build_store(left, zero)?;
+                    let pointee =
+                        self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).const_null();
+                    self.llvm.builder.build_store(left, pointee)?;
                     continue;
                 };
                 let right_stmt =
