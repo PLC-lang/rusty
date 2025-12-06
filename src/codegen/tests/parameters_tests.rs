@@ -1124,57 +1124,47 @@ fn var_output_aggregate_types_are_memcopied() {
     @__OUT_TYPE__init = unnamed_addr constant %OUT_TYPE zeroinitializer
     @PRG_instance = global %PRG zeroinitializer
 
-    define void @FB(%FB* %0) {
+    define void @FB(ptr %0) {
     entry:
-      %this = alloca %FB*, align 8
-      store %FB* %0, %FB** %this, align 8
-      %output = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-      %output2 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-      %output3 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
-      %output4 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
-      %output5 = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %output = getelementptr inbounds %FB, ptr %0, i32 0, i32 0
+      %output2 = getelementptr inbounds %FB, ptr %0, i32 0, i32 1
+      %output3 = getelementptr inbounds %FB, ptr %0, i32 0, i32 2
+      %output4 = getelementptr inbounds %FB, ptr %0, i32 0, i32 3
+      %output5 = getelementptr inbounds %FB, ptr %0, i32 0, i32 4
       ret void
     }
 
-    define void @PRG(%PRG* %0) {
+    define void @PRG(ptr %0) {
     entry:
-      %out = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 0
-      %out2 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 1
-      %out3 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 2
-      %out4 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 3
-      %out5 = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 4
-      %station = getelementptr inbounds %PRG, %PRG* %0, i32 0, i32 5
-      call void @FB(%FB* %station)
-      %1 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 0
-      %2 = bitcast %OUT_TYPE* %out to i8*
-      %3 = bitcast %OUT_TYPE* %1 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 %3, i64 ptrtoint (%OUT_TYPE* getelementptr (%OUT_TYPE, %OUT_TYPE* null, i32 1) to i64), i1 false)
-      %4 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 1
-      %5 = bitcast [11 x i32]* %out2 to i8*
-      %6 = bitcast [11 x i32]* %4 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %5, i8* align 1 %6, i64 ptrtoint ([11 x i32]* getelementptr ([11 x i32], [11 x i32]* null, i32 1) to i64), i1 false)
-      %7 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 2
-      %8 = bitcast [11 x %OUT_TYPE]* %out3 to i8*
-      %9 = bitcast [11 x %OUT_TYPE]* %7 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %8, i8* align 1 %9, i64 ptrtoint ([11 x %OUT_TYPE]* getelementptr ([11 x %OUT_TYPE], [11 x %OUT_TYPE]* null, i32 1) to i64), i1 false)
-      %10 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 3
-      %11 = bitcast [81 x i8]* %out4 to i8*
-      %12 = bitcast [81 x i8]* %10 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false)
-      %13 = getelementptr inbounds %FB, %FB* %station, i32 0, i32 4
-      %14 = bitcast [81 x i16]* %out5 to i8*
-      %15 = bitcast [81 x i16]* %13 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %14, i8* align 2 %15, i32 160, i1 false)
+      %out = getelementptr inbounds %PRG, ptr %0, i32 0, i32 0
+      %out2 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 1
+      %out3 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 2
+      %out4 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 3
+      %out5 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 4
+      %station = getelementptr inbounds %PRG, ptr %0, i32 0, i32 5
+      call void @FB(ptr %station)
+      %1 = getelementptr inbounds %FB, ptr %station, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out, ptr align 1 %1, i64 ptrtoint (ptr getelementptr (%OUT_TYPE, ptr null, i32 1) to i64), i1 false)
+      %2 = getelementptr inbounds %FB, ptr %station, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out2, ptr align 1 %2, i64 ptrtoint (ptr getelementptr ([11 x i32], ptr null, i32 1) to i64), i1 false)
+      %3 = getelementptr inbounds %FB, ptr %station, i32 0, i32 2
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out3, ptr align 1 %3, i64 ptrtoint (ptr getelementptr ([11 x %OUT_TYPE], ptr null, i32 1) to i64), i1 false)
+      %4 = getelementptr inbounds %FB, ptr %station, i32 0, i32 3
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %out4, ptr align 1 %4, i32 80, i1 false)
+      %5 = getelementptr inbounds %FB, ptr %station, i32 0, i32 4
+      call void @llvm.memcpy.p0.p0.i32(ptr align 2 %out5, ptr align 2 %5, i32 160, i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
     "#);
 }
 

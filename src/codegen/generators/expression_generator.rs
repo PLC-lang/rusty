@@ -858,7 +858,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output = self.generate_lvalue(expr)?;
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
-                let pointee: BasicTypeEnum = todo!("llvm-15");
+
+                let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
                 let output =
                     builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
                         Diagnostic::codegen_error(
@@ -879,7 +880,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         parameter.source_location.clone(),
                     )?;
                 } else {
-                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                    let pointee = self.llvm_index.get_associated_type(output_value_type.get_name()).unwrap();
                     let output_value = builder.build_load(pointee, output, "")?;
                     builder.build_store(assigned_output, output_value)?;
                 }
