@@ -405,7 +405,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for PointerValue<'ctx> {
                 ..
             } => {
                 // we are dealing with an auto-deref vla parameter. first we have to deref our array and build the fat pointer
-                let pointee: BasicTypeEnum = todo!("llvm-15");
+                let pointee: BasicTypeEnum = todo!("llvm-15, vla");
                 let struct_val =
                     cast_data.llvm.builder.build_load(pointee, self, "auto_deref")?.cast(cast_data)?;
 
@@ -465,7 +465,7 @@ impl<'ctx, 'cast> Castable<'ctx, 'cast> for ArrayValue<'ctx> {
             })?;
 
         // gep into the original array. the resulting address will be stored in the VLA struct
-        let pointee: BasicTypeEnum = todo!("llvm-15");
+        let pointee: BasicTypeEnum = todo!("llvm-15, vla");
         let arr_gep =
             unsafe { builder.build_in_bounds_gep(pointee, array_pointer, &[zero, zero], "outer_arr_gep")? };
 

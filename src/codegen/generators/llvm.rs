@@ -142,11 +142,11 @@ impl<'a> Llvm<'a> {
     /// - `offset` the location in case of a Diagnostic
     pub fn get_member_pointer_from_struct(
         &self,
+        pointee: BasicTypeEnum<'a>,
         pointer_to_struct_instance: PointerValue<'a>,
         member_index: u32,
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
-        let pointee: BasicTypeEnum = todo!("llvm-15");
         self.builder
             .build_struct_gep(pointee, pointer_to_struct_instance, member_index, name)
             .map_err(Into::into)

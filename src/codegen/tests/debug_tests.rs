@@ -357,80 +357,80 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { void (%fb*)*, void (%fb*)* }
-    %fb = type { i32* }
+    %__vtable_fb = type { ptr, ptr }
+    %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
 
-    define void @fb(%fb* %0) !dbg !14 {
+    define void @fb(ptr %0) !dbg !14 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !18, metadata !DIExpression()), !dbg !19
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !18, metadata !DIExpression()), !dbg !19
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !19
     }
 
-    define void @fb__foo(%fb* %0) !dbg !20 {
+    define void @fb__foo(ptr %0) !dbg !20 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !21, metadata !DIExpression()), !dbg !22
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !21, metadata !DIExpression()), !dbg !22
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !22
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init___vtable_fb(%__vtable_fb* %0) {
+    define void @__init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
-      %deref = load %__vtable_fb*, %__vtable_fb** %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 0
-      store void (%fb*)* @fb, void (%fb*)** %__body, align 8
-      %deref1 = load %__vtable_fb*, %__vtable_fb** %self, align 8
-      %foo = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref1, i32 0, i32 1
-      store void (%fb*)* @fb__foo, void (%fb*)** %foo, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      store ptr @fb, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %foo = getelementptr inbounds %__vtable_fb, ptr %deref1, i32 0, i32 1
+      store ptr @fb__foo, ptr %foo, align 8
       ret void
     }
 
-    define void @__init_fb(%fb* %0) {
+    define void @__init_fb(ptr %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
-      %deref = load %fb*, %fb** %self, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %fb, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__user_init_fb(%fb* %0) {
+    define void @__user_init_fb(ptr %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_fb(%__vtable_fb* %0) {
+    define void @__user_init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init___vtable_fb(%__vtable_fb* @__vtable_fb_instance)
-      call void @__user_init___vtable_fb(%__vtable_fb* @__vtable_fb_instance)
+      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
+      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -645,7 +645,7 @@ END_FUNCTION
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -657,7 +657,7 @@ END_FUNCTION
     @__struct___init = unnamed_addr constant %struct_ { %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, [3 x %inner] zeroinitializer, [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !0
     @__inner__init = unnamed_addr constant %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !32
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define void @main() !dbg !39 {
     entry:
@@ -666,145 +666,126 @@ END_FUNCTION
       %b = alloca i8, align 1
       %arr = alloca [3 x [81 x i8]], align 1
       %i = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata %struct_* %st, metadata !43, metadata !DIExpression()), !dbg !44
-      %0 = bitcast %struct_* %st to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%struct_, %struct_* @__struct___init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%struct_* getelementptr (%struct_, %struct_* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !45, metadata !DIExpression()), !dbg !46
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i8* %b, metadata !47, metadata !DIExpression()), !dbg !48
-      store i8 0, i8* %b, align 1
-      call void @llvm.dbg.declare(metadata [3 x [81 x i8]]* %arr, metadata !49, metadata !DIExpression()), !dbg !50
-      %2 = bitcast [3 x [81 x i8]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i16* %i, metadata !51, metadata !DIExpression()), !dbg !52
-      store i16 0, i16* %i, align 2
-      call void @__init_struct_(%struct_* %st), !dbg !53
-      call void @__user_init_struct_(%struct_* %st), !dbg !53
-      %s1 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 2, !dbg !54
-      %3 = bitcast [81 x i8]* %s to i8*, !dbg !54
-      %4 = bitcast [81 x i8]* %s1 to i8*, !dbg !54
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false), !dbg !54
-      %inner = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !55
-      %s2 = getelementptr inbounds %inner, %inner* %inner, i32 0, i32 0, !dbg !55
-      %5 = bitcast [81 x i8]* %s to i8*, !dbg !55
-      %6 = bitcast [81 x i8]* %s2 to i8*, !dbg !55
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 80, i1 false), !dbg !55
-      %b3 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 3, !dbg !56
-      %load_b = load i8, i8* %b3, align 1, !dbg !56
-      store i8 %load_b, i8* %b, align 1, !dbg !56
-      %inner4 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !57
-      %b5 = getelementptr inbounds %inner, %inner* %inner4, i32 0, i32 1, !dbg !57
-      %load_b6 = load i8, i8* %b5, align 1, !dbg !57
-      store i8 %load_b6, i8* %b, align 1, !dbg !57
-      %arr7 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !58
-      %7 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !58
-      %8 = bitcast [3 x [81 x i8]]* %arr7 to i8*, !dbg !58
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !58
-      %inner8 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !59
-      %arr9 = getelementptr inbounds %inner, %inner* %inner8, i32 0, i32 3, !dbg !59
-      %9 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !59
-      %10 = bitcast [3 x [81 x i8]]* %arr9 to i8*, !dbg !59
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !59
-      %i10 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 6, !dbg !60
-      %load_i = load i16, i16* %i10, align 2, !dbg !60
-      store i16 %load_i, i16* %i, align 2, !dbg !60
-      %inner11 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !61
-      %i12 = getelementptr inbounds %inner, %inner* %inner11, i32 0, i32 4, !dbg !61
-      %load_i13 = load i16, i16* %i12, align 2, !dbg !61
-      store i16 %load_i13, i16* %i, align 2, !dbg !61
-      %tmpVar = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 0, !dbg !62
-      %arr14 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !62
-      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr14, i32 0, i32 0, !dbg !62
-      %11 = bitcast [81 x i8]* %tmpVar to i8*, !dbg !62
-      %12 = bitcast [81 x i8]* %tmpVar15 to i8*, !dbg !62
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false), !dbg !62
-      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 1, !dbg !63
-      %inner17 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !63
-      %arr18 = getelementptr inbounds %inner, %inner* %inner17, i32 0, i32 3, !dbg !63
-      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr18, i32 0, i32 1, !dbg !63
-      %13 = bitcast [81 x i8]* %tmpVar16 to i8*, !dbg !63
-      %14 = bitcast [81 x i8]* %tmpVar19 to i8*, !dbg !63
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 80, i1 false), !dbg !63
-      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 2, !dbg !64
-      %inner21 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !64
-      %arr22 = getelementptr inbounds %inner, %inner* %inner21, i32 0, i32 3, !dbg !64
-      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr22, i32 0, i32 2, !dbg !64
-      %15 = bitcast [81 x i8]* %tmpVar20 to i8*, !dbg !64
-      %16 = bitcast [81 x i8]* %tmpVar23 to i8*, !dbg !64
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %15, i8* align 1 %16, i32 80, i1 false), !dbg !64
+      call void @llvm.dbg.declare(metadata ptr %st, metadata !43, metadata !DIExpression()), !dbg !44
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 @__struct___init, i64 ptrtoint (ptr getelementptr (%struct_, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata ptr %s, metadata !45, metadata !DIExpression()), !dbg !46
+      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata ptr %b, metadata !47, metadata !DIExpression()), !dbg !48
+      store i8 0, ptr %b, align 1
+      call void @llvm.dbg.declare(metadata ptr %arr, metadata !49, metadata !DIExpression()), !dbg !50
+      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.dbg.declare(metadata ptr %i, metadata !51, metadata !DIExpression()), !dbg !52
+      store i16 0, ptr %i, align 2
+      call void @__init_struct_(ptr %st), !dbg !53
+      call void @__user_init_struct_(ptr %st), !dbg !53
+      %s1 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 2, !dbg !54
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s1, i32 80, i1 false), !dbg !54
+      %inner = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !55
+      %s2 = getelementptr inbounds %inner, ptr %inner, i32 0, i32 0, !dbg !55
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s2, i32 80, i1 false), !dbg !55
+      %b3 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 3, !dbg !56
+      %load_b = load i8, ptr %b3, align 1, !dbg !56
+      store i8 %load_b, ptr %b, align 1, !dbg !56
+      %inner4 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !57
+      %b5 = getelementptr inbounds %inner, ptr %inner4, i32 0, i32 1, !dbg !57
+      %load_b6 = load i8, ptr %b5, align 1, !dbg !57
+      store i8 %load_b6, ptr %b, align 1, !dbg !57
+      %arr7 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 5, !dbg !58
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
+      %inner8 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !59
+      %arr9 = getelementptr inbounds %inner, ptr %inner8, i32 0, i32 3, !dbg !59
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
+      %i10 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 6, !dbg !60
+      %load_i = load i16, ptr %i10, align 2, !dbg !60
+      store i16 %load_i, ptr %i, align 2, !dbg !60
+      %inner11 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !61
+      %i12 = getelementptr inbounds %inner, ptr %inner11, i32 0, i32 4, !dbg !61
+      %load_i13 = load i16, ptr %i12, align 2, !dbg !61
+      store i16 %load_i13, ptr %i, align 2, !dbg !61
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !62
+      %arr14 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 5, !dbg !62
+      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !62
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 %tmpVar15, i32 80, i1 false), !dbg !62
+      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !63
+      %inner17 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !63
+      %arr18 = getelementptr inbounds %inner, ptr %inner17, i32 0, i32 3, !dbg !63
+      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !63
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar16, ptr align 1 %tmpVar19, i32 80, i1 false), !dbg !63
+      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !64
+      %inner21 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !64
+      %arr22 = getelementptr inbounds %inner, ptr %inner21, i32 0, i32 3, !dbg !64
+      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !64
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar20, ptr align 1 %tmpVar23, i32 80, i1 false), !dbg !64
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
+    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
-    define void @__init_struct_(%struct_* %0) {
+    define void @__init_struct_(ptr %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
-      call void @__init_inner(%inner* %inner)
-      %deref1 = load %struct_*, %struct_** %self, align 8
-      %s = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 2
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref2 = load %struct_*, %struct_** %self, align 8
-      %b = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 3
-      store i8 1, i8* %b, align 1
-      %deref3 = load %struct_*, %struct_** %self, align 8
-      %r = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 4
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref4 = load %struct_*, %struct_** %self, align 8
-      %i = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 6
-      store i16 42, i16* %i, align 2
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %inner = getelementptr inbounds %struct_, ptr %deref, i32 0, i32 0
+      call void @__init_inner(ptr %inner)
+      %deref1 = load ptr, ptr %self, align 8
+      %s = getelementptr inbounds %struct_, ptr %deref1, i32 0, i32 2
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref2 = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %struct_, ptr %deref2, i32 0, i32 3
+      store i8 1, ptr %b, align 1
+      %deref3 = load ptr, ptr %self, align 8
+      %r = getelementptr inbounds %struct_, ptr %deref3, i32 0, i32 4
+      store float 0x400921CAC0000000, ptr %r, align 4
+      %deref4 = load ptr, ptr %self, align 8
+      %i = getelementptr inbounds %struct_, ptr %deref4, i32 0, i32 6
+      store i16 42, ptr %i, align 2
       ret void
     }
 
-    define void @__init_inner(%inner* %0) {
+    define void @__init_inner(ptr %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
-      %deref = load %inner*, %inner** %self, align 8
-      %s = getelementptr inbounds %inner, %inner* %deref, i32 0, i32 0
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load %inner*, %inner** %self, align 8
-      %b = getelementptr inbounds %inner, %inner* %deref1, i32 0, i32 1
-      store i8 1, i8* %b, align 1
-      %deref2 = load %inner*, %inner** %self, align 8
-      %r = getelementptr inbounds %inner, %inner* %deref2, i32 0, i32 2
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref3 = load %inner*, %inner** %self, align 8
-      %i = getelementptr inbounds %inner, %inner* %deref3, i32 0, i32 4
-      store i16 42, i16* %i, align 2
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %s = getelementptr inbounds %inner, ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref1 = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %inner, ptr %deref1, i32 0, i32 1
+      store i8 1, ptr %b, align 1
+      %deref2 = load ptr, ptr %self, align 8
+      %r = getelementptr inbounds %inner, ptr %deref2, i32 0, i32 2
+      store float 0x400921CAC0000000, ptr %r, align 4
+      %deref3 = load ptr, ptr %self, align 8
+      %i = getelementptr inbounds %inner, ptr %deref3, i32 0, i32 4
+      store i16 42, ptr %i, align 2
       ret void
     }
 
-    define void @__user_init_inner(%inner* %0) {
+    define void @__user_init_inner(ptr %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_struct_(%struct_* %0) {
+    define void @__user_init_struct_(ptr %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
-      call void @__user_init_inner(%inner* %inner)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %inner = getelementptr inbounds %struct_, ptr %deref, i32 0, i32 0
+      call void @__user_init_inner(ptr %inner)
       ret void
     }
 
@@ -813,9 +794,9 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn }
-    attributes #2 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #2 = { argmemonly nocallback nofree nounwind willreturn writeonly }
 
     !llvm.module.flags = !{!35, !36}
     !llvm.dbg.cu = !{!37}
@@ -886,7 +867,7 @@ END_FUNCTION
     !63 = !DILocation(line: 42, column: 4, scope: !39)
     !64 = !DILocation(line: 43, column: 4, scope: !39)
     !65 = !DILocation(line: 45, scope: !39)
-    "###);
+    "#);
 }
 
 #[test]

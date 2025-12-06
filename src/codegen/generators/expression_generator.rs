@@ -1450,12 +1450,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     /// - `context` the statement to obtain the location from when returning an error
     fn create_llvm_pointer_value_for_reference(
         &self,
-        qualifier: Option<&PointerValue<'ink>>,
+        qualifier: Option<(&AstNode, PointerValue<'ink>)>,
         name: &str,
         context: &AstNode,
     ) -> Result<PointerValue<'ink>, CodegenError> {
         let offset = &context.get_location();
-        if let Some(qualifier) = qualifier {
+        if let Some((qualifier_node, qualifier)) = qualifier {
             //if we're loading a reference like PLC_PRG.ACTION we already loaded PLC_PRG pointer into qualifier,
             //so we should not load anything in addition for the action (or the method)
             match self.annotations.get(context) {
@@ -1471,8 +1471,17 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .find_fully_qualified_variable(qualified_name)
                         .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
-                    let gep: PointerValue<'_> =
-                        self.llvm.get_member_pointer_from_struct(*qualifier, member_location, name)?;
+                    let pointee = {
+                        let datatype = self.annotations.get_type(qualifier_node, self.index).unwrap();
+                        self.llvm_index.get_associated_type(&datatype.name).unwrap()
+                    };
+
+                    let gep: PointerValue<'_> = self.llvm.get_member_pointer_from_struct(
+                        pointee,
+                        qualifier,
+                        member_location,
+                        name,
+                    )?;
 
                     return Ok(gep);
                 }
@@ -2763,7 +2772,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let member_name = member.get_flat_reference_name().unwrap_or("unknown");
 
                     let value = self.create_llvm_pointer_value_for_reference(
-                        base_value.map(|it| it.get_basic_value_enum().into_pointer_value()).as_ref(),
+                        base_value.map(|it| (base.unwrap(), it.get_basic_value_enum().into_pointer_value())),
                         self.get_load_name(member).as_deref().unwrap_or(member_name),
                         original_expression,
                     )?;
