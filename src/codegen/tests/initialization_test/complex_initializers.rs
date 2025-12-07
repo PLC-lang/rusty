@@ -1191,11 +1191,11 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     define void @__init___vtable_cl(ptr %0) {
     entry:
-      %self = alloca %__vtable_cl*, align 8
-      store %__vtable_cl* %0, %__vtable_cl** %self, align 8
-      %deref = load %__vtable_cl*, %__vtable_cl** %self, align 8
-      %m = getelementptr inbounds %__vtable_cl, %__vtable_cl* %deref, i32 0, i32 0
-      store void (%cl*)* @cl__m, void (%cl*)** %m, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %m = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      store ptr @cl__m, ptr %m, align 8
       ret void
     }
 
@@ -1225,11 +1225,11 @@ fn stateful_pous_methods_and_structs_get_init_functions() {
 
     define void @__init_cl(ptr %0) {
     entry:
-      %self = alloca %cl*, align 8
-      store %cl* %0, %cl** %self, align 8
-      %deref = load %cl*, %cl** %self, align 8
-      %__vtable = getelementptr inbounds %cl, %cl* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_cl* @__vtable_cl_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_cl_instance, ptr %__vtable, align 8
       ret void
     }
 
@@ -1812,11 +1812,11 @@ fn var_external_blocks_are_ignored_in_init_functions() {
 
     define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %__vtable = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
 
@@ -2877,7 +2877,7 @@ fn methods_call_init_functions_for_their_members() {
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
       %fb = alloca %foo, align 8
-            call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__foo__init, i64 ptrtoint (ptr getelementptr (%foo, ptr null, i32 1) to i64), i1 false)
       call void @__init_foo(ptr %fb)
       call void @__user_init_foo(ptr %fb)
       ret void
@@ -2926,11 +2926,11 @@ fn methods_call_init_functions_for_their_members() {
 
     define void @__init_bar(ptr %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %__vtable = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
 

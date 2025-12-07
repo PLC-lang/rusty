@@ -72,11 +72,11 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @bar, ptr %__body, align 8
       ret void
     }
 
@@ -300,11 +300,11 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      store ptr @foo, ptr %__body, align 8
       ret void
     }
 
@@ -584,14 +584,14 @@ fn write_to_parent_variable_in_instance() {
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
-      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %baz = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @bar, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
 
@@ -864,21 +864,21 @@ fn array_in_parent_generated() {
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      store ptr @parent, ptr %__body, align 8
       ret void
     }
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      store ptr @child, ptr %__body, align 8
       ret void
     }
 
@@ -1177,21 +1177,21 @@ fn complex_array_access_generated() {
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
-      %self = alloca %__vtable_parent*, align 8
-      store %__vtable_parent* %0, %__vtable_parent** %self, align 8
-      %deref = load %__vtable_parent*, %__vtable_parent** %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, %__vtable_parent* %deref, i32 0, i32 0
-      store void (%parent*)* @parent, void (%parent*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      store ptr @parent, ptr %__body, align 8
       ret void
     }
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      store ptr @child, ptr %__body, align 8
       ret void
     }
 
@@ -1433,14 +1433,14 @@ fn function_block_method_debug_info() {
 
     define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
-      %deref1 = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %baz = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref1, i32 0, i32 1
-      store void (%foo*)* @foo__baz, void (%foo*)** %baz, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @bar, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
 
@@ -1802,21 +1802,21 @@ END_FUNCTION
 
     define void @__init___vtable_child(ptr %0) {
     entry:
-      %self = alloca %__vtable_child*, align 8
-      store %__vtable_child* %0, %__vtable_child** %self, align 8
-      %deref = load %__vtable_child*, %__vtable_child** %self, align 8
-      %__body = getelementptr inbounds %__vtable_child, %__vtable_child* %deref, i32 0, i32 0
-      store void (%child*)* @child, void (%child*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      store ptr @child, ptr %__body, align 8
       ret void
     }
 
     define void @__init___vtable_grandchild(ptr %0) {
     entry:
-      %self = alloca %__vtable_grandchild*, align 8
-      store %__vtable_grandchild* %0, %__vtable_grandchild** %self, align 8
-      %deref = load %__vtable_grandchild*, %__vtable_grandchild** %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandchild, %__vtable_grandchild* %deref, i32 0, i32 0
-      store void (%grandchild*)* @grandchild, void (%grandchild*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      store ptr @grandchild, ptr %__body, align 8
       ret void
     }
 

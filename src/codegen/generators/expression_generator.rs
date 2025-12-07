@@ -237,7 +237,11 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Diagnostic::codegen_error(message, expression)
                     })?;
 
-                let pointee = todo!("llvm-15");
+                // let pointee = self.llvm_index.get_associated_type(&this_name).unwrap();
+                let pointee = self
+                    .llvm_index
+                    .get_associated_pou_type(&self.function_context.unwrap().linking_context.type_name)
+                    .unwrap();
                 Ok(ExpressionValue::LValue(this_value, pointee))
             }
             AstStatement::ReferenceExpr(data) => {
@@ -584,10 +588,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // followed by `%1 = load void (%Fb*)*, void (%Fb*)** %localFnPtrVariable, align 8``
         let function_pointer_value = match self.generate_expression_value(base)? {
             ExpressionValue::LValue(value, pointee) => {
-                todo!("pointee");
                 self.llvm.load_pointer(pointee, &value, "")?.into_pointer_value()
             }
-            ExpressionValue::RValue(_) => unreachable!(),
+            ExpressionValue::RValue(_) => unreachable!("fnptr base must be an lvalue"),
         };
 
         // Generate the argument list; our assumption is function pointers are only supported for methods and
@@ -624,15 +627,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             (instance, arguments, generated_arguments)
         };
 
-        // Finally generate the function pointer call
-        let callable = todo!("CallableValue::try_from(function_pointer_value).unwrap()");
-        let call: CallSiteValue = todo!(
-            r#"self
+        // Finally generate the function pointer call.
+        // We get the function type from the associated implementation stub in the llvm_index,
+        // and use it together with the loaded function pointer value.
+        let function_value =
+            self.llvm_index.find_associated_implementation(qualified_pou_name).ok_or_else(|| {
+                Diagnostic::codegen_error(
+                    format!("No callable implementation associated to {qualified_pou_name:?}"),
+                    operator,
+                )
+            })?;
+        let function_type = function_value.get_type();
+
+        let call: CallSiteValue = self
             .llvm
             .builder
-            .build_call(callable, &arguments_llvm, "fnptr_call")
-            .map_err(CodegenError::from)?;"#
-        );
+            .build_indirect_call(function_type, function_pointer_value, &arguments_llvm, "fnptr_call")
+            .map_err(CodegenError::from)?;
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
@@ -1353,7 +1364,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
-            let pointee: BasicTypeEnum = todo!("llvm-15");
+            let pointee = self
+                .llvm_index
+                .get_associated_pou_type(function_name)
+                .expect("POU type for parameter struct must exist");
             let pointer_to_param =
                 builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
                     Diagnostic::codegen_error(
