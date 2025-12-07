@@ -932,7 +932,7 @@ fn generate_variable_length_array_bound_function<'ink>(
             ));
         };
 
-        let pointee: BasicTypeEnum = todo!("llvm-15, vla");
+        let pointee = generator.llvm_index.get_associated_type(data_type_information.get_name())?;
         let vla = generator.generate_lvalue(actual_vla).unwrap();
         let dim = builder.build_struct_gep(pointee, vla, 1, "dim").unwrap();
 
@@ -976,11 +976,11 @@ fn generate_variable_length_array_bound_function<'ink>(
                 }
             }
         };
-        let pointee: BasicTypeEnum = todo!("llvm-15, vla");
+        let pointee = pointee.into_struct_type().get_field_type_at_index(1).unwrap();
         let gep_bound = unsafe {
             llvm.builder.build_in_bounds_gep(pointee, dim, &[llvm.i32_type().const_zero(), accessor], "")
         }?;
-        let bound = llvm.builder.build_load(pointee, gep_bound, "")?;
+        let bound = llvm.builder.build_load(llvm.i32_type(), gep_bound, "")?;
 
         Ok(ExpressionValue::RValue(bound))
     } else {

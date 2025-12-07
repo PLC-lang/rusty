@@ -1692,7 +1692,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                             .map_err(|_| Diagnostic::codegen_error("non-numeric index-access", access).into())
                     })?;
 
-                    // let accessor_sequence = if todo!("lvalue.get_type().get_element_type().is_array_type()") {
                     let accessor_sequence =
                         if self.llvm_index.get_associated_type(name.as_str())?.is_array_type() {
                             // For typed array pointers (e.g.: [81 x i32]*):
@@ -2650,97 +2649,86 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         reference_annotation: &StatementAnnotation,
         access: &AstNode,
     ) -> Result<PointerValue<'ink>, CodegenError> {
-        unimplemented!("VLAs")
-        // let builder = &self.llvm.builder;
+        let builder = &self.llvm.builder;
 
-        // // array access is either directly on a reference or on another array access (ARRAY OF ARRAY)
+        let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
+        else {
+            unreachable!();
+        };
 
-        // let StatementAnnotation::Variable { resulting_type: reference_type, .. } = reference_annotation
-        // else {
-        //     unreachable!();
-        // };
+        let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
 
-        // let struct_ptr = reference.get_basic_value_enum().into_pointer_value();
-        // // GEPs into the VLA struct, getting an LValue for the array pointer and the dimension array and
-        // // dereferences the former
-        // let arr_ptr_gep = self.llvm.builder.build_struct_gep(struct_ptr, 0, "vla_arr_gep").map_err(|_| {
-        //     Diagnostic::codegen_error("Cannot access VLA array pointer", access.get_location())
-        // })?;
-        // let vla_arr_ptr = builder.build_load(arr_ptr_gep, "vla_arr_ptr")?.into_pointer_value();
-        // // get pointer to array containing dimension information
-        // let dim_arr_gep = builder.build_struct_gep(struct_ptr, 1, "dim_arr")?;
+        let type_ = self.index.get_type_information_or_void(reference_type);
+        let vla_struct_type = self.llvm_index.get_associated_type(type_.get_name())?;
 
-        // // get lengths of dimensions
-        // let type_ = self.index.get_type_information_or_void(reference_type);
-        // let Some(ndims) = type_.get_type_information().get_dimension_count() else { unreachable!() };
+        let arr_ptr_gep =
+            builder.build_struct_gep(vla_struct_type, struct_ptr, 0, "vla_arr_gep").map_err(|_| {
+                Diagnostic::codegen_error("Cannot access VLA array pointer", access.get_location())
+            })?;
+        let ptr_type = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+        let vla_arr_ptr = builder.build_load(ptr_type, arr_ptr_gep, "vla_arr_ptr")?.into_pointer_value();
 
-        // // get the start/end offsets for each dimension ( ARRAY[4..10, -4..4] ...)
-        // let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep)?;
+        let dim_arr_gep = builder.build_struct_gep(vla_struct_type, struct_ptr, 1, "dim_arr")?;
 
-        // // calculate the required offset from the array pointer for the given accessor statements. this is
-        // // relatively straightforward for single-dimensional arrays, but is quite costly (O(n²)) for multi-dimensional arrays
-        // let access_statements = access.get_as_list();
-        // let accessor = if access_statements.len() == 1 {
-        //     let Some(stmt) = access_statements.first() else {
-        //         unreachable!("Must have exactly 1 access statement")
-        //     };
-        //     //turn it into i32 immediately
-        //     // this is the  same logic we use for normal array accessors
-        //     let access_value = cast_if_needed!(
-        //         self,
-        //         self.index.get_type(DINT_TYPE)?,
-        //         self.get_type_hint_for(stmt)?,
-        //         self.generate_expression(stmt)?,
-        //         None
-        //     )?;
+        let Some(ndims) = type_.get_type_information().get_dimension_count() else { unreachable!() };
 
-        //     // if start offset is not 0, adjust the access value accordingly
-        //     let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
-        //         unreachable!("VLA must have information about dimension offsets")
-        //     };
-        //     self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())?
-        //         .into_int_value()
-        // } else {
-        //     // see https://plc-lang.github.io/rusty/arch/codegen.html#multi-dimensional-arrays
-        //     // for more details on multi-dimensional array accessor calculation
-        //     let accessors = access_statements
-        //         .iter()
-        //         .map(|it| {
-        //             let value = self.generate_expression(it).expect("Uncaught invalid accessor statement");
-        //             //turn it into i32 immediately
-        //             // this is the  same logic we use for normal array accessors
-        //             Ok(cast_if_needed!(
-        //                 self,
-        //                 self.index.get_type(DINT_TYPE)?,
-        //                 self.get_type_hint_for(it)?,
-        //                 value,
-        //                 None
-        //             )?
-        //             .into_int_value())
-        //         })
-        //         .collect::<Result<Vec<_>, Diagnostic>>()?;
+        let dimensions_array_type = vla_struct_type.into_struct_type().get_field_type_at_index(1).unwrap();
+        let index_offsets = get_indices(self.llvm, ndims, dim_arr_gep, dimensions_array_type)?;
 
-        //     if access_statements.len() != index_offsets.len() {
-        //         unreachable!("Amount of access statements and dimensions does not match.")
-        //     }
+        let access_statements = access.get_as_list();
+        let accessor = if access_statements.len() == 1 {
+            let Some(stmt) = access_statements.first() else {
+                unreachable!("Must have exactly 1 access statement")
+            };
+            let access_value = cast_if_needed!(
+                self,
+                self.index.get_type(DINT_TYPE)?,
+                self.get_type_hint_for(stmt)?,
+                self.generate_expression(stmt)?,
+                None
+            )?;
 
-        //     // length of a dimension is 'end - start + 1'
-        //     let lengths = get_dimension_lengths(self.llvm, &index_offsets)?;
+            let Some(start_offset) = index_offsets.first().map(|(start, _)| *start) else {
+                unreachable!("VLA must have information about dimension offsets")
+            };
+            self.create_llvm_int_binary_expression(&Operator::Minus, access_value, start_offset.into())?
+                .into_int_value()
+        } else {
+            let accessors = access_statements
+                .iter()
+                .map(|it| {
+                    let value = self.generate_expression(it).expect("Uncaught invalid accessor statement");
+                    Ok(cast_if_needed!(
+                        self,
+                        self.index.get_type(DINT_TYPE)?,
+                        self.get_type_hint_for(it)?,
+                        value,
+                        None
+                    )?
+                    .into_int_value())
+                })
+                .collect::<Result<Vec<_>, Diagnostic>>()?;
 
-        //     // calculate the accessor multiplicators for each dimension.
-        //     let dimension_offsets = get_vla_accessor_factors(self.llvm, &lengths)?;
+            if access_statements.len() != index_offsets.len() {
+                unreachable!("Amount of access statements and dimensions does not match.")
+            }
 
-        //     // adjust accessors for 0-indexing
-        //     let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets)?;
+            let lengths = get_dimension_lengths(self.llvm, &index_offsets)?;
+            let dimension_offsets = get_vla_accessor_factors(self.llvm, &lengths)?;
+            let adjusted_accessors = normalize_offsets(self.llvm, &accessors, &index_offsets)?;
 
-        //     // calculate the resulting accessor for the given accessor statements and dimension offsets
-        //     int_value_multiply_accumulate(
-        //         self.llvm,
-        //         &adjusted_accessors.iter().zip(&dimension_offsets).collect::<Vec<_>>(),
-        //     )?
-        // };
+            int_value_multiply_accumulate(
+                self.llvm,
+                &adjusted_accessors.iter().zip(&dimension_offsets).collect::<Vec<_>>(),
+            )?
+        };
 
-        // unsafe { builder.build_in_bounds_gep(vla_arr_ptr, &[accessor], "arr_val").map_err(Into::into) }
+        let inner_type = self.index.find_elementary_pointer_type(type_.get_type_information());
+        let inner_type_name = inner_type.get_inner_array_type_name().unwrap_or_else(|| inner_type.get_name());
+        let element_type = self.llvm_index.get_associated_type(inner_type_name)?;
+
+        unsafe { builder.build_in_bounds_gep(element_type, vla_arr_ptr, &[accessor], "arr_val") }
+            .map_err(Into::into)
     }
 
     /// generates a reference expression (member, index, deref, etc.)
@@ -2804,15 +2792,16 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             // `base[idx]`
             (ReferenceAccess::Index(array_idx), Some(base)) => {
                 if self.annotations.get_type_or_void(base, self.index).is_vla() {
-                    // // vla array needs special handling
-                    // self.generate_element_pointer_for_vla(
-                    //     self.generate_expression_value(base)?,
-                    //     self.annotations.get(base).expect(""),
-                    //     array_idx.as_ref(),
-                    // )
-                    //     .map_err(|_| unreachable!("invalid access statement"))
-                    //     .map(ExpressionValue::LValue)
-                    todo!("llvm-15, vla")
+                    let value = self.generate_element_pointer_for_vla(
+                        self.generate_expression_value(base)?,
+                        self.annotations.get(base).expect(""),
+                        array_idx.as_ref(),
+                    )?;
+                    let pointee = {
+                        let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
+                        self.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                    };
+                    Ok(ExpressionValue::LValue(value, pointee))
                 } else {
                     // normal array expression
                     let value = self.generate_element_pointer_for_array(base, array_idx)?;
@@ -2997,28 +2986,35 @@ fn get_indices<'ink>(
     llvm: &Llvm<'ink>,
     ndims: usize,
     dimensions_array: PointerValue<'ink>,
+    dimensions_array_type: BasicTypeEnum<'ink>,
 ) -> Result<Vec<(IntValue<'ink>, IntValue<'ink>)>, CodegenError> {
-    unimplemented!("VLAs")
-    // (0..ndims)
-    //     .map(|i| unsafe {
-    //         let (start_ptr, end_ptr) = (
-    //             llvm.builder.build_in_bounds_gep(
-    //                 dimensions_array,
-    //                 &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(i as u64 * 2, false)],
-    //                 format!("start_idx_ptr{i}").as_str(),
-    //             )?,
-    //             llvm.builder.build_in_bounds_gep(
-    //                 dimensions_array,
-    //                 &[llvm.i32_type().const_zero(), llvm.i32_type().const_int(1 + i as u64 * 2, false)],
-    //                 format!("end_idx_ptr{i}").as_str(),
-    //             )?,
-    //         );
-    //         Ok((
-    //             llvm.builder.build_load(start_ptr, format!("start_idx_value{i}").as_str())?.into_int_value(),
-    //             llvm.builder.build_load(end_ptr, format!("end_idx_value{i}").as_str())?.into_int_value(),
-    //         ))
-    //     })
-    //     .collect::<Result<Vec<_>, CodegenError>>()
+    let i32_type = llvm.i32_type();
+    (0..ndims)
+        .map(|i| unsafe {
+            let (start_ptr, end_ptr) = (
+                llvm.builder.build_in_bounds_gep(
+                    dimensions_array_type,
+                    dimensions_array,
+                    &[i32_type.const_zero(), i32_type.const_int(i as u64 * 2, false)],
+                    format!("start_idx_ptr{i}").as_str(),
+                )?,
+                llvm.builder.build_in_bounds_gep(
+                    dimensions_array_type,
+                    dimensions_array,
+                    &[i32_type.const_zero(), i32_type.const_int(1 + i as u64 * 2, false)],
+                    format!("end_idx_ptr{i}").as_str(),
+                )?,
+            );
+            Ok((
+                llvm.builder
+                    .build_load(i32_type, start_ptr, format!("start_idx_value{i}").as_str())?
+                    .into_int_value(),
+                llvm.builder
+                    .build_load(i32_type, end_ptr, format!("end_idx_value{i}").as_str())?
+                    .into_int_value(),
+            ))
+        })
+        .collect::<Result<Vec<_>, CodegenError>>()
 }
 
 /// Adjusts VLA accessor values to 0-indexed accessors
@@ -3082,22 +3078,19 @@ fn int_value_product<'ink>(
     llvm: &Llvm<'ink>,
     values: &[IntValue<'ink>],
 ) -> Result<IntValue<'ink>, CodegenError> {
-    unimplemented!("VLAs")
-    // // initialize the accumulator with 1
-    // let accum_ptr = llvm.builder.build_alloca(llvm.i32_type(), "accum")?;
-    // llvm.builder.build_store(accum_ptr, llvm.i32_type().const_int(1, false))?;
-    // for val in values {
-    //     // load previous value from accumulator and multiply with current value
-    //     let product = llvm.builder.build_int_mul(
-    //         llvm.builder.build_load(accum_ptr, "load_accum")?.into_int_value(),
-    //         *val,
-    //         "product",
-    //     )?;
-    //     // store new value into accumulator
-    //     llvm.builder.build_store(accum_ptr, product)?;
-    // }
+    let i32_type = llvm.i32_type();
+    let accum_ptr = llvm.builder.build_alloca(i32_type, "accum")?;
+    llvm.builder.build_store(accum_ptr, i32_type.const_int(1, false))?;
+    for val in values {
+        let product = llvm.builder.build_int_mul(
+            llvm.builder.build_load(i32_type, accum_ptr, "load_accum")?.into_int_value(),
+            *val,
+            "product",
+        )?;
+        llvm.builder.build_store(accum_ptr, product)?;
+    }
 
-    // Ok(llvm.builder.build_load(accum_ptr, "accessor_factor")?.into_int_value())
+    Ok(llvm.builder.build_load(i32_type, accum_ptr, "accessor_factor")?.into_int_value())
 }
 
 /// Iterates over a collection of tuples, computes the product of the two numbers
@@ -3108,23 +3101,19 @@ fn int_value_multiply_accumulate<'ink>(
     llvm: &Llvm<'ink>,
     values: &[(&IntValue<'ink>, &IntValue<'ink>)],
 ) -> Result<IntValue<'ink>, CodegenError> {
-    unimplemented!("VLAs")
-    // // initialize the accumulator with 0
-    // let accum = llvm.builder.build_alloca(llvm.i32_type(), "accum")?;
-    // llvm.builder.build_store(accum, llvm.i32_type().const_zero())?;
-    // for (left, right) in values {
-    //     // multiply accessor with dimension factor
-    //     let product = llvm.builder.build_int_mul(**left, **right, "multiply")?;
-    //     // load previous value from accum and add product
-    //     let curr = llvm.builder.build_int_add(
-    //         llvm.builder.build_load(accum, "load_accum")?.into_int_value(),
-    //         product,
-    //         "accumulate",
-    //     )?;
-    //     // store new value into accumulator
-    //     llvm.builder.build_store(accum, curr)?;
-    // }
-    // Ok(llvm.builder.build_load(accum, "accessor")?.into_int_value())
+    let i32_type = llvm.i32_type();
+    let accum = llvm.builder.build_alloca(i32_type, "accum")?;
+    llvm.builder.build_store(accum, i32_type.const_zero())?;
+    for (left, right) in values {
+        let product = llvm.builder.build_int_mul(**left, **right, "multiply")?;
+        let curr = llvm.builder.build_int_add(
+            llvm.builder.build_load(i32_type, accum, "load_accum")?.into_int_value(),
+            product,
+            "accumulate",
+        )?;
+        llvm.builder.build_store(accum, curr)?;
+    }
+    Ok(llvm.builder.build_load(i32_type, accum, "accessor")?.into_int_value())
 }
 
 // XXX: Could be problematic with https://github.com/PLC-lang/rusty/issues/668
