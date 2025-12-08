@@ -795,13 +795,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         &self,
         left_statement: &AstNode,
         left_pointer: PointerValue,
+        left_type: &DataType,
         right_pointer: PointerValue,
         right_type: &DataType,
     ) -> Result<(), CodegenError> {
-        let pointee: BasicTypeEnum = todo!("llvm-15");
+        let pointee = self.llvm_index.get_associated_type(&left_type.name).unwrap();
         let left_value = self.llvm.builder.build_load(pointee, left_pointer, "")?.into_int_value();
 
         //Generate an expression for the right size
+        let pointee = self.llvm_index.get_associated_type(&right_type.name).unwrap();
         let right = self.llvm.builder.build_load(pointee, right_pointer, "")?;
         self.generate_assignment_with_direct_access(
             left_statement,
@@ -849,13 +851,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let (base, _) = collect_base_and_direct_access_for_assignment(base).unwrap();
 
                     let lhs = self.generate_expression_value(base)?.get_basic_value_enum();
-                    let pointee: BasicTypeEnum = todo!("llvm-15");
+                    let lhs_type = self.annotations.get_type(base, self.index).unwrap();
+
+                    let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
                     let rhs =
                         self.llvm.builder.build_struct_gep(pointee, parameter_struct, index, "").unwrap();
 
+                    // func(outVar => foo.bar.baz.%W3)
+                    //      ^^^^^^    ^^^^^^^^^^^^^^^
+                    //      rhs       lhs             => foo.bar.baz.%W3 = outVar;
                     self.generate_output_assignment_with_direct_access(
                         expr,
                         lhs.into_pointer_value(),
+                        lhs_type,
                         rhs,
                         rhs_type,
                     )?;
