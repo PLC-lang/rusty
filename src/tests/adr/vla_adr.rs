@@ -183,7 +183,7 @@ fn declare() {
         END_FUNCTION
     ";
 
-    assert!(codegen(src).contains("%__foo_arr = type { i32*, [2 x i32] }"));
+    assert!(codegen(src).contains("%__foo_arr = type { ptr, [2 x i32] }"));
 }
 
 /// VLAs (in RuSTy) are defined to be always by-ref, meaning POUs accepting VLAs expect a pointer to a struct.
