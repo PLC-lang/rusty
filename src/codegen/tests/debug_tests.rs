@@ -494,67 +494,67 @@ fn action_with_var_temp() {
 
     %PLC_PRG = type {}
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
 
     define i32 @main() !dbg !9 {
     entry:
       %main = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !14
-      store i32 0, i32* %main, align 4
-      call void @PLC_PRG(%PLC_PRG* @PLC_PRG_instance), !dbg !15
-      call void @PLC_PRG__act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
-      %main_ret = load i32, i32* %main, align 4, !dbg !17
+      call void @llvm.dbg.declare(metadata ptr %main, metadata !12, metadata !DIExpression()), !dbg !14
+      store i32 0, ptr %main, align 4
+      call void @PLC_PRG(ptr @PLC_PRG_instance), !dbg !15
+      call void @PLC_PRG__act(ptr @PLC_PRG_instance), !dbg !16
+      %main_ret = load i32, ptr %main, align 4, !dbg !17
       ret i32 %main_ret, !dbg !17
     }
 
-    define void @PLC_PRG(%PLC_PRG* %0) !dbg !18 {
+    define void @PLC_PRG(ptr %0) !dbg !18 {
     entry:
-      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !21, metadata !DIExpression()), !dbg !22
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !21, metadata !DIExpression()), !dbg !22
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %x, metadata !23, metadata !DIExpression()), !dbg !24
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %x, align 4, !dbg !22
+      call void @llvm.dbg.declare(metadata ptr %x, metadata !23, metadata !DIExpression()), !dbg !24
+      store i32 0, ptr %x, align 4
+      store i32 0, ptr %x, align 4, !dbg !22
       ret void, !dbg !25
     }
 
-    define void @PLC_PRG__act(%PLC_PRG* %0) !dbg !26 {
+    define void @PLC_PRG__act(ptr %0) !dbg !26 {
     entry:
-      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !27, metadata !DIExpression()), !dbg !28
+      call void @llvm.dbg.declare(metadata ptr %0, metadata !27, metadata !DIExpression()), !dbg !28
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %x, metadata !29, metadata !DIExpression()), !dbg !30
-      store i32 0, i32* %x, align 4
-      %load_x = load i32, i32* %x, align 4, !dbg !28
+      call void @llvm.dbg.declare(metadata ptr %x, metadata !29, metadata !DIExpression()), !dbg !30
+      store i32 0, ptr %x, align 4
+      %load_x = load i32, ptr %x, align 4, !dbg !28
       %tmpVar = add i32 %load_x, 1, !dbg !28
-      store i32 %tmpVar, i32* %x, align 4, !dbg !28
+      store i32 %tmpVar, ptr %x, align 4, !dbg !28
       ret void, !dbg !31
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    define void @__init_plc_prg(%PLC_PRG* %0) {
+    define void @__init_plc_prg(ptr %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    define void @__user_init_PLC_PRG(ptr %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
-      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
+      call void @__init_plc_prg(ptr @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(ptr @PLC_PRG_instance)
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}

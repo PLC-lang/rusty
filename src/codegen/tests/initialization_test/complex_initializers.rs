@@ -410,17 +410,17 @@ fn nested_initializer_pous() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %mainProg = type { [81 x i8]*, %foo }
-    %foo = type { i32*, [81 x i8]*, %bar }
-    %bar = type { i32*, %baz }
-    %baz = type { i32*, [81 x i8]* }
-    %__vtable_baz = type { void (%baz*)* }
-    %__vtable_bar = type { void (%bar*)* }
-    %__vtable_foo = type { void (%foo*)* }
-    %sideProg = type { [81 x i8]*, %foo }
+    %mainProg = type { ptr, %foo }
+    %foo = type { ptr, ptr, %bar }
+    %bar = type { ptr, %baz }
+    %baz = type { ptr, ptr }
+    %__vtable_baz = type { ptr }
+    %__vtable_bar = type { ptr }
+    %__vtable_foo = type { ptr }
+    %sideProg = type { ptr, %foo }
 
     @str = global [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @mainProg_instance = global %mainProg zeroinitializer
     @__foo__init = unnamed_addr constant %foo zeroinitializer
     @__bar__init = unnamed_addr constant %bar zeroinitializer
@@ -433,259 +433,259 @@ fn nested_initializer_pous() {
     @__vtable_bar_instance = global %__vtable_bar zeroinitializer
     @__vtable_baz_instance = global %__vtable_baz zeroinitializer
 
-    define void @foo(%foo* %0) {
+    define void @foo(ptr %0) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
-      call void @bar__print(%bar* %b)
-      call void @bar(%bar* %b)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
+      call void @bar__print(ptr %b)
+      call void @bar(ptr %b)
       ret void
     }
 
-    define void @bar(%bar* %0) {
+    define void @bar(ptr %0) {
     entry:
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
-      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
-      call void @baz__print(%baz* %b)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %bar, ptr %0, i32 0, i32 1
+      call void @baz__print(ptr %b)
       ret void
     }
 
-    define void @baz(%baz* %0) {
+    define void @baz(ptr %0) {
     entry:
-      %this = alloca %baz*, align 8
-      store %baz* %0, %baz** %this, align 8
-      %__vtable = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %baz, ptr %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %baz, ptr %0, i32 0, i32 1
       ret void
     }
 
-    define void @mainProg(%mainProg* %0) {
+    define void @mainProg(ptr %0) {
     entry:
-      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
-      %f = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
+      %other_ref_to_global = getelementptr inbounds %mainProg, ptr %0, i32 0, i32 0
+      %f = getelementptr inbounds %mainProg, ptr %0, i32 0, i32 1
       ret void
     }
 
-    define void @sideProg(%sideProg* %0) {
+    define void @sideProg(ptr %0) {
     entry:
-      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 0
-      %f = getelementptr inbounds %sideProg, %sideProg* %0, i32 0, i32 1
-      call void @foo(%foo* %f)
-      call void @foo__print(%foo* %f)
+      %other_ref_to_global = getelementptr inbounds %sideProg, ptr %0, i32 0, i32 0
+      %f = getelementptr inbounds %sideProg, ptr %0, i32 0, i32 1
+      call void @foo(ptr %f)
+      call void @foo__print(ptr %f)
       ret void
     }
 
-    define void @bar__print(%bar* %0) {
+    define void @bar__print(ptr %0) {
     entry:
-      %this = alloca %bar*, align 8
-      store %bar* %0, %bar** %this, align 8
-      %__vtable = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-      %b = getelementptr inbounds %bar, %bar* %0, i32 0, i32 1
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds %bar, ptr %0, i32 0, i32 1
       ret void
     }
 
-    define void @foo__print(%foo* %0) {
+    define void @foo__print(ptr %0) {
     entry:
-      %this = alloca %foo*, align 8
-      store %foo* %0, %foo** %this, align 8
-      %__vtable = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-      %str_ref = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-      %b = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
       ret void
     }
 
-    define void @baz__print(%baz* %0) {
+    define void @baz__print(ptr %0) {
     entry:
-      %this = alloca %baz*, align 8
-      store %baz* %0, %baz** %this, align 8
-      %__vtable = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
-      %str_ref = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %baz, ptr %0, i32 0, i32 0
+      %str_ref = getelementptr inbounds %baz, ptr %0, i32 0, i32 1
       ret void
     }
 
-    define void @__init___vtable_foo(%__vtable_foo* %0) {
+    define void @__init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
-      %deref = load %__vtable_foo*, %__vtable_foo** %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, %__vtable_foo* %deref, i32 0, i32 0
-      store void (%foo*)* @foo, void (%foo*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @foo, ptr %__body, align 8
       ret void
     }
 
-    define void @__init___vtable_bar(%__vtable_bar* %0) {
+    define void @__init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
-      %deref = load %__vtable_bar*, %__vtable_bar** %self, align 8
-      %__body = getelementptr inbounds %__vtable_bar, %__vtable_bar* %deref, i32 0, i32 0
-      store void (%bar*)* @bar, void (%bar*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @bar, ptr %__body, align 8
       ret void
     }
 
-    define void @__init___vtable_baz(%__vtable_baz* %0) {
+    define void @__init___vtable_baz(ptr %0) {
     entry:
-      %self = alloca %__vtable_baz*, align 8
-      store %__vtable_baz* %0, %__vtable_baz** %self, align 8
-      %deref = load %__vtable_baz*, %__vtable_baz** %self, align 8
-      %__body = getelementptr inbounds %__vtable_baz, %__vtable_baz* %deref, i32 0, i32 0
-      store void (%baz*)* @baz, void (%baz*)** %__body, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      store ptr @baz, ptr %__body, align 8
       ret void
     }
 
-    define void @__init_foo(%foo* %0) {
+    define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__init_bar(%bar* %b)
-      %deref1 = load %foo*, %foo** %self, align 8
-      %__vtable = getelementptr inbounds %foo, %foo* %deref1, i32 0, i32 0
-      store i32* bitcast (%__vtable_foo* @__vtable_foo_instance to i32*), i32** %__vtable, align 8
-      %deref2 = load %foo*, %foo** %self, align 8
-      %str_ref = getelementptr inbounds %foo, %foo* %deref2, i32 0, i32 1
-      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %foo, ptr %deref, i32 0, i32 2
+      call void @__init_bar(ptr %b)
+      %deref1 = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %foo, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_foo_instance, ptr %__vtable, align 8
+      %deref2 = load ptr, ptr %self, align 8
+      %str_ref = getelementptr inbounds %foo, ptr %deref2, i32 0, i32 1
+      store ptr @str, ptr %str_ref, align 8
       ret void
     }
 
-    define void @__init_bar(%bar* %0) {
+    define void @__init_bar(ptr %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
-      call void @__init_baz(%baz* %b)
-      %deref1 = load %bar*, %bar** %self, align 8
-      %__vtable = getelementptr inbounds %bar, %bar* %deref1, i32 0, i32 0
-      store i32* bitcast (%__vtable_bar* @__vtable_bar_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %bar, ptr %deref, i32 0, i32 1
+      call void @__init_baz(ptr %b)
+      %deref1 = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
+      store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__init_baz(%baz* %0) {
+    define void @__init_baz(ptr %0) {
     entry:
-      %self = alloca %baz*, align 8
-      store %baz* %0, %baz** %self, align 8
-      %deref = load %baz*, %baz** %self, align 8
-      %__vtable = getelementptr inbounds %baz, %baz* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_baz* @__vtable_baz_instance to i32*), i32** %__vtable, align 8
-      %deref1 = load %baz*, %baz** %self, align 8
-      %str_ref = getelementptr inbounds %baz, %baz* %deref1, i32 0, i32 1
-      store [81 x i8]* @str, [81 x i8]** %str_ref, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %baz, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_baz_instance, ptr %__vtable, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %str_ref = getelementptr inbounds %baz, ptr %deref1, i32 0, i32 1
+      store ptr @str, ptr %str_ref, align 8
       ret void
     }
 
-    define void @__init_mainprog(%mainProg* %0) {
+    define void @__init_mainprog(ptr %0) {
     entry:
-      %self = alloca %mainProg*, align 8
-      store %mainProg* %0, %mainProg** %self, align 8
-      %deref = load %mainProg*, %mainProg** %self, align 8
-      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
-      call void @__init_foo(%foo* %f)
-      %deref1 = load %mainProg*, %mainProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %mainProg, %mainProg* %deref1, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %f = getelementptr inbounds %mainProg, ptr %deref, i32 0, i32 1
+      call void @__init_foo(ptr %f)
+      %deref1 = load ptr, ptr %self, align 8
+      %other_ref_to_global = getelementptr inbounds %mainProg, ptr %deref1, i32 0, i32 0
+      store ptr @str, ptr %other_ref_to_global, align 8
       ret void
     }
 
-    define void @__init_sideprog(%sideProg* %0) {
+    define void @__init_sideprog(ptr %0) {
     entry:
-      %self = alloca %sideProg*, align 8
-      store %sideProg* %0, %sideProg** %self, align 8
-      %deref = load %sideProg*, %sideProg** %self, align 8
-      %f = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 1
-      call void @__init_foo(%foo* %f)
-      %deref1 = load %sideProg*, %sideProg** %self, align 8
-      %other_ref_to_global = getelementptr inbounds %sideProg, %sideProg* %deref1, i32 0, i32 0
-      store [81 x i8]* @str, [81 x i8]** %other_ref_to_global, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %f = getelementptr inbounds %mainProg, ptr %deref, i32 0, i32 1
+      call void @__init_foo(ptr %f)
+      %deref1 = load ptr, ptr %self, align 8
+      %other_ref_to_global = getelementptr inbounds %mainProg, ptr %deref1, i32 0, i32 0
+      store ptr @str, ptr %other_ref_to_global, align 8
       ret void
     }
 
-    define void @__user_init___vtable_baz(%__vtable_baz* %0) {
+    define void @__user_init___vtable_baz(ptr %0) {
     entry:
-      %self = alloca %__vtable_baz*, align 8
-      store %__vtable_baz* %0, %__vtable_baz** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_bar(%bar* %0) {
+    define void @__user_init_bar(ptr %0) {
     entry:
-      %self = alloca %bar*, align 8
-      store %bar* %0, %bar** %self, align 8
-      %deref = load %bar*, %bar** %self, align 8
-      %b = getelementptr inbounds %bar, %bar* %deref, i32 0, i32 1
-      call void @__user_init_baz(%baz* %b)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %bar, ptr %deref, i32 0, i32 1
+      call void @__user_init_baz(ptr %b)
       ret void
     }
 
-    define void @__user_init_baz(%baz* %0) {
+    define void @__user_init_baz(ptr %0) {
     entry:
-      %self = alloca %baz*, align 8
-      store %baz* %0, %baz** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_bar(%__vtable_bar* %0) {
+    define void @__user_init___vtable_bar(ptr %0) {
     entry:
-      %self = alloca %__vtable_bar*, align 8
-      store %__vtable_bar* %0, %__vtable_bar** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_sideProg(%sideProg* %0) {
+    define void @__user_init_sideProg(ptr %0) {
     entry:
-      %self = alloca %sideProg*, align 8
-      store %sideProg* %0, %sideProg** %self, align 8
-      %deref = load %sideProg*, %sideProg** %self, align 8
-      %f = getelementptr inbounds %sideProg, %sideProg* %deref, i32 0, i32 1
-      call void @__user_init_foo(%foo* %f)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %f = getelementptr inbounds %mainProg, ptr %deref, i32 0, i32 1
+      call void @__user_init_foo(ptr %f)
       ret void
     }
 
-    define void @__user_init_foo(%foo* %0) {
+    define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
-      %deref = load %foo*, %foo** %self, align 8
-      %b = getelementptr inbounds %foo, %foo* %deref, i32 0, i32 2
-      call void @__user_init_bar(%bar* %b)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds %foo, ptr %deref, i32 0, i32 2
+      call void @__user_init_bar(ptr %b)
       ret void
     }
 
-    define void @__user_init_mainProg(%mainProg* %0) {
+    define void @__user_init_mainProg(ptr %0) {
     entry:
-      %self = alloca %mainProg*, align 8
-      store %mainProg* %0, %mainProg** %self, align 8
-      %deref = load %mainProg*, %mainProg** %self, align 8
-      %f = getelementptr inbounds %mainProg, %mainProg* %deref, i32 0, i32 1
-      call void @__user_init_foo(%foo* %f)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %f = getelementptr inbounds %mainProg, ptr %deref, i32 0, i32 1
+      call void @__user_init_foo(ptr %f)
       ret void
     }
 
-    define void @__user_init___vtable_foo(%__vtable_foo* %0) {
+    define void @__user_init___vtable_foo(ptr %0) {
     entry:
-      %self = alloca %__vtable_foo*, align 8
-      store %__vtable_foo* %0, %__vtable_foo** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mainprog(%mainProg* @mainProg_instance)
-      call void @__init_sideprog(%sideProg* @sideProg_instance)
-      call void @__init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
-      call void @__init___vtable_bar(%__vtable_bar* @__vtable_bar_instance)
-      call void @__init___vtable_baz(%__vtable_baz* @__vtable_baz_instance)
-      call void @__user_init_mainProg(%mainProg* @mainProg_instance)
-      call void @__user_init_sideProg(%sideProg* @sideProg_instance)
-      call void @__user_init___vtable_foo(%__vtable_foo* @__vtable_foo_instance)
-      call void @__user_init___vtable_bar(%__vtable_bar* @__vtable_bar_instance)
-      call void @__user_init___vtable_baz(%__vtable_baz* @__vtable_baz_instance)
+      call void @__init_mainprog(ptr @mainProg_instance)
+      call void @__init_sideprog(ptr @sideProg_instance)
+      call void @__init___vtable_foo(ptr @__vtable_foo_instance)
+      call void @__init___vtable_bar(ptr @__vtable_bar_instance)
+      call void @__init___vtable_baz(ptr @__vtable_baz_instance)
+      call void @__user_init_mainProg(ptr @mainProg_instance)
+      call void @__user_init_sideProg(ptr @sideProg_instance)
+      call void @__user_init___vtable_foo(ptr @__vtable_foo_instance)
+      call void @__user_init___vtable_bar(ptr @__vtable_bar_instance)
+      call void @__user_init___vtable_baz(ptr @__vtable_baz_instance)
       ret void
     }
     "#);
