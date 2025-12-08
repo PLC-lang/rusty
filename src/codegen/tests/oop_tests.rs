@@ -1360,13 +1360,12 @@ fn pass_this_to_method() {
       %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
       %test = alloca %FB_Test2, align 8
       %x1 = alloca i16, align 2
-      %1 = bitcast %FB_Test2* %test to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%FB_Test2* @__FB_Test2__init to i8*), i64 ptrtoint (%FB_Test2* getelementptr (%FB_Test2, %FB_Test2* null, i32 1) to i64), i1 false)
-      store i16 0, i16* %x1, align 2
-      call void @__init_fb_test2(%FB_Test2* %test)
-      call void @__user_init_FB_Test2(%FB_Test2* %test)
-      %2 = load %FB_Test*, %FB_Test** %this, align 8
-      %call = call i16 @FB_Test2__bar(%FB_Test2* %test, %FB_Test* %2)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %test, ptr align 1 @__FB_Test2__init, i64 ptrtoint (ptr getelementptr (%FB_Test2, ptr null, i32 1) to i64), i1 false)
+      store i16 0, ptr %x1, align 2
+      call void @__init_fb_test2(ptr %test)
+      call void @__user_init_FB_Test2(ptr %test)
+      %1 = load ptr, ptr %this, align 8
+      %call = call i16 @FB_Test2__bar(ptr %test, ptr %1)
       ret void
     }
 
@@ -1629,12 +1628,12 @@ fn this_calling_function_and_passing_this() {
 
     define void @FB_Test(ptr %0) {
     entry:
-      %this = alloca %FB_Test*, align 8
-      store %FB_Test* %0, %FB_Test** %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
-      %1 = load %FB_Test*, %FB_Test** %this, align 8
-      %call = call i16 @foo(%FB_Test* %1)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %1 = load ptr, ptr %this, align 8
+      %call = call i16 @foo(ptr %1)
       ret void
     }
 
@@ -1889,16 +1888,16 @@ fn this_with_self_pointer() {
 
     define void @FB_Test__InitRef(ptr %0) {
     entry:
-      %this = alloca %FB_Test*, align 8
-      store %FB_Test* %0, %FB_Test** %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 0
-      %refToSelf = getelementptr inbounds %FB_Test, %FB_Test* %0, i32 0, i32 1
-      %deref = load %FB_Test*, %FB_Test** %this, align 8
-      store %FB_Test* %deref, %FB_Test** %refToSelf, align 8
-      %deref1 = load %FB_Test*, %FB_Test** %this, align 8
-      store %FB_Test* %deref1, %FB_Test** %refToSelf, align 8
-      %1 = load %FB_Test*, %FB_Test** %this, align 8
-      store %FB_Test* %1, %FB_Test** %refToSelf, align 8
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
+      %refToSelf = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %deref = load ptr, ptr %this, align 8
+      store ptr %deref, ptr %refToSelf, align 8
+      %deref1 = load ptr, ptr %this, align 8
+      store ptr %deref1, ptr %refToSelf, align 8
+      %1 = load ptr, ptr %this, align 8
+      store ptr %1, ptr %refToSelf, align 8
       ret void
     }
 
@@ -1917,11 +1916,11 @@ fn this_with_self_pointer() {
 
     define void @__init_fb_test(ptr %0) {
     entry:
-      %self = alloca %FB_Test*, align 8
-      store %FB_Test* %0, %FB_Test** %self, align 8
-      %deref = load %FB_Test*, %FB_Test** %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, %FB_Test* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_FB_Test* @__vtable_FB_Test_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
 
@@ -2087,11 +2086,11 @@ fn this_in_action_in_functionblock() {
 
     define void @__init_fb(ptr %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
-      %deref = load %fb*, %fb** %self, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
 
@@ -2279,18 +2278,16 @@ fn fb_extension_with_output() {
 
     define void @foo2(ptr %0) {
     entry:
-      %this = alloca %foo2*, align 8
-      store %foo2* %0, %foo2** %this, align 8
-      %__foo = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
-      %deref = load %foo2*, %foo2** %this, align 8
-      %__foo1 = getelementptr inbounds %foo2, %foo2* %deref, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, %foo* %__foo1, i32 0, i32 0
-      %deref2 = load i32*, i32** %__vtable, align 8
-      %cast = bitcast i32* %deref2 to %__vtable_foo2*
-      %met1 = getelementptr inbounds %__vtable_foo2, %__vtable_foo2* %cast, i32 0, i32 1
-      %1 = load i16 (%foo*, i16, i16, i16*)*, i16 (%foo*, i16, i16, i16*)** %met1, align 8
-      %deref3 = load %foo2*, %foo2** %this, align 8
-      %cast4 = bitcast %foo2* %deref3 to %foo*
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__foo = getelementptr inbounds %foo2, ptr %0, i32 0, i32 0
+      %deref = load ptr, ptr %this, align 8
+      %__foo1 = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds %foo, ptr %__foo1, i32 0, i32 0
+      %deref2 = load ptr, ptr %__vtable, align 8
+      %met1 = getelementptr inbounds %__vtable_foo2, ptr %deref2, i32 0, i32 1
+      %1 = load ptr, ptr %met1, align 8
+      %deref3 = load ptr, ptr %this, align 8
       %2 = alloca i16, align 2
       %fnptr_call = call i16 %1(ptr %deref3, i16 0, i16 0, ptr %2)
       ret void

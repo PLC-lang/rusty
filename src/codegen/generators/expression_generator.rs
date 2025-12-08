@@ -237,11 +237,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Diagnostic::codegen_error(message, expression)
                     })?;
 
-                // let pointee = self.llvm_index.get_associated_type(&this_name).unwrap();
-                let pointee = self
-                    .llvm_index
-                    .get_associated_pou_type(&self.function_context.unwrap().linking_context.type_name)
-                    .unwrap();
+                let pointee = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
                 Ok(ExpressionValue::LValue(this_value, pointee))
             }
             AstStatement::ReferenceExpr(data) => {
