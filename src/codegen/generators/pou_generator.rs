@@ -35,10 +35,7 @@ use inkwell::{
     values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
 };
-use inkwell::{
-    types::StructType,
-    values::PointerValue,
-};
+use inkwell::{types::StructType, values::PointerValue};
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -233,11 +230,12 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                                     .context
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                     .into(),
-                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => self
-                                    .llvm
-                                    .context
-                                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                                    .into(),
+                                DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => {
+                                    self.llvm
+                                        .context
+                                        .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
+                                        .into()
+                                }
                                 _ => *p,
                             }
                         })
@@ -379,10 +377,8 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     implementation.get_associated_class_name().expect("Method needs to have a class-name");
                 let _instance_members_struct_type: StructType =
                     self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
-                parameters.insert(
-                    0,
-                    self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-                );
+                parameters
+                    .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
 
             Ok(parameters)
@@ -825,11 +821,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 }
             })?;
 
-            let ty = self
-                .llvm
-                .context
-                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                .into();
+            let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
 
             Some([size, ty])
         } else {

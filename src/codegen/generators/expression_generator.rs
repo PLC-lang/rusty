@@ -1740,7 +1740,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         };
 
                     // load the access from that array
-                    let pointee = self.llvm_index.get_associated_type(&name).unwrap();
+                    let pointee = self.llvm_index.get_associated_type(name).unwrap();
                     let pointer =
                         self.llvm.load_array_element(pointee, lvalue, &accessor_sequence, "tmpVar")?;
 
@@ -2741,7 +2741,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 )?;
 
                 let pointee = {
-                    let datatype = self.annotations.get_type(&node, self.index).unwrap();
+                    let datatype = self.annotations.get_type(node, self.index).unwrap();
                     self.llvm_index.get_associated_type(&datatype.name).unwrap()
                 };
 
