@@ -164,31 +164,31 @@ impl LinkerInterface for CcLinker {
     }
 }
 
-// TODO: Might not be needed anymore
-struct LdLinker {
-    args: Vec<String>,
-}
+// // TODO: Might not be needed anymore
+// struct LdLinker {
+//     args: Vec<String>,
+// }
 
-impl LdLinker {
-    fn new() -> LdLinker {
-        LdLinker { args: Vec::default() }
-    }
-}
+// impl LdLinker {
+//     fn new() -> LdLinker {
+//         LdLinker { args: Vec::default() }
+//     }
+// }
 
-impl LinkerInterface for LdLinker {
-    fn add_arg(&mut self, value: String) {
-        self.args.push(value)
-    }
+// impl LinkerInterface for LdLinker {
+//     fn add_arg(&mut self, value: String) {
+//         self.args.push(value)
+//     }
 
-    fn get_build_command(&self) -> Result<String, LinkerError> {
-        Ok(format!("ld.lld {}", self.args.join(" ")))
-    }
+//     fn get_build_command(&self) -> Result<String, LinkerError> {
+//         Ok(format!("ld.lld {}", self.args.join(" ")))
+//     }
 
-    fn finalize(&mut self) -> Result<(), LinkerError> {
-        log::debug!("Linker arguments : {}", self.get_build_command()?);
-        lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
-    }
-}
+//     fn finalize(&mut self) -> Result<(), LinkerError> {
+//         log::debug!("Linker arguments : {}", self.get_build_command()?);
+//         lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
+//     }
+// }
 
 #[derive(Clone, Debug)]
 pub struct MockLinker {

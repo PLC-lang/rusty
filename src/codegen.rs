@@ -243,7 +243,7 @@ impl<'ink> CodeGen<'ink> {
                 .try_into()
                 .expect("the computed custom GOT size is too large");
 
-            let ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
+            let ptr_ty = llvm.context.ptr_type(AddressSpace::default());
             let empty_got = ptr_ty
                 .const_array(vec![ptr_ty.const_null(); got_size as usize].as_slice())
                 .as_basic_value_enum();

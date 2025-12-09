@@ -1,7 +1,7 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use inkwell::{
     context::Context,
-    types::{BasicTypeEnum, FloatType, IntType},
+    types::{FloatType, IntType},
     values::{ArrayValue, BasicValueEnum, FloatValue, IntValue, PointerValue},
 };
 use plc_source::source_location::SourceLocation;

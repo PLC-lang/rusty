@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
-use inkwell::types::{AnyTypeEnum, BasicType, BasicTypeEnum, PointerType};
+use inkwell::types::{AnyTypeEnum, BasicType, BasicTypeEnum};
 use inkwell::values::{AnyValue, BasicValueEnum, FunctionValue, GlobalValue, PointerValue};
-use inkwell::AddressSpace;
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_source::source_location::SourceLocation;
 use plc_util::convention::qualified_name;
@@ -28,7 +27,6 @@ pub struct LlvmTypedIndex<'ink> {
 pub trait TypeHelper<'ink> {
     #[allow(clippy::wrong_self_convention)]
     fn as_basic_type(self) -> Option<BasicTypeEnum<'ink>>;
-    fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink>;
 }
 
 impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
@@ -43,20 +41,6 @@ impl<'ink> TypeHelper<'ink> for AnyTypeEnum<'ink> {
             AnyTypeEnum::ScalableVectorType(value) => Some(value.as_basic_type_enum()),
             AnyTypeEnum::VoidType(_) => None,
             AnyTypeEnum::FunctionType(_) => None,
-        }
-    }
-
-    fn create_ptr_type(&self, address_space: AddressSpace) -> PointerType<'ink> {
-        match self {
-            AnyTypeEnum::ArrayType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::FloatType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::IntType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::PointerType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::StructType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::VectorType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::ScalableVectorType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::FunctionType(value) => value.ptr_type(address_space),
-            AnyTypeEnum::VoidType(_) => unreachable!("Void type cannot be converted to pointer"),
         }
     }
 }

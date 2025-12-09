@@ -221,7 +221,7 @@ impl<'a> Llvm<'a> {
 
     /// create a null pointer
     pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, CodegenError> {
-        let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+        let itype = self.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         let value = itype.const_null();
         Ok(value.into())
     }
@@ -405,39 +405,5 @@ impl<'a> Llvm<'a> {
             self.builder.build_store(variable_to_initialize, value)?;
         }
         Ok(())
-    }
-}
-
-/// A trait to get the fundamental element type from nested arrays
-pub(crate) trait FundamentalElementType<'a> {
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a>;
-}
-
-impl<'a> FundamentalElementType<'a> for PointerValue<'a> {
-    /// Gets the fundamental element type from a pointer to nested arrays
-    ///
-    /// For example: `[2 x [81 x i8]]*` -> `i8`, `[3 x i32]*` -> `i32`
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
-        todo!("not possible with opaque pointers")
-        // let element_type = self.get_type().get_element_type();
-        // if element_type.is_array_type() {
-        //     element_type.into_array_type().into_fundamental_type()
-        // } else {
-        //     element_type.try_into().expect("Expected basic type")
-        // }
-    }
-}
-
-impl<'a> FundamentalElementType<'a> for ArrayType<'a> {
-    /// Recursively gets the fundamental element type from nested arrays
-    ///
-    /// For example: `[2 x [81 x i8]` -> `i8`, `[3 x i32]` -> `i32`
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
-        let element_type = self.get_element_type();
-        if element_type.is_array_type() {
-            element_type.into_array_type().into_fundamental_type()
-        } else {
-            element_type
-        }
     }
 }

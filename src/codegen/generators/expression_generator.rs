@@ -28,7 +28,7 @@ use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
         llvm_index::LlvmTypedIndex,
-        llvm_typesystem::{cast_if_needed, get_llvm_int_type},
+        llvm_typesystem::cast_if_needed,
         CodegenError,
     },
     index::{
@@ -38,7 +38,7 @@ use crate::{
     resolver::{AnnotationMap, AstAnnotations, StatementAnnotation},
     typesystem::{
         self, is_same_type_class, DataType, DataTypeInformation, DataTypeInformationProvider, Dimension,
-        StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, INT_SIZE, INT_TYPE, LINT_TYPE,
+        StringEncoding, VarArgs, DEFAULT_STRING_LEN, DINT_TYPE, LINT_TYPE,
     },
 };
 
@@ -325,17 +325,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         self.generate_expression_value(const_expression)
     }
 
-    /// Generate an access to the appropriate GOT entry to achieve an access to the given base
-    /// lvalue.
-    pub fn generate_got_access(
-        &self,
-        context: &AstNode,
-        llvm_type: &BasicTypeEnum<'ink>,
-    ) -> Result<Option<PointerValue<'ink>>, CodegenError> {
-        // TODO: remove
-        Ok(None)
-    }
-
     /// generates a binary expression (e.g. a + b, x AND y, etc.) and returns the resulting `BasicValueEnum`
     /// - `left` the AstStatement left of the operator
     /// - `right` the AstStatement right of the operator
@@ -523,11 +512,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // Check for the function within the GOT. If it's there, we need to generate an indirect
         // call to its location within the GOT, which should contain a function pointer.
         // First get the function type so our function pointer can have the correct type.
-        let qualified_name = self
-            .annotations
-            .get_qualified_name(operator)
-            .expect("Shouldn't have got this far without a name for the function");
-        let function_type = function.get_type();
         let call = self.llvm.builder.build_call(function, &arguments_list, "call")?;
 
         // if the target is a function, declare the struct locally
@@ -541,7 +525,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .either(Ok, |_| {
                 // we return an uninitialized int pointer for void methods :-/
                 // dont deref it!!
-                Ok(get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+                Ok(self
+                    .llvm
+                    .context
                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
                     .const_null()
                     .as_basic_value_enum())
@@ -644,7 +630,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
         let value = match call.try_as_basic_value() {
             Either::Left(value) => value,
-            Either::Right(_) => get_llvm_int_type(self.llvm.context, INT_SIZE, INT_TYPE)
+            Either::Right(_) => self
+                .llvm
+                .context
                 .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
                 .const_null()
                 .as_basic_value_enum(),
@@ -1200,7 +1188,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 })?;
                 // if the variadic argument is ByRef, wrap it in a pointer.
                 let ty = if argument_type.is_by_ref() {
-                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
+                    self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into()
                 } else {
                     ty
                 };
@@ -1226,7 +1214,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 // bitcast the array to pointer so it matches the declared function signature
                 let arr_storage = self.llvm.builder.build_bit_cast(
                     arr_storage,
-                    ty.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
+                    self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)),
                     "",
                 )?;
 
@@ -1515,19 +1503,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             }
         }
 
-        let ctx_type = self.annotations.get_type_or_void(context, self.index).get_type_information();
-
         // no context ... so just something like 'x'
         match self.annotations.get(context) {
             Some(StatementAnnotation::Variable { qualified_name, .. })
             | Some(StatementAnnotation::Program { qualified_name, .. }) => self
-                .generate_got_access(context, &self.llvm_index.get_associated_type(ctx_type.get_name())?)?
-                .map_or(
-                    self.llvm_index
-                        .find_loaded_associated_variable_value(qualified_name)
-                        .ok_or_else(|| Diagnostic::unresolved_reference(name, offset).into()),
-                    Ok,
-                ),
+                .llvm_index
+                .find_loaded_associated_variable_value(qualified_name)
+                .ok_or_else(|| Diagnostic::unresolved_reference(name, offset).into()),
             _ => Err(Diagnostic::unresolved_reference(name, offset).into()),
         }
     }
@@ -2837,9 +2819,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let target_value = self.generate_expression_value(target.as_ref())?;
 
                     // Get the LLVM type for the cast target
-                    let target_llvm_type = self.llvm_index.get_associated_type(base_type_name)
-                        .map(|t| t.ptr_type(AddressSpace::from(0)))
-                        .unwrap_or_else(|_| self.llvm.context.i8_type().ptr_type(AddressSpace::from(0)));
+                    let _ = self.llvm_index.get_associated_type(base_type_name);
+                    let target_llvm_type = self.llvm.context.ptr_type(AddressSpace::from(0));
 
                     // Perform the bitcast
                     let basic_value = target_value.get_basic_value_enum();

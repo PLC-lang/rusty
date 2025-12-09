@@ -1,6 +1,6 @@
 use inkwell::{
     basic_block::BasicBlock,
-    types::{BasicType, BasicTypeEnum},
+    types::BasicType,
     values::{BasicValue, IntValue},
 };
 use lazy_static::lazy_static;

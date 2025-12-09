@@ -17,7 +17,6 @@ use inkwell::{
     basic_block::BasicBlock,
     builder::Builder,
     context::Context,
-    types::BasicTypeEnum,
     values::{FunctionValue, PointerValue},
 };
 use plc_ast::{
