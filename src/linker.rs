@@ -52,7 +52,7 @@ impl Linker {
 
                         (_, "darwin") => Box::new(CcLinker::new("clang")),
 
-                        _ => Box::new(LdLinker::new()),
+                        _ => Box::new(CcLinker::new("ld.lld")),
                     }
                 }
                 LinkerType::External(linker) => Box::new(CcLinker::new(&linker)),
@@ -164,6 +164,7 @@ impl LinkerInterface for CcLinker {
     }
 }
 
+// TODO: Might not be needed anymore
 struct LdLinker {
     args: Vec<String>,
 }
