@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum eComplexEnumType {
     orange = 10,
@@ -28,8 +31,13 @@ typedef struct {
 } prog_type;
 
 extern prog_type prog_instance;
-extern prog_type __prog__init = { 0 };
+
+void __prog__init(prog_type* self);
 
 void prog(prog_type* self);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !PROGRAMS */

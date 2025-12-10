@@ -2556,7 +2556,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -2730,7 +2731,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3096,7 +3098,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3153,7 +3156,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesStructWithComplexTypes"
+              "scope": "fnThatUsesStructWithComplexTypes",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3289,7 +3293,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesStructWithComplexTypes"
+              "scope": "fnThatUsesStructWithComplexTypes",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3344,7 +3349,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesPrimitiveTypesAndReferences"
+              "scope": "fnThatUsesPrimitiveTypesAndReferences",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3399,7 +3405,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesPrimitiveTypesAndReferences"
+              "scope": "fnThatUsesPrimitiveTypesAndReferences",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3454,7 +3461,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesPrimitiveTypesAndReferences"
+              "scope": "fnThatUsesPrimitiveTypesAndReferences",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3509,7 +3517,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatUsesPrimitiveTypesAndReferences"
+              "scope": "fnThatUsesPrimitiveTypesAndReferences",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3621,7 +3630,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": "fnThatHasIntWithRange"
+              "scope": "fnThatHasIntWithRange",
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3678,7 +3688,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3735,7 +3746,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -3871,7 +3883,8 @@ expression: json
                   "File": "functions_with_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             }
           ],
           "file": {

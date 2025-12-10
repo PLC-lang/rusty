@@ -9,8 +9,11 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum eRGB {
     red = 0,
@@ -30,5 +33,9 @@ void PrintStatistics(int32_t argumentCount, ColourInfo* colours);
 void TestPrinter();
 
 void PrintColourInfo(ColourInfo* colourInfo);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !COLOUR_TRACKER */

@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum eComplexEnumType {
     orange = 10,
@@ -37,5 +40,9 @@ typedef struct {
     ComplexEnumType complexEnumTypeField;
     int16_t intArrayField[10];
 } StructWithComplexTypes;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !STRUCTS */

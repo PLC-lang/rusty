@@ -42,7 +42,7 @@ use plc_diagnostics::{
     diagnostics::{Diagnostic, Severity},
 };
 use plc_header_generator::{
-    header_generator::{get_generated_header, GeneratedHeader},
+    header_generator::{combine_generated_headers, get_generated_header, GeneratedHeader},
     GenerateHeaderOptions,
 };
 use plc_index::GlobalContext;
@@ -249,6 +249,10 @@ impl<T: SourceContainer> BuildPipeline<T> {
             },
             _ => GenerateHeaderOptions { output_path, ..Default::default() },
         })
+    }
+
+    fn get_header_output_file(&self) -> Option<String> {
+        self.compile_parameters.as_ref().map(|params| params.output.clone().unwrap_or_default())
     }
 
     fn print_config_options(&self, option: ConfigOption) -> Result<(), Diagnostic> {
@@ -477,15 +481,15 @@ impl<T: SourceContainer> Pipeline for BuildPipeline<T> {
             generated_headers.push(get_generated_header(&generate_header_options, &unit.unit)?);
         }
 
-        for generated_header in generated_headers {
-            if !generated_header.is_empty() {
-                // Create the directories to the output path (if it is necessary to do so)
-                if !generated_header.get_directory().is_empty() {
-                    fs::create_dir_all(generated_header.get_directory())?;
-                }
+        let output_file = self.get_header_output_file().unwrap_or_default();
 
-                // Write the header file
-                fs::write(generated_header.get_path(), generated_header.get_contents())?;
+        if !output_file.is_empty() {
+            let generated_header =
+                combine_generated_headers(&generate_header_options, generated_headers, output_file)?;
+            write_header_file(generated_header)?;
+        } else {
+            for generated_header in generated_headers {
+                write_header_file(generated_header)?;
             }
         }
 
@@ -524,6 +528,20 @@ fn write_got_layout(
     };
 
     fs::write(location, s).map_err(|_| Diagnostic::new("GOT layout could not be written to file"))
+}
+
+fn write_header_file(generated_header: Box<dyn GeneratedHeader>) -> Result<(), Diagnostic> {
+    if !generated_header.is_empty() {
+        // Create the directories to the output path (if it is necessary to do so)
+        if !generated_header.get_directory().is_empty() {
+            fs::create_dir_all(generated_header.get_directory())?;
+        }
+
+        // Write the header file
+        fs::write(generated_header.get_path(), generated_header.get_contents())?;
+    }
+
+    Ok(())
 }
 
 ///Represents a parsed project

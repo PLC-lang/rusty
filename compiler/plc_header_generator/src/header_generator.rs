@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use plc_ast::{
     ast::{
         self, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration, ReferenceAccess,
@@ -12,7 +14,7 @@ use crate::{
         file_helper::FileHelper,
         header_generator_c::GeneratedHeaderForC,
         symbol_helper::SymbolHelper,
-        template_helper::{TemplateHelper, Variable, VariableType},
+        template_helper::{TemplateData, TemplateHelper, Variable, VariableType},
         type_helper::TypeHelper,
     },
     GenerateHeaderOptions, GenerateLanguage,
@@ -81,6 +83,60 @@ pub fn get_generated_header(
 
     // Prepare the template data
     generated_header.prepare_template_data(compilation_unit);
+
+    // Generate the headers
+    generated_header.generate_headers()?;
+
+    Ok(generated_header)
+}
+
+/// Combines several generated headers and returns a single generated header containing the contents of all of them
+pub fn combine_generated_headers(
+    generate_header_options: &GenerateHeaderOptions,
+    generated_headers: Vec<Box<dyn GeneratedHeader>>,
+    output_file: String,
+) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
+    let mut generated_header: Box<dyn GeneratedHeader> = match generate_header_options.language {
+        GenerateLanguage::C => {
+            let generated_header = GeneratedHeaderForC::new();
+            Box::new(generated_header)
+        }
+        language => panic!("This language '{:?}' is not yet implemented!", language),
+    };
+
+    // We assume the first generated header in the list's location is the location we would like to place the header
+    let some_generated_header = generated_headers.iter().find(|p| !p.is_empty());
+    if some_generated_header.is_none() {
+        return Ok(generated_header);
+    }
+
+    let non_empty_generated_header = some_generated_header.unwrap();
+
+    generated_header.set_directory(non_empty_generated_header.get_directory());
+    generated_header.set_path(
+        PathBuf::from(non_empty_generated_header.get_directory())
+            .join(&output_file)
+            .to_str()
+            .unwrap_or_default(),
+    );
+    generated_header.set_file_name(&output_file);
+
+    let mut template_data = TemplateData::new();
+    for mut t_generated_header in generated_headers {
+        if !t_generated_header.is_empty() {
+            let user_defined_types = t_generated_header.get_mutable_template_data_user_defined_types();
+            template_data.user_defined_types.aliases.append(&mut user_defined_types.aliases);
+            template_data.user_defined_types.structs.append(&mut user_defined_types.structs);
+            template_data.user_defined_types.enums.append(&mut user_defined_types.enums);
+            template_data
+                .global_variables
+                .append(t_generated_header.get_mutable_template_data_global_variables());
+            template_data.functions.append(t_generated_header.get_mutable_template_data_functions());
+        }
+    }
+
+    // Overwrite the template data in the header with the combined template data
+    generated_header.set_template_data(template_data);
 
     // Generate the headers
     generated_header.generate_headers()?;

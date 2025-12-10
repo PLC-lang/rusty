@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     uint64_t* __vtable;
@@ -36,17 +39,24 @@ typedef struct {
     int16_t varChildInt;
 } fbChild_type;
 
-extern fbGreatGrandParent_type __fbGreatGrandParent__init = { 0 };
-extern fbGrandParent_type __fbGrandParent__init = { 0 };
-extern fbParent_type __fbParent__init = { 0 };
-extern fbChild_type __fbChild__init = { 0 };
+void __fbGreatGrandParent__init(fbGreatGrandParent_type* self);
 
 void fbGreatGrandParent(fbGreatGrandParent_type* self);
 
+void __fbGrandParent__init(fbGrandParent_type* self);
+
 void fbGrandParent(fbGrandParent_type* self);
+
+void __fbParent__init(fbParent_type* self);
 
 void fbParent(fbParent_type* self);
 
+void __fbChild__init(fbChild_type* self);
+
 void fbChild(fbChild_type* self);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !FUNCTION_BLOCKS_WITH_INHERITANCE */

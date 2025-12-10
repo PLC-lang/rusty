@@ -645,7 +645,8 @@ expression: json
                 "File": "programs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           }
         ],
         "file": {

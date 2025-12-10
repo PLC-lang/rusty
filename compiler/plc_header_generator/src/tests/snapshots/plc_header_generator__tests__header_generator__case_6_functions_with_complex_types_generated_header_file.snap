@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum eComplexEnumType {
     orange = 10,
@@ -51,5 +54,9 @@ void fnThatHasVariadicIntInput(int16_t varIntInput, ...);
 void fnThatHasVariadicStringInput(int16_t varIntInput, ...);
 
 void fnThatHasVariadicComplexTypeInput(int16_t varIntInput, ...);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !FUNCTIONS_WITH_COMPLEX_TYPES */

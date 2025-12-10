@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     uint64_t* __vtable;
@@ -23,10 +26,14 @@ typedef struct {
     int16_t* inOutVarInt;
 } fbThatHasSimpleTypes_type;
 
-extern fbThatHasSimpleTypes_type __fbThatHasSimpleTypes__init = { 0 };
+void __fbThatHasSimpleTypes__init(fbThatHasSimpleTypes_type* self);
 
 void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
 
 void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !FUNCTION_BLOCKS */

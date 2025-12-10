@@ -1,0 +1,188 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+(**
+ * @defgroup file-async-types Asynchronous file operation parameter types
+ * @brief Parameter structure definitions for asynchronous file operations.
+ *
+ * These types define the parameter structures used by the FILE_Async function block methods.
+ * Each structure contains input parameters, output parameters, and an error code field.
+ * @{
+*)
+(**
+ * @brief Parameters for asynchronous file open operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Open method.
+ * Used to pass file path, access mode, and receive the resulting file handle.
+ *)
+TYPE FILE_OpenParams :
+STRUCT
+    File: STRING[1023]; (**< File name/path to open (absolute or relative) *)
+    Mode: FILE_AccessMode := FILE_AccessMode_Read; (**< Access mode for opening the file *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+    FileHandle: FILE_Handle; (**< File handle returned when open succeeds *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file close operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Close method.
+ * Used to specify which file handle to close.
+ *)
+TYPE FILE_CloseParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to close *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file read operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Read method.
+ * Used to specify read buffer, size constraints, and receive actual bytes read.
+ *)
+TYPE FILE_ReadParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to read from *)
+    Buffer: POINTER TO BYTE; (**< Pointer to buffer where read data will be stored *)
+    Size: ULINT; (**< Maximum number of bytes to read *)
+    BytesRead: ULINT; (**< Actual number of bytes read (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file write operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Write method.
+ * Used to specify write buffer, size, and receive actual bytes written.
+ *)
+TYPE FILE_WriteParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to write to *)
+    Buffer: POINTER TO BYTE; (**< Pointer to buffer containing data to write *)
+    Size: ULINT; (**< Number of bytes to write from buffer *)
+    BytesWritten: ULINT; (**< Actual number of bytes written (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous string read operation
+ *
+ * Structure containing all parameters required for the FILE_Async.ReadString method.
+ * Used to read line-delimited text with EOF detection. Line length is limited to 1024 bytes.
+ *)
+TYPE FILE_ReadStringParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to read from *)
+    Output: STRING[1023]; (**< String containing the read line (output) *)
+    IsEOF: BOOL; (**< Indicates if end of file was reached (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous string write operation
+ *
+ * Structure containing all parameters required for the FILE_Async.WriteString method.
+ * Used to write string data to a file without automatic newline termination.
+ *)
+TYPE FILE_WriteStringParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to write to *)
+    Str: STRING[1023]; (**< String to write to the file *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file seek operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Seek method.
+ * Used to move the file position indicator relative to a specified origin.
+ *)
+TYPE FILE_SeekParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to seek within *)
+    Offset: LINT := 0; (**< Number of bytes to offset from origin *)
+    Origin: FILE_SeekOrigin := FILE_SeekOrigin_Begin; (**< Reference position for the offset *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file tell operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Tell method.
+ * Used to retrieve the current file position indicator.
+ *)
+TYPE FILE_TellParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to query position from *)
+    Position: LINT; (**< Current position in bytes from beginning of file (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file flush operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Flush method.
+ * Used to force writing of any buffered data to storage.
+ *)
+TYPE FILE_FlushParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to flush *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file copy operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Copy method.
+ * Used to copy files from source to destination with byte count tracking.
+ *)
+TYPE FILE_CopyParams :
+STRUCT
+    Source: STRING[1023]; (**< Path to the source file to copy *)
+    Destination: STRING[1023]; (**< Path to the destination file *)
+    BytesCopied: ULINT; (**< Number of bytes successfully copied (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file rename operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Rename method.
+ * Used to rename or move files by changing their path/name.
+ *)
+TYPE FILE_RenameParams :
+STRUCT
+    OldName: STRING[1023]; (**< Current file name/path *)
+    NewName: STRING[1023]; (**< New file name/path *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file remove operation
+ *
+ * Structure containing all parameters required for the FILE_Async.Remove method.
+ * Used to delete files from the filesystem.
+ *)
+TYPE FILE_RemoveParams :
+STRUCT
+    FileName: STRING[1023]; (**< Name/path of the file to remove *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @brief Parameters for asynchronous file status operation
+ *
+ * Structure containing all parameters required for the FILE_Async.GetStatus method.
+ * Used to retrieve comprehensive file status information including type, permissions, and timestamps.
+ *)
+TYPE FILE_GetStatusParams :
+STRUCT
+    FileHandle: FILE_Handle; (**< File handle to query status from *)
+    Status: FILE_Status; (**< File status information structure (output) *)
+    Error: ErrorCode; (**< Error code returned by the operation *)
+END_STRUCT
+END_TYPE
+(**
+ * @}
+*)

@@ -18,8 +18,17 @@ pub trait FileHelper {
     /// It can return an empty string if the header is being written to the same directory as the interface itself.
     fn get_directory(&self) -> &str;
 
+    /// Sets the directory the header should be written to
+    fn set_directory(&mut self, directory: &str);
+
     /// Returns the file path that the header file should be written to
     fn get_path(&self) -> &str;
+
+    /// Sets the file path that the header file should be written to
+    fn set_path(&mut self, path: &str);
+
+    /// Sets the file name for the header file
+    fn set_file_name(&mut self, file_name: &str);
 
     /// Determines file information for the header file and returns whether or not the determination was successful
     ///

@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern bool gVarBool;
 extern int8_t gVarSInt;
@@ -29,5 +32,9 @@ extern float_t gVarReal;
 extern double_t gVarLReal;
 extern time_t gVarDate;
 extern time_t gVarDateAndTime;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !GLOBAL_PRIMITIVES */

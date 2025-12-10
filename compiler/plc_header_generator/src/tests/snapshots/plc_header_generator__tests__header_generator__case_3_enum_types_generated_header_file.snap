@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef enum eSimpleEnumType {
     red = 0,
@@ -27,5 +30,9 @@ typedef enum eComplexEnumType {
     yellow = 20,
     purple = 30
 } ComplexEnumType;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !ENUM_TYPES */

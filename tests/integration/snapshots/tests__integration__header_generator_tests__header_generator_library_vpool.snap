@@ -1,0 +1,118 @@
+---
+source: tests/integration/header_generator_tests.rs
+assertion_line: 261
+expression: "fs::read_to_string(dir.path().join(\"vpool.h\").to_str().unwrap()).unwrap()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef VPOOL
+#define VPOOL
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef struct {
+    M_Type type;
+    uint32_t size;
+    M_VPoolMode mode;
+    M_VPoolOption option;
+    uint32_t element_count;
+    uint32_t dimensions[3];
+} VPOOL_Attributes;
+
+M_VPoolPv *VPOOL_Pv_Open(const char *name, M_VPoolPvFlags flags, ErrorCode *const err_code);
+
+void VPOOL_Pv_Close(ErrorCode *const err_code, M_VPoolPv *pv_handle);
+
+bool VPOOL_Pv_IsValid(M_VPoolPv *pv_handle);
+
+void VPOOL_Pv_GetName(M_VPoolPv *pv_handle, char *name, ErrorCode *const err_code);
+
+void VPOOL_Pv_Read(ErrorCode *const err_code, M_VPoolPv *pv_handle, void *data, size_t size);
+
+bool VPOOL_Pv_Read_BOOL(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+int8_t VPOOL_Pv_Read_SINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint8_t VPOOL_Pv_Read_USINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint8_t VPOOL_Pv_Read_BYTE(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+int16_t VPOOL_Pv_Read_INT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint16_t VPOOL_Pv_Read_UINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint16_t VPOOL_Pv_Read_WORD(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+int32_t VPOOL_Pv_Read_DINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint32_t VPOOL_Pv_Read_UDINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint32_t VPOOL_Pv_Read_DWORD(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+int64_t VPOOL_Pv_Read_LINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint64_t VPOOL_Pv_Read_ULINT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+float VPOOL_Pv_Read_REAL(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+double VPOOL_Pv_Read_LREAL(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+uint64_t VPOOL_Pv_Read_DT(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+char VPOOL_Pv_Read_CHAR(M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+void VPOOL_Pv_Read_STRING(char *str, M_VPoolPv *pv_handle, uint8_t length, ErrorCode *const err_code);
+
+void VPOOL_Pv_Write(ErrorCode *const err_code, M_VPoolPv *pv_handle, const void *data, size_t size);
+
+void VPOOL_Pv_Write_BOOL(ErrorCode *const err_code, M_VPoolPv *pv_handle, bool value);
+
+void VPOOL_Pv_Write_SINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, int8_t value);
+
+void VPOOL_Pv_Write_USINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint8_t value);
+
+void VPOOL_Pv_Write_BYTE(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint8_t value);
+
+void VPOOL_Pv_Write_INT(ErrorCode *const err_code, M_VPoolPv *pv_handle, int16_t value);
+
+void VPOOL_Pv_Write_UINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint16_t value);
+
+void VPOOL_Pv_Write_WORD(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint16_t value);
+
+void VPOOL_Pv_Write_DINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, int32_t value);
+
+void VPOOL_Pv_Write_UDINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint32_t value);
+
+void VPOOL_Pv_Write_DWORD(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint32_t value);
+
+void VPOOL_Pv_Write_LINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, int64_t value);
+
+void VPOOL_Pv_Write_ULINT(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint64_t value);
+
+void VPOOL_Pv_Write_REAL(ErrorCode *const err_code, M_VPoolPv *pv_handle, float value);
+
+void VPOOL_Pv_Write_LREAL(ErrorCode *const err_code, M_VPoolPv *pv_handle, double value);
+
+void VPOOL_Pv_Write_DT(ErrorCode *const err_code, M_VPoolPv *pv_handle, uint64_t value);
+
+void VPOOL_Pv_Write_CHAR(ErrorCode *const err_code, M_VPoolPv *pv_handle, char value);
+
+void VPOOL_Pv_Write_STRING(ErrorCode *const err_code, M_VPoolPv *pv_handle, const char *str, uint8_t length);
+
+void VPOOL_Pv_GetAttributes(VPOOL_Attributes *attributes, M_VPoolPv *pv_handle, ErrorCode *const err_code);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !VPOOL */

@@ -1,0 +1,46 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH
+ ****************************************************************************)
+(**
+ * @brief Zoned civil time representation.
+ *
+ * Represents a broken-down date/time with optional timezone metadata.
+ * Semantics:
+ * - (Sec, Min, Hour, Day, Month, Year) are civil wall-clock fields (no zone implied).
+ * - Isdst: -1 unknown, 0 standard time, 1 daylight saving time.
+ * - Gmtoff: seconds east of UTC (e.g. +3600 for UTC+1).
+ * - Zone: timezone name/abbreviation (e.g. "UTC", "CET", "Europe/Vienna"), or empty.
+ *)
+TYPE
+    TIME_SYSTIMEDATE : STRUCT
+        Sec    : DINT;        (* Seconds after the minute [0..60], leap second allowed *)
+        Min    : DINT;        (* Minutes after the hour [0..59] *)
+        Hour   : DINT;        (* Hours since midnight [0..23] *)
+        Day    : DINT;        (* Day of the month [1..31] *)
+        Month  : DINT;        (* Months since January [0..11] *)
+        Year   : DINT;        (* Absolute year (e.g. 2025) *)
+        Wday   : DINT;        (* Days since Sunday [0..6], 0 = Sunday *)
+        Yday   : DINT;        (* Days since January 1 [0..365], 0 = Jan 1 *)
+        Isdst  : DINT;        (* -1 = unknown, 0 = off, 1 = on *)
+        Gmtoff : DINT;        (* Seconds east of UTC *)
+        Zone   : STRING[64];  (* Timezone name/abbreviation (NUL-terminated) *)
+    END_STRUCT;
+END_TYPE
+(**
+ * @brief Timespec-compatible structure for clock operations.
+ *)
+TYPE
+    TIME_TIMESPEC : STRUCT
+        TvSec  : LINT;  (* seconds *)
+        TvNsec : DINT;  (* nanoseconds, 0..999999999 *)
+    END_STRUCT;
+END_TYPE
+(**
+ * @brief Clock identifiers for TIME_ClockGetTime / TIME_ClockSetTime.
+ *)
+TYPE
+    TIME_CLOCKID : (
+        TIME_CLOCK_REALTIME := 0,    (* System-wide real-time clock *)
+        TIME_CLOCK_MONOTONIC := 1    (* Monotonic clock since unspecified start *)
+    );
+END_TYPE

@@ -1,0 +1,32 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+(** @brief Async task handle. *)
+TYPE ASYNC_TaskHandle :  POINTER TO BYTE;
+END_TYPE
+(** @brief Async job handle. *)
+TYPE ASYNC_JobHandle :  POINTER TO BYTE;
+END_TYPE
+(** @brief Async job function. *)
+TYPE ASYNC_Function :  POINTER TO BYTE;
+END_TYPE
+(** @brief Async job state. *)
+TYPE ASYNC_JobState :
+(
+    ASYNC_JobState_Invalid := -1,     //**< Invalid (inital value)
+    ASYNC_JobState_Pending := 0,      //**< Queued, not running
+    ASYNC_JobState_Active := 1,       //**< Running
+    ASYNC_JobState_Ready := 2,        //**< Finished successfully
+    ASYNC_JobState_Error := 3,        //**< Finished with error
+    ASYNC_JobState_Timeout := 4,      //**< Timed out
+    ASYNC_JobState_Canceled := 5      //**< Cancelled by user request
+);
+END_TYPE
+(** @brief Async task parameters. *)
+TYPE ASYNC_TaskParams :
+STRUCT
+    TaskName: STRING[15]; (**< Task name *)
+    TaskPriority: UDINT := 0;  (**< Task priority (default: non-realtime) *)
+    QueueSize: UDINT := 50; (**< Queue size of the task *)
+END_STRUCT
+END_TYPE

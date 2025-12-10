@@ -2,8 +2,8 @@ use std::collections::HashMap;
 
 use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
 use plc_ast::ast::{
-    self, ArgumentProperty, CompilationUnit, Identifier, Pou, PouType, UserTypeDeclaration, VariableBlock,
-    VariableBlockType,
+    self, ArgumentProperty, CompilationUnit, Identifier, LinkageType, Pou, PouType, UserTypeDeclaration,
+    VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
@@ -38,9 +38,10 @@ impl Default for GeneratedHeaderForC {
 
 impl GeneratedHeader for GeneratedHeaderForC {
     fn is_empty(&self) -> bool {
-        self.file_information.directory.is_empty()
+        (self.file_information.directory.is_empty()
             && self.file_information.path.is_empty()
-            && self.contents.is_empty()
+            && self.contents.is_empty())
+            || self.template_data.is_empty()
     }
 
     fn get_contents(&self) -> &str {
@@ -94,6 +95,10 @@ impl GeneratedHeaderForC {
     /// Populates the self scoped [TemplateData] instance with the user types that should be added to the generated header file
     fn prepare_user_types(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for user_type in &compilation_unit.user_types {
+            if user_type.linkage == LinkageType::External {
+                continue;
+            }
+
             self.prepare_user_type(user_type, builtin_types, &compilation_unit.user_types);
         }
     }
@@ -105,12 +110,17 @@ impl GeneratedHeaderForC {
             builtin_types,
             &[VariableBlockType::Global],
             &compilation_unit.user_types,
+            false,
         );
     }
 
     /// Populates the self scoped [TemplateData] instance with the functions that should be added to the generated header file
     fn prepare_functions(&mut self, compilation_unit: &CompilationUnit, builtin_types: &[DataType]) {
         for pou in &compilation_unit.pous {
+            if pou.linkage == LinkageType::External {
+                continue;
+            }
+
             match &pou.kind {
                 PouType::Function => {
                     let type_info = &self.get_type_name_for_type(
@@ -128,6 +138,7 @@ impl GeneratedHeaderForC {
                             VariableBlockType::Output,
                         ],
                         &compilation_unit.user_types,
+                        true,
                     );
 
                     self.template_data.functions.push(Function {
@@ -177,6 +188,7 @@ impl GeneratedHeaderForC {
                             VariableBlockType::Output,
                         ],
                         &compilation_unit.user_types,
+                        true,
                     ));
 
                     self.template_data.functions.push(Function {
@@ -227,16 +239,26 @@ impl GeneratedHeaderForC {
                     .push(UserType { name: name.clone().unwrap_or_default(), variables: enum_declerations });
             }
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
+                let type_information = self.get_type_name_for_type(
+                    &ExtendedTypeName { type_name: referenced_type.get_name().unwrap_or_default().to_string(), is_variadic: false },
+                    builtin_types,
+                );
+
                 self.template_data.user_defined_types.aliases.push(Variable {
-                    data_type: referenced_type.get_name().unwrap_or_default().to_string(),
+                    data_type: type_information.get_type_name(),
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Array(extract_array_size(bounds)),
                 });
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
+                let type_information = self.get_type_name_for_type(
+                    &ExtendedTypeName { type_name: referenced_type.get_name().unwrap_or_default().to_string(), is_variadic: false },
+                    builtin_types,
+                );
+
                 let data_type = format!(
                     "{}{}",
-                    referenced_type.get_name().unwrap_or_default(),
+                    type_information.get_type_name(),
                     self.get_reference_symbol()
                 );
 
@@ -254,8 +276,13 @@ impl GeneratedHeaderForC {
                 });
             }
             ast::DataType::SubRangeType { name, referenced_type, .. } => {
+                let type_information = self.get_type_name_for_type(
+                    &ExtendedTypeName { type_name: referenced_type.to_string(), is_variadic: false },
+                    builtin_types,
+                );
+
                 self.template_data.user_defined_types.aliases.push(Variable {
-                    data_type: referenced_type.clone(),
+                    data_type: type_information.get_type_name(),
                     name: name.clone().unwrap_or_default(),
                     variable_type: VariableType::Default,
                 });
@@ -291,6 +318,7 @@ impl GeneratedHeaderForC {
                 VariableBlockType::Local,
             ],
             &compilation_unit.user_types,
+            true,
         );
 
         if let Some(super_class) = &pou.super_class {
@@ -306,12 +334,11 @@ impl GeneratedHeaderForC {
                 .push(UserType { name: data_type.to_string(), variables: input_variables });
         }
 
-        // Push the initialization global variable
-        self.template_data.global_variables.push(Variable {
-            data_type: data_type.to_string(),
-            name: format!("__{function_name}__init"),
-            variable_type: VariableType::Declaration(String::from("{ 0 }")),
-        });
+        // Get void type
+        let void_type = self.get_type_name_for_type(
+            &ExtendedTypeName { type_name: String::new(), is_variadic: false },
+            builtin_types,
+        );
 
         // Push the parameters for the function
         let mut parameters: Vec<Variable> = Vec::new();
@@ -319,6 +346,13 @@ impl GeneratedHeaderForC {
             data_type: format!("{data_type}{}", self.get_reference_symbol()),
             name: String::from("self"),
             variable_type: VariableType::Default,
+        });
+
+        // TODO: May need to be removed after the initialization changes are made to the compiler
+        self.template_data.functions.push(Function {
+            return_type: void_type.get_type_name(),
+            name: format!("__{function_name}__init"),
+            parameters: parameters.clone(),
         });
 
         self.template_data.functions.push(Function {
@@ -367,11 +401,14 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         variable_block_types: &[VariableBlockType],
         user_types: &[UserTypeDeclaration],
+        include_external: bool,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
 
         for variable_block in variable_blocks {
-            if variable_block_types.contains(&variable_block.kind) {
+            if variable_block_types.contains(&variable_block.kind)
+                && (include_external || variable_block.linkage != LinkageType::External)
+            {
                 let is_reference = variable_block.kind == VariableBlockType::Input(ArgumentProperty::ByRef)
                     || variable_block.kind == VariableBlockType::InOut
                     || variable_block.kind == VariableBlockType::Output;
@@ -460,6 +497,13 @@ impl GeneratedHeaderForC {
                         data_type,
                         name: variable.get_name().to_string(),
                         variable_type: VariableType::Variadic,
+                    });
+                }
+                TypeAttribute::Array(size) => {
+                    variables.push(Variable {
+                        data_type,
+                        name: variable.get_name().to_string(),
+                        variable_type: VariableType::Array(size),
                     });
                 }
                 TypeAttribute::Default => {

@@ -707,7 +707,8 @@ expression: json
                   "File": "enum_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1096,7 +1097,8 @@ expression: json
                   "File": "enum_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             }
           ],
           "file": {

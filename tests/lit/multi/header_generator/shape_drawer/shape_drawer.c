@@ -1,5 +1,7 @@
 #include "shape_drawer.h"
 
+void __Rectangle__init(Rectangle_type* self) {}
+
 void Rectangle(Rectangle_type* self) {}
 
 void Rectangle__FB_INIT(Rectangle_type* self) {

@@ -509,7 +509,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -566,7 +567,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -702,7 +704,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -757,7 +760,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -812,7 +816,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -867,7 +872,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -922,7 +928,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1034,7 +1041,8 @@ expression: json
                   "File": "global_complex_types.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             }
           ],
           "file": {

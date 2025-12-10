@@ -641,7 +641,8 @@ expression: json
                 "File": "function_blocks.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -670,7 +671,8 @@ expression: json
                 "File": "function_blocks.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -712,7 +714,8 @@ expression: json
                 "File": "function_blocks.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -754,7 +757,8 @@ expression: json
                 "File": "function_blocks.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           }
         ],
         "file": {

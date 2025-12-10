@@ -1,0 +1,41 @@
+---
+source: tests/integration/header_generator_tests.rs
+assertion_line: 201
+expression: "fs::read_to_string(dir.path().join(\"log.h\").to_str().unwrap()).unwrap()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef LOG
+#define LOG
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void Log_Print(ErrorCode *const error_code, int priority, const char *format, ...) M_FORMAT_PRINTF(3, 4);
+
+void Log_Send(ErrorCode *const error_code, int priority, const char *format, ...) M_FORMAT_PRINTF(3, 0) M_SENTINEL;
+
+void Log_SetRootLevel(ErrorCode *const error_code, int priority);
+
+int Log_GetRootLevel();
+
+void Log_SetLevel(ErrorCode *const error_code, int priority);
+
+int Log_GetLevel();
+
+bool Log_IsEnabled(int priority);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !LOG */

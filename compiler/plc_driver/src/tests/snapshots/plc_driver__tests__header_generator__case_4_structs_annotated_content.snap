@@ -428,7 +428,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -602,7 +603,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -968,7 +970,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -1025,7 +1028,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -1082,7 +1086,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           },
           {
             "data_type": {
@@ -1218,7 +1223,8 @@ expression: json
                 "File": "structs.pli"
               }
             },
-            "scope": null
+            "scope": null,
+            "linkage": "Internal"
           }
         ],
         "file": {

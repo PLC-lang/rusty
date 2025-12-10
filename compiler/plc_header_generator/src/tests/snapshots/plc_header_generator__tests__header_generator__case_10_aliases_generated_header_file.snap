@@ -13,17 +13,24 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef char T_String[50];
 
-typedef DINT T_DInt;
+typedef int32_t T_DInt;
 
-typedef INT T_Array[12];
+typedef int16_t T_Array[12];
 
-typedef BOOL T_Bool;
+typedef bool T_Bool;
 
 void fnThatUsesAliases(T_String* varStringInput, T_DInt varDIntInput, T_Array* varArrayOfIntInput, T_Bool varBoolInput);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !ALIASES */

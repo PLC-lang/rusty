@@ -1,0 +1,55 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+ (**
+ * @addtogroup VPoolPvAsync
+ * @brief Asynchornous process variable interface.
+ * @{
+*)
+(**
+ * @brief Function block to asynchronously interact with a process variable.
+ *)
+FUNCTION_BLOCK VPOOL_PvAsync EXTENDS ASYNC_Task
+VAR
+    _Internal_ : POINTER TO BYTE;
+END_VAR
+(**
+ * @brief Open a process variable asynchronously.
+ *
+ * @param[in] OpenParams Pointer to VPOOL_OpenParams structure containing:
+ *   - Name: Specifies the process variable name
+ *   - Flags: Open flags
+ *   - Error: Error code (output)
+ *   - PvHandle: Process variable handle (output)
+ * @param[in,out] State Pointer to ASYNC_JobState for tracking operation progress
+ * @return ErrorCode indicating immediate operation status
+ * @see VPOOL_Pv_Open, VPOOL_OpenParams, ASYNC_JobState
+ *)
+METHOD PUBLIC Open: ErrorCode
+VAR_INPUT
+    OpenParams: REF_TO VPOOL_OpenParams;
+    State: REF_TO ASYNC_JobState;
+END_VAR
+END_METHOD
+(**
+ * @brief Close a process variable asynchronously.
+ *
+ * @param[in] CloseParams Pointer to VPOOL_CloseParams structure containing:
+ *   - PvHandle: Process variable handle
+ *   - Error: Error code (output)
+ * @param[in,out] State Pointer to ASYNC_JobState for tracking operation progress
+ * @return ErrorCode indicating immediate operation status
+ * @see VPOOL_Pv_Close, VPOOL_CloseParams, ASYNC_JobState
+ *)
+METHOD PUBLIC Close: ErrorCode
+VAR_INPUT
+    CloseParams: REF_TO VPOOL_CloseParams;
+    State: REF_TO ASYNC_JobState;
+END_VAR
+END_METHOD
+METHOD FB_INIT
+END_METHOD
+END_FUNCTION_BLOCK
+(**
+ * @}
+*)

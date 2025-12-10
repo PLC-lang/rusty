@@ -9,8 +9,11 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 {% raw %}
 {% endraw %}
 
@@ -78,5 +81,9 @@ extern {{ format_variable_for_definition(variable=global_variable) }};
 {% raw %}
 {% endraw %}
 {%- endfor -%}
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !{{ file_name_caps }} */

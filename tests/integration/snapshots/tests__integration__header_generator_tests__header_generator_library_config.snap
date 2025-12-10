@@ -1,0 +1,43 @@
+---
+source: tests/integration/header_generator_tests.rs
+assertion_line: 99
+expression: "fs::read_to_string(dir.path().join(\"config_base.h\").to_str().unwrap()).unwrap()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef CONFIG_BASE
+#define CONFIG_BASE
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+void Config_GetString(ErrorCode *const err_code, const char *key, char *value);
+
+void Config_GetBool(ErrorCode *const err_code, const char *key, bool *value);
+
+void Config_GetInteger(ErrorCode *const err_code, const char *key, int64_t *value);
+
+void Config_GetReal(ErrorCode *const err_code, const char *key, double *value);
+
+void Config_SetString(ErrorCode *const err_code, const char *key, const char *value);
+
+void Config_SetBool(ErrorCode *const err_code, const char *key, bool value);
+
+void Config_SetInteger(ErrorCode *const err_code, const char *key, int64_t value);
+
+void Config_SetReal(ErrorCode *const err_code, const char *key, double value);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !CONFIG_BASE */

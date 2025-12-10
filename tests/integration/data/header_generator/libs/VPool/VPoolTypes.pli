@@ -1,0 +1,76 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+(**
+ * @addtogroup VpoolTypes
+ * @brief VPool type definitions.
+ * @{
+ *)
+(** @brief Process variable handle. *)
+TYPE VPOOL_Handle :  POINTER TO BYTE;
+END_TYPE
+(**
+ * @brief Enumeration of PV access modes.
+ *
+ * The access mode defines the operations that are allowed on the process variable.
+ *)
+TYPE VPOOL_Flags :
+(
+    VPOOL_Flags_ReadOnly := 0,      (**< @brief Open PV for read only access. *)
+    VPOOL_Flags_WriteOnly := 1,     (**< @brief Open PV for write only access. *)
+    VPOOL_Flags_ReadWrite := 2,     (**< @brief Open PV for read/write access. *)
+    VPOOL_Flags_Attr := 16#1000,    (**< @brief Open PV for attribute access. *)
+    VPOOL_Flags_Force := 16#2000,   (**< @brief Open PV for forcing. *)
+    VPOOL_Flags_Exclusive := 16#80  (**< @brief Open PV exclusively for write access. *)
+);
+END_TYPE
+(** @brief Enumeration of PV types. *)
+TYPE VPOOL_Type :
+(
+    VPOOL_Type_Null := 0,       (**< @brief Type is undefined or unknown.*)
+    VPOOL_Type_Bool := 1,       (**< @brief Type is boolean. *)
+    VPOOL_Type_Int8 := 2,       (**< @brief Type is signed 8-bit. *)
+    VPOOL_Type_Int16 := 3,      (**< @brief Type is signed 16-bit. *)
+    VPOOL_Type_Int32 := 4,      (**< @brief Type is signed 32-bit. *)
+    VPOOL_Type_Int64 := 5,      (**< @brief Type is signed 64-bit. *)
+    VPOOL_Type_Uint8 := 6,      (**< @brief Type is unsigned 8-bit. *)
+    VPOOL_Type_Uint16 := 7,     (**< @brief Type is unsigned 16-bit. *)
+    VPOOL_Type_Uint32 := 8,     (**< @brief Type is unsigned 16-bit. *)
+    VPOOL_Type_Uint64 := 9,     (**< @brief Type is unsigned 64-bit. *)
+    VPOOL_Type_Real32 := 10,    (**< @brief Type is 32-bit floating point. *)
+    VPOOL_Type_Real64 := 11,    (**< @brief Type is 64-bit floating point. *)
+    VPOOL_Type_String := 12,    (**< @brief Type is UTF-8 character string. *)
+    VPOOL_Type_Datetime := 13,  (**< @brief Type is date-time. *)
+    VPOOL_Type_Blob := 14       (**< @brief Type is Blob (Binary large object). *)
+);
+END_TYPE
+(** @brief Enumeration of PV options. *)
+TYPE VPOOL_Options :
+(
+    VPOOL_Option_None := 0,       (**< Default option. *)
+    VPOOL_Option_Timestamp := 1,  (**< PV has a time stamp. *)
+    VPOOL_Option_Status := 2      (**< PV has a status. *)
+);
+END_TYPE
+(** @brief Enumeration of PV access modes. *)
+TYPE VPOOL_Mode :
+(
+    VPOOL_Mode_ReadOnly := 0,    (**< Read only mode. *)
+    VPOOL_Mode_WriteOnly := 1,   (**< Write only mode. *)
+    VPOOL_Mode_ReadWrite := 2    (**< Read/Write mode. *)
+);
+END_TYPE
+(** @brief Process variable attributes. *)
+TYPE VPOOL_Attributes :
+STRUCT
+    Datatype : VPOOL_Type;              (**< Process variable data type. *)
+    Size : UDINT;                       (**< Size of a single element in bytes. *)
+    Mode : VPOOL_Mode;                  (**< Process variable mode. *)
+    Options : VPOOL_Options;            (**< Options of the process variable. *)
+    ElementCount : UDINT;               (**< Total number of elements. *)
+    Dimensions : ARRAY[0..2] OF UDINT;  (**< Dimensions of the variable. Limited to three dimensions. In case of more dimensions the variable is reflacted as a one dimensional array. *)
+END_STRUCT
+END_TYPE
+(**
+ * @}
+ *)

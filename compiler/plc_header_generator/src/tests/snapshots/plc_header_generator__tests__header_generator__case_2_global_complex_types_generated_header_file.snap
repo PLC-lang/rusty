@@ -13,8 +13,11 @@ expression: "&generated_headers[0].get_contents()"
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 extern char gVarString[255];
 extern int16_t gVarWString[6000];
@@ -24,5 +27,9 @@ extern int16_t* gVarPointerToInt;
 extern time_t* gVarRefToDate;
 extern time_t* gVarPointerToDate;
 extern int16_t gVarIntWithRange;
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !GLOBAL_COMPLEX_TYPES */

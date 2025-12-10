@@ -1,0 +1,65 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+(**
+ * @defgroup file-types Types
+ * @brief File type definitions.
+ * @{
+*)
+(** @brief File handle type. *)
+TYPE FILE_Handle :  POINTER TO BYTE;
+END_TYPE
+(** @brief Specifies the possible file modes to open a file *)
+TYPE FILE_AccessMode :
+(
+        FILE_AccessMode_Read, (**< Open a existing file for reading. *)
+        FILE_AccessMode_Write, (**< Create a file for writing. Discards existing file content. *)
+        FILE_AccessMode_Append, (**< Append to a file. Preserves existing file content. *)
+        FILE_AccessMode_ReadPlus, (**< Open a file for read/write. Read from the start. Fails if the file does not exist. *)
+        FILE_AccessMode_WritePlus, (**< Create a file for read/write. Discards existing file content. *)
+        FILE_AccessMode_AppendPlus (**< Open a file for read/write. Preserves existing file content or create a new one if it does not exist. *)
+    ) ;
+END_TYPE
+(** @brief Specifies the seek origin *)
+TYPE FILE_SeekOrigin :
+(
+        FILE_SeekOrigin_Begin, (**< Position relative from the beginning of the file. *)
+        FILE_SeekOrigin_Current, (**< Position relative from the current file position. *)
+        FILE_SeekOrigin_End (**< Position relative from the end of the file. *)
+    ) ;
+END_TYPE
+(** @brief File mode. *)
+TYPE FILE_Mode : UDINT;
+END_TYPE
+(** @brief File type enumeration *)
+TYPE FILE_Type :
+(
+    FILE_Type_Unknown,     (**< Unknown file type *)
+    FILE_Type_Regular,     (**< Regular file *)
+    FILE_Type_Directory,   (**< Directory *)
+    FILE_Type_CharDevice,  (**< Character device *)
+    FILE_Type_BlockDevice, (**< Block device *)
+    FILE_Type_FIFO,        (**< Named pipe (FIFO) *)
+    FILE_Type_Socket,      (**< Socket *)
+    FILE_Type_SymLink      (**< Symbolic link *)
+);
+END_TYPE
+(** @brief File permission flags *)
+TYPE FILE_Permission : DINT;
+END_TYPE
+(** @brief Specifies the file status information *)
+TYPE FILE_Status :
+STRUCT
+    FileType: FILE_Type;  (**< Type of the file. *)
+    Permissions: FILE_Permission; (**< File permissions. *)
+    Uid: UDINT; (**< User ID of the file owner *)
+    Gid: UDINT; (**< Group ID of the file owner *)
+    Size: ULINT; (**< Size of the file *)
+    LastAccess: DATE; (**< Time of last access *)
+    LastModified: DATE; (**< Time of last modification *)
+    LastStatusChange: DATE; (**< Time of last status change *)
+END_STRUCT
+END_TYPE
+(**
+ * @}
+*)

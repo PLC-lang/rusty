@@ -9,8 +9,11 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef struct {
     uint64_t* __vtable;
@@ -18,12 +21,16 @@ typedef struct {
     int32_t y;
 } Rectangle_type;
 
-extern Rectangle_type __Rectangle__init = { 0 };
+void __Rectangle__init(Rectangle_type* self);
 
 void Rectangle(Rectangle_type* self);
 
 void Rectangle__FB_INIT(Rectangle_type* self);
 
 void DrawRectangle(int32_t x, int32_t y);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !SHAPE_DRAWER */

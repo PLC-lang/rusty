@@ -9,11 +9,18 @@
 #include <stdint.h>
 #include <math.h>
 #include <stdbool.h>
-
 #include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 typedef char T_Message[255];
 
 void PrintMessage(T_Message* message);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
 #endif /* !MESSAGE_PRINTER */

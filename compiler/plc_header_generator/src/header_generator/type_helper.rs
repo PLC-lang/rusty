@@ -1,5 +1,5 @@
 use crate::header_generator::ExtendedTypeName;
-use plc::typesystem::DataType;
+use plc::typesystem::{DataType, TypeSize};
 
 mod type_helper_c;
 
@@ -19,6 +19,7 @@ pub enum TypeAttribute {
     Default,
     UserGenerated,
     Variadic,
+    Array(i128),
 }
 
 impl TypeInformation {
@@ -52,7 +53,11 @@ pub trait TypeHelper {
     fn get_type_name_for_string(&self, is_wide: &bool) -> String;
 }
 
-fn determine_type_attribute(is_variadic: bool, is_user_generated: bool) -> TypeAttribute {
+fn determine_type_attribute(
+    is_variadic: bool,
+    is_user_generated: bool,
+    array_size_option: Option<i128>,
+) -> TypeAttribute {
     if is_variadic {
         return TypeAttribute::Variadic;
     }
@@ -61,5 +66,16 @@ fn determine_type_attribute(is_variadic: bool, is_user_generated: bool) -> TypeA
         return TypeAttribute::UserGenerated;
     }
 
+    if let Some(array_size) = array_size_option {
+        return TypeAttribute::Array(array_size);
+    }
+
     TypeAttribute::Default
+}
+
+fn extract_string_size(type_size: &TypeSize) -> i128 {
+    match type_size {
+        TypeSize::LiteralInteger(size) => (*size).into(),
+        _ => i128::default(),
+    }
 }

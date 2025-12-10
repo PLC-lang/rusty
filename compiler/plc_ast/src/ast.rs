@@ -691,6 +691,7 @@ pub struct UserTypeDeclaration {
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
+    pub linkage: LinkageType,
 }
 
 impl Debug for UserTypeDeclaration {

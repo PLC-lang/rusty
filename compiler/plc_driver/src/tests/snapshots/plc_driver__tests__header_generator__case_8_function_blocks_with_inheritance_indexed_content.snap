@@ -1238,7 +1238,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1350,7 +1351,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1462,7 +1464,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1574,7 +1577,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1603,7 +1607,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1645,7 +1650,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1687,7 +1693,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1729,7 +1736,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             },
             {
               "data_type": {
@@ -1771,7 +1779,8 @@ expression: json
                   "File": "function_blocks_with_inheritance.pli"
                 }
               },
-              "scope": null
+              "scope": null,
+              "linkage": "Internal"
             }
           ],
           "file": {
