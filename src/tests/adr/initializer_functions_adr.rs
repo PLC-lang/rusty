@@ -992,7 +992,7 @@ fn intializing_temporary_variables() {
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -1039,7 +1039,7 @@ fn intializing_temporary_variables() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 

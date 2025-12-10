@@ -2,7 +2,7 @@
 
 test:
 	@clear
-	cargo nextest run --no-fail-fast --workspace
+	cargo nextest run --no-fail-fast --workspace && ./scripts/build.sh --lit
 
 report:
 	@clear

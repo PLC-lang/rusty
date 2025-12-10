@@ -293,7 +293,7 @@ fn switch_case_debug_info() {
       br label %condition_check, !dbg !18
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
@@ -301,7 +301,7 @@ fn switch_case_debug_info() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -383,7 +383,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void, !dbg !22
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_fb(ptr %0) {
@@ -430,7 +430,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -530,7 +530,7 @@ fn action_with_var_temp() {
       ret void, !dbg !31
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_plc_prg(ptr %0) {
@@ -554,7 +554,7 @@ fn action_with_var_temp() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -719,16 +719,16 @@ END_FUNCTION
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
     define void @__init_struct_(ptr %0) {
@@ -794,9 +794,9 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
-    attributes #2 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!35, !36}
     !llvm.dbg.cu = !{!37}
@@ -936,7 +936,7 @@ fn constants_are_tagged_as_such() {
       ret i32 %bar_ret, !dbg !45
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_foo(ptr %0) {
@@ -976,7 +976,7 @@ fn constants_are_tagged_as_such() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -1173,7 +1173,7 @@ fn test_debug_info_auto_deref_parameters() {
       ret void, !dbg !46
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mystruct(ptr %0) {
@@ -1211,7 +1211,7 @@ fn test_debug_info_auto_deref_parameters() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!37, !38}
     !llvm.dbg.cu = !{!39}
@@ -1400,7 +1400,7 @@ fn test_debug_info_mixed_pointer_types() {
       ret void, !dbg !43
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mixed_ptr(ptr %0) {
@@ -1425,7 +1425,7 @@ fn test_debug_info_mixed_pointer_types() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1530,7 +1530,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       ret void, !dbg !59
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mystruct(ptr %0) {
@@ -1568,7 +1568,7 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!50, !51}
     !llvm.dbg.cu = !{!52}
@@ -1676,7 +1676,7 @@ fn range_datatype_debug() {
       ret i32 %main_ret, !dbg !16
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
@@ -1684,7 +1684,7 @@ fn range_datatype_debug() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -1754,7 +1754,7 @@ fn range_datatype_reference_expr_bounds_debug() {
       ret i32 %main_ret, !dbg !20
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
@@ -1762,7 +1762,7 @@ fn range_datatype_reference_expr_bounds_debug() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -1828,7 +1828,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
       ret void, !dbg !19
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_prog(ptr %0) {
@@ -1852,7 +1852,7 @@ fn range_datatype_fqn_reference_bounds_debug() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -1921,7 +1921,7 @@ fn range_datatype_debug_alias_reused() {
       ret void, !dbg !21
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_prog(ptr %0) {
@@ -1945,7 +1945,7 @@ fn range_datatype_debug_alias_reused() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!12, !13}
     !llvm.dbg.cu = !{!14}

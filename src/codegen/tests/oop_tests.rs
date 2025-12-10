@@ -439,13 +439,13 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -538,8 +538,8 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -663,7 +663,7 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
     define void @__init___vtable_grandparent(ptr %0) {
@@ -794,7 +794,7 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 
@@ -1394,7 +1394,7 @@ fn pass_this_to_method() {
       ret i16 %FB_Test2__bar_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_fb_test(ptr %0) {
@@ -1480,7 +1480,7 @@ fn pass_this_to_method() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2503,7 +2503,7 @@ fn function_with_output_used_in_main_by_extension() {
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -2596,6 +2596,6 @@ fn function_with_output_used_in_main_by_extension() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

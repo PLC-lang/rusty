@@ -57,7 +57,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void, !dbg !42
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -144,7 +144,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -275,7 +275,7 @@ fn write_to_parent_variable_qualified_access() {
       ret void, !dbg !48
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_fb(ptr %0) {
@@ -404,7 +404,7 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -557,16 +557,16 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !52
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
     define void @__init___vtable_foo(ptr %0) {
@@ -659,9 +659,9 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
-    attributes #2 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!22, !23}
     !llvm.dbg.cu = !{!24}
@@ -846,10 +846,10 @@ fn array_in_parent_generated() {
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
     define void @__init___vtable_grandparent(ptr %0) {
@@ -980,8 +980,8 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1162,7 +1162,7 @@ fn complex_array_access_generated() {
       ret void, !dbg !54
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_grandparent(ptr %0) {
@@ -1293,7 +1293,7 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1415,7 +1415,7 @@ fn function_block_method_debug_info() {
       ret void, !dbg !33
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -1508,7 +1508,7 @@ fn function_block_method_debug_info() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!16, !17}
     !llvm.dbg.cu = !{!18}
@@ -1781,13 +1781,13 @@ END_FUNCTION
       ret i32 %main_ret, !dbg !93
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind readnone speculatable willreturn
+    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
     declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #2
 
     define void @__init___vtable_parent(ptr %0) {
@@ -1918,9 +1918,9 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #2 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
 
     !llvm.module.flags = !{!26, !27}
     !llvm.dbg.cu = !{!28}
