@@ -1,11 +1,13 @@
+use std::path::PathBuf;
+
 use plc_ast::{
     ast::{
-        Assignment, AstFactory, AstId, AstNode, AstStatement, DataTypeDeclaration, Implementation,
-        LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock,
+        Assignment, AstFactory, AstId, AstNode, AstStatement, CompilationUnit, DataTypeDeclaration,
+        Implementation, LinkageType, Pou, PouType, ReferenceExpr, Variable, VariableBlock,
     },
     provider::IdProvider,
 };
-use plc_source::source_location::SourceLocation;
+use plc_source::source_location::{FileMarker, SourceLocation};
 
 #[derive(Clone, Default)]
 pub struct Context {
@@ -196,6 +198,30 @@ pub fn new_constructor(
     (pou, implementation)
 }
 
+pub fn new_unit_constructor(
+    unit_name: &str,
+    statements: Vec<AstNode>,
+    mut id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    let ctor_name = format!("__{unit_name}_ctor");
+    let pou = new_pou(
+        &ctor_name,
+        id_provider.next_id(),
+        vec![],
+        PouType::ProjectInit,
+        LinkageType::External,
+        &SourceLocation::internal(),
+    );
+    let implementation = new_implementation(
+        &ctor_name,
+        statements,
+        PouType::Init,
+        LinkageType::Internal,
+        SourceLocation::internal(),
+    );
+    (pou, implementation)
+}
+
 pub fn new_variable(name: &str, data_type_name: &str) -> Variable {
     Variable {
         name: name.into(),
@@ -255,4 +281,11 @@ pub fn new_implementation(
         generic: false,
         access: None,
     }
+}
+
+/// Returns a sanitized unit name suitable for use as an identifier (e.g. in generated code)
+pub fn get_unit_name(unit: &CompilationUnit) -> String {
+    let path: PathBuf = (&unit.file).into();
+    let name = path.file_name().map(|it| it.to_string_lossy()).unwrap_or_default();
+    name.replace('*', "_")
 }
