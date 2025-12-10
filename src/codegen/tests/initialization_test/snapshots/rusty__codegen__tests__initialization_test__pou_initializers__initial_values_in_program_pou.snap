@@ -13,11 +13,11 @@ target triple = "[filtered]"
 
 define void @Main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %Main, ptr %0, i32 0, i32 0
-  %xx = getelementptr inbounds %Main, ptr %0, i32 0, i32 1
-  %y = getelementptr inbounds %Main, ptr %0, i32 0, i32 2
-  %yy = getelementptr inbounds %Main, ptr %0, i32 0, i32 3
-  %z = getelementptr inbounds %Main, ptr %0, i32 0, i32 4
-  %zz = getelementptr inbounds %Main, ptr %0, i32 0, i32 5
+  %x = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
+  %xx = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 2
+  %yy = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 3
+  %z = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 4
+  %zz = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 5
   ret void
 }

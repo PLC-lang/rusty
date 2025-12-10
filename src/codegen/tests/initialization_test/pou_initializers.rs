@@ -435,8 +435,8 @@ fn unary_plus_in_initializer() {
 
     define void @exp(ptr %0) {
     entry:
-      %x = getelementptr inbounds %exp, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %exp, ptr %0, i32 0, i32 1
+      %x = getelementptr inbounds nuw %exp, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %exp, ptr %0, i32 0, i32 1
       ret void
     }
     "#);

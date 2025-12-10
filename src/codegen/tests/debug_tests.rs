@@ -365,7 +365,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         #dbg_declare(ptr %0, !18, !DIExpression(), !19)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !19
     }
 
@@ -374,7 +374,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
         #dbg_declare(ptr %0, !21, !DIExpression(), !22)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !22
     }
 
@@ -383,10 +383,10 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_fb, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
       store ptr @fb__foo, ptr %foo, align 8
       ret void
     }
@@ -396,7 +396,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
       store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
@@ -663,42 +663,42 @@ END_FUNCTION
       store i16 0, ptr %i, align 2
       call void @__init_struct_(ptr %st), !dbg !53
       call void @__user_init_struct_(ptr %st), !dbg !53
-      %s1 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 2, !dbg !54
+      %s1 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 2, !dbg !54
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s1, i32 80, i1 false), !dbg !54
-      %inner = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !55
-      %s2 = getelementptr inbounds %inner, ptr %inner, i32 0, i32 0, !dbg !55
+      %inner = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !55
+      %s2 = getelementptr inbounds nuw %inner, ptr %inner, i32 0, i32 0, !dbg !55
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s2, i32 80, i1 false), !dbg !55
-      %b3 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 3, !dbg !56
+      %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !56
       %load_b = load i8, ptr %b3, align 1, !dbg !56
       store i8 %load_b, ptr %b, align 1, !dbg !56
-      %inner4 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !57
-      %b5 = getelementptr inbounds %inner, ptr %inner4, i32 0, i32 1, !dbg !57
+      %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !57
+      %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !57
       %load_b6 = load i8, ptr %b5, align 1, !dbg !57
       store i8 %load_b6, ptr %b, align 1, !dbg !57
-      %arr7 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 5, !dbg !58
+      %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !58
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
-      %inner8 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !59
-      %arr9 = getelementptr inbounds %inner, ptr %inner8, i32 0, i32 3, !dbg !59
+      %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !59
+      %arr9 = getelementptr inbounds nuw %inner, ptr %inner8, i32 0, i32 3, !dbg !59
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
-      %i10 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 6, !dbg !60
+      %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !60
       %load_i = load i16, ptr %i10, align 2, !dbg !60
       store i16 %load_i, ptr %i, align 2, !dbg !60
-      %inner11 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !61
-      %i12 = getelementptr inbounds %inner, ptr %inner11, i32 0, i32 4, !dbg !61
+      %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !61
+      %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !61
       %load_i13 = load i16, ptr %i12, align 2, !dbg !61
       store i16 %load_i13, ptr %i, align 2, !dbg !61
       %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !62
-      %arr14 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 5, !dbg !62
+      %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !62
       %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !62
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 %tmpVar15, i32 80, i1 false), !dbg !62
       %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !63
-      %inner17 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !63
-      %arr18 = getelementptr inbounds %inner, ptr %inner17, i32 0, i32 3, !dbg !63
+      %inner17 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !63
+      %arr18 = getelementptr inbounds nuw %inner, ptr %inner17, i32 0, i32 3, !dbg !63
       %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !63
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar16, ptr align 1 %tmpVar19, i32 80, i1 false), !dbg !63
       %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !64
-      %inner21 = getelementptr inbounds %struct_, ptr %st, i32 0, i32 0, !dbg !64
-      %arr22 = getelementptr inbounds %inner, ptr %inner21, i32 0, i32 3, !dbg !64
+      %inner21 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !64
+      %arr22 = getelementptr inbounds nuw %inner, ptr %inner21, i32 0, i32 3, !dbg !64
       %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !64
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar20, ptr align 1 %tmpVar23, i32 80, i1 false), !dbg !64
       ret void, !dbg !65
@@ -718,19 +718,19 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %inner = getelementptr inbounds %struct_, ptr %deref, i32 0, i32 0
+      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
       call void @__init_inner(ptr %inner)
       %deref1 = load ptr, ptr %self, align 8
-      %s = getelementptr inbounds %struct_, ptr %deref1, i32 0, i32 2
+      %s = getelementptr inbounds nuw %struct_, ptr %deref1, i32 0, i32 2
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
       %deref2 = load ptr, ptr %self, align 8
-      %b = getelementptr inbounds %struct_, ptr %deref2, i32 0, i32 3
+      %b = getelementptr inbounds nuw %struct_, ptr %deref2, i32 0, i32 3
       store i8 1, ptr %b, align 1
       %deref3 = load ptr, ptr %self, align 8
-      %r = getelementptr inbounds %struct_, ptr %deref3, i32 0, i32 4
+      %r = getelementptr inbounds nuw %struct_, ptr %deref3, i32 0, i32 4
       store float 0x400921CAC0000000, ptr %r, align 4
       %deref4 = load ptr, ptr %self, align 8
-      %i = getelementptr inbounds %struct_, ptr %deref4, i32 0, i32 6
+      %i = getelementptr inbounds nuw %struct_, ptr %deref4, i32 0, i32 6
       store i16 42, ptr %i, align 2
       ret void
     }
@@ -740,16 +740,16 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %s = getelementptr inbounds %inner, ptr %deref, i32 0, i32 0
+      %s = getelementptr inbounds nuw %inner, ptr %deref, i32 0, i32 0
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
       %deref1 = load ptr, ptr %self, align 8
-      %b = getelementptr inbounds %inner, ptr %deref1, i32 0, i32 1
+      %b = getelementptr inbounds nuw %inner, ptr %deref1, i32 0, i32 1
       store i8 1, ptr %b, align 1
       %deref2 = load ptr, ptr %self, align 8
-      %r = getelementptr inbounds %inner, ptr %deref2, i32 0, i32 2
+      %r = getelementptr inbounds nuw %inner, ptr %deref2, i32 0, i32 2
       store float 0x400921CAC0000000, ptr %r, align 4
       %deref3 = load ptr, ptr %self, align 8
-      %i = getelementptr inbounds %inner, ptr %deref3, i32 0, i32 4
+      %i = getelementptr inbounds nuw %inner, ptr %deref3, i32 0, i32 4
       store i16 42, ptr %i, align 2
       ret void
     }
@@ -766,7 +766,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %inner = getelementptr inbounds %struct_, ptr %deref, i32 0, i32 0
+      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
       call void @__user_init_inner(ptr %inner)
       ret void
     }
@@ -899,9 +899,9 @@ fn constants_are_tagged_as_such() {
     define void @prog(ptr %0) !dbg !32 {
     entry:
         #dbg_declare(ptr %0, !36, !DIExpression(), !37)
-      %a = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
-      %c = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
+      %a = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
       ret void, !dbg !37
     }
 
@@ -1141,11 +1141,11 @@ fn test_debug_info_auto_deref_parameters() {
     define void @test_with_ref_params(ptr %0) !dbg !41 {
     entry:
         #dbg_declare(ptr %0, !45, !DIExpression(), !46)
-      %input_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 0
-      %array_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 1
-      %inout_value = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 2
-      %inout_struct = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 3
-      %local_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 4
+      %input_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 0
+      %array_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 1
+      %inout_value = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 2
+      %inout_struct = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 3
+      %local_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 4
       ret void, !dbg !46
     }
 
@@ -1364,10 +1364,10 @@ fn test_debug_info_mixed_pointer_types() {
     define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
         #dbg_declare(ptr %0, !42, !DIExpression(), !43)
-      %ref_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 0
-      %inout_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 1
-      %local_ptr = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 2
-      %local_ref = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 3
+      %ref_param = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 0
+      %inout_param = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 1
+      %local_ptr = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 2
+      %local_ref = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 3
       ret void, !dbg !43
     }
 
@@ -1490,9 +1490,9 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     define void @test_with_reference_params(ptr %0) !dbg !54 {
     entry:
         #dbg_declare(ptr %0, !58, !DIExpression(), !59)
-      %ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 0
-      %array_ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 1
-      %local_reference = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 2
+      %ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 0
+      %array_ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 1
+      %local_reference = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 2
       ret void, !dbg !59
     }
 
@@ -1774,8 +1774,8 @@ fn range_datatype_fqn_reference_bounds_debug() {
     define void @prog(ptr %0) !dbg !14 {
     entry:
         #dbg_declare(ptr %0, !18, !DIExpression(), !19)
-      %TEN = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
-      %r = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
+      %TEN = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %r = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
       ret void, !dbg !19
     }
 
@@ -1860,10 +1860,10 @@ fn range_datatype_debug_alias_reused() {
     define void @prog(ptr %0) !dbg !16 {
     entry:
         #dbg_declare(ptr %0, !20, !DIExpression(), !21)
-      %ZERO = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
-      %u = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
-      %v = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
-      %w = getelementptr inbounds %prog, ptr %0, i32 0, i32 3
+      %ZERO = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %u = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+      %v = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
+      %w = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 3
       ret void, !dbg !21
     }
 

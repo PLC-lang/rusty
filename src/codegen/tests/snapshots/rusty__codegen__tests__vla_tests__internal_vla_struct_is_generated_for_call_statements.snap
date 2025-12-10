@@ -25,8 +25,8 @@ entry:
   %auto_deref = load [2 x i16], ptr %arr, align 2
   %outer_arr_gep = getelementptr inbounds [2 x i16], ptr %arr, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
-  %vla_array_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 0
-  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 1
+  %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
   store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
   store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
   %0 = load %__foo_vla, ptr %vla_struct, align 8

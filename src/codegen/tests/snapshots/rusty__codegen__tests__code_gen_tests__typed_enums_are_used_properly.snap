@@ -22,9 +22,9 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   store i8 6, ptr %x, align 1
   store i16 16, ptr %y, align 2
   store i32 26, ptr %z, align 4

@@ -15,7 +15,7 @@ declare i32 @foo(...)
 
 define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %load_x = load i32, ptr %x, align 4
   %tmpVar = add i32 %load_x, 1
   %call = call i32 (...) @foo(i1 false, i32 3, i32 %tmpVar)

@@ -19,8 +19,8 @@ target triple = "[filtered]"
 
 define void @mainPROG(ptr %0) {
 entry:
-  %x = getelementptr inbounds %mainPROG, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %mainPROG, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %mainPROG, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %mainPROG, ptr %0, i32 0, i32 1
   store i8 97, ptr %x, align 1
   store i8 32, ptr %x, align 1
   store i16 65, ptr %y, align 2

@@ -15,7 +15,7 @@ target triple = "[filtered]"
 
 define void @fb(ptr %0) {
 entry:
-  %a = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -33,7 +33,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %fb0 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %fb0 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %call = call i32 @func(ptr %fb0)
   ret void
 }

@@ -1038,9 +1038,9 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([1024 x i32], ptr null, i32 1) to i64), i1 false)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align 4
-      %0 = getelementptr inbounds %FOO, ptr %fb, i32 0, i32 0
+      %0 = getelementptr inbounds nuw %FOO, ptr %fb, i32 0, i32 0
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %0, ptr align 1 %str, i32 65536, i1 false)
-      %1 = getelementptr inbounds %FOO, ptr %fb, i32 0, i32 1
+      %1 = getelementptr inbounds nuw %FOO, ptr %fb, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %1, ptr align 1 %arr, i64 ptrtoint (ptr getelementptr ([1024 x i32], ptr null, i32 1) to i64), i1 false)
       call void @FOO(ptr %fb)
       %main_ret = load i32, ptr %main, align 4
@@ -1051,8 +1051,8 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %val = getelementptr inbounds %FOO, ptr %0, i32 0, i32 0
-      %field = getelementptr inbounds %FOO, ptr %0, i32 0, i32 1
+      %val = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 0
+      %field = getelementptr inbounds nuw %FOO, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -1121,32 +1121,32 @@ fn var_output_aggregate_types_are_memcopied() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %output = getelementptr inbounds %FB, ptr %0, i32 0, i32 0
-      %output2 = getelementptr inbounds %FB, ptr %0, i32 0, i32 1
-      %output3 = getelementptr inbounds %FB, ptr %0, i32 0, i32 2
-      %output4 = getelementptr inbounds %FB, ptr %0, i32 0, i32 3
-      %output5 = getelementptr inbounds %FB, ptr %0, i32 0, i32 4
+      %output = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 0
+      %output2 = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 1
+      %output3 = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 2
+      %output4 = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 3
+      %output5 = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 4
       ret void
     }
 
     define void @PRG(ptr %0) {
     entry:
-      %out = getelementptr inbounds %PRG, ptr %0, i32 0, i32 0
-      %out2 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 1
-      %out3 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 2
-      %out4 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 3
-      %out5 = getelementptr inbounds %PRG, ptr %0, i32 0, i32 4
-      %station = getelementptr inbounds %PRG, ptr %0, i32 0, i32 5
+      %out = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 0
+      %out2 = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 1
+      %out3 = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 2
+      %out4 = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 3
+      %out5 = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 4
+      %station = getelementptr inbounds nuw %PRG, ptr %0, i32 0, i32 5
       call void @FB(ptr %station)
-      %1 = getelementptr inbounds %FB, ptr %station, i32 0, i32 0
+      %1 = getelementptr inbounds nuw %FB, ptr %station, i32 0, i32 0
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out, ptr align 1 %1, i64 ptrtoint (ptr getelementptr (%OUT_TYPE, ptr null, i32 1) to i64), i1 false)
-      %2 = getelementptr inbounds %FB, ptr %station, i32 0, i32 1
+      %2 = getelementptr inbounds nuw %FB, ptr %station, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out2, ptr align 1 %2, i64 ptrtoint (ptr getelementptr ([11 x i32], ptr null, i32 1) to i64), i1 false)
-      %3 = getelementptr inbounds %FB, ptr %station, i32 0, i32 2
+      %3 = getelementptr inbounds nuw %FB, ptr %station, i32 0, i32 2
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %out3, ptr align 1 %3, i64 ptrtoint (ptr getelementptr ([11 x %OUT_TYPE], ptr null, i32 1) to i64), i1 false)
-      %4 = getelementptr inbounds %FB, ptr %station, i32 0, i32 3
+      %4 = getelementptr inbounds nuw %FB, ptr %station, i32 0, i32 3
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %out4, ptr align 1 %4, i32 80, i1 false)
-      %5 = getelementptr inbounds %FB, ptr %station, i32 0, i32 4
+      %5 = getelementptr inbounds nuw %FB, ptr %station, i32 0, i32 4
       call void @llvm.memcpy.p0.p0.i32(ptr align 2 %out5, ptr align 2 %5, i32 160, i1 false)
       ret void
     }
@@ -1392,7 +1392,7 @@ fn program_with_array_of_string_parameter_stride_calculation() {
 
     define void @StringProcessor(ptr %0) {
     entry:
-      %messages = getelementptr inbounds %StringProcessor, ptr %0, i32 0, i32 0
+      %messages = getelementptr inbounds nuw %StringProcessor, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %messages, align 8
       %tmpVar = getelementptr inbounds [3 x [51 x i8]], ptr %deref, i32 0, i32 0
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 @utf08_literal_0, i32 6, i1 false)
@@ -1407,7 +1407,7 @@ fn program_with_array_of_string_parameter_stride_calculation() {
 
     define void @main(ptr %0) {
     entry:
-      %text_array = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %text_array = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
       store ptr %text_array, ptr @StringProcessor_instance, align 8
       call void @StringProcessor(ptr @StringProcessor_instance)
       ret void
@@ -1460,7 +1460,7 @@ fn function_block_with_array_of_array_parameter_stride_calculation() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %matrix = getelementptr inbounds %MatrixProcessor, ptr %0, i32 0, i32 0
+      %matrix = getelementptr inbounds nuw %MatrixProcessor, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %matrix, align 8
       %tmpVar = getelementptr inbounds [2 x [4 x float]], ptr %deref, i32 0, i32 0
       %tmpVar1 = getelementptr inbounds [4 x float], ptr %tmpVar, i32 0, i32 0
@@ -1482,9 +1482,9 @@ fn function_block_with_array_of_array_parameter_stride_calculation() {
 
     define void @main(ptr %0) {
     entry:
-      %processor = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %data = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-      %1 = getelementptr inbounds %MatrixProcessor, ptr %processor, i32 0, i32 0
+      %processor = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %data = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %1 = getelementptr inbounds nuw %MatrixProcessor, ptr %processor, i32 0, i32 0
       store ptr %data, ptr %1, align 8
       call void @MatrixProcessor(ptr %processor)
       ret void
@@ -1550,8 +1550,8 @@ fn method_with_var_in_out_array_of_strings() {
 
     define void @main(ptr %0) {
     entry:
-      %handler = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %my_strings = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %handler = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %my_strings = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       call void @StringHandler__process_strings(ptr %handler, ptr %my_strings)
       ret void
     }
@@ -1635,8 +1635,8 @@ fn method_with_var_in_out_nested_integer_arrays() {
 
     define void @main(ptr %0) {
     entry:
-      %processor = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %matrix = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %processor = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %matrix = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       call void @DataProcessor__process_matrix(ptr %processor, ptr %matrix)
       ret void
     }
@@ -1719,9 +1719,9 @@ fn method_with_mixed_array_types() {
 
     define void @main(ptr %0) {
     entry:
-      %handler = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %text_data = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-      %num_data = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+      %handler = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %text_data = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %num_data = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
       call void @ComplexHandler__handle_data(ptr %handler, ptr %text_data, ptr %num_data)
       ret void
     }
@@ -1847,8 +1847,8 @@ fn function_with_array_of_array_return() {
 
     define void @main(ptr %0) {
     entry:
-      %numbers = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %strings = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %numbers = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %strings = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %__bar1 = alloca [2 x [2 x i16]], align 2
       call void @llvm.memset.p0.i64(ptr align 1 %__bar1, i8 0, i64 ptrtoint (ptr getelementptr ([2 x [2 x i16]], ptr null, i32 1) to i64), i1 false)
       call void @bar(ptr %__bar1)

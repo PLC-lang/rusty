@@ -16,9 +16,9 @@ target triple = "[filtered]"
 
 define void @aaa(ptr %0) {
 entry:
-  %a = getelementptr inbounds %aaa, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %aaa, ptr %0, i32 0, i32 1
-  %arr = getelementptr inbounds %aaa, ptr %0, i32 0, i32 2
-  %arr2 = getelementptr inbounds %aaa, ptr %0, i32 0, i32 3
+  %a = getelementptr inbounds nuw %aaa, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %aaa, ptr %0, i32 0, i32 1
+  %arr = getelementptr inbounds nuw %aaa, ptr %0, i32 0, i32 2
+  %arr2 = getelementptr inbounds nuw %aaa, ptr %0, i32 0, i32 3
   ret void
 }

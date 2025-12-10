@@ -15,8 +15,8 @@ define void @fbWithConstant(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %x = getelementptr inbounds %fbWithConstant, ptr %0, i32 0, i32 0
-  %const = getelementptr inbounds %fbWithConstant, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %fbWithConstant, ptr %0, i32 0, i32 0
+  %const = getelementptr inbounds nuw %fbWithConstant, ptr %0, i32 0, i32 1
   store i16 2, ptr %x, align 2
   ret void
 }

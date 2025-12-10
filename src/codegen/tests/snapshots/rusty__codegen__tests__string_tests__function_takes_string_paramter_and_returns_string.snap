@@ -26,7 +26,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %text1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %text1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %__read_string0 = alloca [81 x i8], align 1
   call void @llvm.memset.p0.i64(ptr align 1 %__read_string0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
   call void @read_string(ptr %__read_string0, ptr @utf08_literal_0)

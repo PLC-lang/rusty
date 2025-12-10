@@ -41,10 +41,10 @@ fn members_from_base_class_are_available_in_subclasses() {
         #dbg_declare(ptr %0, !36, !DIExpression(), !37)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %a = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
-      %c = getelementptr inbounds %foo, ptr %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %a = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
+      %c = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 3
       ret void, !dbg !37
     }
 
@@ -53,7 +53,7 @@ fn members_from_base_class_are_available_in_subclasses() {
         #dbg_declare(ptr %0, !41, !DIExpression(), !42)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !42
     }
 
@@ -62,7 +62,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       ret void
     }
@@ -72,7 +72,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @bar, ptr %__body, align 8
       ret void
     }
@@ -82,7 +82,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -92,11 +92,11 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
@@ -113,7 +113,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -242,9 +242,9 @@ fn write_to_parent_variable_qualified_access() {
         #dbg_declare(ptr %0, !36, !DIExpression(), !37)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %fb, ptr %0, i32 0, i32 1
-      %y = getelementptr inbounds %fb, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
+      %y = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 2
       ret void, !dbg !37
     }
 
@@ -253,7 +253,7 @@ fn write_to_parent_variable_qualified_access() {
         #dbg_declare(ptr %0, !41, !DIExpression(), !42)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %0, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %0, i32 0, i32 0
       ret void, !dbg !42
     }
 
@@ -262,10 +262,10 @@ fn write_to_parent_variable_qualified_access() {
         #dbg_declare(ptr %0, !46, !DIExpression(), !47)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %myFb = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
-      %__fb = getelementptr inbounds %fb2, ptr %myFb, i32 0, i32 0, !dbg !47
-      %x = getelementptr inbounds %fb, ptr %__fb, i32 0, i32 1, !dbg !47
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %myFb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+      %__fb = getelementptr inbounds nuw %fb2, ptr %myFb, i32 0, i32 0, !dbg !47
+      %x = getelementptr inbounds nuw %fb, ptr %__fb, i32 0, i32 1, !dbg !47
       store i16 1, ptr %x, align 2, !dbg !47
       ret void, !dbg !48
     }
@@ -275,7 +275,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb, ptr %__body, align 8
       ret void
     }
@@ -285,7 +285,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb2, ptr %__body, align 8
       ret void
     }
@@ -295,7 +295,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       ret void
     }
@@ -305,11 +305,11 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %deref, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__init_fb(ptr %__fb)
       %deref1 = load ptr, ptr %self, align 8
-      %__fb2 = getelementptr inbounds %fb2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %fb, ptr %__fb2, i32 0, i32 0
+      %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
       store ptr @__vtable_fb2_instance, ptr %__vtable, align 8
       ret void
     }
@@ -319,7 +319,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
       store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
@@ -329,10 +329,10 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %myFb = getelementptr inbounds %foo, ptr %deref, i32 0, i32 1
+      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__init_fb2(ptr %myFb)
       %deref1 = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -349,7 +349,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %deref, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__user_init_fb(ptr %__fb)
       ret void
     }
@@ -380,7 +380,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %myFb = getelementptr inbounds %foo, ptr %deref, i32 0, i32 1
+      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__user_init_fb2(ptr %myFb)
       ret void
     }
@@ -504,8 +504,8 @@ fn write_to_parent_variable_in_instance() {
         #dbg_declare(ptr %0, !30, !DIExpression(), !31)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       ret void, !dbg !31
     }
 
@@ -514,8 +514,8 @@ fn write_to_parent_variable_in_instance() {
         #dbg_declare(ptr %0, !33, !DIExpression(), !34)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false), !dbg !34
       ret void, !dbg !35
     }
@@ -525,8 +525,8 @@ fn write_to_parent_variable_in_instance() {
         #dbg_declare(ptr %0, !39, !DIExpression(), !40)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %__foo, i32 0, i32 1, !dbg !40
+      %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %__foo, i32 0, i32 1, !dbg !40
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_1, i32 6, i1 false), !dbg !40
       ret void, !dbg !41
     }
@@ -541,7 +541,7 @@ fn write_to_parent_variable_in_instance() {
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @__init_bar(ptr %fb), !dbg !49
       call void @__user_init_bar(ptr %fb), !dbg !49
-      %__foo = getelementptr inbounds %bar, ptr %fb, i32 0, i32 0, !dbg !49
+      %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0, !dbg !49
       call void @foo__baz(ptr %__foo), !dbg !50
       call void @bar(ptr %fb), !dbg !51
       ret void, !dbg !52
@@ -561,10 +561,10 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -574,10 +574,10 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @bar, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -587,11 +587,11 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
@@ -601,7 +601,7 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -618,7 +618,7 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -773,9 +773,9 @@ fn array_in_parent_generated() {
         #dbg_declare(ptr %0, !42, !DIExpression(), !43)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 1
-      %a = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
       ret void, !dbg !43
     }
 
@@ -784,9 +784,9 @@ fn array_in_parent_generated() {
         #dbg_declare(ptr %0, !47, !DIExpression(), !48)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
       ret void, !dbg !48
     }
 
@@ -795,8 +795,8 @@ fn array_in_parent_generated() {
         #dbg_declare(ptr %0, !52, !DIExpression(), !53)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
-      %z = getelementptr inbounds %child, ptr %0, i32 0, i32 1
+      %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       ret void, !dbg !53
     }
 
@@ -806,27 +806,27 @@ fn array_in_parent_generated() {
         #dbg_declare(ptr %arr, !57, !DIExpression(), !59)
       call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !60
-      %__parent = getelementptr inbounds %child, ptr %tmpVar, i32 0, i32 0, !dbg !60
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0, !dbg !60
-      %a = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 2, !dbg !60
+      %__parent = getelementptr inbounds nuw %child, ptr %tmpVar, i32 0, i32 0, !dbg !60
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !60
+      %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 2, !dbg !60
       store i16 10, ptr %a, align 2, !dbg !60
       %tmpVar1 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !61
-      %__parent2 = getelementptr inbounds %child, ptr %tmpVar1, i32 0, i32 0, !dbg !61
-      %__grandparent3 = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0, !dbg !61
-      %y = getelementptr inbounds %grandparent, ptr %__grandparent3, i32 0, i32 1, !dbg !61
+      %__parent2 = getelementptr inbounds nuw %child, ptr %tmpVar1, i32 0, i32 0, !dbg !61
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0, !dbg !61
+      %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 1, !dbg !61
       %tmpVar4 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 0, !dbg !61
       store i16 20, ptr %tmpVar4, align 2, !dbg !61
       %tmpVar5 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !62
-      %__parent6 = getelementptr inbounds %child, ptr %tmpVar5, i32 0, i32 0, !dbg !62
-      %b = getelementptr inbounds %parent, ptr %__parent6, i32 0, i32 2, !dbg !62
+      %__parent6 = getelementptr inbounds nuw %child, ptr %tmpVar5, i32 0, i32 0, !dbg !62
+      %b = getelementptr inbounds nuw %parent, ptr %__parent6, i32 0, i32 2, !dbg !62
       store i16 30, ptr %b, align 2, !dbg !62
       %tmpVar7 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1, !dbg !63
-      %__parent8 = getelementptr inbounds %child, ptr %tmpVar7, i32 0, i32 0, !dbg !63
-      %x = getelementptr inbounds %parent, ptr %__parent8, i32 0, i32 1, !dbg !63
+      %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !63
+      %x = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !63
       %tmpVar9 = getelementptr inbounds [11 x i16], ptr %x, i32 0, i32 1, !dbg !63
       store i16 40, ptr %tmpVar9, align 2, !dbg !63
       %tmpVar10 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 2, !dbg !64
-      %z = getelementptr inbounds %child, ptr %tmpVar10, i32 0, i32 1, !dbg !64
+      %z = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !64
       %tmpVar11 = getelementptr inbounds [11 x i16], ptr %z, i32 0, i32 2, !dbg !64
       store i16 50, ptr %tmpVar11, align 2, !dbg !64
       ret void, !dbg !65
@@ -840,7 +840,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @grandparent, ptr %__body, align 8
       ret void
     }
@@ -850,7 +850,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @parent, ptr %__body, align 8
       ret void
     }
@@ -860,7 +860,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @child, ptr %__body, align 8
       ret void
     }
@@ -870,12 +870,12 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
       %deref1 = load ptr, ptr %self, align 8
-      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 0
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
@@ -885,11 +885,11 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align 8
-      %__grandparent2 = getelementptr inbounds %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent2, i32 0, i32 0
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -899,7 +899,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
       store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -937,7 +937,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
     }
@@ -947,7 +947,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
     }
@@ -1093,9 +1093,9 @@ fn complex_array_access_generated() {
         #dbg_declare(ptr %0, !42, !DIExpression(), !43)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 1
-      %a = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
       ret void, !dbg !43
     }
 
@@ -1104,9 +1104,9 @@ fn complex_array_access_generated() {
         #dbg_declare(ptr %0, !47, !DIExpression(), !48)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
       ret void, !dbg !48
     }
 
@@ -1115,14 +1115,14 @@ fn complex_array_access_generated() {
         #dbg_declare(ptr %0, !52, !DIExpression(), !53)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
-      %z = getelementptr inbounds %child, ptr %0, i32 0, i32 1
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0, !dbg !53
-      %y = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 1, !dbg !53
-      %b = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2, !dbg !53
+      %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !53
+      %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 1, !dbg !53
+      %b = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2, !dbg !53
       %load_b = load i16, ptr %b, align 2, !dbg !53
       %1 = sext i16 %load_b to i32, !dbg !53
-      %b1 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2, !dbg !53
+      %b1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2, !dbg !53
       %load_b2 = load i16, ptr %b1, align 2, !dbg !53
       %2 = sext i16 %load_b2 to i32, !dbg !53
       %tmpVar = mul i32 %2, 2, !dbg !53
@@ -1132,8 +1132,8 @@ fn complex_array_access_generated() {
       %load_tmpVar = load i16, ptr %tmpVar5, align 2, !dbg !53
       %3 = sext i16 %load_tmpVar to i32, !dbg !53
       %tmpVar6 = add i32 %1, %3, !dbg !53
-      %__grandparent7 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0, !dbg !53
-      %a = getelementptr inbounds %grandparent, ptr %__grandparent7, i32 0, i32 2, !dbg !53
+      %__grandparent7 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0, !dbg !53
+      %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent7, i32 0, i32 2, !dbg !53
       %load_a = load i16, ptr %a, align 2, !dbg !53
       %4 = sext i16 %load_a to i32, !dbg !53
       %tmpVar8 = sub i32 %tmpVar6, %4, !dbg !53
@@ -1149,7 +1149,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @grandparent, ptr %__body, align 8
       ret void
     }
@@ -1159,7 +1159,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @parent, ptr %__body, align 8
       ret void
     }
@@ -1169,7 +1169,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @child, ptr %__body, align 8
       ret void
     }
@@ -1179,11 +1179,11 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align 8
-      %__grandparent2 = getelementptr inbounds %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent2, i32 0, i32 0
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1193,7 +1193,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
       store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1203,12 +1203,12 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
       %deref1 = load ptr, ptr %self, align 8
-      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 0
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1246,7 +1246,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
     }
@@ -1256,7 +1256,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
     }
@@ -1370,7 +1370,7 @@ fn function_block_method_debug_info() {
         #dbg_declare(ptr %0, !24, !DIExpression(), !25)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void, !dbg !25
     }
 
@@ -1379,7 +1379,7 @@ fn function_block_method_debug_info() {
         #dbg_declare(ptr %0, !27, !DIExpression(), !28)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void, !dbg !28
     }
 
@@ -1388,7 +1388,7 @@ fn function_block_method_debug_info() {
         #dbg_declare(ptr %0, !32, !DIExpression(), !33)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !33
     }
 
@@ -1397,10 +1397,10 @@ fn function_block_method_debug_info() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -1410,10 +1410,10 @@ fn function_block_method_debug_info() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @bar, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -1423,7 +1423,7 @@ fn function_block_method_debug_info() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1433,11 +1433,11 @@ fn function_block_method_debug_info() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1454,7 +1454,7 @@ fn function_block_method_debug_info() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -1613,8 +1613,8 @@ END_FUNCTION
         #dbg_declare(ptr %0, !34, !DIExpression(), !35)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
-      %a = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
+      %a = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
       ret void, !dbg !35
     }
 
@@ -1623,8 +1623,8 @@ END_FUNCTION
         #dbg_declare(ptr %0, !39, !DIExpression(), !40)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %child, ptr %0, i32 0, i32 1
+      %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       ret void, !dbg !40
     }
 
@@ -1633,8 +1633,8 @@ END_FUNCTION
         #dbg_declare(ptr %0, !44, !DIExpression(), !45)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__child = getelementptr inbounds %grandchild, ptr %0, i32 0, i32 0
-      %c = getelementptr inbounds %grandchild, ptr %0, i32 0, i32 1
+      %__child = getelementptr inbounds nuw %grandchild, ptr %0, i32 0, i32 0
+      %c = getelementptr inbounds nuw %grandchild, ptr %0, i32 0, i32 1
       ret void, !dbg !45
     }
 
@@ -1667,87 +1667,87 @@ END_FUNCTION
       call void @__user_init_parent(ptr %parent1), !dbg !68
       call void @__user_init_child(ptr %child1), !dbg !68
       call void @__user_init_grandchild(ptr %grandchild1), !dbg !68
-      %a = getelementptr inbounds %parent, ptr %parent1, i32 0, i32 1, !dbg !69
+      %a = getelementptr inbounds nuw %parent, ptr %parent1, i32 0, i32 1, !dbg !69
       store i32 1, ptr %a, align 4, !dbg !69
-      %__parent = getelementptr inbounds %child, ptr %child1, i32 0, i32 0, !dbg !70
-      %a1 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 1, !dbg !70
+      %__parent = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 0, !dbg !70
+      %a1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 1, !dbg !70
       store i32 2, ptr %a1, align 4, !dbg !70
-      %b = getelementptr inbounds %child, ptr %child1, i32 0, i32 1, !dbg !71
+      %b = getelementptr inbounds nuw %child, ptr %child1, i32 0, i32 1, !dbg !71
       store i32 3, ptr %b, align 4, !dbg !71
-      %__child = getelementptr inbounds %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !72
-      %__parent2 = getelementptr inbounds %child, ptr %__child, i32 0, i32 0, !dbg !72
-      %a3 = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 1, !dbg !72
+      %__child = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !72
+      %__parent2 = getelementptr inbounds nuw %child, ptr %__child, i32 0, i32 0, !dbg !72
+      %a3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 1, !dbg !72
       store i32 4, ptr %a3, align 4, !dbg !72
-      %__child4 = getelementptr inbounds %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !73
-      %b5 = getelementptr inbounds %child, ptr %__child4, i32 0, i32 1, !dbg !73
+      %__child4 = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 0, !dbg !73
+      %b5 = getelementptr inbounds nuw %child, ptr %__child4, i32 0, i32 1, !dbg !73
       store i32 5, ptr %b5, align 4, !dbg !73
-      %c = getelementptr inbounds %grandchild, ptr %grandchild1, i32 0, i32 1, !dbg !74
+      %c = getelementptr inbounds nuw %grandchild, ptr %grandchild1, i32 0, i32 1, !dbg !74
       store i32 6, ptr %c, align 4, !dbg !74
       %tmpVar = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 0, !dbg !75
-      %a6 = getelementptr inbounds %parent, ptr %tmpVar, i32 0, i32 1, !dbg !75
+      %a6 = getelementptr inbounds nuw %parent, ptr %tmpVar, i32 0, i32 1, !dbg !75
       store i32 7, ptr %a6, align 4, !dbg !75
       %tmpVar7 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !76
-      %__parent8 = getelementptr inbounds %child, ptr %tmpVar7, i32 0, i32 0, !dbg !76
-      %a9 = getelementptr inbounds %parent, ptr %__parent8, i32 0, i32 1, !dbg !76
+      %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0, !dbg !76
+      %a9 = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1, !dbg !76
       store i32 8, ptr %a9, align 4, !dbg !76
       %tmpVar10 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 0, !dbg !77
-      %b11 = getelementptr inbounds %child, ptr %tmpVar10, i32 0, i32 1, !dbg !77
+      %b11 = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1, !dbg !77
       store i32 9, ptr %b11, align 4, !dbg !77
       %tmpVar12 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !78
-      %__child13 = getelementptr inbounds %grandchild, ptr %tmpVar12, i32 0, i32 0, !dbg !78
-      %__parent14 = getelementptr inbounds %child, ptr %__child13, i32 0, i32 0, !dbg !78
-      %a15 = getelementptr inbounds %parent, ptr %__parent14, i32 0, i32 1, !dbg !78
+      %__child13 = getelementptr inbounds nuw %grandchild, ptr %tmpVar12, i32 0, i32 0, !dbg !78
+      %__parent14 = getelementptr inbounds nuw %child, ptr %__child13, i32 0, i32 0, !dbg !78
+      %a15 = getelementptr inbounds nuw %parent, ptr %__parent14, i32 0, i32 1, !dbg !78
       store i32 10, ptr %a15, align 4, !dbg !78
       %tmpVar16 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !79
-      %__child17 = getelementptr inbounds %grandchild, ptr %tmpVar16, i32 0, i32 0, !dbg !79
-      %b18 = getelementptr inbounds %child, ptr %__child17, i32 0, i32 1, !dbg !79
+      %__child17 = getelementptr inbounds nuw %grandchild, ptr %tmpVar16, i32 0, i32 0, !dbg !79
+      %b18 = getelementptr inbounds nuw %child, ptr %__child17, i32 0, i32 1, !dbg !79
       store i32 11, ptr %b18, align 4, !dbg !79
       %tmpVar19 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 0, !dbg !80
-      %c20 = getelementptr inbounds %grandchild, ptr %tmpVar19, i32 0, i32 1, !dbg !80
+      %c20 = getelementptr inbounds nuw %grandchild, ptr %tmpVar19, i32 0, i32 1, !dbg !80
       store i32 12, ptr %c20, align 4, !dbg !80
       %tmpVar21 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 1, !dbg !81
-      %a22 = getelementptr inbounds %parent, ptr %tmpVar21, i32 0, i32 1, !dbg !81
+      %a22 = getelementptr inbounds nuw %parent, ptr %tmpVar21, i32 0, i32 1, !dbg !81
       store i32 13, ptr %a22, align 4, !dbg !81
       %tmpVar23 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !82
-      %__parent24 = getelementptr inbounds %child, ptr %tmpVar23, i32 0, i32 0, !dbg !82
-      %a25 = getelementptr inbounds %parent, ptr %__parent24, i32 0, i32 1, !dbg !82
+      %__parent24 = getelementptr inbounds nuw %child, ptr %tmpVar23, i32 0, i32 0, !dbg !82
+      %a25 = getelementptr inbounds nuw %parent, ptr %__parent24, i32 0, i32 1, !dbg !82
       store i32 14, ptr %a25, align 4, !dbg !82
       %tmpVar26 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 1, !dbg !83
-      %b27 = getelementptr inbounds %child, ptr %tmpVar26, i32 0, i32 1, !dbg !83
+      %b27 = getelementptr inbounds nuw %child, ptr %tmpVar26, i32 0, i32 1, !dbg !83
       store i32 15, ptr %b27, align 4, !dbg !83
       %tmpVar28 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !84
-      %__child29 = getelementptr inbounds %grandchild, ptr %tmpVar28, i32 0, i32 0, !dbg !84
-      %__parent30 = getelementptr inbounds %child, ptr %__child29, i32 0, i32 0, !dbg !84
-      %a31 = getelementptr inbounds %parent, ptr %__parent30, i32 0, i32 1, !dbg !84
+      %__child29 = getelementptr inbounds nuw %grandchild, ptr %tmpVar28, i32 0, i32 0, !dbg !84
+      %__parent30 = getelementptr inbounds nuw %child, ptr %__child29, i32 0, i32 0, !dbg !84
+      %a31 = getelementptr inbounds nuw %parent, ptr %__parent30, i32 0, i32 1, !dbg !84
       store i32 16, ptr %a31, align 4, !dbg !84
       %tmpVar32 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !85
-      %__child33 = getelementptr inbounds %grandchild, ptr %tmpVar32, i32 0, i32 0, !dbg !85
-      %b34 = getelementptr inbounds %child, ptr %__child33, i32 0, i32 1, !dbg !85
+      %__child33 = getelementptr inbounds nuw %grandchild, ptr %tmpVar32, i32 0, i32 0, !dbg !85
+      %b34 = getelementptr inbounds nuw %child, ptr %__child33, i32 0, i32 1, !dbg !85
       store i32 17, ptr %b34, align 4, !dbg !85
       %tmpVar35 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 1, !dbg !86
-      %c36 = getelementptr inbounds %grandchild, ptr %tmpVar35, i32 0, i32 1, !dbg !86
+      %c36 = getelementptr inbounds nuw %grandchild, ptr %tmpVar35, i32 0, i32 1, !dbg !86
       store i32 18, ptr %c36, align 4, !dbg !86
       %tmpVar37 = getelementptr inbounds [3 x %parent], ptr %array_of_parent, i32 0, i32 2, !dbg !87
-      %a38 = getelementptr inbounds %parent, ptr %tmpVar37, i32 0, i32 1, !dbg !87
+      %a38 = getelementptr inbounds nuw %parent, ptr %tmpVar37, i32 0, i32 1, !dbg !87
       store i32 19, ptr %a38, align 4, !dbg !87
       %tmpVar39 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !88
-      %__parent40 = getelementptr inbounds %child, ptr %tmpVar39, i32 0, i32 0, !dbg !88
-      %a41 = getelementptr inbounds %parent, ptr %__parent40, i32 0, i32 1, !dbg !88
+      %__parent40 = getelementptr inbounds nuw %child, ptr %tmpVar39, i32 0, i32 0, !dbg !88
+      %a41 = getelementptr inbounds nuw %parent, ptr %__parent40, i32 0, i32 1, !dbg !88
       store i32 20, ptr %a41, align 4, !dbg !88
       %tmpVar42 = getelementptr inbounds [3 x %child], ptr %array_of_child, i32 0, i32 2, !dbg !89
-      %b43 = getelementptr inbounds %child, ptr %tmpVar42, i32 0, i32 1, !dbg !89
+      %b43 = getelementptr inbounds nuw %child, ptr %tmpVar42, i32 0, i32 1, !dbg !89
       store i32 21, ptr %b43, align 4, !dbg !89
       %tmpVar44 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !90
-      %__child45 = getelementptr inbounds %grandchild, ptr %tmpVar44, i32 0, i32 0, !dbg !90
-      %__parent46 = getelementptr inbounds %child, ptr %__child45, i32 0, i32 0, !dbg !90
-      %a47 = getelementptr inbounds %parent, ptr %__parent46, i32 0, i32 1, !dbg !90
+      %__child45 = getelementptr inbounds nuw %grandchild, ptr %tmpVar44, i32 0, i32 0, !dbg !90
+      %__parent46 = getelementptr inbounds nuw %child, ptr %__child45, i32 0, i32 0, !dbg !90
+      %a47 = getelementptr inbounds nuw %parent, ptr %__parent46, i32 0, i32 1, !dbg !90
       store i32 22, ptr %a47, align 4, !dbg !90
       %tmpVar48 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !91
-      %__child49 = getelementptr inbounds %grandchild, ptr %tmpVar48, i32 0, i32 0, !dbg !91
-      %b50 = getelementptr inbounds %child, ptr %__child49, i32 0, i32 1, !dbg !91
+      %__child49 = getelementptr inbounds nuw %grandchild, ptr %tmpVar48, i32 0, i32 0, !dbg !91
+      %b50 = getelementptr inbounds nuw %child, ptr %__child49, i32 0, i32 1, !dbg !91
       store i32 23, ptr %b50, align 4, !dbg !91
       %tmpVar51 = getelementptr inbounds [3 x %grandchild], ptr %array_of_grandchild, i32 0, i32 2, !dbg !92
-      %c52 = getelementptr inbounds %grandchild, ptr %tmpVar51, i32 0, i32 1, !dbg !92
+      %c52 = getelementptr inbounds nuw %grandchild, ptr %tmpVar51, i32 0, i32 1, !dbg !92
       store i32 24, ptr %c52, align 4, !dbg !92
       %main_ret = load i32, ptr %main, align 4, !dbg !93
       ret i32 %main_ret, !dbg !93
@@ -1764,7 +1764,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
       store ptr @parent, ptr %__body, align 8
       ret void
     }
@@ -1774,7 +1774,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
       store ptr @child, ptr %__body, align 8
       ret void
     }
@@ -1784,7 +1784,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_parent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_parent, ptr %deref, i32 0, i32 0
       store ptr @grandchild, ptr %__body, align 8
       ret void
     }
@@ -1794,12 +1794,12 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__child = getelementptr inbounds %grandchild, ptr %deref, i32 0, i32 0
+      %__child = getelementptr inbounds nuw %grandchild, ptr %deref, i32 0, i32 0
       call void @__init_child(ptr %__child)
       %deref1 = load ptr, ptr %self, align 8
-      %__child2 = getelementptr inbounds %grandchild, ptr %deref1, i32 0, i32 0
-      %__parent = getelementptr inbounds %child, ptr %__child2, i32 0, i32 0
-      %__vtable = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0
+      %__child2 = getelementptr inbounds nuw %grandchild, ptr %deref1, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %__child2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
       store ptr @__vtable_grandchild_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1809,11 +1809,11 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
       %deref1 = load ptr, ptr %self, align 8
-      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1823,7 +1823,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1861,7 +1861,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
     }
@@ -1871,7 +1871,7 @@ END_FUNCTION
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__child = getelementptr inbounds %grandchild, ptr %deref, i32 0, i32 0
+      %__child = getelementptr inbounds nuw %grandchild, ptr %deref, i32 0, i32 0
       call void @__user_init_child(ptr %__child)
       ret void
     }

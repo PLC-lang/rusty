@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %F32_MIN = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %F32_MAX = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-  %F64_MIN = getelementptr inbounds %main, ptr %0, i32 0, i32 2
-  %F64_MAX = getelementptr inbounds %main, ptr %0, i32 0, i32 3
+  %F32_MIN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %F32_MAX = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %F64_MIN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %F64_MAX = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
   ret void
 }

@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %X = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %pX = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %rX = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
+  %X = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %pX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %rX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   store ptr null, ptr %pX, align 8
   store ptr null, ptr %rX, align 8
   store ptr %X, ptr %pX, align 8

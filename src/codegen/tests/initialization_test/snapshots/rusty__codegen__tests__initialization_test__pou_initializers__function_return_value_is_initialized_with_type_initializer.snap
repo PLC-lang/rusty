@@ -24,8 +24,8 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %__target0 = alloca [4 x i32], align 4
   call void @llvm.memcpy.p0.p0.i64(ptr align 1 %__target0, ptr align 1 @__myArray__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
   call void @target(ptr %__target0)

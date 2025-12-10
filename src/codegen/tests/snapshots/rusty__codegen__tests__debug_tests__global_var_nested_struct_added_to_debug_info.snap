@@ -20,7 +20,7 @@ entry:
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %deref = load ptr, ptr %self, align 8
-  %b = getelementptr inbounds %myStruct, ptr %deref, i32 0, i32 1
+  %b = getelementptr inbounds nuw %myStruct, ptr %deref, i32 0, i32 1
   call void @__init_mystruct2(ptr %b)
   ret void
 }
@@ -37,7 +37,7 @@ entry:
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %deref = load ptr, ptr %self, align 8
-  %b = getelementptr inbounds %myStruct, ptr %deref, i32 0, i32 1
+  %b = getelementptr inbounds nuw %myStruct, ptr %deref, i32 0, i32 1
   call void @__user_init_myStruct2(ptr %b)
   ret void
 }

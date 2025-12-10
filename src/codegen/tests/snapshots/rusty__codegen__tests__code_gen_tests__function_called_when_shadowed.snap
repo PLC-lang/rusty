@@ -22,7 +22,7 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %froo = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %froo = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %call = call i32 @foo()
   store i32 %call, ptr %froo, align 4
   ret void

@@ -16,8 +16,8 @@ define void @conditional_return(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %__vtable = getelementptr inbounds %conditional_return, ptr %0, i32 0, i32 0
-  %val = getelementptr inbounds %conditional_return, ptr %0, i32 0, i32 1
+  %__vtable = getelementptr inbounds nuw %conditional_return, ptr %0, i32 0, i32 0
+  %val = getelementptr inbounds nuw %conditional_return, ptr %0, i32 0, i32 1
   %load_val = load i32, ptr %val, align 4
   %tmpVar = icmp eq i32 %load_val, 5
   br i1 %tmpVar, label %then_block, label %else_block
@@ -35,7 +35,7 @@ entry:
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %deref = load ptr, ptr %self, align 8
-  %__body = getelementptr inbounds %__vtable_conditional_return, ptr %deref, i32 0, i32 0
+  %__body = getelementptr inbounds nuw %__vtable_conditional_return, ptr %deref, i32 0, i32 0
   store ptr @conditional_return, ptr %__body, align 8
   ret void
 }
@@ -45,7 +45,7 @@ entry:
   %self = alloca ptr, align 8
   store ptr %0, ptr %self, align 8
   %deref = load ptr, ptr %self, align 8
-  %__vtable = getelementptr inbounds %conditional_return, ptr %deref, i32 0, i32 0
+  %__vtable = getelementptr inbounds nuw %conditional_return, ptr %deref, i32 0, i32 0
   store ptr @__vtable_conditional_return_instance, ptr %__vtable, align 8
   ret void
 }

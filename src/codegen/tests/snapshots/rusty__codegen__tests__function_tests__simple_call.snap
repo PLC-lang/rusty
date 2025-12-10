@@ -23,7 +23,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %load_a = load i32, ptr %a, align 4
   %call = call i32 @func(i32 %load_a)
   %call1 = call i32 @func(i32 1)

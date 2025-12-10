@@ -379,10 +379,10 @@ fn function_block_body() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %local = getelementptr inbounds %A, ptr %0, i32 0, i32 0
-      %in = getelementptr inbounds %A, ptr %0, i32 0, i32 1
-      %out = getelementptr inbounds %A, ptr %0, i32 0, i32 2
-      %inout = getelementptr inbounds %A, ptr %0, i32 0, i32 3
+      %local = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
+      %in = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 1
+      %out = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 2
+      %inout = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 3
       ret void
     }
 
@@ -399,13 +399,13 @@ fn function_block_body() {
       store i32 0, ptr %localOut, align 4
       store i64 0, ptr %localInout, align 8
       %0 = load ptr, ptr %bodyPtr, align 8
-      %1 = getelementptr inbounds %A, ptr %instanceA, i32 0, i32 1
+      %1 = getelementptr inbounds nuw %A, ptr %instanceA, i32 0, i32 1
       %load_localIn = load i16, ptr %localIn, align 2
       store i16 %load_localIn, ptr %1, align 2
-      %2 = getelementptr inbounds %A, ptr %instanceA, i32 0, i32 3
+      %2 = getelementptr inbounds nuw %A, ptr %instanceA, i32 0, i32 3
       store ptr %localInout, ptr %2, align 8
       call void %0(ptr %instanceA)
-      %3 = getelementptr inbounds %A, ptr %instanceA, i32 0, i32 2
+      %3 = getelementptr inbounds nuw %A, ptr %instanceA, i32 0, i32 2
       %4 = load i32, ptr %3, align 4
       store i32 %4, ptr %localOut, align 4
       ret void

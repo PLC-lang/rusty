@@ -12,8 +12,8 @@ target triple = "[filtered]"
 define void @main(ptr %0) !dbg !12 {
 entry:
     #dbg_declare(ptr %0, !16, !DIExpression(), !17)
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   store i32 0, ptr %a, align 4, !dbg !18
   call void @main__newAction(ptr %0), !dbg !17
   call void @main__newAction2(ptr %0), !dbg !19
@@ -22,8 +22,8 @@ entry:
 
 define void @main__newAction(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %load_a = load i32, ptr %a, align 4, !dbg !21
   %tmpVar = add i32 %load_a, 1, !dbg !21
   store i32 %tmpVar, ptr %a, align 4, !dbg !21
@@ -32,8 +32,8 @@ entry:
 
 define void @main__newAction2(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %load_b = load i32, ptr %b, align 4, !dbg !23
   %tmpVar = add i32 %load_b, 2, !dbg !23
   store i32 %tmpVar, ptr %b, align 4, !dbg !23

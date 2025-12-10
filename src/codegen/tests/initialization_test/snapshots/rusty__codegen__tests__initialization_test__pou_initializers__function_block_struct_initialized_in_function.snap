@@ -34,7 +34,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %fb0 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %fb0 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %call = call i32 @func(ptr %fb0)
   ret void
 }

@@ -23,14 +23,14 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %res_sint = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %res_int = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %res_dint = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
-  %res_lint = getelementptr inbounds %prg, ptr %0, i32 0, i32 3
-  %res_usint = getelementptr inbounds %prg, ptr %0, i32 0, i32 4
-  %res_uint = getelementptr inbounds %prg, ptr %0, i32 0, i32 5
-  %res_udint = getelementptr inbounds %prg, ptr %0, i32 0, i32 6
-  %res_ulint = getelementptr inbounds %prg, ptr %0, i32 0, i32 7
+  %res_sint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %res_int = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %res_dint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %res_lint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  %res_usint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 4
+  %res_uint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 5
+  %res_udint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 6
+  %res_ulint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 7
   %v_dint = alloca i32, align 4
   %v_udint = alloca i32, align 4
   store i32 1, ptr %v_dint, align 4

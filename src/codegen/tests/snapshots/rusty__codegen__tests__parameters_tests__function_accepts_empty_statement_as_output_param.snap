@@ -22,7 +22,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %1 = alloca i32, align 4
   call void @foo(ptr %x, ptr %1)
   ret void

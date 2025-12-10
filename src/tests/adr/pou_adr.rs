@@ -201,10 +201,10 @@ fn codegen_of_a_program_pou() {
 
     define void @main_prg(ptr %0) {
     entry:
-      %i = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 3
+      %i = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 0, ptr %vt, align 2
       ret void
@@ -248,9 +248,9 @@ fn calling_a_program() {
       store i16 0, ptr %y, align 2
       store i16 0, ptr %foo, align 2
       store i16 1, ptr @main_prg_instance, align 2
-      store ptr %y, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
+      store ptr %y, ptr getelementptr inbounds nuw (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
       call void @main_prg(ptr @main_prg_instance)
-      %0 = load i16, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
+      %0 = load i16, ptr getelementptr inbounds nuw (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
       store i16 %0, ptr %x, align 2
       %foo_ret = load i16, ptr %foo, align 2
       ret i16 %foo_ret
@@ -258,10 +258,10 @@ fn calling_a_program() {
 
     define void @main_prg(ptr %0) {
     entry:
-      %i = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_prg, ptr %0, i32 0, i32 3
+      %i = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds nuw %main_prg, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 0, ptr %vt, align 2
       ret void
@@ -308,10 +308,10 @@ fn function_blocks_get_a_method_with_a_self_parameter() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %i = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 3
+      %i = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, ptr %vt, align 2
       ret void
@@ -351,15 +351,15 @@ fn calling_a_function_block() {
 
     define void @foo(ptr %0) {
     entry:
-      %x = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
-      %fb = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
-      %1 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 0
+      %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+      %fb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
+      %1 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 0
       store i16 1, ptr %1, align 2
-      %2 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 1
+      %2 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 1
       store ptr %y, ptr %2, align 8
       call void @main_fb(ptr %fb)
-      %3 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 2
+      %3 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 2
       %4 = load i16, ptr %3, align 2
       store i16 %4, ptr %x, align 2
       ret void
@@ -369,10 +369,10 @@ fn calling_a_function_block() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %i = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 0
-      %io = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 1
-      %o = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 2
-      %v = getelementptr inbounds %main_fb, ptr %0, i32 0, i32 3
+      %i = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 0
+      %io = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 1
+      %o = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 2
+      %v = getelementptr inbounds nuw %main_fb, ptr %0, i32 0, i32 3
       %vt = alloca i16, align 2
       store i16 2, ptr %vt, align 2
       ret void
@@ -455,8 +455,8 @@ fn calling_a_function() {
 
     define void @prg(ptr %0) {
     entry:
-      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %load_x = load i16, ptr %x, align 2
       %1 = alloca i64, align 8
       %call = call i32 @main_fun(i16 %load_x, ptr %z, ptr %1)
@@ -529,7 +529,7 @@ fn return_a_complex_type_from_function() {
 
     define void @prg(ptr %0) {
     entry:
-      %s = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %__foo0 = alloca [81 x i8], align 1
       call void @llvm.memset.p0.i64(ptr align 1 %__foo0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       call void @foo(ptr %__foo0)
@@ -615,10 +615,10 @@ fn passing_aggregate_types_to_functions_by_value() {
 
     define void @main(ptr %0) {
     entry:
-      %string1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %string2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-      %array1 = getelementptr inbounds %main, ptr %0, i32 0, i32 2
-      %struct1 = getelementptr inbounds %main, ptr %0, i32 0, i32 3
+      %string1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %string2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %array1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+      %struct1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
       call void @foo(ptr %string1, ptr %string2, ptr %array1, ptr %struct1)
       ret void
     }
@@ -685,8 +685,8 @@ fn passing_by_ref_to_functions() {
 
     define void @main(ptr %0) {
     entry:
-      %str1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %str2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %str1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %str2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %call = call i8 @StrEqual(ptr %str1, ptr %str2)
       ret void
     }

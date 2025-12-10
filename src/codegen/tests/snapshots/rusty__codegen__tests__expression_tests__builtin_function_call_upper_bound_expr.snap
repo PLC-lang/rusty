@@ -16,13 +16,13 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %auto_deref = load [16 x i32], ptr %a, align 4
   %outer_arr_gep = getelementptr inbounds [16 x i32], ptr %a, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
-  %vla_array_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 0
-  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 1
+  %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
   store [8 x i32] [i32 0, i32 1, i32 1, i32 2, i32 2, i32 3, i32 3, i32 4], ptr %vla_dimensions_gep, align 4
   store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
   %1 = load %__foo_vla, ptr %vla_struct, align 8
@@ -40,12 +40,12 @@ entry:
   store ptr %0, ptr %vla, align 8
   store i32 0, ptr %foo, align 4
   %deref = load ptr, ptr %vla, align 8
-  %dim = getelementptr inbounds %__foo_vla, ptr %deref, i32 0, i32 1
+  %dim = getelementptr inbounds nuw %__foo_vla, ptr %deref, i32 0, i32 1
   %1 = getelementptr inbounds [2 x i32], ptr %dim, i32 0, i32 7
   %2 = load i32, ptr %1, align 4
   store i32 %2, ptr %foo, align 4
   %deref1 = load ptr, ptr %vla, align 8
-  %dim2 = getelementptr inbounds %__foo_vla, ptr %deref1, i32 0, i32 1
+  %dim2 = getelementptr inbounds nuw %__foo_vla, ptr %deref1, i32 0, i32 1
   %3 = getelementptr inbounds [2 x i32], ptr %dim2, i32 0, i32 7
   %4 = load i32, ptr %3, align 4
   store i32 %4, ptr %foo, align 4

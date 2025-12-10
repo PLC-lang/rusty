@@ -15,8 +15,8 @@ define void @MyClass(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %call = call i16 @MyClass__testMethod(ptr %0, i16 1)
   %call1 = call i16 @MyClass__testMethod(ptr %0, i16 3)
   ret void
@@ -26,8 +26,8 @@ define i16 @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %MyClass.testMethod = alloca i16, align 2
   %myMethodArg = alloca i16, align 2
   store i16 %1, ptr %myMethodArg, align 2

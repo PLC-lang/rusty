@@ -18,7 +18,7 @@ declare i32 @foo(i32, ptr)
 
 define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %1 = alloca [3 x ptr], align 8
   %2 = getelementptr inbounds [3 x ptr], ptr %1, i32 0, i32 0
   store ptr @utf08_literal_0, ptr %2, align 8

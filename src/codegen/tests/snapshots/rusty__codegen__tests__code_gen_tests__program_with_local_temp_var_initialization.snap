@@ -15,7 +15,7 @@ target triple = "[filtered]"
 
 define void @foo(ptr %0) {
 entry:
-  %x = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   %y = alloca i16, align 2
   %z = alloca i16, align 2
   store i16 0, ptr %y, align 2

@@ -30,7 +30,7 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %call = call i16 @CheckRangeSigned(i16 5, i16 0, i16 8)
   store i16 %call, ptr %x, align 2
   ret void

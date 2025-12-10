@@ -20,7 +20,7 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %arr = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %alias_arr = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %arr = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %alias_arr = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   ret void
 }

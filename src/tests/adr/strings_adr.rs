@@ -78,8 +78,8 @@ fn assigning_strings() {
 
     define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 %b, i32 10, i1 false)
       ret void
     }
@@ -121,8 +121,8 @@ fn assigning_string_literals() {
 
     define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 @utf08_literal_0, i32 6, i1 false)
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %b, ptr align 1 @utf08_literal_1, i32 6, i1 false)
       ret void

@@ -17,8 +17,8 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %y = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   call void @llvm.memcpy.p0.p0.i32(ptr align 1 %y, ptr align 1 @utf08_literal_0, i32 80, i1 false)
   call void @llvm.memcpy.p0.p0.i32(ptr align 2 %z, ptr align 2 @utf16_literal_1, i32 160, i1 false)
   ret void

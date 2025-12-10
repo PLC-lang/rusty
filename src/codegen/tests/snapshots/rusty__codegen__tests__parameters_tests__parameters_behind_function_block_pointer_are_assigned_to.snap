@@ -15,11 +15,11 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %file = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %FileOpen = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %file = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %FileOpen = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   store ptr %file, ptr %FileOpen, align 8
   %deref = load ptr, ptr %FileOpen, align 8
-  %1 = getelementptr inbounds %file_t, ptr %deref, i32 0, i32 1
+  %1 = getelementptr inbounds nuw %file_t, ptr %deref, i32 0, i32 1
   store i8 1, ptr %1, align 1
   call void @file_t(ptr %deref)
   ret void
@@ -29,7 +29,7 @@ define void @file_t(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %var1 = getelementptr inbounds %file_t, ptr %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %file_t, ptr %0, i32 0, i32 1
+  %var1 = getelementptr inbounds nuw %file_t, ptr %0, i32 0, i32 0
+  %var2 = getelementptr inbounds nuw %file_t, ptr %0, i32 0, i32 1
   ret void
 }
