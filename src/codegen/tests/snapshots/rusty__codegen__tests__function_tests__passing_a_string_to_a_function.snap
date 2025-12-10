@@ -25,7 +25,7 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %call = call i32 @func(ptr %a)
   %call1 = call i32 @func(ptr @utf08_literal_0)
   ret void

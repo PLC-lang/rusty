@@ -12,7 +12,7 @@ target triple = "[filtered]"
 define void @foo(ptr %0) !dbg !11 {
 entry:
     #dbg_declare(ptr %0, !15, !DIExpression(), !16)
-  %val = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+  %val = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   br label %lbl, !dbg !17
 
 lbl:                                              ; preds = %lbl, %entry

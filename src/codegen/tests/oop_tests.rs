@@ -42,10 +42,10 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %a = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %foo, ptr %0, i32 0, i32 2
-      %c = getelementptr inbounds %foo, ptr %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %a = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
+      %c = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 3
       ret void
     }
 
@@ -53,7 +53,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -62,7 +62,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       ret void
     }
@@ -72,7 +72,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @bar, ptr %__body, align 8
       ret void
     }
@@ -82,7 +82,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -92,11 +92,11 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
@@ -113,7 +113,7 @@ fn members_from_base_class_are_available_in_subclasses() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -194,9 +194,9 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %fb, ptr %0, i32 0, i32 1
-      %y = getelementptr inbounds %fb, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 1
+      %y = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -204,7 +204,7 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %0, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -212,10 +212,10 @@ fn write_to_parent_variable_qualified_access() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %myFb = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
-      %__fb = getelementptr inbounds %fb2, ptr %myFb, i32 0, i32 0
-      %x = getelementptr inbounds %fb, ptr %__fb, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %myFb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+      %__fb = getelementptr inbounds nuw %fb2, ptr %myFb, i32 0, i32 0
+      %x = getelementptr inbounds nuw %fb, ptr %__fb, i32 0, i32 1
       store i16 1, ptr %x, align 2
       ret void
     }
@@ -225,7 +225,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb, ptr %__body, align 8
       ret void
     }
@@ -235,7 +235,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb2, ptr %__body, align 8
       ret void
     }
@@ -245,7 +245,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       ret void
     }
@@ -255,11 +255,11 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %deref, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__init_fb(ptr %__fb)
       %deref1 = load ptr, ptr %self, align 8
-      %__fb2 = getelementptr inbounds %fb2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %fb, ptr %__fb2, i32 0, i32 0
+      %__fb2 = getelementptr inbounds nuw %fb2, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %__fb2, i32 0, i32 0
       store ptr @__vtable_fb2_instance, ptr %__vtable, align 8
       ret void
     }
@@ -269,7 +269,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
       store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
@@ -279,10 +279,10 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %myFb = getelementptr inbounds %foo, ptr %deref, i32 0, i32 1
+      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__init_fb2(ptr %myFb)
       %deref1 = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref1, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -299,7 +299,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__fb = getelementptr inbounds %fb2, ptr %deref, i32 0, i32 0
+      %__fb = getelementptr inbounds nuw %fb2, ptr %deref, i32 0, i32 0
       call void @__user_init_fb(ptr %__fb)
       ret void
     }
@@ -330,7 +330,7 @@ fn write_to_parent_variable_qualified_access() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %myFb = getelementptr inbounds %foo, ptr %deref, i32 0, i32 1
+      %myFb = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 1
       call void @__user_init_fb2(ptr %myFb)
       ret void
     }
@@ -400,8 +400,8 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -409,8 +409,8 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
       ret void
     }
@@ -419,8 +419,8 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
-      %s = getelementptr inbounds %foo, ptr %__foo, i32 0, i32 1
+      %__foo = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
+      %s = getelementptr inbounds nuw %foo, ptr %__foo, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_1, i32 6, i1 false)
       ret void
     }
@@ -433,7 +433,7 @@ fn write_to_parent_variable_in_instance() {
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @__init_bar(ptr %fb)
       call void @__user_init_bar(ptr %fb)
-      %__foo = getelementptr inbounds %bar, ptr %fb, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %fb, i32 0, i32 0
       call void @foo__baz(ptr %__foo)
       call void @bar(ptr %fb)
       ret void
@@ -453,10 +453,10 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -466,10 +466,10 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @bar, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %baz = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %baz = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__baz, ptr %baz, align 8
       ret void
     }
@@ -479,11 +479,11 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %bar, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %bar, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_bar_instance, ptr %__vtable, align 8
       ret void
     }
@@ -493,7 +493,7 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -510,7 +510,7 @@ fn write_to_parent_variable_in_instance() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %bar, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %bar, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -607,9 +607,9 @@ fn array_in_parent_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 1
-      %a = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -617,9 +617,9 @@ fn array_in_parent_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -627,8 +627,8 @@ fn array_in_parent_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
-      %z = getelementptr inbounds %child, ptr %0, i32 0, i32 1
+      %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -637,27 +637,27 @@ fn array_in_parent_generated() {
       %arr = alloca [11 x %child], align 8
       call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0
-      %__parent = getelementptr inbounds %child, ptr %tmpVar, i32 0, i32 0
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 2
+      %__parent = getelementptr inbounds nuw %child, ptr %tmpVar, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
+      %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 2
       store i16 10, ptr %a, align 2
       %tmpVar1 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0
-      %__parent2 = getelementptr inbounds %child, ptr %tmpVar1, i32 0, i32 0
-      %__grandparent3 = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %__grandparent3, i32 0, i32 1
+      %__parent2 = getelementptr inbounds nuw %child, ptr %tmpVar1, i32 0, i32 0
+      %__grandparent3 = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent3, i32 0, i32 1
       %tmpVar4 = getelementptr inbounds [6 x i16], ptr %y, i32 0, i32 0
       store i16 20, ptr %tmpVar4, align 2
       %tmpVar5 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1
-      %__parent6 = getelementptr inbounds %child, ptr %tmpVar5, i32 0, i32 0
-      %b = getelementptr inbounds %parent, ptr %__parent6, i32 0, i32 2
+      %__parent6 = getelementptr inbounds nuw %child, ptr %tmpVar5, i32 0, i32 0
+      %b = getelementptr inbounds nuw %parent, ptr %__parent6, i32 0, i32 2
       store i16 30, ptr %b, align 2
       %tmpVar7 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 1
-      %__parent8 = getelementptr inbounds %child, ptr %tmpVar7, i32 0, i32 0
-      %x = getelementptr inbounds %parent, ptr %__parent8, i32 0, i32 1
+      %__parent8 = getelementptr inbounds nuw %child, ptr %tmpVar7, i32 0, i32 0
+      %x = getelementptr inbounds nuw %parent, ptr %__parent8, i32 0, i32 1
       %tmpVar9 = getelementptr inbounds [11 x i16], ptr %x, i32 0, i32 1
       store i16 40, ptr %tmpVar9, align 2
       %tmpVar10 = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 2
-      %z = getelementptr inbounds %child, ptr %tmpVar10, i32 0, i32 1
+      %z = getelementptr inbounds nuw %child, ptr %tmpVar10, i32 0, i32 1
       %tmpVar11 = getelementptr inbounds [11 x i16], ptr %z, i32 0, i32 2
       store i16 50, ptr %tmpVar11, align 2
       ret void
@@ -671,7 +671,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @grandparent, ptr %__body, align 8
       ret void
     }
@@ -681,7 +681,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @parent, ptr %__body, align 8
       ret void
     }
@@ -691,7 +691,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @child, ptr %__body, align 8
       ret void
     }
@@ -701,12 +701,12 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
       %deref1 = load ptr, ptr %self, align 8
-      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 0
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
@@ -716,11 +716,11 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align 8
-      %__grandparent2 = getelementptr inbounds %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent2, i32 0, i32 0
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -730,7 +730,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
       store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -768,7 +768,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
     }
@@ -778,7 +778,7 @@ fn array_in_parent_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
     }
@@ -853,9 +853,9 @@ fn complex_array_access_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 1
-      %a = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %grandparent, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -863,9 +863,9 @@ fn complex_array_access_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %parent, ptr %0, i32 0, i32 1
-      %b = getelementptr inbounds %parent, ptr %0, i32 0, i32 2
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 1
+      %b = getelementptr inbounds nuw %parent, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -873,14 +873,14 @@ fn complex_array_access_generated() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
-      %z = getelementptr inbounds %child, ptr %0, i32 0, i32 1
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0
-      %y = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 1
-      %b = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2
+      %__parent = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 0
+      %z = getelementptr inbounds nuw %child, ptr %0, i32 0, i32 1
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
+      %y = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 1
+      %b = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2
       %load_b = load i16, ptr %b, align 2
       %1 = sext i16 %load_b to i32
-      %b1 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 2
+      %b1 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 2
       %load_b2 = load i16, ptr %b1, align 2
       %2 = sext i16 %load_b2 to i32
       %tmpVar = mul i32 %2, 2
@@ -890,8 +890,8 @@ fn complex_array_access_generated() {
       %load_tmpVar = load i16, ptr %tmpVar5, align 2
       %3 = sext i16 %load_tmpVar to i32
       %tmpVar6 = add i32 %1, %3
-      %__grandparent7 = getelementptr inbounds %parent, ptr %__parent, i32 0, i32 0
-      %a = getelementptr inbounds %grandparent, ptr %__grandparent7, i32 0, i32 2
+      %__grandparent7 = getelementptr inbounds nuw %parent, ptr %__parent, i32 0, i32 0
+      %a = getelementptr inbounds nuw %grandparent, ptr %__grandparent7, i32 0, i32 2
       %load_a = load i16, ptr %a, align 2
       %4 = sext i16 %load_a to i32
       %tmpVar8 = sub i32 %tmpVar6, %4
@@ -907,7 +907,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @grandparent, ptr %__body, align 8
       ret void
     }
@@ -917,7 +917,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @parent, ptr %__body, align 8
       ret void
     }
@@ -927,7 +927,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_grandparent, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_grandparent, ptr %deref, i32 0, i32 0
       store ptr @child, ptr %__body, align 8
       ret void
     }
@@ -937,11 +937,11 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__init_grandparent(ptr %__grandparent)
       %deref1 = load ptr, ptr %self, align 8
-      %__grandparent2 = getelementptr inbounds %parent, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent2, i32 0, i32 0
+      %__grandparent2 = getelementptr inbounds nuw %parent, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent2, i32 0, i32 0
       store ptr @__vtable_parent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -951,7 +951,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %grandparent, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %deref, i32 0, i32 0
       store ptr @__vtable_grandparent_instance, ptr %__vtable, align 8
       ret void
     }
@@ -961,12 +961,12 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__init_parent(ptr %__parent)
       %deref1 = load ptr, ptr %self, align 8
-      %__parent2 = getelementptr inbounds %child, ptr %deref1, i32 0, i32 0
-      %__grandparent = getelementptr inbounds %parent, ptr %__parent2, i32 0, i32 0
-      %__vtable = getelementptr inbounds %grandparent, ptr %__grandparent, i32 0, i32 0
+      %__parent2 = getelementptr inbounds nuw %child, ptr %deref1, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %__parent2, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %grandparent, ptr %__grandparent, i32 0, i32 0
       store ptr @__vtable_child_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1004,7 +1004,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__parent = getelementptr inbounds %child, ptr %deref, i32 0, i32 0
+      %__parent = getelementptr inbounds nuw %child, ptr %deref, i32 0, i32 0
       call void @__user_init_parent(ptr %__parent)
       ret void
     }
@@ -1014,7 +1014,7 @@ fn complex_array_access_generated() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__grandparent = getelementptr inbounds %parent, ptr %deref, i32 0, i32 0
+      %__grandparent = getelementptr inbounds nuw %parent, ptr %deref, i32 0, i32 0
       call void @__user_init_grandparent(ptr %__grandparent)
       ret void
     }
@@ -1115,7 +1115,7 @@ fn this_in_method_call_chain() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -1123,7 +1123,7 @@ fn this_in_method_call_chain() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
       call void @FB_Test__Increment(ptr %deref)
       ret void
@@ -1133,7 +1133,7 @@ fn this_in_method_call_chain() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -1142,13 +1142,13 @@ fn this_in_method_call_chain() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %Step = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %Step = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__Step, ptr %Step, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %Increment = getelementptr inbounds %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
+      %Increment = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
       store ptr @FB_Test__Increment, ptr %Increment, align 8
       ret void
     }
@@ -1158,7 +1158,7 @@ fn this_in_method_call_chain() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1221,14 +1221,14 @@ fn this_in_method_and_body_in_function_block() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %val = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %deref = load ptr, ptr %this, align 8
-      %val1 = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %val1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_val = load i16, ptr %val1, align 2
       store i16 %load_val, ptr %val, align 2
       %deref2 = load ptr, ptr %this, align 8
-      %val3 = getelementptr inbounds %FB_Test, ptr %deref2, i32 0, i32 1
+      %val3 = getelementptr inbounds nuw %FB_Test, ptr %deref2, i32 0, i32 1
       %load_val4 = load i16, ptr %val, align 2
       store i16 %load_val4, ptr %val3, align 2
       ret void
@@ -1238,12 +1238,12 @@ fn this_in_method_and_body_in_function_block() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %val = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %FB_Test.GetVal = alloca i16, align 2
       store i16 0, ptr %FB_Test.GetVal, align 2
       %deref = load ptr, ptr %this, align 8
-      %val1 = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %val1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_val = load i16, ptr %val1, align 2
       store i16 %load_val, ptr %FB_Test.GetVal, align 2
       %FB_Test__GetVal_ret = load i16, ptr %FB_Test.GetVal, align 2
@@ -1255,10 +1255,10 @@ fn this_in_method_and_body_in_function_block() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %GetVal = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %GetVal = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__GetVal, ptr %GetVal, align 8
       ret void
     }
@@ -1268,7 +1268,7 @@ fn this_in_method_and_body_in_function_block() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1347,8 +1347,8 @@ fn pass_this_to_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -1356,8 +1356,8 @@ fn pass_this_to_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %test = alloca %FB_Test2, align 8
       %x1 = alloca i16, align 2
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %test, ptr align 1 @__FB_Test2__init, i64 ptrtoint (ptr getelementptr (%FB_Test2, ptr null, i32 1) to i64), i1 false)
@@ -1373,7 +1373,7 @@ fn pass_this_to_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test2, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test2, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -1381,13 +1381,13 @@ fn pass_this_to_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test2, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test2, ptr %0, i32 0, i32 0
       %FB_Test2.bar = alloca i16, align 2
       %test = alloca ptr, align 8
       store ptr %1, ptr %test, align 8
       store i16 0, ptr %FB_Test2.bar, align 2
       %deref = load ptr, ptr %test, align 8
-      %x = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %x = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_x = load i16, ptr %x, align 2
       store i16 %load_x, ptr %FB_Test2.bar, align 2
       %FB_Test2__bar_ret = load i16, ptr %FB_Test2.bar, align 2
@@ -1402,10 +1402,10 @@ fn pass_this_to_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__foo, ptr %foo, align 8
       ret void
     }
@@ -1415,10 +1415,10 @@ fn pass_this_to_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test2, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %bar = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test2__bar, ptr %bar, align 8
       ret void
     }
@@ -1428,7 +1428,7 @@ fn pass_this_to_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1438,7 +1438,7 @@ fn pass_this_to_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test2, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test2, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test2_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1522,8 +1522,8 @@ fn this_with_shadowed_variable() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %val = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -1531,8 +1531,8 @@ fn this_with_shadowed_variable() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %val = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %val = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %val1 = alloca i16, align 2
       %local_val = alloca i16, align 2
       %shadow_val = alloca i16, align 2
@@ -1540,7 +1540,7 @@ fn this_with_shadowed_variable() {
       store i16 0, ptr %local_val, align 2
       store i16 0, ptr %shadow_val, align 2
       %deref = load ptr, ptr %this, align 8
-      %val2 = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %val2 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_val = load i16, ptr %val2, align 2
       store i16 %load_val, ptr %local_val, align 2
       %load_val3 = load i16, ptr %val1, align 2
@@ -1553,10 +1553,10 @@ fn this_with_shadowed_variable() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %shadow_val = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %shadow_val = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__shadow_val, ptr %shadow_val, align 8
       ret void
     }
@@ -1566,7 +1566,7 @@ fn this_with_shadowed_variable() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1630,8 +1630,8 @@ fn this_calling_function_and_passing_this() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %1 = load ptr, ptr %this, align 8
       %call = call i16 @foo(ptr %1)
       ret void
@@ -1644,7 +1644,7 @@ fn this_calling_function_and_passing_this() {
       store ptr %0, ptr %pfb, align 8
       store i16 0, ptr %foo, align 2
       %deref = load ptr, ptr %pfb, align 8
-      %x = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %x = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_x = load i16, ptr %x, align 2
       store i16 %load_x, ptr %foo, align 2
       %foo_ret = load i16, ptr %foo, align 2
@@ -1656,7 +1656,7 @@ fn this_calling_function_and_passing_this() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       ret void
     }
@@ -1666,7 +1666,7 @@ fn this_calling_function_and_passing_this() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1736,8 +1736,8 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -1745,12 +1745,12 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %FB_Test.DoubleX = alloca i16, align 2
       store i16 0, ptr %FB_Test.DoubleX, align 2
       %deref = load ptr, ptr %this, align 8
-      %x1 = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %x1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_x = load i16, ptr %x1, align 2
       %1 = sext i16 %load_x to i32
       %tmpVar = mul i32 2, %1
@@ -1764,8 +1764,8 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %FB_Test.__get_Value = alloca i16, align 2
       %Value = alloca i16, align 2
       store i16 0, ptr %Value, align 2
@@ -1783,12 +1783,12 @@ fn this_in_property_and_calling_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %Value = alloca i16, align 2
       store i16 %1, ptr %Value, align 2
       %deref = load ptr, ptr %this, align 8
-      %x1 = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 1
+      %x1 = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 1
       %load_Value = load i16, ptr %Value, align 2
       store i16 %load_Value, ptr %x1, align 2
       ret void
@@ -1799,16 +1799,16 @@ fn this_in_property_and_calling_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %DoubleX = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %DoubleX = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__DoubleX, ptr %DoubleX, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %__get_Value = getelementptr inbounds %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
+      %__get_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref2, i32 0, i32 2
       store ptr @FB_Test____get_Value, ptr %__get_Value, align 8
       %deref3 = load ptr, ptr %self, align 8
-      %__set_Value = getelementptr inbounds %__vtable_FB_Test, ptr %deref3, i32 0, i32 3
+      %__set_Value = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref3, i32 0, i32 3
       store ptr @FB_Test____set_Value, ptr %__set_Value, align 8
       ret void
     }
@@ -1818,7 +1818,7 @@ fn this_in_property_and_calling_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1881,8 +1881,8 @@ fn this_with_self_pointer() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %refToSelf = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %refToSelf = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -1890,8 +1890,8 @@ fn this_with_self_pointer() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 0
-      %refToSelf = getelementptr inbounds %FB_Test, ptr %0, i32 0, i32 1
+      %__vtable = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 0
+      %refToSelf = getelementptr inbounds nuw %FB_Test, ptr %0, i32 0, i32 1
       %deref = load ptr, ptr %this, align 8
       store ptr %deref, ptr %refToSelf, align 8
       %deref1 = load ptr, ptr %this, align 8
@@ -1906,10 +1906,10 @@ fn this_with_self_pointer() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @FB_Test, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %InitRef = getelementptr inbounds %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
+      %InitRef = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref1, i32 0, i32 1
       store ptr @FB_Test__InitRef, ptr %InitRef, align 8
       ret void
     }
@@ -1919,7 +1919,7 @@ fn this_with_self_pointer() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %__vtable_FB_Test, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %__vtable_FB_Test, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_Test_instance, ptr %__vtable, align 8
       ret void
     }
@@ -1980,10 +1980,10 @@ fn this_in_variable_initialization() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %FB, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %FB, ptr %0, i32 0, i32 1
-      %self = getelementptr inbounds %FB, ptr %0, i32 0, i32 2
-      %y = getelementptr inbounds %FB, ptr %0, i32 0, i32 3
+      %__vtable = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 1
+      %self = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 2
+      %y = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 3
       ret void
     }
 
@@ -1992,7 +1992,7 @@ fn this_in_variable_initialization() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_FB, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_FB, ptr %deref, i32 0, i32 0
       store ptr @FB, ptr %__body, align 8
       ret void
     }
@@ -2002,7 +2002,7 @@ fn this_in_variable_initialization() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %FB, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %FB, ptr %deref, i32 0, i32 0
       store ptr @__vtable_FB_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2060,7 +2060,7 @@ fn this_in_action_in_functionblock() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -2068,7 +2068,7 @@ fn this_in_action_in_functionblock() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
       call void @fb(ptr %deref)
       ret void
@@ -2079,7 +2079,7 @@ fn this_in_action_in_functionblock() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb, ptr %__body, align 8
       ret void
     }
@@ -2089,7 +2089,7 @@ fn this_in_action_in_functionblock() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2146,7 +2146,7 @@ fn this_calling_functionblock_body_from_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -2154,7 +2154,7 @@ fn this_calling_functionblock_body_from_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       %fb.foo = alloca i16, align 2
       store i16 0, ptr %fb.foo, align 2
       %deref = load ptr, ptr %this, align 8
@@ -2168,10 +2168,10 @@ fn this_calling_functionblock_body_from_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
       store ptr @fb, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_fb, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
       store ptr @fb__foo, ptr %foo, align 8
       ret void
     }
@@ -2181,7 +2181,7 @@ fn this_calling_functionblock_body_from_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %fb, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
       store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2255,7 +2255,7 @@ fn fb_extension_with_output() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -2263,7 +2263,7 @@ fn fb_extension_with_output() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.met1 = alloca i16, align 2
       %mandatoryInput = alloca i16, align 2
       store i16 %1, ptr %mandatoryInput, align 2
@@ -2280,12 +2280,12 @@ fn fb_extension_with_output() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %0, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
-      %__foo1 = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo1, i32 0, i32 0
+      %__foo1 = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo1, i32 0, i32 0
       %deref2 = load ptr, ptr %__vtable, align 8
-      %met1 = getelementptr inbounds %__vtable_foo2, ptr %deref2, i32 0, i32 1
+      %met1 = getelementptr inbounds nuw %__vtable_foo2, ptr %deref2, i32 0, i32 1
       %1 = load ptr, ptr %met1, align 8
       %deref3 = load ptr, ptr %this, align 8
       %2 = alloca i16, align 2
@@ -2298,10 +2298,10 @@ fn fb_extension_with_output() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %met1 = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__met1, ptr %met1, align 8
       ret void
     }
@@ -2311,10 +2311,10 @@ fn fb_extension_with_output() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo2, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %met1 = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__met1, ptr %met1, align 8
       ret void
     }
@@ -2324,7 +2324,7 @@ fn fb_extension_with_output() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2334,11 +2334,11 @@ fn fb_extension_with_output() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2348,7 +2348,7 @@ fn fb_extension_with_output() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }
@@ -2444,7 +2444,7 @@ fn function_with_output_used_in_main_by_extension() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -2452,7 +2452,7 @@ fn function_with_output_used_in_main_by_extension() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.met1 = alloca i16, align 2
       %mandatoryInput = alloca i16, align 2
       store i16 %1, ptr %mandatoryInput, align 2
@@ -2477,8 +2477,8 @@ fn function_with_output_used_in_main_by_extension() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %foo2, ptr %0, i32 0, i32 1
+      %__foo = getelementptr inbounds nuw %foo2, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %foo2, ptr %0, i32 0, i32 1
       ret void
     }
 
@@ -2497,7 +2497,7 @@ fn function_with_output_used_in_main_by_extension() {
       call void @__user_init_foo(ptr %foo_inst)
       call void @__user_init_foo2(ptr %foo2_inst)
       %call = call i16 @foo__met1(ptr %foo_inst, i16 1, i16 5, ptr %out)
-      %__foo = getelementptr inbounds %foo2, ptr %foo2_inst, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %foo2_inst, i32 0, i32 0
       %call1 = call i16 @foo__met1(ptr %__foo, i16 2, i16 5, ptr %out)
       %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
@@ -2511,10 +2511,10 @@ fn function_with_output_used_in_main_by_extension() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %met1 = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__met1, ptr %met1, align 8
       ret void
     }
@@ -2524,10 +2524,10 @@ fn function_with_output_used_in_main_by_extension() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_foo, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_foo, ptr %deref, i32 0, i32 0
       store ptr @foo2, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %met1 = getelementptr inbounds %__vtable_foo, ptr %deref1, i32 0, i32 1
+      %met1 = getelementptr inbounds nuw %__vtable_foo, ptr %deref1, i32 0, i32 1
       store ptr @foo__met1, ptr %met1, align 8
       ret void
     }
@@ -2537,11 +2537,11 @@ fn function_with_output_used_in_main_by_extension() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
       call void @__init_foo(ptr %__foo)
       %deref1 = load ptr, ptr %self, align 8
-      %__foo2 = getelementptr inbounds %foo2, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %foo, ptr %__foo2, i32 0, i32 0
+      %__foo2 = getelementptr inbounds nuw %foo2, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %__foo2, i32 0, i32 0
       store ptr @__vtable_foo2_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2551,7 +2551,7 @@ fn function_with_output_used_in_main_by_extension() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %foo, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %foo, ptr %deref, i32 0, i32 0
       store ptr @__vtable_foo_instance, ptr %__vtable, align 8
       ret void
     }
@@ -2561,7 +2561,7 @@ fn function_with_output_used_in_main_by_extension() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__foo = getelementptr inbounds %foo2, ptr %deref, i32 0, i32 0
+      %__foo = getelementptr inbounds nuw %foo2, ptr %deref, i32 0, i32 0
       call void @__user_init_foo(ptr %__foo)
       ret void
     }

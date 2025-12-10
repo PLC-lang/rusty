@@ -21,19 +21,19 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %ptr_float = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %a = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-  %b = getelementptr inbounds %main, ptr %0, i32 0, i32 2
-  %var_real = getelementptr inbounds %main, ptr %0, i32 0, i32 3
-  %var_lreal = getelementptr inbounds %main, ptr %0, i32 0, i32 4
-  %var_sint = getelementptr inbounds %main, ptr %0, i32 0, i32 5
-  %var_int = getelementptr inbounds %main, ptr %0, i32 0, i32 6
-  %var_dint = getelementptr inbounds %main, ptr %0, i32 0, i32 7
-  %var_lint = getelementptr inbounds %main, ptr %0, i32 0, i32 8
-  %var_usint = getelementptr inbounds %main, ptr %0, i32 0, i32 9
-  %var_uint = getelementptr inbounds %main, ptr %0, i32 0, i32 10
-  %var_udint = getelementptr inbounds %main, ptr %0, i32 0, i32 11
-  %var_ulint = getelementptr inbounds %main, ptr %0, i32 0, i32 12
+  %ptr_float = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %var_real = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %var_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 4
+  %var_sint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 5
+  %var_int = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 6
+  %var_dint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 7
+  %var_lint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 8
+  %var_usint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 9
+  %var_uint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 10
+  %var_udint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 11
+  %var_ulint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 12
   store ptr %var_real, ptr %ptr_float, align 8
   %load_var_sint = load i8, ptr %var_sint, align 1
   %1 = sext i8 %load_var_sint to i32

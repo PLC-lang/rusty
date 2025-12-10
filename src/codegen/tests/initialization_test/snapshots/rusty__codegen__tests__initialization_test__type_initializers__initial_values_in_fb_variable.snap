@@ -19,15 +19,15 @@ define void @TON(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %a = getelementptr inbounds %TON, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %TON, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %TON, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %TON, ptr %0, i32 0, i32 1
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
-  %TEN = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %struct1 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-  %struct2 = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+  %TEN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %struct1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %struct2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   ret void
 }

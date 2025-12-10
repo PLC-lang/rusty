@@ -111,8 +111,8 @@ fn initializing_a_struct() {
 
     define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %rect1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       ret void
     }
     "#);
@@ -156,8 +156,8 @@ fn assigning_structs() {
 
     define void @prg(ptr %0) {
     entry:
-      %p1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %p2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %p1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %p2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %p1, ptr align 1 %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
       ret void
     }
@@ -214,12 +214,12 @@ fn accessing_struct_members() {
 
     define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-      %topLeft = getelementptr inbounds %Rect, ptr %rect1, i32 0, i32 0
-      %x = getelementptr inbounds %Point, ptr %topLeft, i32 0, i32 0
-      %bottomRight = getelementptr inbounds %Rect, ptr %rect2, i32 0, i32 1
-      %x1 = getelementptr inbounds %Point, ptr %bottomRight, i32 0, i32 0
+      %rect1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %topLeft = getelementptr inbounds nuw %Rect, ptr %rect1, i32 0, i32 0
+      %x = getelementptr inbounds nuw %Point, ptr %topLeft, i32 0, i32 0
+      %bottomRight = getelementptr inbounds nuw %Rect, ptr %rect2, i32 0, i32 1
+      %x1 = getelementptr inbounds nuw %Point, ptr %bottomRight, i32 0, i32 0
       %load_x = load i16, ptr %x1, align 2
       store i16 %load_x, ptr %x, align 2
       ret void

@@ -19,7 +19,7 @@ define void @foo(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %bar_inst = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -32,8 +32,8 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %foo_inst = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %bar_inst = getelementptr inbounds %foo, ptr %foo_inst, i32 0, i32 0
+  %foo_inst = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds nuw %foo, ptr %foo_inst, i32 0, i32 0
   call void @bar(ptr %bar_inst)
   ret void
 }

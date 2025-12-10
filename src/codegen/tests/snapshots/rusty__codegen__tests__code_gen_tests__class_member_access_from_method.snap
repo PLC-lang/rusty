@@ -13,15 +13,15 @@ target triple = "[filtered]"
 
 define void @MyClass(ptr %0) {
 entry:
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   ret void
 }
 
 define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %myMethodArg = alloca i16, align 2
   store i16 %1, ptr %myMethodArg, align 2
   %myMethodLocalVar = alloca i16, align 2

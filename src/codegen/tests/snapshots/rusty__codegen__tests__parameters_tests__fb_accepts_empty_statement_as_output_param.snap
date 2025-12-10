@@ -17,17 +17,17 @@ define void @fb_t(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %out1 = getelementptr inbounds %fb_t, ptr %0, i32 0, i32 0
-  %out2 = getelementptr inbounds %fb_t, ptr %0, i32 0, i32 1
+  %out1 = getelementptr inbounds nuw %fb_t, ptr %0, i32 0, i32 0
+  %out2 = getelementptr inbounds nuw %fb_t, ptr %0, i32 0, i32 1
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
-  %fb = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %x = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %fb = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   call void @fb_t(ptr %fb)
-  %1 = getelementptr inbounds %fb_t, ptr %fb, i32 0, i32 0
+  %1 = getelementptr inbounds nuw %fb_t, ptr %fb, i32 0, i32 0
   %2 = load i32, ptr %1, align 4
   store i32 %2, ptr %x, align 4
   ret void

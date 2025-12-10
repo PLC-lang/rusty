@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %var_time = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %var_time_of_day = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-  %var_date = getelementptr inbounds %main, ptr %0, i32 0, i32 2
-  %var_date_and_time = getelementptr inbounds %main, ptr %0, i32 0, i32 3
+  %var_time = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var_time_of_day = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var_date = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %var_date_and_time = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
   %load_var_time = load i64, ptr %var_time, align 8
   %load_var_time_of_day = load i64, ptr %var_time_of_day, align 8
   %tmpVar = icmp sgt i64 %load_var_time, %load_var_time_of_day

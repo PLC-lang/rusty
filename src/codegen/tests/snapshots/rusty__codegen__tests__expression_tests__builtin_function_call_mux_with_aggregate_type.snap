@@ -17,7 +17,7 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %str1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %str1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %1 = alloca [81 x i8], align 1
   switch i32 3, label %continue_block [
     i32 0, label %2

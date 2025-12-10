@@ -405,15 +405,15 @@ fn self_referential_struct_via_reference_codegen() {
 
     define void @main(ptr %0) {
     entry:
-      %node1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %node2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-      %data = getelementptr inbounds %Node, ptr %node1, i32 0, i32 0
+      %node1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %node2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %data = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 0
       store i32 42, ptr %data, align 4
-      %data1 = getelementptr inbounds %Node, ptr %node2, i32 0, i32 0
+      %data1 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 0
       store i32 84, ptr %data1, align 4
-      %next = getelementptr inbounds %Node, ptr %node1, i32 0, i32 1
+      %next = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 1
       store ptr %node2, ptr %next, align 8
-      %next2 = getelementptr inbounds %Node, ptr %node2, i32 0, i32 1
+      %next2 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 1
       store ptr %node1, ptr %next2, align 8
       ret void
     }

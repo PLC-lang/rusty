@@ -18,6 +18,6 @@ target triple = "[filtered]"
 
 define void @mainProg(ptr %0) {
 entry:
-  %var_str1 = getelementptr inbounds %mainProg, ptr %0, i32 0, i32 0
+  %var_str1 = getelementptr inbounds nuw %mainProg, ptr %0, i32 0, i32 0
   ret void
 }

@@ -81,8 +81,8 @@ fn assigning_full_arrays() {
 
     define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %a, ptr align 1 %b, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
@@ -134,8 +134,8 @@ fn accessing_array_elements() {
 
     define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %tmpVar = getelementptr inbounds [10 x i32], ptr %a, i32 0, i32 2
       %tmpVar1 = getelementptr inbounds [3 x i32], ptr %b, i32 0, i32 1
       %load_tmpVar = load i32, ptr %tmpVar1, align 4

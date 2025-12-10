@@ -15,8 +15,8 @@ target triple = "[filtered]"
 
 define void @MainProg(ptr %0) {
 entry:
-  %Cord = getelementptr inbounds %MainProg, ptr %0, i32 0, i32 0
-  %a = getelementptr inbounds %MyStruct, ptr %Cord, i32 0, i32 0
+  %Cord = getelementptr inbounds nuw %MainProg, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %MyStruct, ptr %Cord, i32 0, i32 0
   store i32 0, ptr %a, align 4
   ret void
 }

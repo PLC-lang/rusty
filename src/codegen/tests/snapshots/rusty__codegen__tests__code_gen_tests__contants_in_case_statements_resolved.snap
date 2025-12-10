@@ -13,8 +13,8 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) {
 entry:
-  %DAYS_IN_MONTH = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %SIXTY = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %DAYS_IN_MONTH = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %SIXTY = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   %load_DAYS_IN_MONTH = load i32, ptr %DAYS_IN_MONTH, align 4
   switch i32 %load_DAYS_IN_MONTH, label %else [
   ]

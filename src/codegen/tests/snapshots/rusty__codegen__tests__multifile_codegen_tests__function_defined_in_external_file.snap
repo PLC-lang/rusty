@@ -42,7 +42,7 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -57,7 +57,7 @@ target triple = "[filtered]"
 
 define void @prg2(ptr %0) {
 entry:
-  %b = getelementptr inbounds %prg2, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg2, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -78,7 +78,7 @@ target triple = "[filtered]"
 
 define void @prog(ptr %0) {
 entry:
-  %myFb = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
+  %myFb = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   %load_a = load i32, ptr @prg_instance, align 4
   call void @prg2(ptr @prg2_instance)
   %call = call i32 @func()

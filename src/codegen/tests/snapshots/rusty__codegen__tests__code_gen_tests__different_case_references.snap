@@ -13,8 +13,8 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %y = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %zz = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %zz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   ret void
 }

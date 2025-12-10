@@ -13,8 +13,8 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %load_a = load float, ptr %a, align 4
   %1 = fpext float %load_a to double
   store double %1, ptr %b, align 8

@@ -304,8 +304,8 @@ fn builtin_function_call_adr() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       store ptr %b, ptr %a, align 8
       store ptr %b, ptr %a, align 8
       ret void
@@ -342,8 +342,8 @@ fn builtin_function_call_ref() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       store ptr %b, ptr %a, align 8
       store ptr %b, ptr %a, align 8
       ret void
@@ -403,9 +403,9 @@ fn builtin_function_call_sel() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-      %c = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
       %load_b = load i32, ptr %b, align 4
       %load_c = load i32, ptr %c, align 4
       %1 = select i1 true, i32 %load_c, i32 %load_b
@@ -457,8 +457,8 @@ fn builtin_function_call_move() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %load_b = load i32, ptr %b, align 4
       store i32 %load_b, ptr %a, align 4
       %load_b1 = load i32, ptr %b, align 4
@@ -493,8 +493,8 @@ fn builtin_function_call_sizeof() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       store i32 ptrtoint (ptr getelementptr (i64, ptr null, i32 1) to i32), ptr %a, align 4
       store i32 ptrtoint (ptr getelementptr (i64, ptr null, i32 1) to i32), ptr %a, align 4
       ret void
@@ -538,13 +538,13 @@ fn builtin_function_call_lower_bound() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %auto_deref = load [2 x i32], ptr %a, align 4
       %outer_arr_gep = getelementptr inbounds [2 x i32], ptr %a, i32 0, i32 0
       %vla_struct = alloca %__foo_vla, align 8
-      %vla_array_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 0
-      %vla_dimensions_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 1
+      %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+      %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
       store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
       store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
       %1 = load %__foo_vla, ptr %vla_struct, align 8
@@ -562,12 +562,12 @@ fn builtin_function_call_lower_bound() {
       store ptr %0, ptr %vla, align 8
       store i32 0, ptr %foo, align 4
       %deref = load ptr, ptr %vla, align 8
-      %dim = getelementptr inbounds %__foo_vla, ptr %deref, i32 0, i32 1
+      %dim = getelementptr inbounds nuw %__foo_vla, ptr %deref, i32 0, i32 1
       %1 = getelementptr inbounds [2 x i32], ptr %dim, i32 0, i32 0
       %2 = load i32, ptr %1, align 4
       store i32 %2, ptr %foo, align 4
       %deref1 = load ptr, ptr %vla, align 8
-      %dim2 = getelementptr inbounds %__foo_vla, ptr %deref1, i32 0, i32 1
+      %dim2 = getelementptr inbounds nuw %__foo_vla, ptr %deref1, i32 0, i32 1
       %3 = getelementptr inbounds [2 x i32], ptr %dim2, i32 0, i32 0
       %4 = load i32, ptr %3, align 4
       store i32 %4, ptr %foo, align 4
@@ -613,13 +613,13 @@ fn builtin_function_call_upper_bound() {
 
     define void @main(ptr %0) {
     entry:
-      %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-      %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+      %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
       %auto_deref = load [2 x i32], ptr %a, align 4
       %outer_arr_gep = getelementptr inbounds [2 x i32], ptr %a, i32 0, i32 0
       %vla_struct = alloca %__foo_vla, align 8
-      %vla_array_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 0
-      %vla_dimensions_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 1
+      %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+      %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
       store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
       store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
       %1 = load %__foo_vla, ptr %vla_struct, align 8
@@ -637,12 +637,12 @@ fn builtin_function_call_upper_bound() {
       store ptr %0, ptr %vla, align 8
       store i32 0, ptr %foo, align 4
       %deref = load ptr, ptr %vla, align 8
-      %dim = getelementptr inbounds %__foo_vla, ptr %deref, i32 0, i32 1
+      %dim = getelementptr inbounds nuw %__foo_vla, ptr %deref, i32 0, i32 1
       %1 = getelementptr inbounds [2 x i32], ptr %dim, i32 0, i32 1
       %2 = load i32, ptr %1, align 4
       store i32 %2, ptr %foo, align 4
       %deref1 = load ptr, ptr %vla, align 8
-      %dim2 = getelementptr inbounds %__foo_vla, ptr %deref1, i32 0, i32 1
+      %dim2 = getelementptr inbounds nuw %__foo_vla, ptr %deref1, i32 0, i32 1
       %3 = getelementptr inbounds [2 x i32], ptr %dim2, i32 0, i32 1
       %4 = load i32, ptr %3, align 4
       store i32 %4, ptr %foo, align 4
@@ -1063,7 +1063,7 @@ fn global_namespace_operator() {
 
     define void @main(ptr %0) {
     entry:
-      %foo = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+      %foo = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
       %load_foo = load i32, ptr @foo, align 4
       store i32 %load_foo, ptr %foo, align 4
       %load_foo1 = load i32, ptr @foo, align 4
@@ -1119,7 +1119,7 @@ fn unary_plus_expression_test() {
 
     define void @exp(ptr %0) {
     entry:
-      %x = getelementptr inbounds %exp, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %exp, ptr %0, i32 0, i32 0
       %load_x = load i32, ptr %x, align 4
       %load_x1 = load i32, ptr %x, align 4
       %tmpVar = add i32 %load_x1, 4

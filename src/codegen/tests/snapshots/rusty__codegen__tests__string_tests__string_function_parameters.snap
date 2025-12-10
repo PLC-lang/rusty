@@ -30,8 +30,8 @@ buffer_block:                                     ; No predecessors!
 
 define void @prg(ptr %0) {
 entry:
-  %s = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
+  %s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 %s, i32 11, i1 false)
   call void @llvm.memcpy.p0.p0.i32(ptr align 1 %a, ptr align 1 @utf08_literal_0, i32 6, i1 false)
   %call = call i16 @foo(ptr %s)

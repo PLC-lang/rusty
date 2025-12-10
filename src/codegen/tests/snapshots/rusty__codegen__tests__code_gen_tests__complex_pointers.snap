@@ -13,10 +13,10 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %X = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %arrX = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %arrrX = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
-  %rarrX = getelementptr inbounds %prg, ptr %0, i32 0, i32 3
+  %X = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %arrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %arrrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %rarrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
   %tmpVar = getelementptr inbounds [10 x i16], ptr %arrX, i32 0, i32 0
   %load_X = load i16, ptr %X, align 2
   store i16 %load_X, ptr %tmpVar, align 2

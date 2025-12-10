@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %c = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %load_a = load i16, ptr %a, align 2
   %1 = sitofp i16 %load_a to float
   store float %1, ptr %c, align 4

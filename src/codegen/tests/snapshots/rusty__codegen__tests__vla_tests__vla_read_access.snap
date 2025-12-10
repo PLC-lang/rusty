@@ -17,9 +17,9 @@ entry:
   %vla = alloca %__foo_vla, align 8
   call void @llvm.memcpy.p0.p0.i64(ptr align 1 %vla, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
   store i16 0, ptr %foo, align 2
-  %vla_arr_gep = getelementptr inbounds %__foo_vla, ptr %vla, i32 0, i32 0
+  %vla_arr_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 0
   %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align 8
-  %dim_arr = getelementptr inbounds %__foo_vla, ptr %vla, i32 0, i32 1
+  %dim_arr = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 1
   %start_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 0
   %end_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 1
   %start_idx_value0 = load i32, ptr %start_idx_ptr0, align 4
@@ -41,8 +41,8 @@ entry:
   %auto_deref = load [2 x i16], ptr %arr, align 2
   %outer_arr_gep = getelementptr inbounds [2 x i16], ptr %arr, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
-  %vla_array_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 0
-  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, ptr %vla_struct, i32 0, i32 1
+  %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
   store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
   store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
   %0 = load %__foo_vla, ptr %vla_struct, align 8

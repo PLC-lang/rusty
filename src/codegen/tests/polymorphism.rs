@@ -68,9 +68,9 @@ fn simple_overridden_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
-      %one = getelementptr inbounds %A, ptr %0, i32 0, i32 1
-      %two = getelementptr inbounds %A, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
+      %one = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 1
+      %two = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -78,9 +78,9 @@ fn simple_overridden_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
-      %one = getelementptr inbounds %A, ptr %0, i32 0, i32 1
-      %two = getelementptr inbounds %A, ptr %0, i32 0, i32 2
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
+      %one = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 1
+      %two = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 2
       %A.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -93,9 +93,9 @@ fn simple_overridden_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
-      %three = getelementptr inbounds %B, ptr %0, i32 0, i32 1
-      %four = getelementptr inbounds %B, ptr %0, i32 0, i32 2
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
+      %three = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 1
+      %four = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 2
       ret void
     }
 
@@ -103,9 +103,9 @@ fn simple_overridden_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
-      %three = getelementptr inbounds %B, ptr %0, i32 0, i32 1
-      %four = getelementptr inbounds %B, ptr %0, i32 0, i32 2
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
+      %three = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 1
+      %four = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 2
       %B.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -128,17 +128,17 @@ fn simple_overridden_method() {
       call void @__user_init_B(ptr %instanceB)
       store ptr %instanceA, ptr %refInstanceA, align 8
       %deref = load ptr, ptr %refInstanceA, align 8
-      %__vtable = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       %deref1 = load ptr, ptr %__vtable, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       %0 = load ptr, ptr %foo, align 8
       %deref2 = load ptr, ptr %refInstanceA, align 8
       %fnptr_call = call i16 %0(ptr %deref2, i32 5)
       store ptr %instanceB, ptr %refInstanceA, align 8
       %deref3 = load ptr, ptr %refInstanceA, align 8
-      %__vtable4 = getelementptr inbounds %A, ptr %deref3, i32 0, i32 0
+      %__vtable4 = getelementptr inbounds nuw %A, ptr %deref3, i32 0, i32 0
       %deref5 = load ptr, ptr %__vtable4, align 8
-      %foo6 = getelementptr inbounds %__vtable_A, ptr %deref5, i32 0, i32 1
+      %foo6 = getelementptr inbounds nuw %__vtable_A, ptr %deref5, i32 0, i32 1
       %1 = load ptr, ptr %foo6, align 8
       %deref7 = load ptr, ptr %refInstanceA, align 8
       %fnptr_call8 = call i16 %1(ptr %deref7, i32 10)
@@ -153,10 +153,10 @@ fn simple_overridden_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @A, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @A__foo, ptr %foo, align 8
       ret void
     }
@@ -166,10 +166,10 @@ fn simple_overridden_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @B, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @B__foo, ptr %foo, align 8
       ret void
     }
@@ -179,11 +179,11 @@ fn simple_overridden_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__init_a(ptr %__A)
       %deref1 = load ptr, ptr %self, align 8
-      %__A2 = getelementptr inbounds %B, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %A, ptr %__A2, i32 0, i32 0
+      %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align 8
       ret void
     }
@@ -193,7 +193,7 @@ fn simple_overridden_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       store ptr @__vtable_A_instance, ptr %__vtable, align 8
       ret void
     }
@@ -210,7 +210,7 @@ fn simple_overridden_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__user_init_A(ptr %__A)
       ret void
     }
@@ -280,7 +280,7 @@ fn method_call_within_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -288,7 +288,7 @@ fn method_call_within_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       %A.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -301,11 +301,11 @@ fn method_call_within_method() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
-      %__vtable1 = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable1 = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       %deref2 = load ptr, ptr %__vtable1, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 1
       %1 = load ptr, ptr %foo, align 8
       %deref3 = load ptr, ptr %this, align 8
       %fnptr_call = call i16 %1(ptr %deref3, i32 5)
@@ -317,13 +317,13 @@ fn method_call_within_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @A, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @A__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @A__bar, ptr %bar, align 8
       ret void
     }
@@ -333,7 +333,7 @@ fn method_call_within_method() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       store ptr @__vtable_A_instance, ptr %__vtable, align 8
       ret void
     }
@@ -428,7 +428,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -436,7 +436,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       %A.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -449,7 +449,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -457,7 +457,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -465,9 +465,9 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
-      %__A1 = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A1 = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       %call = call i16 @A__foo(ptr %__A1, i32 5)
       ret void
     }
@@ -476,7 +476,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %C, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %C, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -484,7 +484,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %C, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %C, ptr %0, i32 0, i32 0
       %C.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -499,7 +499,7 @@ fn this_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %C, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %C, ptr %0, i32 0, i32 0
       %deref = load ptr, ptr %this, align 8
       %call = call i16 @C__foo(ptr %deref, i32 5)
       ret void
@@ -510,13 +510,13 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @A, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @A__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @A__bar, ptr %bar, align 8
       ret void
     }
@@ -526,13 +526,13 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @B, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @A__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @B__bar, ptr %bar, align 8
       ret void
     }
@@ -542,13 +542,13 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @C, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @C__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @C__bar, ptr %bar, align 8
       ret void
     }
@@ -558,7 +558,7 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       store ptr @__vtable_A_instance, ptr %__vtable, align 8
       ret void
     }
@@ -568,11 +568,11 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__init_a(ptr %__A)
       %deref1 = load ptr, ptr %self, align 8
-      %__A2 = getelementptr inbounds %B, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %A, ptr %__A2, i32 0, i32 0
+      %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align 8
       ret void
     }
@@ -582,11 +582,11 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__init_a(ptr %__A)
       %deref1 = load ptr, ptr %self, align 8
-      %__A2 = getelementptr inbounds %B, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %A, ptr %__A2, i32 0, i32 0
+      %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_C_instance, ptr %__vtable, align 8
       ret void
     }
@@ -596,7 +596,7 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__user_init_A(ptr %__A)
       ret void
     }
@@ -620,7 +620,7 @@ fn this_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__user_init_A(ptr %__A)
       ret void
     }
@@ -709,7 +709,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -717,7 +717,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       %A.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -730,7 +730,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__vtable = getelementptr inbounds %A, ptr %0, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -738,7 +738,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       ret void
     }
 
@@ -746,7 +746,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       %B.foo = alloca i16, align 2
       %in = alloca i32, align 4
       store i32 %1, ptr %in, align 4
@@ -761,7 +761,7 @@ fn super_is_untouched() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %__A = getelementptr inbounds %B, ptr %0, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %0, i32 0, i32 0
       %call = call i16 @A__foo(ptr %__A, i32 5)
       call void @A__bar(ptr %__A)
       ret void
@@ -772,13 +772,13 @@ fn super_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @A, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @A__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @A__bar, ptr %bar, align 8
       ret void
     }
@@ -788,13 +788,13 @@ fn super_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__body = getelementptr inbounds %__vtable_A, ptr %deref, i32 0, i32 0
+      %__body = getelementptr inbounds nuw %__vtable_A, ptr %deref, i32 0, i32 0
       store ptr @B, ptr %__body, align 8
       %deref1 = load ptr, ptr %self, align 8
-      %foo = getelementptr inbounds %__vtable_A, ptr %deref1, i32 0, i32 1
+      %foo = getelementptr inbounds nuw %__vtable_A, ptr %deref1, i32 0, i32 1
       store ptr @B__foo, ptr %foo, align 8
       %deref2 = load ptr, ptr %self, align 8
-      %bar = getelementptr inbounds %__vtable_A, ptr %deref2, i32 0, i32 2
+      %bar = getelementptr inbounds nuw %__vtable_A, ptr %deref2, i32 0, i32 2
       store ptr @B__bar, ptr %bar, align 8
       ret void
     }
@@ -804,7 +804,7 @@ fn super_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__vtable = getelementptr inbounds %A, ptr %deref, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %deref, i32 0, i32 0
       store ptr @__vtable_A_instance, ptr %__vtable, align 8
       ret void
     }
@@ -814,11 +814,11 @@ fn super_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__init_a(ptr %__A)
       %deref1 = load ptr, ptr %self, align 8
-      %__A2 = getelementptr inbounds %B, ptr %deref1, i32 0, i32 0
-      %__vtable = getelementptr inbounds %A, ptr %__A2, i32 0, i32 0
+      %__A2 = getelementptr inbounds nuw %B, ptr %deref1, i32 0, i32 0
+      %__vtable = getelementptr inbounds nuw %A, ptr %__A2, i32 0, i32 0
       store ptr @__vtable_B_instance, ptr %__vtable, align 8
       ret void
     }
@@ -835,7 +835,7 @@ fn super_is_untouched() {
       %self = alloca ptr, align 8
       store ptr %0, ptr %self, align 8
       %deref = load ptr, ptr %self, align 8
-      %__A = getelementptr inbounds %B, ptr %deref, i32 0, i32 0
+      %__A = getelementptr inbounds nuw %B, ptr %deref, i32 0, i32 0
       call void @__user_init_A(ptr %__A)
       ret void
     }

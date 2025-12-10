@@ -24,7 +24,7 @@ define void @fb(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %x = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -58,7 +58,7 @@ define void @fb2(ptr %0) {
 entry:
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
-  %x = getelementptr inbounds %fb2, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %fb2, ptr %0, i32 0, i32 0
   ret void
 }
 

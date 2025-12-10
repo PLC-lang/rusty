@@ -29,7 +29,7 @@ entry:
 
 define void @Main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %Main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
   store i16 7, ptr %x, align 2
   ret void
 }

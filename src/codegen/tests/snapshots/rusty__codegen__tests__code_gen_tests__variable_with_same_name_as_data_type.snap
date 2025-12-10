@@ -23,6 +23,6 @@ entry:
 
 define void @prog(ptr %0) {
 entry:
-  %TIME = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
+  %TIME = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

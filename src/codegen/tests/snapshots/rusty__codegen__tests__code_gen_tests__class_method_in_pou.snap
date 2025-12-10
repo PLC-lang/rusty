@@ -15,15 +15,15 @@ target triple = "[filtered]"
 
 define void @MyClass(ptr %0) {
 entry:
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   ret void
 }
 
 define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %x = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %myMethodArg = alloca i16, align 2
   store i16 %1, ptr %myMethodArg, align 2
   %myMethodLocalVar = alloca i16, align 2
@@ -42,9 +42,9 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %cl = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-  %x1 = getelementptr inbounds %MyClass, ptr %cl, i32 0, i32 0
+  %cl = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %x1 = getelementptr inbounds nuw %MyClass, ptr %cl, i32 0, i32 0
   %load_x = load i16, ptr %x1, align 2
   store i16 %load_x, ptr %x, align 2
   %load_x2 = load i16, ptr %x, align 2

@@ -31,7 +31,7 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %load_MIN = load i16, ptr @MIN, align 2
   %1 = sext i16 %load_MIN to i32
   %tmpVar = add i32 %1, 1

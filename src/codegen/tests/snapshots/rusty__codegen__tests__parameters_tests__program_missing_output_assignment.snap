@@ -15,20 +15,20 @@ target triple = "[filtered]"
 
 define void @prog(ptr %0) {
 entry:
-  %input1 = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
-  %output1 = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
-  %inout1 = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
+  %input1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %output1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+  %inout1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
-  %var1 = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %main, ptr %0, i32 0, i32 1
-  %var3 = getelementptr inbounds %main, ptr %0, i32 0, i32 2
+  %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   %load_var1 = load i32, ptr %var1, align 4
   store i32 %load_var1, ptr @prog_instance, align 4
-  store ptr %var3, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align 8
+  store ptr %var3, ptr getelementptr inbounds nuw (%prog, ptr @prog_instance, i32 0, i32 2), align 8
   call void @prog(ptr @prog_instance)
   ret void
 }

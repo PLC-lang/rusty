@@ -15,7 +15,7 @@ target triple = "[filtered]"
 
 define void @foo(ptr %0) {
 entry:
-  %inout = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+  %inout = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   %deref = load ptr, ptr %inout, align 8
   %deref1 = load ptr, ptr %inout, align 8
   %load_inout = load i32, ptr %deref1, align 4
@@ -26,7 +26,7 @@ entry:
 
 define void @prg(ptr %0) {
 entry:
-  %baz = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
+  %baz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   store i32 7, ptr %baz, align 4
   store ptr %baz, ptr @foo_instance, align 8
   call void @foo(ptr @foo_instance)

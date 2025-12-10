@@ -1119,7 +1119,7 @@ fn fb_method_called_locally() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
@@ -1128,7 +1128,7 @@ fn fb_method_called_locally() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, ptr %in, align 2
@@ -1207,7 +1207,7 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
@@ -1216,7 +1216,7 @@ fn fb_local_method_var_shadows_parent_var() {
     entry:
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, ptr %in, align 2
@@ -1292,14 +1292,14 @@ fn prog_method_called_locally() {
 
     define void @foo(ptr %0) {
     entry:
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, ptr %in, align 2
@@ -1368,14 +1368,14 @@ fn prog_local_method_var_shadows_parent_var() {
 
     define void @foo(ptr %0) {
     entry:
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %call = call i32 @foo__addToBar(ptr %0, i16 42)
       ret void
     }
 
     define i32 @foo__addToBar(ptr %0, i16 %1) {
     entry:
-      %bar = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
+      %bar = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %foo.addToBar = alloca i32, align 4
       %in = alloca i16, align 2
       store i16 %1, ptr %in, align 2
@@ -1623,10 +1623,10 @@ fn for_statement_with_binary_expressions() {
 
     define void @prg(ptr %0) {
     entry:
-      %step = getelementptr inbounds %prg, ptr %0, i32 0, i32 0
-      %x = getelementptr inbounds %prg, ptr %0, i32 0, i32 1
-      %y = getelementptr inbounds %prg, ptr %0, i32 0, i32 2
-      %z = getelementptr inbounds %prg, ptr %0, i32 0, i32 3
+      %step = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+      %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
       %load_y = load i32, ptr %y, align 4
       %tmpVar = add i32 %load_y, 1
       store i32 %tmpVar, ptr %x, align 4

@@ -23,18 +23,18 @@ target triple = "[filtered]"
 
 define void @prog(ptr %0) {
 entry:
-  %input1 = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
-  %input2 = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
+  %input1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %input2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
   store ptr @global1, ptr @prog_instance, align 8
-  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global2, ptr getelementptr inbounds nuw (%prog, ptr @prog_instance, i32 0, i32 1), align 8
   call void @prog(ptr @prog_instance)
   store ptr @global4, ptr @prog_instance, align 8
-  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  store ptr @global5, ptr getelementptr inbounds nuw (%prog, ptr @prog_instance, i32 0, i32 1), align 8
   call void @prog(ptr @prog_instance)
   ret void
 }

@@ -12,7 +12,7 @@ target triple = "[filtered]"
 define void @main(ptr %0) !dbg !11 {
 entry:
     #dbg_declare(ptr %0, !15, !DIExpression(), !16)
-  %x = getelementptr inbounds %main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   store i32 5, ptr %x, align 4, !dbg !17
   ret void, !dbg !18
 }

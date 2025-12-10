@@ -21,8 +21,8 @@ entry:
 
 define void @main(ptr %0) {
 entry:
-  %pt = getelementptr inbounds %main, ptr %0, i32 0, i32 0
-  %x = getelementptr inbounds %main, ptr %0, i32 0, i32 1
+  %pt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   store ptr %x, ptr %pt, align 8
   %load_pt = load ptr, ptr %pt, align 8
   %call = call i64 @foo()
