@@ -7421,60 +7421,10 @@ expression: json
                   "referenced_type": "INT",
                   "sub_range": {
                     "start": {
-                      "stmt": {
-                        "Literal": {
-                          "Integer": 0
-                        }
-                      },
-                      "id": 26,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 55,
-                              "column": 29,
-                              "offset": 1422
-                            },
-                            "end": {
-                              "line": 55,
-                              "column": 30,
-                              "offset": 1423
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_complex_types.pli"
-                        }
-                      },
-                      "metadata": null
+                      "LiteralInteger": 0
                     },
                     "end": {
-                      "stmt": {
-                        "Literal": {
-                          "Integer": 99
-                        }
-                      },
-                      "id": 27,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 55,
-                              "column": 32,
-                              "offset": 1425
-                            },
-                            "end": {
-                              "line": 55,
-                              "column": 34,
-                              "offset": 1427
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "functions_with_complex_types.pli"
-                        }
-                      },
-                      "metadata": null
+                      "LiteralInteger": 99
                     }
                   }
                 }

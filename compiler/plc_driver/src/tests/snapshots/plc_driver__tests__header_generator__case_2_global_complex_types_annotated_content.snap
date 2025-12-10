@@ -2777,60 +2777,10 @@ expression: json
                   "referenced_type": "INT",
                   "sub_range": {
                     "start": {
-                      "stmt": {
-                        "Literal": {
-                          "Integer": 0
-                        }
-                      },
-                      "id": 6,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 12,
-                              "column": 30,
-                              "offset": 321
-                            },
-                            "end": {
-                              "line": 12,
-                              "column": 31,
-                              "offset": 322
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_complex_types.pli"
-                        }
-                      },
-                      "metadata": null
+                      "LiteralInteger": 0
                     },
                     "end": {
-                      "stmt": {
-                        "Literal": {
-                          "Integer": 100
-                        }
-                      },
-                      "id": 7,
-                      "location": {
-                        "span": {
-                          "Range": {
-                            "start": {
-                              "line": 12,
-                              "column": 33,
-                              "offset": 324
-                            },
-                            "end": {
-                              "line": 12,
-                              "column": 36,
-                              "offset": 327
-                            }
-                          }
-                        },
-                        "file": {
-                          "File": "global_complex_types.pli"
-                        }
-                      },
-                      "metadata": null
+                      "LiteralInteger": 100
                     }
                   }
                 }
