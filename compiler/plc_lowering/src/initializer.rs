@@ -20,13 +20,14 @@
 //! - Built-in types and variables are not re-initialized in the global
 //!   constructor.
 
-use std::rc::Rc;
+use std::{any::Any, rc::Rc};
 
 use plc::{
     index::{FxIndexMap, Index},
     lowering::helper::{
-        create_assignment, create_call_statement, create_member_reference, new_constructor,
-        new_global_constructor,
+        create_assignment, create_assignment, create_call_statement, create_call_statement,
+        create_member_reference, create_member_reference, get_unit_name, new_constructor, new_constructor,
+        new_global_constructor, new_unit_constructor,
     },
 };
 use plc_ast::{
@@ -108,6 +109,20 @@ impl AstVisitor for Initializer {
                 return;
             }
         };
+        // If the POU is a function block or a class, add an assignment to the vtable
+        if pou.is_function_block() || pou.is_class() {
+            let vtable_assignment = create_assignment(
+                "self.__vtable",
+                None,
+                &create_member_reference(
+                    &format!("ADR(__vtable_{}_instance)", pou.name),
+                    self.id_provider.clone(),
+                    None,
+                ),
+                self.id_provider.clone(),
+            );
+            self.add_to_current_constructor(vec![vtable_assignment]);
+        }
         pou.walk(self);
         // call the user defined constructor here
         if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(&pou.name, "self") {
@@ -265,21 +280,21 @@ impl Initializer {
                     if let Some(implementation) =
                         unit.implementations.iter_mut().find(|it| it.name == pou_name)
                     {
-                        implementation.statements.append(&mut nodes);
+                        implementation.statements.splice(0..0, nodes);
                     }
                 }
                 Body::None => {}
             }
         }
         // Add a global constructor function with the global constructor calls
-        let global_ctor_name = format!("__global_{}", unit.file.get_name().unwrap_or("undefined"));
         if !self.global_constructor.is_empty() {
+            let unit_name = get_unit_name(&unit);
             let (pou, implementation) =
-                new_global_constructor(&global_ctor_name, self.global_constructor, self.id_provider.clone());
+                new_unit_constructor(&unit_name, self.global_constructor, self.id_provider.clone());
             unit.pous.push(pou);
             unit.implementations.push(implementation);
         }
-        dbg!(unit)
+        unit
     }
 
     fn add_to_current_stack_constructor(&mut self, node: Vec<AstNode>) {

@@ -308,6 +308,14 @@ impl Pou {
     pub fn is_built_in(&self) -> bool {
         matches!(self.linkage, LinkageType::BuiltIn)
     }
+
+    pub fn is_function_block(&self) -> bool {
+        matches!(self.kind, PouType::FunctionBlock)
+    }
+
+    pub fn is_class(&self) -> bool {
+        matches!(self.kind, PouType::Class)
+    }
 }
 
 #[derive(Debug, PartialEq)]
