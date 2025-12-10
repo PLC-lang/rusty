@@ -1315,18 +1315,35 @@ impl<'i> TypeAnnotator<'i> {
 
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
-            if let DataTypeInformation::SubRange { sub_range, .. } = expected_type.get_type_information() {
-                if let Some(statement) = self
-                    .index
-                    .find_range_check_implementation_for(expected_type.get_type_information())
-                    .map(|f| {
-                        AstFactory::create_call_to_check_function_ast(
-                            f.get_call_name(),
-                            right_side.clone(),
-                            *sub_range.clone(),
-                            &annotated_left_side.get_location(),
-                            ctx.id_provider.clone(),
-                        )
+            if let DataTypeInformation::SubRange { sub_range, referenced_type, .. } =
+                expected_type.get_type_information()
+            {
+                if let Some(statement) = sub_range
+                    .start
+                    .to_ast_node(self.index, &ctx.id_provider)
+                    .zip(sub_range.end.to_ast_node(self.index, &ctx.id_provider))
+                    .and_then(|(start, end)| {
+                        // Annotate the range bounds with the backing type of the subrange
+                        // so they are correctly typed when passed to the check function
+                        let backing_type = self.index.get_type(referenced_type).ok()?;
+                        self.annotation_map
+                            .annotate_type_hint(&start, StatementAnnotation::value(backing_type.get_name()));
+                        self.annotation_map
+                            .annotate_type_hint(&end, StatementAnnotation::value(backing_type.get_name()));
+                        Some(start..end)
+                    })
+                    .and_then(|range| {
+                        self.index
+                            .find_range_check_implementation_for(expected_type.get_type_information())
+                            .map(|f| {
+                                AstFactory::create_call_to_check_function_ast(
+                                    f.get_call_name(),
+                                    right_side.clone(),
+                                    range,
+                                    &annotated_left_side.get_location(),
+                                    ctx.id_provider.clone(),
+                                )
+                            })
                     })
                 {
                     self.visit_call_statement(&statement, ctx);

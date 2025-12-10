@@ -1345,6 +1345,13 @@ impl Index {
                             }
                             variants.append(&mut variables);
                         }
+                        // import constant expressions in SubRange definitions
+                        DataTypeInformation::SubRange { sub_range, .. } => {
+                            sub_range.start =
+                                self.import_type_size(&mut other.constant_expressions, &sub_range.start);
+                            sub_range.end =
+                                self.import_type_size(&mut other.constant_expressions, &sub_range.end);
+                        }
                         _ => {}
                     }
 
