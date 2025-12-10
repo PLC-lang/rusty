@@ -232,13 +232,13 @@ fn switch_case_debug_info() {
       %x1 = alloca i16, align 2
       %x2 = alloca i16, align 2
       %x3 = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata ptr %x1, metadata !8, metadata !DIExpression()), !dbg !10
+        #dbg_declare(ptr %x1, !8, !DIExpression(), !10)
       store i16 0, ptr %x1, align 2
-      call void @llvm.dbg.declare(metadata ptr %x2, metadata !11, metadata !DIExpression()), !dbg !12
+        #dbg_declare(ptr %x2, !11, !DIExpression(), !12)
       store i16 0, ptr %x2, align 2
-      call void @llvm.dbg.declare(metadata ptr %x3, metadata !13, metadata !DIExpression()), !dbg !14
+        #dbg_declare(ptr %x3, !13, !DIExpression(), !14)
       store i16 0, ptr %x3, align 2
-      call void @llvm.dbg.declare(metadata ptr %main, metadata !15, metadata !DIExpression()), !dbg !17
+        #dbg_declare(ptr %main, !15, !DIExpression(), !17)
       store i32 0, ptr %main, align 4
       br label %condition_check, !dbg !18
 
@@ -293,15 +293,10 @@ fn switch_case_debug_info() {
       br label %condition_check, !dbg !18
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -367,7 +362,7 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     define void @fb(ptr %0) !dbg !14 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !18, metadata !DIExpression()), !dbg !19
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
@@ -376,15 +371,12 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
 
     define void @fb__foo(ptr %0) !dbg !20 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !21, metadata !DIExpression()), !dbg !22
+        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !22
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_fb(ptr %0) {
     entry:
@@ -429,8 +421,6 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
       call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -500,7 +490,7 @@ fn action_with_var_temp() {
     define i32 @main() !dbg !9 {
     entry:
       %main = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %main, metadata !12, metadata !DIExpression()), !dbg !14
+        #dbg_declare(ptr %main, !12, !DIExpression(), !14)
       store i32 0, ptr %main, align 4
       call void @PLC_PRG(ptr @PLC_PRG_instance), !dbg !15
       call void @PLC_PRG__act(ptr @PLC_PRG_instance), !dbg !16
@@ -510,9 +500,9 @@ fn action_with_var_temp() {
 
     define void @PLC_PRG(ptr %0) !dbg !18 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !21, metadata !DIExpression()), !dbg !22
+        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %x, metadata !23, metadata !DIExpression()), !dbg !24
+        #dbg_declare(ptr %x, !23, !DIExpression(), !24)
       store i32 0, ptr %x, align 4
       store i32 0, ptr %x, align 4, !dbg !22
       ret void, !dbg !25
@@ -520,18 +510,15 @@ fn action_with_var_temp() {
 
     define void @PLC_PRG__act(ptr %0) !dbg !26 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !27, metadata !DIExpression()), !dbg !28
+        #dbg_declare(ptr %0, !27, !DIExpression(), !28)
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %x, metadata !29, metadata !DIExpression()), !dbg !30
+        #dbg_declare(ptr %x, !29, !DIExpression(), !30)
       store i32 0, ptr %x, align 4
       %load_x = load i32, ptr %x, align 4, !dbg !28
       %tmpVar = add i32 %load_x, 1, !dbg !28
       store i32 %tmpVar, ptr %x, align 4, !dbg !28
       ret void, !dbg !31
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_plc_prg(ptr %0) {
     entry:
@@ -553,8 +540,6 @@ fn action_with_var_temp() {
       call void @__user_init_PLC_PRG(ptr @PLC_PRG_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -666,15 +651,15 @@ END_FUNCTION
       %b = alloca i8, align 1
       %arr = alloca [3 x [81 x i8]], align 1
       %i = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata ptr %st, metadata !43, metadata !DIExpression()), !dbg !44
+        #dbg_declare(ptr %st, !43, !DIExpression(), !44)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 @__struct___init, i64 ptrtoint (ptr getelementptr (%struct_, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %s, metadata !45, metadata !DIExpression()), !dbg !46
+        #dbg_declare(ptr %s, !45, !DIExpression(), !46)
       call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %b, metadata !47, metadata !DIExpression()), !dbg !48
+        #dbg_declare(ptr %b, !47, !DIExpression(), !48)
       store i8 0, ptr %b, align 1
-      call void @llvm.dbg.declare(metadata ptr %arr, metadata !49, metadata !DIExpression()), !dbg !50
+        #dbg_declare(ptr %arr, !49, !DIExpression(), !50)
       call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %i, metadata !51, metadata !DIExpression()), !dbg !52
+        #dbg_declare(ptr %i, !51, !DIExpression(), !52)
       store i16 0, ptr %i, align 2
       call void @__init_struct_(ptr %st), !dbg !53
       call void @__user_init_struct_(ptr %st), !dbg !53
@@ -719,17 +704,14 @@ END_FUNCTION
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
     define void @__init_struct_(ptr %0) {
     entry:
@@ -794,9 +776,8 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!35, !36}
     !llvm.dbg.cu = !{!37}
@@ -917,7 +898,7 @@ fn constants_are_tagged_as_such() {
 
     define void @prog(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !36, metadata !DIExpression()), !dbg !37
+        #dbg_declare(ptr %0, !36, !DIExpression(), !37)
       %a = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
       %b = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
       %c = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
@@ -928,16 +909,13 @@ fn constants_are_tagged_as_such() {
     entry:
       %bar = alloca i32, align 4
       %d = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %d, metadata !41, metadata !DIExpression()), !dbg !42
+        #dbg_declare(ptr %d, !41, !DIExpression(), !42)
       store i32 42, ptr %d, align 4
-      call void @llvm.dbg.declare(metadata ptr %bar, metadata !43, metadata !DIExpression()), !dbg !44
+        #dbg_declare(ptr %bar, !43, !DIExpression(), !44)
       store i32 0, ptr %bar, align 4
       %bar_ret = load i32, ptr %bar, align 4, !dbg !45
       ret i32 %bar_ret, !dbg !45
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_foo(ptr %0) {
     entry:
@@ -975,8 +953,6 @@ fn constants_are_tagged_as_such() {
       call void @__user_init_foo(ptr @f)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -1164,7 +1140,7 @@ fn test_debug_info_auto_deref_parameters() {
 
     define void @test_with_ref_params(ptr %0) !dbg !41 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !45, metadata !DIExpression()), !dbg !46
+        #dbg_declare(ptr %0, !45, !DIExpression(), !46)
       %input_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 0
       %array_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 1
       %inout_value = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 2
@@ -1172,9 +1148,6 @@ fn test_debug_info_auto_deref_parameters() {
       %local_ref = getelementptr inbounds %test_with_ref_params, ptr %0, i32 0, i32 4
       ret void, !dbg !46
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mystruct(ptr %0) {
     entry:
@@ -1210,8 +1183,6 @@ fn test_debug_info_auto_deref_parameters() {
       call void @__user_init_test_with_ref_params(ptr @test_with_ref_params_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!37, !38}
     !llvm.dbg.cu = !{!39}
@@ -1392,16 +1363,13 @@ fn test_debug_info_mixed_pointer_types() {
 
     define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !42, metadata !DIExpression()), !dbg !43
+        #dbg_declare(ptr %0, !42, !DIExpression(), !43)
       %ref_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 0
       %inout_param = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 1
       %local_ptr = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 2
       %local_ref = getelementptr inbounds %mixed_ptr, ptr %0, i32 0, i32 3
       ret void, !dbg !43
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mixed_ptr(ptr %0) {
     entry:
@@ -1424,8 +1392,6 @@ fn test_debug_info_mixed_pointer_types() {
       call void @__user_init_mixed_ptr(ptr @mixed_ptr_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1523,15 +1489,12 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
 
     define void @test_with_reference_params(ptr %0) !dbg !54 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !58, metadata !DIExpression()), !dbg !59
+        #dbg_declare(ptr %0, !58, !DIExpression(), !59)
       %ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 0
       %array_ref_param = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 1
       %local_reference = getelementptr inbounds %test_with_reference_params, ptr %0, i32 0, i32 2
       ret void, !dbg !59
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_mystruct(ptr %0) {
     entry:
@@ -1567,8 +1530,6 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       call void @__user_init_test_with_reference_params(ptr @test_with_reference_params_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!50, !51}
     !llvm.dbg.cu = !{!52}
@@ -1665,9 +1626,9 @@ fn range_datatype_debug() {
     entry:
       %main = alloca i32, align 4
       %r = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %r, metadata !8, metadata !DIExpression()), !dbg !11
+        #dbg_declare(ptr %r, !8, !DIExpression(), !11)
       store i32 0, ptr %r, align 4
-      call void @llvm.dbg.declare(metadata ptr %main, metadata !12, metadata !DIExpression()), !dbg !13
+        #dbg_declare(ptr %main, !12, !DIExpression(), !13)
       store i32 0, ptr %main, align 4
       store i32 50, ptr %r, align 4, !dbg !14
       %load_r = load i32, ptr %r, align 4, !dbg !15
@@ -1676,15 +1637,10 @@ fn range_datatype_debug() {
       ret i32 %main_ret, !dbg !16
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -1743,9 +1699,9 @@ fn range_datatype_reference_expr_bounds_debug() {
     entry:
       %main = alloca i32, align 4
       %r = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata ptr %r, metadata !13, metadata !DIExpression()), !dbg !15
+        #dbg_declare(ptr %r, !13, !DIExpression(), !15)
       store i32 0, ptr %r, align 4
-      call void @llvm.dbg.declare(metadata ptr %main, metadata !16, metadata !DIExpression()), !dbg !17
+        #dbg_declare(ptr %main, !16, !DIExpression(), !17)
       store i32 0, ptr %main, align 4
       store i32 50, ptr %r, align 4, !dbg !18
       %load_r = load i32, ptr %r, align 4, !dbg !19
@@ -1754,15 +1710,10 @@ fn range_datatype_reference_expr_bounds_debug() {
       ret i32 %main_ret, !dbg !20
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -1822,14 +1773,11 @@ fn range_datatype_fqn_reference_bounds_debug() {
 
     define void @prog(ptr %0) !dbg !14 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !18, metadata !DIExpression()), !dbg !19
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
       %TEN = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
       %r = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
       ret void, !dbg !19
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_prog(ptr %0) {
     entry:
@@ -1851,8 +1799,6 @@ fn range_datatype_fqn_reference_bounds_debug() {
       call void @__user_init_prog(ptr @prog_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -1913,16 +1859,13 @@ fn range_datatype_debug_alias_reused() {
 
     define void @prog(ptr %0) !dbg !16 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !20, metadata !DIExpression()), !dbg !21
+        #dbg_declare(ptr %0, !20, !DIExpression(), !21)
       %ZERO = getelementptr inbounds %prog, ptr %0, i32 0, i32 0
       %u = getelementptr inbounds %prog, ptr %0, i32 0, i32 1
       %v = getelementptr inbounds %prog, ptr %0, i32 0, i32 2
       %w = getelementptr inbounds %prog, ptr %0, i32 0, i32 3
       ret void, !dbg !21
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init_prog(ptr %0) {
     entry:
@@ -1944,8 +1887,6 @@ fn range_datatype_debug_alias_reused() {
       call void @__user_init_prog(ptr @prog_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!12, !13}
     !llvm.dbg.cu = !{!14}

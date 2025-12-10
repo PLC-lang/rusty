@@ -11,9 +11,9 @@ define i32 @myFunc(ptr %0) !dbg !4 {
 entry:
   %myFunc = alloca i32, align 4
   %x = alloca ptr, align 8
-  call void @llvm.dbg.declare(metadata ptr %x, metadata !12, metadata !DIExpression()), !dbg !13
+    #dbg_declare(ptr %x, !12, !DIExpression(), !13)
   store ptr %0, ptr %x, align 8
-  call void @llvm.dbg.declare(metadata ptr %myFunc, metadata !14, metadata !DIExpression()), !dbg !16
+    #dbg_declare(ptr %myFunc, !14, !DIExpression(), !16)
   store i32 0, ptr %myFunc, align 4
   %deref = load ptr, ptr %x, align 8, !dbg !17
   %load_x = load i16, ptr %deref, align 2, !dbg !17
@@ -23,11 +23,6 @@ entry:
   %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !18
   ret i32 %myFunc_ret, !dbg !18
 }
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

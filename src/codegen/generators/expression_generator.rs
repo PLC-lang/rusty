@@ -5,11 +5,10 @@ use inkwell::{
     types::{BasicType, BasicTypeEnum},
     values::{
         ArrayValue, BasicMetadataValueEnum, BasicValue, BasicValueEnum, CallSiteValue, FloatValue, IntValue,
-        PointerValue, ScalableVectorValue, StructValue, VectorValue,
+        PointerValue, ScalableVectorValue, StructValue, ValueKind, VectorValue,
     },
     AddressSpace, FloatPredicate, IntPredicate,
 };
-use itertools::Either;
 use rustc_hash::FxHashSet;
 
 use plc_ast::{
@@ -520,19 +519,15 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         // so grab either:
         // - the call's return value
         // - or a null-ptr
-        let value = call
-            .try_as_basic_value()
-            .either(Ok, |_| {
-                // we return an uninitialized int pointer for void methods :-/
-                // dont deref it!!
-                Ok(self
-                    .llvm
-                    .context
-                    .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
-                    .const_null()
-                    .as_basic_value_enum())
-            })
-            .map(ExpressionValue::RValue);
+        let value = match call.try_as_basic_value() {
+            ValueKind::Basic(value) => value,
+            ValueKind::Instruction(_) => self
+                .llvm
+                .context
+                .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
+                .const_null()
+                .as_basic_value_enum(),
+        };
 
         // after the call we need to copy the values for assigned outputs
         // this is only necessary for outputs defined as `rusty::index::ArgumentType::ByVal` (PROGRAM, FUNCTION_BLOCK)
@@ -546,7 +541,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             self.assign_output_values(parameter_struct, implementation_name, parameters_list)?
         }
 
-        value
+        Ok(ExpressionValue::RValue(value))
     }
 
     fn generate_fnptr_call(
@@ -629,8 +624,8 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .map_err(CodegenError::from)?;
 
         let value = match call.try_as_basic_value() {
-            Either::Left(value) => value,
-            Either::Right(_) => self
+            ValueKind::Basic(value) => value,
+            ValueKind::Instruction(_) => self
                 .llvm
                 .context
                 .ptr_type(AddressSpace::from(ADDRESS_SPACE_CONST))
