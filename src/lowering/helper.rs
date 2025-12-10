@@ -172,9 +172,18 @@ pub fn create_call_statement(
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
 }
 
+pub fn new_global_constructor(
+    base_name: &str,
+    statements: Vec<AstNode>,
+    id_provider: IdProvider,
+) -> (Pou, Implementation) {
+    new_constructor(base_name, LinkageType::Internal, PouType::ProjectInit, statements, id_provider)
+}
+
 pub fn new_constructor(
     base_name: &str,
     linkage: LinkageType,
+    pou_type: PouType,
     statements: Vec<AstNode>,
     mut id_provider: IdProvider,
 ) -> (Pou, Implementation) {
@@ -187,12 +196,12 @@ pub fn new_constructor(
         &ctor_name,
         id_provider.next_id(),
         vec![self_block],
-        PouType::Init,
+        pou_type.clone(),
         linkage,
         &SourceLocation::internal(),
     );
     let implementation =
-        new_implementation(&ctor_name, statements, PouType::Init, linkage, SourceLocation::internal());
+        new_implementation(&ctor_name, statements, pou_type, linkage, SourceLocation::internal());
     (pou, implementation)
 }
 

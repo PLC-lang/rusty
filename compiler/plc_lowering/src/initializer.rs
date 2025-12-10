@@ -24,10 +24,13 @@ use std::rc::Rc;
 
 use plc::{
     index::{FxIndexMap, Index},
-    lowering::helper::{create_assignment, create_call_statement, create_member_reference, new_constructor},
+    lowering::helper::{
+        create_assignment, create_call_statement, create_member_reference, new_constructor,
+        new_global_constructor,
+    },
 };
 use plc_ast::{
-    ast::{AstFactory, AstNode, CompilationUnit, LinkageType, VariableBlockType},
+    ast::{AstFactory, AstNode, CompilationUnit, LinkageType, PouType, VariableBlockType},
     provider::IdProvider,
     visitor::{AstVisitor, Walker},
 };
@@ -57,9 +60,9 @@ pub struct Initializer {
 
 #[derive(Default, Debug)]
 struct Context {
-    pub current_pou: Option<String>,
-    pub current_datatype: Option<String>,
-    pub current_variable_block: Option<VariableBlockType>,
+    current_pou: Option<String>,
+    current_datatype: Option<String>,
+    current_variable_block: Option<VariableBlockType>,
 }
 
 impl Context {
@@ -83,18 +86,21 @@ impl Context {
     }
 }
 
-//TODO: might need to be a mutable ast visitor
 impl AstVisitor for Initializer {
     fn visit_pou(&mut self, pou: &plc_ast::ast::Pou) {
         self.context.enter_pou(pou.name.as_str());
         self.user_defined_constructors.insert(pou.name.clone(), "FB_INIT".to_string());
         match pou.linkage {
             plc_ast::ast::LinkageType::Internal => {
-                self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
+                if pou.is_stateful() {
+                    self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
+                }
                 self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
             }
             plc_ast::ast::LinkageType::External => {
-                self.constructors.insert(pou.name.clone(), Body::External(vec![]));
+                if pou.is_stateful() {
+                    self.constructors.insert(pou.name.clone(), Body::External(vec![]));
+                }
                 self.stack_constructor.insert(pou.name.clone(), Body::External(vec![]));
             }
             plc_ast::ast::LinkageType::BuiltIn => {
@@ -215,31 +221,65 @@ impl Initializer {
         }
     }
 
+    /// Visits the given unit and collects all initialization logic, then applies it to the unit
+    /// Adds a new constructor for each struct/POU with initialization logic
+    /// Adds constructor calls for stack variables to each function
+    /// Adds a global constructor function with global variable initializations
     pub fn apply_initialization(mut self, mut unit: CompilationUnit, index: Rc<Index>) -> CompilationUnit {
         // Set the index
         self.index = Some(index);
         self.visit_compilation_unit(&unit);
+        self.index = None;
         // Add each constructor function to the unit as a new function
         for (name, body) in self.constructors {
             match body {
                 Body::Internal(nodes) => {
-                    let (pou, implementation) =
-                        new_constructor(&name, LinkageType::Internal, nodes, self.id_provider.clone());
+                    let (pou, implementation) = new_constructor(
+                        &name,
+                        LinkageType::Internal,
+                        PouType::Init,
+                        nodes,
+                        self.id_provider.clone(),
+                    );
                     unit.pous.push(pou);
                     unit.implementations.push(implementation);
                 }
                 Body::External(nodes) => {
-                    let (pou, implementation) =
-                        new_constructor(&name, LinkageType::External, nodes, self.id_provider.clone());
+                    let (pou, implementation) = new_constructor(
+                        &name,
+                        LinkageType::External,
+                        PouType::Init,
+                        nodes,
+                        self.id_provider.clone(),
+                    );
                     unit.pous.push(pou);
                     unit.implementations.push(implementation);
                 }
                 Body::None => {}
             }
         }
-        // Add the construction calls for stack variables to each function
+        // Add stack constructor calls to each function and pou (VAR_TEMP)
+        for (pou_name, body) in self.stack_constructor {
+            match body {
+                Body::Internal(mut nodes) | Body::External(mut nodes) => {
+                    if let Some(implementation) =
+                        unit.implementations.iter_mut().find(|it| it.name == pou_name)
+                    {
+                        implementation.statements.append(&mut nodes);
+                    }
+                }
+                Body::None => {}
+            }
+        }
         // Add a global constructor function with the global constructor calls
-        unit
+        let global_ctor_name = format!("__global_{}", unit.file.get_name().unwrap_or("undefined"));
+        if !self.global_constructor.is_empty() {
+            let (pou, implementation) =
+                new_global_constructor(&global_ctor_name, self.global_constructor, self.id_provider.clone());
+            unit.pous.push(pou);
+            unit.implementations.push(implementation);
+        }
+        dbg!(unit)
     }
 
     fn add_to_current_stack_constructor(&mut self, node: Vec<AstNode>) {

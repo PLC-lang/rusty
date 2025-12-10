@@ -1330,46 +1330,6 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__init_child",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_child",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "fb",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Deref,
@@ -1844,86 +1804,6 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__init_foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__init_foo2",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__user_init_foo2",
-                            },
-                        ),
-                        base: None,
-                    },
-                    parameters: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "foo2_inst",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(
