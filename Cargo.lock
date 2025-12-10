@@ -2157,18 +2157,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "241eaef5fd12c88705a01fc1066c48c4b36e0dd4377dcdc7ec3942cea7a69956"
 
 [[package]]
-name = "lld_rs"
-version = "150.0.0"
-source = "git+https://github.com/mun-lang/lld-rs?branch=bump%2Fllvm_15#501ce8b6456a18f6753aacf02d7a288535301423"
-dependencies = [
- "cc",
- "lazy_static",
- "libc",
- "regex",
- "semver",
-]
-
-[[package]]
 name = "llvm-sys"
 version = "150.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3469,7 +3457,6 @@ dependencies = [
  "insta",
  "itertools",
  "lazy_static",
- "lld_rs",
  "log",
  "logos",
  "num",

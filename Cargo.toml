@@ -30,7 +30,6 @@ generational-arena = "0.2.8"
 regex = "1"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
-lld_rs = { git = "https://github.com/mun-lang/lld-rs", branch = "bump/llvm_15" }
 which = "4.2.5"
 log.workspace = true
 inkwell.workspace = true
