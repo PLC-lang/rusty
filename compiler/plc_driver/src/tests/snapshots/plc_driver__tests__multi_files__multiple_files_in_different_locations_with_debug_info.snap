@@ -14,7 +14,7 @@ target triple = "[filtered]"
 define i16 @main() !dbg !4 {
 entry:
   %main = alloca i16, align 2
-  call void @llvm.dbg.declare(metadata ptr %main, metadata !9, metadata !DIExpression()), !dbg !11
+    #dbg_declare(ptr %main, !9, !DIExpression(), !11)
   store i16 0, ptr %main, align 2
   call void @mainProg(ptr @mainProg_instance), !dbg !12
   %main_ret = load i16, ptr %main, align 2, !dbg !13
@@ -22,11 +22,6 @@ entry:
 }
 
 declare !dbg !14 void @mainProg(ptr)
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}
@@ -62,14 +57,9 @@ target triple = "[filtered]"
 
 define void @mainProg(ptr %0) !dbg !10 {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !13, metadata !DIExpression()), !dbg !14
+    #dbg_declare(ptr %0, !13, !DIExpression(), !14)
   ret void, !dbg !14
 }
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!5, !6}
 !llvm.dbg.cu = !{!7}

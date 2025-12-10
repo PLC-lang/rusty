@@ -11,22 +11,18 @@ define i32 @foo() !dbg !4 {
 entry:
   %foo = alloca i32, align 4
   %a = alloca [64 x i32], align 4
-  call void @llvm.dbg.declare(metadata ptr %a, metadata !9, metadata !DIExpression()), !dbg !14
+    #dbg_declare(ptr %a, !9, !DIExpression(), !14)
   call void @llvm.memset.p0.i64(ptr align 1 %a, i8 0, i64 ptrtoint (ptr getelementptr ([64 x i32], ptr null, i32 1) to i64), i1 false)
-  call void @llvm.dbg.declare(metadata ptr %foo, metadata !15, metadata !DIExpression()), !dbg !16
+    #dbg_declare(ptr %foo, !15, !DIExpression(), !16)
   store i32 0, ptr %foo, align 4
   %foo_ret = load i32, ptr %foo, align 4, !dbg !17
   ret i32 %foo_ret, !dbg !17
 }
 
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
 ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
+declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

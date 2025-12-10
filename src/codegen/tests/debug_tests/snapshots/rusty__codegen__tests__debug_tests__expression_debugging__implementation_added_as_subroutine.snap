@@ -16,7 +16,7 @@ target triple = "[filtered]"
 define i32 @myFunc() !dbg !14 {
 entry:
   %myFunc = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata ptr %myFunc, metadata !17, metadata !DIExpression()), !dbg !19
+    #dbg_declare(ptr %myFunc, !17, !DIExpression(), !19)
   store i32 0, ptr %myFunc, align 4
   %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !20
   ret i32 %myFunc_ret, !dbg !20
@@ -24,22 +24,17 @@ entry:
 
 define void @myPrg(ptr %0) !dbg !21 {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !24, metadata !DIExpression()), !dbg !25
+    #dbg_declare(ptr %0, !24, !DIExpression(), !25)
   ret void, !dbg !25
 }
 
 define void @myFb(ptr %0) !dbg !26 {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !29, metadata !DIExpression()), !dbg !30
+    #dbg_declare(ptr %0, !29, !DIExpression(), !30)
   %this = alloca ptr, align 8
   store ptr %0, ptr %this, align 8
   ret void, !dbg !30
 }
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!9, !10}
 !llvm.dbg.cu = !{!11}

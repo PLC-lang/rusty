@@ -11,14 +11,11 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) !dbg !11 {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !15, metadata !DIExpression()), !dbg !16
+    #dbg_declare(ptr %0, !15, !DIExpression(), !16)
   %x = getelementptr inbounds %main, ptr %0, i32 0, i32 0
   store i32 5, ptr %x, align 4, !dbg !17
   ret void, !dbg !18
 }
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init_main(ptr %0) {
 entry:
@@ -40,8 +37,6 @@ entry:
   call void @__user_init_main(ptr @main_instance)
   ret void
 }
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!7, !8}
 !llvm.dbg.cu = !{!9}

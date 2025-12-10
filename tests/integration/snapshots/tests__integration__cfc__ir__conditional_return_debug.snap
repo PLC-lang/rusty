@@ -10,9 +10,9 @@ define i32 @foo(i32 %0) !dbg !4 {
 entry:
   %foo = alloca i32, align 4
   %val = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata ptr %val, metadata !9, metadata !DIExpression()), !dbg !10
+    #dbg_declare(ptr %val, !9, !DIExpression(), !10)
   store i32 %0, ptr %val, align 4
-  call void @llvm.dbg.declare(metadata ptr %foo, metadata !11, metadata !DIExpression()), !dbg !12
+    #dbg_declare(ptr %foo, !11, !DIExpression(), !12)
   store i32 0, ptr %foo, align 4
   %load_val = load i32, ptr %val, align 4, !dbg !13
   %tmpVar = icmp eq i32 %load_val, 5, !dbg !13
@@ -28,15 +28,10 @@ else_block:                                       ; preds = %entry
   ret i32 %foo_ret1, !dbg !16
 }
 
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
 define void @__init___plc() {
 entry:
   ret void
 }
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

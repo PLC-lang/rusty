@@ -38,7 +38,7 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @foo(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !36, metadata !DIExpression()), !dbg !37
+        #dbg_declare(ptr %0, !36, !DIExpression(), !37)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -50,15 +50,12 @@ fn members_from_base_class_are_available_in_subclasses() {
 
     define void @bar(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !41, metadata !DIExpression()), !dbg !42
+        #dbg_declare(ptr %0, !41, !DIExpression(), !42)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !42
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
@@ -143,8 +140,6 @@ fn members_from_base_class_are_available_in_subclasses() {
       call void @__user_init___vtable_bar(ptr @__vtable_bar_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -244,7 +239,7 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @fb(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !36, metadata !DIExpression()), !dbg !37
+        #dbg_declare(ptr %0, !36, !DIExpression(), !37)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %fb, ptr %0, i32 0, i32 0
@@ -255,7 +250,7 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @fb2(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !41, metadata !DIExpression()), !dbg !42
+        #dbg_declare(ptr %0, !41, !DIExpression(), !42)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__fb = getelementptr inbounds %fb2, ptr %0, i32 0, i32 0
@@ -264,7 +259,7 @@ fn write_to_parent_variable_qualified_access() {
 
     define void @foo(ptr %0) !dbg !43 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !46, metadata !DIExpression()), !dbg !47
+        #dbg_declare(ptr %0, !46, !DIExpression(), !47)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -274,9 +269,6 @@ fn write_to_parent_variable_qualified_access() {
       store i16 1, ptr %x, align 2, !dbg !47
       ret void, !dbg !48
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_fb(ptr %0) {
     entry:
@@ -404,8 +396,6 @@ fn write_to_parent_variable_qualified_access() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
 
@@ -511,7 +501,7 @@ fn write_to_parent_variable_in_instance() {
 
     define void @foo(ptr %0) !dbg !26 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !30, metadata !DIExpression()), !dbg !31
+        #dbg_declare(ptr %0, !30, !DIExpression(), !31)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -521,7 +511,7 @@ fn write_to_parent_variable_in_instance() {
 
     define void @foo__baz(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !33, metadata !DIExpression()), !dbg !34
+        #dbg_declare(ptr %0, !33, !DIExpression(), !34)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -532,7 +522,7 @@ fn write_to_parent_variable_in_instance() {
 
     define void @bar(ptr %0) !dbg !36 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !39, metadata !DIExpression()), !dbg !40
+        #dbg_declare(ptr %0, !39, !DIExpression(), !40)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
@@ -545,9 +535,9 @@ fn write_to_parent_variable_in_instance() {
     entry:
       %s = alloca [81 x i8], align 1
       %fb = alloca %bar, align 8
-      call void @llvm.dbg.declare(metadata ptr %s, metadata !45, metadata !DIExpression()), !dbg !46
+        #dbg_declare(ptr %s, !45, !DIExpression(), !46)
       call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %fb, metadata !47, metadata !DIExpression()), !dbg !48
+        #dbg_declare(ptr %fb, !47, !DIExpression(), !48)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %fb, ptr align 1 @__bar__init, i64 ptrtoint (ptr getelementptr (%bar, ptr null, i32 1) to i64), i1 false)
       call void @__init_bar(ptr %fb), !dbg !49
       call void @__user_init_bar(ptr %fb), !dbg !49
@@ -557,17 +547,14 @@ fn write_to_parent_variable_in_instance() {
       ret void, !dbg !52
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #2
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
@@ -659,9 +646,8 @@ fn write_to_parent_variable_in_instance() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
-    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!22, !23}
     !llvm.dbg.cu = !{!24}
@@ -784,7 +770,7 @@ fn array_in_parent_generated() {
 
     define void @grandparent(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !42, metadata !DIExpression()), !dbg !43
+        #dbg_declare(ptr %0, !42, !DIExpression(), !43)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
@@ -795,7 +781,7 @@ fn array_in_parent_generated() {
 
     define void @parent(ptr %0) !dbg !44 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !47, metadata !DIExpression()), !dbg !48
+        #dbg_declare(ptr %0, !47, !DIExpression(), !48)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
@@ -806,7 +792,7 @@ fn array_in_parent_generated() {
 
     define void @child(ptr %0) !dbg !49 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !52, metadata !DIExpression()), !dbg !53
+        #dbg_declare(ptr %0, !52, !DIExpression(), !53)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
@@ -817,7 +803,7 @@ fn array_in_parent_generated() {
     define void @main() !dbg !54 {
     entry:
       %arr = alloca [11 x %child], align 8
-      call void @llvm.dbg.declare(metadata ptr %arr, metadata !57, metadata !DIExpression()), !dbg !59
+        #dbg_declare(ptr %arr, !57, !DIExpression(), !59)
       call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([11 x %child], ptr null, i32 1) to i64), i1 false)
       %tmpVar = getelementptr inbounds [11 x %child], ptr %arr, i32 0, i32 0, !dbg !60
       %__parent = getelementptr inbounds %child, ptr %tmpVar, i32 0, i32 0, !dbg !60
@@ -846,11 +832,8 @@ fn array_in_parent_generated() {
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
     define void @__init___vtable_grandparent(ptr %0) {
     entry:
@@ -980,8 +963,7 @@ fn array_in_parent_generated() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1108,7 +1090,7 @@ fn complex_array_access_generated() {
 
     define void @grandparent(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !42, metadata !DIExpression()), !dbg !43
+        #dbg_declare(ptr %0, !42, !DIExpression(), !43)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %grandparent, ptr %0, i32 0, i32 0
@@ -1119,7 +1101,7 @@ fn complex_array_access_generated() {
 
     define void @parent(ptr %0) !dbg !44 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !47, metadata !DIExpression()), !dbg !48
+        #dbg_declare(ptr %0, !47, !DIExpression(), !48)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__grandparent = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
@@ -1130,7 +1112,7 @@ fn complex_array_access_generated() {
 
     define void @child(ptr %0) !dbg !49 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !52, metadata !DIExpression()), !dbg !53
+        #dbg_declare(ptr %0, !52, !DIExpression(), !53)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
@@ -1161,9 +1143,6 @@ fn complex_array_access_generated() {
       store i16 20, ptr %tmpVar11, align 2, !dbg !53
       ret void, !dbg !54
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_grandparent(ptr %0) {
     entry:
@@ -1293,8 +1272,6 @@ fn complex_array_access_generated() {
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
 
@@ -1390,7 +1367,7 @@ fn function_block_method_debug_info() {
 
     define void @foo(ptr %0) !dbg !20 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !24, metadata !DIExpression()), !dbg !25
+        #dbg_declare(ptr %0, !24, !DIExpression(), !25)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -1399,7 +1376,7 @@ fn function_block_method_debug_info() {
 
     define void @foo__baz(ptr %0) !dbg !26 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !27, metadata !DIExpression()), !dbg !28
+        #dbg_declare(ptr %0, !27, !DIExpression(), !28)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %foo, ptr %0, i32 0, i32 0
@@ -1408,15 +1385,12 @@ fn function_block_method_debug_info() {
 
     define void @bar(ptr %0) !dbg !29 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !32, metadata !DIExpression()), !dbg !33
+        #dbg_declare(ptr %0, !32, !DIExpression(), !33)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__foo = getelementptr inbounds %bar, ptr %0, i32 0, i32 0
       ret void, !dbg !33
     }
-
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
@@ -1507,8 +1481,6 @@ fn function_block_method_debug_info() {
       call void @__user_init___vtable_bar(ptr @__vtable_bar_instance)
       ret void
     }
-
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
     !llvm.module.flags = !{!16, !17}
     !llvm.dbg.cu = !{!18}
@@ -1638,7 +1610,7 @@ END_FUNCTION
 
     define void @parent(ptr %0) !dbg !30 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !34, metadata !DIExpression()), !dbg !35
+        #dbg_declare(ptr %0, !34, !DIExpression(), !35)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__vtable = getelementptr inbounds %parent, ptr %0, i32 0, i32 0
@@ -1648,7 +1620,7 @@ END_FUNCTION
 
     define void @child(ptr %0) !dbg !36 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !39, metadata !DIExpression()), !dbg !40
+        #dbg_declare(ptr %0, !39, !DIExpression(), !40)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__parent = getelementptr inbounds %child, ptr %0, i32 0, i32 0
@@ -1658,7 +1630,7 @@ END_FUNCTION
 
     define void @grandchild(ptr %0) !dbg !41 {
     entry:
-      call void @llvm.dbg.declare(metadata ptr %0, metadata !44, metadata !DIExpression()), !dbg !45
+        #dbg_declare(ptr %0, !44, !DIExpression(), !45)
       %this = alloca ptr, align 8
       store ptr %0, ptr %this, align 8
       %__child = getelementptr inbounds %grandchild, ptr %0, i32 0, i32 0
@@ -1675,19 +1647,19 @@ END_FUNCTION
       %parent1 = alloca %parent, align 8
       %child1 = alloca %child, align 8
       %grandchild1 = alloca %grandchild, align 8
-      call void @llvm.dbg.declare(metadata ptr %array_of_parent, metadata !49, metadata !DIExpression()), !dbg !53
+        #dbg_declare(ptr %array_of_parent, !49, !DIExpression(), !53)
       call void @llvm.memset.p0.i64(ptr align 1 %array_of_parent, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %parent], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %array_of_child, metadata !54, metadata !DIExpression()), !dbg !56
+        #dbg_declare(ptr %array_of_child, !54, !DIExpression(), !56)
       call void @llvm.memset.p0.i64(ptr align 1 %array_of_child, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %child], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %array_of_grandchild, metadata !57, metadata !DIExpression()), !dbg !59
+        #dbg_declare(ptr %array_of_grandchild, !57, !DIExpression(), !59)
       call void @llvm.memset.p0.i64(ptr align 1 %array_of_grandchild, i8 0, i64 ptrtoint (ptr getelementptr ([3 x %grandchild], ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %parent1, metadata !60, metadata !DIExpression()), !dbg !61
+        #dbg_declare(ptr %parent1, !60, !DIExpression(), !61)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %parent1, ptr align 1 @__parent__init, i64 ptrtoint (ptr getelementptr (%parent, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %child1, metadata !62, metadata !DIExpression()), !dbg !63
+        #dbg_declare(ptr %child1, !62, !DIExpression(), !63)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %child1, ptr align 1 @__child__init, i64 ptrtoint (ptr getelementptr (%child, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %grandchild1, metadata !64, metadata !DIExpression()), !dbg !65
+        #dbg_declare(ptr %grandchild1, !64, !DIExpression(), !65)
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %grandchild1, ptr align 1 @__grandchild__init, i64 ptrtoint (ptr getelementptr (%grandchild, ptr null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata ptr %main, metadata !66, metadata !DIExpression()), !dbg !67
+        #dbg_declare(ptr %main, !66, !DIExpression(), !67)
       store i32 0, ptr %main, align 4
       call void @__init_parent(ptr %parent1), !dbg !68
       call void @__init_child(ptr %child1), !dbg !68
@@ -1781,14 +1753,11 @@ END_FUNCTION
       ret i32 %main_ret, !dbg !93
     }
 
-    ; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
+    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #2
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
     define void @__init___vtable_parent(ptr %0) {
     entry:
@@ -1918,9 +1887,8 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
-    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
-    attributes #2 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
 
     !llvm.module.flags = !{!26, !27}
     !llvm.dbg.cu = !{!28}

@@ -11,7 +11,7 @@ target triple = "[filtered]"
 
 define void @main(ptr %0) !dbg !12 {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !16, metadata !DIExpression()), !dbg !17
+    #dbg_declare(ptr %0, !16, !DIExpression(), !17)
   %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
   store i32 0, ptr %a, align 4, !dbg !18
@@ -22,7 +22,6 @@ entry:
 
 define void @main__newAction(ptr %0) {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !15, metadata !DIExpression()), !dbg !21
   %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
   %load_a = load i32, ptr %a, align 4, !dbg !21
@@ -33,7 +32,6 @@ entry:
 
 define void @main__newAction2(ptr %0) {
 entry:
-  call void @llvm.dbg.declare(metadata ptr %0, metadata !15, metadata !DIExpression()), !dbg !21
   %a = getelementptr inbounds %main, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds %main, ptr %0, i32 0, i32 1
   %load_b = load i32, ptr %b, align 4, !dbg !23
@@ -41,9 +39,6 @@ entry:
   store i32 %tmpVar, ptr %b, align 4, !dbg !23
   ret void, !dbg !22
 }
-
-; Function Attrs: nocallback nofree nosync nounwind speculatable willreturn memory(none)
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init_main(ptr %0) {
 entry:
@@ -65,8 +60,6 @@ entry:
   call void @__user_init_main(ptr @main_instance)
   ret void
 }
-
-attributes #0 = { nocallback nofree nosync nounwind speculatable willreturn memory(none) }
 
 !llvm.module.flags = !{!8, !9}
 !llvm.dbg.cu = !{!10}

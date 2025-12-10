@@ -1739,7 +1739,7 @@ fn var_config_aliased_variables_initialized() {
     define void @__init___var_config() {
     entry:
       store ptr @__PI_1_2_1, ptr getelementptr inbounds (%FB, ptr @prog_instance, i32 0, i32 1), align 8
-      store ptr @__PI_1_2_2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1, i32 1), align 8
+      store ptr @__PI_1_2_2, ptr getelementptr inbounds (%FB, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), i32 0, i32 1), align 8
       ret void
     }
     "#);
