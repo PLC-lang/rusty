@@ -1155,10 +1155,10 @@ fn fb_method_called_locally() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 
@@ -1245,10 +1245,10 @@ fn fb_local_method_var_shadows_parent_var() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 

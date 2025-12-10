@@ -1681,7 +1681,7 @@ fn super_as_function_parameter() {
       ret i16 %process_val_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_parent(ptr %0) {
@@ -1771,7 +1771,7 @@ fn super_as_function_parameter() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2706,7 +2706,7 @@ fn super_with_structured_types() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_parent(ptr %0) {
@@ -2816,7 +2816,7 @@ fn super_with_structured_types() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 

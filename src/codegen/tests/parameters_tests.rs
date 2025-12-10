@@ -735,14 +735,14 @@ fn by_value_function_arg_builtin_type_strings_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -793,14 +793,14 @@ fn by_value_function_arg_user_type_strings_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -850,14 +850,14 @@ fn by_value_function_arg_arrays_are_memcopied() {
       ret i32 %foo_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -917,10 +917,10 @@ fn by_value_function_arg_structs_are_memcopied() {
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -989,10 +989,10 @@ fn by_value_function_arg_structs_with_aggregate_members_are_memcopied() {
       ret i32 %main_ret
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -1056,17 +1056,17 @@ fn by_value_fb_arg_aggregates_are_memcopied() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -1151,13 +1151,13 @@ fn var_output_aggregate_types_are_memcopied() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -1212,14 +1212,14 @@ fn array_of_string_parameter_with_stride_calculation() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1283,10 +1283,10 @@ fn array_of_array_integer_parameter_with_stride_calculation() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1342,14 +1342,14 @@ fn mixed_string_lengths_parameter_compatibility() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -1413,10 +1413,10 @@ fn program_with_array_of_string_parameter_stride_calculation() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 
@@ -1556,10 +1556,10 @@ fn method_with_var_in_out_array_of_strings() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 
@@ -1726,10 +1726,10 @@ fn method_with_mixed_array_types() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#)
 }
 
@@ -1860,16 +1860,16 @@ fn function_with_array_of_array_return() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #1
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
-    attributes #1 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }

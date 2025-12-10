@@ -852,7 +852,7 @@ fn user_init_called_for_variables_on_stack() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -901,7 +901,7 @@ fn user_init_called_for_variables_on_stack() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -2193,7 +2193,7 @@ fn temporary_variable_ref_to_temporary_variable() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn writeonly
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
     declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
 
     define void @__init___Test() {
@@ -2201,7 +2201,7 @@ fn temporary_variable_ref_to_temporary_variable() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#)
 }
 
@@ -2883,7 +2883,7 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    ; Function Attrs: argmemonly nocallback nofree nounwind willreturn
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
     declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
@@ -2971,7 +2971,7 @@ fn methods_call_init_functions_for_their_members() {
       ret void
     }
 
-    attributes #0 = { argmemonly nocallback nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
