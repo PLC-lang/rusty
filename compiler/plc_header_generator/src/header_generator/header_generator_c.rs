@@ -240,7 +240,10 @@ impl GeneratedHeaderForC {
             }
             ast::DataType::ArrayType { name, bounds, referenced_type, .. } => {
                 let type_information = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: referenced_type.get_name().unwrap_or_default().to_string(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: referenced_type.get_name().unwrap_or_default().to_string(),
+                        is_variadic: false,
+                    },
                     builtin_types,
                 );
 
@@ -252,15 +255,15 @@ impl GeneratedHeaderForC {
             }
             ast::DataType::PointerType { name, referenced_type, .. } => {
                 let type_information = self.get_type_name_for_type(
-                    &ExtendedTypeName { type_name: referenced_type.get_name().unwrap_or_default().to_string(), is_variadic: false },
+                    &ExtendedTypeName {
+                        type_name: referenced_type.get_name().unwrap_or_default().to_string(),
+                        is_variadic: false,
+                    },
                     builtin_types,
                 );
 
-                let data_type = format!(
-                    "{}{}",
-                    type_information.get_type_name(),
-                    self.get_reference_symbol()
-                );
+                let data_type =
+                    format!("{}{}", type_information.get_type_name(), self.get_reference_symbol());
 
                 self.template_data.user_defined_types.aliases.push(Variable {
                     data_type,
