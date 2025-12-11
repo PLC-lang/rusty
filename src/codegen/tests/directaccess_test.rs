@@ -218,7 +218,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
@@ -284,7 +284,7 @@ fn direct_acess_in_output_assignment_with_simple_expression() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
@@ -350,7 +350,7 @@ fn direct_acess_in_output_assignment_with_simple_expression_implicit() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
@@ -443,7 +443,7 @@ fn direct_acess_in_output_assignment_with_complexe_expression() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
