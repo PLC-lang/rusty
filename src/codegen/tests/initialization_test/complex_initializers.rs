@@ -853,7 +853,7 @@ fn user_init_called_for_variables_on_stack() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
@@ -2194,7 +2194,7 @@ fn temporary_variable_ref_to_temporary_variable() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
     define void @__init___Test() {
     entry:
@@ -2884,7 +2884,7 @@ fn methods_call_init_functions_for_their_members() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:

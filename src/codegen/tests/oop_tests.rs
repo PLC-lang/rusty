@@ -440,13 +440,13 @@ fn write_to_parent_variable_in_instance() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i32(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i32, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #1
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
@@ -664,7 +664,7 @@ fn array_in_parent_generated() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
-    declare void @llvm.memset.p0.i64(ptr nocapture writeonly, i8, i64, i1 immarg) #0
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
     define void @__init___vtable_grandparent(ptr %0) {
     entry:
@@ -1395,7 +1395,7 @@ fn pass_this_to_method() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     define void @__init___vtable_fb_test(ptr %0) {
     entry:
@@ -2504,7 +2504,7 @@ fn function_with_output_used_in_main_by_extension() {
     }
 
     ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
-    declare void @llvm.memcpy.p0.p0.i64(ptr noalias nocapture writeonly, ptr noalias nocapture readonly, i64, i1 immarg) #0
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
     define void @__init___vtable_foo(ptr %0) {
     entry:
