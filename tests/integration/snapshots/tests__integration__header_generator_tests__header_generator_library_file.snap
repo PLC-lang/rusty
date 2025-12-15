@@ -1,6 +1,5 @@
 ---
 source: tests/integration/header_generator_tests.rs
-assertion_line: 129
 expression: "fs::read_to_string(dir.path().join(\"file.h\").to_str().unwrap()).unwrap()"
 ---
 // ---------------------------------------------------- //
@@ -20,23 +19,29 @@ expression: "fs::read_to_string(dir.path().join(\"file.h\").to_str().unwrap()).u
 extern "C" {
 #endif
 
-typedef enum {
-    FILE_AccessMode_Read,
+typedef uint8_t* FILE_Handle;
+
+typedef uint32_t FILE_Mode;
+
+typedef int32_t FILE_Permission;
+
+typedef enum eFILE_AccessMode {
+    FILE_AccessMode_Read = 0,
     FILE_AccessMode_Write,
     FILE_AccessMode_Append,
     FILE_AccessMode_ReadPlus,
     FILE_AccessMode_WritePlus,
-    FILE_AccessMode_AppendPlus,
+    FILE_AccessMode_AppendPlus
 } FILE_AccessMode;
 
-typedef enum {
-    FILE_SeekOrigin_Begin,
+typedef enum eFILE_SeekOrigin {
+    FILE_SeekOrigin_Begin = 0,
     FILE_SeekOrigin_Current,
-    FILE_SeekOrigin_End,
+    FILE_SeekOrigin_End
 } FILE_SeekOrigin;
 
-typedef enum {
-    FILE_Type_Unknown,
+typedef enum eFILE_Type {
+    FILE_Type_Unknown = 0,
     FILE_Type_Regular,
     FILE_Type_Directory,
     FILE_Type_CharDevice,
@@ -47,41 +52,41 @@ typedef enum {
 } FILE_Type;
 
 typedef struct {
-    FILE_Type file_type;
-    uint32_t permissions;
-    uid_t owner;
-    gid_t group;
-    off_t size;
-    time_t atime;
-    time_t mtime;
-    time_t ctime;
+    FILE_Type FileType;
+    FILE_Permission Permissions;
+    uint32_t Uid;
+    uint32_t Gid;
+    uint64_t Size;
+    time_t LastAccess;
+    time_t LastModified;
+    time_t LastStatusChange;
 } FILE_Status;
 
-FILE *FILE_Open(const char *filename, FILE_AccessMode mode, ErrorCode *error);
+FILE_Handle FILE_Open(char* File, FILE_AccessMode Mode, ErrorCode* Error);
 
-void FILE_Close(ErrorCode *error, FILE *file);
+void FILE_Close(ErrorCode* FILE_Close, FILE_Handle FileHandle);
 
-size_t FILE_Read(FILE *file, char *buffer, size_t buffer_size, ErrorCode *error);
+uint64_t FILE_Read(FILE_Handle FileHandle, uint8_t* Buffer, uint64_t Size, ErrorCode* Error);
 
-size_t FILE_Write(FILE *file, const char *buffer, size_t buffer_size, ErrorCode *error);
+uint64_t FILE_Write(FILE_Handle FileHandle, uint8_t* Buffer, uint64_t Size, ErrorCode* Error);
 
-void FILE_Seek(ErrorCode *error, FILE *file, size_t offset, FILE_SeekOrigin origin);
+void FILE_Seek(ErrorCode* FILE_Seek, FILE_Handle FileHandle, int64_t Offset, FILE_SeekOrigin Origin);
 
-size_t FILE_Tell(FILE *file, ErrorCode *error);
+int64_t FILE_Tell(FILE_Handle FileHandle, ErrorCode* Error);
 
-void FILE_ReadString(char *output, FILE *file, bool *is_eof, ErrorCode *error);
+void FILE_ReadString(char* FILE_ReadString, FILE_Handle FileHandle, bool* IsEOF, ErrorCode* Error);
 
-void FILE_WriteString(ErrorCode *error, FILE *file, const char *str);
+void FILE_WriteString(ErrorCode* FILE_WriteString, FILE_Handle FileHandle, char* Str);
 
-void FILE_Flush(ErrorCode *error, FILE *file);
+void FILE_Flush(ErrorCode* FILE_Flush, FILE_Handle FileHandle);
 
-void FILE_GetStatus(ErrorCode *error, FILE *file, FILE_Status *status);
+void FILE_GetStatus(ErrorCode* FILE_GetStatus, FILE_Handle FileHandle, FILE_Status* Status);
 
-void FILE_Copy(ErrorCode *error, const char *src, const char *dst, size_t *bytes_copied);
+void FILE_Copy(ErrorCode* FILE_Copy, char* Source, char* Destination, uint64_t* BytesCopied);
 
-void FILE_Rename(ErrorCode *error, const char *old_name, const char *new_name);
+void FILE_Rename(ErrorCode* FILE_Rename, char* OldName, char* NewName);
 
-void FILE_Remove(ErrorCode *error, const char *filename);
+void FILE_Remove(ErrorCode* FILE_Remove, char* FileName);
 
 #ifdef __cplusplus
 }

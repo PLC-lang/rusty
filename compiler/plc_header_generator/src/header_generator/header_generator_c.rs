@@ -110,6 +110,7 @@ impl GeneratedHeaderForC {
             builtin_types,
             &[VariableBlockType::Global],
             &compilation_unit.user_types,
+            Some(&compilation_unit.pous),
             false,
         );
     }
@@ -123,29 +124,11 @@ impl GeneratedHeaderForC {
 
             match &pou.kind {
                 PouType::Function => {
-                    let type_info = &self.get_type_name_for_type(
-                        &get_type_from_data_type_decleration(&pou.return_type),
-                        builtin_types,
-                    );
-
-                    let parameters = self.get_variables_from_variable_blocks(
-                        &pou.variable_blocks,
-                        builtin_types,
-                        &[
-                            VariableBlockType::Input(ArgumentProperty::ByRef),
-                            VariableBlockType::Input(ArgumentProperty::ByVal),
-                            VariableBlockType::InOut,
-                            VariableBlockType::Output,
-                        ],
-                        &compilation_unit.user_types,
-                        true,
-                    );
-
-                    self.template_data.functions.push(Function {
-                        name: sanitize_method_name(&pou.name),
-                        return_type: type_info.get_type_name(),
-                        parameters,
-                    });
+                    if let Some(function) =
+                        self.get_function(pou, &compilation_unit.user_types, builtin_types)
+                    {
+                        self.template_data.functions.push(function);
+                    }
                 }
                 PouType::FunctionBlock => {
                     self.prepare_function_block(pou, compilation_unit, builtin_types);
@@ -188,6 +171,7 @@ impl GeneratedHeaderForC {
                             VariableBlockType::Output,
                         ],
                         &compilation_unit.user_types,
+                        None,
                         true,
                     ));
 
@@ -199,6 +183,44 @@ impl GeneratedHeaderForC {
                 }
                 _ => continue,
             }
+        }
+    }
+
+    /// Get the function definition given a pou
+    fn get_function(
+        &mut self,
+        pou: &Pou,
+        user_types: &[UserTypeDeclaration],
+        builtin_types: &[DataType],
+    ) -> Option<Function> {
+        match pou.kind {
+            PouType::Function => {
+                let type_info = &self.get_type_name_for_type(
+                    &get_type_from_data_type_decleration(&pou.return_type),
+                    builtin_types,
+                );
+
+                let parameters = self.get_variables_from_variable_blocks(
+                    &pou.variable_blocks,
+                    builtin_types,
+                    &[
+                        VariableBlockType::Input(ArgumentProperty::ByRef),
+                        VariableBlockType::Input(ArgumentProperty::ByVal),
+                        VariableBlockType::InOut,
+                        VariableBlockType::Output,
+                    ],
+                    user_types,
+                    None,
+                    true,
+                );
+
+                Some(Function {
+                    name: sanitize_method_name(&pou.name),
+                    return_type: type_info.get_type_name(),
+                    parameters,
+                })
+            }
+            _ => None,
         }
     }
 
@@ -223,6 +245,7 @@ impl GeneratedHeaderForC {
                     builtin_types,
                     false,
                     user_types,
+                    None,
                 );
 
                 self.template_data.user_defined_types.structs.push(UserType {
@@ -321,6 +344,7 @@ impl GeneratedHeaderForC {
                 VariableBlockType::Local,
             ],
             &compilation_unit.user_types,
+            None,
             true,
         );
 
@@ -404,6 +428,7 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         variable_block_types: &[VariableBlockType],
         user_types: &[UserTypeDeclaration],
+        option_pous: Option<&Vec<Pou>>,
         include_external: bool,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
@@ -421,6 +446,7 @@ impl GeneratedHeaderForC {
                     builtin_types,
                     is_reference,
                     user_types,
+                    option_pous,
                 ));
             }
         }
@@ -440,6 +466,7 @@ impl GeneratedHeaderForC {
         builtin_types: &[DataType],
         is_reference: bool,
         user_types: &[UserTypeDeclaration],
+        option_pous: Option<&Vec<Pou>>,
     ) -> Vec<Variable> {
         let mut variables: Vec<Variable> = Vec::new();
         let mut reference_symbol = if is_reference { self.get_reference_symbol() } else { String::new() };
@@ -476,6 +503,33 @@ impl GeneratedHeaderForC {
                         );
 
                         if let Some(value) = user_type_variable {
+                            // Function pointers
+                            if let Some(pous) = option_pous {
+                                let data_type_with_no_reference_symbol = value.data_type.replace("*", "");
+                                let option_pou =
+                                    pous.iter().find(|pou| pou.name == data_type_with_no_reference_symbol);
+
+                                if let Some(pou) = option_pou {
+                                    if let Some(function) = self.get_function(pou, user_types, builtin_types)
+                                    {
+                                        let function_pointer_name = format!(
+                                            "({}{})({})",
+                                            self.get_reference_symbol(),
+                                            value.name,
+                                            self.get_formatted_function_parameter_data_types(&function)
+                                        );
+
+                                        self.template_data.user_defined_types.aliases.push(Variable {
+                                            data_type: function.return_type,
+                                            name: function_pointer_name,
+                                            variable_type: VariableType::Default,
+                                        });
+
+                                        continue;
+                                    }
+                                }
+                            }
+
                             // This is an alias
                             if type_name != value.data_type && !data_type_is_system_generated(&type_name) {
                                 variables.push(Variable {
@@ -520,6 +574,30 @@ impl GeneratedHeaderForC {
         }
 
         variables
+    }
+
+    /// Returns a list of data types from the function parameters as a formatted list
+    ///
+    /// ---
+    ///
+    /// Example:
+    ///
+    /// Given the parameters: int32_t someInt, char* someString
+    ///
+    /// The return will be: int32_t, char*
+    fn get_formatted_function_parameter_data_types(&self, function: &Function) -> String {
+        let mut parameters: Vec<String> = Vec::new();
+
+        for parameter in &function.parameters {
+            match parameter.variable_type {
+                VariableType::Array(_) | VariableType::Struct => {
+                    parameters.push(format!("{}{}", parameter.data_type, self.get_reference_symbol()));
+                }
+                _ => parameters.push(parameter.data_type.to_string()),
+            }
+        }
+
+        parameters.join(", ")
     }
 
     /// Returns an [Variable] based on a given [UserTypeDeclaration]

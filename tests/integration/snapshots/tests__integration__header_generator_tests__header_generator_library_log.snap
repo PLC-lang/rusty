@@ -1,6 +1,5 @@
 ---
 source: tests/integration/header_generator_tests.rs
-assertion_line: 201
 expression: "fs::read_to_string(dir.path().join(\"log.h\").to_str().unwrap()).unwrap()"
 ---
 // ---------------------------------------------------- //
@@ -20,19 +19,31 @@ expression: "fs::read_to_string(dir.path().join(\"log.h\").to_str().unwrap()).un
 extern "C" {
 #endif
 
-void Log_Print(ErrorCode *const error_code, int priority, const char *format, ...) M_FORMAT_PRINTF(3, 4);
+typedef enum eLogLevel {
+    LOG_LEVEL_EMERGENCY = 0,
+    LOG_LEVEL_ALERT = 1,
+    LOG_LEVEL_CRITICAL = 2,
+    LOG_LEVEL_ERROR = 3,
+    LOG_LEVEL_WARNING = 4,
+    LOG_LEVEL_NOTICE = 5,
+    LOG_LEVEL_INFO = 6,
+    LOG_LEVEL_DEBUG = 7,
+    LOG_LEVEL_INHERIT = -1
+} LogLevel;
 
-void Log_Send(ErrorCode *const error_code, int priority, const char *format, ...) M_FORMAT_PRINTF(3, 0) M_SENTINEL;
+void Log_Print(ErrorCode* Log_Print, LogLevel Priority, char* Format, ...);
 
-void Log_SetRootLevel(ErrorCode *const error_code, int priority);
+void Log_Send(ErrorCode* Log_Send, LogLevel Priority, char* Format, ...);
 
-int Log_GetRootLevel();
+void Log_SetRootLevel(ErrorCode* Log_SetRootLevel, LogLevel Priority);
 
-void Log_SetLevel(ErrorCode *const error_code, int priority);
+LogLevel Log_GetRootLevel();
 
-int Log_GetLevel();
+void Log_SetLevel(ErrorCode* Log_SetLevel, LogLevel Priority);
 
-bool Log_IsEnabled(int priority);
+LogLevel Log_GetLevel();
+
+bool Log_IsEnabled(LogLevel Priority);
 
 #ifdef __cplusplus
 }

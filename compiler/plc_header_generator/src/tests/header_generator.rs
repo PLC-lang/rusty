@@ -182,6 +182,23 @@ fn case_10_aliases_generated_header_file() {
     assert_snapshot!(&generated_headers[0].get_contents());
 }
 
+// ------------------ //
+// -- Test Case 11 -- //
+// ------------------ //
+
+#[test]
+fn case_11_function_pointers_generated_header_file() {
+    let generated_headers = get_all_generated_header_contents("case_11_function_pointers_compilation_units");
+
+    // This test case should only produce one header file
+    assert!(generated_headers.len() == 1);
+
+    // Ensure the path has been configured correctly
+    assert!(generated_headers[0].get_path() == "function_pointers.h");
+
+    assert_snapshot!(&generated_headers[0].get_contents());
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //

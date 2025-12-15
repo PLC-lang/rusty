@@ -689,6 +689,104 @@ fn case_10_aliases_compilation_units(annotated_project: &AnnotatedProject) {
     assert_snapshot!(json);
 }
 
+// ------------------ //
+// -- Test Case 11 -- //
+// ------------------ //
+
+fn get_source_code_for_case_11_function_pointers() -> SourceCode {
+    SourceCode::new(
+        "
+    VAR_GLOBAL
+        fnVoidPointer: __FPOINTER fnVoidThatWillBePointedTo;
+        fnDIntPointer: __FPOINTER fnDIntThatWillBePointedTo;
+        fnStructPrimitivePointer: __FPOINTER fnThatUsesStructWithPrimitiveTypes;
+        fnStructComplexPointer: __FPOINTER fnThatUsesStructWithComplexTypes;
+    END_VAR
+
+    TYPE StructWithPrimitiveTypes:
+        STRUCT
+            Field1 : BYTE;
+            Field2 : INT;
+            Field3 : DINT;
+        END_STRUCT
+    END_TYPE
+
+    TYPE StructWithComplexTypes:
+        STRUCT
+            byteField : BYTE;
+            intField : INT;
+            dIntField : DINT;
+            stringField : STRING[255];
+            wStringField : WSTRING[6000];
+            complexEnumTypeField : ComplexEnumType;
+            intArrayField: ARRAY[0..9] OF INT;
+        END_STRUCT
+    END_TYPE
+
+    FUNCTION fnVoidThatWillBePointedTo
+    VAR_INPUT
+        varDIntInput: DINT;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnDIntThatWillBePointedTo: DINT
+    VAR_INPUT
+        varDIntInput: DINT;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnThatUsesStructWithPrimitiveTypes: StructWithPrimitiveTypes
+    VAR_INPUT
+        varStruct: StructWithPrimitiveTypes;
+    END_VAR
+    END_FUNCTION
+
+    FUNCTION fnThatUsesStructWithComplexTypes: StructWithComplexTypes
+    VAR_INPUT
+        varStruct: StructWithComplexTypes;
+        varEnum: ComplexEnumType;
+        varString: STRING[200];
+        varIntArray: ARRAY[0..14] OF INT;
+    END_VAR
+    END_FUNCTION
+    ",
+        "function_pointers.pli",
+    )
+}
+
+#[test]
+fn case_11_function_pointers_parsed_content() {
+    let json = get_parsed_content(get_source_code_for_case_11_function_pointers());
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_11_function_pointers_indexed_content() {
+    let json = get_indexed_content(
+        "case_11_function_pointers_parsed_content",
+        get_source_code_for_case_11_function_pointers(),
+    );
+    assert_snapshot!(json);
+}
+
+#[test]
+fn case_11_function_pointers_annotated_content() {
+    let annotated_project = get_annotated_project(
+        "case_11_function_pointers_indexed_content",
+        get_source_code_for_case_11_function_pointers(),
+    );
+
+    let json = serde_json::to_string_pretty(&annotated_project).expect("Failed to serialize item!");
+    assert_snapshot!(json);
+
+    case_11_function_pointers_compilation_units(&annotated_project);
+}
+
+fn case_11_function_pointers_compilation_units(annotated_project: &AnnotatedProject) {
+    let json = get_compilation_units_content(annotated_project);
+    assert_snapshot!(json);
+}
+
 // -------------------------------- //
 // -- Re-usable pipeline methods -- //
 // -------------------------------- //
@@ -696,7 +794,9 @@ fn case_10_aliases_compilation_units(annotated_project: &AnnotatedProject) {
 /// Returns a json string of the parsed source code.
 fn get_parsed_content(source_code: SourceCode) -> String {
     let result = progress_pipeline_to_step_parsed(vec![source_code], vec![]);
-    assert!(result.is_ok());
+    let diagnostic = result.as_ref().err();
+
+    assert!(result.is_ok(), "{}", diagnostic.unwrap().message);
 
     serde_json::to_string_pretty(&result.unwrap()).expect("Failed to serialize item!")
 }
@@ -718,7 +818,9 @@ fn get_indexed_content(test_name: &str, source_code: SourceCode) -> String {
         .expect("Failed to deserialize snapshot content into a ParsedProject!");
 
     let result = progress_pipeline_to_step_indexed(vec![source_code], vec![], parsed_project_wrapper);
-    assert!(result.is_ok());
+    let diagnostic = result.as_ref().err();
+
+    assert!(result.is_ok(), "{}", diagnostic.unwrap().message);
 
     serde_json::to_string_pretty(&result.unwrap()).expect("Failed to serialize item!")
 }
@@ -740,7 +842,9 @@ fn get_annotated_project(test_name: &str, source_code: SourceCode) -> AnnotatedP
         .expect("Failed to deserialize snapshot content into an IndexedProject!");
 
     let result = progress_pipeline_to_step_annotated(vec![source_code], vec![], indexed_project_wrapper);
-    assert!(result.is_ok());
+    let diagnostic = result.as_ref().err();
+
+    assert!(result.is_ok(), "{}", diagnostic.unwrap().message);
 
     let wrapper = result.unwrap();
 

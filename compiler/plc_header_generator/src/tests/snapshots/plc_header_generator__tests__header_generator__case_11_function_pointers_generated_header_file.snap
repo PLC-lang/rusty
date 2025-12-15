@@ -1,0 +1,58 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTION_POINTERS
+#define FUNCTION_POINTERS
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef void (*fnVoidPointer)(int32_t);
+
+typedef int32_t (*fnDIntPointer)(int32_t);
+
+typedef void (*fnStructPrimitivePointer)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
+
+typedef void (*fnStructComplexPointer)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*);
+
+typedef struct {
+    uint8_t Field1;
+    int16_t Field2;
+    int32_t Field3;
+} StructWithPrimitiveTypes;
+
+typedef struct {
+    uint8_t byteField;
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[255];
+    int16_t wStringField[6000];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
+} StructWithComplexTypes;
+
+void fnVoidThatWillBePointedTo(int32_t varDIntInput);
+
+int32_t fnDIntThatWillBePointedTo(int32_t varDIntInput);
+
+void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
+
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTION_POINTERS */

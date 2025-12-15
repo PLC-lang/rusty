@@ -1,0 +1,3274 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: json
+---
+[
+  {
+    "global_vars": [
+      {
+        "access": "Protected",
+        "constant": false,
+        "retain": false,
+        "variables": [
+          {
+            "name": "fnVoidPointer",
+            "data_type_declaration": {
+              "Reference": {
+                "referenced_type": "__global_fnVoidPointer",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 2,
+                        "column": 23,
+                        "offset": 39
+                      },
+                      "end": {
+                        "line": 2,
+                        "column": 59,
+                        "offset": 75
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "initializer": null,
+            "address": null,
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 2,
+                    "column": 8,
+                    "offset": 24
+                  },
+                  "end": {
+                    "line": 2,
+                    "column": 21,
+                    "offset": 37
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          },
+          {
+            "name": "fnDIntPointer",
+            "data_type_declaration": {
+              "Reference": {
+                "referenced_type": "__global_fnDIntPointer",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 3,
+                        "column": 23,
+                        "offset": 100
+                      },
+                      "end": {
+                        "line": 3,
+                        "column": 59,
+                        "offset": 136
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "initializer": null,
+            "address": null,
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 3,
+                    "column": 8,
+                    "offset": 85
+                  },
+                  "end": {
+                    "line": 3,
+                    "column": 21,
+                    "offset": 98
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          },
+          {
+            "name": "fnStructPrimitivePointer",
+            "data_type_declaration": {
+              "Reference": {
+                "referenced_type": "__global_fnStructPrimitivePointer",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 4,
+                        "column": 34,
+                        "offset": 172
+                      },
+                      "end": {
+                        "line": 4,
+                        "column": 79,
+                        "offset": 217
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "initializer": null,
+            "address": null,
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 4,
+                    "column": 8,
+                    "offset": 146
+                  },
+                  "end": {
+                    "line": 4,
+                    "column": 32,
+                    "offset": 170
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          },
+          {
+            "name": "fnStructComplexPointer",
+            "data_type_declaration": {
+              "Reference": {
+                "referenced_type": "__global_fnStructComplexPointer",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 5,
+                        "column": 32,
+                        "offset": 251
+                      },
+                      "end": {
+                        "line": 5,
+                        "column": 75,
+                        "offset": 294
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "initializer": null,
+            "address": null,
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 5,
+                    "column": 8,
+                    "offset": 227
+                  },
+                  "end": {
+                    "line": 5,
+                    "column": 30,
+                    "offset": 249
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        ],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 1,
+                "column": 4,
+                "offset": 5
+              },
+              "end": {
+                "line": 1,
+                "column": 14,
+                "offset": 15
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      },
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 6,
+        "name": "fnVoidThatWillBePointedTo",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varDIntInput",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DINT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 30,
+                            "column": 22,
+                            "offset": 896
+                          },
+                          "end": {
+                            "line": 30,
+                            "column": 26,
+                            "offset": 900
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 30,
+                        "column": 8,
+                        "offset": 882
+                      },
+                      "end": {
+                        "line": 30,
+                        "column": 20,
+                        "offset": 894
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 29,
+                    "column": 4,
+                    "offset": 864
+                  },
+                  "end": {
+                    "line": 29,
+                    "column": 13,
+                    "offset": 873
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 28,
+                "column": 4,
+                "offset": 825
+              },
+              "end": {
+                "line": 32,
+                "column": 16,
+                "offset": 930
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 28,
+                "column": 13,
+                "offset": 834
+              },
+              "end": {
+                "line": 28,
+                "column": 38,
+                "offset": 859
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 7,
+        "name": "fnDIntThatWillBePointedTo",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varDIntInput",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DINT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 36,
+                            "column": 22,
+                            "offset": 1013
+                          },
+                          "end": {
+                            "line": 36,
+                            "column": 26,
+                            "offset": 1017
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 36,
+                        "column": 8,
+                        "offset": 999
+                      },
+                      "end": {
+                        "line": 36,
+                        "column": 20,
+                        "offset": 1011
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 35,
+                    "column": 4,
+                    "offset": 981
+                  },
+                  "end": {
+                    "line": 35,
+                    "column": 13,
+                    "offset": 990
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        ],
+        "return_type": {
+          "Reference": {
+            "referenced_type": "DINT",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 34,
+                    "column": 40,
+                    "offset": 972
+                  },
+                  "end": {
+                    "line": 34,
+                    "column": 44,
+                    "offset": 976
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        },
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 34,
+                "column": 4,
+                "offset": 936
+              },
+              "end": {
+                "line": 38,
+                "column": 16,
+                "offset": 1047
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 34,
+                "column": 13,
+                "offset": 945
+              },
+              "end": {
+                "line": 34,
+                "column": 38,
+                "offset": 970
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 8,
+        "name": "fnThatUsesStructWithPrimitiveTypes",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Public",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "fnThatUsesStructWithPrimitiveTypes",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithPrimitiveTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 40,
+                            "column": 49,
+                            "offset": 1098
+                          },
+                          "end": {
+                            "line": 40,
+                            "column": 73,
+                            "offset": 1122
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 40,
+                        "column": 13,
+                        "offset": 1062
+                      },
+                      "end": {
+                        "line": 40,
+                        "column": 47,
+                        "offset": 1096
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varStruct",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithPrimitiveTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 42,
+                            "column": 19,
+                            "offset": 1156
+                          },
+                          "end": {
+                            "line": 42,
+                            "column": 43,
+                            "offset": 1180
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 42,
+                        "column": 8,
+                        "offset": 1145
+                      },
+                      "end": {
+                        "line": 42,
+                        "column": 17,
+                        "offset": 1154
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 41,
+                    "column": 4,
+                    "offset": 1127
+                  },
+                  "end": {
+                    "line": 41,
+                    "column": 13,
+                    "offset": 1136
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        ],
+        "return_type": {
+          "Aggregate": {
+            "referenced_type": "StructWithPrimitiveTypes",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 40,
+                    "column": 49,
+                    "offset": 1098
+                  },
+                  "end": {
+                    "line": 40,
+                    "column": 73,
+                    "offset": 1122
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        },
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 40,
+                "column": 4,
+                "offset": 1053
+              },
+              "end": {
+                "line": 44,
+                "column": 16,
+                "offset": 1210
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 40,
+                "column": 13,
+                "offset": 1062
+              },
+              "end": {
+                "line": 40,
+                "column": 47,
+                "offset": 1096
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 13,
+        "name": "fnThatUsesStructWithComplexTypes",
+        "kind": "Function",
+        "variable_blocks": [
+          {
+            "access": "Public",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "fnThatUsesStructWithComplexTypes",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithComplexTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 46,
+                            "column": 47,
+                            "offset": 1259
+                          },
+                          "end": {
+                            "line": 46,
+                            "column": 69,
+                            "offset": 1281
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 46,
+                        "column": 13,
+                        "offset": 1225
+                      },
+                      "end": {
+                        "line": 46,
+                        "column": 45,
+                        "offset": 1257
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          },
+          {
+            "access": "Protected",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "varStruct",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithComplexTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 48,
+                            "column": 19,
+                            "offset": 1315
+                          },
+                          "end": {
+                            "line": 48,
+                            "column": 41,
+                            "offset": 1337
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 48,
+                        "column": 8,
+                        "offset": 1304
+                      },
+                      "end": {
+                        "line": 48,
+                        "column": 17,
+                        "offset": 1313
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "varEnum",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "ComplexEnumType",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 49,
+                            "column": 17,
+                            "offset": 1356
+                          },
+                          "end": {
+                            "line": 49,
+                            "column": 32,
+                            "offset": 1371
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 49,
+                        "column": 8,
+                        "offset": 1347
+                      },
+                      "end": {
+                        "line": 49,
+                        "column": 15,
+                        "offset": 1354
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "varString",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "__fnThatUsesStructWithComplexTypes_varString",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 50,
+                            "column": 19,
+                            "offset": 1392
+                          },
+                          "end": {
+                            "line": 50,
+                            "column": 30,
+                            "offset": 1403
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 50,
+                        "column": 8,
+                        "offset": 1381
+                      },
+                      "end": {
+                        "line": 50,
+                        "column": 17,
+                        "offset": 1390
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "varIntArray",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "__fnThatUsesStructWithComplexTypes_varIntArray",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 51,
+                            "column": 21,
+                            "offset": 1426
+                          },
+                          "end": {
+                            "line": 51,
+                            "column": 40,
+                            "offset": 1445
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 51,
+                        "column": 8,
+                        "offset": 1413
+                      },
+                      "end": {
+                        "line": 51,
+                        "column": 19,
+                        "offset": 1424
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": {
+              "Input": "ByVal"
+            },
+            "linkage": "Internal",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 47,
+                    "column": 4,
+                    "offset": 1286
+                  },
+                  "end": {
+                    "line": 47,
+                    "column": 13,
+                    "offset": 1295
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        ],
+        "return_type": {
+          "Aggregate": {
+            "referenced_type": "StructWithComplexTypes",
+            "location": {
+              "span": {
+                "Range": {
+                  "start": {
+                    "line": 46,
+                    "column": 47,
+                    "offset": 1259
+                  },
+                  "end": {
+                    "line": 46,
+                    "column": 69,
+                    "offset": 1281
+                  }
+                }
+              },
+              "file": {
+                "File": "function_pointers.pli"
+              }
+            }
+          }
+        },
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 46,
+                "column": 4,
+                "offset": 1216
+              },
+              "end": {
+                "line": 53,
+                "column": 16,
+                "offset": 1475
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 46,
+                "column": 13,
+                "offset": 1225
+              },
+              "end": {
+                "line": 46,
+                "column": 45,
+                "offset": 1257
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "fnVoidThatWillBePointedTo",
+        "type_name": "fnVoidThatWillBePointedTo",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 32,
+                "column": 4,
+                "offset": 918
+              },
+              "end": {
+                "line": 31,
+                "column": 11,
+                "offset": 913
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 28,
+                "column": 13,
+                "offset": 834
+              },
+              "end": {
+                "line": 28,
+                "column": 38,
+                "offset": 859
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 32,
+                "column": 4,
+                "offset": 918
+              },
+              "end": {
+                "line": 32,
+                "column": 16,
+                "offset": 930
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "fnDIntThatWillBePointedTo",
+        "type_name": "fnDIntThatWillBePointedTo",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 38,
+                "column": 4,
+                "offset": 1035
+              },
+              "end": {
+                "line": 37,
+                "column": 11,
+                "offset": 1030
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 34,
+                "column": 13,
+                "offset": 945
+              },
+              "end": {
+                "line": 34,
+                "column": 38,
+                "offset": 970
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 38,
+                "column": 4,
+                "offset": 1035
+              },
+              "end": {
+                "line": 38,
+                "column": 16,
+                "offset": 1047
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "fnThatUsesStructWithPrimitiveTypes",
+        "type_name": "fnThatUsesStructWithPrimitiveTypes",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 44,
+                "column": 4,
+                "offset": 1198
+              },
+              "end": {
+                "line": 43,
+                "column": 11,
+                "offset": 1193
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 40,
+                "column": 13,
+                "offset": 1062
+              },
+              "end": {
+                "line": 40,
+                "column": 47,
+                "offset": 1096
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 44,
+                "column": 4,
+                "offset": 1198
+              },
+              "end": {
+                "line": 44,
+                "column": 16,
+                "offset": 1210
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "fnThatUsesStructWithComplexTypes",
+        "type_name": "fnThatUsesStructWithComplexTypes",
+        "linkage": "Internal",
+        "pou_type": "Function",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 53,
+                "column": 4,
+                "offset": 1463
+              },
+              "end": {
+                "line": 52,
+                "column": 11,
+                "offset": 1458
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 46,
+                "column": 13,
+                "offset": 1225
+              },
+              "end": {
+                "line": 46,
+                "column": 45,
+                "offset": 1257
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 53,
+                "column": 4,
+                "offset": 1463
+              },
+              "end": {
+                "line": 53,
+                "column": 16,
+                "offset": 1475
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [
+      {
+        "data_type": {
+          "StructType": {
+            "name": "StructWithPrimitiveTypes",
+            "variables": [
+              {
+                "name": "Field1",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "BYTE",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 10,
+                            "column": 21,
+                            "offset": 380
+                          },
+                          "end": {
+                            "line": 10,
+                            "column": 25,
+                            "offset": 384
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 10,
+                        "column": 12,
+                        "offset": 371
+                      },
+                      "end": {
+                        "line": 10,
+                        "column": 18,
+                        "offset": 377
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "Field2",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 11,
+                            "column": 21,
+                            "offset": 407
+                          },
+                          "end": {
+                            "line": 11,
+                            "column": 24,
+                            "offset": 410
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 11,
+                        "column": 12,
+                        "offset": 398
+                      },
+                      "end": {
+                        "line": 11,
+                        "column": 18,
+                        "offset": 404
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "Field3",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DINT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 12,
+                            "column": 21,
+                            "offset": 433
+                          },
+                          "end": {
+                            "line": 12,
+                            "column": 25,
+                            "offset": 437
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 12,
+                        "column": 12,
+                        "offset": 424
+                      },
+                      "end": {
+                        "line": 12,
+                        "column": 18,
+                        "offset": 430
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "StructType": {
+            "name": "StructWithComplexTypes",
+            "variables": [
+              {
+                "name": "byteField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "BYTE",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 18,
+                            "column": 24,
+                            "offset": 544
+                          },
+                          "end": {
+                            "line": 18,
+                            "column": 28,
+                            "offset": 548
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 18,
+                        "column": 12,
+                        "offset": 532
+                      },
+                      "end": {
+                        "line": 18,
+                        "column": 21,
+                        "offset": 541
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "intField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "INT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 19,
+                            "column": 23,
+                            "offset": 573
+                          },
+                          "end": {
+                            "line": 19,
+                            "column": 26,
+                            "offset": 576
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 19,
+                        "column": 12,
+                        "offset": 562
+                      },
+                      "end": {
+                        "line": 19,
+                        "column": 20,
+                        "offset": 570
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "dIntField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "DINT",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 20,
+                            "column": 24,
+                            "offset": 602
+                          },
+                          "end": {
+                            "line": 20,
+                            "column": 28,
+                            "offset": 606
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 20,
+                        "column": 12,
+                        "offset": 590
+                      },
+                      "end": {
+                        "line": 20,
+                        "column": 21,
+                        "offset": 599
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "stringField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "__StructWithComplexTypes_stringField",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 21,
+                            "column": 26,
+                            "offset": 634
+                          },
+                          "end": {
+                            "line": 21,
+                            "column": 37,
+                            "offset": 645
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 21,
+                        "column": 12,
+                        "offset": 620
+                      },
+                      "end": {
+                        "line": 21,
+                        "column": 23,
+                        "offset": 631
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "wStringField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "__StructWithComplexTypes_wStringField",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 22,
+                            "column": 27,
+                            "offset": 674
+                          },
+                          "end": {
+                            "line": 22,
+                            "column": 40,
+                            "offset": 687
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 22,
+                        "column": 12,
+                        "offset": 659
+                      },
+                      "end": {
+                        "line": 22,
+                        "column": 24,
+                        "offset": 671
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "complexEnumTypeField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "ComplexEnumType",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 23,
+                            "column": 35,
+                            "offset": 724
+                          },
+                          "end": {
+                            "line": 23,
+                            "column": 50,
+                            "offset": 739
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 23,
+                        "column": 12,
+                        "offset": 701
+                      },
+                      "end": {
+                        "line": 23,
+                        "column": 32,
+                        "offset": 721
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              },
+              {
+                "name": "intArrayField",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "__StructWithComplexTypes_intArrayField",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 24,
+                            "column": 27,
+                            "offset": 768
+                          },
+                          "end": {
+                            "line": 24,
+                            "column": 45,
+                            "offset": 786
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 24,
+                        "column": 12,
+                        "offset": 753
+                      },
+                      "end": {
+                        "line": 24,
+                        "column": 25,
+                        "offset": 766
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "StringType": {
+            "name": "__fnThatUsesStructWithComplexTypes_varString",
+            "is_wide": false,
+            "size": {
+              "stmt": {
+                "Literal": {
+                  "Integer": 200
+                }
+              },
+              "id": 9,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 50,
+                      "column": 26,
+                      "offset": 1399
+                    },
+                    "end": {
+                      "line": 50,
+                      "column": 29,
+                      "offset": 1402
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_pointers.pli"
+                }
+              },
+              "metadata": null
+            }
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 50,
+                "column": 19,
+                "offset": 1392
+              },
+              "end": {
+                "line": 50,
+                "column": 30,
+                "offset": 1403
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": "fnThatUsesStructWithComplexTypes",
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "ArrayType": {
+            "name": "__fnThatUsesStructWithComplexTypes_varIntArray",
+            "bounds": {
+              "stmt": {
+                "RangeStatement": {
+                  "start": {
+                    "stmt": {
+                      "Literal": {
+                        "Integer": 0
+                      }
+                    },
+                    "id": 10,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 51,
+                            "column": 27,
+                            "offset": 1432
+                          },
+                          "end": {
+                            "line": 51,
+                            "column": 28,
+                            "offset": 1433
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "end": {
+                    "stmt": {
+                      "Literal": {
+                        "Integer": 14
+                      }
+                    },
+                    "id": 11,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 51,
+                            "column": 30,
+                            "offset": 1435
+                          },
+                          "end": {
+                            "line": 51,
+                            "column": 32,
+                            "offset": 1437
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 12,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 51,
+                      "column": 27,
+                      "offset": 1432
+                    },
+                    "end": {
+                      "line": 51,
+                      "column": 32,
+                      "offset": 1437
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_pointers.pli"
+                }
+              },
+              "metadata": null
+            },
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "INT",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 51,
+                        "column": 37,
+                        "offset": 1442
+                      },
+                      "end": {
+                        "line": 51,
+                        "column": 40,
+                        "offset": 1445
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "is_variable_length": false
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 51,
+                "column": 21,
+                "offset": 1426
+              },
+              "end": {
+                "line": 51,
+                "column": 40,
+                "offset": 1445
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": "fnThatUsesStructWithComplexTypes",
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "PointerType": {
+            "name": "__global_fnVoidPointer",
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "fnVoidThatWillBePointedTo",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 2,
+                        "column": 34,
+                        "offset": 50
+                      },
+                      "end": {
+                        "line": 2,
+                        "column": 59,
+                        "offset": 75
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "auto_deref": null,
+            "type_safe": false,
+            "is_function": true
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 2,
+                "column": 23,
+                "offset": 39
+              },
+              "end": {
+                "line": 2,
+                "column": 59,
+                "offset": 75
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "PointerType": {
+            "name": "__global_fnDIntPointer",
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "fnDIntThatWillBePointedTo",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 3,
+                        "column": 34,
+                        "offset": 111
+                      },
+                      "end": {
+                        "line": 3,
+                        "column": 59,
+                        "offset": 136
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "auto_deref": null,
+            "type_safe": false,
+            "is_function": true
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 3,
+                "column": 23,
+                "offset": 100
+              },
+              "end": {
+                "line": 3,
+                "column": 59,
+                "offset": 136
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "PointerType": {
+            "name": "__global_fnStructPrimitivePointer",
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "fnThatUsesStructWithPrimitiveTypes",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 4,
+                        "column": 45,
+                        "offset": 183
+                      },
+                      "end": {
+                        "line": 4,
+                        "column": 79,
+                        "offset": 217
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "auto_deref": null,
+            "type_safe": false,
+            "is_function": true
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 4,
+                "column": 34,
+                "offset": 172
+              },
+              "end": {
+                "line": 4,
+                "column": 79,
+                "offset": 217
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "PointerType": {
+            "name": "__global_fnStructComplexPointer",
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "fnThatUsesStructWithComplexTypes",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 5,
+                        "column": 43,
+                        "offset": 262
+                      },
+                      "end": {
+                        "line": 5,
+                        "column": 75,
+                        "offset": 294
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "auto_deref": null,
+            "type_safe": false,
+            "is_function": true
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 5,
+                "column": 32,
+                "offset": 251
+              },
+              "end": {
+                "line": 5,
+                "column": 75,
+                "offset": 294
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "StringType": {
+            "name": "__StructWithComplexTypes_stringField",
+            "is_wide": false,
+            "size": {
+              "stmt": {
+                "Literal": {
+                  "Integer": 255
+                }
+              },
+              "id": 1,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 21,
+                      "column": 33,
+                      "offset": 641
+                    },
+                    "end": {
+                      "line": 21,
+                      "column": 36,
+                      "offset": 644
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_pointers.pli"
+                }
+              },
+              "metadata": null
+            }
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 21,
+                "column": 26,
+                "offset": 634
+              },
+              "end": {
+                "line": 21,
+                "column": 37,
+                "offset": 645
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "StringType": {
+            "name": "__StructWithComplexTypes_wStringField",
+            "is_wide": true,
+            "size": {
+              "stmt": {
+                "Literal": {
+                  "Integer": 6000
+                }
+              },
+              "id": 2,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 22,
+                      "column": 35,
+                      "offset": 682
+                    },
+                    "end": {
+                      "line": 22,
+                      "column": 39,
+                      "offset": 686
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_pointers.pli"
+                }
+              },
+              "metadata": null
+            }
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 22,
+                "column": 27,
+                "offset": 674
+              },
+              "end": {
+                "line": 22,
+                "column": 40,
+                "offset": 687
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      },
+      {
+        "data_type": {
+          "ArrayType": {
+            "name": "__StructWithComplexTypes_intArrayField",
+            "bounds": {
+              "stmt": {
+                "RangeStatement": {
+                  "start": {
+                    "stmt": {
+                      "Literal": {
+                        "Integer": 0
+                      }
+                    },
+                    "id": 3,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 24,
+                            "column": 33,
+                            "offset": 774
+                          },
+                          "end": {
+                            "line": 24,
+                            "column": 34,
+                            "offset": 775
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    },
+                    "metadata": null
+                  },
+                  "end": {
+                    "stmt": {
+                      "Literal": {
+                        "Integer": 9
+                      }
+                    },
+                    "id": 4,
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 24,
+                            "column": 36,
+                            "offset": 777
+                          },
+                          "end": {
+                            "line": 24,
+                            "column": 37,
+                            "offset": 778
+                          }
+                        }
+                      },
+                      "file": {
+                        "File": "function_pointers.pli"
+                      }
+                    },
+                    "metadata": null
+                  }
+                }
+              },
+              "id": 5,
+              "location": {
+                "span": {
+                  "Range": {
+                    "start": {
+                      "line": 24,
+                      "column": 33,
+                      "offset": 774
+                    },
+                    "end": {
+                      "line": 24,
+                      "column": 37,
+                      "offset": 778
+                    }
+                  }
+                },
+                "file": {
+                  "File": "function_pointers.pli"
+                }
+              },
+              "metadata": null
+            },
+            "referenced_type": {
+              "Reference": {
+                "referenced_type": "INT",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 24,
+                        "column": 42,
+                        "offset": 783
+                      },
+                      "end": {
+                        "line": 24,
+                        "column": 45,
+                        "offset": 786
+                      }
+                    }
+                  },
+                  "file": {
+                    "File": "function_pointers.pli"
+                  }
+                }
+              }
+            },
+            "is_variable_length": false
+          }
+        },
+        "initializer": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 24,
+                "column": 27,
+                "offset": 768
+              },
+              "end": {
+                "line": 24,
+                "column": 45,
+                "offset": 786
+              }
+            }
+          },
+          "file": {
+            "File": "function_pointers.pli"
+          }
+        },
+        "scope": null,
+        "linkage": "Internal"
+      }
+    ],
+    "file": {
+      "File": "function_pointers.pli"
+    }
+  },
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 70,
+        "name": "__init_structwithprimitivetypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithPrimitiveTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 8,
+                            "column": 9,
+                            "offset": 318
+                          },
+                          "end": {
+                            "line": 8,
+                            "column": 33,
+                            "offset": 342
+                          }
+                        }
+                      },
+                      "file": {
+                        "Internal": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 8,
+                        "column": 9,
+                        "offset": 318
+                      },
+                      "end": {
+                        "line": 8,
+                        "column": 33,
+                        "offset": 342
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 71,
+        "name": "__init_structwithcomplextypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithComplexTypes",
+                    "location": {
+                      "span": {
+                        "Range": {
+                          "start": {
+                            "line": 16,
+                            "column": 9,
+                            "offset": 481
+                          },
+                          "end": {
+                            "line": 16,
+                            "column": 31,
+                            "offset": 503
+                          }
+                        }
+                      },
+                      "file": {
+                        "Internal": "function_pointers.pli"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 16,
+                        "column": 9,
+                        "offset": 481
+                      },
+                      "end": {
+                        "line": 16,
+                        "column": 31,
+                        "offset": 503
+                      }
+                    }
+                  },
+                  "file": {
+                    "Internal": "function_pointers.pli"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 68,
+        "name": "__user_init_StructWithPrimitiveTypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithPrimitiveTypes",
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "File": "__initializers"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      },
+      {
+        "id": 69,
+        "name": "__user_init_StructWithComplexTypes",
+        "kind": "Init",
+        "variable_blocks": [
+          {
+            "access": "Internal",
+            "constant": false,
+            "retain": false,
+            "variables": [
+              {
+                "name": "self",
+                "data_type_declaration": {
+                  "Reference": {
+                    "referenced_type": "StructWithComplexTypes",
+                    "location": {
+                      "span": "None",
+                      "file": {
+                        "File": "__initializers"
+                      }
+                    }
+                  }
+                },
+                "initializer": null,
+                "address": null,
+                "location": {
+                  "span": "None",
+                  "file": {
+                    "File": "__initializers"
+                  }
+                }
+              }
+            ],
+            "kind": "InOut",
+            "linkage": "Internal",
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            }
+          }
+        ],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "__init_structwithprimitivetypes",
+        "type_name": "__init_structwithprimitivetypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 8,
+                "column": 9,
+                "offset": 318
+              },
+              "end": {
+                "line": 8,
+                "column": 33,
+                "offset": 342
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "__init_structwithcomplextypes",
+        "type_name": "__init_structwithcomplextypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [],
+        "location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "name_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "end_location": {
+          "span": {
+            "Range": {
+              "start": {
+                "line": 16,
+                "column": 9,
+                "offset": 481
+              },
+              "end": {
+                "line": 16,
+                "column": 31,
+                "offset": 503
+              }
+            }
+          },
+          "file": {
+            "Internal": "function_pointers.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "__user_init_StructWithPrimitiveTypes",
+        "type_name": "__user_init_StructWithPrimitiveTypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "__user_init_StructWithComplexTypes",
+        "type_name": "__user_init_StructWithComplexTypes",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "File": "__initializers"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "Internal": "__initializers"
+    }
+  },
+  {
+    "global_vars": [
+      {
+        "access": "Internal",
+        "constant": false,
+        "retain": false,
+        "variables": [],
+        "kind": "Global",
+        "linkage": "Internal",
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        }
+      }
+    ],
+    "var_config": [],
+    "pous": [
+      {
+        "id": 72,
+        "name": "__init___TestProject",
+        "kind": "ProjectInit",
+        "variable_blocks": [],
+        "return_type": null,
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "poly_mode": null,
+        "generics": [],
+        "linkage": "Internal",
+        "super_class": null,
+        "is_const": false,
+        "interfaces": [],
+        "properties": []
+      }
+    ],
+    "implementations": [
+      {
+        "name": "__init___TestProject",
+        "type_name": "__init___TestProject",
+        "linkage": "Internal",
+        "pou_type": "ProjectInit",
+        "statements": [],
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "Internal": "<internal>"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      }
+    ],
+    "interfaces": [],
+    "user_types": [],
+    "file": {
+      "Internal": "__init___TestProject"
+    }
+  }
+]

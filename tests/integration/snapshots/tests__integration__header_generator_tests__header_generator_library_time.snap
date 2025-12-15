@@ -1,6 +1,5 @@
 ---
 source: tests/integration/header_generator_tests.rs
-assertion_line: 231
 expression: "fs::read_to_string(dir.path().join(\"time.h\").to_str().unwrap()).unwrap()"
 ---
 // ---------------------------------------------------- //
@@ -20,29 +19,29 @@ expression: "fs::read_to_string(dir.path().join(\"time.h\").to_str().unwrap()).u
 extern "C" {
 #endif
 
-typedef enum {
-    TIME_CLOCK_REALTIME = 0,   //< System-wide real-time clock.
-    TIME_CLOCK_MONOTONIC = 1,  //< Represents monotonic time since some unspecified starting point.
-} TIME_ClockId;
+typedef enum eTIME_CLOCKID {
+    TIME_CLOCK_REALTIME = 0,
+    TIME_CLOCK_MONOTONIC = 1
+} TIME_CLOCKID;
 
 typedef struct {
-    int32_t sec;    /**> Seconds afer the minute [0..60] (allows leap second representation). */
-    int32_t min;    /**> Minutes after the hour [0..59]. */
-    int32_t hour;   /**> Hours since midnight [0..23]. */
-    int32_t day;    /**> Day of the month [1..31]. */
-    int32_t month;  /**> Months since January [0..11] */
-    int32_t year;   /**> Absolute year (e.g. 2025) */
-    int32_t wday;   /**> Days since Sunday [0..6]. */
-    int32_t yday;   /**> Days since January 1 [0..365]. */
-    int32_t isdst;  /**> Daylight Saving Time flag (-1=unknown, 0=off, 1=on). */
-    int32_t gmtoff; /**> Offset in seconds east of UTC. */
-    char zone[64];  /**> Timezone name/abbreviation (NUL-terminated). */
-} TIME_SysTimeDate;
+    int32_t Sec;
+    int32_t Min;
+    int32_t Hour;
+    int32_t Day;
+    int32_t Month;
+    int32_t Year;
+    int32_t Wday;
+    int32_t Yday;
+    int32_t Isdst;
+    int32_t Gmtoff;
+    char Zone[64];
+} TIME_SYSTIMEDATE;
 
 typedef struct {
-    int64_t tv_sec;  /* seconds */
-    int32_t tv_nsec; /* nanoseconds */
-} TIME_Timespec;
+    int64_t TvSec;
+    int32_t TvNsec;
+} TIME_TIMESPEC;
 
 uint64_t TIME_GetMonotonic();
 
@@ -56,27 +55,27 @@ uint64_t TIME_GetRealtimeMillis();
 
 uint64_t TIME_GetRealtimeSeconds();
 
-void TIME_ClockGetTime(ErrorCode *error, TIME_ClockId clock_id, TIME_Timespec *time);
+void TIME_ClockGetTime(ErrorCode* TIME_ClockGetTime, TIME_CLOCKID ClockId, TIME_TIMESPEC* Time);
 
-void TIME_ClockSetTime(ErrorCode *error, TIME_ClockId clock_id, const TIME_Timespec *time);
+void TIME_ClockSetTime(ErrorCode* TIME_ClockSetTime, TIME_CLOCKID ClockId, TIME_TIMESPEC Time);
 
-void TIME_GetTimezone(char *tz, ErrorCode *error);
+void TIME_GetTimezone(char* TIME_GetTimezone, ErrorCode* Error);
 
-void TIME_SetTimezone(ErrorCode *error, const char *tz);
+void TIME_SetTimezone(ErrorCode* TIME_SetTimezone, char* Timezone);
 
 int32_t TIME_GetTimezoneOffset();
 
-void TIME_TimestampToSysTimeDate(ErrorCode *error, uint64_t timestamp_sec, TIME_SysTimeDate *tm);
+void TIME_TimestampToSysTimeDate(ErrorCode* TIME_TimestampToSysTimeDate, uint64_t Timestamp, TIME_SYSTIMEDATE* SysTimeDate);
 
-void TIME_TimestampToLocalSysTimeDate(ErrorCode *error, uint64_t timestamp_sec, TIME_SysTimeDate *tm);
+void TIME_TimestampToLocalSysTimeDate(ErrorCode* TIME_TimestampToLocalSysTimeDate, uint64_t Timestamp, TIME_SYSTIMEDATE* SysTimeDate);
 
-void TIME_SysTimeDateToTimestamp(ErrorCode *error, const TIME_SysTimeDate *tm, uint64_t *timestamp_sec);
+void TIME_SysTimeDateToTimestamp(ErrorCode* TIME_SysTimeDateToTimestamp, TIME_SYSTIMEDATE SysTimeDate, uint64_t* Timestamp);
 
-void TIME_FormatString(ErrorCode *error, const TIME_SysTimeDate *tm, const char *fmt, char *str);
+void TIME_FormatString(ErrorCode* TIME_FormatString, TIME_SYSTIMEDATE SysTimeDate, char* Format, char* Str);
 
-void TIME_ParseString(ErrorCode *error, const char *fmt, const char *str, TIME_SysTimeDate *tm);
+void TIME_ParseString(ErrorCode* TIME_ParseString, char* Format, char* Str, TIME_SYSTIMEDATE* SysTimeDate);
 
-void TIME_IsClockSynchronized(ErrorCode *error, bool *in_sync);
+void TIME_IsClockSynchronized(ErrorCode* TIME_IsClockSynchronized, bool* InSync);
 
 #ifdef __cplusplus
 }

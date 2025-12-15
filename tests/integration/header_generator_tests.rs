@@ -40,7 +40,6 @@ fn test_header_generator_output_directory() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_async() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -70,7 +69,6 @@ fn test_header_generator_library_async() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_config() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -100,7 +98,6 @@ fn test_header_generator_library_config() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_file() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -130,7 +127,7 @@ fn test_header_generator_library_file() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
+#[ignore = "There is an error in the library that causes it to fail on build. This will be ignored for now."]
 fn test_header_generator_library_file_async() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -173,7 +170,6 @@ fn test_header_generator_library_file_async() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_log() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -203,7 +199,6 @@ fn test_header_generator_library_log() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_time() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -233,7 +228,6 @@ fn test_header_generator_library_time() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
 fn test_header_generator_library_vpool() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();
@@ -263,7 +257,7 @@ fn test_header_generator_library_vpool() {
 }
 
 #[test]
-#[ignore = "Test pending feedback, do not want executed until content confirmed"]
+#[ignore = "There is an error in the library that causes it to fail on build. This will be ignored for now."]
 fn test_header_generator_library_vpool_async() {
     let dir = tempfile::tempdir().unwrap();
     let test_dir = get_test_directory();

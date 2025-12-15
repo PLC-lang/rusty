@@ -1,6 +1,5 @@
 ---
 source: tests/integration/header_generator_tests.rs
-assertion_line: 69
 expression: "fs::read_to_string(dir.path().join(\"Async.h\").to_str().unwrap()).unwrap()"
 ---
 // ---------------------------------------------------- //
@@ -20,74 +19,64 @@ expression: "fs::read_to_string(dir.path().join(\"Async.h\").to_str().unwrap()).
 extern "C" {
 #endif
 
-typedef struct AsyncTask *AsyncTaskHandle;
-typedef struct AsyncJob *AsyncJobHandle;
-typedef bool (*AsyncFunction)(void *);
-typedef bool (*AsyncFunctionCancelable)(void *, const bool *);
+typedef uint8_t* ASYNC_TaskHandle;
 
-typedef enum {
-    ASYNC_JobState_Invalid = -1,   //< Invalid (initial value)
-    ASYNC_JobState_Pending = 0,    //< Queued, not running
-    ASYNC_JobState_Active = 1,     //< Running
-    ASYNC_JobState_Ready = 2,      //< Finished successfully
-    ASYNC_JobState_Error = 3,      //< Finished with error
-    ASYNC_JobState_Timeout = 4,    //< Timed out
-    ASYNC_JobState_Cancelled = 5,  //< Cancelled by user request
-} Async_JobState;
+typedef uint8_t* ASYNC_JobHandle;
 
-typedef struct {
-    AsyncTaskHandle task_handle;
-    uint32_t timeout;
-} AsyncTaskMembers;
+typedef uint8_t* ASYNC_Function;
+
+typedef enum eASYNC_JobState {
+    ASYNC_JobState_Invalid = -1,
+    ASYNC_JobState_Pending = 0,
+    ASYNC_JobState_Active = 1,
+    ASYNC_JobState_Ready = 2,
+    ASYNC_JobState_Error = 3,
+    ASYNC_JobState_Timeout = 4,
+    ASYNC_JobState_Canceled = 5
+} ASYNC_JobState;
 
 typedef struct {
-    void *__vtable;
-    AsyncTaskMembers *members;
-} AsyncTask_t;
+    uint64_t* __vtable;
+    uint8_t* _Internal_;
+} ASYNC_Task_type;
 
 typedef struct {
-    char task_name[16];
-    uint32_t task_priority;
-    uint32_t queue_size;
-} Async_TaskParams;
+    char TaskName[15];
+    uint32_t TaskPriority;
+    uint32_t QueueSize;
+} ASYNC_TaskParams;
 
-void ASYNC_JobRelease(AsyncJobHandle job_handle, ErrorCode *error);
+ASYNC_JobState ASYNC_JobGetState(ASYNC_JobHandle JobHandle, ErrorCode* Error);
 
-void ASYNC_TaskClearAll(AsyncTaskHandle task_handle, ErrorCode *error);
+bool ASYNC_JobIsCancelable(ASYNC_JobHandle JobHandle, ErrorCode* Error);
 
-void ASYNC_Task__FB_DEINIT(AsyncTask_t *async_task);
+ASYNC_TaskHandle ASYNC_TaskCreate(ASYNC_TaskParams TaskParameters, ErrorCode* Error);
 
-Async_JobState ASYNC_JobGetState(AsyncJobHandle job_handle, ErrorCode *error);
+void ASYNC_TaskDestroy(ErrorCode* ASYNC_TaskDestroy, ASYNC_TaskHandle TaskHandle);
 
-bool ASYNC_JobIsCancelable(AsyncJobHandle job_handle, ErrorCode *error);
+ASYNC_JobHandle ASYNC_TaskAddJob(ASYNC_TaskHandle TaskHandle, uint8_t* JobFunction, uint8_t* Params, ASYNC_JobState* State, uint32_t Timeout, ErrorCode* Error);
 
-AsyncTaskHandle ASYNC_TaskCreate(const Async_TaskParams *task_params, ErrorCode *error);
+ASYNC_JobHandle ASYNC_TaskAddJobCancelable(ASYNC_TaskHandle TaskHandle, uint8_t* JobFunction, uint8_t* Params, ASYNC_JobState* State, uint32_t Timeout, ErrorCode* Error);
 
-void ASYNC_TaskDestroy(ErrorCode *error, AsyncTaskHandle task_handle);
+void ASYNC_JobCancel(ErrorCode* ASYNC_JobCancel, ASYNC_JobHandle JobHandle);
 
-AsyncJobHandle ASYNC_TaskAddJob(AsyncTaskHandle task_handle, AsyncFunction job_function, void *params, Async_JobState *state, uint32_t timeout, ErrorCode *error);
+ASYNC_TaskHandle ASYNC_GetDefaultTask();
 
-AsyncJobHandle ASYNC_TaskAddJobCancelable(AsyncTaskHandle task_handle, AsyncFunctionCancelable job_function, void *params, Async_JobState *state, uint32_t timeout, ErrorCode *error);
+void ASYNC_TaskGetName(char* ASYNC_TaskGetName, ASYNC_TaskHandle TaskHandle);
 
-void ASYNC_JobCancel(ErrorCode *error, AsyncJobHandle job_handle);
+uint32_t ASYNC_TaskGetPriority(ASYNC_TaskHandle TaskHandle);
 
-AsyncTaskHandle ASYNC_GetDefaultTask();
+void __ASYNC_Task__init(ASYNC_Task_type* self);
 
-void ASYNC_TaskGetName(char *name_buffer, AsyncTaskHandle task_handle);
+void ASYNC_Task(ASYNC_Task_type* self);
 
-uint32_t ASYNC_TaskGetPriority(AsyncTaskHandle task_handle);
+void ASYNC_Task__SetAsyncTask(ASYNC_Task_type* self, ASYNC_TaskHandle TaskHandle);
 
-void __ASYNC_Task__init(AsyncTask_t *async_task);
+void ASYNC_Task__FB_INIT(ASYNC_Task_type* self);
 
-void ASYNC_Task(AsyncTask_t *async_task);
+uint32_t ASYNC_Task____get_Timeout(ASYNC_Task_type* self);
 
-void ASYNC_Task__SetAsyncTask(AsyncTask_t *async_task, AsyncTaskHandle task_handle);
-
-void ASYNC_Task__FB_INIT(AsyncTask_t *async_task);
-
-uint32_t ASYNC_Task____get_Timeout(AsyncTask_t *async_task);
-
-void ASYNC_Task____set_Timeout(AsyncTask_t *async_task, uint32_t timeout);
+void ASYNC_Task____set_Timeout(ASYNC_Task_type* self, uint32_t Timeout);
 
 #ifdef __cplusplus
 }
