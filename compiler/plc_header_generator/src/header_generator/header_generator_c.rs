@@ -99,7 +99,12 @@ impl GeneratedHeaderForC {
                 continue;
             }
 
-            self.prepare_user_type(user_type, builtin_types, &compilation_unit.user_types, &compilation_unit.pous);
+            self.prepare_user_type(
+                user_type,
+                builtin_types,
+                &compilation_unit.user_types,
+                &compilation_unit.pous,
+            );
         }
     }
 
@@ -124,9 +129,12 @@ impl GeneratedHeaderForC {
 
             match &pou.kind {
                 PouType::Function => {
-                    if let Some(function) =
-                        self.get_function(pou, &compilation_unit.user_types, builtin_types, &compilation_unit.pous)
-                    {
+                    if let Some(function) = self.get_function(
+                        pou,
+                        &compilation_unit.user_types,
+                        builtin_types,
+                        &compilation_unit.pous,
+                    ) {
                         self.template_data.functions.push(function);
                     }
                 }
@@ -512,7 +520,8 @@ impl GeneratedHeaderForC {
                                 pous.iter().find(|pou| pou.name == data_type_with_no_reference_symbol);
 
                             if let Some(pou) = option_pou {
-                                if let Some(function) = self.get_function(pou, user_types, builtin_types, pous)
+                                if let Some(function) =
+                                    self.get_function(pou, user_types, builtin_types, pous)
                                 {
                                     let prototype_name = format!("{}_ptr", function.name);
                                     let function_pointer_name = format!(
@@ -522,7 +531,13 @@ impl GeneratedHeaderForC {
                                         self.get_formatted_function_parameter_data_types(&function)
                                     );
 
-                                    if !self.template_data.user_defined_types.aliases.iter().any(|f| f.name == function_pointer_name) {
+                                    if !self
+                                        .template_data
+                                        .user_defined_types
+                                        .aliases
+                                        .iter()
+                                        .any(|f| f.name == function_pointer_name)
+                                    {
                                         self.template_data.user_defined_types.aliases.push(Variable {
                                             data_type: function.return_type,
                                             name: function_pointer_name,
