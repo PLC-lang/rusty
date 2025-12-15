@@ -61,8 +61,13 @@ pub fn pre_process(unit: &mut CompilationUnit, mut id_provider: IdProvider) {
                     if let DataTypeDeclaration::Definition { mut data_type, location, scope } = *datatype {
                         data_type.set_name(type_name);
                         add_nested_datatypes(name, &mut data_type, &mut new_types, &location);
-                        let data_type =
-                            UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope };
+                        let data_type = UserTypeDeclaration {
+                            data_type: *data_type,
+                            initializer: None,
+                            location,
+                            scope,
+                            linkage: crate::ast::LinkageType::Internal,
+                        };
                         new_types.push(data_type);
                     }
                 }
@@ -289,6 +294,7 @@ fn preprocess_generic_structs(pou: &mut Pou) -> Vec<UserTypeDeclaration> {
             initializer: None,
             scope: Some(pou.name.clone()),
             location: pou.location.clone(),
+            linkage: crate::ast::LinkageType::Internal,
         };
         types.push(data_type);
         generic_types.insert(binding.name.clone(), new_name);
@@ -314,8 +320,13 @@ fn preprocess_return_type(pou: &mut Pou, types: &mut Vec<UserTypeDeclaration>) {
             if let Some(DataTypeDeclaration::Definition { mut data_type, location, scope }) = datatype {
                 data_type.set_name(type_name);
                 add_nested_datatypes(pou.name.as_str(), &mut data_type, types, &location);
-                let data_type =
-                    UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope };
+                let data_type = UserTypeDeclaration {
+                    data_type: *data_type,
+                    initializer: None,
+                    location,
+                    scope,
+                    linkage: crate::ast::LinkageType::Internal,
+                };
                 types.push(data_type);
             }
         }
@@ -350,7 +361,13 @@ fn pre_process_variable_data_type(
         // create index entry
         add_nested_datatypes(new_type_name.as_str(), &mut data_type, types, &location);
         data_type.set_name(new_type_name);
-        types.push(UserTypeDeclaration { data_type: *data_type, initializer: None, location, scope });
+        types.push(UserTypeDeclaration {
+            data_type: *data_type,
+            initializer: None,
+            location,
+            scope,
+            linkage: crate::ast::LinkageType::Internal,
+        });
     }
     //make sure it gets generated
 }
@@ -379,6 +396,7 @@ fn add_nested_datatypes(
             initializer: None,
             location: location.clone(),
             scope,
+            linkage: crate::ast::LinkageType::Internal,
         });
     }
 }

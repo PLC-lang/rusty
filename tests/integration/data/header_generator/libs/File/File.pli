@@ -1,0 +1,230 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann electronic GmbH                               *
+ *****************************************************************************)
+(**
+ * @defgroup file-sync-interface Blocking interface
+ * @brief Blocking file interface functions.
+ *
+ * These functions are blocking and may not be used by high priority tasks directly since it may cause cycle time violations.
+ * @{
+*)
+(**
+ * @brief Open or create a file
+ *
+ * Open or create a file. The behavior is defined by the @p Mode parameter (#FILE_AccessMode).
+ * If the @p Mode parameter is omitted, the file is opened read only.
+ *
+ * @param[in] File Specifies the file name. File name can be specified absolute or relative. The current working directory is the home directory of the app located in `/data/app/home/<instanceName>`.
+ * @param[in] Mode Requested access mode.
+ * @param[out] Error Error code.
+ * @return File handle.
+ * @see FILE_Close
+ *)
+FUNCTION FILE_Open : FILE_Handle
+VAR_INPUT
+    File: STRING;
+    Mode: FILE_AccessMode := FILE_AccessMode_Read;
+END_VAR
+VAR_OUTPUT
+    Error: ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Close a file
+ *
+ * @param[in] FileHandle File handle.
+ * @return Error code.
+ *)
+FUNCTION FILE_Close : ErrorCode
+VAR_INPUT
+    FileHandle: FILE_Handle;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Read data from a file
+ *
+ * Reads up to Size bytes from a file into the @p Buffer. The actual number of bytes read is returned. If an error occurs, @p Error is set accordingly.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[in] Buffer Pointer to the buffer where the read data will be stored.
+ * @param[in] Size Maximum number of bytes to read.
+ * @param[out] Error Error code.
+ * @return Number of bytes actually read.
+ * @note The function may return fewer bytes than requested if the end of the file is reached.
+ *)
+FUNCTION FILE_Read : ULINT
+VAR_INPUT
+    FileHandle: FILE_Handle;
+    Buffer: POINTER TO BYTE;
+    Size: ULINT;
+END_VAR
+VAR_OUTPUT
+    Error: ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Writes data to a file.
+ *
+ * This function writes the specified number of bytes from the provided buffer to the given file.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[in] Buffer Pointer to the data buffer to be written.
+ * @param[in] Size Number of bytes to write from the buffer.
+ * @param[out] Error Error code.
+ * @return Number of bytes successfully written, or a negative value on error.
+ *)
+FUNCTION FILE_Write : ULINT
+VAR_INPUT
+    FileHandle: FILE_Handle;
+    Buffer: POINTER TO BYTE;
+    Size: ULINT;
+END_VAR
+VAR_OUTPUT
+    Error: ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Sets the file position indicator for the specified file stream.
+ *
+ * This function moves the file position indicator to the specified offset
+ * relative to the origin defined by the @p Origin parameter. The origin can be
+ * the beginning of the file, the current position, or the end of the file.
+ * If @p Origin and @p Offset are omitted, the position is set to the beginning of the file.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[in] Offset Number of bytes to offset from the origin.
+ * @param[in] Origin Position used as reference for the offset.
+ * @return Error code.
+ *)
+FUNCTION FILE_Seek : ErrorCode
+VAR_INPUT
+    FileHandle: FILE_Handle;
+    Offset: LINT := 0;
+    Origin: FILE_SeekOrigin := FILE_SeekOrigin_Begin;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Returns the file position indicator for the file.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[out] ErrorCode Error code.
+ * @return Number of bytes from the beginning of the file or -1 in case of an error (see @p Error in this case).
+ *)
+FUNCTION FILE_Tell : LINT
+VAR_INPUT
+    FileHandle: FILE_Handle;
+END_VAR
+VAR_OUTPUT
+    Error: ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Read a line of a file into a string.
+ *
+ * Reads a line from a newline delimited file. The line length is limited to 1024 bytes.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[out] IsEOF Indicates whether the end of the file has been reached.
+ * @param[out] ErrorCode Error code.
+ * @return The next line until a newline character or the end of the file is reached.
+ *)
+FUNCTION FILE_ReadString : STRING[1023]
+VAR_INPUT
+    FileHandle: FILE_Handle;
+END_VAR
+VAR_OUTPUT
+    IsEOF: BOOL;
+    Error: ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Write a string into a file.
+ *
+ * @param[in] FileHandle File handle.
+ * @param[in] Str The string to be written.
+ * @return Error code
+ *)
+FUNCTION FILE_WriteString : ErrorCode
+VAR_INPUT
+    FileHandle: FILE_Handle;
+    Str: STRING[1023];
+END_VAR
+END_FUNCTION
+(**
+ * @brief Flush file.
+ *
+ * Writes any unwritten data from the stream's buffer to the associated output device.
+ *
+ * @param[in] FileHandle File handle.
+ * @return Error code
+ *)
+FUNCTION FILE_Flush : ErrorCode
+VAR_INPUT
+    FileHandle: FILE_Handle;
+END_VAR
+END_FUNCTION
+(**
+  * @brief Get the file status information
+  *
+  * @param[in] FileHandle File handle.
+  * @param[out] Status The file status information.
+  * @return Error code.
+ *)
+FUNCTION FILE_GetStatus : ErrorCode
+VAR_INPUT
+    FileHandle: FILE_Handle;
+END_VAR
+VAR_OUTPUT
+    Status: FILE_Status;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Copy a file.
+ *
+ * Copies the file specified by Source to the file specified by Destination.
+ *
+ * @param[in] Source Path to the source file.
+ * @param[in] Destination Path to the destination file.
+ * @param[out] BytesCopied Number of bytes copied.
+ * @return Error code.
+ *)
+FUNCTION FILE_Copy : ErrorCode
+VAR_INPUT
+    Source: STRING;
+    Destination: STRING;
+END_VAR
+VAR_OUTPUT
+    BytesCopied: ULINT;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Rename a file.
+ *
+ * Renames the file specified by OldName to NewName.
+ *
+ * @param[in] OldName Current file name.
+ * @param[in] NewName New file name.
+ * @return Error code.
+ *)
+FUNCTION FILE_Rename : ErrorCode
+VAR_INPUT
+    OldName: STRING;
+    NewName: STRING;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Remove a file.
+ *
+ * Deletes the file specified by FileName.
+ *
+ * @param[in] FileName Name of the file to remove.
+ * @return Error code.
+ *)
+FUNCTION FILE_Remove : ErrorCode
+VAR_INPUT
+    FileName: STRING;
+END_VAR
+END_FUNCTION
+(**
+ * @}
+*)

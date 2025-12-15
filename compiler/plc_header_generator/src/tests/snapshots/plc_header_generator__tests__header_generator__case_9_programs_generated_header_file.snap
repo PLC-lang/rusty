@@ -1,0 +1,43 @@
+---
+source: compiler/plc_header_generator/src/tests/header_generator.rs
+expression: "&generated_headers[0].get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef PROGRAMS
+#define PROGRAMS
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum eComplexEnumType {
+    orange = 10,
+    yellow = 20,
+    purple = 30
+} ComplexEnumType;
+
+typedef struct {
+    ComplexEnumType inOutVar;
+    ComplexEnumType outVar;
+} prog_type;
+
+extern prog_type prog_instance;
+
+void __prog__init(prog_type* self);
+
+void prog(prog_type* self);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !PROGRAMS */
