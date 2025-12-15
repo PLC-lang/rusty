@@ -19,13 +19,13 @@ expression: "&generated_headers[0].get_contents()"
 extern "C" {
 #endif
 
-typedef void (*fnVoidPointer)(int32_t);
+typedef void (*fnVoidThatWillBePointedTo_ptr)(int32_t);
 
-typedef int32_t (*fnDIntPointer)(int32_t);
+typedef int32_t (*fnDIntThatWillBePointedTo_ptr)(int32_t);
 
-typedef void (*fnStructPrimitivePointer)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
+typedef void (*fnThatUsesStructWithPrimitiveTypes_ptr)(StructWithPrimitiveTypes*, StructWithPrimitiveTypes*);
 
-typedef void (*fnStructComplexPointer)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*);
+typedef void (*fnThatUsesStructWithComplexTypes_ptr)(StructWithComplexTypes*, StructWithComplexTypes*, ComplexEnumType, char*, int16_t*);
 
 typedef struct {
     uint8_t Field1;
@@ -42,6 +42,11 @@ typedef struct {
     ComplexEnumType complexEnumTypeField;
     int16_t intArrayField[10];
 } StructWithComplexTypes;
+
+extern fnVoidThatWillBePointedTo_ptr fnVoidPointer;
+extern fnDIntThatWillBePointedTo_ptr fnDIntPointer;
+extern fnThatUsesStructWithPrimitiveTypes_ptr fnStructPrimitivePointer;
+extern fnThatUsesStructWithComplexTypes_ptr fnStructComplexPointer;
 
 void fnVoidThatWillBePointedTo(int32_t varDIntInput);
 
