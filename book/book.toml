@@ -1,7 +1,6 @@
 [book]
 authors = ["Ghaith Hachem", "Mathias Rieder", "Alexander Ulmer"]
 language = "en"
-multilingual = false
 src = "src"
 title = "RuSTy User Documentation"
 [output.html]
