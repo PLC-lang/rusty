@@ -604,6 +604,58 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "SHL",
+            BuiltIn {
+                decl: "
+                FUNCTION SHL<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression(params[1])?.into_int_value();
+
+                    let shl = generator.llvm.builder.build_left_shift(left, right, "")?;
+
+                    Ok(ExpressionValue::RValue(shl.as_basic_value_enum()))
+                }
+            },
+        ),
+        (
+            "SHR",
+            BuiltIn {
+                decl: "
+                FUNCTION SHR<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, _, _| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression(params[1])?.into_int_value();
+
+                    let shl = generator.llvm.builder.build_right_shift(left, right, false, "")?;
+
+                    Ok(ExpressionValue::RValue(shl.as_basic_value_enum()))
+                }
+            },
+        ),
     ]);
 }
 

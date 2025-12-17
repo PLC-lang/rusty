@@ -2,6 +2,7 @@
 mod common;
 
 use common::add_std;
+use plc_source::SourceCode;
 
 use crate::common::compile_and_run;
 
@@ -30,7 +31,7 @@ fn shift_left_test() {
         l := SHL(LWORD#2#0001_1001,59);
         END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_shift_functions.st");
+    let sources = SourceCode::new(src, "main.st");
     let mut maintype = MainType::default();
     let _res: u32 = compile_and_run(sources, &mut maintype);
     assert_eq!(maintype.byte, 0b1100_1000);
@@ -58,7 +59,7 @@ fn shift_right_test() {
         l := SHR(LWORD#16#1_0000_0000_0001,3);
         END_PROGRAM
         ";
-    let sources = add_std!(src, "bit_shift_functions.st");
+    let sources = SourceCode::new(src, "main.st");
     let mut maintype = MainType::default();
     let _res: u32 = compile_and_run(sources, &mut maintype);
     assert_eq!(maintype.byte, 0x2);
@@ -115,4 +116,44 @@ fn rotate_right_test() {
     assert_eq!(maintype.word, 0x3000);
     assert_eq!(maintype.dword, 0x3000_0000);
     assert_eq!(maintype.lword, 0x3000_0000_0000_0000);
+}
+
+#[derive(Default, Debug)]
+#[repr(C)]
+struct MainTypePrg3569 {
+    a: u32,
+}
+
+#[test]
+fn bug_prg_3569_shl_must_be_usable_with_int() {
+    let src = "
+        PROGRAM main
+        VAR
+            a : INT;
+        END_VAR
+        a := SHL(21,2);
+        END_PROGRAM
+        ";
+    let sources = SourceCode::new(src, "main.st");
+    let mut maintype = MainTypePrg3569::default();
+    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let shift_left = 21 << 2;
+    assert_eq!(maintype.a, shift_left);
+}
+
+#[test]
+fn bug_prg_3569_shr_must_be_usable_with_int() {
+    let src = "
+        PROGRAM main
+        VAR
+            a : INT;
+        END_VAR
+        a := SHR(21,2);
+        END_PROGRAM
+        ";
+    let sources = SourceCode::new(src, "main.st");
+    let mut maintype = MainTypePrg3569::default();
+    let _res: u32 = compile_and_run(sources, &mut maintype);
+    let shift_right = 21 >> 2;
+    assert_eq!(maintype.a, shift_right);
 }
