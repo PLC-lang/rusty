@@ -1,11 +1,10 @@
 use std::{fs, io, path::PathBuf, str::FromStr};
 
 use clap::{Arg, Command};
-use mdbook::{
-    book::Chapter,
+use mdbook_preprocessor::{
+    book::{BookItem, Chapter},
     errors::Error,
-    preprocess::{CmdPreprocessor, Preprocessor},
-    BookItem,
+    parse_input, Preprocessor, PreprocessorContext, MDBOOK_VERSION,
 };
 use semver::{Version, VersionReq};
 use toml::Value;
@@ -35,17 +34,17 @@ fn main() {
 }
 
 fn handle_preprocessing(preprocessor: &ErrorCodeGenerator) -> Result<(), Error> {
-    let (ctx, book) = CmdPreprocessor::parse_input(io::stdin())?;
+    let (ctx, book) = parse_input(io::stdin())?;
 
     let book_version = Version::parse(&ctx.mdbook_version)?;
-    let version_req = VersionReq::parse(mdbook::MDBOOK_VERSION)?;
+    let version_req = VersionReq::parse(MDBOOK_VERSION)?;
 
     if !version_req.matches(&book_version) {
         eprintln!(
             "Warning: The {} plugin was built against version {} of mdbook, \
              but we're being called from version {}",
             preprocessor.name(),
-            mdbook::MDBOOK_VERSION,
+            MDBOOK_VERSION,
             ctx.mdbook_version
         );
     }
@@ -58,7 +57,7 @@ fn handle_preprocessing(preprocessor: &ErrorCodeGenerator) -> Result<(), Error> 
 
 fn handle_supports(preprocessor: &dyn Preprocessor, sub_args: &clap::ArgMatches) -> ! {
     let renderer = sub_args.get_one::<String>("renderer").expect("Required argument");
-    let supported = preprocessor.supports_renderer(renderer);
+    let supported = preprocessor.supports_renderer(renderer).unwrap_or(true);
 
     if supported {
         std::process::exit(0);
@@ -77,12 +76,14 @@ impl Preprocessor for ErrorCodeGenerator {
 
     fn run(
         &self,
-        ctx: &mdbook::preprocess::PreprocessorContext,
-        mut book: mdbook::book::Book,
-    ) -> mdbook::errors::Result<mdbook::book::Book> {
+        ctx: &PreprocessorContext,
+        mut book: mdbook_preprocessor::book::Book,
+    ) -> mdbook_preprocessor::errors::Result<mdbook_preprocessor::book::Book> {
         //Get a config location on where to read the errors from
         //Get a config location on where to place the error chapters in the book
-        let preprocessor = ctx.config.get_preprocessor(self.name()).expect("Preprocessor configured");
+        let preprocessors: std::collections::BTreeMap<String, Value> =
+            ctx.config.preprocessors().expect("Preprocessors configured");
+        let preprocessor = preprocessors.get(self.name()).expect("Preprocessor configured");
         let Some((source, target)) = preprocessor
             .get("err_location")
             .and_then(Value::as_str)
