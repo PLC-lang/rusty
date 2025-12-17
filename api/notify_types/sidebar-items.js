@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["debouncer_full","debouncer_mini","event"]};

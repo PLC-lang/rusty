@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["create_response","create_response_with_body","write_response"],"struct":["NoCallback","ServerHandshake"],"trait":["Callback"],"type":["ErrorResponse","Request","Response"]};

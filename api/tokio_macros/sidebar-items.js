@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["main","main_fail","main_rt","test","test_fail","test_rt"]};

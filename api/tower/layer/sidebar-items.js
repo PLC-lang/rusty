@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["layer_fn"],"mod":["util"],"struct":["LayerFn"],"trait":["Layer"]};

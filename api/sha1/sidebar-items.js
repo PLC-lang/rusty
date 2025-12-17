@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Sha1Core"],"trait":["Digest"],"type":["Sha1"]};

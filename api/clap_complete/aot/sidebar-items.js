@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Shell","ValueHint"],"fn":["generate","generate_to"],"mod":["utils"],"struct":["Bash","Elvish","Fish","PowerShell","Zsh"],"trait":["Generator"]};

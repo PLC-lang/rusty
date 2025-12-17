@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ProcessResult","SetResult","TagKind","Token","TokenSinkResult"],"mod":["states"],"struct":["BufferQueue","Doctype","Tag","Tokenizer","TokenizerOpts"],"trait":["TokenSink"]};

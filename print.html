@@ -13,21 +13,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="theme-color" content="#ffffff">
 
-        <link rel="icon" href="favicon.svg">
-        <link rel="shortcut icon" href="favicon.png">
-        <link rel="stylesheet" href="css/variables.css">
-        <link rel="stylesheet" href="css/general.css">
-        <link rel="stylesheet" href="css/chrome.css">
-        <link rel="stylesheet" href="css/print.css" media="print">
+        <link rel="icon" href="favicon-de23e50b.svg">
+        <link rel="shortcut icon" href="favicon-8114d1fc.png">
+        <link rel="stylesheet" href="css/variables-8adf115d.css">
+        <link rel="stylesheet" href="css/general-2459343d.css">
+        <link rel="stylesheet" href="css/chrome-ae938929.css">
+        <link rel="stylesheet" href="css/print-9e4910d8.css" media="print">
 
         <!-- Fonts -->
-        <link rel="stylesheet" href="FontAwesome/css/font-awesome.css">
-        <link rel="stylesheet" href="fonts/fonts.css">
+        <link rel="stylesheet" href="fonts/fonts-9644e21d.css">
 
         <!-- Highlight.js Stylesheets -->
-        <link rel="stylesheet" id="highlight-css" href="highlight.css">
-        <link rel="stylesheet" id="tomorrow-night-css" href="tomorrow-night.css">
-        <link rel="stylesheet" id="ayu-highlight-css" href="ayu-highlight.css">
+        <link rel="stylesheet" id="mdbook-highlight-css" href="highlight-493f70e1.css">
+        <link rel="stylesheet" id="mdbook-tomorrow-night-css" href="tomorrow-night-4c0ae647.css">
+        <link rel="stylesheet" id="mdbook-ayu-highlight-css" href="ayu-highlight-3fdfc3ac.css">
 
         <!-- Custom theme stylesheets -->
 
@@ -37,10 +36,10 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex.js";
+            window.path_to_searchindex_js = "searchindex-6f28f9a7.js";
         </script>
         <!-- Start loading toc.js asap -->
-        <script src="toc.js"></script>
+        <script src="toc-90e98495.js"></script>
     </head>
     <body>
     <div id="mdbook-help-container">
@@ -54,7 +53,7 @@
             </div>
         </div>
     </div>
-    <div id="body-container">
+    <div id="mdbook-body-container">
         <!-- Work around some values being stored in localStorage wrapped in quotes -->
         <script>
             try {
@@ -83,12 +82,12 @@
             html.classList.add("js");
         </script>
 
-        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+        <input type="checkbox" id="mdbook-sidebar-toggle-anchor" class="hidden">
 
         <!-- Hide / unhide sidebar before it is displayed -->
         <script>
             let sidebar = null;
-            const sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            const sidebar_toggle = document.getElementById("mdbook-sidebar-toggle-anchor");
             if (document.body.clientWidth >= 1080) {
                 try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
                 sidebar = sidebar || 'visible';
@@ -103,39 +102,39 @@
             }
         </script>
 
-        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+        <nav id="mdbook-sidebar" class="sidebar" aria-label="Table of contents">
             <!-- populated by js -->
             <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
             <noscript>
                 <iframe class="sidebar-iframe-outer" src="toc.html"></iframe>
             </noscript>
-            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+            <div id="mdbook-sidebar-resize-handle" class="sidebar-resize-handle">
                 <div class="sidebar-resize-indicator"></div>
             </div>
         </nav>
 
-        <div id="page-wrapper" class="page-wrapper">
+        <div id="mdbook-page-wrapper" class="page-wrapper">
 
             <div class="page">
-                <div id="menu-bar-hover-placeholder"></div>
-                <div id="menu-bar" class="menu-bar sticky">
+                <div id="mdbook-menu-bar-hover-placeholder"></div>
+                <div id="mdbook-menu-bar" class="menu-bar sticky">
                     <div class="left-buttons">
-                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
-                            <i class="fa fa-bars"></i>
+                        <label id="mdbook-sidebar-toggle" class="icon-button" for="mdbook-sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="mdbook-sidebar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M0 96C0 78.3 14.3 64 32 64H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32C14.3 128 0 113.7 0 96zM0 256c0-17.7 14.3-32 32-32H416c17.7 0 32 14.3 32 32s-14.3 32-32 32H32c-17.7 0-32-14.3-32-32zM448 416c0 17.7-14.3 32-32 32H32c-17.7 0-32-14.3-32-32s14.3-32 32-32H416c17.7 0 32 14.3 32 32z"/></svg></span>
                         </label>
-                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
-                            <i class="fa fa-paint-brush"></i>
+                        <button id="mdbook-theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="mdbook-theme-list">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M371.3 367.1c27.3-3.9 51.9-19.4 67.2-42.9L600.2 74.1c12.6-19.5 9.4-45.3-7.6-61.2S549.7-4.4 531.1 9.6L294.4 187.2c-24 18-38.2 46.1-38.4 76.1L371.3 367.1zm-19.6 25.4l-116-104.4C175.9 290.3 128 339.6 128 400c0 3.9 .2 7.8 .6 11.6c1.8 17.5-10.2 36.4-27.8 36.4H96c-17.7 0-32 14.3-32 32s14.3 32 32 32H240c61.9 0 112-50.1 112-112c0-2.5-.1-5-.2-7.5z"/></svg></span>
                         </button>
-                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
-                            <li role="none"><button role="menuitem" class="theme" id="default_theme">Auto</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
-                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        <ul id="mdbook-theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-default_theme">Auto</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="mdbook-theme-ayu">Ayu</button></li>
                         </ul>
-                        <button id="search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="searchbar">
-                            <i class="fa fa-search"></i>
+                        <button id="mdbook-search-toggle" class="icon-button" type="button" title="Search (`/`)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="/ s" aria-controls="mdbook-searchbar">
+                            <span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352c79.5 0 144-64.5 144-144s-64.5-144-144-144S64 128.5 64 208s64.5 144 144 144z"/></svg></span>
                         </button>
                     </div>
 
@@ -143,45 +142,45 @@
 
                     <div class="right-buttons">
                         <a href="print.html" title="Print this book" aria-label="Print this book">
-                            <i id="print-button" class="fa fa-print"></i>
+                            <span class=fa-svg id="print-button"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M128 0C92.7 0 64 28.7 64 64v96h64V64H354.7L384 93.3V160h64V93.3c0-17-6.7-33.3-18.7-45.3L400 18.7C388 6.7 371.7 0 354.7 0H128zM384 352v32 64H128V384 368 352H384zm64 32h32c17.7 0 32-14.3 32-32V256c0-35.3-28.7-64-64-64H64c-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32H64v64c0 35.3 28.7 64 64 64H384c35.3 0 64-28.7 64-64V384zm-16-88c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg></span>
                         </a>
 
                     </div>
                 </div>
 
-                <div id="search-wrapper" class="hidden">
-                    <form id="searchbar-outer" class="searchbar-outer">
+                <div id="mdbook-search-wrapper" class="hidden">
+                    <form id="mdbook-searchbar-outer" class="searchbar-outer">
                         <div class="search-wrapper">
-                            <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                            <input type="search" id="mdbook-searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="mdbook-searchresults-outer" aria-describedby="searchresults-header">
                             <div class="spinner-wrapper">
-                                <i class="fa fa-spinner fa-spin"></i>
+                                <span class=fa-svg id="fa-spin"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M304 48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zm0 416c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM48 304c26.5 0 48-21.5 48-48s-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48zm464-48c0-26.5-21.5-48-48-48s-48 21.5-48 48s21.5 48 48 48s48-21.5 48-48zM142.9 437c18.7-18.7 18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zm0-294.2c18.7-18.7 18.7-49.1 0-67.9S93.7 56.2 75 75s-18.7 49.1 0 67.9s49.1 18.7 67.9 0zM369.1 437c18.7 18.7 49.1 18.7 67.9 0s18.7-49.1 0-67.9s-49.1-18.7-67.9 0s-18.7 49.1 0 67.9z"/></svg></span>
                             </div>
                         </div>
                     </form>
-                    <div id="searchresults-outer" class="searchresults-outer hidden">
-                        <div id="searchresults-header" class="searchresults-header"></div>
-                        <ul id="searchresults">
+                    <div id="mdbook-searchresults-outer" class="searchresults-outer hidden">
+                        <div id="mdbook-searchresults-header" class="searchresults-header"></div>
+                        <ul id="mdbook-searchresults">
                         </ul>
                     </div>
                 </div>
 
                 <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
                 <script>
-                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
-                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
-                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                    document.getElementById('mdbook-sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('mdbook-sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#mdbook-sidebar a')).forEach(function(link) {
                         link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
                     });
                 </script>
 
-                <div id="content" class="content">
+                <div id="mdbook-content" class="content">
                     <main>
                         <h1 id="rusty"><a class="header" href="#rusty">RuSTy</a></h1>
 <p>RuSTy is a <a href="https://en.wikipedia.org/wiki/Structured_text">structured text (ST)</a> compiler written in Rust and based on the LLVM compiler backend.
 We use the <a href="https://crates.io/crates/logos/0.8.0"><em>logos</em></a> crate library to perform lexical analysis before the custom parser runs.
 RuSTy puts out static or shared objects as well as LLVM IR or bitcode by the flip of a command line flag.
 We are aiming towards an open-source industry-grade ST compiler supporting at least the features in 2nd edition IEC 61131 standard.</p>
-<p>You might also want to refer to the <a href="api/rusty/">API documentation</a>.</p>
+<p>You might also want to refer to the <a href="api/rusty">API documentation</a>.</p>
 <h2 id="supported-language-concepts"><a class="header" href="#supported-language-concepts">Supported Language Concepts</a></h2>
 <h3 id="pous"><a class="header" href="#pous">POUs</a></h3>
 <ul>
@@ -237,7 +236,8 @@ We are aiming towards an open-source industry-grade ST compiler supporting at le
 <li>✔ Logical Operators</li>
 <li>✔ Bitwise Operators</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
 <p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>.
 By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively
 however, you will need some additional dependencies namely:</p>
@@ -290,7 +290,7 @@ echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zshrc
 <li><a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6">LLVM 14.0.6</a></li>
 </ol>
 <p>The first two dependencies are typically installed during the Rust installation itself. More specifically during the
-installation you should have been prompted to install them. If not, you'll be able to install them via Visual Studio at any point.
+installation you should have been prompted to install them. If not, you’ll be able to install them via Visual Studio at any point.
 The third dependency is based on a custom build which is hosted on <a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6">GitHub</a>.
 Download it, extract it and add the <code>bin/</code> directory to your <a href="https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html">environment variables</a>.
 In theory this should cover everything to be able to compile RuSTy (with some reboots here and there).</p>
@@ -301,12 +301,13 @@ In theory this should cover everything to be able to compile RuSTy (with some re
 <li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
 major version of the <code>llvm-sys</code> crate.Currently you will need to install LLVM 14 to satisfy this constraint.
 <a href="https://crates.io/crates/llvm-sys">Read more</a></li>
-<li>To avoid installation conflicts on Linux/Ubuntu, make sure you don't have a default installation available
+<li>To avoid installation conflicts on Linux/Ubuntu, make sure you don’t have a default installation available
 (like you get by just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
 the appropriate environment variable (<code>LLVM_SYS_140_PREFIX=/usr/lib/llvm-14</code> for LLVM 14), so
 the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>
 <blockquote>
 <p>The RuSTy compiler binary is called <code>plc</code></p>
 </blockquote>
@@ -330,11 +331,11 @@ file extension depending on the output file format.</p>
 </ul>
 <h2 id="example-building-a-hello-world-program"><a class="header" href="#example-building-a-hello-world-program">Example: Building a hello world program</a></h2>
 <h3 id="writing-the-code"><a class="header" href="#writing-the-code">Writing the code</a></h3>
-<p>We want to print something to the terminal, so we're going to declare external functions for that.
+<p>We want to print something to the terminal, so we’re going to declare external functions for that.
 This example is available under <code>examples/hello_world.st</code> in the main RuSTy repository.</p>
 <ul>
 <li><code>main</code> is our entry point to the program.</li>
-<li>To link the program, we are going to use the system's linker using the <code>--linker=cc</code> argument.</li>
+<li>To link the program, we are going to use the system’s linker using the <code>--linker=cc</code> argument.</li>
 <li>On Windows and MacOS, replace this with <code>--linker=clang</code> as cc is usually not available.</li>
 </ul>
 <pre><code class="language-iecst">{external}
@@ -362,15 +363,15 @@ END_FUNCTION
 <li><code>plc -c "**/*.st" -O default</code></li>
 <li><code>plc -c "**/*.st" -O aggressive</code></li>
 </ul>
-<p>By default <code>plc</code> will use <code>default</code> which corresponds to clang's <code>-O2</code>.</p>
+<p>By default <code>plc</code> will use <code>default</code> which corresponds to clang’s <code>-O2</code>.</p>
 <h3 id="linking-an-executable"><a class="header" href="#linking-an-executable">Linking an executable</a></h3>
 <p>Instead, you can also compile this into an executable and run it:</p>
 <pre><code class="language-bash">plc hello_world.st -o hello_world --linker=cc
 ./hello_world
 </code></pre>
-<p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn't specify something else (option <code>-c</code>).</p>
+<p>Please note that RuSTy will attempt to link the generated object file by default to generate an executable if you didn’t specify something else (option <code>-c</code>).</p>
 <ul>
-<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system's compiler driver  instead of the built in linker. This provides support to create executables.</li>
+<li>The <code>--linker=cc</code> flag tells RuSTy that it should link with the system’s compiler driver  instead of the built in linker. This provides support to create executables.</li>
 <li>Additional libraries can be linked using the <code>-l</code> flag, additional library paths can be added with <code>-L</code></li>
 <li>You add library search paths by providing additional <code>-L /path/...</code> options. By default, this will be the current directory.</li>
 <li>The linker will prefer a dynamically linked library if available, and revert to a static one otherwise.</li>
@@ -380,12 +381,12 @@ END_FUNCTION
 <ul>
 <li>Multiple targets and sysroot can be specified for the compilation simply by adding additional <code>--target</code> and <code>--sysroot</code> entries.</li>
 </ul>
-<h3 id="--target"><a class="header" href="#--target">--target</a></h3>
+<h3 id="target"><a class="header" href="#target">–target</a></h3>
 <p>To build and compile <a href="https://en.wikipedia.org/wiki/Structured_text">structured text</a> for the rigth platform we need to specify the <code>target</code>.
 As RuSTy is using <a href="https://en.wikipedia.org/wiki/LLVM">LLVM</a> a target-tripple supported by LLVM needs to be selected.
-The default <code>target</code> is the host machine's target.
+The default <code>target</code> is the host machine’s target.
 So if a dev container on an <code>x86_64-docker</code> is used the target is <code>x86_64-linux-gnu</code>.</p>
-<h3 id="--sysroot"><a class="header" href="#--sysroot">--sysroot</a></h3>
+<h3 id="sysroot"><a class="header" href="#sysroot">–sysroot</a></h3>
 <p><code>plc</code> use the <code>sysroot</code> option for linking purposes.
 It is considered to be the root directory for the purpose of locating headers and libraries.</p>
 <ul>
@@ -409,14 +410,14 @@ This behaviour might not always be desired and can be disabled using the <code>-
 <p>Outputs the json schema used for the validation of the <code>plc.json</code> file</p>
 <h3 id="config-diagnostics"><a class="header" href="#config-diagnostics"><code>config diagnostics</code></a></h3>
 <p>Ouputs a json file with the default error severity configuration for the project.
-See <a href="./error_configuration.html">Error Configuration</a> for more information.</p>
+See <a href="error_configuration.html">Error Configuration</a> for more information.</p>
 <h2 id="project-wide-initialization"><a class="header" href="#project-wide-initialization">Project-wide initialization</a></h2>
 <p>When your code is compiled, the compiler creates a special initialization function with the naming pattern <code>__init___&lt;projectname&gt;</code>. This function is responsible for calling all implicit and user-defined initialization code, including all <a href="../pous.html#function_block-initialization"><code>FB_INIT</code></a> methods.</p>
-<p><code>&lt;projectname&gt;</code> is either taken directly from the <code>plc.json</code>'s <code>name</code> field or derived from the first input file (replacing <code>.</code>/<code>-</code> with <code>_</code>) when compiling without a <code>plc.json</code> (e.g. <code>plc prog.st ...</code> would yield <code>__init___prog_st</code>).</p>
+<p><code>&lt;projectname&gt;</code> is either taken directly from the <code>plc.json</code>’s <code>name</code> field or derived from the first input file (replacing <code>.</code>/<code>-</code> with <code>_</code>) when compiling without a <code>plc.json</code> (e.g. <code>plc prog.st ...</code> would yield <code>__init___prog_st</code>).</p>
 <p>This function is added to the global constructor list, therefore loading the binary will automatically call the <code>__init___&lt;projectname&gt;</code> function (and therefore your <code>&lt;FunctionBlockName&gt;__FB_INIT</code> function) when an instance of your function block is created, before any other methods are called. This allows you to set default values or perform required setup for your function block.</p>
 <blockquote>
 <p><strong>IMPORTANT:</strong> The global constructor initialization is currently only supported for <code>x86</code> ISAs. To make sure initialization code runs reliably regardless of target-architecture, ensure your runtime calls this function before starting main task execution.
-If you're using the executable without a runtime, you <strong>must</strong> ensure that <code>__init___&lt;projectname&gt;</code> is called before any other code runs. Failure to do so will result in uninitialized function blocks and pointers, which can lead to undefined behavior and/or crashes.</p>
+If you’re using the executable without a runtime, you <strong>must</strong> ensure that <code>__init___&lt;projectname&gt;</code> is called before any other code runs. Failure to do so will result in uninitialized function blocks and pointers, which can lead to undefined behavior and/or crashes.</p>
 </blockquote>
 <p>Example of ensuring initialization when using C (crt0):</p>
 <pre><code class="language-c">int main() {
@@ -431,9 +432,10 @@ If you're using the executable without a runtime, you <strong>must</strong> ensu
     return 0;
 }
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
-<p>In addition to the comprehensive help, <code>plc</code> offers a build subcommand that simplifies the build process. </br>
-Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. </br>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="build-configuration"><a class="header" href="#build-configuration">Build Configuration</a></h1>
+<p>In addition to the comprehensive help, <code>plc</code> offers a build subcommand that simplifies the build process. 
+Instead of having numerous inline arguments, using the build subcommand along with a build description file makes passing the arguments easier. 
 The build description file needs to be saved in the <a href="https://en.wikipedia.org/wiki/JSON">json</a> format.</p>
 <p>Usage:
 <code>plc build</code></p>
@@ -454,7 +456,7 @@ All the keys used in the build description file are described in the following s
 ]
 </code></pre>
 <h3 id="libraries"><a class="header" href="#libraries">libraries</a></h3>
-<p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.</br>
+<p>To link several objects into one executable <code>plc</code> has the option to add libraries and automatically build and link them together.
 The <code>libraries</code> keyword is optional.</p>
 <pre><code class="language-json">"libraries" : [
     {
@@ -469,7 +471,7 @@ The <code>libraries</code> keyword is optional.</p>
 ]
 </code></pre>
 <h3 id="output"><a class="header" href="#output">output</a></h3>
-<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="using_rusty/build_configuration.html#build-location">Build Location</a>).</p>
+<p>Similarly to specifying an output file via the <code>-o</code> or <code>--output</code> option using the command line, in the build file we use <code>"output" : "output.so"</code> to define the output file. The default location is the current build directory. (see <a href="#build-location">Build Location</a>).</p>
 <h3 id="compile_type"><a class="header" href="#compile_type">compile_type</a></h3>
 <p>The following options can be used for the <code>compile_type</code> :</p>
 <ul>
@@ -520,12 +522,12 @@ The <code>compile_type</code> keyword is optional.</p>
 <h2 id="build-parameters"><a class="header" href="#build-parameters">Build Parameters</a></h2>
 <p>The <code>build</code> subcommand exposes the following optional parameters:</p>
 <h3 id="--build-location"><a class="header" href="#--build-location"><code>--build-location</code></a></h3>
-<p>The build location is the location all build files will be copied to. </br>
-By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).</br>
+<p>The build location is the location all build files will be copied to. 
+By default the build location is the <code>build</code> folder in the root of the project (the location of the <code>plc.json</code>).
 This can be overriden with the <code>--build-location</code> command line parameter.</p>
 <h3 id="--lib-location"><a class="header" href="#--lib-location"><code>--lib-location</code></a></h3>
-<p>The lib location is where all libraries marked with <code>Copy</code> will be copied. </br>
-By default it is the same as the <code>build-location</code>.</br>
+<p>The lib location is where all libraries marked with <code>Copy</code> will be copied. 
+By default it is the same as the <code>build-location</code>.
 This can be overriden with the <code>--lib-location</code> command line parameter.</p>
 <h2 id="environment-variables"><a class="header" href="#environment-variables">Environment Variables</a></h2>
 <p>Environment variables can be used inside the build description file, the variables are evaluated before an entry is evaluated.</p>
@@ -539,10 +541,10 @@ The value for <code>ARCH</code> will be updated for every target.</p>
 <code>x86_64-pc-linux-gnu</code>, <code>x86_64-pc-windows-msvc</code>, <code>aarch64-pc-linux-musl</code></p>
 <h3 id="build_location"><a class="header" href="#build_location"><code>BUILD_LOCATION</code></a></h3>
 <p><code>BUILD_LOCATION</code> is the folder where the build will be saved.
-This is the value of either the <a href="using_rusty/build_configuration.html#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
+This is the value of either the <a href="#build-location"><code>--build-location</code></a> parameter or the default build location.</p>
 <h3 id="lib_location"><a class="header" href="#lib_location"><code>LIB_LOCATION</code></a></h3>
 <p><code>LIB_LOCATION</code> is the folder where the lib will be saved.
-This is the value of either the <a href="using_rusty/build_configuration.html#lib-location"><code>--lib-location</code></a> parameter or the <a href="using_rusty/build_configuration.html#build-location">build location</a>.</p>
+This is the value of either the <a href="#lib-location"><code>--lib-location</code></a> parameter or the <a href="#build-location">build location</a>.</p>
 <h3 id="usage"><a class="header" href="#usage">Usage</a></h3>
 <p>To reference an environment variable in the description file, reference the variables with a preceding <code>$</code>.</p>
 <p><strong>Example:</strong></p>
@@ -559,7 +561,8 @@ This is the value of either the <a href="using_rusty/build_configuration.html#li
 <p>The build description file uses a <a href="https://json-schema.org/">Json Schema</a> file located at <code>compiler/plc_project/schema/plc-json.schema</code> to validate the build description before build.
 In order for the schema to be used, it has to be either in that location for source builds or copied next to the build binaries.
 If the schema is not found, the schema based validation will be skipped.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="error-configuration"><a class="header" href="#error-configuration">Error Configuration</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="error-configuration"><a class="header" href="#error-configuration">Error Configuration</a></h1>
 <p>Errors in a <code>plc</code> project can be configured by providing a json configuration file.
 A diagnostics severity can be changed for example from <code>warning</code> to <code>error</code> or <code>info</code> and vice-versa or <code>ignore</code>d completely.
 To see a default error configuration use <code>plc config diagnostics</code>.
@@ -569,20 +572,26 @@ Running <code>plc config diagnostics --error-config &lt;custom.json&gt;</code> w
 <h2 id="error-description"><a class="header" href="#error-description">Error Description</a></h2>
 <p>Errors produced by <code>plc</code> can be explained using the <code>plc explain &lt;ErrorCode&gt;</code> command.
 Error codes are usually provided in the diagnostic report.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="general-error"><a class="header" href="#general-error">General Error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="general-error"><a class="header" href="#general-error">General Error</a></h1>
 <p>This error is a catch all error. It is usually thrown when no other error better matches the case.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="general-io-error"><a class="header" href="#general-io-error">General IO Error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="general-io-error"><a class="header" href="#general-io-error">General IO Error</a></h1>
 <p>This error describes a problem during an IO operation such as reading or writing a file.
 It is usually accompanied by an internal error with further details.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="parameter-error"><a class="header" href="#parameter-error">Parameter Error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="parameter-error"><a class="header" href="#parameter-error">Parameter Error</a></h1>
 <p>This error describes a problem with the command parameters, such as a file required for the compilation not being found.:</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-symbol"><a class="header" href="#duplicate-symbol">Duplicate Symbol</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-symbol"><a class="header" href="#duplicate-symbol">Duplicate Symbol</a></h1>
 <p>The marked symbol has been defined multiple times.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="generic-llvm-error"><a class="header" href="#generic-llvm-error">Generic LLVM Error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="generic-llvm-error"><a class="header" href="#generic-llvm-error">Generic LLVM Error</a></h1>
 <p>An unexpected error occurred during the LLVM generation phase.
 This is usually a follow up problem from a different diagnostics.
 If it occurrs without a previous diagnostics please file a bug report.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-token"><a class="header" href="#missing-token">Missing Token</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-token"><a class="header" href="#missing-token">Missing Token</a></h1>
 <p>During the parsing phase, an additional <em>Token</em> (Element) was required to correctly interpret the code.
 The error message usually indicates what Token was missing.</p>
 <h2 id="example-1"><a class="header" href="#example-1">Example</a></h2>
@@ -596,16 +605,25 @@ END_PROGRAM
 2 │ END_PROGRAM
   │ ^^^^^^^^^^^ Unexpected token: expected Identifier but found END_PROGRAM
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unexpected-token"><a class="header" href="#unexpected-token">Unexpected Token</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unexpected-token"><a class="header" href="#unexpected-token">Unexpected Token</a></h1>
 <p>During parsing, a <em>Token</em> (Element) was encountered in the wrong location. This could be an indication of a missused or misspelled keyword</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-range"><a class="header" href="#invalid-range">Invalid Range</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="mismatched-parantheses"><a class="header" href="#mismatched-parantheses">Mismatched Parantheses</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-time-literal"><a class="header" href="#invalid-time-literal">Invalid time literal</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-number"><a class="header" href="#invalid-number">Invalid Number</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-case-contition"><a class="header" href="#missing-case-contition">Missing Case Contition</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="keywords-should-contain-underscores"><a class="header" href="#keywords-should-contain-underscores">Keywords should contain Underscores</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="wrong-paranthese-for-string-delimiter"><a class="header" href="#wrong-paranthese-for-string-delimiter">Wrong paranthese for String delimiter</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-range"><a class="header" href="#invalid-range">Invalid Range</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="mismatched-parantheses"><a class="header" href="#mismatched-parantheses">Mismatched Parantheses</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-time-literal"><a class="header" href="#invalid-time-literal">Invalid time literal</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-number"><a class="header" href="#invalid-number">Invalid Number</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-case-contition"><a class="header" href="#missing-case-contition">Missing Case Contition</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="keywords-should-contain-underscores"><a class="header" href="#keywords-should-contain-underscores">Keywords should contain Underscores</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="wrong-paranthese-for-string-delimiter"><a class="header" href="#wrong-paranthese-for-string-delimiter">Wrong paranthese for String delimiter</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="pointer-to-is-type-unsafe"><a class="header" href="#pointer-to-is-type-unsafe">POINTER TO is type-unsafe</a></h1>
 <p>Variables defined as a <code>POINTER TO</code> data-type are considered type-unsafe in the sense that no validation will
 trigger when assigning incorrect types. For example the following code, while incorrect, will not return any
 diagnostics when compiling:</p>
@@ -617,12 +635,18 @@ END_VAR
 </code></pre>
 <p><strong>For best practices, consider using <code>REF_TO</code> instead of <code>POINTER TO</code>, which is a type-safe alternative and <em>should</em> catch
 type-mismatches early on</strong></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="return-types-cannot-have-a-default-value"><a class="header" href="#return-types-cannot-have-a-default-value">Return types cannot have a default value</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-implementation"><a class="header" href="#classes-cannot-contain-implementation">Classes cannot contain implementation</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-label"><a class="header" href="#duplicate-label">Duplicate Label</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-in_out-variables"><a class="header" href="#classes-cannot-contain-in_out-variables">Classes cannot contain IN_OUT variables</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="classes-cannot-contain-a-return-type"><a class="header" href="#classes-cannot-contain-a-return-type">Classes cannot contain a return type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="variable-re-declatation-in-subclasses-is-not-allowed"><a class="header" href="#variable-re-declatation-in-subclasses-is-not-allowed">Variable re-declatation in Subclasses is not allowed</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="return-types-cannot-have-a-default-value"><a class="header" href="#return-types-cannot-have-a-default-value">Return types cannot have a default value</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="classes-cannot-contain-implementation"><a class="header" href="#classes-cannot-contain-implementation">Classes cannot contain implementation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-label"><a class="header" href="#duplicate-label">Duplicate Label</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="classes-cannot-contain-in_out-variables"><a class="header" href="#classes-cannot-contain-in_out-variables">Classes cannot contain IN_OUT variables</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="classes-cannot-contain-a-return-type"><a class="header" href="#classes-cannot-contain-a-return-type">Classes cannot contain a return type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="variable-re-declatation-in-subclasses-is-not-allowed"><a class="header" href="#variable-re-declatation-in-subclasses-is-not-allowed">Variable re-declatation in Subclasses is not allowed</a></h1>
 <p>A variable already declared in a parent class cannot be re-declared in a subclass.</p>
 <p>Example:</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK FB
@@ -637,14 +661,22 @@ VAR
 END_VAR
 END_FUNCTION_BLOCK
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-container-name-for-action"><a class="header" href="#missing-container-name-for-action">Missing container name for action</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="statement-has-no-effect"><a class="header" href="#statement-has-no-effect">Statement has no effect</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pragma-location"><a class="header" href="#invalid-pragma-location">Invalid Pragma Location</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-return-type"><a class="header" href="#missing-return-type">Missing return type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unexpected-return-type"><a class="header" href="#unexpected-return-type">Unexpected return type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unsupported-return-type"><a class="header" href="#unsupported-return-type">Unsupported return type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="empty-variable-block"><a class="header" href="#empty-variable-block">Empty variable block</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="e029-recursive-data-structure"><a class="header" href="#e029-recursive-data-structure">E029: Recursive data structure</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-container-name-for-action"><a class="header" href="#missing-container-name-for-action">Missing container name for action</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="statement-has-no-effect"><a class="header" href="#statement-has-no-effect">Statement has no effect</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-pragma-location"><a class="header" href="#invalid-pragma-location">Invalid Pragma Location</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-return-type"><a class="header" href="#missing-return-type">Missing return type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unexpected-return-type"><a class="header" href="#unexpected-return-type">Unexpected return type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unsupported-return-type"><a class="header" href="#unsupported-return-type">Unsupported return type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="empty-variable-block"><a class="header" href="#empty-variable-block">Empty variable block</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e029-recursive-data-structure"><a class="header" href="#e029-recursive-data-structure">E029: Recursive data structure</a></h1>
 <p>This error occurs when data structures contain themselves directly or indirectly, creating infinite recursion during type resolution.</p>
 <h2 id="example-2"><a class="header" href="#example-2">Example</a></h2>
 <pre><code class="language-st">TYPE MyStruct : STRUCT
@@ -698,9 +730,12 @@ TYPE Person : STRUCT
     reports : ARRAY[0..9] OF PersonID;
 END_STRUCT; END_TYPE
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-in_out-parameters"><a class="header" href="#missing-in_out-parameters">Missing IN_OUT parameters</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-parameter-type"><a class="header" href="#invalid-parameter-type">Invalid parameter type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-number-of-arguments"><a class="header" href="#invalid-number-of-arguments">Invalid number of arguments</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-in_out-parameters"><a class="header" href="#missing-in_out-parameters">Missing IN_OUT parameters</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-parameter-type"><a class="header" href="#invalid-parameter-type">Invalid parameter type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-number-of-arguments"><a class="header" href="#invalid-number-of-arguments">Invalid number of arguments</a></h1>
 <p>An invalid number of arguments was passed to a POU. For example</p>
 <pre><code class="language-iecst">FUNCTION foo
     (* ... *)
@@ -714,69 +749,128 @@ END_FUNCTION
 parameter is present. For stateful POUs variadic parameters are not supported, thus the argument count must be equal
 or less than the parameter list depending on whether optional arguments such as <code>VAR_INPUT</code> or <code>VAR_OUTPUT</code> were
 passed or not.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved Constant</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-constant-block"><a class="header" href="#invalid-constant-block">Invalid constant block</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-constant"><a class="header" href="#invalid-constant">Invalid Constant</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cannot-assign-to-constant"><a class="header" href="#cannot-assign-to-constant">Cannot assign to constant</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-assignment"><a class="header" href="#invalid-assignment">Invalid assignment</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-type"><a class="header" href="#missing-type">Missing type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="variable-overflow"><a class="header" href="#variable-overflow">Variable Overflow</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="non-standard-enum-variant"><a class="header" href="#non-standard-enum-variant">Non-Standard Enum Variant</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unresolved-constant"><a class="header" href="#unresolved-constant">Unresolved Constant</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-constant-block"><a class="header" href="#invalid-constant-block">Invalid constant block</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-constant"><a class="header" href="#invalid-constant">Invalid Constant</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cannot-assign-to-constant"><a class="header" href="#cannot-assign-to-constant">Cannot assign to constant</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-assignment"><a class="header" href="#invalid-assignment">Invalid assignment</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-type"><a class="header" href="#missing-type">Missing type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="variable-overflow"><a class="header" href="#variable-overflow">Variable Overflow</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="non-standard-enum-variant"><a class="header" href="#non-standard-enum-variant">Non-Standard Enum Variant</a></h1>
 <p>This warning indicates the right-hand side in an enum assignment does not match a defined variant.
 For example an enum such as <code>TYPE Color : (red := 0, green := 1, blue := 2); END_TYPE</code> is expected to take values
 which (internally) yield a literal integer 0, 1 or 2.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-variable-initializer"><a class="header" href="#invalid-variable-initializer">Invalid variable initializer</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="assignment-to-reference"><a class="header" href="#assignment-to-reference">Assignment to Reference</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-array-assignment"><a class="header" href="#invalid-array-assignment">Invalid array assignment</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pou-for-vla"><a class="header" href="#invalid-pou-for-vla">Invalid POU for VLA</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-vla-array-access"><a class="header" href="#invalid-vla-array-access">Invalid VLA array access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="vla-dimension-out-of-bounds"><a class="header" href="#vla-dimension-out-of-bounds">VLA Dimension out of bounds</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="vlas-are-always-by-reference"><a class="header" href="#vlas-are-always-by-reference">VLAs are always By Reference</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unresolved-reference"><a class="header" href="#unresolved-reference">Unresolved Reference</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="illegal-reference-access"><a class="header" href="#illegal-reference-access">Illegal reference access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="expression-is-not-assignable"><a class="header" href="#expression-is-not-assignable">Expression is not assignable</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="typecast-error"><a class="header" href="#typecast-error">Typecast error</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unknown-type"><a class="header" href="#unknown-type">Unknown type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-variable-initializer"><a class="header" href="#invalid-variable-initializer">Invalid variable initializer</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="assignment-to-reference"><a class="header" href="#assignment-to-reference">Assignment to Reference</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-array-assignment"><a class="header" href="#invalid-array-assignment">Invalid array assignment</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-pou-for-vla"><a class="header" href="#invalid-pou-for-vla">Invalid POU for VLA</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-vla-array-access"><a class="header" href="#invalid-vla-array-access">Invalid VLA array access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vla-dimension-out-of-bounds"><a class="header" href="#vla-dimension-out-of-bounds">VLA Dimension out of bounds</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="vlas-are-always-by-reference"><a class="header" href="#vlas-are-always-by-reference">VLAs are always By Reference</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unresolved-reference"><a class="header" href="#unresolved-reference">Unresolved Reference</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="illegal-reference-access"><a class="header" href="#illegal-reference-access">Illegal reference access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="expression-is-not-assignable"><a class="header" href="#expression-is-not-assignable">Expression is not assignable</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="typecast-error"><a class="header" href="#typecast-error">Typecast error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unknown-type"><a class="header" href="#unknown-type">Unknown type</a></h1>
 <p>Use of undeclared type-identifier.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="literal-out-of-range"><a class="header" href="#literal-out-of-range">Literal out of range</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="literal-not-compatible-with-type"><a class="header" href="#literal-not-compatible-with-type">Literal not compatible with type</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="incompatible-direct-access"><a class="header" href="#incompatible-direct-access">Incompatible direct access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="incompatible-variable-for-direct-access"><a class="header" href="#incompatible-variable-for-direct-access">Incompatible variable for direct access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-range-for-direct-access"><a class="header" href="#invalid-range-for-direct-access">Invalid range for direct access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-range-for-array-access"><a class="header" href="#invalid-range-for-array-access">Invalid range for array access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-variable-for-array-access"><a class="header" href="#invalid-variable-for-array-access">Invalid variable for array access</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="direct-access-to-variable-with-"><a class="header" href="#direct-access-to-variable-with-">Direct access to variable with %</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="expected-literal"><a class="header" href="#expected-literal">Expected literal</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-nature"><a class="header" href="#invalid-nature">Invalid Nature</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unknown-nature"><a class="header" href="#unknown-nature">Unknown Nature</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unresolved-generic"><a class="header" href="#unresolved-generic">Unresolved Generic</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="incompatible-size"><a class="header" href="#incompatible-size">Incompatible size</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-operation"><a class="header" href="#invalid-operation">Invalid operation</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="implicit-typecast"><a class="header" href="#implicit-typecast">Implicit typecast</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="pointer-derefernce-to-non-pointer"><a class="header" href="#pointer-derefernce-to-non-pointer">Pointer derefernce to non pointer</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="array-access-to-non-array-value"><a class="header" href="#array-access-to-non-array-value">Array access to non array value</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="address-of-requires-a-value"><a class="header" href="#address-of-requires-a-value">Address-of requires a value</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="general-codegen-error"><a class="header" href="#general-codegen-error">General codegen error</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-function"><a class="header" href="#missing-function">Missing function</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-compare-function"><a class="header" href="#missing-compare-function">Missing compare function</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cannot-generate-string-literal"><a class="header" href="#cannot-generate-string-literal">Cannot generate string literal</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="initial-values-were-not-generated"><a class="header" href="#initial-values-were-not-generated">Initial values were not generated</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="general-debug-error"><a class="header" href="#general-debug-error">General debug error</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="generic-linker-error"><a class="header" href="#generic-linker-error">Generic linker error</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-case-condition"><a class="header" href="#duplicate-case-condition">Duplicate case condition</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="case-condition-outside-of-a-case-statement"><a class="header" href="#case-condition-outside-of-a-case-statement">Case condition outside of a case statement</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-case-condition"><a class="header" href="#invalid-case-condition">Invalid case condition</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="empty-control-statement"><a class="header" href="#empty-control-statement">Empty control statement</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="undefined-node"><a class="header" href="#undefined-node">Undefined node</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unexpected-node"><a class="header" href="#unexpected-node">Unexpected node</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unconnected-source"><a class="header" href="#unconnected-source">Unconnected source</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cyclic-connection"><a class="header" href="#cyclic-connection">Cyclic connection</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="no-associated-connector"><a class="header" href="#no-associated-connector">No associated connector</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unnamed-control"><a class="header" href="#unnamed-control">Unnamed control</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-plc-json-file"><a class="header" href="#invalid-plc-json-file">Invalid PLC Json file</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-call-parameters"><a class="header" href="#invalid-call-parameters">Invalid Call parameters</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="incompatible-reference-assingment"><a class="header" href="#incompatible-reference-assingment">Incompatible reference assingment</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="unsafe-enum-assignment"><a class="header" href="#unsafe-enum-assignment">Unsafe Enum Assignment</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="literal-out-of-range"><a class="header" href="#literal-out-of-range">Literal out of range</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="literal-not-compatible-with-type"><a class="header" href="#literal-not-compatible-with-type">Literal not compatible with type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-direct-access"><a class="header" href="#incompatible-direct-access">Incompatible direct access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-variable-for-direct-access"><a class="header" href="#incompatible-variable-for-direct-access">Incompatible variable for direct access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-range-for-direct-access"><a class="header" href="#invalid-range-for-direct-access">Invalid range for direct access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-range-for-array-access"><a class="header" href="#invalid-range-for-array-access">Invalid range for array access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-variable-for-array-access"><a class="header" href="#invalid-variable-for-array-access">Invalid variable for array access</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="direct-access-to-variable-with-"><a class="header" href="#direct-access-to-variable-with-">Direct access to variable with %</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="expected-literal"><a class="header" href="#expected-literal">Expected literal</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-nature"><a class="header" href="#invalid-nature">Invalid Nature</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unknown-nature"><a class="header" href="#unknown-nature">Unknown Nature</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unresolved-generic"><a class="header" href="#unresolved-generic">Unresolved Generic</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-size"><a class="header" href="#incompatible-size">Incompatible size</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-operation"><a class="header" href="#invalid-operation">Invalid operation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="implicit-typecast"><a class="header" href="#implicit-typecast">Implicit typecast</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="pointer-derefernce-to-non-pointer"><a class="header" href="#pointer-derefernce-to-non-pointer">Pointer derefernce to non pointer</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="array-access-to-non-array-value"><a class="header" href="#array-access-to-non-array-value">Array access to non array value</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="address-of-requires-a-value"><a class="header" href="#address-of-requires-a-value">Address-of requires a value</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="general-codegen-error"><a class="header" href="#general-codegen-error">General codegen error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-function"><a class="header" href="#missing-function">Missing function</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-compare-function"><a class="header" href="#missing-compare-function">Missing compare function</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cannot-generate-string-literal"><a class="header" href="#cannot-generate-string-literal">Cannot generate string literal</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="initial-values-were-not-generated"><a class="header" href="#initial-values-were-not-generated">Initial values were not generated</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="general-debug-error"><a class="header" href="#general-debug-error">General debug error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="generic-linker-error"><a class="header" href="#generic-linker-error">Generic linker error</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-case-condition"><a class="header" href="#duplicate-case-condition">Duplicate case condition</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="case-condition-outside-of-a-case-statement"><a class="header" href="#case-condition-outside-of-a-case-statement">Case condition outside of a case statement</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-case-condition"><a class="header" href="#invalid-case-condition">Invalid case condition</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="empty-control-statement"><a class="header" href="#empty-control-statement">Empty control statement</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="undefined-node"><a class="header" href="#undefined-node">Undefined node</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unexpected-node"><a class="header" href="#unexpected-node">Unexpected node</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unconnected-source"><a class="header" href="#unconnected-source">Unconnected source</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cyclic-connection"><a class="header" href="#cyclic-connection">Cyclic connection</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="no-associated-connector"><a class="header" href="#no-associated-connector">No associated connector</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unnamed-control"><a class="header" href="#unnamed-control">Unnamed control</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-plc-json-file"><a class="header" href="#invalid-plc-json-file">Invalid PLC Json file</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-call-parameters"><a class="header" href="#invalid-call-parameters">Invalid Call parameters</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incompatible-reference-assingment"><a class="header" href="#incompatible-reference-assingment">Incompatible reference assingment</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="unsafe-enum-assignment"><a class="header" href="#unsafe-enum-assignment">Unsafe Enum Assignment</a></h1>
 <p>At runtime there is no way to guarantee that a non-const reference will not change its value to something out-of-bounds for enums. For example consider the following</p>
 <pre><code class="language-iecst">PROGRAM main
     VAR
@@ -788,7 +882,8 @@ which (internally) yield a literal integer 0, 1 or 2.</p>
     color := zero; // Invalid because `color` accepts values from 0 to 2, but we assigned 10 to it
 END_PROGRAM
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="equivalent-enum-value-used"><a class="header" href="#equivalent-enum-value-used">Equivalent enum value used</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="equivalent-enum-value-used"><a class="header" href="#equivalent-enum-value-used">Equivalent enum value used</a></h1>
 <p>This message indicates that the assigned enum value is not part of the enum,
 but is equivalent to one of the internal values of the enum.</p>
 <p>Example:</p>
@@ -801,14 +896,16 @@ VAR_GLOBAL
 END_VAR
 </code></pre>
 <p>To solve the issue, use the equivalent value indicated by the enum</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="return-value-of-void-functions"><a class="header" href="#return-value-of-void-functions">Return Value Of Void Functions</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="return-value-of-void-functions"><a class="header" href="#return-value-of-void-functions">Return Value Of Void Functions</a></h1>
 <p>Functions of type VOID can not have an explicit return value, e.g. <code>foo := 1</code> in the following example is invalid.</p>
 <pre><code class="language-iecstd">FUNCTION foo
     foo := 1;
 END_FUNCTION
 </code></pre>
 <p>Choose a type for your function, if a value must be returned.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-conditional-value"><a class="header" href="#invalid-conditional-value">Invalid Conditional Value</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-conditional-value"><a class="header" href="#invalid-conditional-value">Invalid Conditional Value</a></h1>
 <p>Control statements such as <code>IF</code>, <code>FOR</code> and <code>WHILE</code> require specific types for their condition.</p>
 <h2 id="if-while"><a class="header" href="#if-while">If, While</a></h2>
 <p><code>IF</code> and <code>WHILE</code> statements require an expression which yields a boolean, any other type is invalid and will trigger an
@@ -820,14 +917,18 @@ of these need to be integers and share the same type.</p>
 // ...
 END_FOR
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="action-call-without-parentheses"><a class="header" href="#action-call-without-parentheses">Action call without parentheses</a></h1>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="integer-condition"><a class="header" href="#integer-condition">Integer Condition</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="action-call-without-parentheses"><a class="header" href="#action-call-without-parentheses">Action call without parentheses</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="integer-condition"><a class="header" href="#integer-condition">Integer Condition</a></h1>
 <p>This error is generated because an integer was used in a <code>IF</code> or <code>WHILE</code> statement, when a boolean was expected.</p>
 <p>See also <code>plc explain E094</code></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-array-range"><a class="header" href="#invalid-array-range">Invalid Array Range</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-array-range"><a class="header" href="#invalid-array-range">Invalid Array Range</a></h1>
 <p>Ranges such as <code>ARRAY [0..-1]</code> are invalid in ST because end values of ranges must be greater than their start values.
 A valid range for the given statement would have been <code>ARRAY[-1..0]</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-ref-assignment"><a class="header" href="#invalid-ref-assignment">Invalid REF= assignment</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-ref-assignment"><a class="header" href="#invalid-ref-assignment">Invalid REF= assignment</a></h1>
 <p><code>REF=</code> assignments are considered valid if the left-hand side of the assignment is a pointer variable
 and the right-hand side is a variable of the type that is being referenced.</p>
 <p>For example assignments such as the following are invalid</p>
@@ -842,14 +943,16 @@ refFoo  REF= 5;         // `5` is not a variable
 foo     REF= bar;       // `foo` is not a pointer
 refFoo  REF= qux;       // `refFoo` and `qux` have different types, DINT vs SINT
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-reference-to-declaration"><a class="header" href="#invalid-reference-to-declaration">Invalid <code>REFERENCE TO</code> declaration</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-reference-to-declaration"><a class="header" href="#invalid-reference-to-declaration">Invalid <code>REFERENCE TO</code> declaration</a></h1>
 <p><code>REFERENCE TO</code> variable declarations are considered valid if the referenced type is not of the following form</p>
 <ul>
 <li><code>foo : REFERENCE TO REFERENCE TO (* ... *)</code></li>
 <li><code>foo : ARRAY[...] OF REFERENCE TO (* ... *)</code></li>
 <li><code>foo : REF_TO REFERENCE TO (* ... *)</code></li>
 </ul>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="immutable-variable-address"><a class="header" href="#immutable-variable-address">Immutable Variable Address</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="immutable-variable-address"><a class="header" href="#immutable-variable-address">Immutable Variable Address</a></h1>
 <p>Alias variables are immutable with regards to their pointer address, thus re-assigning an address will return an error. For example the following code will not compile</p>
 <pre><code class="language-iecst">FUNCTION main
     VAR
@@ -862,7 +965,8 @@ refFoo  REF= qux;       // `refFoo` and `qux` have different types, DINT vs SINT
     foo REF= baz;   // Invalid, `foo` is immutable with regards to it's pointer address
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-does-not-exist"><a class="header" href="#template-variable-does-not-exist">Template variable does not exist</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template-variable-does-not-exist"><a class="header" href="#template-variable-does-not-exist">Template variable does not exist</a></h1>
 <p>A variable was configured in a <code>VAR_CONFIG</code> block, but the variable can not be found in the code.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -883,7 +987,8 @@ END_FUNCTION_BLOCK
 </code></pre>
 <p>In this example a variable named <code>bar</code> is configured, however the function block <code>foo_fb</code> does not contain
 a <code>bar</code> variable. The could should have been <code>main.foo.qux AT %IX1.0 : BOOL</code> instead for it to be valid.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-without-hardware-binding"><a class="header" href="#template-variable-without-hardware-binding">Template variable without hardware binding</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template-variable-without-hardware-binding"><a class="header" href="#template-variable-without-hardware-binding">Template variable without hardware binding</a></h1>
 <p>A template variable must contain a hardware binding.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -905,7 +1010,8 @@ END_FUNCTION_BLOCK
 <p>In this example the <code>VAR_CONFIG</code> block declares the <code>bar</code> variable inside <code>foo_fb</code> as a
 template variable. However <code>bar</code> does not have a hardware binding. For the example to be
 considered valid, <code>bar</code> should have been declared as e.g. <code>bar AT %I* : BOOL</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="immutable-hardware-binding"><a class="header" href="#immutable-hardware-binding">Immutable Hardware Binding</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="immutable-hardware-binding"><a class="header" href="#immutable-hardware-binding">Immutable Hardware Binding</a></h1>
 <p>Variables configured in a <code>VAR_CONFIG</code> block can not override their hardware binding.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -927,7 +1033,8 @@ END_FUNCTION_BLOCK
 <p>In this example the <code>VAR_CONFIG</code> block configures <code>bar</code> to have a hardware adress <code>IX1.0</code>.
 However, at the same time the <code>bar</code> inside the POU <code>foo_fb</code> assigns a hardware address <code>IX1.5</code>.</p>
 <p>For the code to be considered valid, <code>bar</code> should have been declared as <code>bar AT %I* : BOOL</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="config-variable-with-incomplete-address"><a class="header" href="#config-variable-with-incomplete-address">Config Variable With Incomplete Address</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="config-variable-with-incomplete-address"><a class="header" href="#config-variable-with-incomplete-address">Config Variable With Incomplete Address</a></h1>
 <p>Variables defined in a <code>VAR_CONFIG</code> block, i.e. config variables, must specify a complete address.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -936,7 +1043,8 @@ END_VAR
 </code></pre>
 <p>In this example <code>main.foo.bar</code> has specified a placeholder hardware address.
 For the example to be considered valid, a specific address such as <code>%IX1.0</code> should have been declared.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="constant-keyword-in-pou"><a class="header" href="#constant-keyword-in-pou">CONSTANT keyword in POU</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="constant-keyword-in-pou"><a class="header" href="#constant-keyword-in-pou">CONSTANT keyword in POU</a></h1>
 <p>The <code>CONSTANT</code> keyword is not allowed for POU declarations, only variables can be <code>CONSTANT</code></p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">FUNCTION FOO : BOOL CONSTANT 
@@ -945,7 +1053,8 @@ END_VAR
     // ...
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="var_external-blocks-have-no-effect"><a class="header" href="#var_external-blocks-have-no-effect">VAR_EXTERNAL blocks have no effect</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="var_external-blocks-have-no-effect"><a class="header" href="#var_external-blocks-have-no-effect">VAR_EXTERNAL blocks have no effect</a></h1>
 <p>Variables declared in a <code>VAR_EXTERNAL</code> block are currently ignored and the referenced globals will be used instead.</p>
 <p>Example:</p>
 <pre><code class="language-iecst">VAR_GLOBAL
@@ -964,7 +1073,8 @@ END_FUNCTION
 <p>In this example, even though <code>arr</code> is declared as <code>VAR_EXTERNAL CONSTANT</code>, the <code>CONSTANT</code> constraint will be ignored and
 the global <code>myArray</code> will be mutated. The global <code>myString</code> can be read from and written to from within <code>main</code> even though it
 is not declared in a <code>VAR_EXTERNAL</code> block.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="missing-configuration-for-template-variable"><a class="header" href="#missing-configuration-for-template-variable">Missing configuration for template variable</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="missing-configuration-for-template-variable"><a class="header" href="#missing-configuration-for-template-variable">Missing configuration for template variable</a></h1>
 <p>A template variable was left unconfigured.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -986,7 +1096,8 @@ END_FUNCTION_BLOCK
 </code></pre>
 <p>In this example a variable named <code>main.foo.qux</code> is declared as a template, however the <code>VAR_CONFIG</code>-block does not contain
 an address-configuration for it. Each template variable needs to be configured, otherwise it could lead to segmentation faults at runtime.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="template-variable-is-configured-multiple-times"><a class="header" href="#template-variable-is-configured-multiple-times">Template variable is configured multiple times</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="template-variable-is-configured-multiple-times"><a class="header" href="#template-variable-is-configured-multiple-times">Template variable is configured multiple times</a></h1>
 <p>A template variable is configured more than once, leading to ambiguity.</p>
 <p>Erroneous code example:</p>
 <pre><code class="language-iecst">VAR_CONFIG
@@ -1007,7 +1118,8 @@ FUNCTION_BLOCK foo_fb
 END_FUNCTION_BLOCK
 </code></pre>
 <p>In this example a variable named <code>main.foo.bar</code> has multiple configurations in the <code>VAR_CONFIG</code>-block. It is not clear which address this variable should map to - only a single configuration entry per instance-variable is allowed.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="stateful-member-variable-initialized-with-temporary-reference"><a class="header" href="#stateful-member-variable-initialized-with-temporary-reference">Stateful member variable initialized with temporary reference</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="stateful-member-variable-initialized-with-temporary-reference"><a class="header" href="#stateful-member-variable-initialized-with-temporary-reference">Stateful member variable initialized with temporary reference</a></h1>
 <p>Stack-local variables do not yet exist at the time of initialization. Additionally, pointing to a temporary variable will lead to a dangling pointer
 as soon as it goes out of scope - potential use after free.</p>
 <p>Erroneous code example:</p>
@@ -1020,7 +1132,8 @@ as soon as it goes out of scope - potential use after free.</p>
     END_VAR
 END_FUNCTION_BLOCK
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-pou-type-for-inheritance"><a class="header" href="#invalid-pou-type-for-inheritance">Invalid POU Type for Inheritance</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-pou-type-for-inheritance"><a class="header" href="#invalid-pou-type-for-inheritance">Invalid POU Type for Inheritance</a></h1>
 <p>Base Classes and Interfaces can only be used on <code>CLASS</code>es and <code>FUNCTION_BLOCK</code>s, any other POU type is invalid and will
 result in this error.</p>
 <p>Errouneus code example:</p>
@@ -1036,7 +1149,8 @@ FUNCTION foo EXTENDS fb IMPLEMENTS interfaceA
 END_FUNCTION_BLOCK
 </code></pre>
 <p>In the example above, the POU type of <code>foo</code> should have been <code>CLASS</code> or <code>FUNCTION_BLOCK</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="duplicate-interface-methods-with-different-signatures"><a class="header" href="#duplicate-interface-methods-with-different-signatures">Duplicate interface methods with different signatures</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="duplicate-interface-methods-with-different-signatures"><a class="header" href="#duplicate-interface-methods-with-different-signatures">Duplicate interface methods with different signatures</a></h1>
 <p>POUs implementing multiple interfaces where both interfaces define a method with the same name are required
 to have the same signature for the method. A method signature is thereby defined by its name, return type and
 parameter list.</p>
@@ -1067,7 +1181,8 @@ However, the return type of <code>foo</code> in <code>interfaceA</code> is <code
 the parameter <code>a</code> in <code>interfaceA</code> is an input parameter whereas in <code>interfaceB</code> it is an output parameter.
 As a result both you and the compiler are left in doubt as to which method signature to implement in the
 function block <code>fb</code> and as a result the compiler will raise this error.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="incomplete-interface-implementation"><a class="header" href="#incomplete-interface-implementation">Incomplete interface implementation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="incomplete-interface-implementation"><a class="header" href="#incomplete-interface-implementation">Incomplete interface implementation</a></h1>
 <p>Any class or function block implementing an interface must implement all methods as defined in the interface.
 Generally speaking this error is raised when any of the following conditions are met:</p>
 <ol>
@@ -1103,7 +1218,8 @@ important. For example if a interface defines the order of the parameters as <co
 implements the method as <code>b, a</code> a method call such as <code>foo(1, 2)</code> should be interpreted as <code>foo(a := 1, b := 2)</code>
 but instead will be interpreted as <code>foo(a := 2, b := 1)</code>. As a result consistency between any POU implementing
 an interface can no longer be guaranteed.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="interface-default-method-implementation"><a class="header" href="#interface-default-method-implementation">Interface default method implementation</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="interface-default-method-implementation"><a class="header" href="#interface-default-method-implementation">Interface default method implementation</a></h1>
 <p>Methods defined in interfaces must not have an implementation. While the compiler parses them, they are not
 used to validate and/or generate code and thus will have no effect. This may change in the future but as of
 now is not supported.</p>
@@ -1114,14 +1230,16 @@ now is not supported.</p>
     END_METHOD
 END_INTERFACE
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cannot-extend-a-pou-multiple-times"><a class="header" href="#cannot-extend-a-pou-multiple-times">Cannot extend a POU multiple times</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cannot-extend-a-pou-multiple-times"><a class="header" href="#cannot-extend-a-pou-multiple-times">Cannot extend a POU multiple times</a></h1>
 <p>Multiple <code>EXTENDS</code> keywords are not allowed</p>
 <p>Erreneous code example:</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK foo EXTENDS bar EXTENDS baz
     // ...
 END_FUNCTION_BLOCK
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="property-defined-in-non-stateful-pou-type"><a class="header" href="#property-defined-in-non-stateful-pou-type">Property defined in non-stateful POU type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="property-defined-in-non-stateful-pou-type"><a class="header" href="#property-defined-in-non-stateful-pou-type">Property defined in non-stateful POU type</a></h1>
 <p>Properties may only be defined in stateful POUs such as a <code>PROGRAM</code>,<code>CLASS</code> or <code>FUNCTION_BLOCK</code>.</p>
 <p>Errouneus code example:</p>
 <pre><code>FUNCTION foo
@@ -1132,7 +1250,8 @@ END_FUNCTION_BLOCK
         END_GET
     END_PROPERTY
 END_FUNCTION</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="property-defined-in-unsupported-variable-block"><a class="header" href="#property-defined-in-unsupported-variable-block">Property defined in unsupported variable block</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="property-defined-in-unsupported-variable-block"><a class="header" href="#property-defined-in-unsupported-variable-block">Property defined in unsupported variable block</a></h1>
 <p>Properties only allow for variable blocks of type <code>VAR</code>.</p>
 <p>Errouneus code example:</p>
 <pre><code>FUNCTION foo
@@ -1144,7 +1263,8 @@ END_FUNCTION</code></pre>
     END_PROPERTY
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="property-with-invalid-number-of-get-andor-set-blocks"><a class="header" href="#property-with-invalid-number-of-get-andor-set-blocks">Property with invalid number of GET and/or SET blocks</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="property-with-invalid-number-of-get-andor-set-blocks"><a class="header" href="#property-with-invalid-number-of-get-andor-set-blocks">Property with invalid number of GET and/or SET blocks</a></h1>
 <p>Properties must be non empty and <em>at most</em> contain one block of type GET or SET.</p>
 <p>Errouneus code example:</p>
 <pre><code>FUNCTION foo
@@ -1165,31 +1285,28 @@ END_FUNCTION
     END_PROPERTY
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="signature-mismatch"><a class="header" href="#signature-mismatch">Signature mismatch</a></h1>
-<p>This error is generally a follow-up error to "E112" to give more detailed information about why the error occured. Please use <code>plc explain E112</code> get more information about the general causes of these errors.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-use-of-the-super-keyword"><a class="header" href="#invalid-use-of-the-super-keyword">Invalid use of the <code>SUPER</code> keyword</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="signature-mismatch"><a class="header" href="#signature-mismatch">Signature mismatch</a></h1>
+<p>This error is generally a follow-up error to “E112” to give more detailed information about why the error occured. Please use <code>plc explain E112</code> get more information about the general causes of these errors.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-use-of-the-super-keyword"><a class="header" href="#invalid-use-of-the-super-keyword">Invalid use of the <code>SUPER</code> keyword</a></h1>
 <p>The <code>SUPER</code> keyword provides access to members of a parent POU (Program Organization Unit) in an inheritance hierarchy. However, there are several rules governing its proper use:</p>
 <h2 id="common-errors"><a class="header" href="#common-errors">Common errors</a></h2>
 <ol>
 <li>
-<p><strong>Using <code>SUPER</code> in a POU that doesn't extend another POU</strong>:<br />
-The <code>SUPER</code> keyword can only be used inside a POU that directly extends another POU through the <code>EXTENDS</code> keyword.</p>
+<p><strong>Using <code>SUPER</code> in a POU that doesn’t extend another POU</strong>:<br>The <code>SUPER</code> keyword can only be used inside a POU that directly extends another POU through the <code>EXTENDS</code> keyword.</p>
 </li>
 <li>
-<p><strong>Not dereferencing <code>SUPER</code> to access members</strong>:<br />
-When accessing members of a superclass, <code>SUPER</code> must be dereferenced using the <code>^</code> operator: <code>SUPER^.member</code>.</p>
+<p><strong>Not dereferencing <code>SUPER</code> to access members</strong>:<br>When accessing members of a superclass, <code>SUPER</code> must be dereferenced using the <code>^</code> operator: <code>SUPER^.member</code>.</p>
 </li>
 <li>
-<p><strong>Chaining <code>SUPER</code> references</strong>:<br />
-<code>SUPER</code> cannot be accessed as a member of another object. Expressions like <code>SUPER^.SUPER^</code> are invalid.</p>
+<p><strong>Chaining <code>SUPER</code> references</strong>:<br><code>SUPER</code> cannot be accessed as a member of another object. Expressions like <code>SUPER^.SUPER^</code> are invalid.</p>
 </li>
 <li>
-<p><strong>Global access position</strong>:<br />
-<code>SUPER</code> cannot be used with the global access operator (<code>.SUPER^.member</code>).</p>
+<p><strong>Global access position</strong>:<br><code>SUPER</code> cannot be used with the global access operator (<code>.SUPER^.member</code>).</p>
 </li>
 <li>
-<p><strong>Using <code>SUPER</code> with type cast operators</strong>:<br />
-The type cast operator (<code>&lt;type&gt;#</code>) cannot be used with <code>SUPER</code>.</p>
+<p><strong>Using <code>SUPER</code> with type cast operators</strong>:<br>The type cast operator (<code>&lt;type&gt;#</code>) cannot be used with <code>SUPER</code>.</p>
 </li>
 </ol>
 <h2 id="examples-of-invalid-use"><a class="header" href="#examples-of-invalid-use">Examples of invalid use</a></h2>
@@ -1219,7 +1336,8 @@ END_FUNCTION_BLOCK
 FUNCTION_BLOCK child EXTENDS parent
     p := parent#SUPER;  // Error: The `&lt;type&gt;#` operator cannot be used with `SUPER`
 END_FUNCTION_BLOCK</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="invalid-use-of-the-this-keyword"><a class="header" href="#invalid-use-of-the-this-keyword">Invalid use of the <code>THIS</code> keyword</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="invalid-use-of-the-this-keyword"><a class="header" href="#invalid-use-of-the-this-keyword">Invalid use of the <code>THIS</code> keyword</a></h1>
 <p>The <code>THIS</code> keyword provides access to the current instance of a <code>FUNCTION_BLOCK</code>. However, there are several rules governing its proper use:</p>
 <h2 id="common-errors-1"><a class="header" href="#common-errors-1">Common errors</a></h2>
 <ol>
@@ -1307,7 +1425,8 @@ END_FUNCTION_BLOCK
     END_ACTION
 END_FUNCTION_BLOCK
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="e121-recursive-type-alias"><a class="header" href="#e121-recursive-type-alias">E121: Recursive type alias</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e121-recursive-type-alias"><a class="header" href="#e121-recursive-type-alias">E121: Recursive type alias</a></h1>
 <p>This error occurs when type aliases reference each other in a cycle, creating an infinite recursion.</p>
 <h2 id="example-3"><a class="header" href="#example-3">Example</a></h2>
 <pre><code class="language-st">TYPE type1 : type2; END_TYPE
@@ -1324,7 +1443,8 @@ TYPE type2 : type1; END_TYPE
 <pre><code class="language-st">TYPE typeA : DINT; END_TYPE      (* Points to concrete type *)
 TYPE typeB : typeA; END_TYPE     (* Points to another alias, but ultimately resolves to DINT *)
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="e122-invalid-enum-base-type"><a class="header" href="#e122-invalid-enum-base-type">E122: Invalid enum base type</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="e122-invalid-enum-base-type"><a class="header" href="#e122-invalid-enum-base-type">E122: Invalid enum base type</a></h1>
 <p>This error occurs when an enum is declared with a base type that is not a valid integer type. Enums in IEC 61131-3 can only use integer types as their underlying representation.</p>
 <h2 id="example-4"><a class="header" href="#example-4">Example</a></h2>
 <pre><code class="language-st">TYPE Color : STRING (red := 1, green := 2, blue := 3);
@@ -1368,11 +1488,12 @@ END_TYPE
 <pre><code class="language-st">TYPE Color (red := 1, green := 2, blue := 3);
 END_TYPE
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="libraries-1"><a class="header" href="#libraries-1">Libraries</a></h1>
 <p>RuSTy does not currently have support for importing <em>source based libraries</em>.</p>
 <p>Source based libraries can, however, be compiled together with the application as normal files.</p>
 <p>Precompiled libraries or system functions can be added using compilation flags or an entry in the <code>plc.json</code> file.</p>
-<p>System functions can also be added using <a href="libraries/external_functions.html">External Function</a> for each POU in that library.</p>
+<p>System functions can also be added using <a href="#external-functions">External Function</a> for each POU in that library.</p>
 <h2 id="library-structure"><a class="header" href="#library-structure">Library Structure</a></h2>
 <p>A library is defined by:</p>
 <ul>
@@ -1396,22 +1517,22 @@ END_PROGRAM
 </ul>
 <h2 id="linking-libraries-using-the-plc-command-line"><a class="header" href="#linking-libraries-using-the-plc-command-line">Linking libraries using the <code>plc</code> command line</a></h2>
 <p>To include a library when using the <code>plc</code> command line interface, the include files can be added using the <code>-i</code> flag.</p>
-<p>Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+<p>Each <a href="#program-organization-unit-pou">POU</a>, <a href="#variables-1">Global Variable</a>, or <a href="#datatypes-1">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included with the <code>-i</code> are marked as external, the implementation part of a POU is ignored.</p>
-<p>To link the library, two options are then available: <a href="libraries.html#shared-libraries">Shared</a> and <a href="libraries.html#static-libraries">Static</a> libraries.</p>
+<p>To link the library, two options are then available: <a href="#shared-libraries">Shared</a> and <a href="#static-libraries">Static</a> libraries.</p>
 <h3 id="shared-libraries"><a class="header" href="#shared-libraries">Shared Libraries</a></h3>
-<p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. </br>
+<p>A shared library (i.e. extension <code>.so</code>) can be linked using the <code>-l</code> flag. 
 For a library called <code>mylib</code>, when the flag <code>-lmylib</code> is passed, the linker will search for a file called <code>libmylib.so</code>.</p>
 <blockquote>
 <p>Note that the <code>lib&lt;LibName&gt;.so</code> format is required by the linker for unix like systems.</p>
 </blockquote>
-<p>The library locations used by the linker are the default search locations of the linker (i.e. <code>/usr/lib</code>, <code>/lib</code>), additional paths can be provided using the <code>-L</code> flag (e.g <code>-L/opt/lib</code> will make the linker also search for files in /opt/lib).</br>
-Additional library locations can be provided by supplying additional <code>-L</code> entries.</br>
-Additionally, the environment variable <code>LD_LIBRARY_PATH</code> can be defined to append entries to the linker's search location. More information can be found <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">here</a>.</p>
+<p>The library locations used by the linker are the default search locations of the linker (i.e. <code>/usr/lib</code>, <code>/lib</code>), additional paths can be provided using the <code>-L</code> flag (e.g <code>-L/opt/lib</code> will make the linker also search for files in /opt/lib).
+Additional library locations can be provided by supplying additional <code>-L</code> entries.
+Additionally, the environment variable <code>LD_LIBRARY_PATH</code> can be defined to append entries to the linker’s search location. More information can be found <a href="https://tldp.org/HOWTO/Program-Library-HOWTO/shared-libraries.html">here</a>.</p>
 <h3 id="static-libraries"><a class="header" href="#static-libraries">Static Libraries</a></h3>
 <p>Static libraries compiled as object files can be linked by simply passing the object file (i.e. extension <code>.o</code>) as an input (simlar to other <code>.st</code> files).</p>
-<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="libraries.html#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag.
-If the application is being compiled with the <code>--static</code> flag (or no shared library (<code>.so</code>) is found), the linker will use the archive file.</br></p>
+<p>Archive files (i.e. extension <code>.a</code>) can be linked similarly to <a href="#shared-libraries">Shared Libraries</a> using the <code>-l</code> flag.
+If the application is being compiled with the <code>--static</code> flag (or no shared library (<code>.so</code>) is found), the linker will use the archive file.</p>
 <blockquote>
 <p>If neither a shared object (<code>.so</code>) or an archive file (<code>.a</code>) is found, compilation will fail.</p>
 </blockquote>
@@ -1420,24 +1541,24 @@ If the application is being compiled with the <code>--static</code> flag (or no 
 <pre><code class="language-sh">plc input.st -i iec/header.st -L/lib/ -liec
 </code></pre>
 <h2 id="linking-libraries-using-the-build-description-file-plcjson"><a class="header" href="#linking-libraries-using-the-build-description-file-plcjson">Linking libraries using the Build Description File <code>plc.json</code></a></h2>
-<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. </br>
+<p>Libraries can be added to a project managed with a <a href="using_rusty/build_description_file.html#build-description-file-plcjson">Build Description File</a>. 
 To add a library to the project, the <code>"libraries"</code> section can be used.
 A library entry requires a <code>name</code>, a <code>path</code>, the <code>package</code> behaviour, and a set of files to include (<code>include_path</code>).</p>
 <h3 id="name"><a class="header" href="#name"><code>name</code></a></h3>
-<p>The name of the library to be linked. This will be used by the linker to find the library. </br>
+<p>The name of the library to be linked. This will be used by the linker to find the library. 
 A library with the name <code>mylib</code> must have an equivalant compiled file called <code>libmylib.so</code>.</p>
 <blockquote>
 <p>Note, archive files (ending with <code>.a</code>) are currently not supported.</p>
 </blockquote>
 <h3 id="path"><a class="header" href="#path"><code>path</code></a></h3>
-<p>The location of the library to be linked. The path can be either absolute or relative to the project. </br></p>
+<p>The location of the library to be linked. The path can be either absolute or relative to the project. </p>
 <h3 id="package"><a class="header" href="#package"><code>package</code></a></h3>
-<p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.</br>
-The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="libraries.html#library-location">Library Location</a>. </br>
+<p>The packaging option for the library, i.e wether the library should be copied or is already available on the system.
+The value <a name="copy"><code>"Copy"</code></a> indicates that the given library should be copied to the <a href="#library-location">Library Location</a>. 
 The value <a name="system"><code>"System"</code></a> indicates that the given library exists on the system and does not need to be copied.</p>
 <h3 id="include_path"><a class="header" href="#include_path"><code>include_path</code></a></h3>
-<p>A list of files (can include globs) that should be included with the project.</br>
-Each <a href="pous.html">POU</a>, <a href="variables.html">Global Variable</a>, or <a href="datatypes.html">Datatype</a> defined in the included files will be added to the project.
+<p>A list of files (can include globs) that should be included with the project.
+Each <a href="#program-organization-unit-pou">POU</a>, <a href="#variables-1">Global Variable</a>, or <a href="#datatypes-1">Datatype</a> defined in the included files will be added to the project.
 POUs and Global variables included in the list are marked as external, the implementation part of a POU is ignored.</p>
 <h3 id="library-location"><a class="header" href="#library-location">Library Location</a></h3>
 <p>Libraries marked as <code>Copy</code> will be copied during the compilation to the defined <a href="using_rusty/build_description_file.html#--lib-location">Library Location</a>.
@@ -1445,9 +1566,9 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
 <h3 id="using-environment-variables"><a class="header" href="#using-environment-variables">Using environment variables</a></h3>
 <p>Since libraries can be compiled for multiple targets, the lib path can contain environment variables to disambiguate the compile location.
 <code>$ARCH</code> can be used as placeholder in the path to indicate the the currently compiled target.
-</br></br></br></p>
+</p>
 <blockquote>
-<p>During linking, if no <code>.so</code> file with name <a href="libraries.html#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
+<p>During linking, if no <code>.so</code> file with name <a href="#name"><code>lib&lt;name&gt;.so</code></a> is found, the compilation will fail.</p>
 </blockquote>
 <h3 id="configuration-example-plcjson"><a class="header" href="#configuration-example-plcjson">Configuration Example (<code>plc.json</code>)</a></h3>
 <p>A configuration example for a <code>Copy</code> library called <em>mylib</em> and a <code>System</code> library called <em>std</em>:</p>
@@ -1470,7 +1591,8 @@ By default this is the same as the <a href="using_rusty/build_description_file.h
     }
 ]
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="external-functions"><a class="header" href="#external-functions">External Functions</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="external-functions"><a class="header" href="#external-functions">External Functions</a></h1>
 <p>A <code>POU</code> (<code>PROGRAM</code>, <code>FUNCTION</code>, <code>FUNCTION_BLOCK</code>) can be marked as external,
 which will cause the compiler to ignore its implementation.</p>
 <pre><code class="language-iecst">{external}
@@ -1575,7 +1697,8 @@ END_FUNCTION
 since the embedded linker cannot generate executable files.</p>
 </blockquote>
 <p>The executable can then be started with <code>./ExternalFunctions</code>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="api-guidelines"><a class="header" href="#api-guidelines">API guidelines</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="api-guidelines"><a class="header" href="#api-guidelines">API guidelines</a></h1>
 <h2 id="1-introduction"><a class="header" href="#1-introduction">1. Introduction</a></h2>
 <ul>
 <li><strong>Purpose</strong>: Provide plc library developers with information how an interface for an application written in <code>IEC61131-3</code> should be designed and why.</li>
@@ -1750,7 +1873,7 @@ void myFb(myFbStruct* myFbInst);
 </code></pre>
 <h3 id="224-when-to-use-a-function-vs-function_block"><a class="header" href="#224-when-to-use-a-function-vs-function_block">2.2.4 When to use a <code>FUNCTION</code> vs. <code>FUNCTION_BLOCK</code></a></h3>
 <p>A <code>FUNCTION</code> can be well integrated into the API because of its return value which
-can be nested into expressions. They however don't keep data over subsequent
+can be nested into expressions. They however don’t keep data over subsequent
 executions. If you need to store static data use a <code>FUNCTION_BLOCK</code> or use
 <code>VAR_IN_OUT</code>.</p>
 <blockquote>
@@ -1764,7 +1887,12 @@ To stay standard compliant, an API/Library should try and follow these guideline
 <h3 id="231-type-sizes"><a class="header" href="#231-type-sizes">2.3.1 Type sizes</a></h3>
 <p>Datatypes are generally convertable to <code>C</code> equivalent. With the compiler defaulting to 64bit, some sizes were also fixed to 64bit.</p>
 <p>Below is a table of types and how they can be used from <code>C</code></p>
-<div class="table-wrapper"><table><thead><tr><th>type</th><th>c equivalent</th><th>size</th><th>comment</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>type</th><th>c equivalent</th><th>size</th><th>comment</th></tr>
+</thead>
+<tbody>
 <tr><td>BOOL</td><td>bool</td><td>8</td><td></td></tr>
 <tr><td>BYTE</td><td>uint8_t</td><td>8</td><td>intended to be used as bit sequence and not as a number</td></tr>
 <tr><td>SINT</td><td>int8_t</td><td>8</td><td></td></tr>
@@ -1796,7 +1924,8 @@ To stay standard compliant, an API/Library should try and follow these guideline
 <tr><td>REF_TO type</td><td>*type</td><td>64</td><td>Prefer this type to <code>POINTER TO</code> for standard compliance</td></tr>
 <tr><td>STRING</td><td>uint8_t[]</td><td>var</td><td>UTF-8 String, null terminated. Default is 80 chars + 1 termination byte</td></tr>
 <tr><td>WSTRING</td><td>uint16_t[]</td><td>var</td><td>UTF-16 (wide) String, null terminated. Default is 80 chars + 1 termination byte</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h3 id="232-using-types-in-interfaces"><a class="header" href="#232-using-types-in-interfaces">2.3.2 Using Types in interfaces</a></h3>
 <p>When deciding on a type to use for a <code>FUNCTION</code>, <code>FUNCTION_BLOCK</code>, or <code>STRUCT</code> use a type that reflects the intention of the API:</p>
@@ -1839,7 +1968,7 @@ typedef struct {
 
 </code></pre>
 <p>The <code>rust</code> struct would look like</p>
-<pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
+<pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>use std::ffi::{c_void, c_char};
 
@@ -1850,10 +1979,10 @@ pub struct myStruct {
     y: *mut i32,
     z: [c_char; 256],
 }
-<span class="boring">}</span></code></pre></pre>
+<span class="boring">}</span></code></pre>
 <h3 id="25-function_block-initialization"><a class="header" href="#25-function_block-initialization">2.5 <code>FUNCTION_BLOCK</code> initialization</a></h3>
 <p>When creating a library with <code>FUNCTION_BLOCK</code>s, you can implement initialization logic that runs when an instance is created.</p>
-<p>For more details on <code>FB_INIT</code> in IEC61131-3, refer to the <a href="libraries/../pous.html#function_block-initialization">Program Organization Units (POUs)</a> documentation.</p>
+<p>For more details on <code>FB_INIT</code> in IEC61131-3, refer to the <a href="#function_block-initialization">Program Organization Units (POUs)</a> documentation.</p>
 <h4 id="interoperability-with-libraries-written-in-other-languages"><a class="header" href="#interoperability-with-libraries-written-in-other-languages">Interoperability with libraries written in other languages</a></h4>
 <p>When implementing a <code>FUNCTION_BLOCK</code> with initialization in C or other languages, you need to follow a specific naming convention for the initialization function.</p>
 <p>For a C implementation:</p>
@@ -1898,10 +2027,11 @@ END_VAR
     END_METHOD
 END_FUNCTION_BLOCK
 </code></pre>
-<p>Note that the <code>FB_INIT</code> method doesn't need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.</p>
+<p>Note that the <code>FB_INIT</code> method doesn’t need implementation details in the IEC61131-3 declaration when using an external implementation - the declaration just signals that initialization is available.</p>
 <h4 id="project-wide-initialization-1"><a class="header" href="#project-wide-initialization-1">Project-wide initialization</a></h4>
-<p>See <a href="libraries/../using_rusty.html#project-wide-initialization">Project-wide initialization</a></p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="program-organization-unit-pou"><a class="header" href="#program-organization-unit-pou">Program Organization Unit (POU)</a></h1>
+<p>See <a href="#project-wide-initialization">Project-wide initialization</a></p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="program-organization-unit-pou"><a class="header" href="#program-organization-unit-pou">Program Organization Unit (POU)</a></h1>
 <h2 id="definition"><a class="header" href="#definition">Definition</a></h2>
 <p>A POU is a executable unit available in an IEC61131-3 application.
 It can be defined as either a Program, a Function, a Function Block, or an Action.</p>
@@ -1926,7 +2056,7 @@ Supported parameter types are <code>VAR_INPUT</code>, <code>VAR_INPUT {ref}</cod
     a : INT;
 END_VAR
 </code></pre>
-<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="libraries/external_functions.html">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
+<p>In some cases, especially when passing large strings or arrays, or when interacting with foreign code (see <a href="#external-functions">External Functions</a>) it is more efficient to avoid copying the variable values and just use a pointer to the required input.
 This can be done either using the in/out variables or by specifying a special property <code>ref</code> on the input block.</p>
 <p>Example:</p>
 <pre><code class="language-iecst">VAR_INPUT {ref}
@@ -1949,7 +2079,7 @@ In a function, all local variables are temporary.</p>
 <p>In addition to the default behavior, each type of POU has some special cases.</p>
 <h3 id="function"><a class="header" href="#function">Function</a></h3>
 <p>Functions are <em>stateless</em> sequences of callable code. They are not backed by any structs, and cannot hold any state accross multiple calls.
-A function's input parameter can be passed by value, or by reference.</p>
+A function’s input parameter can be passed by value, or by reference.</p>
 <p>Functions also support a return type, the resulting definition is:</p>
 <pre><code class="language-iecst">    FUNCTION fnName : &lt;TYPE&gt;
     (* parameters *)
@@ -2013,7 +2143,7 @@ END_FUNCTION_BLOCK
 </code></pre>
 <h4 id="function_block-initialization"><a class="header" href="#function_block-initialization"><code>FUNCTION_BLOCK</code> initialization</a></h4>
 <p>Function blocks can define a special method called <code>FB_INIT</code> that is automatically called when an instance is created. This is analogous to a constructor in object-oriented programming.</p>
-<p>The <code>FB_INIT</code> method allows you to initialize the function block's variables to specific values. It is called during program initialization before any other code runs.</p>
+<p>The <code>FB_INIT</code> method allows you to initialize the function block’s variables to specific values. It is called during program initialization before any other code runs.</p>
 <p><code>FB_INIT</code> methods can neither have parameters nor a return type in their current implementation - violating this contract will lead to undefined behaviour at runtime.</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK MyFB
 VAR
@@ -2065,7 +2195,8 @@ ACTION fb.act3 (* linked to FB with name definition *)
 (* code *)
 END_ACTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="variables-1"><a class="header" href="#variables-1">Variables</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="variables-1"><a class="header" href="#variables-1">Variables</a></h1>
 <h1 id="constants"><a class="header" href="#constants">Constants</a></h1>
 <p>Variable declaration blocks can be delcared as CONSTANT.
 All variables of a constant declaration block become constants.
@@ -2089,11 +2220,11 @@ END_PROGRAM
 <p>Initializers of variables are evaluated at compile time.
 Therefore they can only consist of literals, other constants or expressions consisting of a combination of them.
 Note that initializers must not contain recursive definitions.</p>
-<p>If a variable has no initializer, the variable may be initialized with it's datatype's default value or else with <code>0</code>.</p>
+<p>If a variable has no initializer, the variable may be initialized with it’s datatype’s default value or else with <code>0</code>.</p>
 <h3 id="array-initialization"><a class="header" href="#array-initialization">Array Initialization</a></h3>
 <p>Arrays can be initialized using array literals.
-If the array-initial value does not contain all required elements, the array's inner type's default value will be used to fill the missing values.</p>
-<h2 id="example-7"><a class="header" href="#example-7">Example</a></h2>
+If the array-initial value does not contain all required elements, the array’s inner type’s default value will be used to fill the missing values.</p>
+<h2 id="example-1-1"><a class="header" href="#example-1-1">Example</a></h2>
 <pre><code class="language-iecst">TYPE SignalValue : INT := -1; END_TYPE
 
 VAR_GLOBAL CONSTANT
@@ -2140,7 +2271,7 @@ END_PROGRAM
 </li>
 </ul>
 <p>It is important to note that if there are pointer initializations present in your project, failing to call the initialization function in your runtime or in <code>main</code> will result in <strong>null pointer dereferences</strong> at runtime.</p>
-<h3 id="example-8"><a class="header" href="#example-8">Example</a></h3>
+<h3 id="example-2-1"><a class="header" href="#example-2-1">Example</a></h3>
 <p><em>myProject.st</em>:</p>
 <pre><code class="language-iecst">VAR_GLOBAL
     myGlobal : STRING;
@@ -2161,11 +2292,17 @@ FUNCTION main: DINT
     prog();
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="datatypes-1"><a class="header" href="#datatypes-1">Datatypes</a></h1>
 <h2 id="numeric-types"><a class="header" href="#numeric-types">Numeric types</a></h2>
 <p>A variety of numeric types exist with different sizes and properties complying with IEC61131.</p>
 <h3 id="overview"><a class="header" href="#overview">Overview</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type name</th><th>Size</th><th>Properties</th></tr>
+</thead>
+<tbody>
 <tr><td>SINT</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>USINT</td><td>8 bit</td><td>unsigned</td></tr>
 <tr><td>INT</td><td>16 bit</td><td>signed</td></tr>
@@ -2176,7 +2313,8 @@ END_FUNCTION
 <tr><td>ULINT</td><td>64 bit</td><td>unsigned</td></tr>
 <tr><td>REAL</td><td>32 bit</td><td>float</td></tr>
 <tr><td>LREAL</td><td>64 bit</td><td>float</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>When such a variable is declared without being initialized, it will
 be default-initialized with a value of <code>0</code> or <code>0.0</code> respectively.</p>
@@ -2192,13 +2330,19 @@ They will then be treated with regard to the respective number system.</p>
 </ul>
 <h2 id="strings"><a class="header" href="#strings">Strings</a></h2>
 <h3 id="overview-1"><a class="header" href="#overview-1">Overview</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Encoding</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type name</th><th>Size</th><th>Encoding</th></tr>
+</thead>
+<tbody>
 <tr><td>STRING</td><td>n+1</td><td>UTF-8</td></tr>
 <tr><td>WSTRING</td><td>2n+2</td><td>UTF-16</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>When such a variable is declared without being initialized, it will
-be default-initialized with a value of '' or "" respectively (empty strings).</p>
+be default-initialized with a value of ‘’ or “” respectively (empty strings).</p>
 <h3 id="string"><a class="header" href="#string">STRING</a></h3>
 <p>RuSTy treats <code>STRING</code>s as byte-arrays storing UTF-8 character bytes with a Null-terminator (0-byte) at the end.
 So a String of size n requres n+1 bytes to account for the Null-terminator.
@@ -2230,12 +2374,18 @@ When declaring a <code>WSTRING</code>, the length-attribute is optional. The def
 </ul>
 <h2 id="date-and-time"><a class="header" href="#date-and-time">Date and Time</a></h2>
 <h3 id="overview-2"><a class="header" href="#overview-2">Overview</a></h3>
-<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type name</th><th>Size</th><th>Internally stored as</th></tr>
+</thead>
+<tbody>
 <tr><td>TIME</td><td>64 bit</td><td>Timespan in nanoseconds</td></tr>
 <tr><td>TIME_OF_DAY</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
 <tr><td>DATE_AND_TIME</td><td>64 bit</td><td>Nanoseconds since Jan 1, 1970 UTC</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>Note that RuSTy already treats <code>TIME</code>, <code>TIME_OF_DAY</code>, <code>DATE</code> and <code>DATE_AND_TIME</code> as 64 bit numbers.
 Therefore the long pendants <code>LTIME</code>, <code>LTOD</code>, <code>LDATE</code> and <code>LDT</code> are mere aliases to the original types.</p>
@@ -2283,13 +2433,13 @@ A <code>TIME</code> value is stored as an <code>i64</code> value with a precisio
 TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <code>TIME</code> segements.</p>
 <p>Supported segements are:</p>
 <ul>
-<li><code>d</code> ... <code>f64</code> days</li>
-<li><code>h</code> ... <code>f64</code> hours</li>
-<li><code>m</code> ... <code>f64</code>minutes</li>
-<li><code>s</code> ... <code>f64</code> seconds</li>
-<li><code>ms</code> ... <code>f64</code> milliseconds</li>
-<li><code>us</code> ... <code>f64</code> microseconds</li>
-<li><code>ns</code> ... <code>u32</code> nanaoseconds</li>
+<li><code>d</code> … <code>f64</code> days</li>
+<li><code>h</code> … <code>f64</code> hours</li>
+<li><code>m</code> … <code>f64</code>minutes</li>
+<li><code>s</code> … <code>f64</code> seconds</li>
+<li><code>ms</code> … <code>f64</code> milliseconds</li>
+<li><code>us</code> … <code>f64</code> microseconds</li>
+<li><code>ns</code> … <code>u32</code> nanaoseconds</li>
 </ul>
 <p>Note that only the last segment of a <code>TIME</code> literal can have a fraction.</p>
 <p>Examples:</p>
@@ -2301,35 +2451,55 @@ TIME literals start with <code>TIME#</code> or <code>T#</code> followed by the <
 <h2 id="other-types"><a class="header" href="#other-types">Other types</a></h2>
 <p>The <code>BOOL</code> type can either be assigned <code>TRUE</code> or <code>FALSE</code>.
 The type <code>__VOID</code> is the empty type and has an undefined size.</p>
-<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type name</th><th>Size</th><th>Properties</th></tr>
+</thead>
+<tbody>
 <tr><td>BOOL</td><td>8 bit</td><td>signed</td></tr>
 <tr><td>__VOID</td><td>undefined</td><td></td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>Bit datatypes are defined as follows:</p>
-<div class="table-wrapper"><table><thead><tr><th>Type name</th><th>Size</th><th>Properties</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type name</th><th>Size</th><th>Properties</th></tr>
+</thead>
+<tbody>
 <tr><td>BYTE</td><td>8 bit</td><td>unsigned</td></tr>
 <tr><td>WORD</td><td>16 bit</td><td>unsigned</td></tr>
 <tr><td>DWORD</td><td>32 bit</td><td>unsigned</td></tr>
 <tr><td>LWORD</td><td>64 bit</td><td>unsigned</td></tr>
-</tbody></table>
-</div><div style="break-before: page; page-break-before: always;"></div><h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
+</tbody>
+</table>
+</div>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="direct-bit-access-on-variables"><a class="header" href="#direct-bit-access-on-variables">Direct (Bit) Access on Variables</a></h1>
 <p>The IEC61131-3 Standard allows reading specific <code>Bits</code>, <code>Bytes</code>, <code>Words</code> or <code>DWords</code> from an <code>ANY_BIT</code> type.
 RuSTy supports this functionalty and extends it to support all <code>INT</code> types.</p>
 <h2 id="constant-based-direct-access"><a class="header" href="#constant-based-direct-access">Constant based Direct Access</a></h2>
 <p>To access a bit sequence in a variable, a direct access instruction <code>%&lt;Type&gt;&lt;Value&gt;</code> is used.</p>
 <p><code>Type</code> is the bit sequence size required and is described as follows:</p>
-<div class="table-wrapper"><table><thead><tr><th>Type</th><th>Size</th><th>Example</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Type</th><th>Size</th><th>Example</th></tr>
+</thead>
+<tbody>
 <tr><td>X</td><td>1</td><td>`%X1</td></tr>
 <tr><td>B</td><td>8</td><td>`%B1</td></tr>
 <tr><td>W</td><td>16</td><td>`%W1</td></tr>
 <tr><td>D</td><td>32</td><td>`%D1</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <blockquote>
 <p><em>For <code>Bit</code> access, the <code>%X</code> is optional.</em></p>
 </blockquote>
-<h3 id="example-9"><a class="header" href="#example-9">Example</a></h3>
+<h3 id="example-7"><a class="header" href="#example-7">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2358,7 +2528,7 @@ The provided varibale has to be a direct Reference variable (non Qualified).</p>
 <blockquote>
 <p><em>Short hand access for Bit (Without the <code>%X</code> modifier) is not allowed.</em></p>
 </blockquote>
-<h3 id="example-10"><a class="header" href="#example-10">Example</a></h3>
+<h3 id="example-1-2"><a class="header" href="#example-1-2">Example</a></h3>
 <pre><code class="language-st">FUNCTION main : DINT
 VAR
     variable    : LWORD;
@@ -2382,12 +2552,13 @@ dwordTarget := variable.%Daccess_var; (*Access last dword*)
 bitTarget2  := variable.%Daccess_var.%Waccess_var.%Baccess_var.%Xaccess_var;
 END_FUNCTION
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="architecture"><a class="header" href="#architecture">Architecture</a></h1>
 <h2 id="overview-3"><a class="header" href="#overview-3">Overview</a></h2>
-<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC ("FBD") are supported.
-It utilizes the LLVM compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> frontend that translates Structured Text into LLVM's language independent intermediate representation (IR).
-<a href="arch/../cfc/cfc.html">CFC</a> uses a M2M-transformation and reuses most of the ST frontend for compilation.
-The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM's common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
+<p>RuSTy is a compiler for IEC61131-3 languages. At the moment, ST and CFC (“FBD”) are supported.
+It utilizes the LLVM compiler infrastructurue and contributes a <a href="https://en.wikipedia.org/wiki/Structured_text">Structured Text</a> frontend that translates Structured Text into LLVM’s language independent intermediate representation (IR).
+<a href="#cfc-continous-function-chart">CFC</a> uses a M2M-transformation and reuses most of the ST frontend for compilation.
+The further optimization and native code generation is performed by the existing LLVM infrastructure, namely LLVM’s common optimizer and the platform specific backend (see <a href="https://www.aosabook.org/en/llvm.html">here</a>).</p>
 <pre><code class="language-ignore">    ┌──────────────────┐    ┌───────────────┐    ┌────────────────┐
     │                  │    │               │    │                │
     │      RuSTy       │    │  LLVM Common  │    │  LLVM Backend  │
@@ -2397,9 +2568,9 @@ The further optimization and native code generation is performed by the existing
     └──────────────────┘    └───────────────┘    └────────────────┘
 </code></pre>
 <p>So RuSTy consists of the frontend part of the llvm compiler-infrastructure.
-This means that this compiler can benefit from llvm's existing compiler-optimizations, as well as all backend target platforms available.</p>
+This means that this compiler can benefit from llvm’s existing compiler-optimizations, as well as all backend target platforms available.</p>
 <h2 id="rusty-frontend-architecture"><a class="header" href="#rusty-frontend-architecture">Rusty Frontend Architecture</a></h2>
-<p>Ultimately the goal of a compiler frontend is to translate the original source code into the infrastructure's intermediate representation  (in this case we're talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
+<p>Ultimately the goal of a compiler frontend is to translate the original source code into the infrastructure’s intermediate representation  (in this case we’re talking about <a href="https://llvm.org/docs/LangRef.html">LLVM IR</a>).
 RuSTy treats this task as a compilation step of its own.
 While a fully fledged compiler generates machine code as a last step, RuSTy generates LLVM IR assembly code.</p>
 <h2 id="structured-text"><a class="header" href="#structured-text">Structured Text</a></h2>
@@ -2434,7 +2605,8 @@ While a fully fledged compiler generates machine code as a last step, RuSTy gene
     │                │    │            │   │            │   │            │   │            │
     └────────────────┘    └────────────┘   └────────────┘   └────────────┘   └────────────┘
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="parser"><a class="header" href="#parser">Parser</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="parser"><a class="header" href="#parser">Parser</a></h1>
 <p>The role of the parser is to turn source-code which is fed as a string (in the form of files) into a tree-representation of that source-code.
 This tree is typically called the <em>Abstract Syntax Tree (AST)</em>.
 The step of parsing consists of two distinct stages.
@@ -2465,13 +2637,13 @@ After lexing we perform the <em>syntactical analysis (Parser)</em> to construct 
 <p>The lexer performs the lexical analysis.
 This step turns the source-string into a sequence of well known tokens.
 The Lexer (or sometimes also called <em>tokenizer</em>) splits the source-string into <em>tokens</em> (or <em>words</em>).
-Each token has a distinct type which corresponds to a grammar's element.
+Each token has a distinct type which corresponds to a grammar’s element.
 Typical token-types are keywords, numbers, identifiers, brackets, dots, etc.
 So with the help of this token-stream it is much easier for the parser to spot certain patterns.
 E.g. a floating-point number consists of the token-sequence: <em>number</em>, <em>dot</em>, <em>number</em>.</p>
 <p>The lexer is implemented in the <code>lexer</code>-module.
 It uses the <a href="https://github.com/maciejhirsz/logos">logos</a> crate to create a lexer that is able to identify all different terminal-symbols.
-Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so RuSTy's lexer identifies a quite large number of different tokens.</p>
+Compared to other languages, Structured Text has a quite high number of keywords and other tokens, so RuSTy’s lexer identifies a quite large number of different tokens.</p>
 <h2 id="parser-1"><a class="header" href="#parser-1">Parser</a></h2>
 <p>The parser takes the token stream and creates the corresponding AST that represents the source code in a structured, hierarchical way.
 The parser is implemented in the <code>parser</code> module whereas the model for the AST is implemented in the <code>ast</code> module.</p>
@@ -2485,7 +2657,7 @@ While this approach needs much more code and hand-written changes, its benefits 
 Every element of the AST is easily identified, debugged and understood.
 E.g. while in a generic node based AST it is easily possible to have a binary-statement with no, one, or seven child-nodes, the RuSTy-AST enforces the structure of every node. So the RuSTy-Binary-Statement has exactly two children.
 It is impossible to construct it differently.</p>
-<h4 id="example-11"><a class="header" href="#example-11">Example</a></h4>
+<h4 id="example-8"><a class="header" href="#example-8">Example</a></h4>
 <p>So an assignment <code>a := 3;</code> will be parsed with the help of the following Structures:</p>
 <pre><code class="language-rs">struct Reference {
    name: string
@@ -2519,24 +2691,31 @@ Using a parser-generator framework will definitely be an option for future impro
         │    name: 'a'     │     │    value: '3'    │
         └──────────────────┘     └──────────────────┘
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="indexer"><a class="header" href="#indexer">Indexer</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="indexer"><a class="header" href="#indexer">Indexer</a></h1>
 <p>The indexing step is responsible of building and maintaining the Symbol-Table (also called <em>Index</em>).
 The <em>Index</em> contains all known referable objects such as <em>variables</em>, <em>data-types</em>, <em>POUs</em>, <em>Functions</em>, etc.
-The Symbol-Table also maintains additional information about every referable object such as: the object's type, the objects' datatype, etc.</p>
+The Symbol-Table also maintains additional information about every referable object such as: the object’s type, the objects’ datatype, etc.</p>
 <p>Indexing is performed by the <em>index</em> module.
 It contains the index itself (a.k.a. Symbol Table), the <em>visitor</em> which collects all global names and their additional information as well as a data structure that handles compile time constant expressions (<em>constant_expressions</em>).</p>
 <h2 id="the-index-symbol-table"><a class="header" href="#the-index-symbol-table">The Index (Symbol Table)</a></h2>
 <p>The index stores information about all referable elements of the program.
 Depending on the type of element, we store different meta-information alongside the name of the element.</p>
-<div class="table-wrapper"><table><thead><tr><th>Index Field</th><th>Description</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Index Field</th><th>Description</th></tr>
+</thead>
+<tbody>
 <tr><td>global_variables</td><td>All global variables accessible via their name.</td></tr>
-<tr><td>enum_global_variables</td><td>All enum elements accessible via their name (as if they were global variables, e.g. 'RED')</td></tr>
+<tr><td>enum_global_variables</td><td>All enum elements accessible via their name (as if they were global variables, e.g. ‘RED’)</td></tr>
 <tr><td>member_variables</td><td>Member variables of structured types (Structs,Functionblocks, etc. This map allows to query all members of a container by name.)</td></tr>
 <tr><td>implementations</td><td>All callable implementations (Programs, Functions, Actions, Functionblocks) accessible by their name.</td></tr>
 <tr><td>pous</td><td>All pous (Programs, Functions, Functionblocks) with additional information.</td></tr>
 <tr><td>type_index</td><td>All data-types (intrinsic and complex) accessible via their name</td></tr>
 <tr><td>constant_expressions</td><td>The results of constant expressions that can be evaluated at compile time (e.g. the initializer of a constant: <code>VAR_GLOBAL CONST TAU := 3.1415 * 2; END_VAR</code>)</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>There are 3 different type of entries in the index:</p>
 <ul>
@@ -2645,7 +2824,7 @@ It also offers metadata about the implementation type, the name of the method to
 <ul>
 <li><strong>DataType</strong>
 The entry for a DataType offers information about any data-type supported by the program to be compiled (internal data types as well as user defined data types).
-For each data-type we offer additional information such as it's initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type's internal structure and size (e.g. is it a number/array/struct/etc).</li>
+For each data-type we offer additional information such as it’s initial value, its type-nature (in terms of generic functions - e.g: ANY_INT) and some additional information about the type’s internal structure and size (e.g. is it a number/array/struct/etc).</li>
 </ul>
 <pre><code class="language-ignore">                      ┌─────────────┐                   ┌────────────────────┐
                       │  DataType   │                   │ ConstantExpression │
@@ -2683,8 +2862,9 @@ For each data-type we offer additional information such as it's initial value, i
 │                │ │- dimensions │ │ - size     │  │            │  │          │
 └────────────────┘ └─────────────┘ └────────────┘  └────────────┘  └──────────┘
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="linker"><a class="header" href="#linker">Linker</a></h1>
-<p>The linker's task is to decide where all references in the source code point to.
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="linker"><a class="header" href="#linker">Linker</a></h1>
+<p>The linker’s task is to decide where all references in the source code point to.
 There are different references in Structured Text:</p>
 <ul>
 <li>variable references
@@ -2696,7 +2876,7 @@ There are different references in Structured Text:</p>
 <li>Function references
 <code>max(a, b)</code> where <em>max</em> is a reference to a Function-POU called <em>max</em>.</li>
 </ul>
-<p>So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference's name:</p>
+<p>So the linker decides where a reference points to. A reference has a corresponding declaration that matches the reference’s name:</p>
 <pre><code class="language-iecst">        PROGRAM PLC_PRG
              VAR
 
@@ -2709,7 +2889,7 @@ There are different references in Structured Text:</p>
              x := 3;
         END_PROGRAM
 </code></pre>
-<p>The linker's results will be used by the semantic validation step and by the code-generation.</p>
+<p>The linker’s results will be used by the semantic validation step and by the code-generation.</p>
 <p>The validator decides whether the name you put at a certain location is valid or not.
 In order to decide whether a certain reference is valid or not, we need to know where it is pointing to, so whether we expect a variable, a datatype or something different.</p>
 <p>The code-generation needs to know what certain names mean, in order to successfully generate the IR-code that reflects the behavior of your program.</p>
@@ -2718,7 +2898,7 @@ In order to decide whether a certain reference is valid or not, we need to know 
 So where should we store the linking information for a reference?
 Even if we would add fields for potential linking-information to the AST, the ownership concepts of Rust would give us a hard time to fill this information piece by piece during linking.
 So what we end up doing, is to use the <a href="https://en.wikipedia.org/wiki/Region-based_memory_management">arena-pattern</a> to handle the different lifetimes of the parts of an AST (the AST itself is constructed very early in the compilation process, where the linking information is allocated later).
-We don't store the linking information directly in the AST, but we store it inside the mentioned arena-data-structure and link it with certain AST-elements.</p>
+We don’t store the linking information directly in the AST, but we store it inside the mentioned arena-data-structure and link it with certain AST-elements.</p>
 <p>The RuSTy linker stores the linking information in an arena called AnnotationMap.
 The AnnotationMap can store two type of annotations for any AST-element.
 So the first step is that we need a way to uniquely identify every single AST-node so we can use this ID as a key for the annotations stored in the AnnotationMap to automatically associate it with the given AST-Node.
@@ -2776,7 +2956,7 @@ Similar to the value-Annotation it also saves the resulting datatype.</li>
 <ul>
 <li><code>Function</code>
 The Function-annotation indicates that this AST-Element resolves to a Function-POU (a call-statement) with the given qualified name.
-Similar to the value-Annotation it also saves the resulting datatype but this time as the function's return type (<em>return_type</em>).</li>
+Similar to the value-Annotation it also saves the resulting datatype but this time as the function’s return type (<em>return_type</em>).</li>
 </ul>
 <pre><code class="language-ignore">        ┌─────────────────────────┐
         │   Function              │
@@ -2933,7 +3113,7 @@ Lets consider the following statement:</p>
                                      └────────────────────────────┘
 </code></pre>
 <h2 id="type-vs-type-hint"><a class="header" href="#type-vs-type-hint">Type vs. Type-Hint</a></h2>
-<p>The AnnotationMap not only offers annotations regarding the AST-node's type, but it also offers a second type of annotation.</p>
+<p>The AnnotationMap not only offers annotations regarding the AST-node’s type, but it also offers a second type of annotation.</p>
 <p>Consider the following snippet:</p>
 <pre><code class="language-iecst">PROGRAM PLC_PRG
    VAR
@@ -2954,67 +3134,96 @@ END_PROGRAM
 <li><code>x + y</code> is annotated as <em>Value</em> of type <em>DINT</em> (the bigger of both).</li>
 </ul>
 <p>In order to make life easier for validation and code-generation we add an additional annotation to <code>x + y</code> to indicate, that while it technically results in a <em>DINT</em>, it should rather be treated as a <em>BYTE</em> since it is going to be assigned to <code>z</code>.
-This second annotation is called the <em>type-hint</em>. It indicates that while it technically is not the real type of this expression, the program's semantic wants the compiler to treat it as this type.</p>
+This second annotation is called the <em>type-hint</em>. It indicates that while it technically is not the real type of this expression, the program’s semantic wants the compiler to treat it as this type.</p>
 <p>The expression <code>z := x + y</code> is annotated like this:</p>
-<div class="table-wrapper"><table><thead><tr><th>expression</th><th>type annotation</th><th>type-hint annotation</th><th>explanation</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>expression</th><th>type annotation</th><th>type-hint annotation</th><th>explanation</th></tr>
+</thead>
+<tbody>
 <tr><td><code>x</code></td><td>SINT</td><td>DINT</td><td>auto-upgraded to DINT</td></tr>
 <tr><td><code>y</code></td><td>INT</td><td>DINT</td><td>auto-upgraded to DINT</td></tr>
 <tr><td><code>z</code></td><td>BYTE</td><td>-</td><td></td></tr>
 <tr><td><code>x + y</code></td><td>DINT</td><td>BYTE</td><td>type-hint indicates that the resulting DINT needs to be cast to BYTE</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <p>With the help of the type-hint annotations the validation can decide whether certain type-cast operations are valid very easily.
-The code-generation steps can easily decide when to generate casts, by simply comparing a node's type annotation and it's type-hint annotation.</p>
+The code-generation steps can easily decide when to generate casts, by simply comparing a node’s type annotation and it’s type-hint annotation.</p>
 <h2 id="dependencies"><a class="header" href="#dependencies">Dependencies</a></h2>
 <p>When generating multiple units, the Linker will keep track of a dependency-tree for the unit.
 This means that every datatype or global variable referenced directly or indirectly by the module will be marked as a dependency.
-This information can then be used during the <a href="arch/./codegen.html">codegen</a> period to only generated types and variables that are relevant to the unit.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="validation-1"><a class="header" href="#validation-1">Validation</a></h1>
+This information can then be used during the <a href="#code-generation">codegen</a> period to only generated types and variables that are relevant to the unit.</p>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="validation-1"><a class="header" href="#validation-1">Validation</a></h1>
 <p>The validation module implements the semantic validation step of the compiler.
 The validator is a hand-written visitor that offers a callback when visiting the single AST-nodes to then perform the different validation tasks.</p>
 <p>The validation rules are implemented in dedicated validator-structs:</p>
-<div class="table-wrapper"><table><thead><tr><th>Validator</th><th>Responsibilities</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Validator</th><th>Responsibilities</th></tr>
+</thead>
+<tbody>
 <tr><td>global_validator</td><td>Semantic rules on the level of declarations as a whole (e.g. name-conflicts)</td></tr>
 <tr><td>pou_validator</td><td>Semantic rules on the level of programs, function- and function-blocks.</td></tr>
 <tr><td>recursive_validator</td><td>Semantic rules on the level of recursion (e.g. struct referencing itself)</td></tr>
 <tr><td>stmt_validator</td><td>Semantic rules on the level of statements (e.g. invalid type-casts).</td></tr>
 <tr><td>variable_validator</td><td>Semantic rules on the level of variable declarations (e.g. empty var-blocks, empty structs, etc.).</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h2 id="diagnostics"><a class="header" href="#diagnostics">Diagnostics</a></h2>
 <p>Problems (semantic or syntactic) are represented as <em>Diagnostics</em> <sup class="footnote-reference" id="fr-1-1"><a href="#footnote-1">1</a></sup>.
 Diagnostics carry information on the exact location inside the source-string (start- &amp; end-offset), a custom message and a unique error-number to identify the problem.</p>
 <p>There are 3 types of <em>Diagnostics</em>:</p>
-<div class="table-wrapper"><table><thead><tr><th>Diagnostic</th><th>Description</th></tr></thead><tbody>
-<tr><td>SyntaxError</td><td>A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language's grammar.</td></tr>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Diagnostic</th><th>Description</th></tr>
+</thead>
+<tbody>
+<tr><td>SyntaxError</td><td>A syntax error is a diagnostic that is created by the parser if it discovers a token-stream that does not match the language’s grammar.</td></tr>
 <tr><td>GeneralError</td><td>General errors are problems that occured during the compilation process, that cannot be linked to a malformed input (e.g. file-I/O problems, internal LLVM errors, etc.).</td></tr>
 <tr><td>Improvement</td><td>Problems that may not prevent successful compilation but are still considered a flaw in the source-code. (e.g. use proprietary <em>POINTER TO</em> instead of the norm-compliant <em>REF_TO</em>).</td></tr>
-</tbody></table>
-</div><hr>
-<ol class="footnote-definition"><li id="footnote-1">
-<p>:(i): The diagnostics are subject to change since they don't elegantly represent the different types of problems (e.g. semantic problems). <a href="#fr-1-1">↩</a></p>
+</tbody>
+</table>
+</div>
+<hr>
+<ol class="footnote-definition">
+<li id="footnote-1">
+<p>:(i): The diagnostics are subject to change since they don’t elegantly represent the different types of problems (e.g. semantic problems). <a href="#fr-1-1">↩</a></p>
 </li>
-</ol><div style="break-before: page; page-break-before: always;"></div><h1 id="code-generation"><a class="header" href="#code-generation">Code-Generation</a></h1>
+</ol>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="code-generation"><a class="header" href="#code-generation">Code-Generation</a></h1>
 <p>The codegen module contains all code that turns the parsed and verified code represented as an AST into <a href="https://llvm.org/docs/LangRef.html">llvm-ir</a> code.
 To generate the <em>IR</em> we use a crate that wraps the native llvm <a href="https://github.com/TheDan64/inkwell">C-API</a>.</p>
 <p>The code-generator is basically a transformation from the ST-AST into an IR-Tree representation.
 Therefore the AST is traversed in a visitor-like way and transformed simultaneously.</p>
 <p>The code generation is split into specialized sub-generators for different tasks:</p>
-<div class="table-wrapper"><table><thead><tr><th>Generator</th><th>Responsibilities</th></tr></thead><tbody>
+<div class="table-wrapper">
+<table>
+<thead>
+<tr><th>Generator</th><th>Responsibilities</th></tr>
+</thead>
+<tbody>
 <tr><td>pou_generator</td><td>The pou-generator takes care of generating the programming organization units (Programs, FunctionBlocks, Functions) including their signature and body. More specialized tasks are delegated to other generators.</td></tr>
 <tr><td>data_type_generator</td><td>Generates complex datatypes like Structs, Arrays, Enums, Strings, etc.</td></tr>
 <tr><td>variable_generator</td><td>Generates global variables and their initialization.</td></tr>
 <tr><td>statement_generator</td><td>Generates everything of the body of a POU except expressions. Non-expressions include: IFs, Loops, Assignments, etc.</td></tr>
 <tr><td>expression_generator</td><td>Generates expressions (everything that <em>possibly</em> resolves to a value) including: call-statements, references, array-access, etc.</td></tr>
-</tbody></table>
+</tbody>
+</table>
 </div>
 <h2 id="generating-pous"><a class="header" href="#generating-pous">Generating POUs</a></h2>
-<p>Generating POUs (Programs, Function-Blocks, Functions) must generate the POU's body itself, as well as the POU's interface (or state) variables.
+<p>Generating POUs (Programs, Function-Blocks, Functions) must generate the POU’s body itself, as well as the POU’s interface (or state) variables.
 In this segment we focus on generating the interface for a POU.
-Further information about generating a POU's body can be found [here].</p>
+Further information about generating a POU’s body can be found [here].</p>
 <h3 id="programs"><a class="header" href="#programs">Programs</a></h3>
 <p>A program is <em>static</em> POU with some code attached.
-This means that there is exactly one instance. So wherever from it is called, every caller uses the exact same instance which means that you may see the residuals of the laster caller in the program's variables when you call it yourself.</p>
+This means that there is exactly one instance. So wherever from it is called, every caller uses the exact same instance which means that you may see the residuals of the laster caller in the program’s variables when you call it yourself.</p>
 <pre><code class="language-iecst">PROGRAM prg
     VAR
         x : DINT;
@@ -3023,9 +3232,9 @@ This means that there is exactly one instance. So wherever from it is called, ev
 
 END_PROGRAM
 </code></pre>
-<p>The program's interface is persistent across calls, so we store it in a global variable.
+<p>The program’s interface is persistent across calls, so we store it in a global variable.
 Therefore the code-generator creates a dedicated struct-type called <code>prg_interface</code>.
-A global variable called <code>prg_instance</code> is generated to store the program's state across calls.
+A global variable called <code>prg_instance</code> is generated to store the program’s state across calls.
 This global instance variable is passed as a <code>this</code> pointer to calls to the <code>prg</code> function.</p>
 <pre><code class="language-llvm">%prg_interface = type { i32, i32 }
 
@@ -3040,7 +3249,7 @@ entry:
 <p>A FunctionBlock is an POU that is instantiated in a declaration.
 So in contrast to Programs, a FunctionBlock can have multiple instances.
 Nevertheless the code-generator uses a very similar strategy.
-A struct-type for the FunctionBlock's interface is created but no global instance-variable is allocated.
+A struct-type for the FunctionBlock’s interface is created but no global instance-variable is allocated.
 Instead the function block can be used as a DataType to declare instances like in the following example:</p>
 <pre><code class="language-iecst">FUNCTION_BLOCK foo
   VAR_INPUT
@@ -3054,8 +3263,8 @@ PROGRAM prg
   END_VAR
 END_PROGRAM
 </code></pre>
-<p>So for the given example, we see the code-generator creating a type for the FunctionBlock's state (<code>foo_interface</code>).
-The declared instance of foo, in <code>prg's</code> interface is seen in the program's generated interface struct-type (<code>prg_interface</code>).</p>
+<p>So for the given example, we see the code-generator creating a type for the FunctionBlock’s state (<code>foo_interface</code>).
+The declared instance of foo, in <code>prg's</code> interface is seen in the program’s generated interface struct-type (<code>prg_interface</code>).</p>
 <pre><code class="language-llvm">; ModuleID = 'main'
 source_filename = "main"
 
@@ -3076,21 +3285,21 @@ entry:
 </code></pre>
 <h3 id="functions"><a class="header" href="#functions">Functions</a></h3>
 <p>Functions generate very similar to programs and function_blocks.
-The main difference is, that no instance-global is allocated and the function's interface-type cannot be used as a datatype to declare your own instances.
-Instances of the program's interface-type are allocated whenever the function is called for the lifetime of a single call.
+The main difference is, that no instance-global is allocated and the function’s interface-type cannot be used as a datatype to declare your own instances.
+Instances of the program’s interface-type are allocated whenever the function is called for the lifetime of a single call.
 Otherwise the code generated for functions is comparable to the code presented above for programs and function-blocks.</p>
 <h2 id="generating-data-types"><a class="header" href="#generating-data-types">Generating Data Types</a></h2>
 <p>IEC61131-3 languages offer a wide range of data types.
 Next to the built-in intrinsic data types, we support following user defined data types:</p>
 <h3 id="range-types"><a class="header" href="#range-types">Range Types</a></h3>
-<p>For range types we don't generate special code.
+<p>For range types we don’t generate special code.
 Internally the new data type just becomes an alias for the derived type.</p>
 <h3 id="pointer-types"><a class="header" href="#pointer-types">Pointer Types</a></h3>
-<p>For pointer types we don't generate special code.
+<p>For pointer types we don’t generate special code.
 Internally the new data type just becomes an alias for the pointer-type.</p>
 <h3 id="struct-types"><a class="header" href="#struct-types">Struct Types</a></h3>
 <p>Struct types translate direclty to llvm struct datatypes.
-We generate a new datatype with the user-type's name for the struct.</p>
+We generate a new datatype with the user-type’s name for the struct.</p>
 <pre><code class="language-iecst">TYPE MyStruct:
   STRUCT
     a: DINT;
@@ -3106,7 +3315,7 @@ END_TYPE
 <pre><code class="language-iecst">TYPE MyEnum: (red, yellow, green);
 END_TYPE
 </code></pre>
-<p>For every enum's element we generate a global variable with the element's value.</p>
+<p>For every enum’s element we generate a global variable with the element’s value.</p>
 <pre><code class="language-llvm">@red = global i32 0
 @yellow = global i32 1
 @green = global i32 2
@@ -3175,19 +3384,21 @@ END_VAR
 <pre><code class="language-llvm">@str = global [21 x i8] zeroinitializer
 @wstr = global [21 x i16] zeroinitializer
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="cfc-continous-function-chart"><a class="header" href="#cfc-continous-function-chart">CFC (Continous Function Chart)</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="cfc-continous-function-chart"><a class="header" href="#cfc-continous-function-chart">CFC (Continous Function Chart)</a></h1>
 <p>RuSTy is compatible with CFC, as per the FBD part detailed in the <a href="https://www.plcopen.org/system/files/downloads/tc6_xml_v201_technical_doc.pdf">IEC61131-3 XML-exchange format</a>.
-The CFC implementation borrows extensively from the <a href="cfc/../arch/architecture.html">ST compiler-pipeline</a>, with the exception that the lexical analysis and parsing phases are replaced by a model-to-model conversion process.
+The CFC implementation borrows extensively from the <a href="#architecture">ST compiler-pipeline</a>, with the exception that the lexical analysis and parsing phases are replaced by a model-to-model conversion process.
 This involves converting the XML into a structured model, which is then converted into ST AST statements.</p>
 <p>The next chapter will walk you through the CFC implementation, giving you a better understanding of underlying <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml">code</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="model-to-model-conversion"><a class="header" href="#model-to-model-conversion">Model-to-Model Conversion</a></h1>
+<div style="break-before: page; page-break-before: always;"></div>
+<h1 id="model-to-model-conversion"><a class="header" href="#model-to-model-conversion">Model-to-Model Conversion</a></h1>
 <p>As previously mentioned, the lexical and parsing phases are replaced by a model-to-model conversion process which consists of two steps:</p>
 <ol>
 <li>Transform the input file (XML) into a data-model</li>
 <li>Transform the data-model into an AST</li>
 </ol>
 <h2 id="xml-to-data-model"><a class="header" href="#xml-to-data-model">XML to Data-Model</a></h2>
-<p>Consider the heavily minified CFC file <a href="cfc/m2m.html#myprogramcfc"><code>MyProgram.cfc</code></a>, which translates to the CFC chart below.</p>
+<p>Consider the heavily minified CFC file <a href="#myprogramcfc"><code>MyProgram.cfc</code></a>, which translates to the CFC chart below.</p>
 <pre><code class="language-ignore">                   x                      MyAdd
             ┌─────────────┐        ┌─────────────────┐
             │             │        │    exec_id:0    │
@@ -3217,7 +3428,7 @@ For example, when reaching the line <code>&lt;block localId="3" ...&gt;</code> w
     ]
 }</code></pre>
 <p>This process is repeated for every element in the input file which has a corresponding model implementation. For more information on implementation details, see the <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/model">model</a> folder.</p>
-<p>Since the CFC programming language utilizes blocks and their interconnections to establish the program's logic flow,
+<p>Since the CFC programming language utilizes blocks and their interconnections to establish the program’s logic flow,
 with the sequencing of block execution and inter-block links represented through corresponding <code>localId</code>, <code>refLocalId</code> and <code>excutionOrderId</code>,
 we have to order each element by their execution ID before proceeding to the next phase.
 Otherwise the generated AST statements would be out of order and hence semantically incorrect.</p>
@@ -3229,7 +3440,7 @@ We then check and transform each parameter, input <code>a</code> and <code>b</co
     operator: myAdd,
     parameters: [x, y]
 }</code></pre>
-<p>Next, we process the element with an <code>executionOrderId</code> of 1, which corresponds to an assignment of the previous call's result to z. This update modifies the generated AST as follows:</p>
+<p>Next, we process the element with an <code>executionOrderId</code> of 1, which corresponds to an assignment of the previous call’s result to z. This update modifies the generated AST as follows:</p>
 <pre><code class="language-rust ignore">AssignmentStatement {
     left: z,
     right: CallStatement {
@@ -3238,7 +3449,7 @@ We then check and transform each parameter, input <code>a</code> and <code>b</co
     }
 }</code></pre>
 <p>While this explanation covers the handling of blocks and variables, there are other elements (e.g. control-flow), that are not discussed here. For more information on implementation details, see <a href="https://github.com/PLC-lang/rusty/tree/master/compiler/plc_xml/src/xml_parser"><code>plc_xml/src/xml_parser</code></a>.</p>
-<p>Finally, after transforming all elements into their respective AST statements, the result is passed to the indexer and subsequently enters the next stages of the compiler pipeline, as described in the <a href="cfc/../arch/architecture.html#rusty-frontend-architecture">architecture documentation</a>).</p>
+<p>Finally, after transforming all elements into their respective AST statements, the result is passed to the indexer and subsequently enters the next stages of the compiler pipeline, as described in the <a href="#rusty-frontend-architecture">architecture documentation</a>).</p>
 <h2 id="appendix"><a class="header" href="#appendix">Appendix</a></h2>
 <h3 id="myaddst"><a class="header" href="#myaddst">MyAdd.st</a></h3>
 <pre><code class="language-st ignore">FUNCTION MyAdd : DINT
@@ -3311,6 +3522,11 @@ END_FUNCTION
 
         </div>
 
+        <template id=fa-eye><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M288 32c-80.8 0-145.5 36.8-192.6 80.6C48.6 156 17.3 208 2.5 243.7c-3.3 7.9-3.3 16.7 0 24.6C17.3 304 48.6 356 95.4 399.4C142.5 443.2 207.2 480 288 480s145.5-36.8 192.6-80.6c46.8-43.5 78.1-95.4 93-131.1c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C433.5 68.8 368.8 32 288 32zM432 256c0 79.5-64.5 144-144 144s-144-64.5-144-144s64.5-144 144-144s144 64.5 144 144zM288 192c0 35.3-28.7 64-64 64c-11.5 0-22.3-3-31.6-8.4c-.2 2.8-.4 5.5-.4 8.4c0 53 43 96 96 96s96-43 96-96s-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6z"/></svg></span></template>
+        <template id=fa-eye-slash><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M38.8 5.1C28.4-3.1 13.3-1.2 5.1 9.2S-1.2 34.7 9.2 42.9l592 464c10.4 8.2 25.5 6.3 33.7-4.1s6.3-25.5-4.1-33.7L525.6 386.7c39.6-40.6 66.4-86.1 79.9-118.4c3.3-7.9 3.3-16.7 0-24.6c-14.9-35.7-46.2-87.7-93-131.1C465.5 68.8 400.8 32 320 32c-68.2 0-125 26.3-169.3 60.8L38.8 5.1zM223.1 149.5C248.6 126.2 282.7 112 320 112c79.5 0 144 64.5 144 144c0 24.9-6.3 48.3-17.4 68.7L408 294.5c5.2-11.8 8-24.8 8-38.5c0-53-43-96-96-96c-2.8 0-5.6 .1-8.4 .4c5.3 9.3 8.4 20.1 8.4 31.6c0 10.2-2.4 19.8-6.6 28.3l-90.3-70.8zm223.1 298L373 389.9c-16.4 6.5-34.3 10.1-53 10.1c-79.5 0-144-64.5-144-144c0-6.9 .5-13.6 1.4-20.2L83.1 161.5C60.3 191.2 44 220.8 34.5 243.7c-3.3 7.9-3.3 16.7 0 24.6c14.9 35.7 46.2 87.7 93 131.1C174.5 443.2 239.2 480 320 480c47.8 0 89.9-12.9 126.2-32.5z"/></svg></span></template>
+        <template id=fa-copy><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M502.6 70.63l-61.25-61.25C435.4 3.371 427.2 0 418.7 0H255.1c-35.35 0-64 28.66-64 64l.0195 256C192 355.4 220.7 384 256 384h192c35.2 0 64-28.8 64-64V93.25C512 84.77 508.6 76.63 502.6 70.63zM464 320c0 8.836-7.164 16-16 16H255.1c-8.838 0-16-7.164-16-16L239.1 64.13c0-8.836 7.164-16 16-16h128L384 96c0 17.67 14.33 32 32 32h47.1V320zM272 448c0 8.836-7.164 16-16 16H63.1c-8.838 0-16-7.164-16-16L47.98 192.1c0-8.836 7.164-16 16-16H160V128H63.99c-35.35 0-64 28.65-64 64l.0098 256C.002 483.3 28.66 512 64 512h192c35.2 0 64-28.8 64-64v-32h-47.1L272 448z"/></svg></span></template>
+        <template id=fa-play><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M73 39c-14.8-9.1-33.4-9.4-48.5-.9S0 62.6 0 80V432c0 17.4 9.4 33.4 24.5 41.9s33.7 8.1 48.5-.9L361 297c14.3-8.7 23-24.2 23-41s-8.7-32.2-23-41L73 39z"/></svg></span></template>
+        <template id=fa-clock-rotate-left><span class=fa-svg><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. --><path d="M75 75L41 41C25.9 25.9 0 36.6 0 57.9V168c0 13.3 10.7 24 24 24H134.1c21.4 0 32.1-25.9 17-41l-30.8-30.8C155 85.5 203 64 256 64c106 0 192 86 192 192s-86 192-192 192c-40.8 0-78.6-12.7-109.7-34.4c-14.5-10.1-34.4-6.6-44.6 7.9s-6.6 34.4 7.9 44.6C151.2 495 201.7 512 256 512c141.4 0 256-114.6 256-256S397.4 0 256 0C185.3 0 121.3 28.7 75 75zm181 53c-13.3 0-24 10.7-24 24V256c0 6.4 2.5 12.5 7 17l72 72c9.4 9.4 24.6 9.4 33.9 0s9.4-24.6 0-33.9l-65-65V152c0-13.3-10.7-24-24-24z"/></svg></span></template>
 
 
 
@@ -3319,19 +3535,19 @@ END_FUNCTION
         </script>
 
 
-        <script src="elasticlunr.min.js"></script>
-        <script src="mark.min.js"></script>
-        <script src="searcher.js"></script>
+        <script src="elasticlunr-ef4e11c1.min.js"></script>
+        <script src="mark-09e88c2c.min.js"></script>
+        <script src="searcher-c2a407aa.js"></script>
 
-        <script src="clipboard.min.js"></script>
-        <script src="highlight.js"></script>
-        <script src="book.js"></script>
+        <script src="clipboard-1626706a.min.js"></script>
+        <script src="highlight-2bf385f2.js"></script>
+        <script src="book-a0b12cfe.js"></script>
 
         <!-- Custom JS scripts -->
-        <script src="iecst.min.js"></script>
-        <script src="llvm.min.js"></script>
-        <script src="custom.js"></script>
-        <script src="highlight.js"></script>
+        <script src="iecst-83312e6c.min.js"></script>
+        <script src="llvm-f75dd1ee.min.js"></script>
+        <script src="custom-d3415838.js"></script>
+        <script src="highlight-2bf385f2.js"></script>
 
         <script>
         window.addEventListener('load', function() {

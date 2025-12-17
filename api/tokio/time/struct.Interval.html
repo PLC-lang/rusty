@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Interval returned by `interval` and `interval_at`."><title>Interval in tokio::time - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../tokio/index.html">tokio</a><span class="version">1.47.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Interval</a></h2><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.missed_tick_behavior" title="missed_tick_behavior">missed_tick_behavior</a></li><li><a href="#method.period" title="period">period</a></li><li><a href="#method.poll_tick" title="poll_tick">poll_tick</a></li><li><a href="#method.reset" title="reset">reset</a></li><li><a href="#method.reset_after" title="reset_after">reset_after</a></li><li><a href="#method.reset_at" title="reset_at">reset_at</a></li><li><a href="#method.reset_immediately" title="reset_immediately">reset_immediately</a></li><li><a href="#method.set_missed_tick_behavior" title="set_missed_tick_behavior">set_missed_tick_behavior</a></li><li><a href="#method.tick" title="tick">tick</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Debug-for-Interval" title="Debug">Debug</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-RefUnwindSafe-for-Interval" title="!RefUnwindSafe">!RefUnwindSafe</a></li><li><a href="#impl-UnwindSafe-for-Interval" title="!UnwindSafe">!UnwindSafe</a></li><li><a href="#impl-Freeze-for-Interval" title="Freeze">Freeze</a></li><li><a href="#impl-Send-for-Interval" title="Send">Send</a></li><li><a href="#impl-Sync-for-Interval" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-Interval" title="Unpin">Unpin</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In tokio::<wbr>time</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">tokio</a>::<wbr><a href="index.html">time</a></div><h1>Struct <span class="struct">Interval</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/tokio/time/interval.rs.html#392-404">Source</a> </span></div><pre class="rust item-decl"><code>pub struct Interval { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Interval returned by <a href="fn.interval.html" title="fn tokio::time::interval"><code>interval</code></a> and <a href="fn.interval_at.html" title="fn tokio::time::interval_at"><code>interval_at</code></a>.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Interval returned by `interval` and `interval_at`."><title>Interval in tokio::time - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../tokio/index.html">tokio</a><span class="version">1.48.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Interval</a></h2><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.missed_tick_behavior" title="missed_tick_behavior">missed_tick_behavior</a></li><li><a href="#method.period" title="period">period</a></li><li><a href="#method.poll_tick" title="poll_tick">poll_tick</a></li><li><a href="#method.reset" title="reset">reset</a></li><li><a href="#method.reset_after" title="reset_after">reset_after</a></li><li><a href="#method.reset_at" title="reset_at">reset_at</a></li><li><a href="#method.reset_immediately" title="reset_immediately">reset_immediately</a></li><li><a href="#method.set_missed_tick_behavior" title="set_missed_tick_behavior">set_missed_tick_behavior</a></li><li><a href="#method.tick" title="tick">tick</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Debug-for-Interval" title="Debug">Debug</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-RefUnwindSafe-for-Interval" title="!RefUnwindSafe">!RefUnwindSafe</a></li><li><a href="#impl-UnwindSafe-for-Interval" title="!UnwindSafe">!UnwindSafe</a></li><li><a href="#impl-Freeze-for-Interval" title="Freeze">Freeze</a></li><li><a href="#impl-Send-for-Interval" title="Send">Send</a></li><li><a href="#impl-Sync-for-Interval" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-Interval" title="Unpin">Unpin</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In tokio::<wbr>time</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">tokio</a>::<wbr><a href="index.html">time</a></div><h1>Struct <span class="struct">Interval</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/tokio/time/interval.rs.html#392-404">Source</a> </span></div><pre class="rust item-decl"><code>pub struct Interval { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Interval returned by <a href="fn.interval.html" title="fn tokio::time::interval"><code>interval</code></a> and <a href="fn.interval_at.html" title="fn tokio::time::interval_at"><code>interval_at</code></a>.</p>
 <p>This type allows you to wait on a sequence of instants with a certain
 duration between each instant. Unlike calling <a href="fn.sleep.html" title="fn tokio::time::sleep"><code>sleep</code></a> in a loop, this lets
 you count the time spent between the calls to <a href="fn.sleep.html" title="fn tokio::time::sleep"><code>sleep</code></a> as well.</p>
@@ -12,17 +12,14 @@ another branch completes first, then no tick has been consumed.</p>
 
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">10</span>));
+<span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">10</span>));
 
-    interval.tick().<span class="kw">await</span>;
-    <span class="comment">// approximately 0ms have elapsed. The first tick completes immediately.
-    </span>interval.tick().<span class="kw">await</span>;
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
+<span class="comment">// approximately 0ms have elapsed. The first tick completes immediately.
+</span>interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    <span class="comment">// approximately 20ms have elapsed.
-</span>}</code></pre></div>
+<span class="comment">// approximately 20ms have elapsed.</span></code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.poll_tick" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#462-494">Source</a><h4 class="code-header">pub fn <a href="#method.poll_tick" class="fn">poll_tick</a>(&amp;mut self, cx: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/task/wake/struct.Context.html" title="struct core::task::wake::Context">Context</a>&lt;'_&gt;) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html" title="enum core::task::poll::Poll">Poll</a>&lt;<a class="struct" href="struct.Instant.html" title="struct tokio::time::Instant">Instant</a>&gt;</h4></section></summary><div class="docblock"><p>Polls for the next instant in the interval to be reached.</p>
 <p>This method can return the following values:</p>
 <ul>
@@ -42,20 +39,17 @@ wakeup.</p>
 
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
+<span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
 
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
-    interval.reset();
+time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
+interval.reset();
 
-    interval.tick().<span class="kw">await</span>;
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    <span class="comment">// approximately 250ms have elapsed.
-</span>}</code></pre></div>
+<span class="comment">// approximately 250ms have elapsed.</span></code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.reset_immediately" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#556-558">Source</a><h4 class="code-header">pub fn <a href="#method.reset_immediately" class="fn">reset_immediately</a>(&amp;mut self)</h4></section></summary><div class="docblock"><p>Resets the interval immediately.</p>
 <p>This method ignores <a href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior"><code>MissedTickBehavior</code></a> strategy.</p>
 <p>This is equivalent to calling <code>reset_at(Instant::now())</code>.</p>
@@ -64,20 +58,17 @@ wakeup.</p>
 
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
+<span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
 
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
-    interval.reset_immediately();
+time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
+interval.reset_immediately();
 
-    interval.tick().<span class="kw">await</span>;
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    <span class="comment">// approximately 150ms have elapsed.
-</span>}</code></pre></div>
+<span class="comment">// approximately 150ms have elapsed.</span></code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.reset_after" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#589-591">Source</a><h4 class="code-header">pub fn <a href="#method.reset_after" class="fn">reset_after</a>(&amp;mut self, after: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/time/struct.Duration.html" title="struct core::time::Duration">Duration</a>)</h4></section></summary><div class="docblock"><p>Resets the interval after the specified <a href="https://doc.rust-lang.org/1.90.0/core/time/struct.Duration.html" title="struct core::time::Duration"><code>std::time::Duration</code></a>.</p>
 <p>This method ignores <a href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior"><code>MissedTickBehavior</code></a> strategy.</p>
 <p>This is equivalent to calling <code>reset_at(Instant::now() + after)</code>.</p>
@@ -86,21 +77,18 @@ wakeup.</p>
 
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
-    interval.tick().<span class="kw">await</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
+interval.tick().<span class="kw">await</span>;
 
-    time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
+time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
 
-    <span class="kw">let </span>after = Duration::from_millis(<span class="number">20</span>);
-    interval.reset_after(after);
+<span class="kw">let </span>after = Duration::from_millis(<span class="number">20</span>);
+interval.reset_after(after);
 
-    interval.tick().<span class="kw">await</span>;
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    <span class="comment">// approximately 170ms have elapsed.
-</span>}</code></pre></div>
+<span class="comment">// approximately 170ms have elapsed.</span></code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.reset_at" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#625-627">Source</a><h4 class="code-header">pub fn <a href="#method.reset_at" class="fn">reset_at</a>(&amp;mut self, deadline: <a class="struct" href="struct.Instant.html" title="struct tokio::time::Instant">Instant</a>)</h4></section></summary><div class="docblock"><p>Resets the interval to a <a href="struct.Instant.html" title="struct tokio::time::Instant"><code>crate::time::Instant</code></a> deadline.</p>
 <p>Sets the next tick to expire at the given instant. If the instant is in
 the past, then the <a href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior"><code>MissedTickBehavior</code></a> strategy will be used to
@@ -113,21 +101,18 @@ any missed ticks before calling this method, then those are discarded.</p>
 
 <span class="kw">use </span>std::time::Duration;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
-    interval.tick().<span class="kw">await</span>;
+<span class="kw">let </span><span class="kw-2">mut </span>interval = time::interval(Duration::from_millis(<span class="number">100</span>));
+interval.tick().<span class="kw">await</span>;
 
-    time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
+time::sleep(Duration::from_millis(<span class="number">50</span>)).<span class="kw">await</span>;
 
-    <span class="kw">let </span>deadline = Instant::now() + Duration::from_millis(<span class="number">30</span>);
-    interval.reset_at(deadline);
+<span class="kw">let </span>deadline = Instant::now() + Duration::from_millis(<span class="number">30</span>);
+interval.reset_at(deadline);
 
-    interval.tick().<span class="kw">await</span>;
-    interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
+interval.tick().<span class="kw">await</span>;
 
-    <span class="comment">// approximately 180ms have elapsed.
-</span>}</code></pre></div>
+<span class="comment">// approximately 180ms have elapsed.</span></code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.missed_tick_behavior" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#630-632">Source</a><h4 class="code-header">pub fn <a href="#method.missed_tick_behavior" class="fn">missed_tick_behavior</a>(&amp;self) -&gt; <a class="enum" href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior">MissedTickBehavior</a></h4></section></summary><div class="docblock"><p>Returns the <a href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior"><code>MissedTickBehavior</code></a> strategy currently being used.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.set_missed_tick_behavior" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#635-637">Source</a><h4 class="code-header">pub fn <a href="#method.set_missed_tick_behavior" class="fn">set_missed_tick_behavior</a>(&amp;mut self, behavior: <a class="enum" href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior">MissedTickBehavior</a>)</h4></section></summary><div class="docblock"><p>Sets the <a href="enum.MissedTickBehavior.html" title="enum tokio::time::MissedTickBehavior"><code>MissedTickBehavior</code></a> strategy that should be used.</p>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.period" class="method"><a class="src rightside" href="../../src/tokio/time/interval.rs.html#640-642">Source</a><h4 class="code-header">pub fn <a href="#method.period" class="fn">period</a>(&amp;self) -&gt; <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/time/struct.Duration.html" title="struct core::time::Duration">Duration</a></h4></section></summary><div class="docblock"><p>Returns the period of the interval.</p>

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["OpenError"],"fn":["open","open_browser"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_str_literal","preserve_str_literal"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["EndPosition","RangeUnsatisfiableError","StartPosition"],"fn":["parse_range_header"],"struct":["ParsedRanges","SyntacticallyCorrectRange"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"externcrate":["typenum"],"macro":["arr"],"mod":["arr","functional","iter","sequence"],"struct":["GenericArray"],"trait":["ArrayLength"]};

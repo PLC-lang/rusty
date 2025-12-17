@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["friendly","rfc2822","strtime","temporal"],"struct":["StdFmtWrite","StdIoWrite"],"trait":["Write"]};

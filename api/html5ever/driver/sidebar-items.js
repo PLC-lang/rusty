@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["parse_document","parse_fragment","parse_fragment_for_element"],"struct":["ParseOpts","Parser"]};

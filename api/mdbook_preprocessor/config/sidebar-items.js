@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["RustEdition","TextDirection"],"struct":["BookConfig","BuildConfig","Code","Config","Fold","HtmlConfig","Playground","Print","RustConfig","Search","SearchChapterSettings"]};

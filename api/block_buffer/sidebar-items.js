@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["BlockBuffer","Eager","Error","Lazy"],"trait":["BufferKind"],"type":["Block","EagerBuffer","LazyBuffer"]};

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Hash128","SipHasher","SipHasher13","SipHasher24"],"trait":["Hasher128"]};

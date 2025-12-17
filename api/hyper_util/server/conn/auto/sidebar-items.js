@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["upgrade"],"struct":["Builder","Connection","Http1Builder","UpgradeableConnection"],"trait":["HttpServerConnExec"]};

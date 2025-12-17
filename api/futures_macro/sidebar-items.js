@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"attr":["test_internal"],"macro":["join_internal","select_biased_internal","select_internal","stream_select_internal","try_join_internal"]};

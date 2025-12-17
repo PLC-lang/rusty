@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["InvalidLength"],"trait":["AlgorithmName","BlockSizeUser","InnerInit","InnerIvInit","InnerUser","IvSizeUser","KeyInit","KeyIvInit","KeySizeUser","OutputSizeUser","ParBlocksSizeUser","Reset"],"type":["Block","Iv","Key","Output","ParBlocks"]};

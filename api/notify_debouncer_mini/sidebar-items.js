@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["DebouncedEventKind"],"fn":["new_debouncer","new_debouncer_opt"],"struct":["Config","DebouncedEvent","Debouncer"],"trait":["DebounceEventHandler"],"type":["DebounceEventResult"]};

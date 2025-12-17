@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["serve"],"mod":["body","error_handling","extract","handler","middleware","response","routing","serve"],"struct":["Error","Extension","Form","Json","Router"],"trait":["RequestExt","RequestPartsExt","ServiceExt"],"type":["BoxError"]};

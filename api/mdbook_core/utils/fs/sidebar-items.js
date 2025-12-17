@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"fn":["copy_files_except_ext","create_dir_all","path_to_root","read_to_string","remove_dir_content","write"]};

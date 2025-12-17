@@ -1,1 +1,0 @@
-searchState.loadedDescShard("cssparser_macros", 0, "Expand a TokenStream corresponding to the <code>match_byte</code> macro.")

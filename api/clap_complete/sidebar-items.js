@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ValueHint"],"mod":["aot","generator","shells"]};

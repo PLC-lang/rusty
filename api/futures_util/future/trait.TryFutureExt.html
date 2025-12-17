@@ -1,9 +1,6 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Adapters specific to `Result`-returning futures"><title>TryFutureExt in futures_util::future - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../futures_util/index.html">futures_<wbr>util</a><span class="version">0.3.31</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">TryFuture<wbr>Ext</a></h2><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.and_then" title="and_then">and_then</a></li><li><a href="#method.err_into" title="err_into">err_into</a></li><li><a href="#method.flatten_sink" title="flatten_sink">flatten_sink</a></li><li><a href="#method.inspect_err" title="inspect_err">inspect_err</a></li><li><a href="#method.inspect_ok" title="inspect_ok">inspect_ok</a></li><li><a href="#method.into_future" title="into_future">into_future</a></li><li><a href="#method.map_err" title="map_err">map_err</a></li><li><a href="#method.map_ok" title="map_ok">map_ok</a></li><li><a href="#method.map_ok_or_else" title="map_ok_or_else">map_ok_or_else</a></li><li><a href="#method.ok_into" title="ok_into">ok_into</a></li><li><a href="#method.or_else" title="or_else">or_else</a></li><li><a href="#method.try_flatten" title="try_flatten">try_flatten</a></li><li><a href="#method.try_flatten_stream" title="try_flatten_stream">try_flatten_stream</a></li><li><a href="#method.try_poll_unpin" title="try_poll_unpin">try_poll_unpin</a></li><li><a href="#method.unwrap_or_else" title="unwrap_or_else">unwrap_or_else</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In futures_<wbr>util::<wbr>future</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">futures_util</a>::<wbr><a href="index.html">future</a></div><h1>Trait <span class="trait">TryFutureExt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/futures_util/future/try_future/mod.rs.html#137-625">Source</a> </span></div><pre class="rust item-decl"><code>pub trait TryFutureExt: <a class="trait" href="trait.TryFuture.html" title="trait futures_util::future::TryFuture">TryFuture</a> {
-<details class="toggle type-contents-toggle"><summary class="hideme"><span>Show 15 methods</span></summary>    // Provided methods
-    fn <a href="#method.flatten_sink" class="fn">flatten_sink</a>&lt;Item&gt;(self) -&gt; <a class="struct" href="struct.FlattenSink.html" title="struct futures_util::future::FlattenSink">FlattenSink</a>&lt;Self, Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>&gt;
-       <span class="where">where Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>: <a class="trait" href="../sink/trait.Sink.html" title="trait futures_util::sink::Sink">Sink</a>&lt;Item, Error = Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Error" title="type futures_util::future::TryFuture::Error">Error</a>&gt;,
-             Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
-<span class="item-spacer"></span>    fn <a href="#method.map_ok" class="fn">map_ok</a>&lt;T, F&gt;(self, f: F) -&gt; <a class="struct" href="struct.MapOk.html" title="struct futures_util::future::MapOk">MapOk</a>&lt;Self, F&gt; <a href="#" class="tooltip" data-notable-ty="MapOk&lt;Self, F&gt;">ⓘ</a>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Adapters specific to `Result`-returning futures"><title>TryFutureExt in futures_util::future - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="futures_util" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../static.files/favicon-044be391.svg"></head><body class="rustdoc trait"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../futures_util/index.html">futures_<wbr>util</a><span class="version">0.3.31</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">TryFuture<wbr>Ext</a></h2><h3><a href="#provided-methods">Provided Methods</a></h3><ul class="block"><li><a href="#method.and_then" title="and_then">and_then</a></li><li><a href="#method.err_into" title="err_into">err_into</a></li><li><a href="#method.inspect_err" title="inspect_err">inspect_err</a></li><li><a href="#method.inspect_ok" title="inspect_ok">inspect_ok</a></li><li><a href="#method.into_future" title="into_future">into_future</a></li><li><a href="#method.map_err" title="map_err">map_err</a></li><li><a href="#method.map_ok" title="map_ok">map_ok</a></li><li><a href="#method.map_ok_or_else" title="map_ok_or_else">map_ok_or_else</a></li><li><a href="#method.ok_into" title="ok_into">ok_into</a></li><li><a href="#method.or_else" title="or_else">or_else</a></li><li><a href="#method.try_flatten" title="try_flatten">try_flatten</a></li><li><a href="#method.try_flatten_stream" title="try_flatten_stream">try_flatten_stream</a></li><li><a href="#method.try_poll_unpin" title="try_poll_unpin">try_poll_unpin</a></li><li><a href="#method.unwrap_or_else" title="unwrap_or_else">unwrap_or_else</a></li></ul><h3><a href="#implementors">Implementors</a></h3></section><div id="rustdoc-modnav"><h2><a href="index.html">In futures_<wbr>util::<wbr>future</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../index.html">futures_util</a>::<wbr><a href="index.html">future</a></div><h1>Trait <span class="trait">TryFutureExt</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../src/futures_util/future/try_future/mod.rs.html#137-625">Source</a> </span></div><pre class="rust item-decl"><code>pub trait TryFutureExt: <a class="trait" href="trait.TryFuture.html" title="trait futures_util::future::TryFuture">TryFuture</a> {
+<details class="toggle type-contents-toggle"><summary class="hideme"><span>Show 14 methods</span></summary>    // Provided methods
+    fn <a href="#method.map_ok" class="fn">map_ok</a>&lt;T, F&gt;(self, f: F) -&gt; <a class="struct" href="struct.MapOk.html" title="struct futures_util::future::MapOk">MapOk</a>&lt;Self, F&gt; <a href="#" class="tooltip" data-notable-ty="MapOk&lt;Self, F&gt;">ⓘ</a>
        <span class="where">where F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>) -&gt; T,
              Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a></span> { ... }
 <span class="item-spacer"></span>    fn <a href="#method.map_ok_or_else" class="fn">map_ok_or_else</a>&lt;T, E, F&gt;(self, e: E, f: F) -&gt; <a class="struct" href="struct.MapOkOrElse.html" title="struct futures_util::future::MapOkOrElse">MapOkOrElse</a>&lt;Self, F, E&gt; <a href="#" class="tooltip" data-notable-ty="MapOkOrElse&lt;Self, F, E&gt;">ⓘ</a>
@@ -50,28 +47,7 @@
     ) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html" title="enum core::task::poll::Poll">Poll</a>&lt;<a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>, Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Error" title="type futures_util::future::TryFuture::Error">Error</a>&gt;&gt;
        <span class="where">where Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a></span> { ... }
 </details>}</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Adapters specific to <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result"><code>Result</code></a>-returning futures</p>
-</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.flatten_sink" class="method"><a class="src rightside" href="../../src/futures_util/future/try_future/mod.rs.html#171-177">Source</a><h4 class="code-header">fn <a href="#method.flatten_sink" class="fn">flatten_sink</a>&lt;Item&gt;(self) -&gt; <a class="struct" href="struct.FlattenSink.html" title="struct futures_util::future::FlattenSink">FlattenSink</a>&lt;Self, Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>&gt;<div class="where">where
-    Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>: <a class="trait" href="../sink/trait.Sink.html" title="trait futures_util::sink::Sink">Sink</a>&lt;Item, Error = Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Error" title="type futures_util::future::TryFuture::Error">Error</a>&gt;,
-    Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Flattens the execution of this future when the successful result of this
-future is a <a href="../sink/trait.Sink.html" title="trait futures_util::sink::Sink"><code>Sink</code></a>.</p>
-<p>This can be useful when sink initialization is deferred, and it is
-convenient to work with that sink as if the sink was available at the
-call site.</p>
-<p>Note that this function consumes this future and returns a wrapped
-version of it.</p>
-<h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5>
-<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::{Future, TryFutureExt};
-<span class="kw">use </span>futures::sink::Sink;
-
-<span class="kw">fn </span>make_sink_async() -&gt; <span class="kw">impl </span>Future&lt;Output = <span class="prelude-ty">Result</span>&lt;
-    <span class="kw">impl </span>Sink&lt;T, Error = E&gt;,
-    E,
-&gt;&gt; { <span class="comment">// ... }
-</span><span class="kw">fn </span>take_sink(sink: <span class="kw">impl </span>Sink&lt;T, Error = E&gt;) { <span class="comment">/* ... */ </span>}
-
-<span class="kw">let </span>fut = make_sink_async();
-take_sink(fut.flatten_sink())</code></pre></div>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.map_ok" class="method"><a class="src rightside" href="../../src/futures_util/future/try_future/mod.rs.html#217-223">Source</a><h4 class="code-header">fn <a href="#method.map_ok" class="fn">map_ok</a>&lt;T, F&gt;(self, f: F) -&gt; <a class="struct" href="struct.MapOk.html" title="struct futures_util::future::MapOk">MapOk</a>&lt;Self, F&gt; <a href="#" class="tooltip" data-notable-ty="MapOk&lt;Self, F&gt;">ⓘ</a><div class="where">where
+</div></details><h2 id="provided-methods" class="section-header">Provided Methods<a href="#provided-methods" class="anchor">§</a></h2><div class="methods"><details class="toggle method-toggle" open><summary><section id="method.map_ok" class="method"><a class="src rightside" href="../../src/futures_util/future/try_future/mod.rs.html#217-223">Source</a><h4 class="code-header">fn <a href="#method.map_ok" class="fn">map_ok</a>&lt;T, F&gt;(self, f: F) -&gt; <a class="struct" href="struct.MapOk.html" title="struct futures_util::future::MapOk">MapOk</a>&lt;Self, F&gt; <a href="#" class="tooltip" data-notable-ty="MapOk&lt;Self, F&gt;">ⓘ</a><div class="where">where
     F: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/function/trait.FnOnce.html" title="trait core::ops::function::FnOnce">FnOnce</a>(Self::<a class="associatedtype" href="trait.TryFuture.html#associatedtype.Ok" title="type futures_util::future::TryFuture::Ok">Ok</a>) -&gt; T,
     Self: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sized.html" title="trait core::marker::Sized">Sized</a>,</div></h4></section></summary><div class="docblock"><p>Maps this future’s success value to a different value.</p>
 <p>This method can be used to change the <a href="trait.TryFuture.html#associatedtype.Ok" title="associated type futures_util::future::TryFuture::Ok"><code>Ok</code></a> type of the
@@ -83,7 +59,7 @@ to an <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#var
 the provided closure will never be invoked.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples</h5>
+<h5 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Ok</span>::&lt;i32, i32&gt;(<span class="number">1</span>) };
@@ -111,7 +87,7 @@ to an <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#var
 the provided closure will never be invoked.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-2"><a class="doc-anchor" href="#examples-2">§</a>Examples</h5>
+<h5 id="examples-1"><a class="doc-anchor" href="#examples-1">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Ok</span>::&lt;i32, i32&gt;(<span class="number">5</span>) };
@@ -128,13 +104,13 @@ wrapped version of it.</p>
 of the future into a different type. It is similar to the
 <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#method.map_err" title="method core::result::Result::map_err"><code>Result::map_err</code></a> method. You can use this method for example to
 ensure that futures have the same <a href="trait.TryFuture.html#associatedtype.Error" title="associated type futures_util::future::TryFuture::Error"><code>Error</code></a> type when
-using <a href="../macro.select.html" title="macro futures_util::select"><code>select!</code></a> or <a href="../macro.join.html" title="macro futures_util::join"><code>join!</code></a>.</p>
+using <a href="crate::select"><code>select!</code></a> or <a href="crate::join"><code>join!</code></a>.</p>
 <p>The provided closure <code>f</code> will only be called if this future is resolved
 to an <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#variant.Err" title="variant core::result::Result::Err"><code>Err</code></a>. If it resolves to an <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#variant.Ok" title="variant core::result::Result::Ok"><code>Ok</code></a>, panics, or is dropped, then
 the provided closure will never be invoked.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-3"><a class="doc-anchor" href="#examples-3">§</a>Examples</h5>
+<h5 id="examples-2"><a class="doc-anchor" href="#examples-2">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Err</span>::&lt;i32, i32&gt;(<span class="number">1</span>) };
@@ -156,10 +132,10 @@ using the <a href="https://doc.rust-lang.org/1.90.0/core/convert/trait.Into.html
 <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result"><code>Result</code></a>: It lets the compiler infer the type of the resulting
 error. Just as <a href="trait.TryFutureExt.html#method.map_err" title="method futures_util::future::TryFutureExt::map_err"><code>map_err</code></a>, this is useful for
 example to ensure that futures have the same <a href="trait.TryFuture.html#associatedtype.Error" title="associated type futures_util::future::TryFuture::Error"><code>Error</code></a>
-type when using <a href="../macro.select.html" title="macro futures_util::select"><code>select!</code></a> or <a href="../macro.join.html" title="macro futures_util::join"><code>join!</code></a>.</p>
+type when using <a href="crate::select"><code>select!</code></a> or <a href="crate::join"><code>join!</code></a>.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-4"><a class="doc-anchor" href="#examples-4">§</a>Examples</h5>
+<h5 id="examples-3"><a class="doc-anchor" href="#examples-3">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future_err_u8 = <span class="kw">async </span>{ <span class="prelude-val">Err</span>::&lt;(), u8&gt;(<span class="number">1</span>) };
@@ -180,7 +156,7 @@ dropped, then the provided closure will never be invoked. The
 returned by <code>f</code> have to match.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-5"><a class="doc-anchor" href="#examples-5">§</a>Examples</h5>
+<h5 id="examples-4"><a class="doc-anchor" href="#examples-4">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Ok</span>::&lt;i32, i32&gt;(<span class="number">1</span>) };
@@ -206,7 +182,7 @@ dropped, then the provided closure will never be invoked. The
 have to match.</p>
 <p>Note that this method consumes the future it is called on and returns a
 wrapped version of it.</p>
-<h5 id="examples-6"><a class="doc-anchor" href="#examples-6">§</a>Examples</h5>
+<h5 id="examples-5"><a class="doc-anchor" href="#examples-5">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Err</span>::&lt;i32, i32&gt;(<span class="number">1</span>) };
@@ -227,7 +203,7 @@ no effect:</p>
 working on such code, you might want to check out what’s happening at
 various parts in the pipeline, without consuming the intermediate
 value. To do that, insert a call to <code>inspect_ok</code>.</p>
-<h5 id="examples-7"><a class="doc-anchor" href="#examples-7">§</a>Examples</h5>
+<h5 id="examples-6"><a class="doc-anchor" href="#examples-6">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Ok</span>::&lt;<span class="kw">_</span>, ()&gt;(<span class="number">1</span>) };
@@ -240,7 +216,7 @@ value. To do that, insert a call to <code>inspect_ok</code>.</p>
 working on such code, you might want to check out what’s happening at
 various parts in the pipeline, without consuming the intermediate
 value. To do that, insert a call to <code>inspect_err</code>.</p>
-<h5 id="examples-8"><a class="doc-anchor" href="#examples-8">§</a>Examples</h5>
+<h5 id="examples-7"><a class="doc-anchor" href="#examples-7">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Err</span>::&lt;(), <span class="kw">_</span>&gt;(<span class="number">1</span>) };
@@ -260,7 +236,7 @@ convenient to work with that stream as if stream was available at the
 call site.</p>
 <p>Note that this function consumes this future and returns a wrapped
 version of it.</p>
-<h5 id="examples-9"><a class="doc-anchor" href="#examples-9">§</a>Examples</h5>
+<h5 id="examples-8"><a class="doc-anchor" href="#examples-8">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 <span class="kw">use </span>futures::stream::{<span class="self">self</span>, TryStreamExt};
 
@@ -280,7 +256,7 @@ contain the original future’s success value as output. Otherwise, the
 closure <code>f</code> is called with the error value to produce an alternate
 success value.</p>
 <p>This method is similar to the <a href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html#method.unwrap_or_else" title="method core::result::Result::unwrap_or_else"><code>Result::unwrap_or_else</code></a> method.</p>
-<h5 id="examples-10"><a class="doc-anchor" href="#examples-10">§</a>Examples</h5>
+<h5 id="examples-9"><a class="doc-anchor" href="#examples-9">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::TryFutureExt;
 
 <span class="kw">let </span>future = <span class="kw">async </span>{ <span class="prelude-val">Err</span>::&lt;(), <span class="kw-2">&amp;</span>str&gt;(<span class="string">"Boom!"</span>) };
@@ -292,7 +268,7 @@ success value.</p>
 <p><a href="trait.TryFuture.html" title="trait futures_util::future::TryFuture"><code>TryFuture</code></a>s currently do not implement the
 <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html" title="trait core::future::future::Future"><code>Future</code></a> trait due to limitations of the
 compiler.</p>
-<h5 id="examples-11"><a class="doc-anchor" href="#examples-11">§</a>Examples</h5>
+<h5 id="examples-10"><a class="doc-anchor" href="#examples-10">§</a>Examples</h5>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>futures::future::{Future, TryFuture, TryFutureExt};
 
 <span class="kw">fn </span>make_try_future() -&gt; <span class="kw">impl </span>TryFuture&lt;<span class="prelude-val">Ok </span>= T, Error = E&gt; { <span class="comment">// ... }

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Message","Role"],"mod":["frame"],"struct":["WebSocket","WebSocketConfig","WebSocketContext"]};

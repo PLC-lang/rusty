@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Segment"],"fn":["deserialize","serialize"],"struct":["Deserializer","Error","Path","Segments","Serializer","Track"]};

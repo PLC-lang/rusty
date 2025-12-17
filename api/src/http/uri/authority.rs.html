@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-1.3.1/src/uri/authority.rs`."><title>authority.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/uri/</div>authority.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::convert::TryFrom;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/http-0.2.12/src/uri/authority.rs`."><title>authority.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="http" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">http/uri/</div>authority.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span>std::convert::TryFrom;
 <a href=#2 id=2 data-nosnippet>2</a><span class="kw">use </span>std::hash::{Hash, Hasher};
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>std::str::FromStr;
 <a href=#4 id=4 data-nosnippet>4</a><span class="kw">use </span>std::{cmp, fmt, str};
@@ -24,7 +24,7 @@
 <a href=#24 id=24 data-nosnippet>24</a>    <span class="comment">// Not public while `bytes` is unstable.
 <a href=#25 id=25 data-nosnippet>25</a>    </span><span class="kw">pub</span>(<span class="kw">super</span>) <span class="kw">fn </span>from_shared(s: Bytes) -&gt; <span class="prelude-ty">Result</span>&lt;<span class="self">Self</span>, InvalidUri&gt; {
 <a href=#26 id=26 data-nosnippet>26</a>        <span class="comment">// Precondition on create_authority: trivially satisfied by the
-<a href=#27 id=27 data-nosnippet>27</a>        // identity closure
+<a href=#27 id=27 data-nosnippet>27</a>        // identity clousre
 <a href=#28 id=28 data-nosnippet>28</a>        </span>create_authority(s, |s| s)
 <a href=#29 id=29 data-nosnippet>29</a>    }
 <a href=#30 id=30 data-nosnippet>30</a>
@@ -238,7 +238,7 @@
 <a href=#238 id=238 data-nosnippet>238</a>    </span><span class="kw">pub fn </span>port(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;Port&lt;<span class="kw-2">&amp;</span>str&gt;&gt; {
 <a href=#239 id=239 data-nosnippet>239</a>        <span class="kw">let </span>bytes = <span class="self">self</span>.as_str();
 <a href=#240 id=240 data-nosnippet>240</a>        bytes
-<a href=#241 id=241 data-nosnippet>241</a>            .rfind(<span class="string">':'</span>)
+<a href=#241 id=241 data-nosnippet>241</a>            .rfind(<span class="string">":"</span>)
 <a href=#242 id=242 data-nosnippet>242</a>            .and_then(|i| Port::from_str(<span class="kw-2">&amp;</span>bytes[i + <span class="number">1</span>..]).ok())
 <a href=#243 id=243 data-nosnippet>243</a>    }
 <a href=#244 id=244 data-nosnippet>244</a>
@@ -253,7 +253,7 @@
 <a href=#253 id=253 data-nosnippet>253</a>    /// assert_eq!(authority.port_u16(), Some(80));
 <a href=#254 id=254 data-nosnippet>254</a>    /// ```
 <a href=#255 id=255 data-nosnippet>255</a>    </span><span class="kw">pub fn </span>port_u16(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;u16&gt; {
-<a href=#256 id=256 data-nosnippet>256</a>        <span class="self">self</span>.port().map(|p| p.as_u16())
+<a href=#256 id=256 data-nosnippet>256</a>        <span class="self">self</span>.port().and_then(|p| <span class="prelude-val">Some</span>(p.as_u16()))
 <a href=#257 id=257 data-nosnippet>257</a>    }
 <a href=#258 id=258 data-nosnippet>258</a>
 <a href=#259 id=259 data-nosnippet>259</a>    <span class="doccomment">/// Return a str representation of the authority
@@ -434,7 +434,7 @@
 <a href=#434 id=434 data-nosnippet>434</a>
 <a href=#435 id=435 data-nosnippet>435</a>        // Preconditon on create_authority: copy_from_slice() copies all of
 <a href=#436 id=436 data-nosnippet>436</a>        // bytes from the [u8] parameter into a new Bytes
-<a href=#437 id=437 data-nosnippet>437</a>        </span>create_authority(s, Bytes::copy_from_slice)
+<a href=#437 id=437 data-nosnippet>437</a>        </span>create_authority(s, |s| Bytes::copy_from_slice(s))
 <a href=#438 id=438 data-nosnippet>438</a>    }
 <a href=#439 id=439 data-nosnippet>439</a>}
 <a href=#440 id=440 data-nosnippet>440</a>
@@ -486,7 +486,7 @@
 <a href=#486 id=486 data-nosnippet>486</a>
 <a href=#487 id=487 data-nosnippet>487</a><span class="kw">fn </span>host(auth: <span class="kw-2">&amp;</span>str) -&gt; <span class="kw-2">&amp;</span>str {
 <a href=#488 id=488 data-nosnippet>488</a>    <span class="kw">let </span>host_port = auth
-<a href=#489 id=489 data-nosnippet>489</a>        .rsplit(<span class="string">'@'</span>)
+<a href=#489 id=489 data-nosnippet>489</a>        .rsplitn(<span class="number">2</span>, <span class="string">'@'</span>)
 <a href=#490 id=490 data-nosnippet>490</a>        .next()
 <a href=#491 id=491 data-nosnippet>491</a>        .expect(<span class="string">"split always has at least 1 item"</span>);
 <a href=#492 id=492 data-nosnippet>492</a>

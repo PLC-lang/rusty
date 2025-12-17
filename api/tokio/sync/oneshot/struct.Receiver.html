@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Receives a value from the associated `Sender`."><title>Receiver in tokio::sync::oneshot - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../tokio/index.html">tokio</a><span class="version">1.47.1</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Receiver</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.blocking_recv" title="blocking_recv">blocking_recv</a></li><li><a href="#method.close" title="close">close</a></li><li><a href="#method.is_empty" title="is_empty">is_empty</a></li><li><a href="#method.is_terminated" title="is_terminated">is_terminated</a></li><li><a href="#method.try_recv" title="try_recv">try_recv</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Debug-for-Receiver%3CT%3E" title="Debug">Debug</a></li><li><a href="#impl-Drop-for-Receiver%3CT%3E" title="Drop">Drop</a></li><li><a href="#impl-Future-for-Receiver%3CT%3E" title="Future">Future</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-RefUnwindSafe-for-Receiver%3CT%3E" title="!RefUnwindSafe">!RefUnwindSafe</a></li><li><a href="#impl-UnwindSafe-for-Receiver%3CT%3E" title="!UnwindSafe">!UnwindSafe</a></li><li><a href="#impl-Freeze-for-Receiver%3CT%3E" title="Freeze">Freeze</a></li><li><a href="#impl-Send-for-Receiver%3CT%3E" title="Send">Send</a></li><li><a href="#impl-Sync-for-Receiver%3CT%3E" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-Receiver%3CT%3E" title="Unpin">Unpin</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-IntoFuture-for-F" title="IntoFuture">IntoFuture</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In tokio::<wbr>sync::<wbr>oneshot</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">tokio</a>::<wbr><a href="../index.html">sync</a>::<wbr><a href="index.html">oneshot</a></div><h1>Struct <span class="struct">Receiver</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/tokio/sync/oneshot.rs.html#322-330">Source</a> </span></div><pre class="rust item-decl"><code>pub struct Receiver&lt;T&gt; { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Receives a value from the associated <a href="struct.Sender.html" title="struct tokio::sync::oneshot::Sender"><code>Sender</code></a>.</p>
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Receives a value from the associated `Sender`."><title>Receiver in tokio::sync::oneshot - Rust</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="sidebar-items.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc struct"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle" title="show sidebar"></button></nav><nav class="sidebar"><div class="sidebar-crate"><h2><a href="../../../tokio/index.html">tokio</a><span class="version">1.48.0</span></h2></div><div class="sidebar-elems"><section id="rustdoc-toc"><h2 class="location"><a href="#">Receiver</a></h2><h3><a href="#">Sections</a></h3><ul class="block top-toc"><li><a href="#examples" title="Examples">Examples</a></li></ul><h3><a href="#implementations">Methods</a></h3><ul class="block method"><li><a href="#method.blocking_recv" title="blocking_recv">blocking_recv</a></li><li><a href="#method.close" title="close">close</a></li><li><a href="#method.is_empty" title="is_empty">is_empty</a></li><li><a href="#method.is_terminated" title="is_terminated">is_terminated</a></li><li><a href="#method.try_recv" title="try_recv">try_recv</a></li></ul><h3><a href="#trait-implementations">Trait Implementations</a></h3><ul class="block trait-implementation"><li><a href="#impl-Debug-for-Receiver%3CT%3E" title="Debug">Debug</a></li><li><a href="#impl-Drop-for-Receiver%3CT%3E" title="Drop">Drop</a></li><li><a href="#impl-Future-for-Receiver%3CT%3E" title="Future">Future</a></li></ul><h3><a href="#synthetic-implementations">Auto Trait Implementations</a></h3><ul class="block synthetic-implementation"><li><a href="#impl-RefUnwindSafe-for-Receiver%3CT%3E" title="!RefUnwindSafe">!RefUnwindSafe</a></li><li><a href="#impl-UnwindSafe-for-Receiver%3CT%3E" title="!UnwindSafe">!UnwindSafe</a></li><li><a href="#impl-Freeze-for-Receiver%3CT%3E" title="Freeze">Freeze</a></li><li><a href="#impl-Send-for-Receiver%3CT%3E" title="Send">Send</a></li><li><a href="#impl-Sync-for-Receiver%3CT%3E" title="Sync">Sync</a></li><li><a href="#impl-Unpin-for-Receiver%3CT%3E" title="Unpin">Unpin</a></li></ul><h3><a href="#blanket-implementations">Blanket Implementations</a></h3><ul class="block blanket-implementation"><li><a href="#impl-Any-for-T" title="Any">Any</a></li><li><a href="#impl-Borrow%3CT%3E-for-T" title="Borrow&#60;T&#62;">Borrow&#60;T&#62;</a></li><li><a href="#impl-BorrowMut%3CT%3E-for-T" title="BorrowMut&#60;T&#62;">BorrowMut&#60;T&#62;</a></li><li><a href="#impl-From%3CT%3E-for-T" title="From&#60;T&#62;">From&#60;T&#62;</a></li><li><a href="#impl-Into%3CU%3E-for-T" title="Into&#60;U&#62;">Into&#60;U&#62;</a></li><li><a href="#impl-IntoFuture-for-F" title="IntoFuture">IntoFuture</a></li><li><a href="#impl-TryFrom%3CU%3E-for-T" title="TryFrom&#60;U&#62;">TryFrom&#60;U&#62;</a></li><li><a href="#impl-TryInto%3CU%3E-for-T" title="TryInto&#60;U&#62;">TryInto&#60;U&#62;</a></li></ul></section><div id="rustdoc-modnav"><h2><a href="index.html">In tokio::<wbr>sync::<wbr>oneshot</a></h2></div></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><div class="width-limiter"><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="../../index.html">tokio</a>::<wbr><a href="../index.html">sync</a>::<wbr><a href="index.html">oneshot</a></div><h1>Struct <span class="struct">Receiver</span><button id="copy-path" title="Copy item path to clipboard">Copy item path</button></h1><rustdoc-toolbar></rustdoc-toolbar><span class="sub-heading"><a class="src" href="../../../src/tokio/sync/oneshot.rs.html#322-330">Source</a> </span></div><pre class="rust item-decl"><code>pub struct Receiver&lt;T&gt; { <span class="comment">/* private fields */</span> }</code></pre><details class="toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Receives a value from the associated <a href="struct.Sender.html" title="struct tokio::sync::oneshot::Sender"><code>Sender</code></a>.</p>
 <p>A pair of both a <a href="struct.Sender.html" title="struct tokio::sync::oneshot::Sender"><code>Sender</code></a> and a <a href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver"><code>Receiver</code></a>  are created by the
 <a href="fn.channel.html" title="fn tokio::sync::oneshot::channel"><code>channel</code></a> function.</p>
 <p>This channel has no <code>recv</code> method because the receiver itself implements the
@@ -13,38 +13,32 @@ does not mean that the message is lost. It is just delayed.)</p>
 <h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, rx) = oneshot::channel();
+<span class="kw">let </span>(tx, rx) = oneshot::channel();
 
-    tokio::spawn(<span class="kw">async move </span>{
-        <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = tx.send(<span class="number">3</span>) {
-            <span class="macro">println!</span>(<span class="string">"the receiver dropped"</span>);
-        }
-    });
-
-    <span class="kw">match </span>rx.<span class="kw">await </span>{
-        <span class="prelude-val">Ok</span>(v) =&gt; <span class="macro">println!</span>(<span class="string">"got = {:?}"</span>, v),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">"the sender dropped"</span>),
+tokio::spawn(<span class="kw">async move </span>{
+    <span class="kw">if let </span><span class="prelude-val">Err</span>(<span class="kw">_</span>) = tx.send(<span class="number">3</span>) {
+        <span class="macro">println!</span>(<span class="string">"the receiver dropped"</span>);
     }
+});
+
+<span class="kw">match </span>rx.<span class="kw">await </span>{
+    <span class="prelude-val">Ok</span>(v) =&gt; <span class="macro">println!</span>(<span class="string">"got = {:?}"</span>, v),
+    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">"the sender dropped"</span>),
 }</code></pre></div>
 <p>If the sender is dropped without sending, the receiver will fail with
 <a href="error/struct.RecvError.html" title="struct tokio::sync::oneshot::error::RecvError"><code>error::RecvError</code></a>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, rx) = oneshot::channel::&lt;u32&gt;();
+<span class="kw">let </span>(tx, rx) = oneshot::channel::&lt;u32&gt;();
 
-    tokio::spawn(<span class="kw">async move </span>{
-        drop(tx);
-    });
+tokio::spawn(<span class="kw">async move </span>{
+    drop(tx);
+});
 
-    <span class="kw">match </span>rx.<span class="kw">await </span>{
-        <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"This doesn't happen"</span>),
-        <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">"the sender dropped"</span>),
-    }
+<span class="kw">match </span>rx.<span class="kw">await </span>{
+    <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; <span class="macro">panic!</span>(<span class="string">"This doesn't happen"</span>),
+    <span class="prelude-val">Err</span>(<span class="kw">_</span>) =&gt; <span class="macro">println!</span>(<span class="string">"the sender dropped"</span>),
 }</code></pre></div>
 <p>To use a <code>Receiver</code> in a <code>tokio::select!</code> loop, add <code>&amp;mut</code> in front of the
 channel.</p>
@@ -52,27 +46,24 @@ channel.</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tokio::time::{interval, sleep, Duration};
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(send, <span class="kw-2">mut </span>recv) = oneshot::channel();
-    <span class="kw">let </span><span class="kw-2">mut </span>interval = interval(Duration::from_millis(<span class="number">100</span>));
+<span class="kw">let </span>(send, <span class="kw-2">mut </span>recv) = oneshot::channel();
+<span class="kw">let </span><span class="kw-2">mut </span>interval = interval(Duration::from_millis(<span class="number">100</span>));
 
-    tokio::spawn(<span class="kw">async move </span>{
-        sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
-        send.send(<span class="string">"shut down"</span>).unwrap();
-    });
+tokio::spawn(<span class="kw">async move </span>{
+    sleep(Duration::from_secs(<span class="number">1</span>)).<span class="kw">await</span>;
+    send.send(<span class="string">"shut down"</span>).unwrap();
+});
 
-    <span class="kw">loop </span>{
-        <span class="macro">tokio::select!</span> {
-            <span class="kw">_ </span>= interval.tick() =&gt; <span class="macro">println!</span>(<span class="string">"Another 100ms"</span>),
-            msg = <span class="kw-2">&amp;mut </span>recv =&gt; {
-                <span class="macro">println!</span>(<span class="string">"Got message: {}"</span>, msg.unwrap());
-                <span class="kw">break</span>;
-            }
+<span class="kw">loop </span>{
+    <span class="macro">tokio::select!</span> {
+        <span class="kw">_ </span>= interval.tick() =&gt; <span class="macro">println!</span>(<span class="string">"Another 100ms"</span>),
+        msg = <span class="kw-2">&amp;mut </span>recv =&gt; {
+            <span class="macro">println!</span>(<span class="string">"Got message: {}"</span>, msg.unwrap());
+            <span class="kw">break</span>;
         }
     }
 }</code></pre></div>
-</div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#860-1213">Source</a><a href="#impl-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.close" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#920-932">Source</a><h4 class="code-header">pub fn <a href="#method.close" class="fn">close</a>(&amp;mut self)</h4></section></summary><div class="docblock"><p>Prevents the associated <a href="struct.Sender.html" title="struct tokio::sync::oneshot::Sender"><code>Sender</code></a> handle from sending a value.</p>
+</div></details><h2 id="implementations" class="section-header">Implementations<a href="#implementations" class="anchor">§</a></h2><div id="implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#860-1216">Source</a><a href="#impl-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.close" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#920-932">Source</a><h4 class="code-header">pub fn <a href="#method.close" class="fn">close</a>(&amp;mut self)</h4></section></summary><div class="docblock"><p>Prevents the associated <a href="struct.Sender.html" title="struct tokio::sync::oneshot::Sender"><code>Sender</code></a> handle from sending a value.</p>
 <p>Any <code>send</code> operation which happens after calling <code>close</code> is guaranteed
 to fail. After calling <code>close</code>, <a href="struct.Receiver.html#method.try_recv" title="method tokio::sync::oneshot::Receiver::try_recv"><code>try_recv</code></a> should be called to
 receive a value if one was sent <strong>before</strong> the call to <code>close</code>
@@ -87,37 +78,31 @@ is already closed.</p>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tokio::sync::oneshot::error::TryRecvError;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
 
-    <span class="macro">assert!</span>(!tx.is_closed());
+<span class="macro">assert!</span>(!tx.is_closed());
 
-    rx.close();
+rx.close();
 
-    <span class="macro">assert!</span>(tx.is_closed());
-    <span class="macro">assert!</span>(tx.send(<span class="string">"never received"</span>).is_err());
+<span class="macro">assert!</span>(tx.is_closed());
+<span class="macro">assert!</span>(tx.send(<span class="string">"never received"</span>).is_err());
 
-    <span class="kw">match </span>rx.try_recv() {
-        <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; {}
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-    }
+<span class="kw">match </span>rx.try_recv() {
+    <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; {}
+    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
 }</code></pre></div>
 <p>Receive a value sent <strong>before</strong> calling <code>close</code></p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
 
-    <span class="macro">assert!</span>(tx.send(<span class="string">"will receive"</span>).is_ok());
+<span class="macro">assert!</span>(tx.send(<span class="string">"will receive"</span>).is_ok());
 
-    rx.close();
+rx.close();
 
-    <span class="kw">let </span>msg = rx.try_recv().unwrap();
-    <span class="macro">assert_eq!</span>(msg, <span class="string">"will receive"</span>);
-}</code></pre></div>
+<span class="kw">let </span>msg = rx.try_recv().unwrap();
+<span class="macro">assert_eq!</span>(msg, <span class="string">"will receive"</span>);</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.is_terminated" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#988-990">Source</a><h4 class="code-header">pub fn <a href="#method.is_terminated" class="fn">is_terminated</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Checks if this receiver is terminated.</p>
 <p>This function returns true if this receiver has already yielded a <a href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html#variant.Ready" title="variant core::task::poll::Poll::Ready"><code>Poll::Ready</code></a> result.
 If so, this receiver should no longer be polled.</p>
@@ -128,42 +113,36 @@ If so, this receiver should no longer be polled.</p>
 
 <span class="kw">use </span>std::task::Poll;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
 
-    <span class="comment">// A receiver is not terminated when it is initialized.
-    </span><span class="macro">assert!</span>(!rx.is_terminated());
+<span class="comment">// A receiver is not terminated when it is initialized.
+</span><span class="macro">assert!</span>(!rx.is_terminated());
 
-    <span class="comment">// A receiver is not terminated it is polled and is still pending.
-    </span><span class="kw">let </span>poll = <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut </span>rx);
-    <span class="macro">assert_eq!</span>(poll, Poll::Pending);
-    <span class="macro">assert!</span>(!rx.is_terminated());
+<span class="comment">// A receiver is not terminated it is polled and is still pending.
+</span><span class="kw">let </span>poll = <span class="macro">futures::poll!</span>(<span class="kw-2">&amp;mut </span>rx);
+<span class="macro">assert_eq!</span>(poll, Poll::Pending);
+<span class="macro">assert!</span>(!rx.is_terminated());
 
-    <span class="comment">// A receiver is not terminated if a value has been sent, but not yet read.
-    </span>tx.send(<span class="number">0</span>).unwrap();
-    <span class="macro">assert!</span>(!rx.is_terminated());
+<span class="comment">// A receiver is not terminated if a value has been sent, but not yet read.
+</span>tx.send(<span class="number">0</span>).unwrap();
+<span class="macro">assert!</span>(!rx.is_terminated());
 
-    <span class="comment">// A receiver *is* terminated after it has been polled and yielded a value.
-    </span><span class="macro">assert_eq!</span>((<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>, <span class="prelude-val">Ok</span>(<span class="number">0</span>));
-    <span class="macro">assert!</span>(rx.is_terminated());
-}</code></pre></div>
+<span class="comment">// A receiver *is* terminated after it has been polled and yielded a value.
+</span><span class="macro">assert_eq!</span>((<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>, <span class="prelude-val">Ok</span>(<span class="number">0</span>));
+<span class="macro">assert!</span>(rx.is_terminated());</code></pre></div>
 <p>Dropping the sender.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
 
-    <span class="comment">// A receiver is not immediately terminated when the sender is dropped.
-    </span>drop(tx);
-    <span class="macro">assert!</span>(!rx.is_terminated());
+<span class="comment">// A receiver is not immediately terminated when the sender is dropped.
+</span>drop(tx);
+<span class="macro">assert!</span>(!rx.is_terminated());
 
-    <span class="comment">// A receiver *is* terminated after it has been polled and yielded an error.
-    </span><span class="kw">let _ </span>= (<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>.unwrap_err();
-    <span class="macro">assert!</span>(rx.is_terminated());
-}</code></pre></div>
+<span class="comment">// A receiver *is* terminated after it has been polled and yielded an error.
+</span><span class="kw">let _ </span>= (<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>.unwrap_err();
+<span class="macro">assert!</span>(rx.is_terminated());</code></pre></div>
 </div></details><details class="toggle method-toggle" open><summary><section id="method.is_empty" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1055-1075">Source</a><h4 class="code-header">pub fn <a href="#method.is_empty" class="fn">is_empty</a>(&amp;self) -&gt; <a class="primitive" href="https://doc.rust-lang.org/1.90.0/std/primitive.bool.html">bool</a></h4></section></summary><div class="docblock"><p>Checks if a channel is empty.</p>
 <p>This method returns <code>true</code> if the channel has no messages.</p>
 <p>It is not necessarily safe to poll an empty receiver, which may have
@@ -174,36 +153,30 @@ to check whether or not a receiver can be safely polled, instead.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
-    <span class="macro">assert!</span>(rx.is_empty());
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
+<span class="macro">assert!</span>(rx.is_empty());
 
-    tx.send(<span class="number">0</span>).unwrap();
-    <span class="macro">assert!</span>(!rx.is_empty());
+tx.send(<span class="number">0</span>).unwrap();
+<span class="macro">assert!</span>(!rx.is_empty());
 
-    <span class="kw">let _ </span>= (<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>;
-    <span class="macro">assert!</span>(rx.is_empty());
-}</code></pre></div>
+<span class="kw">let _ </span>= (<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>;
+<span class="macro">assert!</span>(rx.is_empty());</code></pre></div>
 <p>Dropping the sender.</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
 
-    <span class="comment">// A channel is empty if the sender is dropped.
-    </span>drop(tx);
-    <span class="macro">assert!</span>(rx.is_empty());
+<span class="comment">// A channel is empty if the sender is dropped.
+</span>drop(tx);
+<span class="macro">assert!</span>(rx.is_empty());
 
-    <span class="comment">// A closed channel still yields an error, however.
-    </span>(<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>.expect_err(<span class="string">"should yield an error"</span>);
-    <span class="macro">assert!</span>(rx.is_empty());
-}</code></pre></div>
+<span class="comment">// A closed channel still yields an error, however.
+</span>(<span class="kw-2">&amp;mut </span>rx).<span class="kw">await</span>.expect_err(<span class="string">"should yield an error"</span>);
+<span class="macro">assert!</span>(rx.is_empty());</code></pre></div>
 <p>Terminated channels are empty.</p>
 
-<div class="example-wrap should_panic"><a href="#" class="tooltip" title="This example panics">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
+<div class="example-wrap ignore"><a href="#" class="tooltip" title="This example is not tested on wasm">ⓘ</a><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 
 <span class="attr">#[tokio::main]
 </span><span class="kw">async fn </span>main() {
@@ -237,42 +210,36 @@ a value, or if the message has already been received.</li>
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tokio::sync::oneshot::error::TryRecvError;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel();
 
-    <span class="kw">match </span>rx.try_recv() {
-        <span class="comment">// The channel is currently empty
-        </span><span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {}
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-    }
+<span class="kw">match </span>rx.try_recv() {
+    <span class="comment">// The channel is currently empty
+    </span><span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; {}
+    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
+}
 
-    <span class="comment">// Send a value
-    </span>tx.send(<span class="string">"hello"</span>).unwrap();
+<span class="comment">// Send a value
+</span>tx.send(<span class="string">"hello"</span>).unwrap();
 
-    <span class="kw">match </span>rx.try_recv() {
-        <span class="prelude-val">Ok</span>(value) =&gt; <span class="macro">assert_eq!</span>(value, <span class="string">"hello"</span>),
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-    }
+<span class="kw">match </span>rx.try_recv() {
+     <span class="prelude-val">Ok</span>(value) =&gt; <span class="macro">assert_eq!</span>(value, <span class="string">"hello"</span>),
+     <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
 }</code></pre></div>
 <p><code>try_recv</code> when the sender dropped before sending a value</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio::sync::oneshot;
 <span class="kw">use </span>tokio::sync::oneshot::error::TryRecvError;
 
-<span class="attr">#[tokio::main]
-</span><span class="kw">async fn </span>main() {
-    <span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
+<span class="kw">let </span>(tx, <span class="kw-2">mut </span>rx) = oneshot::channel::&lt;()&gt;();
 
-    drop(tx);
+drop(tx);
 
-    <span class="kw">match </span>rx.try_recv() {
-        <span class="comment">// The channel will never receive a value.
-        </span><span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; {}
-        <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
-    }
+<span class="kw">match </span>rx.try_recv() {
+    <span class="comment">// The channel will never receive a value.
+    </span><span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; {}
+    <span class="kw">_ </span>=&gt; <span class="macro">unreachable!</span>(),
 }</code></pre></div>
-</div></details><details class="toggle method-toggle" open><summary><section id="method.blocking_recv" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1210-1212">Source</a><h4 class="code-header">pub fn <a href="#method.blocking_recv" class="fn">blocking_recv</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, <a class="struct" href="error/struct.RecvError.html" title="struct tokio::sync::oneshot::error::RecvError">RecvError</a>&gt;</h4></section></summary><div class="docblock"><p>Blocking receive to call outside of asynchronous contexts.</p>
+</div></details><details class="toggle method-toggle" open><summary><section id="method.blocking_recv" class="method"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1213-1215">Source</a><h4 class="code-header">pub fn <a href="#method.blocking_recv" class="fn">blocking_recv</a>(self) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, <a class="struct" href="error/struct.RecvError.html" title="struct tokio::sync::oneshot::error::RecvError">RecvError</a>&gt;</h4></section></summary><div class="docblock"><p>Blocking receive to call outside of asynchronous contexts.</p>
 <h5 id="panics"><a class="doc-anchor" href="#panics">§</a>Panics</h5>
 <p>This function panics if called within an asynchronous execution
 context.</p>
@@ -291,7 +258,7 @@ context.</p>
     <span class="kw">let _ </span>= tx.send(<span class="number">10</span>);
     sync_code.join().unwrap();
 }</code></pre></div>
-</div></details></div></details></div><h2 id="trait-implementations" class="section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Debug-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#321">Source</a><a href="#impl-Debug-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.fmt" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#321">Source</a><a href="#method.fmt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt" class="fn">fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>&lt;'_&gt;) -&gt; <a class="type" href="https://doc.rust-lang.org/1.90.0/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></h4></section></summary><div class='docblock'>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Drop-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1215-1236">Source</a><a href="#impl-Drop-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html" title="trait core::ops::drop::Drop">Drop</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.drop" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1216-1235">Source</a><a href="#method.drop" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html#tymethod.drop" class="fn">drop</a>(&amp;mut self)</h4></section></summary><div class='docblock'>Executes the destructor for this type. <a href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html#tymethod.drop">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Future-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1238-1265">Source</a><a href="#impl-Future-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Output" class="associatedtype trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1239">Source</a><a href="#associatedtype.Output" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#associatedtype.Output" class="associatedtype">Output</a> = <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, <a class="struct" href="error/struct.RecvError.html" title="struct tokio::sync::oneshot::error::RecvError">RecvError</a>&gt;</h4></section></summary><div class='docblock'>The type of value produced on completion.</div></details><details class="toggle method-toggle" open><summary><section id="method.poll" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1241-1264">Source</a><a href="#method.poll" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#tymethod.poll" class="fn">poll</a>(self: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/pin/struct.Pin.html" title="struct core::pin::Pin">Pin</a>&lt;&amp;mut Self&gt;, cx: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/task/wake/struct.Context.html" title="struct core::task::wake::Context">Context</a>&lt;'_&gt;) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html" title="enum core::task::poll::Poll">Poll</a>&lt;Self::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#associatedtype.Output" title="type core::future::future::Future::Output">Output</a>&gt;</h4></section></summary><div class='docblock'>Attempts to resolve the future to a final value, registering
+</div></details></div></details></div><h2 id="trait-implementations" class="section-header">Trait Implementations<a href="#trait-implementations" class="anchor">§</a></h2><div id="trait-implementations-list"><details class="toggle implementors-toggle" open><summary><section id="impl-Debug-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#321">Source</a><a href="#impl-Debug-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a>&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html" title="trait core::fmt::Debug">Debug</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.fmt" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#321">Source</a><a href="#method.fmt" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt" class="fn">fmt</a>(&amp;self, f: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/fmt/struct.Formatter.html" title="struct core::fmt::Formatter">Formatter</a>&lt;'_&gt;) -&gt; <a class="type" href="https://doc.rust-lang.org/1.90.0/core/fmt/type.Result.html" title="type core::fmt::Result">Result</a></h4></section></summary><div class='docblock'>Formats the value using the given formatter. <a href="https://doc.rust-lang.org/1.90.0/core/fmt/trait.Debug.html#tymethod.fmt">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Drop-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1218-1239">Source</a><a href="#impl-Drop-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html" title="trait core::ops::drop::Drop">Drop</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle method-toggle" open><summary><section id="method.drop" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1219-1238">Source</a><a href="#method.drop" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html#tymethod.drop" class="fn">drop</a>(&amp;mut self)</h4></section></summary><div class='docblock'>Executes the destructor for this type. <a href="https://doc.rust-lang.org/1.90.0/core/ops/drop/trait.Drop.html#tymethod.drop">Read more</a></div></details></div></details><details class="toggle implementors-toggle" open><summary><section id="impl-Future-for-Receiver%3CT%3E" class="impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1241-1268">Source</a><a href="#impl-Future-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html" title="trait core::future::future::Future">Future</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></summary><div class="impl-items"><details class="toggle" open><summary><section id="associatedtype.Output" class="associatedtype trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1242">Source</a><a href="#associatedtype.Output" class="anchor">§</a><h4 class="code-header">type <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#associatedtype.Output" class="associatedtype">Output</a> = <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/result/enum.Result.html" title="enum core::result::Result">Result</a>&lt;T, <a class="struct" href="error/struct.RecvError.html" title="struct tokio::sync::oneshot::error::RecvError">RecvError</a>&gt;</h4></section></summary><div class='docblock'>The type of value produced on completion.</div></details><details class="toggle method-toggle" open><summary><section id="method.poll" class="method trait-impl"><a class="src rightside" href="../../../src/tokio/sync/oneshot.rs.html#1244-1267">Source</a><a href="#method.poll" class="anchor">§</a><h4 class="code-header">fn <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#tymethod.poll" class="fn">poll</a>(self: <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/pin/struct.Pin.html" title="struct core::pin::Pin">Pin</a>&lt;&amp;mut Self&gt;, cx: &amp;mut <a class="struct" href="https://doc.rust-lang.org/1.90.0/core/task/wake/struct.Context.html" title="struct core::task::wake::Context">Context</a>&lt;'_&gt;) -&gt; <a class="enum" href="https://doc.rust-lang.org/1.90.0/core/task/poll/enum.Poll.html" title="enum core::task::poll::Poll">Poll</a>&lt;Self::<a class="associatedtype" href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#associatedtype.Output" title="type core::future::future::Future::Output">Output</a>&gt;</h4></section></summary><div class='docblock'>Attempts to resolve the future to a final value, registering
 the current task for wakeup if the value is not yet available. <a href="https://doc.rust-lang.org/1.90.0/core/future/future/trait.Future.html#tymethod.poll">Read more</a></div></details></div></details></div><h2 id="synthetic-implementations" class="section-header">Auto Trait Implementations<a href="#synthetic-implementations" class="anchor">§</a></h2><div id="synthetic-implementations-list"><section id="impl-Freeze-for-Receiver%3CT%3E" class="impl"><a href="#impl-Freeze-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Freeze.html" title="trait core::marker::Freeze">Freeze</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section><section id="impl-RefUnwindSafe-for-Receiver%3CT%3E" class="impl"><a href="#impl-RefUnwindSafe-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.RefUnwindSafe.html" title="trait core::panic::unwind_safe::RefUnwindSafe">RefUnwindSafe</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section><section id="impl-Send-for-Receiver%3CT%3E" class="impl"><a href="#impl-Send-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;<div class="where">where
     T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>,</div></h3></section><section id="impl-Sync-for-Receiver%3CT%3E" class="impl"><a href="#impl-Sync-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Sync.html" title="trait core::marker::Sync">Sync</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;<div class="where">where
     T: <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Send.html" title="trait core::marker::Send">Send</a>,</div></h3></section><section id="impl-Unpin-for-Receiver%3CT%3E" class="impl"><a href="#impl-Unpin-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/marker/trait.Unpin.html" title="trait core::marker::Unpin">Unpin</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section><section id="impl-UnwindSafe-for-Receiver%3CT%3E" class="impl"><a href="#impl-UnwindSafe-for-Receiver%3CT%3E" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; !<a class="trait" href="https://doc.rust-lang.org/1.90.0/core/panic/unwind_safe/trait.UnwindSafe.html" title="trait core::panic::unwind_safe::UnwindSafe">UnwindSafe</a> for <a class="struct" href="struct.Receiver.html" title="struct tokio::sync::oneshot::Receiver">Receiver</a>&lt;T&gt;</h3></section></div><h2 id="blanket-implementations" class="section-header">Blanket Implementations<a href="#blanket-implementations" class="anchor">§</a></h2><div id="blanket-implementations-list"><details class="toggle implementors-toggle"><summary><section id="impl-Any-for-T" class="impl"><a class="src rightside" href="https://doc.rust-lang.org/1.90.0/src/core/any.rs.html#138">Source</a><a href="#impl-Any-for-T" class="anchor">§</a><h3 class="code-header">impl&lt;T&gt; <a class="trait" href="https://doc.rust-lang.org/1.90.0/core/any/trait.Any.html" title="trait core::any::Any">Any</a> for T<div class="where">where

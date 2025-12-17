@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"constant":["MDBOOK_VERSION"],"fn":["parse_input"],"mod":["book","config","errors"],"struct":["PreprocessorContext"],"trait":["Preprocessor"]};

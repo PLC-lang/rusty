@@ -7,7 +7,7 @@
 <p>This function will use <a href="../../tokio/io/async_write/trait.AsyncWrite.html#method.poll_write_vectored" title="method tokio::io::async_write::AsyncWrite::poll_write_vectored">vectored writes</a> when the <a href="../../tokio/io/async_write/trait.AsyncWrite.html" title="trait tokio::io::async_write::AsyncWrite"><code>AsyncWrite</code></a> supports
 vectored writes.</p>
 <h2 id="examples"><a class="doc-anchor" href="#examples">§</a>Examples</h2>
-<p><a href="../../tokio/fs/file/struct.File.html" title="struct tokio::fs::file::File"><code>File</code></a> implements <a href="../../tokio/io/async_write/trait.AsyncWrite.html" title="trait tokio::io::async_write::AsyncWrite"><code>AsyncWrite</code></a> and [<code>Cursor&lt;&amp;[u8]&gt;</code>] implements
+<p><a href="tokio::fs::File"><code>File</code></a> implements <a href="../../tokio/io/async_write/trait.AsyncWrite.html" title="trait tokio::io::async_write::AsyncWrite"><code>AsyncWrite</code></a> and [<code>Cursor&lt;&amp;[u8]&gt;</code>] implements
 <a href="../../bytes/buf/buf_impl/trait.Buf.html" title="trait bytes::buf::buf_impl::Buf"><code>Buf</code></a>:</p>
 
 <div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use </span>tokio_util::io::poll_write_buf;

@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrorKind","EventKind","RecursiveMode","WatcherKind"],"fn":["recommended_watcher"],"mod":["event","inotify","null","poll"],"struct":["Config","Error","Event"],"trait":["EventHandler","PathsMut","Watcher"],"type":["RecommendedWatcher","Result"]};

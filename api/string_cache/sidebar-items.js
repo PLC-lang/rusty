@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"struct":["Atom","EmptyStaticAtomSet","PhfStrSet"],"trait":["StaticAtomSet"],"type":["DefaultAtom"]};

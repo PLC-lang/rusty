@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"constant":["MDBOOK_VERSION"],"mod":["book","config","errors","preprocess","renderer","theme","utils"]};

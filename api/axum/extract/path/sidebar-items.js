@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["ErrorKind"],"struct":["FailedToDeserializePathParams","InvalidUtf8InPathParam","Path","RawPathParams","RawPathParamsIter"]};

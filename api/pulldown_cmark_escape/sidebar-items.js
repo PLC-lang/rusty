@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["escape_href","escape_html","escape_html_body_text"],"struct":["WriteWrapper"],"trait":["StrWrite"]};

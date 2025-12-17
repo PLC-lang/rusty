@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["Error"],"struct":["TrieSetOwned","TrieSetSlice"],"type":["Result","TrieSet"]};

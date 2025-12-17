@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.47.1/src/sync/broadcast.rs`."><title>broadcast.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/</div>broadcast.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A multi-producer, multi-consumer broadcast queue. Each sent value is seen by
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/tokio-1.48.0/src/sync/broadcast.rs`."><title>broadcast.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="tokio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">tokio/sync/</div>broadcast.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-4"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! A multi-producer, multi-consumer broadcast queue. Each sent value is seen by
 <a href=#2 id=2 data-nosnippet>2</a>//! all consumers.
 <a href=#3 id=3 data-nosnippet>3</a>//!
 <a href=#4 id=4 data-nosnippet>4</a>//! A [`Sender`] is used to broadcast values to **all** connected [`Receiver`]
@@ -73,24 +73,24 @@
 <a href=#73 id=73 data-nosnippet>73</a>//! ```
 <a href=#74 id=74 data-nosnippet>74</a>//! use tokio::sync::broadcast;
 <a href=#75 id=75 data-nosnippet>75</a>//!
-<a href=#76 id=76 data-nosnippet>76</a>//! #[tokio::main]
-<a href=#77 id=77 data-nosnippet>77</a>//! async fn main() {
-<a href=#78 id=78 data-nosnippet>78</a>//!     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#79 id=79 data-nosnippet>79</a>//!     let mut rx2 = tx.subscribe();
+<a href=#76 id=76 data-nosnippet>76</a>//! # #[tokio::main(flavor = "current_thread")]
+<a href=#77 id=77 data-nosnippet>77</a>//! # async fn main() {
+<a href=#78 id=78 data-nosnippet>78</a>//! let (tx, mut rx1) = broadcast::channel(16);
+<a href=#79 id=79 data-nosnippet>79</a>//! let mut rx2 = tx.subscribe();
 <a href=#80 id=80 data-nosnippet>80</a>//!
-<a href=#81 id=81 data-nosnippet>81</a>//!     tokio::spawn(async move {
-<a href=#82 id=82 data-nosnippet>82</a>//!         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#83 id=83 data-nosnippet>83</a>//!         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#84 id=84 data-nosnippet>84</a>//!     });
+<a href=#81 id=81 data-nosnippet>81</a>//! tokio::spawn(async move {
+<a href=#82 id=82 data-nosnippet>82</a>//!     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#83 id=83 data-nosnippet>83</a>//!     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#84 id=84 data-nosnippet>84</a>//! });
 <a href=#85 id=85 data-nosnippet>85</a>//!
-<a href=#86 id=86 data-nosnippet>86</a>//!     tokio::spawn(async move {
-<a href=#87 id=87 data-nosnippet>87</a>//!         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#88 id=88 data-nosnippet>88</a>//!         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#89 id=89 data-nosnippet>89</a>//!     });
+<a href=#86 id=86 data-nosnippet>86</a>//! tokio::spawn(async move {
+<a href=#87 id=87 data-nosnippet>87</a>//!     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#88 id=88 data-nosnippet>88</a>//!     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#89 id=89 data-nosnippet>89</a>//! });
 <a href=#90 id=90 data-nosnippet>90</a>//!
-<a href=#91 id=91 data-nosnippet>91</a>//!     tx.send(10).unwrap();
-<a href=#92 id=92 data-nosnippet>92</a>//!     tx.send(20).unwrap();
-<a href=#93 id=93 data-nosnippet>93</a>//! }
+<a href=#91 id=91 data-nosnippet>91</a>//! tx.send(10).unwrap();
+<a href=#92 id=92 data-nosnippet>92</a>//! tx.send(20).unwrap();
+<a href=#93 id=93 data-nosnippet>93</a>//! # }
 <a href=#94 id=94 data-nosnippet>94</a>//! ```
 <a href=#95 id=95 data-nosnippet>95</a>//!
 <a href=#96 id=96 data-nosnippet>96</a>//! Handling lag
@@ -98,22 +98,22 @@
 <a href=#98 id=98 data-nosnippet>98</a>//! ```
 <a href=#99 id=99 data-nosnippet>99</a>//! use tokio::sync::broadcast;
 <a href=#100 id=100 data-nosnippet>100</a>//!
-<a href=#101 id=101 data-nosnippet>101</a>//! #[tokio::main]
-<a href=#102 id=102 data-nosnippet>102</a>//! async fn main() {
-<a href=#103 id=103 data-nosnippet>103</a>//!     let (tx, mut rx) = broadcast::channel(2);
+<a href=#101 id=101 data-nosnippet>101</a>//! # #[tokio::main(flavor = "current_thread")]
+<a href=#102 id=102 data-nosnippet>102</a>//! # async fn main() {
+<a href=#103 id=103 data-nosnippet>103</a>//! let (tx, mut rx) = broadcast::channel(2);
 <a href=#104 id=104 data-nosnippet>104</a>//!
-<a href=#105 id=105 data-nosnippet>105</a>//!     tx.send(10).unwrap();
-<a href=#106 id=106 data-nosnippet>106</a>//!     tx.send(20).unwrap();
-<a href=#107 id=107 data-nosnippet>107</a>//!     tx.send(30).unwrap();
+<a href=#105 id=105 data-nosnippet>105</a>//! tx.send(10).unwrap();
+<a href=#106 id=106 data-nosnippet>106</a>//! tx.send(20).unwrap();
+<a href=#107 id=107 data-nosnippet>107</a>//! tx.send(30).unwrap();
 <a href=#108 id=108 data-nosnippet>108</a>//!
-<a href=#109 id=109 data-nosnippet>109</a>//!     // The receiver lagged behind
-<a href=#110 id=110 data-nosnippet>110</a>//!     assert!(rx.recv().await.is_err());
+<a href=#109 id=109 data-nosnippet>109</a>//! // The receiver lagged behind
+<a href=#110 id=110 data-nosnippet>110</a>//! assert!(rx.recv().await.is_err());
 <a href=#111 id=111 data-nosnippet>111</a>//!
-<a href=#112 id=112 data-nosnippet>112</a>//!     // At this point, we can abort or continue with lost messages
+<a href=#112 id=112 data-nosnippet>112</a>//! // At this point, we can abort or continue with lost messages
 <a href=#113 id=113 data-nosnippet>113</a>//!
-<a href=#114 id=114 data-nosnippet>114</a>//!     assert_eq!(20, rx.recv().await.unwrap());
-<a href=#115 id=115 data-nosnippet>115</a>//!     assert_eq!(30, rx.recv().await.unwrap());
-<a href=#116 id=116 data-nosnippet>116</a>//! }
+<a href=#114 id=114 data-nosnippet>114</a>//! assert_eq!(20, rx.recv().await.unwrap());
+<a href=#115 id=115 data-nosnippet>115</a>//! assert_eq!(30, rx.recv().await.unwrap());
+<a href=#116 id=116 data-nosnippet>116</a>//! # }
 <a href=#117 id=117 data-nosnippet>117</a>//! ```
 <a href=#118 id=118 data-nosnippet>118</a>
 <a href=#119 id=119 data-nosnippet>119</a></span><span class="kw">use </span><span class="kw">crate</span>::loom::cell::UnsafeCell;
@@ -141,24 +141,24 @@
 <a href=#141 id=141 data-nosnippet>141</a>/// ```
 <a href=#142 id=142 data-nosnippet>142</a>/// use tokio::sync::broadcast;
 <a href=#143 id=143 data-nosnippet>143</a>///
-<a href=#144 id=144 data-nosnippet>144</a>/// #[tokio::main]
-<a href=#145 id=145 data-nosnippet>145</a>/// async fn main() {
-<a href=#146 id=146 data-nosnippet>146</a>///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#147 id=147 data-nosnippet>147</a>///     let mut rx2 = tx.subscribe();
+<a href=#144 id=144 data-nosnippet>144</a>/// # #[tokio::main(flavor = "current_thread")]
+<a href=#145 id=145 data-nosnippet>145</a>/// # async fn main() {
+<a href=#146 id=146 data-nosnippet>146</a>/// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#147 id=147 data-nosnippet>147</a>/// let mut rx2 = tx.subscribe();
 <a href=#148 id=148 data-nosnippet>148</a>///
-<a href=#149 id=149 data-nosnippet>149</a>///     tokio::spawn(async move {
-<a href=#150 id=150 data-nosnippet>150</a>///         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#151 id=151 data-nosnippet>151</a>///         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#152 id=152 data-nosnippet>152</a>///     });
+<a href=#149 id=149 data-nosnippet>149</a>/// tokio::spawn(async move {
+<a href=#150 id=150 data-nosnippet>150</a>///     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#151 id=151 data-nosnippet>151</a>///     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#152 id=152 data-nosnippet>152</a>/// });
 <a href=#153 id=153 data-nosnippet>153</a>///
-<a href=#154 id=154 data-nosnippet>154</a>///     tokio::spawn(async move {
-<a href=#155 id=155 data-nosnippet>155</a>///         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#156 id=156 data-nosnippet>156</a>///         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#157 id=157 data-nosnippet>157</a>///     });
+<a href=#154 id=154 data-nosnippet>154</a>/// tokio::spawn(async move {
+<a href=#155 id=155 data-nosnippet>155</a>///     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#156 id=156 data-nosnippet>156</a>///     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#157 id=157 data-nosnippet>157</a>/// });
 <a href=#158 id=158 data-nosnippet>158</a>///
-<a href=#159 id=159 data-nosnippet>159</a>///     tx.send(10).unwrap();
-<a href=#160 id=160 data-nosnippet>160</a>///     tx.send(20).unwrap();
-<a href=#161 id=161 data-nosnippet>161</a>/// }
+<a href=#159 id=159 data-nosnippet>159</a>/// tx.send(10).unwrap();
+<a href=#160 id=160 data-nosnippet>160</a>/// tx.send(20).unwrap();
+<a href=#161 id=161 data-nosnippet>161</a>/// # }
 <a href=#162 id=162 data-nosnippet>162</a>/// ```
 <a href=#163 id=163 data-nosnippet>163</a>///
 <a href=#164 id=164 data-nosnippet>164</a>/// [`broadcast`]: crate::sync::broadcast
@@ -183,18 +183,18 @@
 <a href=#183 id=183 data-nosnippet>183</a>/// ```
 <a href=#184 id=184 data-nosnippet>184</a>/// use tokio::sync::broadcast::channel;
 <a href=#185 id=185 data-nosnippet>185</a>///
-<a href=#186 id=186 data-nosnippet>186</a>/// #[tokio::main]
-<a href=#187 id=187 data-nosnippet>187</a>/// async fn main() {
-<a href=#188 id=188 data-nosnippet>188</a>///     let (tx, _rx) = channel::&lt;i32&gt;(15);
-<a href=#189 id=189 data-nosnippet>189</a>///     let tx_weak = tx.downgrade();
+<a href=#186 id=186 data-nosnippet>186</a>/// # #[tokio::main(flavor = "current_thread")]
+<a href=#187 id=187 data-nosnippet>187</a>/// # async fn main() {
+<a href=#188 id=188 data-nosnippet>188</a>/// let (tx, _rx) = channel::&lt;i32&gt;(15);
+<a href=#189 id=189 data-nosnippet>189</a>/// let tx_weak = tx.downgrade();
 <a href=#190 id=190 data-nosnippet>190</a>///
-<a href=#191 id=191 data-nosnippet>191</a>///     // Upgrading will succeed because `tx` still exists.
-<a href=#192 id=192 data-nosnippet>192</a>///     assert!(tx_weak.upgrade().is_some());
+<a href=#191 id=191 data-nosnippet>191</a>/// // Upgrading will succeed because `tx` still exists.
+<a href=#192 id=192 data-nosnippet>192</a>/// assert!(tx_weak.upgrade().is_some());
 <a href=#193 id=193 data-nosnippet>193</a>///
-<a href=#194 id=194 data-nosnippet>194</a>///     // If we drop `tx`, then it will fail.
-<a href=#195 id=195 data-nosnippet>195</a>///     drop(tx);
-<a href=#196 id=196 data-nosnippet>196</a>///     assert!(tx_weak.clone().upgrade().is_none());
-<a href=#197 id=197 data-nosnippet>197</a>/// }
+<a href=#194 id=194 data-nosnippet>194</a>/// // If we drop `tx`, then it will fail.
+<a href=#195 id=195 data-nosnippet>195</a>/// drop(tx);
+<a href=#196 id=196 data-nosnippet>196</a>/// assert!(tx_weak.clone().upgrade().is_none());
+<a href=#197 id=197 data-nosnippet>197</a>/// # }
 <a href=#198 id=198 data-nosnippet>198</a>/// ```
 <a href=#199 id=199 data-nosnippet>199</a></span><span class="kw">pub struct </span>WeakSender&lt;T&gt; {
 <a href=#200 id=200 data-nosnippet>200</a>    shared: Arc&lt;Shared&lt;T&gt;&gt;,
@@ -215,24 +215,24 @@
 <a href=#215 id=215 data-nosnippet>215</a>/// ```
 <a href=#216 id=216 data-nosnippet>216</a>/// use tokio::sync::broadcast;
 <a href=#217 id=217 data-nosnippet>217</a>///
-<a href=#218 id=218 data-nosnippet>218</a>/// #[tokio::main]
-<a href=#219 id=219 data-nosnippet>219</a>/// async fn main() {
-<a href=#220 id=220 data-nosnippet>220</a>///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#221 id=221 data-nosnippet>221</a>///     let mut rx2 = tx.subscribe();
+<a href=#218 id=218 data-nosnippet>218</a>/// # #[tokio::main(flavor = "current_thread")]
+<a href=#219 id=219 data-nosnippet>219</a>/// # async fn main() {
+<a href=#220 id=220 data-nosnippet>220</a>/// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#221 id=221 data-nosnippet>221</a>/// let mut rx2 = tx.subscribe();
 <a href=#222 id=222 data-nosnippet>222</a>///
-<a href=#223 id=223 data-nosnippet>223</a>///     tokio::spawn(async move {
-<a href=#224 id=224 data-nosnippet>224</a>///         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#225 id=225 data-nosnippet>225</a>///         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#226 id=226 data-nosnippet>226</a>///     });
+<a href=#223 id=223 data-nosnippet>223</a>/// tokio::spawn(async move {
+<a href=#224 id=224 data-nosnippet>224</a>///     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#225 id=225 data-nosnippet>225</a>///     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#226 id=226 data-nosnippet>226</a>/// });
 <a href=#227 id=227 data-nosnippet>227</a>///
-<a href=#228 id=228 data-nosnippet>228</a>///     tokio::spawn(async move {
-<a href=#229 id=229 data-nosnippet>229</a>///         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#230 id=230 data-nosnippet>230</a>///         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#231 id=231 data-nosnippet>231</a>///     });
+<a href=#228 id=228 data-nosnippet>228</a>/// tokio::spawn(async move {
+<a href=#229 id=229 data-nosnippet>229</a>///     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#230 id=230 data-nosnippet>230</a>///     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#231 id=231 data-nosnippet>231</a>/// });
 <a href=#232 id=232 data-nosnippet>232</a>///
-<a href=#233 id=233 data-nosnippet>233</a>///     tx.send(10).unwrap();
-<a href=#234 id=234 data-nosnippet>234</a>///     tx.send(20).unwrap();
-<a href=#235 id=235 data-nosnippet>235</a>/// }
+<a href=#233 id=233 data-nosnippet>233</a>/// tx.send(10).unwrap();
+<a href=#234 id=234 data-nosnippet>234</a>/// tx.send(20).unwrap();
+<a href=#235 id=235 data-nosnippet>235</a>/// # }
 <a href=#236 id=236 data-nosnippet>236</a>/// ```
 <a href=#237 id=237 data-nosnippet>237</a>///
 <a href=#238 id=238 data-nosnippet>238</a>/// [`broadcast`]: crate::sync::broadcast
@@ -478,24 +478,24 @@
 <a href=#478 id=478 data-nosnippet>478</a>/// ```
 <a href=#479 id=479 data-nosnippet>479</a>/// use tokio::sync::broadcast;
 <a href=#480 id=480 data-nosnippet>480</a>///
-<a href=#481 id=481 data-nosnippet>481</a>/// #[tokio::main]
-<a href=#482 id=482 data-nosnippet>482</a>/// async fn main() {
-<a href=#483 id=483 data-nosnippet>483</a>///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#484 id=484 data-nosnippet>484</a>///     let mut rx2 = tx.subscribe();
+<a href=#481 id=481 data-nosnippet>481</a>/// # #[tokio::main(flavor = "current_thread")]
+<a href=#482 id=482 data-nosnippet>482</a>/// # async fn main() {
+<a href=#483 id=483 data-nosnippet>483</a>/// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#484 id=484 data-nosnippet>484</a>/// let mut rx2 = tx.subscribe();
 <a href=#485 id=485 data-nosnippet>485</a>///
-<a href=#486 id=486 data-nosnippet>486</a>///     tokio::spawn(async move {
-<a href=#487 id=487 data-nosnippet>487</a>///         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#488 id=488 data-nosnippet>488</a>///         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#489 id=489 data-nosnippet>489</a>///     });
+<a href=#486 id=486 data-nosnippet>486</a>/// tokio::spawn(async move {
+<a href=#487 id=487 data-nosnippet>487</a>///     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#488 id=488 data-nosnippet>488</a>///     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#489 id=489 data-nosnippet>489</a>/// });
 <a href=#490 id=490 data-nosnippet>490</a>///
-<a href=#491 id=491 data-nosnippet>491</a>///     tokio::spawn(async move {
-<a href=#492 id=492 data-nosnippet>492</a>///         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#493 id=493 data-nosnippet>493</a>///         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#494 id=494 data-nosnippet>494</a>///     });
+<a href=#491 id=491 data-nosnippet>491</a>/// tokio::spawn(async move {
+<a href=#492 id=492 data-nosnippet>492</a>///     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#493 id=493 data-nosnippet>493</a>///     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#494 id=494 data-nosnippet>494</a>/// });
 <a href=#495 id=495 data-nosnippet>495</a>///
-<a href=#496 id=496 data-nosnippet>496</a>///     tx.send(10).unwrap();
-<a href=#497 id=497 data-nosnippet>497</a>///     tx.send(20).unwrap();
-<a href=#498 id=498 data-nosnippet>498</a>/// }
+<a href=#496 id=496 data-nosnippet>496</a>/// tx.send(10).unwrap();
+<a href=#497 id=497 data-nosnippet>497</a>/// tx.send(20).unwrap();
+<a href=#498 id=498 data-nosnippet>498</a>/// # }
 <a href=#499 id=499 data-nosnippet>499</a>/// ```
 <a href=#500 id=500 data-nosnippet>500</a>///
 <a href=#501 id=501 data-nosnippet>501</a>/// # Panics
@@ -503,7 +503,7 @@
 <a href=#503 id=503 data-nosnippet>503</a>/// This will panic if `capacity` is equal to `0`.
 <a href=#504 id=504 data-nosnippet>504</a>///
 <a href=#505 id=505 data-nosnippet>505</a>/// This pre-allocates space for `capacity` messages. Allocation failure may result in a panic or
-<a href=#506 id=506 data-nosnippet>506</a>/// [an allocation failure](std::alloc::handle_alloc_error).
+<a href=#506 id=506 data-nosnippet>506</a>/// [an allocation error](std::alloc::handle_alloc_error).
 <a href=#507 id=507 data-nosnippet>507</a></span><span class="attr">#[track_caller]
 <a href=#508 id=508 data-nosnippet>508</a></span><span class="kw">pub fn </span>channel&lt;T: Clone&gt;(capacity: usize) -&gt; (Sender&lt;T&gt;, Receiver&lt;T&gt;) {
 <a href=#509 id=509 data-nosnippet>509</a>    <span class="comment">// SAFETY: In the line below we are creating one extra receiver, so there will be 1 in total.
@@ -566,7 +566,7 @@
 <a href=#566 id=566 data-nosnippet>566</a>            tail: Mutex::new(Tail {
 <a href=#567 id=567 data-nosnippet>567</a>                pos: <span class="number">0</span>,
 <a href=#568 id=568 data-nosnippet>568</a>                rx_cnt: receiver_count,
-<a href=#569 id=569 data-nosnippet>569</a>                closed: <span class="bool-val">false</span>,
+<a href=#569 id=569 data-nosnippet>569</a>                closed: receiver_count == <span class="number">0</span>,
 <a href=#570 id=570 data-nosnippet>570</a>                waiters: LinkedList::new(),
 <a href=#571 id=571 data-nosnippet>571</a>            }),
 <a href=#572 id=572 data-nosnippet>572</a>            num_tx: AtomicUsize::new(<span class="number">1</span>),
@@ -609,24 +609,24 @@
 <a href=#609 id=609 data-nosnippet>609</a>    /// ```
 <a href=#610 id=610 data-nosnippet>610</a>    /// use tokio::sync::broadcast;
 <a href=#611 id=611 data-nosnippet>611</a>    ///
-<a href=#612 id=612 data-nosnippet>612</a>    /// #[tokio::main]
-<a href=#613 id=613 data-nosnippet>613</a>    /// async fn main() {
-<a href=#614 id=614 data-nosnippet>614</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#615 id=615 data-nosnippet>615</a>    ///     let mut rx2 = tx.subscribe();
+<a href=#612 id=612 data-nosnippet>612</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#613 id=613 data-nosnippet>613</a>    /// # async fn main() {
+<a href=#614 id=614 data-nosnippet>614</a>    /// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#615 id=615 data-nosnippet>615</a>    /// let mut rx2 = tx.subscribe();
 <a href=#616 id=616 data-nosnippet>616</a>    ///
-<a href=#617 id=617 data-nosnippet>617</a>    ///     tokio::spawn(async move {
-<a href=#618 id=618 data-nosnippet>618</a>    ///         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#619 id=619 data-nosnippet>619</a>    ///         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#620 id=620 data-nosnippet>620</a>    ///     });
+<a href=#617 id=617 data-nosnippet>617</a>    /// tokio::spawn(async move {
+<a href=#618 id=618 data-nosnippet>618</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#619 id=619 data-nosnippet>619</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#620 id=620 data-nosnippet>620</a>    /// });
 <a href=#621 id=621 data-nosnippet>621</a>    ///
-<a href=#622 id=622 data-nosnippet>622</a>    ///     tokio::spawn(async move {
-<a href=#623 id=623 data-nosnippet>623</a>    ///         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#624 id=624 data-nosnippet>624</a>    ///         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#625 id=625 data-nosnippet>625</a>    ///     });
+<a href=#622 id=622 data-nosnippet>622</a>    /// tokio::spawn(async move {
+<a href=#623 id=623 data-nosnippet>623</a>    ///     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#624 id=624 data-nosnippet>624</a>    ///     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#625 id=625 data-nosnippet>625</a>    /// });
 <a href=#626 id=626 data-nosnippet>626</a>    ///
-<a href=#627 id=627 data-nosnippet>627</a>    ///     tx.send(10).unwrap();
-<a href=#628 id=628 data-nosnippet>628</a>    ///     tx.send(20).unwrap();
-<a href=#629 id=629 data-nosnippet>629</a>    /// }
+<a href=#627 id=627 data-nosnippet>627</a>    /// tx.send(10).unwrap();
+<a href=#628 id=628 data-nosnippet>628</a>    /// tx.send(20).unwrap();
+<a href=#629 id=629 data-nosnippet>629</a>    /// # }
 <a href=#630 id=630 data-nosnippet>630</a>    /// ```
 <a href=#631 id=631 data-nosnippet>631</a>    </span><span class="kw">pub fn </span>send(<span class="kw-2">&amp;</span><span class="self">self</span>, value: T) -&gt; <span class="prelude-ty">Result</span>&lt;usize, SendError&lt;T&gt;&gt; {
 <a href=#632 id=632 data-nosnippet>632</a>        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.shared.tail.lock();
@@ -674,20 +674,20 @@
 <a href=#674 id=674 data-nosnippet>674</a>    /// ```
 <a href=#675 id=675 data-nosnippet>675</a>    /// use tokio::sync::broadcast;
 <a href=#676 id=676 data-nosnippet>676</a>    ///
-<a href=#677 id=677 data-nosnippet>677</a>    /// #[tokio::main]
-<a href=#678 id=678 data-nosnippet>678</a>    /// async fn main() {
-<a href=#679 id=679 data-nosnippet>679</a>    ///     let (tx, _rx) = broadcast::channel(16);
+<a href=#677 id=677 data-nosnippet>677</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#678 id=678 data-nosnippet>678</a>    /// # async fn main() {
+<a href=#679 id=679 data-nosnippet>679</a>    /// let (tx, _rx) = broadcast::channel(16);
 <a href=#680 id=680 data-nosnippet>680</a>    ///
-<a href=#681 id=681 data-nosnippet>681</a>    ///     // Will not be seen
-<a href=#682 id=682 data-nosnippet>682</a>    ///     tx.send(10).unwrap();
+<a href=#681 id=681 data-nosnippet>681</a>    /// // Will not be seen
+<a href=#682 id=682 data-nosnippet>682</a>    /// tx.send(10).unwrap();
 <a href=#683 id=683 data-nosnippet>683</a>    ///
-<a href=#684 id=684 data-nosnippet>684</a>    ///     let mut rx = tx.subscribe();
+<a href=#684 id=684 data-nosnippet>684</a>    /// let mut rx = tx.subscribe();
 <a href=#685 id=685 data-nosnippet>685</a>    ///
-<a href=#686 id=686 data-nosnippet>686</a>    ///     tx.send(20).unwrap();
+<a href=#686 id=686 data-nosnippet>686</a>    /// tx.send(20).unwrap();
 <a href=#687 id=687 data-nosnippet>687</a>    ///
-<a href=#688 id=688 data-nosnippet>688</a>    ///     let value = rx.recv().await.unwrap();
-<a href=#689 id=689 data-nosnippet>689</a>    ///     assert_eq!(20, value);
-<a href=#690 id=690 data-nosnippet>690</a>    /// }
+<a href=#688 id=688 data-nosnippet>688</a>    /// let value = rx.recv().await.unwrap();
+<a href=#689 id=689 data-nosnippet>689</a>    /// assert_eq!(20, value);
+<a href=#690 id=690 data-nosnippet>690</a>    /// # }
 <a href=#691 id=691 data-nosnippet>691</a>    /// ```
 <a href=#692 id=692 data-nosnippet>692</a>    </span><span class="kw">pub fn </span>subscribe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; Receiver&lt;T&gt; {
 <a href=#693 id=693 data-nosnippet>693</a>        <span class="kw">let </span>shared = <span class="self">self</span>.shared.clone();
@@ -722,26 +722,26 @@
 <a href=#722 id=722 data-nosnippet>722</a>    /// ```
 <a href=#723 id=723 data-nosnippet>723</a>    /// use tokio::sync::broadcast;
 <a href=#724 id=724 data-nosnippet>724</a>    ///
-<a href=#725 id=725 data-nosnippet>725</a>    /// #[tokio::main]
-<a href=#726 id=726 data-nosnippet>726</a>    /// async fn main() {
-<a href=#727 id=727 data-nosnippet>727</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#728 id=728 data-nosnippet>728</a>    ///     let mut rx2 = tx.subscribe();
+<a href=#725 id=725 data-nosnippet>725</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#726 id=726 data-nosnippet>726</a>    /// # async fn main() {
+<a href=#727 id=727 data-nosnippet>727</a>    /// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#728 id=728 data-nosnippet>728</a>    /// let mut rx2 = tx.subscribe();
 <a href=#729 id=729 data-nosnippet>729</a>    ///
-<a href=#730 id=730 data-nosnippet>730</a>    ///     tx.send(10).unwrap();
-<a href=#731 id=731 data-nosnippet>731</a>    ///     tx.send(20).unwrap();
-<a href=#732 id=732 data-nosnippet>732</a>    ///     tx.send(30).unwrap();
+<a href=#730 id=730 data-nosnippet>730</a>    /// tx.send(10).unwrap();
+<a href=#731 id=731 data-nosnippet>731</a>    /// tx.send(20).unwrap();
+<a href=#732 id=732 data-nosnippet>732</a>    /// tx.send(30).unwrap();
 <a href=#733 id=733 data-nosnippet>733</a>    ///
-<a href=#734 id=734 data-nosnippet>734</a>    ///     assert_eq!(tx.len(), 3);
+<a href=#734 id=734 data-nosnippet>734</a>    /// assert_eq!(tx.len(), 3);
 <a href=#735 id=735 data-nosnippet>735</a>    ///
-<a href=#736 id=736 data-nosnippet>736</a>    ///     rx1.recv().await.unwrap();
+<a href=#736 id=736 data-nosnippet>736</a>    /// rx1.recv().await.unwrap();
 <a href=#737 id=737 data-nosnippet>737</a>    ///
-<a href=#738 id=738 data-nosnippet>738</a>    ///     // The len is still 3 since rx2 hasn't seen the first value yet.
-<a href=#739 id=739 data-nosnippet>739</a>    ///     assert_eq!(tx.len(), 3);
+<a href=#738 id=738 data-nosnippet>738</a>    /// // The len is still 3 since rx2 hasn't seen the first value yet.
+<a href=#739 id=739 data-nosnippet>739</a>    /// assert_eq!(tx.len(), 3);
 <a href=#740 id=740 data-nosnippet>740</a>    ///
-<a href=#741 id=741 data-nosnippet>741</a>    ///     rx2.recv().await.unwrap();
+<a href=#741 id=741 data-nosnippet>741</a>    /// rx2.recv().await.unwrap();
 <a href=#742 id=742 data-nosnippet>742</a>    ///
-<a href=#743 id=743 data-nosnippet>743</a>    ///     assert_eq!(tx.len(), 2);
-<a href=#744 id=744 data-nosnippet>744</a>    /// }
+<a href=#743 id=743 data-nosnippet>743</a>    /// assert_eq!(tx.len(), 2);
+<a href=#744 id=744 data-nosnippet>744</a>    /// # }
 <a href=#745 id=745 data-nosnippet>745</a>    /// ```
 <a href=#746 id=746 data-nosnippet>746</a>    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
 <a href=#747 id=747 data-nosnippet>747</a>        <span class="kw">let </span>tail = <span class="self">self</span>.shared.tail.lock();
@@ -769,26 +769,26 @@
 <a href=#769 id=769 data-nosnippet>769</a>    /// ```
 <a href=#770 id=770 data-nosnippet>770</a>    /// use tokio::sync::broadcast;
 <a href=#771 id=771 data-nosnippet>771</a>    ///
-<a href=#772 id=772 data-nosnippet>772</a>    /// #[tokio::main]
-<a href=#773 id=773 data-nosnippet>773</a>    /// async fn main() {
-<a href=#774 id=774 data-nosnippet>774</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#775 id=775 data-nosnippet>775</a>    ///     let mut rx2 = tx.subscribe();
+<a href=#772 id=772 data-nosnippet>772</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#773 id=773 data-nosnippet>773</a>    /// # async fn main() {
+<a href=#774 id=774 data-nosnippet>774</a>    /// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#775 id=775 data-nosnippet>775</a>    /// let mut rx2 = tx.subscribe();
 <a href=#776 id=776 data-nosnippet>776</a>    ///
-<a href=#777 id=777 data-nosnippet>777</a>    ///     assert!(tx.is_empty());
+<a href=#777 id=777 data-nosnippet>777</a>    /// assert!(tx.is_empty());
 <a href=#778 id=778 data-nosnippet>778</a>    ///
-<a href=#779 id=779 data-nosnippet>779</a>    ///     tx.send(10).unwrap();
+<a href=#779 id=779 data-nosnippet>779</a>    /// tx.send(10).unwrap();
 <a href=#780 id=780 data-nosnippet>780</a>    ///
-<a href=#781 id=781 data-nosnippet>781</a>    ///     assert!(!tx.is_empty());
+<a href=#781 id=781 data-nosnippet>781</a>    /// assert!(!tx.is_empty());
 <a href=#782 id=782 data-nosnippet>782</a>    ///
-<a href=#783 id=783 data-nosnippet>783</a>    ///     rx1.recv().await.unwrap();
+<a href=#783 id=783 data-nosnippet>783</a>    /// rx1.recv().await.unwrap();
 <a href=#784 id=784 data-nosnippet>784</a>    ///
-<a href=#785 id=785 data-nosnippet>785</a>    ///     // The queue is still not empty since rx2 hasn't seen the value.
-<a href=#786 id=786 data-nosnippet>786</a>    ///     assert!(!tx.is_empty());
+<a href=#785 id=785 data-nosnippet>785</a>    /// // The queue is still not empty since rx2 hasn't seen the value.
+<a href=#786 id=786 data-nosnippet>786</a>    /// assert!(!tx.is_empty());
 <a href=#787 id=787 data-nosnippet>787</a>    ///
-<a href=#788 id=788 data-nosnippet>788</a>    ///     rx2.recv().await.unwrap();
+<a href=#788 id=788 data-nosnippet>788</a>    /// rx2.recv().await.unwrap();
 <a href=#789 id=789 data-nosnippet>789</a>    ///
-<a href=#790 id=790 data-nosnippet>790</a>    ///     assert!(tx.is_empty());
-<a href=#791 id=791 data-nosnippet>791</a>    /// }
+<a href=#790 id=790 data-nosnippet>790</a>    /// assert!(tx.is_empty());
+<a href=#791 id=791 data-nosnippet>791</a>    /// # }
 <a href=#792 id=792 data-nosnippet>792</a>    /// ```
 <a href=#793 id=793 data-nosnippet>793</a>    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 <a href=#794 id=794 data-nosnippet>794</a>        <span class="kw">let </span>tail = <span class="self">self</span>.shared.tail.lock();
@@ -820,18 +820,18 @@
 <a href=#820 id=820 data-nosnippet>820</a>    /// ```
 <a href=#821 id=821 data-nosnippet>821</a>    /// use tokio::sync::broadcast;
 <a href=#822 id=822 data-nosnippet>822</a>    ///
-<a href=#823 id=823 data-nosnippet>823</a>    /// #[tokio::main]
-<a href=#824 id=824 data-nosnippet>824</a>    /// async fn main() {
-<a href=#825 id=825 data-nosnippet>825</a>    ///     let (tx, _rx1) = broadcast::channel(16);
+<a href=#823 id=823 data-nosnippet>823</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#824 id=824 data-nosnippet>824</a>    /// # async fn main() {
+<a href=#825 id=825 data-nosnippet>825</a>    /// let (tx, _rx1) = broadcast::channel(16);
 <a href=#826 id=826 data-nosnippet>826</a>    ///
-<a href=#827 id=827 data-nosnippet>827</a>    ///     assert_eq!(1, tx.receiver_count());
+<a href=#827 id=827 data-nosnippet>827</a>    /// assert_eq!(1, tx.receiver_count());
 <a href=#828 id=828 data-nosnippet>828</a>    ///
-<a href=#829 id=829 data-nosnippet>829</a>    ///     let mut _rx2 = tx.subscribe();
+<a href=#829 id=829 data-nosnippet>829</a>    /// let mut _rx2 = tx.subscribe();
 <a href=#830 id=830 data-nosnippet>830</a>    ///
-<a href=#831 id=831 data-nosnippet>831</a>    ///     assert_eq!(2, tx.receiver_count());
+<a href=#831 id=831 data-nosnippet>831</a>    /// assert_eq!(2, tx.receiver_count());
 <a href=#832 id=832 data-nosnippet>832</a>    ///
-<a href=#833 id=833 data-nosnippet>833</a>    ///     tx.send(10).unwrap();
-<a href=#834 id=834 data-nosnippet>834</a>    /// }
+<a href=#833 id=833 data-nosnippet>833</a>    /// tx.send(10).unwrap();
+<a href=#834 id=834 data-nosnippet>834</a>    /// # }
 <a href=#835 id=835 data-nosnippet>835</a>    /// ```
 <a href=#836 id=836 data-nosnippet>836</a>    </span><span class="kw">pub fn </span>receiver_count(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
 <a href=#837 id=837 data-nosnippet>837</a>        <span class="kw">let </span>tail = <span class="self">self</span>.shared.tail.lock();
@@ -845,17 +845,17 @@
 <a href=#845 id=845 data-nosnippet>845</a>    /// ```
 <a href=#846 id=846 data-nosnippet>846</a>    /// use tokio::sync::broadcast;
 <a href=#847 id=847 data-nosnippet>847</a>    ///
-<a href=#848 id=848 data-nosnippet>848</a>    /// #[tokio::main]
-<a href=#849 id=849 data-nosnippet>849</a>    /// async fn main() {
-<a href=#850 id=850 data-nosnippet>850</a>    ///     let (tx, _rx) = broadcast::channel::&lt;()&gt;(16);
-<a href=#851 id=851 data-nosnippet>851</a>    ///     let tx2 = tx.clone();
+<a href=#848 id=848 data-nosnippet>848</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#849 id=849 data-nosnippet>849</a>    /// # async fn main() {
+<a href=#850 id=850 data-nosnippet>850</a>    /// let (tx, _rx) = broadcast::channel::&lt;()&gt;(16);
+<a href=#851 id=851 data-nosnippet>851</a>    /// let tx2 = tx.clone();
 <a href=#852 id=852 data-nosnippet>852</a>    ///
-<a href=#853 id=853 data-nosnippet>853</a>    ///     assert!(tx.same_channel(&amp;tx2));
+<a href=#853 id=853 data-nosnippet>853</a>    /// assert!(tx.same_channel(&amp;tx2));
 <a href=#854 id=854 data-nosnippet>854</a>    ///
-<a href=#855 id=855 data-nosnippet>855</a>    ///     let (tx3, _rx3) = broadcast::channel::&lt;()&gt;(16);
+<a href=#855 id=855 data-nosnippet>855</a>    /// let (tx3, _rx3) = broadcast::channel::&lt;()&gt;(16);
 <a href=#856 id=856 data-nosnippet>856</a>    ///
-<a href=#857 id=857 data-nosnippet>857</a>    ///     assert!(!tx3.same_channel(&amp;tx2));
-<a href=#858 id=858 data-nosnippet>858</a>    /// }
+<a href=#857 id=857 data-nosnippet>857</a>    /// assert!(!tx3.same_channel(&amp;tx2));
+<a href=#858 id=858 data-nosnippet>858</a>    /// # }
 <a href=#859 id=859 data-nosnippet>859</a>    /// ```
 <a href=#860 id=860 data-nosnippet>860</a>    </span><span class="kw">pub fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
 <a href=#861 id=861 data-nosnippet>861</a>        Arc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.shared, <span class="kw-2">&amp;</span>other.shared)
@@ -870,21 +870,21 @@
 <a href=#870 id=870 data-nosnippet>870</a>    /// use futures::FutureExt;
 <a href=#871 id=871 data-nosnippet>871</a>    /// use tokio::sync::broadcast;
 <a href=#872 id=872 data-nosnippet>872</a>    ///
-<a href=#873 id=873 data-nosnippet>873</a>    /// #[tokio::main]
-<a href=#874 id=874 data-nosnippet>874</a>    /// async fn main() {
-<a href=#875 id=875 data-nosnippet>875</a>    ///     let (tx, mut rx1) = broadcast::channel::&lt;u32&gt;(16);
-<a href=#876 id=876 data-nosnippet>876</a>    ///     let mut rx2 = tx.subscribe();
+<a href=#873 id=873 data-nosnippet>873</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#874 id=874 data-nosnippet>874</a>    /// # async fn main() {
+<a href=#875 id=875 data-nosnippet>875</a>    /// let (tx, mut rx1) = broadcast::channel::&lt;u32&gt;(16);
+<a href=#876 id=876 data-nosnippet>876</a>    /// let mut rx2 = tx.subscribe();
 <a href=#877 id=877 data-nosnippet>877</a>    ///
-<a href=#878 id=878 data-nosnippet>878</a>    ///     let _ = tx.send(10);
+<a href=#878 id=878 data-nosnippet>878</a>    /// let _ = tx.send(10);
 <a href=#879 id=879 data-nosnippet>879</a>    ///
-<a href=#880 id=880 data-nosnippet>880</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#881 id=881 data-nosnippet>881</a>    ///     drop(rx1);
-<a href=#882 id=882 data-nosnippet>882</a>    ///     assert!(tx.closed().now_or_never().is_none());
+<a href=#880 id=880 data-nosnippet>880</a>    /// assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#881 id=881 data-nosnippet>881</a>    /// drop(rx1);
+<a href=#882 id=882 data-nosnippet>882</a>    /// assert!(tx.closed().now_or_never().is_none());
 <a href=#883 id=883 data-nosnippet>883</a>    ///
-<a href=#884 id=884 data-nosnippet>884</a>    ///     assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#885 id=885 data-nosnippet>885</a>    ///     drop(rx2);
-<a href=#886 id=886 data-nosnippet>886</a>    ///     assert!(tx.closed().now_or_never().is_some());
-<a href=#887 id=887 data-nosnippet>887</a>    /// }
+<a href=#884 id=884 data-nosnippet>884</a>    /// assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#885 id=885 data-nosnippet>885</a>    /// drop(rx2);
+<a href=#886 id=886 data-nosnippet>886</a>    /// assert!(tx.closed().now_or_never().is_some());
+<a href=#887 id=887 data-nosnippet>887</a>    /// # }
 <a href=#888 id=888 data-nosnippet>888</a>    /// ```
 <a href=#889 id=889 data-nosnippet>889</a>    </span><span class="kw">pub async fn </span>closed(<span class="kw-2">&amp;</span><span class="self">self</span>) {
 <a href=#890 id=890 data-nosnippet>890</a>        <span class="kw">loop </span>{
@@ -1148,19 +1148,19 @@
 <a href=#1148 id=1148 data-nosnippet>1148</a>    /// ```
 <a href=#1149 id=1149 data-nosnippet>1149</a>    /// use tokio::sync::broadcast;
 <a href=#1150 id=1150 data-nosnippet>1150</a>    ///
-<a href=#1151 id=1151 data-nosnippet>1151</a>    /// #[tokio::main]
-<a href=#1152 id=1152 data-nosnippet>1152</a>    /// async fn main() {
-<a href=#1153 id=1153 data-nosnippet>1153</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
+<a href=#1151 id=1151 data-nosnippet>1151</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1152 id=1152 data-nosnippet>1152</a>    /// # async fn main() {
+<a href=#1153 id=1153 data-nosnippet>1153</a>    /// let (tx, mut rx1) = broadcast::channel(16);
 <a href=#1154 id=1154 data-nosnippet>1154</a>    ///
-<a href=#1155 id=1155 data-nosnippet>1155</a>    ///     tx.send(10).unwrap();
-<a href=#1156 id=1156 data-nosnippet>1156</a>    ///     tx.send(20).unwrap();
+<a href=#1155 id=1155 data-nosnippet>1155</a>    /// tx.send(10).unwrap();
+<a href=#1156 id=1156 data-nosnippet>1156</a>    /// tx.send(20).unwrap();
 <a href=#1157 id=1157 data-nosnippet>1157</a>    ///
-<a href=#1158 id=1158 data-nosnippet>1158</a>    ///     assert_eq!(rx1.len(), 2);
-<a href=#1159 id=1159 data-nosnippet>1159</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#1160 id=1160 data-nosnippet>1160</a>    ///     assert_eq!(rx1.len(), 1);
-<a href=#1161 id=1161 data-nosnippet>1161</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#1162 id=1162 data-nosnippet>1162</a>    ///     assert_eq!(rx1.len(), 0);
-<a href=#1163 id=1163 data-nosnippet>1163</a>    /// }
+<a href=#1158 id=1158 data-nosnippet>1158</a>    /// assert_eq!(rx1.len(), 2);
+<a href=#1159 id=1159 data-nosnippet>1159</a>    /// assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#1160 id=1160 data-nosnippet>1160</a>    /// assert_eq!(rx1.len(), 1);
+<a href=#1161 id=1161 data-nosnippet>1161</a>    /// assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#1162 id=1162 data-nosnippet>1162</a>    /// assert_eq!(rx1.len(), 0);
+<a href=#1163 id=1163 data-nosnippet>1163</a>    /// # }
 <a href=#1164 id=1164 data-nosnippet>1164</a>    /// ```
 <a href=#1165 id=1165 data-nosnippet>1165</a>    </span><span class="kw">pub fn </span>len(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; usize {
 <a href=#1166 id=1166 data-nosnippet>1166</a>        <span class="kw">let </span>next_send_pos = <span class="self">self</span>.shared.tail.lock().pos;
@@ -1170,27 +1170,27 @@
 <a href=#1170 id=1170 data-nosnippet>1170</a>    <span class="doccomment">/// Returns true if there aren't any messages in the channel that the [`Receiver`]
 <a href=#1171 id=1171 data-nosnippet>1171</a>    /// has yet to receive.
 <a href=#1172 id=1172 data-nosnippet>1172</a>    ///
-<a href=#1173 id=1173 data-nosnippet>1173</a>    /// [`Receiver]: create::sync::broadcast::Receiver
+<a href=#1173 id=1173 data-nosnippet>1173</a>    /// [`Receiver`]: crate::sync::broadcast::Receiver
 <a href=#1174 id=1174 data-nosnippet>1174</a>    ///
 <a href=#1175 id=1175 data-nosnippet>1175</a>    /// # Examples
 <a href=#1176 id=1176 data-nosnippet>1176</a>    ///
 <a href=#1177 id=1177 data-nosnippet>1177</a>    /// ```
 <a href=#1178 id=1178 data-nosnippet>1178</a>    /// use tokio::sync::broadcast;
 <a href=#1179 id=1179 data-nosnippet>1179</a>    ///
-<a href=#1180 id=1180 data-nosnippet>1180</a>    /// #[tokio::main]
-<a href=#1181 id=1181 data-nosnippet>1181</a>    /// async fn main() {
-<a href=#1182 id=1182 data-nosnippet>1182</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
+<a href=#1180 id=1180 data-nosnippet>1180</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1181 id=1181 data-nosnippet>1181</a>    /// # async fn main() {
+<a href=#1182 id=1182 data-nosnippet>1182</a>    /// let (tx, mut rx1) = broadcast::channel(16);
 <a href=#1183 id=1183 data-nosnippet>1183</a>    ///
-<a href=#1184 id=1184 data-nosnippet>1184</a>    ///     assert!(rx1.is_empty());
+<a href=#1184 id=1184 data-nosnippet>1184</a>    /// assert!(rx1.is_empty());
 <a href=#1185 id=1185 data-nosnippet>1185</a>    ///
-<a href=#1186 id=1186 data-nosnippet>1186</a>    ///     tx.send(10).unwrap();
-<a href=#1187 id=1187 data-nosnippet>1187</a>    ///     tx.send(20).unwrap();
+<a href=#1186 id=1186 data-nosnippet>1186</a>    /// tx.send(10).unwrap();
+<a href=#1187 id=1187 data-nosnippet>1187</a>    /// tx.send(20).unwrap();
 <a href=#1188 id=1188 data-nosnippet>1188</a>    ///
-<a href=#1189 id=1189 data-nosnippet>1189</a>    ///     assert!(!rx1.is_empty());
-<a href=#1190 id=1190 data-nosnippet>1190</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#1191 id=1191 data-nosnippet>1191</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#1192 id=1192 data-nosnippet>1192</a>    ///     assert!(rx1.is_empty());
-<a href=#1193 id=1193 data-nosnippet>1193</a>    /// }
+<a href=#1189 id=1189 data-nosnippet>1189</a>    /// assert!(!rx1.is_empty());
+<a href=#1190 id=1190 data-nosnippet>1190</a>    /// assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#1191 id=1191 data-nosnippet>1191</a>    /// assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#1192 id=1192 data-nosnippet>1192</a>    /// assert!(rx1.is_empty());
+<a href=#1193 id=1193 data-nosnippet>1193</a>    /// # }
 <a href=#1194 id=1194 data-nosnippet>1194</a>    /// ```
 <a href=#1195 id=1195 data-nosnippet>1195</a>    </span><span class="kw">pub fn </span>is_empty(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 <a href=#1196 id=1196 data-nosnippet>1196</a>        <span class="self">self</span>.len() == <span class="number">0
@@ -1203,17 +1203,17 @@
 <a href=#1203 id=1203 data-nosnippet>1203</a>    /// ```
 <a href=#1204 id=1204 data-nosnippet>1204</a>    /// use tokio::sync::broadcast;
 <a href=#1205 id=1205 data-nosnippet>1205</a>    ///
-<a href=#1206 id=1206 data-nosnippet>1206</a>    /// #[tokio::main]
-<a href=#1207 id=1207 data-nosnippet>1207</a>    /// async fn main() {
-<a href=#1208 id=1208 data-nosnippet>1208</a>    ///     let (tx, rx) = broadcast::channel::&lt;()&gt;(16);
-<a href=#1209 id=1209 data-nosnippet>1209</a>    ///     let rx2 = tx.subscribe();
+<a href=#1206 id=1206 data-nosnippet>1206</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1207 id=1207 data-nosnippet>1207</a>    /// # async fn main() {
+<a href=#1208 id=1208 data-nosnippet>1208</a>    /// let (tx, rx) = broadcast::channel::&lt;()&gt;(16);
+<a href=#1209 id=1209 data-nosnippet>1209</a>    /// let rx2 = tx.subscribe();
 <a href=#1210 id=1210 data-nosnippet>1210</a>    ///
-<a href=#1211 id=1211 data-nosnippet>1211</a>    ///     assert!(rx.same_channel(&amp;rx2));
+<a href=#1211 id=1211 data-nosnippet>1211</a>    /// assert!(rx.same_channel(&amp;rx2));
 <a href=#1212 id=1212 data-nosnippet>1212</a>    ///
-<a href=#1213 id=1213 data-nosnippet>1213</a>    ///     let (_tx3, rx3) = broadcast::channel::&lt;()&gt;(16);
+<a href=#1213 id=1213 data-nosnippet>1213</a>    /// let (_tx3, rx3) = broadcast::channel::&lt;()&gt;(16);
 <a href=#1214 id=1214 data-nosnippet>1214</a>    ///
-<a href=#1215 id=1215 data-nosnippet>1215</a>    ///     assert!(!rx3.same_channel(&amp;rx2));
-<a href=#1216 id=1216 data-nosnippet>1216</a>    /// }
+<a href=#1215 id=1215 data-nosnippet>1215</a>    /// assert!(!rx3.same_channel(&amp;rx2));
+<a href=#1216 id=1216 data-nosnippet>1216</a>    /// # }
 <a href=#1217 id=1217 data-nosnippet>1217</a>    /// ```
 <a href=#1218 id=1218 data-nosnippet>1218</a>    </span><span class="kw">pub fn </span>same_channel(<span class="kw-2">&amp;</span><span class="self">self</span>, other: <span class="kw-2">&amp;</span><span class="self">Self</span>) -&gt; bool {
 <a href=#1219 id=1219 data-nosnippet>1219</a>        Arc::ptr_eq(<span class="kw-2">&amp;</span><span class="self">self</span>.shared, <span class="kw-2">&amp;</span>other.shared)
@@ -1348,15 +1348,15 @@
 <a href=#1348 id=1348 data-nosnippet>1348</a>    /// ```
 <a href=#1349 id=1349 data-nosnippet>1349</a>    /// use tokio::sync::broadcast;
 <a href=#1350 id=1350 data-nosnippet>1350</a>    ///
-<a href=#1351 id=1351 data-nosnippet>1351</a>    /// #[tokio::main]
-<a href=#1352 id=1352 data-nosnippet>1352</a>    /// async fn main() {
-<a href=#1353 id=1353 data-nosnippet>1353</a>    ///     let (tx, rx) = broadcast::channel::&lt;()&gt;(10);
-<a href=#1354 id=1354 data-nosnippet>1354</a>    ///     assert!(!rx.is_closed());
+<a href=#1351 id=1351 data-nosnippet>1351</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1352 id=1352 data-nosnippet>1352</a>    /// # async fn main() {
+<a href=#1353 id=1353 data-nosnippet>1353</a>    /// let (tx, rx) = broadcast::channel::&lt;()&gt;(10);
+<a href=#1354 id=1354 data-nosnippet>1354</a>    /// assert!(!rx.is_closed());
 <a href=#1355 id=1355 data-nosnippet>1355</a>    ///
-<a href=#1356 id=1356 data-nosnippet>1356</a>    ///     drop(tx);
+<a href=#1356 id=1356 data-nosnippet>1356</a>    /// drop(tx);
 <a href=#1357 id=1357 data-nosnippet>1357</a>    ///
-<a href=#1358 id=1358 data-nosnippet>1358</a>    ///     assert!(rx.is_closed());
-<a href=#1359 id=1359 data-nosnippet>1359</a>    /// }
+<a href=#1358 id=1358 data-nosnippet>1358</a>    /// assert!(rx.is_closed());
+<a href=#1359 id=1359 data-nosnippet>1359</a>    /// # }
 <a href=#1360 id=1360 data-nosnippet>1360</a>    /// ```
 <a href=#1361 id=1361 data-nosnippet>1361</a>    </span><span class="kw">pub fn </span>is_closed(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; bool {
 <a href=#1362 id=1362 data-nosnippet>1362</a>        <span class="comment">// Channel is closed when there are no strong senders left active
@@ -1376,17 +1376,17 @@
 <a href=#1376 id=1376 data-nosnippet>1376</a>    /// ```
 <a href=#1377 id=1377 data-nosnippet>1377</a>    /// use tokio::sync::broadcast;
 <a href=#1378 id=1378 data-nosnippet>1378</a>    ///
-<a href=#1379 id=1379 data-nosnippet>1379</a>    /// #[tokio::main]
-<a href=#1380 id=1380 data-nosnippet>1380</a>    /// async fn main() {
-<a href=#1381 id=1381 data-nosnippet>1381</a>    ///   let (tx, mut rx) = broadcast::channel(2);
+<a href=#1379 id=1379 data-nosnippet>1379</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1380 id=1380 data-nosnippet>1380</a>    /// # async fn main() {
+<a href=#1381 id=1381 data-nosnippet>1381</a>    /// let (tx, mut rx) = broadcast::channel(2);
 <a href=#1382 id=1382 data-nosnippet>1382</a>    ///
-<a href=#1383 id=1383 data-nosnippet>1383</a>    ///   tx.send(1).unwrap();
-<a href=#1384 id=1384 data-nosnippet>1384</a>    ///   let mut rx2 = rx.resubscribe();
-<a href=#1385 id=1385 data-nosnippet>1385</a>    ///   tx.send(2).unwrap();
+<a href=#1383 id=1383 data-nosnippet>1383</a>    /// tx.send(1).unwrap();
+<a href=#1384 id=1384 data-nosnippet>1384</a>    /// let mut rx2 = rx.resubscribe();
+<a href=#1385 id=1385 data-nosnippet>1385</a>    /// tx.send(2).unwrap();
 <a href=#1386 id=1386 data-nosnippet>1386</a>    ///
-<a href=#1387 id=1387 data-nosnippet>1387</a>    ///   assert_eq!(rx2.recv().await.unwrap(), 2);
-<a href=#1388 id=1388 data-nosnippet>1388</a>    ///   assert_eq!(rx.recv().await.unwrap(), 1);
-<a href=#1389 id=1389 data-nosnippet>1389</a>    /// }
+<a href=#1387 id=1387 data-nosnippet>1387</a>    /// assert_eq!(rx2.recv().await.unwrap(), 2);
+<a href=#1388 id=1388 data-nosnippet>1388</a>    /// assert_eq!(rx.recv().await.unwrap(), 1);
+<a href=#1389 id=1389 data-nosnippet>1389</a>    /// # }
 <a href=#1390 id=1390 data-nosnippet>1390</a>    /// ```
 <a href=#1391 id=1391 data-nosnippet>1391</a>    </span><span class="kw">pub fn </span>resubscribe(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="self">Self </span>{
 <a href=#1392 id=1392 data-nosnippet>1392</a>        <span class="kw">let </span>shared = <span class="self">self</span>.shared.clone();
@@ -1422,24 +1422,24 @@
 <a href=#1422 id=1422 data-nosnippet>1422</a>    /// ```
 <a href=#1423 id=1423 data-nosnippet>1423</a>    /// use tokio::sync::broadcast;
 <a href=#1424 id=1424 data-nosnippet>1424</a>    ///
-<a href=#1425 id=1425 data-nosnippet>1425</a>    /// #[tokio::main]
-<a href=#1426 id=1426 data-nosnippet>1426</a>    /// async fn main() {
-<a href=#1427 id=1427 data-nosnippet>1427</a>    ///     let (tx, mut rx1) = broadcast::channel(16);
-<a href=#1428 id=1428 data-nosnippet>1428</a>    ///     let mut rx2 = tx.subscribe();
+<a href=#1425 id=1425 data-nosnippet>1425</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1426 id=1426 data-nosnippet>1426</a>    /// # async fn main() {
+<a href=#1427 id=1427 data-nosnippet>1427</a>    /// let (tx, mut rx1) = broadcast::channel(16);
+<a href=#1428 id=1428 data-nosnippet>1428</a>    /// let mut rx2 = tx.subscribe();
 <a href=#1429 id=1429 data-nosnippet>1429</a>    ///
-<a href=#1430 id=1430 data-nosnippet>1430</a>    ///     tokio::spawn(async move {
-<a href=#1431 id=1431 data-nosnippet>1431</a>    ///         assert_eq!(rx1.recv().await.unwrap(), 10);
-<a href=#1432 id=1432 data-nosnippet>1432</a>    ///         assert_eq!(rx1.recv().await.unwrap(), 20);
-<a href=#1433 id=1433 data-nosnippet>1433</a>    ///     });
+<a href=#1430 id=1430 data-nosnippet>1430</a>    /// tokio::spawn(async move {
+<a href=#1431 id=1431 data-nosnippet>1431</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 10);
+<a href=#1432 id=1432 data-nosnippet>1432</a>    ///     assert_eq!(rx1.recv().await.unwrap(), 20);
+<a href=#1433 id=1433 data-nosnippet>1433</a>    /// });
 <a href=#1434 id=1434 data-nosnippet>1434</a>    ///
-<a href=#1435 id=1435 data-nosnippet>1435</a>    ///     tokio::spawn(async move {
-<a href=#1436 id=1436 data-nosnippet>1436</a>    ///         assert_eq!(rx2.recv().await.unwrap(), 10);
-<a href=#1437 id=1437 data-nosnippet>1437</a>    ///         assert_eq!(rx2.recv().await.unwrap(), 20);
-<a href=#1438 id=1438 data-nosnippet>1438</a>    ///     });
+<a href=#1435 id=1435 data-nosnippet>1435</a>    /// tokio::spawn(async move {
+<a href=#1436 id=1436 data-nosnippet>1436</a>    ///     assert_eq!(rx2.recv().await.unwrap(), 10);
+<a href=#1437 id=1437 data-nosnippet>1437</a>    ///     assert_eq!(rx2.recv().await.unwrap(), 20);
+<a href=#1438 id=1438 data-nosnippet>1438</a>    /// });
 <a href=#1439 id=1439 data-nosnippet>1439</a>    ///
-<a href=#1440 id=1440 data-nosnippet>1440</a>    ///     tx.send(10).unwrap();
-<a href=#1441 id=1441 data-nosnippet>1441</a>    ///     tx.send(20).unwrap();
-<a href=#1442 id=1442 data-nosnippet>1442</a>    /// }
+<a href=#1440 id=1440 data-nosnippet>1440</a>    /// tx.send(10).unwrap();
+<a href=#1441 id=1441 data-nosnippet>1441</a>    /// tx.send(20).unwrap();
+<a href=#1442 id=1442 data-nosnippet>1442</a>    /// # }
 <a href=#1443 id=1443 data-nosnippet>1443</a>    /// ```
 <a href=#1444 id=1444 data-nosnippet>1444</a>    ///
 <a href=#1445 id=1445 data-nosnippet>1445</a>    /// Handling lag
@@ -1447,22 +1447,22 @@
 <a href=#1447 id=1447 data-nosnippet>1447</a>    /// ```
 <a href=#1448 id=1448 data-nosnippet>1448</a>    /// use tokio::sync::broadcast;
 <a href=#1449 id=1449 data-nosnippet>1449</a>    ///
-<a href=#1450 id=1450 data-nosnippet>1450</a>    /// #[tokio::main]
-<a href=#1451 id=1451 data-nosnippet>1451</a>    /// async fn main() {
-<a href=#1452 id=1452 data-nosnippet>1452</a>    ///     let (tx, mut rx) = broadcast::channel(2);
+<a href=#1450 id=1450 data-nosnippet>1450</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1451 id=1451 data-nosnippet>1451</a>    /// # async fn main() {
+<a href=#1452 id=1452 data-nosnippet>1452</a>    /// let (tx, mut rx) = broadcast::channel(2);
 <a href=#1453 id=1453 data-nosnippet>1453</a>    ///
-<a href=#1454 id=1454 data-nosnippet>1454</a>    ///     tx.send(10).unwrap();
-<a href=#1455 id=1455 data-nosnippet>1455</a>    ///     tx.send(20).unwrap();
-<a href=#1456 id=1456 data-nosnippet>1456</a>    ///     tx.send(30).unwrap();
+<a href=#1454 id=1454 data-nosnippet>1454</a>    /// tx.send(10).unwrap();
+<a href=#1455 id=1455 data-nosnippet>1455</a>    /// tx.send(20).unwrap();
+<a href=#1456 id=1456 data-nosnippet>1456</a>    /// tx.send(30).unwrap();
 <a href=#1457 id=1457 data-nosnippet>1457</a>    ///
-<a href=#1458 id=1458 data-nosnippet>1458</a>    ///     // The receiver lagged behind
-<a href=#1459 id=1459 data-nosnippet>1459</a>    ///     assert!(rx.recv().await.is_err());
+<a href=#1458 id=1458 data-nosnippet>1458</a>    /// // The receiver lagged behind
+<a href=#1459 id=1459 data-nosnippet>1459</a>    /// assert!(rx.recv().await.is_err());
 <a href=#1460 id=1460 data-nosnippet>1460</a>    ///
-<a href=#1461 id=1461 data-nosnippet>1461</a>    ///     // At this point, we can abort or continue with lost messages
+<a href=#1461 id=1461 data-nosnippet>1461</a>    /// // At this point, we can abort or continue with lost messages
 <a href=#1462 id=1462 data-nosnippet>1462</a>    ///
-<a href=#1463 id=1463 data-nosnippet>1463</a>    ///     assert_eq!(20, rx.recv().await.unwrap());
-<a href=#1464 id=1464 data-nosnippet>1464</a>    ///     assert_eq!(30, rx.recv().await.unwrap());
-<a href=#1465 id=1465 data-nosnippet>1465</a>    /// }
+<a href=#1463 id=1463 data-nosnippet>1463</a>    /// assert_eq!(20, rx.recv().await.unwrap());
+<a href=#1464 id=1464 data-nosnippet>1464</a>    /// assert_eq!(30, rx.recv().await.unwrap());
+<a href=#1465 id=1465 data-nosnippet>1465</a>    /// # }
 <a href=#1466 id=1466 data-nosnippet>1466</a>    /// ```
 <a href=#1467 id=1467 data-nosnippet>1467</a>    </span><span class="kw">pub async fn </span>recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
 <a href=#1468 id=1468 data-nosnippet>1468</a>        cooperative(Recv::new(<span class="self">self</span>)).<span class="kw">await
@@ -1496,17 +1496,17 @@
 <a href=#1496 id=1496 data-nosnippet>1496</a>    /// ```
 <a href=#1497 id=1497 data-nosnippet>1497</a>    /// use tokio::sync::broadcast;
 <a href=#1498 id=1498 data-nosnippet>1498</a>    ///
-<a href=#1499 id=1499 data-nosnippet>1499</a>    /// #[tokio::main]
-<a href=#1500 id=1500 data-nosnippet>1500</a>    /// async fn main() {
-<a href=#1501 id=1501 data-nosnippet>1501</a>    ///     let (tx, mut rx) = broadcast::channel(16);
+<a href=#1499 id=1499 data-nosnippet>1499</a>    /// # #[tokio::main(flavor = "current_thread")]
+<a href=#1500 id=1500 data-nosnippet>1500</a>    /// # async fn main() {
+<a href=#1501 id=1501 data-nosnippet>1501</a>    /// let (tx, mut rx) = broadcast::channel(16);
 <a href=#1502 id=1502 data-nosnippet>1502</a>    ///
-<a href=#1503 id=1503 data-nosnippet>1503</a>    ///     assert!(rx.try_recv().is_err());
+<a href=#1503 id=1503 data-nosnippet>1503</a>    /// assert!(rx.try_recv().is_err());
 <a href=#1504 id=1504 data-nosnippet>1504</a>    ///
-<a href=#1505 id=1505 data-nosnippet>1505</a>    ///     tx.send(10).unwrap();
+<a href=#1505 id=1505 data-nosnippet>1505</a>    /// tx.send(10).unwrap();
 <a href=#1506 id=1506 data-nosnippet>1506</a>    ///
-<a href=#1507 id=1507 data-nosnippet>1507</a>    ///     let value = rx.try_recv().unwrap();
-<a href=#1508 id=1508 data-nosnippet>1508</a>    ///     assert_eq!(10, value);
-<a href=#1509 id=1509 data-nosnippet>1509</a>    /// }
+<a href=#1507 id=1507 data-nosnippet>1507</a>    /// let value = rx.try_recv().unwrap();
+<a href=#1508 id=1508 data-nosnippet>1508</a>    /// assert_eq!(10, value);
+<a href=#1509 id=1509 data-nosnippet>1509</a>    /// # }
 <a href=#1510 id=1510 data-nosnippet>1510</a>    /// ```
 <a href=#1511 id=1511 data-nosnippet>1511</a>    </span><span class="kw">pub fn </span>try_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, TryRecvError&gt; {
 <a href=#1512 id=1512 data-nosnippet>1512</a>        <span class="kw">let </span>guard = <span class="self">self</span>.recv_ref(<span class="prelude-val">None</span>)<span class="question-mark">?</span>;
@@ -1522,235 +1522,238 @@
 <a href=#1522 id=1522 data-nosnippet>1522</a>    ///
 <a href=#1523 id=1523 data-nosnippet>1523</a>    /// # Examples
 <a href=#1524 id=1524 data-nosnippet>1524</a>    /// ```
-<a href=#1525 id=1525 data-nosnippet>1525</a>    /// use std::thread;
-<a href=#1526 id=1526 data-nosnippet>1526</a>    /// use tokio::sync::broadcast;
-<a href=#1527 id=1527 data-nosnippet>1527</a>    ///
-<a href=#1528 id=1528 data-nosnippet>1528</a>    /// #[tokio::main]
-<a href=#1529 id=1529 data-nosnippet>1529</a>    /// async fn main() {
-<a href=#1530 id=1530 data-nosnippet>1530</a>    ///     let (tx, mut rx) = broadcast::channel(16);
-<a href=#1531 id=1531 data-nosnippet>1531</a>    ///
-<a href=#1532 id=1532 data-nosnippet>1532</a>    ///     let sync_code = thread::spawn(move || {
-<a href=#1533 id=1533 data-nosnippet>1533</a>    ///         assert_eq!(rx.blocking_recv(), Ok(10));
-<a href=#1534 id=1534 data-nosnippet>1534</a>    ///     });
-<a href=#1535 id=1535 data-nosnippet>1535</a>    ///
-<a href=#1536 id=1536 data-nosnippet>1536</a>    ///     let _ = tx.send(10);
-<a href=#1537 id=1537 data-nosnippet>1537</a>    ///     sync_code.join().unwrap();
-<a href=#1538 id=1538 data-nosnippet>1538</a>    /// }
-<a href=#1539 id=1539 data-nosnippet>1539</a>    /// ```
-<a href=#1540 id=1540 data-nosnippet>1540</a>    </span><span class="kw">pub fn </span>blocking_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
-<a href=#1541 id=1541 data-nosnippet>1541</a>        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.recv())
-<a href=#1542 id=1542 data-nosnippet>1542</a>    }
-<a href=#1543 id=1543 data-nosnippet>1543</a>}
-<a href=#1544 id=1544 data-nosnippet>1544</a>
-<a href=#1545 id=1545 data-nosnippet>1545</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
-<a href=#1546 id=1546 data-nosnippet>1546</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#1547 id=1547 data-nosnippet>1547</a>        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.shared.tail.lock();
-<a href=#1548 id=1548 data-nosnippet>1548</a>
-<a href=#1549 id=1549 data-nosnippet>1549</a>        tail.rx_cnt -= <span class="number">1</span>;
-<a href=#1550 id=1550 data-nosnippet>1550</a>        <span class="kw">let </span>until = tail.pos;
-<a href=#1551 id=1551 data-nosnippet>1551</a>        <span class="kw">let </span>remaining_rx = tail.rx_cnt;
-<a href=#1552 id=1552 data-nosnippet>1552</a>
-<a href=#1553 id=1553 data-nosnippet>1553</a>        <span class="kw">if </span>remaining_rx == <span class="number">0 </span>{
-<a href=#1554 id=1554 data-nosnippet>1554</a>            <span class="self">self</span>.shared.notify_last_rx_drop.notify_waiters();
-<a href=#1555 id=1555 data-nosnippet>1555</a>            tail.closed = <span class="bool-val">true</span>;
-<a href=#1556 id=1556 data-nosnippet>1556</a>        }
-<a href=#1557 id=1557 data-nosnippet>1557</a>
-<a href=#1558 id=1558 data-nosnippet>1558</a>        drop(tail);
-<a href=#1559 id=1559 data-nosnippet>1559</a>
-<a href=#1560 id=1560 data-nosnippet>1560</a>        <span class="kw">while </span><span class="self">self</span>.next &lt; until {
-<a href=#1561 id=1561 data-nosnippet>1561</a>            <span class="kw">match </span><span class="self">self</span>.recv_ref(<span class="prelude-val">None</span>) {
-<a href=#1562 id=1562 data-nosnippet>1562</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
-<a href=#1563 id=1563 data-nosnippet>1563</a>                <span class="comment">// The channel is closed
-<a href=#1564 id=1564 data-nosnippet>1564</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; <span class="kw">break</span>,
-<a href=#1565 id=1565 data-nosnippet>1565</a>                <span class="comment">// Ignore lagging, we will catch up
-<a href=#1566 id=1566 data-nosnippet>1566</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Lagged(..)) =&gt; {}
-<a href=#1567 id=1567 data-nosnippet>1567</a>                <span class="comment">// Can't be empty
-<a href=#1568 id=1568 data-nosnippet>1568</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected empty broadcast channel"</span>),
-<a href=#1569 id=1569 data-nosnippet>1569</a>            }
-<a href=#1570 id=1570 data-nosnippet>1570</a>        }
-<a href=#1571 id=1571 data-nosnippet>1571</a>    }
-<a href=#1572 id=1572 data-nosnippet>1572</a>}
-<a href=#1573 id=1573 data-nosnippet>1573</a>
-<a href=#1574 id=1574 data-nosnippet>1574</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Recv&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#1575 id=1575 data-nosnippet>1575</a>    <span class="kw">fn </span>new(receiver: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Receiver&lt;T&gt;) -&gt; Recv&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#1576 id=1576 data-nosnippet>1576</a>        Recv {
-<a href=#1577 id=1577 data-nosnippet>1577</a>            receiver,
-<a href=#1578 id=1578 data-nosnippet>1578</a>            waiter: WaiterCell(UnsafeCell::new(Waiter {
-<a href=#1579 id=1579 data-nosnippet>1579</a>                queued: AtomicBool::new(<span class="bool-val">false</span>),
-<a href=#1580 id=1580 data-nosnippet>1580</a>                waker: <span class="prelude-val">None</span>,
-<a href=#1581 id=1581 data-nosnippet>1581</a>                pointers: linked_list::Pointers::new(),
-<a href=#1582 id=1582 data-nosnippet>1582</a>                _p: PhantomPinned,
-<a href=#1583 id=1583 data-nosnippet>1583</a>            })),
-<a href=#1584 id=1584 data-nosnippet>1584</a>        }
-<a href=#1585 id=1585 data-nosnippet>1585</a>    }
-<a href=#1586 id=1586 data-nosnippet>1586</a>
-<a href=#1587 id=1587 data-nosnippet>1587</a>    <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`
-<a href=#1588 id=1588 data-nosnippet>1588</a>    /// as a custom drop implementation is needed.
-<a href=#1589 id=1589 data-nosnippet>1589</a>    </span><span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (<span class="kw-2">&amp;mut </span>Receiver&lt;T&gt;, <span class="kw-2">&amp;</span>UnsafeCell&lt;Waiter&gt;) {
-<a href=#1590 id=1590 data-nosnippet>1590</a>        <span class="kw">unsafe </span>{
-<a href=#1591 id=1591 data-nosnippet>1591</a>            <span class="comment">// Safety: Receiver is Unpin
-<a href=#1592 id=1592 data-nosnippet>1592</a>            </span>is_unpin::&lt;<span class="kw-2">&amp;mut </span>Receiver&lt;T&gt;&gt;();
-<a href=#1593 id=1593 data-nosnippet>1593</a>
-<a href=#1594 id=1594 data-nosnippet>1594</a>            <span class="kw">let </span>me = <span class="self">self</span>.get_unchecked_mut();
-<a href=#1595 id=1595 data-nosnippet>1595</a>            (me.receiver, <span class="kw-2">&amp;</span>me.waiter.<span class="number">0</span>)
-<a href=#1596 id=1596 data-nosnippet>1596</a>        }
-<a href=#1597 id=1597 data-nosnippet>1597</a>    }
-<a href=#1598 id=1598 data-nosnippet>1598</a>}
-<a href=#1599 id=1599 data-nosnippet>1599</a>
-<a href=#1600 id=1600 data-nosnippet>1600</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Future <span class="kw">for </span>Recv&lt;<span class="lifetime">'a</span>, T&gt;
-<a href=#1601 id=1601 data-nosnippet>1601</a><span class="kw">where
-<a href=#1602 id=1602 data-nosnippet>1602</a>    </span>T: Clone,
-<a href=#1603 id=1603 data-nosnippet>1603</a>{
-<a href=#1604 id=1604 data-nosnippet>1604</a>    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
-<a href=#1605 id=1605 data-nosnippet>1605</a>
-<a href=#1606 id=1606 data-nosnippet>1606</a>    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, RecvError&gt;&gt; {
-<a href=#1607 id=1607 data-nosnippet>1607</a>        <span class="macro">ready!</span>(<span class="kw">crate</span>::trace::trace_leaf(cx));
+<a href=#1525 id=1525 data-nosnippet>1525</a>    /// # #[cfg(not(target_family = "wasm"))]
+<a href=#1526 id=1526 data-nosnippet>1526</a>    /// # {
+<a href=#1527 id=1527 data-nosnippet>1527</a>    /// use std::thread;
+<a href=#1528 id=1528 data-nosnippet>1528</a>    /// use tokio::sync::broadcast;
+<a href=#1529 id=1529 data-nosnippet>1529</a>    ///
+<a href=#1530 id=1530 data-nosnippet>1530</a>    /// #[tokio::main]
+<a href=#1531 id=1531 data-nosnippet>1531</a>    /// async fn main() {
+<a href=#1532 id=1532 data-nosnippet>1532</a>    ///     let (tx, mut rx) = broadcast::channel(16);
+<a href=#1533 id=1533 data-nosnippet>1533</a>    ///
+<a href=#1534 id=1534 data-nosnippet>1534</a>    ///     let sync_code = thread::spawn(move || {
+<a href=#1535 id=1535 data-nosnippet>1535</a>    ///         assert_eq!(rx.blocking_recv(), Ok(10));
+<a href=#1536 id=1536 data-nosnippet>1536</a>    ///     });
+<a href=#1537 id=1537 data-nosnippet>1537</a>    ///
+<a href=#1538 id=1538 data-nosnippet>1538</a>    ///     let _ = tx.send(10);
+<a href=#1539 id=1539 data-nosnippet>1539</a>    ///     sync_code.join().unwrap();
+<a href=#1540 id=1540 data-nosnippet>1540</a>    /// }
+<a href=#1541 id=1541 data-nosnippet>1541</a>    /// # }
+<a href=#1542 id=1542 data-nosnippet>1542</a>    /// ```
+<a href=#1543 id=1543 data-nosnippet>1543</a>    </span><span class="kw">pub fn </span>blocking_recv(<span class="kw-2">&amp;mut </span><span class="self">self</span>) -&gt; <span class="prelude-ty">Result</span>&lt;T, RecvError&gt; {
+<a href=#1544 id=1544 data-nosnippet>1544</a>        <span class="kw">crate</span>::future::block_on(<span class="self">self</span>.recv())
+<a href=#1545 id=1545 data-nosnippet>1545</a>    }
+<a href=#1546 id=1546 data-nosnippet>1546</a>}
+<a href=#1547 id=1547 data-nosnippet>1547</a>
+<a href=#1548 id=1548 data-nosnippet>1548</a><span class="kw">impl</span>&lt;T&gt; Drop <span class="kw">for </span>Receiver&lt;T&gt; {
+<a href=#1549 id=1549 data-nosnippet>1549</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#1550 id=1550 data-nosnippet>1550</a>        <span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.shared.tail.lock();
+<a href=#1551 id=1551 data-nosnippet>1551</a>
+<a href=#1552 id=1552 data-nosnippet>1552</a>        tail.rx_cnt -= <span class="number">1</span>;
+<a href=#1553 id=1553 data-nosnippet>1553</a>        <span class="kw">let </span>until = tail.pos;
+<a href=#1554 id=1554 data-nosnippet>1554</a>        <span class="kw">let </span>remaining_rx = tail.rx_cnt;
+<a href=#1555 id=1555 data-nosnippet>1555</a>
+<a href=#1556 id=1556 data-nosnippet>1556</a>        <span class="kw">if </span>remaining_rx == <span class="number">0 </span>{
+<a href=#1557 id=1557 data-nosnippet>1557</a>            <span class="self">self</span>.shared.notify_last_rx_drop.notify_waiters();
+<a href=#1558 id=1558 data-nosnippet>1558</a>            tail.closed = <span class="bool-val">true</span>;
+<a href=#1559 id=1559 data-nosnippet>1559</a>        }
+<a href=#1560 id=1560 data-nosnippet>1560</a>
+<a href=#1561 id=1561 data-nosnippet>1561</a>        drop(tail);
+<a href=#1562 id=1562 data-nosnippet>1562</a>
+<a href=#1563 id=1563 data-nosnippet>1563</a>        <span class="kw">while </span><span class="self">self</span>.next &lt; until {
+<a href=#1564 id=1564 data-nosnippet>1564</a>            <span class="kw">match </span><span class="self">self</span>.recv_ref(<span class="prelude-val">None</span>) {
+<a href=#1565 id=1565 data-nosnippet>1565</a>                <span class="prelude-val">Ok</span>(<span class="kw">_</span>) =&gt; {}
+<a href=#1566 id=1566 data-nosnippet>1566</a>                <span class="comment">// The channel is closed
+<a href=#1567 id=1567 data-nosnippet>1567</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; <span class="kw">break</span>,
+<a href=#1568 id=1568 data-nosnippet>1568</a>                <span class="comment">// Ignore lagging, we will catch up
+<a href=#1569 id=1569 data-nosnippet>1569</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Lagged(..)) =&gt; {}
+<a href=#1570 id=1570 data-nosnippet>1570</a>                <span class="comment">// Can't be empty
+<a href=#1571 id=1571 data-nosnippet>1571</a>                </span><span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="macro">panic!</span>(<span class="string">"unexpected empty broadcast channel"</span>),
+<a href=#1572 id=1572 data-nosnippet>1572</a>            }
+<a href=#1573 id=1573 data-nosnippet>1573</a>        }
+<a href=#1574 id=1574 data-nosnippet>1574</a>    }
+<a href=#1575 id=1575 data-nosnippet>1575</a>}
+<a href=#1576 id=1576 data-nosnippet>1576</a>
+<a href=#1577 id=1577 data-nosnippet>1577</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Recv&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#1578 id=1578 data-nosnippet>1578</a>    <span class="kw">fn </span>new(receiver: <span class="kw-2">&amp;</span><span class="lifetime">'a </span><span class="kw-2">mut </span>Receiver&lt;T&gt;) -&gt; Recv&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#1579 id=1579 data-nosnippet>1579</a>        Recv {
+<a href=#1580 id=1580 data-nosnippet>1580</a>            receiver,
+<a href=#1581 id=1581 data-nosnippet>1581</a>            waiter: WaiterCell(UnsafeCell::new(Waiter {
+<a href=#1582 id=1582 data-nosnippet>1582</a>                queued: AtomicBool::new(<span class="bool-val">false</span>),
+<a href=#1583 id=1583 data-nosnippet>1583</a>                waker: <span class="prelude-val">None</span>,
+<a href=#1584 id=1584 data-nosnippet>1584</a>                pointers: linked_list::Pointers::new(),
+<a href=#1585 id=1585 data-nosnippet>1585</a>                _p: PhantomPinned,
+<a href=#1586 id=1586 data-nosnippet>1586</a>            })),
+<a href=#1587 id=1587 data-nosnippet>1587</a>        }
+<a href=#1588 id=1588 data-nosnippet>1588</a>    }
+<a href=#1589 id=1589 data-nosnippet>1589</a>
+<a href=#1590 id=1590 data-nosnippet>1590</a>    <span class="doccomment">/// A custom `project` implementation is used in place of `pin-project-lite`
+<a href=#1591 id=1591 data-nosnippet>1591</a>    /// as a custom drop implementation is needed.
+<a href=#1592 id=1592 data-nosnippet>1592</a>    </span><span class="kw">fn </span>project(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;) -&gt; (<span class="kw-2">&amp;mut </span>Receiver&lt;T&gt;, <span class="kw-2">&amp;</span>UnsafeCell&lt;Waiter&gt;) {
+<a href=#1593 id=1593 data-nosnippet>1593</a>        <span class="kw">unsafe </span>{
+<a href=#1594 id=1594 data-nosnippet>1594</a>            <span class="comment">// Safety: Receiver is Unpin
+<a href=#1595 id=1595 data-nosnippet>1595</a>            </span>is_unpin::&lt;<span class="kw-2">&amp;mut </span>Receiver&lt;T&gt;&gt;();
+<a href=#1596 id=1596 data-nosnippet>1596</a>
+<a href=#1597 id=1597 data-nosnippet>1597</a>            <span class="kw">let </span>me = <span class="self">self</span>.get_unchecked_mut();
+<a href=#1598 id=1598 data-nosnippet>1598</a>            (me.receiver, <span class="kw-2">&amp;</span>me.waiter.<span class="number">0</span>)
+<a href=#1599 id=1599 data-nosnippet>1599</a>        }
+<a href=#1600 id=1600 data-nosnippet>1600</a>    }
+<a href=#1601 id=1601 data-nosnippet>1601</a>}
+<a href=#1602 id=1602 data-nosnippet>1602</a>
+<a href=#1603 id=1603 data-nosnippet>1603</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Future <span class="kw">for </span>Recv&lt;<span class="lifetime">'a</span>, T&gt;
+<a href=#1604 id=1604 data-nosnippet>1604</a><span class="kw">where
+<a href=#1605 id=1605 data-nosnippet>1605</a>    </span>T: Clone,
+<a href=#1606 id=1606 data-nosnippet>1606</a>{
+<a href=#1607 id=1607 data-nosnippet>1607</a>    <span class="kw">type </span>Output = <span class="prelude-ty">Result</span>&lt;T, RecvError&gt;;
 <a href=#1608 id=1608 data-nosnippet>1608</a>
-<a href=#1609 id=1609 data-nosnippet>1609</a>        <span class="kw">let </span>(receiver, waiter) = <span class="self">self</span>.project();
-<a href=#1610 id=1610 data-nosnippet>1610</a>
-<a href=#1611 id=1611 data-nosnippet>1611</a>        <span class="kw">let </span>guard = <span class="kw">match </span>receiver.recv_ref(<span class="prelude-val">Some</span>((waiter, cx.waker()))) {
-<a href=#1612 id=1612 data-nosnippet>1612</a>            <span class="prelude-val">Ok</span>(value) =&gt; value,
-<a href=#1613 id=1613 data-nosnippet>1613</a>            <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="kw">return </span>Poll::Pending,
-<a href=#1614 id=1614 data-nosnippet>1614</a>            <span class="prelude-val">Err</span>(TryRecvError::Lagged(n)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(RecvError::Lagged(n))),
-<a href=#1615 id=1615 data-nosnippet>1615</a>            <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(RecvError::Closed)),
-<a href=#1616 id=1616 data-nosnippet>1616</a>        };
-<a href=#1617 id=1617 data-nosnippet>1617</a>
-<a href=#1618 id=1618 data-nosnippet>1618</a>        Poll::Ready(guard.clone_value().ok_or(RecvError::Closed))
-<a href=#1619 id=1619 data-nosnippet>1619</a>    }
-<a href=#1620 id=1620 data-nosnippet>1620</a>}
-<a href=#1621 id=1621 data-nosnippet>1621</a>
-<a href=#1622 id=1622 data-nosnippet>1622</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>Recv&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#1623 id=1623 data-nosnippet>1623</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#1624 id=1624 data-nosnippet>1624</a>        <span class="comment">// Safety: `waiter.queued` is atomic.
-<a href=#1625 id=1625 data-nosnippet>1625</a>        // Acquire ordering is required to synchronize with
-<a href=#1626 id=1626 data-nosnippet>1626</a>        // `Shared::notify_rx` before we drop the object.
-<a href=#1627 id=1627 data-nosnippet>1627</a>        </span><span class="kw">let </span>queued = <span class="self">self
-<a href=#1628 id=1628 data-nosnippet>1628</a>            </span>.waiter
-<a href=#1629 id=1629 data-nosnippet>1629</a>            .<span class="number">0
-<a href=#1630 id=1630 data-nosnippet>1630</a>            </span>.with(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).queued.load(Acquire) });
-<a href=#1631 id=1631 data-nosnippet>1631</a>
-<a href=#1632 id=1632 data-nosnippet>1632</a>        <span class="comment">// If the waiter is queued, we need to unlink it from the waiters list.
-<a href=#1633 id=1633 data-nosnippet>1633</a>        // If not, no further synchronization is required, since the waiter
-<a href=#1634 id=1634 data-nosnippet>1634</a>        // is not in the list and, as such, is not shared with any other threads.
-<a href=#1635 id=1635 data-nosnippet>1635</a>        </span><span class="kw">if </span>queued {
-<a href=#1636 id=1636 data-nosnippet>1636</a>            <span class="comment">// Acquire the tail lock. This is required for safety before accessing
-<a href=#1637 id=1637 data-nosnippet>1637</a>            // the waiter node.
-<a href=#1638 id=1638 data-nosnippet>1638</a>            </span><span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.receiver.shared.tail.lock();
-<a href=#1639 id=1639 data-nosnippet>1639</a>
-<a href=#1640 id=1640 data-nosnippet>1640</a>            <span class="comment">// Safety: tail lock is held.
-<a href=#1641 id=1641 data-nosnippet>1641</a>            // `Relaxed` order suffices because we hold the tail lock.
-<a href=#1642 id=1642 data-nosnippet>1642</a>            </span><span class="kw">let </span>queued = <span class="self">self
-<a href=#1643 id=1643 data-nosnippet>1643</a>                </span>.waiter
-<a href=#1644 id=1644 data-nosnippet>1644</a>                .<span class="number">0
-<a href=#1645 id=1645 data-nosnippet>1645</a>                </span>.with_mut(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).queued.load(Relaxed) });
-<a href=#1646 id=1646 data-nosnippet>1646</a>
-<a href=#1647 id=1647 data-nosnippet>1647</a>            <span class="kw">if </span>queued {
-<a href=#1648 id=1648 data-nosnippet>1648</a>                <span class="comment">// Remove the node
-<a href=#1649 id=1649 data-nosnippet>1649</a>                //
-<a href=#1650 id=1650 data-nosnippet>1650</a>                // safety: tail lock is held and the wait node is verified to be in
-<a href=#1651 id=1651 data-nosnippet>1651</a>                // the list.
-<a href=#1652 id=1652 data-nosnippet>1652</a>                </span><span class="kw">unsafe </span>{
-<a href=#1653 id=1653 data-nosnippet>1653</a>                    <span class="self">self</span>.waiter.<span class="number">0</span>.with_mut(|ptr| {
-<a href=#1654 id=1654 data-nosnippet>1654</a>                        tail.waiters.remove((<span class="kw-2">&amp;mut *</span>ptr).into());
-<a href=#1655 id=1655 data-nosnippet>1655</a>                    });
-<a href=#1656 id=1656 data-nosnippet>1656</a>                }
-<a href=#1657 id=1657 data-nosnippet>1657</a>            }
-<a href=#1658 id=1658 data-nosnippet>1658</a>        }
-<a href=#1659 id=1659 data-nosnippet>1659</a>    }
-<a href=#1660 id=1660 data-nosnippet>1660</a>}
-<a href=#1661 id=1661 data-nosnippet>1661</a>
-<a href=#1662 id=1662 data-nosnippet>1662</a><span class="doccomment">/// # Safety
-<a href=#1663 id=1663 data-nosnippet>1663</a>///
-<a href=#1664 id=1664 data-nosnippet>1664</a>/// `Waiter` is forced to be !Unpin.
-<a href=#1665 id=1665 data-nosnippet>1665</a></span><span class="kw">unsafe impl </span>linked_list::Link <span class="kw">for </span>Waiter {
-<a href=#1666 id=1666 data-nosnippet>1666</a>    <span class="kw">type </span>Handle = NonNull&lt;Waiter&gt;;
-<a href=#1667 id=1667 data-nosnippet>1667</a>    <span class="kw">type </span>Target = Waiter;
-<a href=#1668 id=1668 data-nosnippet>1668</a>
-<a href=#1669 id=1669 data-nosnippet>1669</a>    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;Waiter&gt; {
-<a href=#1670 id=1670 data-nosnippet>1670</a>        <span class="kw-2">*</span>handle
-<a href=#1671 id=1671 data-nosnippet>1671</a>    }
-<a href=#1672 id=1672 data-nosnippet>1672</a>
-<a href=#1673 id=1673 data-nosnippet>1673</a>    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;Waiter&gt; {
-<a href=#1674 id=1674 data-nosnippet>1674</a>        ptr
-<a href=#1675 id=1675 data-nosnippet>1675</a>    }
-<a href=#1676 id=1676 data-nosnippet>1676</a>
-<a href=#1677 id=1677 data-nosnippet>1677</a>    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Waiter&gt;&gt; {
-<a href=#1678 id=1678 data-nosnippet>1678</a>        Waiter::addr_of_pointers(target)
-<a href=#1679 id=1679 data-nosnippet>1679</a>    }
-<a href=#1680 id=1680 data-nosnippet>1680</a>}
-<a href=#1681 id=1681 data-nosnippet>1681</a>
-<a href=#1682 id=1682 data-nosnippet>1682</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Sender&lt;T&gt; {
-<a href=#1683 id=1683 data-nosnippet>1683</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#1684 id=1684 data-nosnippet>1684</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::Sender"</span>)
-<a href=#1685 id=1685 data-nosnippet>1685</a>    }
-<a href=#1686 id=1686 data-nosnippet>1686</a>}
-<a href=#1687 id=1687 data-nosnippet>1687</a>
-<a href=#1688 id=1688 data-nosnippet>1688</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WeakSender&lt;T&gt; {
-<a href=#1689 id=1689 data-nosnippet>1689</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#1690 id=1690 data-nosnippet>1690</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::WeakSender"</span>)
-<a href=#1691 id=1691 data-nosnippet>1691</a>    }
-<a href=#1692 id=1692 data-nosnippet>1692</a>}
-<a href=#1693 id=1693 data-nosnippet>1693</a>
-<a href=#1694 id=1694 data-nosnippet>1694</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
-<a href=#1695 id=1695 data-nosnippet>1695</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
-<a href=#1696 id=1696 data-nosnippet>1696</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::Receiver"</span>)
-<a href=#1697 id=1697 data-nosnippet>1697</a>    }
-<a href=#1698 id=1698 data-nosnippet>1698</a>}
-<a href=#1699 id=1699 data-nosnippet>1699</a>
-<a href=#1700 id=1700 data-nosnippet>1700</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; RecvGuard&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#1701 id=1701 data-nosnippet>1701</a>    <span class="kw">fn </span>clone_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
-<a href=#1702 id=1702 data-nosnippet>1702</a>    <span class="kw">where
-<a href=#1703 id=1703 data-nosnippet>1703</a>        </span>T: Clone,
-<a href=#1704 id=1704 data-nosnippet>1704</a>    {
-<a href=#1705 id=1705 data-nosnippet>1705</a>        <span class="self">self</span>.slot.val.clone()
-<a href=#1706 id=1706 data-nosnippet>1706</a>    }
-<a href=#1707 id=1707 data-nosnippet>1707</a>}
-<a href=#1708 id=1708 data-nosnippet>1708</a>
-<a href=#1709 id=1709 data-nosnippet>1709</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>RecvGuard&lt;<span class="lifetime">'a</span>, T&gt; {
-<a href=#1710 id=1710 data-nosnippet>1710</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
-<a href=#1711 id=1711 data-nosnippet>1711</a>        <span class="comment">// Decrement the remaining counter
-<a href=#1712 id=1712 data-nosnippet>1712</a>        </span><span class="kw">if </span><span class="number">1 </span>== <span class="self">self</span>.slot.rem.fetch_sub(<span class="number">1</span>, SeqCst) {
-<a href=#1713 id=1713 data-nosnippet>1713</a>            <span class="self">self</span>.slot.val = <span class="prelude-val">None</span>;
-<a href=#1714 id=1714 data-nosnippet>1714</a>        }
-<a href=#1715 id=1715 data-nosnippet>1715</a>    }
-<a href=#1716 id=1716 data-nosnippet>1716</a>}
-<a href=#1717 id=1717 data-nosnippet>1717</a>
-<a href=#1718 id=1718 data-nosnippet>1718</a><span class="kw">fn </span>is_unpin&lt;T: Unpin&gt;() {}
-<a href=#1719 id=1719 data-nosnippet>1719</a>
-<a href=#1720 id=1720 data-nosnippet>1720</a><span class="attr">#[cfg(not(loom))]
-<a href=#1721 id=1721 data-nosnippet>1721</a>#[cfg(test)]
-<a href=#1722 id=1722 data-nosnippet>1722</a></span><span class="kw">mod </span>tests {
-<a href=#1723 id=1723 data-nosnippet>1723</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
-<a href=#1724 id=1724 data-nosnippet>1724</a>
-<a href=#1725 id=1725 data-nosnippet>1725</a>    <span class="attr">#[test]
-<a href=#1726 id=1726 data-nosnippet>1726</a>    </span><span class="kw">fn </span>receiver_count_on_sender_constructor() {
-<a href=#1727 id=1727 data-nosnippet>1727</a>        <span class="kw">let </span>sender = Sender::&lt;i32&gt;::new(<span class="number">16</span>);
-<a href=#1728 id=1728 data-nosnippet>1728</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">0</span>);
-<a href=#1729 id=1729 data-nosnippet>1729</a>
-<a href=#1730 id=1730 data-nosnippet>1730</a>        <span class="kw">let </span>rx_1 = sender.subscribe();
-<a href=#1731 id=1731 data-nosnippet>1731</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
+<a href=#1609 id=1609 data-nosnippet>1609</a>    <span class="kw">fn </span>poll(<span class="self">self</span>: Pin&lt;<span class="kw-2">&amp;mut </span><span class="self">Self</span>&gt;, cx: <span class="kw-2">&amp;mut </span>Context&lt;<span class="lifetime">'_</span>&gt;) -&gt; Poll&lt;<span class="prelude-ty">Result</span>&lt;T, RecvError&gt;&gt; {
+<a href=#1610 id=1610 data-nosnippet>1610</a>        <span class="macro">ready!</span>(<span class="kw">crate</span>::trace::trace_leaf(cx));
+<a href=#1611 id=1611 data-nosnippet>1611</a>
+<a href=#1612 id=1612 data-nosnippet>1612</a>        <span class="kw">let </span>(receiver, waiter) = <span class="self">self</span>.project();
+<a href=#1613 id=1613 data-nosnippet>1613</a>
+<a href=#1614 id=1614 data-nosnippet>1614</a>        <span class="kw">let </span>guard = <span class="kw">match </span>receiver.recv_ref(<span class="prelude-val">Some</span>((waiter, cx.waker()))) {
+<a href=#1615 id=1615 data-nosnippet>1615</a>            <span class="prelude-val">Ok</span>(value) =&gt; value,
+<a href=#1616 id=1616 data-nosnippet>1616</a>            <span class="prelude-val">Err</span>(TryRecvError::Empty) =&gt; <span class="kw">return </span>Poll::Pending,
+<a href=#1617 id=1617 data-nosnippet>1617</a>            <span class="prelude-val">Err</span>(TryRecvError::Lagged(n)) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(RecvError::Lagged(n))),
+<a href=#1618 id=1618 data-nosnippet>1618</a>            <span class="prelude-val">Err</span>(TryRecvError::Closed) =&gt; <span class="kw">return </span>Poll::Ready(<span class="prelude-val">Err</span>(RecvError::Closed)),
+<a href=#1619 id=1619 data-nosnippet>1619</a>        };
+<a href=#1620 id=1620 data-nosnippet>1620</a>
+<a href=#1621 id=1621 data-nosnippet>1621</a>        Poll::Ready(guard.clone_value().ok_or(RecvError::Closed))
+<a href=#1622 id=1622 data-nosnippet>1622</a>    }
+<a href=#1623 id=1623 data-nosnippet>1623</a>}
+<a href=#1624 id=1624 data-nosnippet>1624</a>
+<a href=#1625 id=1625 data-nosnippet>1625</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>Recv&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#1626 id=1626 data-nosnippet>1626</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#1627 id=1627 data-nosnippet>1627</a>        <span class="comment">// Safety: `waiter.queued` is atomic.
+<a href=#1628 id=1628 data-nosnippet>1628</a>        // Acquire ordering is required to synchronize with
+<a href=#1629 id=1629 data-nosnippet>1629</a>        // `Shared::notify_rx` before we drop the object.
+<a href=#1630 id=1630 data-nosnippet>1630</a>        </span><span class="kw">let </span>queued = <span class="self">self
+<a href=#1631 id=1631 data-nosnippet>1631</a>            </span>.waiter
+<a href=#1632 id=1632 data-nosnippet>1632</a>            .<span class="number">0
+<a href=#1633 id=1633 data-nosnippet>1633</a>            </span>.with(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).queued.load(Acquire) });
+<a href=#1634 id=1634 data-nosnippet>1634</a>
+<a href=#1635 id=1635 data-nosnippet>1635</a>        <span class="comment">// If the waiter is queued, we need to unlink it from the waiters list.
+<a href=#1636 id=1636 data-nosnippet>1636</a>        // If not, no further synchronization is required, since the waiter
+<a href=#1637 id=1637 data-nosnippet>1637</a>        // is not in the list and, as such, is not shared with any other threads.
+<a href=#1638 id=1638 data-nosnippet>1638</a>        </span><span class="kw">if </span>queued {
+<a href=#1639 id=1639 data-nosnippet>1639</a>            <span class="comment">// Acquire the tail lock. This is required for safety before accessing
+<a href=#1640 id=1640 data-nosnippet>1640</a>            // the waiter node.
+<a href=#1641 id=1641 data-nosnippet>1641</a>            </span><span class="kw">let </span><span class="kw-2">mut </span>tail = <span class="self">self</span>.receiver.shared.tail.lock();
+<a href=#1642 id=1642 data-nosnippet>1642</a>
+<a href=#1643 id=1643 data-nosnippet>1643</a>            <span class="comment">// Safety: tail lock is held.
+<a href=#1644 id=1644 data-nosnippet>1644</a>            // `Relaxed` order suffices because we hold the tail lock.
+<a href=#1645 id=1645 data-nosnippet>1645</a>            </span><span class="kw">let </span>queued = <span class="self">self
+<a href=#1646 id=1646 data-nosnippet>1646</a>                </span>.waiter
+<a href=#1647 id=1647 data-nosnippet>1647</a>                .<span class="number">0
+<a href=#1648 id=1648 data-nosnippet>1648</a>                </span>.with_mut(|ptr| <span class="kw">unsafe </span>{ (<span class="kw-2">*</span>ptr).queued.load(Relaxed) });
+<a href=#1649 id=1649 data-nosnippet>1649</a>
+<a href=#1650 id=1650 data-nosnippet>1650</a>            <span class="kw">if </span>queued {
+<a href=#1651 id=1651 data-nosnippet>1651</a>                <span class="comment">// Remove the node
+<a href=#1652 id=1652 data-nosnippet>1652</a>                //
+<a href=#1653 id=1653 data-nosnippet>1653</a>                // safety: tail lock is held and the wait node is verified to be in
+<a href=#1654 id=1654 data-nosnippet>1654</a>                // the list.
+<a href=#1655 id=1655 data-nosnippet>1655</a>                </span><span class="kw">unsafe </span>{
+<a href=#1656 id=1656 data-nosnippet>1656</a>                    <span class="self">self</span>.waiter.<span class="number">0</span>.with_mut(|ptr| {
+<a href=#1657 id=1657 data-nosnippet>1657</a>                        tail.waiters.remove((<span class="kw-2">&amp;mut *</span>ptr).into());
+<a href=#1658 id=1658 data-nosnippet>1658</a>                    });
+<a href=#1659 id=1659 data-nosnippet>1659</a>                }
+<a href=#1660 id=1660 data-nosnippet>1660</a>            }
+<a href=#1661 id=1661 data-nosnippet>1661</a>        }
+<a href=#1662 id=1662 data-nosnippet>1662</a>    }
+<a href=#1663 id=1663 data-nosnippet>1663</a>}
+<a href=#1664 id=1664 data-nosnippet>1664</a>
+<a href=#1665 id=1665 data-nosnippet>1665</a><span class="doccomment">/// # Safety
+<a href=#1666 id=1666 data-nosnippet>1666</a>///
+<a href=#1667 id=1667 data-nosnippet>1667</a>/// `Waiter` is forced to be !Unpin.
+<a href=#1668 id=1668 data-nosnippet>1668</a></span><span class="kw">unsafe impl </span>linked_list::Link <span class="kw">for </span>Waiter {
+<a href=#1669 id=1669 data-nosnippet>1669</a>    <span class="kw">type </span>Handle = NonNull&lt;Waiter&gt;;
+<a href=#1670 id=1670 data-nosnippet>1670</a>    <span class="kw">type </span>Target = Waiter;
+<a href=#1671 id=1671 data-nosnippet>1671</a>
+<a href=#1672 id=1672 data-nosnippet>1672</a>    <span class="kw">fn </span>as_raw(handle: <span class="kw-2">&amp;</span>NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;Waiter&gt; {
+<a href=#1673 id=1673 data-nosnippet>1673</a>        <span class="kw-2">*</span>handle
+<a href=#1674 id=1674 data-nosnippet>1674</a>    }
+<a href=#1675 id=1675 data-nosnippet>1675</a>
+<a href=#1676 id=1676 data-nosnippet>1676</a>    <span class="kw">unsafe fn </span>from_raw(ptr: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;Waiter&gt; {
+<a href=#1677 id=1677 data-nosnippet>1677</a>        ptr
+<a href=#1678 id=1678 data-nosnippet>1678</a>    }
+<a href=#1679 id=1679 data-nosnippet>1679</a>
+<a href=#1680 id=1680 data-nosnippet>1680</a>    <span class="kw">unsafe fn </span>pointers(target: NonNull&lt;Waiter&gt;) -&gt; NonNull&lt;linked_list::Pointers&lt;Waiter&gt;&gt; {
+<a href=#1681 id=1681 data-nosnippet>1681</a>        Waiter::addr_of_pointers(target)
+<a href=#1682 id=1682 data-nosnippet>1682</a>    }
+<a href=#1683 id=1683 data-nosnippet>1683</a>}
+<a href=#1684 id=1684 data-nosnippet>1684</a>
+<a href=#1685 id=1685 data-nosnippet>1685</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Sender&lt;T&gt; {
+<a href=#1686 id=1686 data-nosnippet>1686</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#1687 id=1687 data-nosnippet>1687</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::Sender"</span>)
+<a href=#1688 id=1688 data-nosnippet>1688</a>    }
+<a href=#1689 id=1689 data-nosnippet>1689</a>}
+<a href=#1690 id=1690 data-nosnippet>1690</a>
+<a href=#1691 id=1691 data-nosnippet>1691</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>WeakSender&lt;T&gt; {
+<a href=#1692 id=1692 data-nosnippet>1692</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#1693 id=1693 data-nosnippet>1693</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::WeakSender"</span>)
+<a href=#1694 id=1694 data-nosnippet>1694</a>    }
+<a href=#1695 id=1695 data-nosnippet>1695</a>}
+<a href=#1696 id=1696 data-nosnippet>1696</a>
+<a href=#1697 id=1697 data-nosnippet>1697</a><span class="kw">impl</span>&lt;T&gt; fmt::Debug <span class="kw">for </span>Receiver&lt;T&gt; {
+<a href=#1698 id=1698 data-nosnippet>1698</a>    <span class="kw">fn </span>fmt(<span class="kw-2">&amp;</span><span class="self">self</span>, fmt: <span class="kw-2">&amp;mut </span>fmt::Formatter&lt;<span class="lifetime">'_</span>&gt;) -&gt; fmt::Result {
+<a href=#1699 id=1699 data-nosnippet>1699</a>        <span class="macro">write!</span>(fmt, <span class="string">"broadcast::Receiver"</span>)
+<a href=#1700 id=1700 data-nosnippet>1700</a>    }
+<a href=#1701 id=1701 data-nosnippet>1701</a>}
+<a href=#1702 id=1702 data-nosnippet>1702</a>
+<a href=#1703 id=1703 data-nosnippet>1703</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; RecvGuard&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#1704 id=1704 data-nosnippet>1704</a>    <span class="kw">fn </span>clone_value(<span class="kw-2">&amp;</span><span class="self">self</span>) -&gt; <span class="prelude-ty">Option</span>&lt;T&gt;
+<a href=#1705 id=1705 data-nosnippet>1705</a>    <span class="kw">where
+<a href=#1706 id=1706 data-nosnippet>1706</a>        </span>T: Clone,
+<a href=#1707 id=1707 data-nosnippet>1707</a>    {
+<a href=#1708 id=1708 data-nosnippet>1708</a>        <span class="self">self</span>.slot.val.clone()
+<a href=#1709 id=1709 data-nosnippet>1709</a>    }
+<a href=#1710 id=1710 data-nosnippet>1710</a>}
+<a href=#1711 id=1711 data-nosnippet>1711</a>
+<a href=#1712 id=1712 data-nosnippet>1712</a><span class="kw">impl</span>&lt;<span class="lifetime">'a</span>, T&gt; Drop <span class="kw">for </span>RecvGuard&lt;<span class="lifetime">'a</span>, T&gt; {
+<a href=#1713 id=1713 data-nosnippet>1713</a>    <span class="kw">fn </span>drop(<span class="kw-2">&amp;mut </span><span class="self">self</span>) {
+<a href=#1714 id=1714 data-nosnippet>1714</a>        <span class="comment">// Decrement the remaining counter
+<a href=#1715 id=1715 data-nosnippet>1715</a>        </span><span class="kw">if </span><span class="number">1 </span>== <span class="self">self</span>.slot.rem.fetch_sub(<span class="number">1</span>, SeqCst) {
+<a href=#1716 id=1716 data-nosnippet>1716</a>            <span class="self">self</span>.slot.val = <span class="prelude-val">None</span>;
+<a href=#1717 id=1717 data-nosnippet>1717</a>        }
+<a href=#1718 id=1718 data-nosnippet>1718</a>    }
+<a href=#1719 id=1719 data-nosnippet>1719</a>}
+<a href=#1720 id=1720 data-nosnippet>1720</a>
+<a href=#1721 id=1721 data-nosnippet>1721</a><span class="kw">fn </span>is_unpin&lt;T: Unpin&gt;() {}
+<a href=#1722 id=1722 data-nosnippet>1722</a>
+<a href=#1723 id=1723 data-nosnippet>1723</a><span class="attr">#[cfg(not(loom))]
+<a href=#1724 id=1724 data-nosnippet>1724</a>#[cfg(test)]
+<a href=#1725 id=1725 data-nosnippet>1725</a></span><span class="kw">mod </span>tests {
+<a href=#1726 id=1726 data-nosnippet>1726</a>    <span class="kw">use super</span>::<span class="kw-2">*</span>;
+<a href=#1727 id=1727 data-nosnippet>1727</a>
+<a href=#1728 id=1728 data-nosnippet>1728</a>    <span class="attr">#[test]
+<a href=#1729 id=1729 data-nosnippet>1729</a>    </span><span class="kw">fn </span>receiver_count_on_sender_constructor() {
+<a href=#1730 id=1730 data-nosnippet>1730</a>        <span class="kw">let </span>sender = Sender::&lt;i32&gt;::new(<span class="number">16</span>);
+<a href=#1731 id=1731 data-nosnippet>1731</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">0</span>);
 <a href=#1732 id=1732 data-nosnippet>1732</a>
-<a href=#1733 id=1733 data-nosnippet>1733</a>        <span class="kw">let </span>rx_2 = rx_1.resubscribe();
-<a href=#1734 id=1734 data-nosnippet>1734</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">2</span>);
+<a href=#1733 id=1733 data-nosnippet>1733</a>        <span class="kw">let </span>rx_1 = sender.subscribe();
+<a href=#1734 id=1734 data-nosnippet>1734</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
 <a href=#1735 id=1735 data-nosnippet>1735</a>
-<a href=#1736 id=1736 data-nosnippet>1736</a>        <span class="kw">let </span>rx_3 = sender.subscribe();
-<a href=#1737 id=1737 data-nosnippet>1737</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">3</span>);
+<a href=#1736 id=1736 data-nosnippet>1736</a>        <span class="kw">let </span>rx_2 = rx_1.resubscribe();
+<a href=#1737 id=1737 data-nosnippet>1737</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">2</span>);
 <a href=#1738 id=1738 data-nosnippet>1738</a>
-<a href=#1739 id=1739 data-nosnippet>1739</a>        drop(rx_3);
-<a href=#1740 id=1740 data-nosnippet>1740</a>        drop(rx_1);
-<a href=#1741 id=1741 data-nosnippet>1741</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
-<a href=#1742 id=1742 data-nosnippet>1742</a>
-<a href=#1743 id=1743 data-nosnippet>1743</a>        drop(rx_2);
-<a href=#1744 id=1744 data-nosnippet>1744</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">0</span>);
-<a href=#1745 id=1745 data-nosnippet>1745</a>    }
-<a href=#1746 id=1746 data-nosnippet>1746</a>
-<a href=#1747 id=1747 data-nosnippet>1747</a>    <span class="attr">#[cfg(not(loom))]
-<a href=#1748 id=1748 data-nosnippet>1748</a>    #[test]
-<a href=#1749 id=1749 data-nosnippet>1749</a>    </span><span class="kw">fn </span>receiver_count_on_channel_constructor() {
-<a href=#1750 id=1750 data-nosnippet>1750</a>        <span class="kw">let </span>(sender, rx) = channel::&lt;i32&gt;(<span class="number">16</span>);
-<a href=#1751 id=1751 data-nosnippet>1751</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
-<a href=#1752 id=1752 data-nosnippet>1752</a>
-<a href=#1753 id=1753 data-nosnippet>1753</a>        <span class="kw">let </span>_rx_2 = rx.resubscribe();
-<a href=#1754 id=1754 data-nosnippet>1754</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">2</span>);
-<a href=#1755 id=1755 data-nosnippet>1755</a>    }
-<a href=#1756 id=1756 data-nosnippet>1756</a>}</code></pre></div></section></main></body></html>
+<a href=#1739 id=1739 data-nosnippet>1739</a>        <span class="kw">let </span>rx_3 = sender.subscribe();
+<a href=#1740 id=1740 data-nosnippet>1740</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">3</span>);
+<a href=#1741 id=1741 data-nosnippet>1741</a>
+<a href=#1742 id=1742 data-nosnippet>1742</a>        drop(rx_3);
+<a href=#1743 id=1743 data-nosnippet>1743</a>        drop(rx_1);
+<a href=#1744 id=1744 data-nosnippet>1744</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
+<a href=#1745 id=1745 data-nosnippet>1745</a>
+<a href=#1746 id=1746 data-nosnippet>1746</a>        drop(rx_2);
+<a href=#1747 id=1747 data-nosnippet>1747</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">0</span>);
+<a href=#1748 id=1748 data-nosnippet>1748</a>    }
+<a href=#1749 id=1749 data-nosnippet>1749</a>
+<a href=#1750 id=1750 data-nosnippet>1750</a>    <span class="attr">#[cfg(not(loom))]
+<a href=#1751 id=1751 data-nosnippet>1751</a>    #[test]
+<a href=#1752 id=1752 data-nosnippet>1752</a>    </span><span class="kw">fn </span>receiver_count_on_channel_constructor() {
+<a href=#1753 id=1753 data-nosnippet>1753</a>        <span class="kw">let </span>(sender, rx) = channel::&lt;i32&gt;(<span class="number">16</span>);
+<a href=#1754 id=1754 data-nosnippet>1754</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">1</span>);
+<a href=#1755 id=1755 data-nosnippet>1755</a>
+<a href=#1756 id=1756 data-nosnippet>1756</a>        <span class="kw">let </span>_rx_2 = rx.resubscribe();
+<a href=#1757 id=1757 data-nosnippet>1757</a>        <span class="macro">assert_eq!</span>(sender.receiver_count(), <span class="number">2</span>);
+<a href=#1758 id=1758 data-nosnippet>1758</a>    }
+<a href=#1759 id=1759 data-nosnippet>1759</a>}</code></pre></div></section></main></body></html>

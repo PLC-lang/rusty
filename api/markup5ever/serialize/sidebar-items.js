@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["TraversalScope"],"trait":["Serialize","Serializer"],"type":["AttrRef"]};

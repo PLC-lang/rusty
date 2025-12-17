@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"enum":["TokenizerResult"],"mod":["tree_builder"],"struct":["Attribute","ExpandedName","QualName"]};

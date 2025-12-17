@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"mod":["future"],"struct":["AsService","IntoService","Shared"],"trait":["MakeConnection","MakeService"]};

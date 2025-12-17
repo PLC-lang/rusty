@@ -1,1 +1,0 @@
-window.SIDEBAR_ITEMS = {"fn":["generate_hash","generate_hash_with_hash_fn"],"struct":["HashState"]};
