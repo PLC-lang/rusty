@@ -48,3 +48,12 @@ jobs:
           name: plc.exe
           path: target/release/plc.exe
 
+      - uses: actions/upload-artifact@master
+        with:
+          name: stdlib.dll
+          path: target/release/iec61131std.dll
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: stdlib.lib
+          path: target/release/iec61131std.lib
