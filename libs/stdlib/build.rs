@@ -37,7 +37,7 @@ fn main() {
     println!("cargo:rustc-link-lib=static=st");
     println!("cargo:rerun-if-changed=iec61131-st/");
 
-    //We can link against the st lib gernerated, but this will only be reflected in static libs.
+    //We can link against the st lib generated, but this will only be reflected in static libs.
     // The shared lib still has to be generated later.
     // There is a planned feature in rust to allow whole-archive linking, but i could not get it to
     // work (should look something like this : `println!("cargo:rustc-flags=-l static:+whole-archive=st");`)
