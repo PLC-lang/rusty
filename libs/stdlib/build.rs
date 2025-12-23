@@ -34,8 +34,8 @@ fn main() {
 
     //link the object file
     println!("cargo:rustc-link-search=native={out_dir}");
-    println!("cargo:rustc-link-lib=static=st");
     println!("cargo:rerun-if-changed=iec61131-st/");
+    println!("cargo:rustc-link-lib=static:+whole-archive=st");  //create a whole archive without throwing away any object files (https://github.com/rust-lang/rust/pull/105601).
 
     //We can link against the st lib generated, but this will only be reflected in static libs.
     // The shared lib still has to be generated later.
