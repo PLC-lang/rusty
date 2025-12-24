@@ -165,6 +165,8 @@ int main() {
 
 ## Native Windows Usage Example
 
+- Ensure [`LLVM 14.0.6`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6) is installed and it's `bin` folder is added to your `PATH` environment variable.
+
 - Download `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
 
     - Add it's location to the PATH environment variable. An AppData location is recommended.
@@ -185,6 +187,14 @@ int main() {
     ```
 
 - Restart your terminals to refresh the environment.
+
+- Create an `exports.def` file in preparation `clang` usage.
+
+```
+EXPORTS
+    main
+
+```
 
 - Proceed with compilation:
     
