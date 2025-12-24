@@ -167,11 +167,11 @@ int main() {
 
 - Ensure [`LLVM 14.0.6`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6) is installed and it's `bin` folder is added to your `PATH` environment variable.
 
-- Download `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
+- Install `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
 
     - Add it's location to the PATH environment variable. An AppData location is recommended.
 
-- Download `stdlib.lib` from the same pipeline and install it to the same folder.
+- Install `stdlib.lib` from the same pipeline into the same folder.
 
 - Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages. 
 
@@ -196,6 +196,8 @@ EXPORTS
 
 ```
 
+This example allows linking with Rusty's Standard Library.
+    
 - Proceed with compilation:
     
     ```
