@@ -46,12 +46,8 @@ impl Linker {
                         return Err(LinkerError::Target(target.into()));
                     };
                     match (platform, target_os) {
-                        (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => {
-                            return Err(LinkerError::Target(target_os.into()))
-                        }
-
+                        (_, "win32") | (_, "windows") | ("win32", _) | ("windows", _) => Box::new(CcLinker::new("clang")), //only clang from llvm is supported in windows
                         (_, "darwin") => Box::new(CcLinker::new("clang")),
-
                         _ => Box::new(LdLinker::new()),
                     }
                 }
