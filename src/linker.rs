@@ -286,7 +286,7 @@ mod test {
     use crate::linker::{Linker, LinkerType};
 
     #[test]
-    fn windows_target_triple_should_result_in_error() {
+    fn windows_target_triple_should_result_in_ok() {
         for target in &[
             "x86_64-pc-windows-gnu",
             "x86_64-pc-win32-gnu",
@@ -301,7 +301,7 @@ mod test {
             "i686-windows-gnu",
             "i686-win32-gnu",
         ] {
-            assert!(Linker::new(target, LinkerType::Internal).is_err());
+            assert!(Linker::new(target, LinkerType::Internal).is_ok());
         }
     }
 
