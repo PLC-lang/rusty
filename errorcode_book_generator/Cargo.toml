@@ -7,7 +7,7 @@ edition = "2021"
 
 [dependencies]
 clap = "4.5.4"
-mdbook = "0.4.37"
+mdbook-preprocessor = "0.5"
 semver = "1.0.22"
 serde_json.workspace = true
 toml.workspace = true
