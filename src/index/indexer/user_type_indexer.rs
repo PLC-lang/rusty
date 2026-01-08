@@ -328,16 +328,33 @@ impl UserTypeIndexer<'_, '_> {
         let information = if let Some(AstStatement::RangeStatement(RangeStatement { start, end })) =
             bounds.as_ref().map(|it| it.get_stmt())
         {
+            let scope = self.current_scope();
+            let start_size = self.ast_node_to_type_size(start, &scope);
+            let end_size = self.ast_node_to_type_size(end, &scope);
+
             DataTypeInformation::SubRange {
                 name: name.into(),
                 referenced_type: referenced_type.into(),
-                sub_range: Box::new(*start.clone()..*end.clone()),
+                sub_range: start_size..end_size,
             }
         } else {
             DataTypeInformation::Alias { name: name.into(), referenced_type: referenced_type.into() }
         };
 
         self.register_type(name, information, TypeNature::Int);
+    }
+
+    /// Converts an AstNode to a TypeSize, either as a literal or a const expression
+    fn ast_node_to_type_size(&mut self, node: &AstNode, scope: &Option<String>) -> TypeSize {
+        match &node.stmt {
+            AstStatement::Literal(AstLiteral::Integer(value)) => TypeSize::from_literal(*value as i64),
+            _ => TypeSize::from_expression(self.index.get_mut_const_expressions().add_constant_expression(
+                node.clone(),
+                DINT_TYPE.to_string(),
+                scope.clone(),
+                None,
+            )),
+        }
     }
 
     fn register_type(&mut self, name: &str, information: DataTypeInformation, nature: TypeNature) {
