@@ -1035,7 +1035,8 @@ fn validate_ref_assignment<T: AnnotationMap>(
     // Assert that the right-hand side is a reference
     if !(assignment.right.is_reference()
         || assignment_location.is_builtin_internal()
-        || assignment.right.is_zero())
+        || assignment.right.is_zero()
+        || assignment.right.is_paren_nested_reference())
     {
         validator.push_diagnostic(
             Diagnostic::new("Invalid assignment, expected a reference")
