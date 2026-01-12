@@ -406,6 +406,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             DataTypeInformation::Alias { referenced_type, .. } => {
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
+            DataTypeInformation::Enum { referenced_type, .. } => {
+                self.generate_initial_value_for_type(data_type, referenced_type)
+            }
             //all other types (scalars, pointer and void)
             _ => Ok(None),
         }

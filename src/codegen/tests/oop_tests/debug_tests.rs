@@ -176,7 +176,7 @@ fn members_from_base_class_are_available_in_subclasses() {
     !24 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !25)
     !25 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 10, size: 7872, align: 64, flags: DIFlagPublic, elements: !26, identifier: "bar")
     !26 = !{!27}
-    !27 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 7872, align: 64, flags: DIFlagPublic)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 7872, align: 64, flags: DIFlagPublic)
     !28 = !{i32 2, !"Dwarf Version", i32 5}
     !29 = !{i32 2, !"Debug Info Version", i32 3}
     !30 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
@@ -427,7 +427,7 @@ fn write_to_parent_variable_qualified_access() {
     !15 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !16)
     !16 = !DICompositeType(tag: DW_TAG_structure_type, name: "fb2", scope: !2, file: !2, line: 9, size: 128, align: 64, flags: DIFlagPublic, elements: !17, identifier: "fb2")
     !17 = !{!18}
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "__fb", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
     !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
     !20 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 12, type: !21, isLocal: false, isDefinition: true)
     !21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
@@ -691,7 +691,7 @@ fn write_to_parent_variable_in_instance() {
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
     !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 11, size: 768, align: 64, flags: DIFlagPublic, elements: !20, identifier: "bar")
     !20 = !{!21}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 768, align: 64, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 768, align: 64, flags: DIFlagPublic)
     !22 = !{i32 2, !"Dwarf Version", i32 5}
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
@@ -1012,7 +1012,7 @@ fn array_in_parent_generated() {
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
     !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align: 64, flags: DIFlagPublic, elements: !20, identifier: "parent")
     !20 = !{!21, !22, !26}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
     !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align: 16, offset: 192, flags: DIFlagPublic)
     !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align: 16, elements: !24)
     !24 = !{!25}
@@ -1023,7 +1023,7 @@ fn array_in_parent_generated() {
     !29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
     !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align: 64, flags: DIFlagPublic, elements: !31, identifier: "child")
     !31 = !{!32, !33}
-    !32 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
     !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align: 16, offset: 384, flags: DIFlagPublic)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
@@ -1324,7 +1324,7 @@ fn complex_array_access_generated() {
     !18 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
     !19 = !DICompositeType(tag: DW_TAG_structure_type, name: "parent", scope: !2, file: !2, line: 9, size: 384, align: 64, flags: DIFlagPublic, elements: !20, identifier: "parent")
     !20 = !{!21, !22, !26}
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "__grandparent", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
+    !21 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 192, align: 64, flags: DIFlagPublic)
     !22 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !23, size: 176, align: 16, offset: 192, flags: DIFlagPublic)
     !23 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 176, align: 16, elements: !24)
     !24 = !{!25}
@@ -1335,7 +1335,7 @@ fn complex_array_access_generated() {
     !29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
     !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 16, size: 576, align: 64, flags: DIFlagPublic, elements: !31, identifier: "child")
     !31 = !{!32, !33}
-    !32 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !19, size: 384, align: 64, flags: DIFlagPublic)
     !33 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 18, baseType: !23, size: 176, align: 16, offset: 384, flags: DIFlagPublic)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
@@ -1533,7 +1533,7 @@ fn function_block_method_debug_info() {
     !12 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !13)
     !13 = !DICompositeType(tag: DW_TAG_structure_type, name: "bar", scope: !2, file: !2, line: 7, size: 64, align: 64, flags: DIFlagPublic, elements: !14, identifier: "bar")
     !14 = !{!15}
-    !15 = !DIDerivedType(tag: DW_TAG_member, name: "__foo", scope: !2, file: !2, baseType: !4, size: 64, align: 64, flags: DIFlagPublic)
+    !15 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 64, align: 64, flags: DIFlagPublic)
     !16 = !{i32 2, !"Dwarf Version", i32 5}
     !17 = !{i32 2, !"Debug Info Version", i32 3}
     !18 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !19, splitDebugInlining: false)
@@ -1953,14 +1953,14 @@ END_FUNCTION
     !14 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !15)
     !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "child", scope: !2, file: !2, line: 8, size: 192, align: 64, flags: DIFlagPublic, elements: !16, identifier: "child")
     !16 = !{!17, !18}
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "__parent", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !4, size: 128, align: 64, flags: DIFlagPublic)
     !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !11, size: 32, align: 32, offset: 128, flags: DIFlagPublic)
     !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
     !20 = distinct !DIGlobalVariable(name: "__grandchild__init", scope: !2, file: !2, line: 14, type: !21, isLocal: false, isDefinition: true)
     !21 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !22)
     !22 = !DICompositeType(tag: DW_TAG_structure_type, name: "grandchild", scope: !2, file: !2, line: 14, size: 256, align: 64, flags: DIFlagPublic, elements: !23, identifier: "grandchild")
     !23 = !{!24, !25}
-    !24 = !DIDerivedType(tag: DW_TAG_member, name: "__child", scope: !2, file: !2, baseType: !15, size: 192, align: 64, flags: DIFlagPublic)
+    !24 = !DIDerivedType(tag: DW_TAG_member, name: "SUPER", scope: !2, file: !2, baseType: !15, size: 192, align: 64, flags: DIFlagPublic)
     !25 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 16, baseType: !11, size: 32, align: 32, offset: 192, flags: DIFlagPublic)
     !26 = !{i32 2, !"Dwarf Version", i32 5}
     !27 = !{i32 2, !"Debug Info Version", i32 3}
