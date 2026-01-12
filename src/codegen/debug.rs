@@ -22,7 +22,8 @@ use plc_source::source_location::SourceLocation;
 use crate::{
     index::{Index, PouIndexEntry, VariableIndexEntry},
     typesystem::{
-        DataType, DataTypeInformation, Dimension, StringEncoding, CHAR_TYPE, VOID_INTERNAL_NAME, WCHAR_TYPE,
+        DataType, DataTypeInformation, Dimension, StringEncoding, TypeSize, CHAR_TYPE, VOID_INTERNAL_NAME,
+        WCHAR_TYPE,
     },
     DebugLevel, OptimizationLevel,
 };
@@ -584,6 +585,59 @@ impl<'ink> DebugBuilder<'ink> {
         Ok(())
     }
 
+    fn create_subrange_type(
+        &mut self,
+        name: &str,
+        referenced_type: &str,
+        sub_range: &std::ops::Range<TypeSize>,
+        location: &SourceLocation,
+        index: &Index,
+        types_index: &LlvmTypedIndex,
+    ) -> Result<(), Diagnostic> {
+        // Resolve the range bounds to create a unique typedef name based on backing type
+        let start_val = sub_range
+            .start
+            .as_int_value(index)
+            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))?;
+        let end_val = sub_range
+            .end
+            .as_int_value(index)
+            .map_err(|err| Diagnostic::codegen_error(err, location.clone()))?;
+        let typedef_name = format!("__SUBRANGE_{start_val}_{end_val}__{referenced_type}");
+
+        // Check if we already have a debug type for this subrange signature
+        if let Some(existing_type) = self.types.get(&typedef_name.to_lowercase()).cloned() {
+            self.register_concrete_type(name, existing_type);
+            return Ok(());
+        }
+
+        let inner_dt = index.get_effective_type_by_name(referenced_type)?;
+        let inner_type = self.get_or_create_debug_type(inner_dt, index, types_index)?;
+        let file = location
+            .get_file_name()
+            .map(|it| self.get_or_create_debug_file(it))
+            .unwrap_or_else(|| self.compile_unit.get_file());
+
+        let llvm_type = types_index.get_associated_type(name)?;
+        let align_bits = self.target_data.get_preferred_alignment(&llvm_type) * 8;
+
+        let typedef = self.debug_info.create_typedef(
+            inner_type.into(),
+            &typedef_name,
+            file,
+            location.get_line_plus_one() as u32,
+            file.as_debug_info_scope(),
+            align_bits,
+        );
+
+        // Register under the canonical name for future reuse
+        self.register_concrete_type(&typedef_name, DebugType::Derived(typedef));
+        // Also register under this specific type name for lookups
+        self.register_concrete_type(name, DebugType::Derived(typedef));
+
+        Ok(())
+    }
+
     fn create_subroutine_type(
         &mut self,
         return_type: Option<&DataType>,
@@ -676,7 +730,7 @@ impl<'ink> DebugBuilder<'ink> {
             param_offset += 1;
         }
         if implementation.get_implementation_type().is_function_method_or_init() {
-            let declared_params = index.get_declared_parameters(implementation.get_call_name());
+            let declared_params = index.get_available_parameters(implementation.get_call_name());
             // Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
                 self.register_parameter(variable, index + param_offset, func);
@@ -801,9 +855,11 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
                     self.create_string_type(name, length, *encoding, size, index, types_index)
                 }
                 DataTypeInformation::Alias { name, referenced_type }
-                | DataTypeInformation::Enum { name, referenced_type, .. }
-                | DataTypeInformation::SubRange { name, referenced_type, .. } => {
+                | DataTypeInformation::Enum { name, referenced_type, .. } => {
                     self.create_typedef_type(name, referenced_type, location, index, types_index)
+                }
+                DataTypeInformation::SubRange { name, referenced_type, sub_range } => {
+                    self.create_subrange_type(name, referenced_type, sub_range, location, index, types_index)
                 }
                 // Other types are just derived basic types
                 _ => {

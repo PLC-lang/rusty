@@ -412,13 +412,13 @@ fn function_block_body() {
       store i32 0, i32* %localOut, align 4
       store i64 0, i64* %localInout, align 8
       %1 = load void (%A*)*, void (%A*)** %bodyPtr, align 8
-      %2 = getelementptr %A, %A* %instanceA, i32 0, i32 1
+      %2 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 1
       %load_localIn = load i16, i16* %localIn, align 2
       store i16 %load_localIn, i16* %2, align 2
-      %3 = getelementptr %A, %A* %instanceA, i32 0, i32 3
+      %3 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 3
       store i64* %localInout, i64** %3, align 8
       call void %1(%A* %instanceA)
-      %4 = getelementptr %A, %A* %instanceA, i32 0, i32 2
+      %4 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 2
       %5 = load i32, i32* %4, align 4
       store i32 %5, i32* %localOut, align 4
       ret void

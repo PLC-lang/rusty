@@ -199,7 +199,7 @@ impl VariableIndexEntry {
         self.data_type_name.as_str()
     }
 
-    pub fn get_position(&self) -> u32 {
+    pub fn get_location_in_parent(&self) -> u32 {
         self.location_in_parent
     }
 
@@ -1336,6 +1336,13 @@ impl Index {
                             }
                             variants.append(&mut variables);
                         }
+                        // import constant expressions in SubRange definitions
+                        DataTypeInformation::SubRange { sub_range, .. } => {
+                            sub_range.start =
+                                self.import_type_size(&mut other.constant_expressions, &sub_range.start);
+                            sub_range.end =
+                                self.import_type_size(&mut other.constant_expressions, &sub_range.end);
+                        }
                         _ => {}
                     }
 
@@ -1551,37 +1558,6 @@ impl Index {
             })
     }
 
-    // XXX: This is super specific and currently only being used in the context of argument annotations. Do we
-    // want to move this to the resolver?
-    /// Finds a member in the specified POU, traversing the inheritance chain if necessary. Returns the
-    /// [`VariableIndexEntry`] along with the inheritance depth from the given POU to where the member
-    /// was declared.
-    pub fn find_pou_member_and_depth(&self, pou: &str, name: &str) -> Option<(&VariableIndexEntry, usize)> {
-        fn find<'a>(index: &'a Index, pou: &str, name: &str) -> Option<&'a VariableIndexEntry> {
-            index.type_index.find_type(pou).and_then(|pou| pou.find_member(name))
-        }
-
-        // Check if the POU has the member locally
-        if let Some(entry) = find(self, pou, name) {
-            return Some((entry, 0));
-        }
-
-        // ..and if not walk the inheritance chain and re-try
-        let mut depth = 1;
-        let mut current_pou = pou;
-
-        while let Some(parent) = self.find_pou(current_pou).and_then(PouIndexEntry::get_super_class) {
-            if let Some(entry) = find(self, parent, name) {
-                return Some((entry, depth));
-            }
-
-            depth += 1;
-            current_pou = parent;
-        }
-
-        None
-    }
-
     /// Searches for method names in the given container, if not found, attempts to search for it in super class
     pub fn find_method(&self, container_name: &str, method_name: &str) -> Option<&PouIndexEntry> {
         self.find_method_recursive(container_name, method_name, &mut FxHashSet::default())
@@ -1737,9 +1713,9 @@ impl Index {
         self.type_index.find_pou_type(pou_name).and_then(|it| it.find_declared_parameter_by_location(index))
     }
 
-    /// Returns all declared parameters (INPUT, OUTPUT or IN_OUT) of a POU, including those defined in parent
-    /// POUs. The returned list is ordered by the inheritance chain, from base to derived.
-    pub fn get_declared_parameters(&self, pou: &str) -> Vec<&VariableIndexEntry> {
+    /// Returns all available parameters (INPUT, OUTPUT or IN_OUT) of a POU, including those inherited from
+    /// parent POUs. The returned list is ordered by the inheritance chain, from base to derived.
+    pub fn get_available_parameters(&self, pou: &str) -> Vec<&VariableIndexEntry> {
         // Collect all POU names in the inheritance chain from base to derived
         let mut chain = Vec::new();
         let mut current = Some(pou);
@@ -2069,6 +2045,59 @@ impl Index {
 
     pub fn register_pou_type(&mut self, datatype: DataType) {
         self.type_index.pou_types.insert(datatype.get_name().to_lowercase(), datatype);
+    }
+
+    /// Fixes up enum types to set their default initial values.
+    /// This must be called after constant resolution, as it needs to evaluate
+    /// constant expressions to determine which variant is zero.
+    ///
+    /// For each enum without an explicit initializer, this sets the initial_value to:
+    /// 1. The zero-variant (if one exists), or
+    /// 2. The first variant (as fallback)
+    pub fn finalize_enum_defaults(&mut self) {
+        // Process all types and update enum defaults
+        let mut fixed_types = Vec::new();
+
+        for (name, mut datatypes) in self.type_index.types.drain(..) {
+            for mut datatype in datatypes.drain(..) {
+                if let DataTypeInformation::Enum { variants, .. } = &datatype.information {
+                    // Only process if there's no explicit initializer
+                    if datatype.initial_value.is_none() && !variants.is_empty() {
+                        let mut zero_variant_id: Option<ConstId> = None;
+                        let mut first_variant_id: Option<ConstId> = None;
+
+                        // Look for a variant that evaluates to zero, or use the first one
+                        for (idx, variant) in variants.iter().enumerate() {
+                            if let Some(variant_init) = variant.initial_value {
+                                if idx == 0 {
+                                    first_variant_id = Some(variant_init);
+                                }
+
+                                if let Ok(0) =
+                                    self.constant_expressions.get_constant_int_statement_value(&variant_init)
+                                {
+                                    zero_variant_id = Some(variant_init);
+                                    break;
+                                }
+                            }
+                        }
+
+                        // Prefer zero variant, fall back to first variant
+                        let default_value = zero_variant_id.or(first_variant_id);
+                        if let Some(const_id) = default_value {
+                            datatype.initial_value = Some(const_id);
+                        }
+                    }
+                }
+
+                fixed_types.push((name.clone(), datatype));
+            }
+        }
+
+        // Re-insert all types
+        for (name, datatype) in fixed_types {
+            self.type_index.types.insert(name, datatype);
+        }
     }
 
     pub fn find_callable_instance_variable(

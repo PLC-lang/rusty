@@ -309,7 +309,7 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 // first parameter to operate on them, hence push the POU type to the very first position.
                 parameter_types.push(ty_ptr);
 
-                for parameter in self.index.get_declared_parameters(method_name) {
+                for parameter in self.index.get_available_parameters(method_name) {
                     // Instead of relying on the LLVM index, we create data-types on the fly here because some
                     // types have not yet been visited and as a result may not be in the index. For example at
                     // the time of writing this the index was not able to find a input parameter of type
@@ -404,6 +404,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
             DataTypeInformation::Alias { referenced_type, .. } => {
+                self.generate_initial_value_for_type(data_type, referenced_type)
+            }
+            DataTypeInformation::Enum { referenced_type, .. } => {
                 self.generate_initial_value_for_type(data_type, referenced_type)
             }
             //all other types (scalars, pointer and void)

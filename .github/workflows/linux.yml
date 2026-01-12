@@ -47,6 +47,9 @@ jobs:
       - name: Release Build
         shell: bash
         run: |
+          # required by aarch64 build
+          apt update && apt install -y gcc-aarch64-linux-gnu
+
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package \
           --target x86_64-linux-gnu,aarch64-linux-gnu, \

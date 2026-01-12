@@ -1660,7 +1660,7 @@ fn range_datatype_debug() {
     let codegen = codegen(
         r#"
         TYPE RangeType :
-            DINT(0..100)  := 0;
+            DINT(0..100) := 0;
         END_TYPE
 
         Function main : DINT
@@ -1717,7 +1717,7 @@ fn range_datatype_debug() {
     !6 = !{null}
     !7 = !{}
     !8 = !DILocalVariable(name: "r", scope: !4, file: !3, line: 8, type: !9, align: 32)
-    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "RangeType", scope: !3, file: !3, line: 2, baseType: !10, align: 32)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_100__DINT", scope: !3, file: !3, line: 2, baseType: !10, align: 32)
     !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
     !11 = !DILocation(line: 8, column: 12, scope: !4)
     !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align: 32)
@@ -1726,4 +1726,270 @@ fn range_datatype_debug() {
     !15 = !DILocation(line: 11, column: 12, scope: !4)
     !16 = !DILocation(line: 12, column: 8, scope: !4)
     "#)
+}
+
+#[test]
+fn range_datatype_reference_expr_bounds_debug() {
+    let codegen = codegen(
+        r#"
+        VAR_GLOBAL CONSTANT
+            ZERO : DINT := 0;
+        END_VAR
+
+        TYPE RangeType :
+            DINT(ZERO..(100+3)) := 0;
+        END_TYPE
+
+        Function main : DINT
+        VAR
+            r : RangeType;
+        END_VAR
+            r := 50;
+            main := r;
+        END_FUNCTION
+    "#,
+    );
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @ZERO = unnamed_addr constant i32 0, !dbg !0
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+
+    define i32 @main() !dbg !9 {
+    entry:
+      %main = alloca i32, align 4
+      %r = alloca i32, align 4
+      call void @llvm.dbg.declare(metadata i32* %r, metadata !13, metadata !DIExpression()), !dbg !15
+      store i32 0, i32* %r, align 4
+      call void @llvm.dbg.declare(metadata i32* %main, metadata !16, metadata !DIExpression()), !dbg !17
+      store i32 0, i32* %main, align 4
+      store i32 50, i32* %r, align 4, !dbg !18
+      %load_r = load i32, i32* %r, align 4, !dbg !19
+      store i32 %load_r, i32* %main, align 4, !dbg !19
+      %main_ret = load i32, i32* %main, align 4, !dbg !20
+      ret i32 %main_ret, !dbg !20
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init___Test() {
+    entry:
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+    !llvm.module.flags = !{!5, !6}
+    !llvm.dbg.cu = !{!7}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "ZERO", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
+    !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{i32 2, !"Dwarf Version", i32 5}
+    !6 = !{i32 2, !"Debug Info Version", i32 3}
+    !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
+    !8 = !{!0}
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
+    !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
+    !11 = !{null}
+    !12 = !{}
+    !13 = !DILocalVariable(name: "r", scope: !9, file: !2, line: 12, type: !14, align: 32)
+    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_0_103__DINT", scope: !2, file: !2, line: 6, baseType: !4, align: 32)
+    !15 = !DILocation(line: 12, column: 12, scope: !9)
+    !16 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 10, type: !4, align: 32)
+    !17 = !DILocation(line: 10, column: 17, scope: !9)
+    !18 = !DILocation(line: 14, column: 12, scope: !9)
+    !19 = !DILocation(line: 15, column: 12, scope: !9)
+    !20 = !DILocation(line: 16, column: 8, scope: !9)
+    "#);
+}
+
+#[test]
+fn range_datatype_fqn_reference_bounds_debug() {
+    let codegen = codegen(
+        r#"
+        TYPE RangeType :
+            DINT(prog.TEN..(100+3)) := 0;
+        END_TYPE
+
+        PROGRAM prog
+        VAR CONSTANT
+            TEN : DINT := 10;
+        END_VAR
+        VAR
+            r : RangeType;
+        END_VAR
+        END_PROGRAM
+    "#,
+    );
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prog = type { i32, i32 }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog { i32 10, i32 0 }, !dbg !0
+
+    define void @prog(%prog* %0) !dbg !14 {
+    entry:
+      call void @llvm.dbg.declare(metadata %prog* %0, metadata !18, metadata !DIExpression()), !dbg !19
+      %TEN = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      %r = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+      ret void, !dbg !19
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+    !llvm.module.flags = !{!10, !11}
+    !llvm.dbg.cu = !{!12}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 64, align: 64, flags: DIFlagPublic, elements: !4, identifier: "prog")
+    !4 = !{!5, !8}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "TEN", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
+    !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "r", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align: 32)
+    !10 = !{i32 2, !"Dwarf Version", i32 5}
+    !11 = !{i32 2, !"Debug Info Version", i32 3}
+    !12 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !13, splitDebugInlining: false)
+    !13 = !{!0}
+    !14 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !15, scopeLine: 13, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !12, retainedNodes: !17)
+    !15 = !DISubroutineType(flags: DIFlagPublic, types: !16)
+    !16 = !{null, !3}
+    !17 = !{}
+    !18 = !DILocalVariable(name: "prog", scope: !14, file: !2, line: 13, type: !3)
+    !19 = !DILocation(line: 13, column: 8, scope: !14)
+    "#);
+}
+
+#[test]
+fn range_datatype_debug_alias_reused() {
+    let codegen = codegen(
+        r#"
+        TYPE RangeType :
+            DINT(prog.ZERO..(100+3)) := 0;
+        END_TYPE
+
+        PROGRAM prog
+        VAR CONSTANT
+            ZERO : DINT := 10;
+        END_VAR
+        VAR
+            u : RangeType; // first use of RangeType
+            v : RangeType; // second use of RangeType, should reuse debug info
+            w : DINT(10..103); // direct use of same range, should reuse debug info
+        END_VAR
+        END_PROGRAM
+    "#,
+    );
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %prog = type { i32, i32, i32, i32 }
+
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @prog_instance = global %prog { i32 10, i32 0, i32 0, i32 0 }, !dbg !0
+
+    define void @prog(%prog* %0) !dbg !16 {
+    entry:
+      call void @llvm.dbg.declare(metadata %prog* %0, metadata !20, metadata !DIExpression()), !dbg !21
+      %ZERO = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+      %u = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+      %v = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
+      %w = getelementptr inbounds %prog, %prog* %0, i32 0, i32 3
+      ret void, !dbg !21
+    }
+
+    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
+    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+
+    define void @__init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_prog(%prog* %0) {
+    entry:
+      %self = alloca %prog*, align 8
+      store %prog* %0, %prog** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_prog(%prog* @prog_instance)
+      call void @__user_init_prog(%prog* @prog_instance)
+      ret void
+    }
+
+    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+
+    !llvm.module.flags = !{!12, !13}
+    !llvm.dbg.cu = !{!14}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 6, size: 128, align: 64, flags: DIFlagPublic, elements: !4, identifier: "prog")
+    !4 = !{!5, !8, !10, !11}
+    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ZERO", scope: !2, file: !2, line: 8, baseType: !6, size: 32, align: 32, flags: DIFlagPublic)
+    !6 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !7)
+    !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !8 = !DIDerivedType(tag: DW_TAG_member, name: "u", scope: !2, file: !2, line: 11, baseType: !9, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+    !9 = !DIDerivedType(tag: DW_TAG_typedef, name: "__SUBRANGE_10_103__DINT", scope: !2, file: !2, line: 2, baseType: !7, align: 32)
+    !10 = !DIDerivedType(tag: DW_TAG_member, name: "v", scope: !2, file: !2, line: 12, baseType: !9, size: 32, align: 32, offset: 64, flags: DIFlagPublic)
+    !11 = !DIDerivedType(tag: DW_TAG_member, name: "w", scope: !2, file: !2, line: 13, baseType: !9, size: 32, align: 32, offset: 96, flags: DIFlagPublic)
+    !12 = !{i32 2, !"Dwarf Version", i32 5}
+    !13 = !{i32 2, !"Debug Info Version", i32 3}
+    !14 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !15, splitDebugInlining: false)
+    !15 = !{!0}
+    !16 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 6, type: !17, scopeLine: 15, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !14, retainedNodes: !19)
+    !17 = !DISubroutineType(flags: DIFlagPublic, types: !18)
+    !18 = !{null, !3}
+    !19 = !{}
+    !20 = !DILocalVariable(name: "prog", scope: !16, file: !2, line: 15, type: !3)
+    !21 = !DILocation(line: 15, column: 8, scope: !16)
+    "#);
 }

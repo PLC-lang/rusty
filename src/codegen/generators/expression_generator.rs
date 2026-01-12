@@ -75,16 +75,19 @@ struct CallParameterAssignment<'a, 'b> {
     function_name: &'b str,
 
     /// The position of the parameter in the POUs variable declaration list.
+    ///
     /// See also [`StatementAnnotation::Argument::position`].
     position: u32,
 
     /// The depth between where the parameter is declared versus where it is being called from.
+    ///
     /// See also [`StatementAnnotation::Argument::depth`].
     depth: u32,
 
     /// The name of the POU where the parameter is declared
+    ///
     /// See also [`StatementAnnotation::Argument::pou`].
-    pou_parameter: &'b str,
+    declaring_pou: &'b str,
 
     /// The pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
@@ -653,7 +656,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ImplementationType::Method => self.generate_function_arguments(
                     self.index.find_pou(qualified_pou_name).unwrap(),
                     &arguments,
-                    self.index.get_declared_parameters(qualified_pou_name),
+                    self.index.get_available_parameters(qualified_pou_name),
                 )?,
 
                 // Function Block body calls have a slightly different calling convention compared to regular
@@ -707,7 +710,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), CodegenError> {
-        let pou_info = self.index.get_declared_parameters(function_name);
+        let pou_info = self.index.get_available_parameters(function_name);
         let implicit = arguments_are_implicit(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
@@ -717,7 +720,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
                     self.annotations.get_hint(assignment_statement)
                 else {
-                    panic!()
+                    unreachable!("must have an annotation")
                 };
 
                 self.assign_output_value(&CallParameterAssignment {
@@ -725,7 +728,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     function_name,
                     position: *position as u32,
                     depth: *depth as u32,
-                    pou_parameter: pou,
+                    declaring_pou: pou,
                     parameter_struct,
                 })?
             }
@@ -854,23 +857,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
     }
 
     fn build_parameter_struct_gep(&self, context: &CallParameterAssignment<'ink, 'b>) -> PointerValue<'ink> {
-        unsafe {
-            // Assuming we have an inheritance hierarchy of `A <- B <- C` and a call `objC(inA := 1, ...)`
-            // then in order to access `inA` in `C` we have to generate some IR of form `objC.__B.__A.inA`.
-            // Because the parent structs are always the first member of these function blocks / classes, we
-            // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
-            // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
-            let mut gep_index = vec![0; (context.depth + 1) as usize];
-            gep_index.push(context.position);
+        // Assuming we have an inheritance hierarchy of `A <- B <- C` and a call `objC(inA := 1, ...)`
+        // then in order to access `inA` in `C` we have to generate some IR of form `objC.__B.__A.inA`.
+        // Because the parent structs are always the first member of these function blocks / classes, we
+        // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
+        // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
+        let mut gep_index = vec![0; (context.depth + 1) as usize];
+        gep_index.push(context.position as u64);
 
-            let i32_type = self.llvm.context.i32_type();
-            let gep_index = gep_index
-                .into_iter()
-                .map(|value| i32_type.const_int(value as u64, false))
-                .collect::<Vec<_>>();
+        let i32_type = self.llvm.context.i32_type();
+        let gep_index = gep_index.into_iter().map(|idx| i32_type.const_int(idx, false)).collect::<Vec<_>>();
 
-            self.llvm.builder.build_gep(context.parameter_struct, &gep_index, "").unwrap()
-        }
+        unsafe { self.llvm.builder.build_in_bounds_gep(context.parameter_struct, &gep_index, "").unwrap() }
     }
 
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), CodegenError> {
@@ -879,7 +877,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             function_name,
             position: index,
             depth: _,
-            pou_parameter: arg_pou,
+            declaring_pou: arg_pou,
             parameter_struct,
         } = context;
 
@@ -970,7 +968,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 position: param_context.position,
                 depth: param_context.depth,
                 parameter_struct,
-                pou_parameter: param_context.pou_parameter,
+                declaring_pou: param_context.declaring_pou,
             })?
         };
 
@@ -991,7 +989,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         match pou {
             PouIndexEntry::Function { .. } => {
                 // we're calling a function
-                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                let declared_parameters = self.index.get_available_parameters(implementation.get_type_name());
                 self.generate_function_arguments(pou, passed_parameters, declared_parameters)
             }
             PouIndexEntry::Method { .. } => {
@@ -1003,7 +1001,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .map(|class_ptr| class_ptr.into_pointer_value())
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
                 })?;
-                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                let declared_parameters = self.index.get_available_parameters(implementation.get_type_name());
                 let mut parameters =
                     self.generate_function_arguments(pou, passed_parameters, declared_parameters)?;
                 parameters.insert(0, class_ptr.into());
@@ -1325,7 +1323,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 function_name: pou_name,
                 position: *position as u32,
                 depth: *depth as u32,
-                pou_parameter: pou,
+                declaring_pou: pou,
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {
@@ -1416,11 +1414,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let builder = &self.llvm.builder;
-        // let function_name = param_context.function_name;
         let index = param_context.position;
         let expression = param_context.assignment;
 
-        if let Some(parameter) = self.index.get_declared_parameter(param_context.pou_parameter, index) {
+        if let Some(parameter) = self.index.get_declared_parameter(param_context.declaring_pou, index) {
             // this happens before the pou call
             // before the call statement we may only consider inputs and inouts
             // after the call we need to copy the output values to the correct assigned variables
@@ -1432,7 +1429,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             let parameter = self
                 .index
-                .find_parameter(param_context.pou_parameter, index)
+                .find_parameter(param_context.declaring_pou, index)
                 .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -1493,7 +1490,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     function_name,
                     position: param_context.position,
                     depth: param_context.depth,
-                    pou_parameter: param_context.pou_parameter,
+                    declaring_pou: param_context.declaring_pou,
                     parameter_struct,
                 })?;
             };
@@ -1539,7 +1536,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     let member_location = self
                         .index
                         .find_fully_qualified_variable(qualified_name)
-                        .map(VariableIndexEntry::get_position)
+                        .map(VariableIndexEntry::get_location_in_parent)
                         .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, offset))?;
                     let gep: PointerValue<'_> =
                         self.llvm.get_member_pointer_from_struct(*qualifier, member_location, name)?;
@@ -2281,7 +2278,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                                 Diagnostic::unresolved_reference(qualified_name, data.left.as_ref())
                             })?;
 
-                        let index_in_parent = member.get_position();
+                        let index_in_parent = member.get_location_in_parent();
                         let value = self.generate_expression(data.right.as_ref())?;
 
                         uninitialized_members.remove(member);
@@ -2313,7 +2310,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         Diagnostic::cannot_generate_initializer(member.get_qualified_name(), assignments)
                     })?;
 
-                member_values.push((member.get_position(), initial_value));
+                member_values.push((member.get_location_in_parent(), initial_value));
             }
             let struct_type = self.llvm_index.get_associated_type(struct_name)?.into_struct_type();
             if member_values.len() == struct_type.count_fields() as usize {

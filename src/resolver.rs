@@ -323,7 +323,9 @@ impl TypeAnnotator<'_> {
                 continue;
             };
 
-            let Some((parameter, depth)) = self.index.find_pou_member_and_depth(pou_name, var_name) else {
+            let Some((parameter, depth)) =
+                TypeAnnotator::find_pou_member_and_depth(self.index, pou_name, var_name)
+            else {
                 continue;
             };
 
@@ -337,7 +339,7 @@ impl TypeAnnotator<'_> {
                 argument,
                 parameter.get_type_name(),
                 depth,
-                parameter.get_position() as usize,
+                parameter.get_location_in_parent() as usize,
             );
         }
 
@@ -369,7 +371,8 @@ impl TypeAnnotator<'_> {
         };
 
         // Zip the parameters together with the arguments, then link the correct type information to them.
-        for (parameter, argument) in self.index.get_declared_parameters(pou_name).iter().zip(&mut arguments) {
+        for (parameter, argument) in self.index.get_available_parameters(pou_name).iter().zip(&mut arguments)
+        {
             let parameter_type_name = parameter.get_type_name();
 
             match self.get_generic_candidate(parameter_type_name, argument) {
@@ -378,7 +381,8 @@ impl TypeAnnotator<'_> {
                 }
 
                 None => {
-                    let candidate = (argument, parameter_type_name.to_string(), parameter.get_position());
+                    let candidate =
+                        (argument, parameter_type_name.to_string(), parameter.get_location_in_parent());
                     positional_candidates.push(candidate);
                 }
             }
@@ -395,7 +399,7 @@ impl TypeAnnotator<'_> {
                 }
 
                 let type_name = self.get_vararg_type_name(argument, vararg);
-                positional_candidates.push((argument, type_name, vararg.get_position()));
+                positional_candidates.push((argument, type_name, vararg.get_location_in_parent()));
             }
         }
 
@@ -427,6 +431,20 @@ impl TypeAnnotator<'_> {
                 {
                     get_bigger_type(data_type, self.index.get_type_or_panic(DINT_TYPE), self.index).get_name()
                 }
+                // Enum types need to be promoted based on their underlying integer type
+                DataTypeInformation::Enum { referenced_type, .. } => self
+                    .index
+                    .get_effective_type_by_name(referenced_type)
+                    .ok()
+                    .filter(|dt| {
+                        let info = dt.get_type_information();
+                        info.is_int() && !(info.is_bool() || info.is_character())
+                    })
+                    .map(|enum_base_type| {
+                        get_bigger_type(enum_base_type, self.index.get_type_or_panic(DINT_TYPE), self.index)
+                            .get_name()
+                    })
+                    .unwrap_or(vararg.get_type_name()),
 
                 _ => vararg.get_type_name(),
             },
@@ -435,6 +453,39 @@ impl TypeAnnotator<'_> {
         };
 
         type_name.to_string()
+    }
+
+    /// Finds a member in the specified POU, traversing the inheritance chain if necessary. Returns the
+    /// [`VariableIndexEntry`] along with the inheritance depth from the given POU to where the member
+    /// was declared.
+    fn find_pou_member_and_depth<'a>(
+        index: &'a Index,
+        pou: &str,
+        name: &str,
+    ) -> Option<(&'a VariableIndexEntry, usize)> {
+        fn find<'a>(index: &'a Index, pou: &str, name: &str) -> Option<&'a VariableIndexEntry> {
+            index.find_type(pou).and_then(|pou| pou.find_member(name))
+        }
+
+        // Check if the POU has the member locally
+        if let Some(entry) = find(index, pou, name) {
+            return Some((entry, 0));
+        }
+
+        // ..and if not walk the inheritance chain and re-try
+        let mut depth = 1;
+        let mut current_pou = pou;
+
+        while let Some(parent) = index.find_pou(current_pou).and_then(PouIndexEntry::get_super_class) {
+            if let Some(entry) = find(index, parent, name) {
+                return Some((entry, depth));
+            }
+
+            depth += 1;
+            current_pou = parent;
+        }
+
+        None
     }
 }
 
@@ -479,7 +530,7 @@ pub enum StatementAnnotation {
         /// The position of the parameter within its declared POU.
         position: usize,
 
-        /// The depth between where the arguments parameter is declared versus where it is being called from.
+        /// Inheritance depth from parameter declaration to calling context.
         ///
         /// Given an inheritance chain `A <- B <- C` and `instanceC(inA := 1, inB := 2, inC := 3)`:
         /// - `inA := 1` will have a depth of 2 (declared in grandparent A)
@@ -1305,18 +1356,35 @@ impl<'i> TypeAnnotator<'i> {
 
         if let Some(expected_type) = self.annotation_map.get_type(annotated_left_side, self.index).cloned() {
             // for assignments on SubRanges check if there are range type check functions
-            if let DataTypeInformation::SubRange { sub_range, .. } = expected_type.get_type_information() {
-                if let Some(statement) = self
-                    .index
-                    .find_range_check_implementation_for(expected_type.get_type_information())
-                    .map(|f| {
-                        AstFactory::create_call_to_check_function_ast(
-                            f.get_call_name(),
-                            right_side.clone(),
-                            *sub_range.clone(),
-                            &annotated_left_side.get_location(),
-                            ctx.id_provider.clone(),
-                        )
+            if let DataTypeInformation::SubRange { sub_range, referenced_type, .. } =
+                expected_type.get_type_information()
+            {
+                if let Some(statement) = sub_range
+                    .start
+                    .to_ast_node(self.index, &ctx.id_provider)
+                    .zip(sub_range.end.to_ast_node(self.index, &ctx.id_provider))
+                    .and_then(|(start, end)| {
+                        // Annotate the range bounds with the backing type of the subrange
+                        // so they are correctly typed when passed to the check function
+                        let backing_type = self.index.get_type(referenced_type).ok()?;
+                        self.annotation_map
+                            .annotate_type_hint(&start, StatementAnnotation::value(backing_type.get_name()));
+                        self.annotation_map
+                            .annotate_type_hint(&end, StatementAnnotation::value(backing_type.get_name()));
+                        Some(start..end)
+                    })
+                    .and_then(|range| {
+                        self.index
+                            .find_range_check_implementation_for(expected_type.get_type_information())
+                            .map(|f| {
+                                AstFactory::create_call_to_check_function_ast(
+                                    f.get_call_name(),
+                                    right_side.clone(),
+                                    range,
+                                    &annotated_left_side.get_location(),
+                                    ctx.id_provider.clone(),
+                                )
+                            })
                     })
                 {
                     self.visit_call_statement(&statement, ctx);

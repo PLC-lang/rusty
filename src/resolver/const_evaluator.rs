@@ -49,7 +49,9 @@ impl UnresolvableConstant {
     }
 }
 
-/// returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
+/// Returns the resolved constants index and a Vec of qualified names of constants that could not be resolved.
+/// After constants have been evaluated, enum defaults are finalized.
+/// TODO: revisit enum-defaults-fixup as part of `evaluate_constants` after @ghaith's changes to the initializer/constructor handling.
 pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>) {
     let mut unresolvable: Vec<UnresolvableConstant> = Vec::new();
     let constants = index.get_const_expressions();
@@ -155,6 +157,9 @@ pub fn evaluate_constants(mut index: Index) -> (Index, Vec<UnresolvableConstant>
             }
         }
     }
+
+    // Fix up enum defaults after constants are resolved
+    index.finalize_enum_defaults();
 
     //import all constants that were note resolved in the loop above
     unresolvable.extend(remaining_constants.iter().map(UnresolvableConstant::incomplete_initialzation));

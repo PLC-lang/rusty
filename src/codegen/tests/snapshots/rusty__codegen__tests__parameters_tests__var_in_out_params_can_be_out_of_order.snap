@@ -18,24 +18,24 @@ entry:
   %fb = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 0
   %out1 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 1
   %out2 = getelementptr inbounds %mainProg, %mainProg* %0, i32 0, i32 2
-  %1 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 4
+  %1 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
   store i8* %out1, i8** %1, align 8
-  %2 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 2
+  %2 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
   store i8* %out2, i8** %2, align 8
   call void @fb_t(%fb_t* %fb)
-  %3 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 2
+  %3 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
   store i8* %out1, i8** %3, align 8
-  %4 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 4
+  %4 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
   store i8* %out2, i8** %4, align 8
   call void @fb_t(%fb_t* %fb)
-  %5 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 4
+  %5 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
   store i8* %out2, i8** %5, align 8
-  %6 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 2
+  %6 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
   store i8* %out1, i8** %6, align 8
   call void @fb_t__foo(%fb_t* %fb)
-  %7 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 2
+  %7 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 2
   store i8* %out2, i8** %7, align 8
-  %8 = getelementptr %fb_t, %fb_t* %fb, i32 0, i32 4
+  %8 = getelementptr inbounds %fb_t, %fb_t* %fb, i32 0, i32 4
   store i8* %out1, i8** %8, align 8
   call void @fb_t__foo(%fb_t* %fb)
   ret void

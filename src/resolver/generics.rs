@@ -269,7 +269,7 @@ impl TypeAnnotator<'_> {
             nature: TypeNature,
         }
 
-        let declared_parameters = self.index.get_declared_parameters(function_name);
+        let declared_parameters = self.index.get_available_parameters(function_name);
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
         let mut variadic_parameters = Vec::new();

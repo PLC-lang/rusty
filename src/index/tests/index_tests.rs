@@ -929,7 +929,7 @@ fn sub_range_boundaries_are_registered_at_the_index() {
     let expected = &DataTypeInformation::SubRange {
         name: "MyInt".to_string(),
         referenced_type: "INT".to_string(),
-        sub_range: Box::new(literal_int(7)..literal_int(1000)),
+        sub_range: TypeSize::from_literal(7)..TypeSize::from_literal(1000),
     };
 
     assert_eq!(format!("{expected:?}"), format!("{my_int:?}"));
@@ -2593,15 +2593,15 @@ fn declared_parameters() {
     "#,
     );
 
-    let members = index.get_declared_parameters("FbA").iter().map(|var| &var.name).collect::<Vec<_>>();
+    let members = index.get_available_parameters("FbA").iter().map(|var| &var.name).collect::<Vec<_>>();
     assert_eq!(members, vec!["inA", "outA", "inoutA"]);
 
-    let members = index.get_declared_parameters("FbB").iter().map(|var| &var.name).collect::<Vec<_>>();
+    let members = index.get_available_parameters("FbB").iter().map(|var| &var.name).collect::<Vec<_>>();
     assert_eq!(members, vec!["inA", "outA", "inoutA", "inB", "outB", "inoutB",]);
 
-    let members = index.get_declared_parameters("methA").iter().map(|var| &var.name).collect::<Vec<_>>();
+    let members = index.get_available_parameters("methA").iter().map(|var| &var.name).collect::<Vec<_>>();
     assert!(members.is_empty());
 
-    let members = index.get_declared_parameters("FbB.methB").iter().map(|var| &var.name).collect::<Vec<_>>();
+    let members = index.get_available_parameters("FbB.methB").iter().map(|var| &var.name).collect::<Vec<_>>();
     assert_eq!(members, vec!["inB_meth"]);
 }
