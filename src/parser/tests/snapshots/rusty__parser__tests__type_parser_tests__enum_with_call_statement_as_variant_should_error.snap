@@ -1,0 +1,15 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: diagnostics
+---
+error[E007]: Unexpected token: expected KeywordParensClose but found '('
+  ┌─ <internal>:2:37
+  │
+2 │         TYPE State : (Idle := 0, foo());
+  │                                     ^ Unexpected token: expected KeywordParensClose but found '('
+
+error[E007]: Unexpected token: expected KeywordSemicolon but found ')'
+  ┌─ <internal>:2:39
+  │
+2 │         TYPE State : (Idle := 0, foo());
+  │                                       ^ Unexpected token: expected KeywordSemicolon but found ')'
