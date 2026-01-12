@@ -6,7 +6,7 @@ use rustc_hash::FxHashMap;
 use crate::{
     builtins,
     codegen::generators::expression_generator::get_implicit_call_parameter,
-    index::{ArgumentType, Index, PouIndexEntry, VariableType},
+    index::{ArgumentType, PouIndexEntry, VariableType},
     resolver::AnnotationMap,
     typesystem::{
         self, DataType, DataTypeInformation, StringEncoding, BOOL_TYPE, CHAR_TYPE, DATE_TYPE, REAL_TYPE,
@@ -14,7 +14,7 @@ use crate::{
     },
 };
 
-use super::{AnnotationMapImpl, StatementAnnotation, TypeAnnotator, VisitorContext};
+use super::{StatementAnnotation, TypeAnnotator, VisitorContext};
 
 #[derive(Debug)]
 pub struct GenericType {
@@ -29,18 +29,13 @@ impl TypeAnnotator<'_> {
     /// determines a possible generic for the current statement
     /// returns a pair with the possible generics symbol and the real datatype
     /// e.g. `( "T", "INT" )`
-    pub(super) fn get_generic_candidate<'idx>(
-        index: &'idx Index,
-        annotation_map: &'idx AnnotationMapImpl,
-        type_name: &str,
-        statement: &AstNode,
-    ) -> Option<(&'idx str, &'idx str)> {
+    pub fn get_generic_candidate(&self, type_name: &str, statement: &AstNode) -> Option<(&str, &str)> {
         //find inner type if this was turned into an array or pointer (if this is `POINTER TO T` lets find out what T is)
-        let effective_type = index.find_effective_type_info(type_name);
+        let effective_type = self.index.find_effective_type_info(type_name);
         let candidate = match effective_type {
             Some(DataTypeInformation::Pointer { inner_type_name, .. })
             | Some(DataTypeInformation::Array { inner_type_name, .. }) => {
-                index.find_effective_type_info(inner_type_name)
+                self.index.find_effective_type_info(inner_type_name)
             }
             _ => effective_type,
         };
@@ -53,7 +48,9 @@ impl TypeAnnotator<'_> {
                 _ => statement,
             };
             //Find the statement's type
-            annotation_map.get_type(statement, index).map(|it| (generic_symbol.as_str(), it.get_name()))
+            self.annotation_map
+                .get_type(statement, self.index)
+                .map(|it| (generic_symbol.as_str(), it.get_name()))
         } else {
             None
         }
@@ -66,7 +63,7 @@ impl TypeAnnotator<'_> {
         generics_candidates: FxHashMap<String, Vec<String>>,
         implementation_name: &str,
         operator: &AstNode,
-        parameters: Option<&AstNode>,
+        parameters: &AstNode,
         ctx: VisitorContext,
     ) {
         if let Some(PouIndexEntry::Function { generics, .. }) = self.index.find_pou(implementation_name) {
@@ -114,10 +111,8 @@ impl TypeAnnotator<'_> {
                     self.annotate(operator, annotation);
                 }
                 // Adjust annotations on the inner statement
-                if let Some(s) = parameters.as_ref() {
-                    self.visit_statement(&ctx, s);
-                    self.update_generic_function_parameters(s, implementation_name, generic_map);
-                }
+                self.visit_statement(&ctx, parameters);
+                self.update_generic_function_parameters(parameters, implementation_name, generic_map);
             }
         }
     }
@@ -274,7 +269,7 @@ impl TypeAnnotator<'_> {
             nature: TypeNature,
         }
 
-        let declared_parameters = self.index.get_declared_parameters(function_name);
+        let declared_parameters = self.index.get_available_parameters(function_name);
         // separate variadic and non variadic parameters
         let mut passed_parameters = Vec::new();
         let mut variadic_parameters = Vec::new();

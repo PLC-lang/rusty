@@ -730,7 +730,7 @@ impl<'ink> DebugBuilder<'ink> {
             param_offset += 1;
         }
         if implementation.get_implementation_type().is_function_method_or_init() {
-            let declared_params = index.get_declared_parameters(implementation.get_call_name());
+            let declared_params = index.get_available_parameters(implementation.get_call_name());
             // Register all parameters for debugging
             for (index, variable) in declared_params.iter().enumerate() {
                 self.register_parameter(variable, index + param_offset, func);

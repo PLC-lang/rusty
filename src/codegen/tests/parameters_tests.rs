@@ -649,10 +649,11 @@ fn parameters_behind_function_block_pointer_are_assigned_to() {
 fn var_in_out_params_can_be_out_of_order() {
     let res = codegen(
         "PROGRAM mainProg
-    VAR
-        fb : fb_t;
-        out1, out2 : BOOL;
-    END_VAR
+        VAR
+            fb : fb_t;
+            out1, out2 : BOOL;
+        END_VAR
+
         fb(myOtherInOut := out1, myInOut := out2);
         fb(myInOut := out1, myOtherInOut := out2);
 
@@ -661,21 +662,25 @@ fn var_in_out_params_can_be_out_of_order() {
     END_PROGRAM
 
     FUNCTION_BLOCK fb_t
-    VAR
-        myVar   : BOOL;
-    END_VAR
-    VAR_INPUT
-        myInput : USINT;
-    END_VAR
-    VAR_IN_OUT
-        myInOut : BOOL;
-    END_VAR
-    VAR_OUTPUT
-        myOut   : BOOL;
-    END_VAR
-    VAR_IN_OUT
-        myOtherInOut : BOOL;
-    END_VAR
+        VAR
+            myVar   : BOOL;
+        END_VAR
+
+        VAR_INPUT
+            myInput : USINT;
+        END_VAR
+
+        VAR_IN_OUT
+            myInOut : BOOL;
+        END_VAR
+
+        VAR_OUTPUT
+            myOut   : BOOL;
+        END_VAR
+
+        VAR_IN_OUT
+            myOtherInOut : BOOL;
+        END_VAR
     END_FUNCTION_BLOCK
 
     ACTIONS
