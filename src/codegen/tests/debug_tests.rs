@@ -122,6 +122,220 @@ fn test_global_var_enum_added_to_debug_info() {
 }
 
 #[test]
+fn test_global_var_enum_with_explicit_values_added_to_debug_info() {
+    // Test enums with explicit values: non-sequential, negative, and mixed implicit/explicit
+    let codegen = codegen(
+        r#"
+    TYPE Colors : (Red := 10, Green := 20, Blue := 30); END_TYPE
+    TYPE Status : INT (Error := -1, Ok := 0, Pending := 1); END_TYPE
+    TYPE Flags : BYTE (None := 0, Read := 4, Write := 8, Execute := 16); END_TYPE
+    VAR_GLOBAL
+        color : Colors;
+        status : Status;
+        flags : Flags;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @color = global i32 10, !dbg !0
+    @status = global i16 0, !dbg !9
+    @flags = global i8 0, !dbg !17
+    @Colors.Red = unnamed_addr constant i32 10, !dbg !26
+    @Colors.Green = unnamed_addr constant i32 20, !dbg !29
+    @Colors.Blue = unnamed_addr constant i32 30, !dbg !31
+    @Status.Error = unnamed_addr constant i16 -1, !dbg !33
+    @Status.Ok = unnamed_addr constant i16 0, !dbg !36
+    @Status.Pending = unnamed_addr constant i16 1, !dbg !38
+    @Flags.None = unnamed_addr constant i8 0, !dbg !40
+    @Flags.Read = unnamed_addr constant i8 4, !dbg !43
+    @Flags.Write = unnamed_addr constant i8 8, !dbg !45
+    @Flags.Execute = unnamed_addr constant i8 16, !dbg !47
+
+    !llvm.module.flags = !{!49, !50}
+    !llvm.dbg.cu = !{!51}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "color", scope: !2, file: !2, line: 6, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Colors", scope: !2, file: !2, line: 2, baseType: !4, size: 32, align: 32, elements: !5)
+    !4 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !5 = !{!6, !7, !8}
+    !6 = !DIEnumerator(name: "Red", value: 10)
+    !7 = !DIEnumerator(name: "Green", value: 20)
+    !8 = !DIEnumerator(name: "Blue", value: 30)
+    !9 = !DIGlobalVariableExpression(var: !10, expr: !DIExpression())
+    !10 = distinct !DIGlobalVariable(name: "status", scope: !2, file: !2, line: 7, type: !11, isLocal: false, isDefinition: true)
+    !11 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 3, baseType: !12, size: 16, align: 16, elements: !13)
+    !12 = !DIBasicType(name: "INT", size: 16, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !13 = !{!14, !15, !16}
+    !14 = !DIEnumerator(name: "Error", value: -1)
+    !15 = !DIEnumerator(name: "Ok", value: 0)
+    !16 = !DIEnumerator(name: "Pending", value: 1)
+    !17 = !DIGlobalVariableExpression(var: !18, expr: !DIExpression())
+    !18 = distinct !DIGlobalVariable(name: "flags", scope: !2, file: !2, line: 8, type: !19, isLocal: false, isDefinition: true)
+    !19 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Flags", scope: !2, file: !2, line: 4, baseType: !20, size: 8, align: 8, elements: !21)
+    !20 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !21 = !{!22, !23, !24, !25}
+    !22 = !DIEnumerator(name: "None", value: 0, isUnsigned: true)
+    !23 = !DIEnumerator(name: "Read", value: 4, isUnsigned: true)
+    !24 = !DIEnumerator(name: "Write", value: 8, isUnsigned: true)
+    !25 = !DIEnumerator(name: "Execute", value: 16, isUnsigned: true)
+    !26 = !DIGlobalVariableExpression(var: !27, expr: !DIExpression())
+    !27 = distinct !DIGlobalVariable(name: "Colors.Red", scope: !2, file: !2, line: 2, type: !28, isLocal: false, isDefinition: true)
+    !28 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !3)
+    !29 = !DIGlobalVariableExpression(var: !30, expr: !DIExpression())
+    !30 = distinct !DIGlobalVariable(name: "Colors.Green", scope: !2, file: !2, line: 2, type: !28, isLocal: false, isDefinition: true)
+    !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
+    !32 = distinct !DIGlobalVariable(name: "Colors.Blue", scope: !2, file: !2, line: 2, type: !28, isLocal: false, isDefinition: true)
+    !33 = !DIGlobalVariableExpression(var: !34, expr: !DIExpression())
+    !34 = distinct !DIGlobalVariable(name: "Status.Error", scope: !2, file: !2, line: 3, type: !35, isLocal: false, isDefinition: true)
+    !35 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !11)
+    !36 = !DIGlobalVariableExpression(var: !37, expr: !DIExpression())
+    !37 = distinct !DIGlobalVariable(name: "Status.Ok", scope: !2, file: !2, line: 3, type: !35, isLocal: false, isDefinition: true)
+    !38 = !DIGlobalVariableExpression(var: !39, expr: !DIExpression())
+    !39 = distinct !DIGlobalVariable(name: "Status.Pending", scope: !2, file: !2, line: 3, type: !35, isLocal: false, isDefinition: true)
+    !40 = !DIGlobalVariableExpression(var: !41, expr: !DIExpression())
+    !41 = distinct !DIGlobalVariable(name: "Flags.None", scope: !2, file: !2, line: 4, type: !42, isLocal: false, isDefinition: true)
+    !42 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !19)
+    !43 = !DIGlobalVariableExpression(var: !44, expr: !DIExpression())
+    !44 = distinct !DIGlobalVariable(name: "Flags.Read", scope: !2, file: !2, line: 4, type: !42, isLocal: false, isDefinition: true)
+    !45 = !DIGlobalVariableExpression(var: !46, expr: !DIExpression())
+    !46 = distinct !DIGlobalVariable(name: "Flags.Write", scope: !2, file: !2, line: 4, type: !42, isLocal: false, isDefinition: true)
+    !47 = !DIGlobalVariableExpression(var: !48, expr: !DIExpression())
+    !48 = distinct !DIGlobalVariable(name: "Flags.Execute", scope: !2, file: !2, line: 4, type: !42, isLocal: false, isDefinition: true)
+    !49 = !{i32 2, !"Dwarf Version", i32 5}
+    !50 = !{i32 2, !"Debug Info Version", i32 3}
+    !51 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !52, globals: !53, splitDebugInlining: false)
+    !52 = !{!3, !11, !19}
+    !53 = !{!0, !9, !17, !26, !29, !31, !33, !36, !38, !40, !43, !45, !47}
+    "#)
+}
+
+#[test]
+fn test_global_var_struct_with_enum_members_added_to_debug_info() {
+    // Test structs containing enum fields to verify composite type interaction
+    let codegen = codegen(
+        r#"
+    TYPE Status : (Idle, Running, Error); END_TYPE
+    TYPE Priority : BYTE (Low := 1, Medium := 5, High := 10); END_TYPE
+
+    TYPE Device : STRUCT
+        id : DINT;
+        status : Status;
+        priority : Priority;
+        name : STRING;
+    END_STRUCT
+    END_TYPE
+
+    VAR_GLOBAL
+        device : Device;
+    END_VAR
+    "#,
+    );
+
+    filtered_assert_snapshot!(codegen, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %Device = type { i32, i32, i8, [81 x i8] }
+
+    @Status.Idle = unnamed_addr constant i32 0, !dbg !0
+    @Status.Running = unnamed_addr constant i32 1, !dbg !10
+    @Status.Error = unnamed_addr constant i32 2, !dbg !12
+    @Priority.Low = unnamed_addr constant i8 1, !dbg !14
+    @Priority.Medium = unnamed_addr constant i8 5, !dbg !23
+    @Priority.High = unnamed_addr constant i8 10, !dbg !25
+    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @__Device__init = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !27
+    @device = global %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !41
+    @__Device__init.1 = unnamed_addr constant %Device { i32 0, i32 0, i8 1, [81 x i8] zeroinitializer }, !dbg !43
+
+    define void @__init_device(%Device* %0) {
+    entry:
+      %self = alloca %Device*, align 8
+      store %Device* %0, %Device** %self, align 8
+      ret void
+    }
+
+    define void @__user_init_Device(%Device* %0) {
+    entry:
+      %self = alloca %Device*, align 8
+      store %Device* %0, %Device** %self, align 8
+      ret void
+    }
+
+    define void @__init___Test() {
+    entry:
+      call void @__init_device(%Device* @device)
+      call void @__user_init_Device(%Device* @device)
+      ret void
+    }
+
+    !llvm.module.flags = !{!45, !46}
+    !llvm.dbg.cu = !{!47}
+
+    !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
+    !1 = distinct !DIGlobalVariable(name: "Status.Idle", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !2 = !DIFile(filename: "<internal>", directory: "")
+    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
+    !4 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Status", scope: !2, file: !2, line: 2, baseType: !5, size: 32, align: 32, elements: !6)
+    !5 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !6 = !{!7, !8, !9}
+    !7 = !DIEnumerator(name: "Idle", value: 0)
+    !8 = !DIEnumerator(name: "Running", value: 1)
+    !9 = !DIEnumerator(name: "Error", value: 2)
+    !10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
+    !11 = distinct !DIGlobalVariable(name: "Status.Running", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
+    !13 = distinct !DIGlobalVariable(name: "Status.Error", scope: !2, file: !2, line: 2, type: !3, isLocal: false, isDefinition: true)
+    !14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
+    !15 = distinct !DIGlobalVariable(name: "Priority.Low", scope: !2, file: !2, line: 3, type: !16, isLocal: false, isDefinition: true)
+    !16 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
+    !17 = !DICompositeType(tag: DW_TAG_enumeration_type, name: "Priority", scope: !2, file: !2, line: 3, baseType: !18, size: 8, align: 8, elements: !19)
+    !18 = !DIBasicType(name: "BYTE", size: 8, encoding: DW_ATE_unsigned, flags: DIFlagPublic)
+    !19 = !{!20, !21, !22}
+    !20 = !DIEnumerator(name: "Low", value: 1, isUnsigned: true)
+    !21 = !DIEnumerator(name: "Medium", value: 5, isUnsigned: true)
+    !22 = !DIEnumerator(name: "High", value: 10, isUnsigned: true)
+    !23 = !DIGlobalVariableExpression(var: !24, expr: !DIExpression())
+    !24 = distinct !DIGlobalVariable(name: "Priority.Medium", scope: !2, file: !2, line: 3, type: !16, isLocal: false, isDefinition: true)
+    !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
+    !26 = distinct !DIGlobalVariable(name: "Priority.High", scope: !2, file: !2, line: 3, type: !16, isLocal: false, isDefinition: true)
+    !27 = !DIGlobalVariableExpression(var: !28, expr: !DIExpression())
+    !28 = distinct !DIGlobalVariable(name: "__Device__init", scope: !2, file: !2, line: 5, type: !29, isLocal: false, isDefinition: true)
+    !29 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !30)
+    !30 = !DICompositeType(tag: DW_TAG_structure_type, name: "Device", scope: !2, file: !2, line: 5, size: 736, align: 64, flags: DIFlagPublic, elements: !31, identifier: "Device")
+    !31 = !{!32, !33, !34, !35}
+    !32 = !DIDerivedType(tag: DW_TAG_member, name: "id", scope: !2, file: !2, line: 6, baseType: !5, size: 32, align: 32, flags: DIFlagPublic)
+    !33 = !DIDerivedType(tag: DW_TAG_member, name: "status", scope: !2, file: !2, line: 7, baseType: !4, size: 32, align: 32, offset: 32, flags: DIFlagPublic)
+    !34 = !DIDerivedType(tag: DW_TAG_member, name: "priority", scope: !2, file: !2, line: 8, baseType: !17, size: 8, align: 8, offset: 64, flags: DIFlagPublic)
+    !35 = !DIDerivedType(tag: DW_TAG_member, name: "name", scope: !2, file: !2, line: 9, baseType: !36, size: 648, align: 8, offset: 72, flags: DIFlagPublic)
+    !36 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !37, align: 8)
+    !37 = !DICompositeType(tag: DW_TAG_array_type, baseType: !38, size: 648, align: 8, elements: !39)
+    !38 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !39 = !{!40}
+    !40 = !DISubrange(count: 81, lowerBound: 0)
+    !41 = !DIGlobalVariableExpression(var: !42, expr: !DIExpression())
+    !42 = distinct !DIGlobalVariable(name: "device", scope: !2, file: !2, line: 14, type: !30, isLocal: false, isDefinition: true)
+    !43 = !DIGlobalVariableExpression(var: !44, expr: !DIExpression())
+    !44 = distinct !DIGlobalVariable(name: "__Device__init", scope: !2, file: !2, line: 5, type: !29, isLocal: false, isDefinition: true)
+    !45 = !{i32 2, !"Dwarf Version", i32 5}
+    !46 = !{i32 2, !"Debug Info Version", i32 3}
+    !47 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, enums: !48, globals: !49, splitDebugInlining: false)
+    !48 = !{!4, !17}
+    !49 = !{!41, !27, !43, !0, !10, !12, !14, !23, !25}
+    "#)
+}
+
+#[test]
 fn test_global_var_float_added_to_debug_info() {
     let codegen = codegen(
         r#"
