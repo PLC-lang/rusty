@@ -86,7 +86,6 @@ default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 [workspace.dependencies]
 insta = { version = "1.31.0", features = ["filters"] }
 inkwell = { version = "0.8", features = ["llvm14-0"] }
-# inkwell = { git = "https://github.com/abroooo/inkwell", branch = "abroooo/enumeration_type" , features = ["llvm14-0"] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 log = "0.4"
