@@ -57,6 +57,12 @@ function run_coverage() {
         --ignore "tests/*" \
         --ignore "src/lexer/tokens.rs" \
         --ignore-not-existing -o lcov.info
+
+    log "Cleaning up profraw files to free disk space"
+    find . -name "*.profraw" -type f -delete
+
+    log "Cleaning up build artifacts to free disk space"
+    cargo clean
 }
 
 

@@ -50,6 +50,10 @@ jobs:
           # required by aarch64 build
           apt update && apt install -y gcc-aarch64-linux-gnu
 
+          # Clean up apt cache to free disk space
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package \
           --target x86_64-linux-gnu,aarch64-linux-gnu, \
@@ -175,6 +179,14 @@ jobs:
     container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
       - uses: actions/checkout@v3
+
+      - name: Free up disk space
+        run: |
+          df -h
+          echo "Cleaning up unnecessary files..."
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+          df -h
 
       - name: Run Checks
         run: |
