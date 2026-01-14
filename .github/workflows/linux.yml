@@ -174,31 +174,41 @@ jobs:
           ./scripts/build.sh --check-style
 
   coverage:
-    name: Run Coverage
-    runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
-    steps:
-      - uses: actions/checkout@v3
+   name: Run Coverage
+   runs-on: ubuntu-latest
+   steps:
+     - name: Free up disk space on runner
+       uses: jlumbroso/free-disk-space@main
+       with:
+         tool-cache: true
+         android: true
+         dotnet: true
+         haskell: true
+         large-packages: true
+         docker-images: false
+         swap-storage: true
 
-      - name: Free up disk space
-        run: |
-          df -h
-          echo "Cleaning up unnecessary files..."
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
-          df -h
+     - name: Show disk space after cleanup
+       run: df -h
 
-      - name: Run Checks
-        run: |
-          ./scripts/build.sh --coverage
+     - uses: actions/checkout@v3
 
-      - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          files: lcov.info
+     - name: Run coverage in container
+       run: |
+         docker run --rm \
+           --entrypoint /bin/bash \
+           -v ${{ github.workspace }}:/workspace \
+           -w /workspace \
+           ghcr.io/plc-lang/rust-llvm:latest \
+           -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
-      - name: Archive code coverage results
-        uses: actions/upload-artifact@v4
-        with:
-          name: code-coverage-report
-          path: lcov.info
+     - name: Upload to codecov.io
+       uses: codecov/codecov-action@v3
+       with:
+         files: lcov.info
+
+     - name: Archive code coverage results
+       uses: actions/upload-artifact@v4
+       with:
+         name: code-coverage-report
+         path: lcov.info         path: lcov.info
