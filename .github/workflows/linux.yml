@@ -50,6 +50,10 @@ jobs:
           # required by aarch64 build
           apt update && apt install -y gcc-aarch64-linux-gnu
 
+          # Clean up apt cache to free disk space
+          apt-get clean
+          rm -rf /var/lib/apt/lists/*
+
           echo "Build command : ./scripts/build.sh --build --release"
           ./scripts/build.sh --build --release --package \
           --target x86_64-linux-gnu,aarch64-linux-gnu, \
@@ -172,13 +176,31 @@ jobs:
   coverage:
     name: Run Coverage
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
+      - name: Free up disk space on runner
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Show disk space after cleanup
+        run: df -h
+
       - uses: actions/checkout@v3
 
-      - name: Run Checks
+      - name: Run coverage in container
         run: |
-          ./scripts/build.sh --coverage
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ghcr.io/plc-lang/rust-llvm:latest \
+            -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
