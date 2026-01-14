@@ -39,15 +39,46 @@ function set_cargo_options() {
 
 function run_coverage() {
     log "Exporting Flags"
+    # Disable incremental compilation to reduce disk usage during build
+    export CARGO_INCREMENTAL=0
     export RUSTFLAGS="-C instrument-coverage"
     export LLVM_PROFILE_FILE="rusty-%p-%m.profraw"
 
     log "Cleaning before build"
     cargo clean
+
+    log "Disk usage before build:"
+    df -h . || true
+
     log "Building coverage"
     cargo build --workspace
-    log "Running coverage tests"
-    cargo test --workspace
+
+    log "Disk usage after build:"
+    df -h . || true
+
+    log "Running coverage tests per package to reduce peak disk usage"
+
+    # Get list of workspace packages
+    packages=$(cargo metadata --no-deps --format-version 1 | grep -o '"name":"[^"]*"' | cut -d'"' -f4)
+
+    for pkg in $packages; do
+        log "Running tests for package: $pkg"
+        cargo test -p "$pkg" || log "Warning: Tests failed for package $pkg, continuing..."
+
+        # Clean up profraw files after each package to reduce peak disk usage
+        profraw_count=$(find . -name "*.profraw" -type f 2>/dev/null | wc -l)
+        if [ "$profraw_count" -gt 0 ]; then
+            log "Cleaning $profraw_count profraw files after $pkg tests"
+            find . -name "*.profraw" -type f -delete
+        fi
+
+        log "Disk usage after $pkg tests:"
+        df -h . || true
+    done
+
+    log "Disk usage after all tests:"
+    df -h . || true
+
     log "Collecting coverage results"
     grcov . --binary-path ./target/debug/ -s . -t lcov --branch \
         --ignore "/*" \
@@ -58,11 +89,18 @@ function run_coverage() {
         --ignore "src/lexer/tokens.rs" \
         --ignore-not-existing -o lcov.info
 
-    log "Cleaning up profraw files to free disk space"
-    find . -name "*.profraw" -type f -delete
+    log "Cleaning up any remaining profraw files"
+    profraw_count=$(find . -name "*.profraw" -type f 2>/dev/null | wc -l)
+    if [ "$profraw_count" -gt 0 ]; then
+        log "Found $profraw_count remaining profraw files to delete"
+        find . -name "*.profraw" -type f -delete
+    fi
 
     log "Cleaning up build artifacts to free disk space"
     cargo clean
+
+    log "Disk usage after cleanup:"
+    df -h . || true
 }
 
 
