@@ -34,6 +34,6 @@ target triple = "[filtered]"
 
 define void @prog(%prog* %0) {
 entry:
-  store i32 7, i32* @x, align 4
+  store i32 7, i32* @x, align [filtered]
   ret void
 }

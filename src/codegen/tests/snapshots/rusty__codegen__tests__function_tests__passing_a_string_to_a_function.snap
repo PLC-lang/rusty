@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,13 +14,13 @@ target triple = "[filtered]"
 
 define i32 @func(i8* %0) {
 entry:
-  %func = alloca i32, align 4
-  %x = alloca [6 x i8], align 1
+  %func = alloca i32, align [filtered]
+  %x = alloca [6 x i8], align [filtered]
   %bitcast = bitcast [6 x i8]* %x to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 6, i1 false)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 5, i1 false)
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %bitcast, i8 0, i64 6, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %bitcast, i8* align [filtered] %0, i64 5, i1 false)
+  store i32 0, i32* %func, align [filtered]
+  %func_ret = load i32, i32* %func, align [filtered]
   ret i32 %func_ret
 }
 

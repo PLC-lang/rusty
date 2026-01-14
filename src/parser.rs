@@ -129,7 +129,7 @@ pub fn parse(mut lexer: ParseSession, lnk: LinkageType, file_name: &'static str)
                 unit.implementations.append(&mut actions);
             }
             KeywordType => {
-                let unit_type = parse_type(&mut lexer);
+                let unit_type = parse_type(&mut lexer, linkage);
                 for utype in unit_type {
                     unit.user_types.push(utype);
                 }
@@ -851,7 +851,7 @@ fn parse_action(
 }
 
 // TYPE ... END_TYPE
-fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
+fn parse_type(lexer: &mut ParseSession, linkage: LinkageType) -> Vec<UserTypeDeclaration> {
     lexer.advance(); // consume the TYPE
 
     parse_any_in_region(lexer, vec![KeywordEndType], |lexer| {
@@ -869,6 +869,7 @@ fn parse_type(lexer: &mut ParseSession) -> Vec<UserTypeDeclaration> {
                     initializer,
                     location: name_location,
                     scope: lexer.scope.clone(),
+                    linkage,
                 });
             }
         }

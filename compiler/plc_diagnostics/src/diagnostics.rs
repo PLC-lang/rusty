@@ -269,6 +269,7 @@ impl Diagnostic {
     where
         T: Into<SourceLocation>,
     {
+        panic!("Unknown type diagnostic created for type {type_name}");
         Diagnostic::new(format!("Unknown type: {type_name:}")).with_error_code("E052").with_location(location)
     }
 

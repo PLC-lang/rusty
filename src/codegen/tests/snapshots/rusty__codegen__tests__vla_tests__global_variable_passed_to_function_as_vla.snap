@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/vla_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,41 +14,41 @@ target triple = "[filtered]"
 
 define i16 @foo(%__foo_vla* %0) {
 entry:
-  %foo = alloca i16, align 2
-  %vla = alloca %__foo_vla, align 8
+  %foo = alloca i16, align [filtered]
+  %vla = alloca %__foo_vla, align [filtered]
   %1 = bitcast %__foo_vla* %vla to i8*
   %2 = bitcast %__foo_vla* %0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%__foo_vla* getelementptr (%__foo_vla, %__foo_vla* null, i32 1) to i64), i1 false)
-  store i16 0, i16* %foo, align 2
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] %2, i64 ptrtoint (%__foo_vla* getelementptr (%__foo_vla, %__foo_vla* null, i32 1) to i64), i1 false)
+  store i16 0, i16* %foo, align [filtered]
   %vla_arr_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla, i32 0, i32 0
-  %vla_arr_ptr = load i16*, i16** %vla_arr_gep, align 8
+  %vla_arr_ptr = load i16*, i16** %vla_arr_gep, align [filtered]
   %dim_arr = getelementptr inbounds %__foo_vla, %__foo_vla* %vla, i32 0, i32 1
   %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
   %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
-  %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
-  %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+  %start_idx_value0 = load i32, i32* %start_idx_ptr0, align [filtered]
+  %end_idx_value0 = load i32, i32* %end_idx_ptr0, align [filtered]
   %tmpVar = sub i32 0, %start_idx_value0
   %arr_val = getelementptr inbounds i16, i16* %vla_arr_ptr, i32 %tmpVar
-  store i16 10, i16* %arr_val, align 2
-  %foo_ret = load i16, i16* %foo, align 2
+  store i16 10, i16* %arr_val, align [filtered]
+  %foo_ret = load i16, i16* %foo, align [filtered]
   ret i16 %foo_ret
 }
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  store i32 0, i32* %main, align 4
-  %auto_deref = load [2 x i16], [2 x i16]* @arr, align 2
-  %vla_struct = alloca %__foo_vla, align 8
+  %main = alloca i32, align [filtered]
+  store i32 0, i32* %main, align [filtered]
+  %auto_deref = load [2 x i16], [2 x i16]* @arr, align [filtered]
+  %vla_struct = alloca %__foo_vla, align [filtered]
   %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
   %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-  store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
-  store i16* getelementptr inbounds ([2 x i16], [2 x i16]* @arr, i32 0, i32 0), i16** %vla_array_gep, align 8
-  %0 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
-  %vla_struct_ptr = alloca %__foo_vla, align 8
-  store %__foo_vla %0, %__foo_vla* %vla_struct_ptr, align 8
+  store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align [filtered]
+  store i16* getelementptr inbounds ([2 x i16], [2 x i16]* @arr, i32 0, i32 0), i16** %vla_array_gep, align [filtered]
+  %0 = load %__foo_vla, %__foo_vla* %vla_struct, align [filtered]
+  %vla_struct_ptr = alloca %__foo_vla, align [filtered]
+  store %__foo_vla %0, %__foo_vla* %vla_struct_ptr, align [filtered]
   %call = call i16 @foo(%__foo_vla* %vla_struct_ptr)
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, i32* %main, align [filtered]
   ret i32 %main_ret
 }
 

@@ -352,18 +352,18 @@ fn enum_typed_varargs_get_promoted() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %e1 = alloca i16, align 2
-      %i1 = alloca i16, align 2
-      store i16 10, i16* %e1, align 2
-      store i16 10, i16* %i1, align 2
-      store i32 0, i32* %main, align 4
-      %load_e1 = load i16, i16* %e1, align 2
+      %main = alloca i32, align [filtered]
+      %e1 = alloca i16, align [filtered]
+      %i1 = alloca i16, align [filtered]
+      store i16 10, i16* %e1, align [filtered]
+      store i16 10, i16* %i1, align [filtered]
+      store i32 0, i32* %main, align [filtered]
+      %load_e1 = load i16, i16* %e1, align [filtered]
       %0 = sext i16 %load_e1 to i32
-      %load_i1 = load i16, i16* %i1, align 2
+      %load_i1 = load i16, i16* %i1, align [filtered]
       %1 = sext i16 %load_i1 to i32
       %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @utf08_literal_0, i32 0, i32 0), i32 %0, i32 %1)
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, i32* %main, align [filtered]
       ret i32 %main_ret
     }
     "#);
@@ -408,13 +408,13 @@ fn self_referential_struct_via_reference_codegen() {
       %node1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
       %node2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
       %data = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 0
-      store i32 42, i32* %data, align 4
+      store i32 42, i32* %data, align [filtered]
       %data1 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 0
-      store i32 84, i32* %data1, align 4
+      store i32 84, i32* %data1, align [filtered]
       %next = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 1
-      store %Node* %node2, %Node** %next, align 8
+      store %Node* %node2, %Node** %next, align [filtered]
       %next2 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 1
-      store %Node* %node1, %Node** %next2, align 8
+      store %Node* %node1, %Node** %next2, align [filtered]
       ret void
     }
     "#);

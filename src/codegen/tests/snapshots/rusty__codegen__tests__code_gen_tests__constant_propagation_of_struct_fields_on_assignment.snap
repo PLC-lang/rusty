@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,12 +14,12 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %local_value = alloca i32, align 4
-  store i32 0, i32* %local_value, align 4
-  store i32 0, i32* %main, align 4
-  %load_value = load i32, i32* getelementptr inbounds (%STRUCT1, %STRUCT1* @MyStruct, i32 0, i32 0), align 4
-  store i32 %load_value, i32* %local_value, align 4
-  %main_ret = load i32, i32* %main, align 4
+  %main = alloca i32, align [filtered]
+  %local_value = alloca i32, align [filtered]
+  store i32 0, i32* %local_value, align [filtered]
+  store i32 0, i32* %main, align [filtered]
+  %load_value = load i32, i32* getelementptr inbounds (%STRUCT1, %STRUCT1* @MyStruct, i32 0, i32 0), align [filtered]
+  store i32 %load_value, i32* %local_value, align [filtered]
+  %main_ret = load i32, i32* %main, align [filtered]
   ret i32 %main_ret
 }

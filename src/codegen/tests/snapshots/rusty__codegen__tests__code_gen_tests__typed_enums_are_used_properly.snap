@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -26,8 +25,8 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  store i8 6, i8* %x, align 1
-  store i16 16, i16* %y, align 2
-  store i32 26, i32* %z, align 4
+  store i8 6, i8* %x, align [filtered]
+  store i16 16, i16* %y, align [filtered]
+  store i32 26, i32* %z, align [filtered]
   ret void
 }

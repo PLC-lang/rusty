@@ -14,31 +14,31 @@ target triple = "[filtered]"
 
 define void @foo(%foo* %0) {
 entry:
-  %this = alloca %foo*, align 8
-  store %foo* %0, %foo** %this, align 8
+  %this = alloca %foo*, align [filtered]
+  store %foo* %0, %foo** %this, align [filtered]
   ret void
 }
 
 define void @foo__baz(%foo* %0, [81 x i8]* %1) {
 entry:
-  %this = alloca %foo*, align 8
-  store %foo* %0, %foo** %this, align 8
-  %out = alloca [81 x i8]*, align 8
-  store [81 x i8]* %1, [81 x i8]** %out, align 8
-  %deref = load [81 x i8]*, [81 x i8]** %out, align 8
+  %this = alloca %foo*, align [filtered]
+  store %foo* %0, %foo** %this, align [filtered]
+  %out = alloca [81 x i8]*, align [filtered]
+  store [81 x i8]* %1, [81 x i8]** %out, align [filtered]
+  %deref = load [81 x i8]*, [81 x i8]** %out, align [filtered]
   %2 = bitcast [81 x i8]* %deref to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %2, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
   ret void
 }
 
 define void @main() {
 entry:
-  %s = alloca [81 x i8], align 1
-  %fb = alloca %foo, align 8
+  %s = alloca [81 x i8], align [filtered]
+  %fb = alloca %foo, align [filtered]
   %0 = bitcast [81 x i8]* %s to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
   %1 = bitcast %foo* %fb to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] bitcast (%foo* @__foo__init to i8*), i64 ptrtoint (%foo* getelementptr (%foo, %foo* null, i32 1) to i64), i1 false)
   %2 = bitcast [81 x i8]* %s to i8*
   call void @foo__baz(%foo* %fb, i8* %2)
   %3 = bitcast [81 x i8]* %s to i8*

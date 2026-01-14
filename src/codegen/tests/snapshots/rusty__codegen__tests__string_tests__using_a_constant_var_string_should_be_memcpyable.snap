@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,29 +12,29 @@ target triple = "[filtered]"
 
 define i8 @STRING_EQUAL(i8* %0, i8* %1) {
 entry:
-  %STRING_EQUAL = alloca i8, align 1
-  %op1 = alloca i8*, align 8
-  store i8* %0, i8** %op1, align 8
-  %op2 = alloca i8*, align 8
-  store i8* %1, i8** %op2, align 8
-  store i8 0, i8* %STRING_EQUAL, align 1
-  %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align 1
+  %STRING_EQUAL = alloca i8, align [filtered]
+  %op1 = alloca i8*, align [filtered]
+  store i8* %0, i8** %op1, align [filtered]
+  %op2 = alloca i8*, align [filtered]
+  store i8* %1, i8** %op2, align [filtered]
+  store i8 0, i8* %STRING_EQUAL, align [filtered]
+  %STRING_EQUAL_ret = load i8, i8* %STRING_EQUAL, align [filtered]
   ret i8 %STRING_EQUAL_ret
 }
 
 define i64 @FSTRING_TO_DT() {
 entry:
-  %FSTRING_TO_DT = alloca i64, align 8
-  %ignore = alloca [2 x i8], align 1
-  %fchar = alloca [2 x i8], align 1
-  %c = alloca [2 x i8], align 1
+  %FSTRING_TO_DT = alloca i64, align [filtered]
+  %ignore = alloca [2 x i8], align [filtered]
+  %fchar = alloca [2 x i8], align [filtered]
+  %c = alloca [2 x i8], align [filtered]
   %0 = bitcast [2 x i8]* %ignore to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @__FSTRING_TO_DT.ignore__init, i32 0, i32 0), i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] getelementptr inbounds ([2 x i8], [2 x i8]* @__FSTRING_TO_DT.ignore__init, i32 0, i32 0), i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
   %1 = bitcast [2 x i8]* %fchar to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds ([2 x i8], [2 x i8]* @__FSTRING_TO_DT.fchar__init, i32 0, i32 0), i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([2 x i8], [2 x i8]* @__FSTRING_TO_DT.fchar__init, i32 0, i32 0), i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
   %2 = bitcast [2 x i8]* %c to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
-  store i64 0, i64* %FSTRING_TO_DT, align 8
+  call void @llvm.memset.p0i8.i64(i8* align [filtered] %2, i8 0, i64 ptrtoint ([2 x i8]* getelementptr ([2 x i8], [2 x i8]* null, i32 1) to i64), i1 false)
+  store i64 0, i64* %FSTRING_TO_DT, align [filtered]
   %3 = bitcast [2 x i8]* %c to i8*
   %4 = bitcast [2 x i8]* %ignore to i8*
   %call = call i8 @STRING_EQUAL(i8* %3, i8* %4)
@@ -46,7 +45,7 @@ condition_body:                                   ; preds = %entry
   br label %continue
 
 continue:                                         ; preds = %condition_body, %entry
-  %FSTRING_TO_DT_ret = load i64, i64* %FSTRING_TO_DT, align 8
+  %FSTRING_TO_DT_ret = load i64, i64* %FSTRING_TO_DT, align [filtered]
   ret i64 %FSTRING_TO_DT_ret
 }
 

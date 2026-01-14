@@ -320,33 +320,33 @@ fn pass() {
 
     define i32 @main() {
     entry:
-      %main = alloca i32, align 4
-      %local = alloca [6 x i32], align 4
+      %main = alloca i32, align [filtered]
+      %local = alloca [6 x i32], align [filtered]
       %0 = bitcast [6 x i32]* %local to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([6 x i32]* getelementptr ([6 x i32], [6 x i32]* null, i32 1) to i64), i1 false)
-      store i32 0, i32* %main, align 4
-      %auto_deref = load [6 x i32], [6 x i32]* %local, align 4
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %0, i8 0, i64 ptrtoint ([6 x i32]* getelementptr ([6 x i32], [6 x i32]* null, i32 1) to i64), i1 false)
+      store i32 0, i32* %main, align [filtered]
+      %auto_deref = load [6 x i32], [6 x i32]* %local, align [filtered]
       %outer_arr_gep = getelementptr inbounds [6 x i32], [6 x i32]* %local, i32 0, i32 0
-      %vla_struct = alloca %__foo_arr, align 8
+      %vla_struct = alloca %__foo_arr, align [filtered]
       %vla_array_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 0
       %vla_dimensions_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %vla_struct, i32 0, i32 1
-      store [2 x i32] [i32 0, i32 5], [2 x i32]* %vla_dimensions_gep, align 4
-      store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-      %1 = load %__foo_arr, %__foo_arr* %vla_struct, align 8
-      %vla_struct_ptr = alloca %__foo_arr, align 8
-      store %__foo_arr %1, %__foo_arr* %vla_struct_ptr, align 8
+      store [2 x i32] [i32 0, i32 5], [2 x i32]* %vla_dimensions_gep, align [filtered]
+      store i32* %outer_arr_gep, i32** %vla_array_gep, align [filtered]
+      %1 = load %__foo_arr, %__foo_arr* %vla_struct, align [filtered]
+      %vla_struct_ptr = alloca %__foo_arr, align [filtered]
+      store %__foo_arr %1, %__foo_arr* %vla_struct_ptr, align [filtered]
       %call = call i32 @foo(%__foo_arr* %vla_struct_ptr)
-      %main_ret = load i32, i32* %main, align 4
+      %main_ret = load i32, i32* %main, align [filtered]
       ret i32 %main_ret
     }
 
     define i32 @foo(%__foo_arr* %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca %__foo_arr*, align 8
-      store %__foo_arr* %0, %__foo_arr** %arr, align 8
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      %foo = alloca i32, align [filtered]
+      %arr = alloca %__foo_arr*, align [filtered]
+      store %__foo_arr* %0, %__foo_arr** %arr, align [filtered]
+      store i32 0, i32* %foo, align [filtered]
+      %foo_ret = load i32, i32* %foo, align [filtered]
       ret i32 %foo_ret
     }
 
@@ -388,22 +388,22 @@ fn access() {
 
     define i32 @foo(%__foo_arr* %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca %__foo_arr*, align 8
-      store %__foo_arr* %0, %__foo_arr** %arr, align 8
-      store i32 0, i32* %foo, align 4
-      %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+      %foo = alloca i32, align [filtered]
+      %arr = alloca %__foo_arr*, align [filtered]
+      store %__foo_arr* %0, %__foo_arr** %arr, align [filtered]
+      store i32 0, i32* %foo, align [filtered]
+      %deref = load %__foo_arr*, %__foo_arr** %arr, align [filtered]
       %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
-      %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
+      %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align [filtered]
       %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
-      %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
-      %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+      %start_idx_value0 = load i32, i32* %start_idx_ptr0, align [filtered]
+      %end_idx_value0 = load i32, i32* %end_idx_ptr0, align [filtered]
       %tmpVar = sub i32 0, %start_idx_value0
       %arr_val = getelementptr inbounds i32, i32* %vla_arr_ptr, i32 %tmpVar
-      store i32 12345, i32* %arr_val, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      store i32 12345, i32* %arr_val, align [filtered]
+      %foo_ret = load i32, i32* %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#);
@@ -448,48 +448,48 @@ fn multi_dimensional() {
 
     define i32 @foo(%__foo_arr* %0) {
     entry:
-      %foo = alloca i32, align 4
-      %arr = alloca %__foo_arr*, align 8
-      store %__foo_arr* %0, %__foo_arr** %arr, align 8
-      store i32 0, i32* %foo, align 4
-      %deref = load %__foo_arr*, %__foo_arr** %arr, align 8
+      %foo = alloca i32, align [filtered]
+      %arr = alloca %__foo_arr*, align [filtered]
+      store %__foo_arr* %0, %__foo_arr** %arr, align [filtered]
+      store i32 0, i32* %foo, align [filtered]
+      %deref = load %__foo_arr*, %__foo_arr** %arr, align [filtered]
       %vla_arr_gep = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 0
-      %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align 8
+      %vla_arr_ptr = load i32*, i32** %vla_arr_gep, align [filtered]
       %dim_arr = getelementptr inbounds %__foo_arr, %__foo_arr* %deref, i32 0, i32 1
       %start_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 0
       %end_idx_ptr0 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 1
-      %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
-      %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+      %start_idx_value0 = load i32, i32* %start_idx_ptr0, align [filtered]
+      %end_idx_value0 = load i32, i32* %end_idx_ptr0, align [filtered]
       %start_idx_ptr1 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 2
       %end_idx_ptr1 = getelementptr inbounds [4 x i32], [4 x i32]* %dim_arr, i32 0, i32 3
-      %start_idx_value1 = load i32, i32* %start_idx_ptr1, align 4
-      %end_idx_value1 = load i32, i32* %end_idx_ptr1, align 4
+      %start_idx_value1 = load i32, i32* %start_idx_ptr1, align [filtered]
+      %end_idx_value1 = load i32, i32* %end_idx_ptr1, align [filtered]
       %1 = sub i32 %end_idx_value0, %start_idx_value0
       %len_dim0 = add i32 1, %1
       %2 = sub i32 %end_idx_value1, %start_idx_value1
       %len_dim1 = add i32 1, %2
-      %accum = alloca i32, align 4
-      store i32 1, i32* %accum, align 4
-      %load_accum = load i32, i32* %accum, align 4
+      %accum = alloca i32, align [filtered]
+      store i32 1, i32* %accum, align [filtered]
+      %load_accum = load i32, i32* %accum, align [filtered]
       %product = mul i32 %load_accum, %len_dim1
-      store i32 %product, i32* %accum, align 4
-      %accessor_factor = load i32, i32* %accum, align 4
+      store i32 %product, i32* %accum, align [filtered]
+      %accessor_factor = load i32, i32* %accum, align [filtered]
       %adj_access0 = sub i32 0, %start_idx_value0
       %adj_access1 = sub i32 1, %start_idx_value1
-      %accum1 = alloca i32, align 4
-      store i32 0, i32* %accum1, align 4
+      %accum1 = alloca i32, align [filtered]
+      store i32 0, i32* %accum1, align [filtered]
       %multiply = mul i32 %adj_access0, %accessor_factor
-      %load_accum2 = load i32, i32* %accum1, align 4
+      %load_accum2 = load i32, i32* %accum1, align [filtered]
       %accumulate = add i32 %load_accum2, %multiply
-      store i32 %accumulate, i32* %accum1, align 4
+      store i32 %accumulate, i32* %accum1, align [filtered]
       %multiply3 = mul i32 %adj_access1, 1
-      %load_accum4 = load i32, i32* %accum1, align 4
+      %load_accum4 = load i32, i32* %accum1, align [filtered]
       %accumulate5 = add i32 %load_accum4, %multiply3
-      store i32 %accumulate5, i32* %accum1, align 4
-      %accessor = load i32, i32* %accum1, align 4
+      store i32 %accumulate5, i32* %accum1, align [filtered]
+      %accessor = load i32, i32* %accum1, align [filtered]
       %arr_val = getelementptr inbounds i32, i32* %vla_arr_ptr, i32 %accessor
-      store i32 12345, i32* %arr_val, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      store i32 12345, i32* %arr_val, align [filtered]
+      %foo_ret = load i32, i32* %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#);

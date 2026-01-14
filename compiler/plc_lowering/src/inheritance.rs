@@ -51,7 +51,7 @@
 //! END_FUNCTION_BLOCK
 //! ```
 
-use plc::{index::Index, lowering::create_call_statement, resolver::AnnotationMap};
+use plc::{index::Index, lowering::helper::create_call_statement, resolver::AnnotationMap};
 use plc_ast::{
     ast::{
         Assignment, AstFactory, AstNode, AstStatement, CallStatement, CompilationUnit, DataTypeDeclaration,

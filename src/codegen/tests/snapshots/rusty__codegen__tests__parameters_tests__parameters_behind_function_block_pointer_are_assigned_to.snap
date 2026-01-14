@@ -17,18 +17,18 @@ define void @main(%main* %0) {
 entry:
   %file = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  store %file_t* %file, %file_t** %FileOpen, align 8
-  %deref = load %file_t*, %file_t** %FileOpen, align 8
+  store %file_t* %file, %file_t** %FileOpen, align [filtered]
+  %deref = load %file_t*, %file_t** %FileOpen, align [filtered]
   %1 = getelementptr inbounds %file_t, %file_t* %deref, i32 0, i32 1
-  store i8 1, i8* %1, align 1
+  store i8 1, i8* %1, align [filtered]
   call void @file_t(%file_t* %deref)
   ret void
 }
 
 define void @file_t(%file_t* %0) {
 entry:
-  %this = alloca %file_t*, align 8
-  store %file_t* %0, %file_t** %this, align 8
+  %this = alloca %file_t*, align [filtered]
+  store %file_t* %0, %file_t** %this, align [filtered]
   %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
   %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1
   ret void

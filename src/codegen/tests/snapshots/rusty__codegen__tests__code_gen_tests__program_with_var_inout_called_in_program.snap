@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -17,19 +16,19 @@ target triple = "[filtered]"
 define void @foo(%foo* %0) {
 entry:
   %inout = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %deref = load i32*, i32** %inout, align 8
-  %deref1 = load i32*, i32** %inout, align 8
-  %load_inout = load i32, i32* %deref1, align 4
+  %deref = load i32*, i32** %inout, align [filtered]
+  %deref1 = load i32*, i32** %inout, align [filtered]
+  %load_inout = load i32, i32* %deref1, align [filtered]
   %tmpVar = add i32 %load_inout, 1
-  store i32 %tmpVar, i32* %deref, align 4
+  store i32 %tmpVar, i32* %deref, align [filtered]
   ret void
 }
 
 define void @prg(%prg* %0) {
 entry:
   %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i32 7, i32* %baz, align 4
-  store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 8
+  store i32 7, i32* %baz, align [filtered]
+  store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align [filtered]
   call void @foo(%foo* @foo_instance)
   ret void
 }

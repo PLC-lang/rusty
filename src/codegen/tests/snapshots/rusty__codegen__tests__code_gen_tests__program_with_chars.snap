@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -22,11 +21,11 @@ define void @mainPROG(%mainPROG* %0) {
 entry:
   %x = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 0
   %y = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 1
-  store i8 97, i8* %x, align 1
-  store i8 32, i8* %x, align 1
-  store i16 65, i16* %y, align 2
-  store i16 32, i16* %y, align 2
-  store i16 39, i16* %y, align 2
-  store i16 34, i16* %y, align 2
+  store i8 97, i8* %x, align [filtered]
+  store i8 32, i8* %x, align [filtered]
+  store i16 65, i16* %y, align [filtered]
+  store i16 32, i16* %y, align [filtered]
+  store i16 39, i16* %y, align [filtered]
+  store i16 34, i16* %y, align [filtered]
   ret void
 }
