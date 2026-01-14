@@ -180,13 +180,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Free up disk space
-        run: |
-          df -h
-          echo "Cleaning up unnecessary files..."
-          apt-get clean
-          rm -rf /var/lib/apt/lists/*
-          df -h
+      - name: Free disk space
+        run: curl -fsSL https://raw.githubusercontent.com/kou/arrow/173e2fee5f6667b7e23f8bc6094936f6c6003039/ci/scripts/util_free_space.sh | bash
 
       - name: Run Checks
         run: |
