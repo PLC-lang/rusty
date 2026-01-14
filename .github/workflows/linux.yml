@@ -199,7 +199,7 @@ jobs:
             -v ${{ github.workspace }}:/workspace \
             -w /workspace \
             ghcr.io/plc-lang/rust-llvm:latest \
-            bash -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
+            "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
