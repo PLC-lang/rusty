@@ -11,11 +11,11 @@ target triple = "[filtered]"
 
 define void @myFunc(i8* %0) !dbg !4 {
 entry:
-  %myFunc = alloca i8*, align 8
+  %myFunc = alloca i8*, align [filtered]
   call void @llvm.dbg.declare(metadata i8** %myFunc, metadata !16, metadata !DIExpression()), !dbg !17
-  store i8* %0, i8** %myFunc, align 8
-  %deref = load i8*, i8** %myFunc, align 8, !dbg !18
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !18
+  store i8* %0, i8** %myFunc, align [filtered]
+  %deref = load i8*, i8** %myFunc, align [filtered], !dbg !18
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %deref, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false), !dbg !18
   ret void, !dbg !19
 }
 
@@ -39,10 +39,10 @@ attributes #1 = { argmemonly nofree nounwind willreturn }
 !5 = !DIFile(filename: "<internal>", directory: "")
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null, !8}
-!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !3, file: !3, baseType: !9, align: 64)
-!9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !10, size: 64, align: 64, dwarfAddressSpace: 1)
-!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !3, file: !3, baseType: !11, align: 8)
-!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align: 8, elements: !13)
+!8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !3, file: !3, baseType: !9, align [filtered])
+!9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+!10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !3, file: !3, baseType: !11, align [filtered])
+!11 = !DICompositeType(tag: DW_TAG_array_type, baseType: !12, size: 648, align [filtered], elements: !13)
 !12 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
 !13 = !{!14}
 !14 = !DISubrange(count: 81, lowerBound: 0)

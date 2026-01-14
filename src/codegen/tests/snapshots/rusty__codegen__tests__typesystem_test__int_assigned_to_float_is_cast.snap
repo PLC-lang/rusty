@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/typesystem_test.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -17,11 +16,11 @@ entry:
   %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %c = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %load_a = load i16, i16* %a, align 2
+  %load_a = load i16, i16* %a, align [filtered]
   %1 = sitofp i16 %load_a to float
-  store float %1, float* %c, align 4
-  %load_b = load i16, i16* %b, align 2
+  store float %1, float* %c, align [filtered]
+  %load_b = load i16, i16* %b, align [filtered]
   %2 = uitofp i16 %load_b to float
-  store float %2, float* %c, align 4
+  store float %2, float* %c, align [filtered]
   ret void
 }

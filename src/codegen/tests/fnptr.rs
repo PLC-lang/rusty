@@ -33,26 +33,26 @@ fn function_pointer_method_no_parameters() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define void @A__foo(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define void @main() {
     entry:
-      %instanceA = alloca %A, align 8
-      %fooPtr = alloca void (%A*)*, align 8
+      %instanceA = alloca %A, align [filtered]
+      %fooPtr = alloca void (%A*)*, align [filtered]
       %0 = bitcast %A* %instanceA to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
-      store void (%A*)* @A__foo, void (%A*)** %fooPtr, align 8
-      %1 = load void (%A*)*, void (%A*)** %fooPtr, align 8
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
+      store void (%A*)* @A__foo, void (%A*)** %fooPtr, align [filtered]
+      %1 = load void (%A*)*, void (%A*)** %fooPtr, align [filtered]
       call void %1(%A* %instanceA)
       ret void
     }
@@ -96,29 +96,29 @@ fn function_pointer_method_with_return_type() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define i32 @A__foo(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
-      %A.foo = alloca i32, align 4
-      store i32 0, i32* %A.foo, align 4
-      %A__foo_ret = load i32, i32* %A.foo, align 4
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
+      %A.foo = alloca i32, align [filtered]
+      store i32 0, i32* %A.foo, align [filtered]
+      %A__foo_ret = load i32, i32* %A.foo, align [filtered]
       ret i32 %A__foo_ret
     }
 
     define void @main() {
     entry:
-      %instanceA = alloca %A, align 8
-      %fooPtr = alloca i32 (%A*)*, align 8
+      %instanceA = alloca %A, align [filtered]
+      %fooPtr = alloca i32 (%A*)*, align [filtered]
       %0 = bitcast %A* %instanceA to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
-      store i32 (%A*)* @A__foo, i32 (%A*)** %fooPtr, align 8
-      %1 = load i32 (%A*)*, i32 (%A*)** %fooPtr, align 8
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
+      store i32 (%A*)* @A__foo, i32 (%A*)** %fooPtr, align [filtered]
+      %1 = load i32 (%A*)*, i32 (%A*)** %fooPtr, align [filtered]
       %fnptr_call = call i32 %1(%A* %instanceA)
       ret void
     }
@@ -170,56 +170,56 @@ fn function_pointer_method_with_return_type_aggregate() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define void @A__foo(%A* %0, i8* %1) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
-      %foo = alloca i8*, align 8
-      store i8* %1, i8** %foo, align 8
-      %deref = load i8*, i8** %foo, align 8
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
+      %foo = alloca i8*, align [filtered]
+      store i8* %1, i8** %foo, align [filtered]
+      %deref = load i8*, i8** %foo, align [filtered]
+      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %deref, i8* align [filtered] getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
       ret void
     }
 
     define void @A__bar(%A* %0, i32* %1) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
-      %bar = alloca i32*, align 8
-      store i32* %1, i32** %bar, align 8
-      %deref = load i32*, i32** %bar, align 8
-      store [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5], i32* %deref, align 4
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
+      %bar = alloca i32*, align [filtered]
+      store i32* %1, i32** %bar, align [filtered]
+      %deref = load i32*, i32** %bar, align [filtered]
+      store [5 x i32] [i32 1, i32 2, i32 3, i32 4, i32 5], i32* %deref, align [filtered]
       ret void
     }
 
     define void @main() {
     entry:
-      %instanceA = alloca %A, align 8
-      %fooPtr = alloca void (%A*, [81 x i8]*)*, align 8
-      %barPtr = alloca void (%A*, [5 x i32]*)*, align 8
+      %instanceA = alloca %A, align [filtered]
+      %fooPtr = alloca void (%A*, [81 x i8]*)*, align [filtered]
+      %barPtr = alloca void (%A*, [5 x i32]*)*, align [filtered]
       %0 = bitcast %A* %instanceA to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
-      store void (%A*, [81 x i8]*)* bitcast (void (%A*, i8*)* @A__foo to void (%A*, [81 x i8]*)*), void (%A*, [81 x i8]*)** %fooPtr, align 8
-      store void (%A*, [5 x i32]*)* bitcast (void (%A*, i32*)* @A__bar to void (%A*, [5 x i32]*)*), void (%A*, [5 x i32]*)** %barPtr, align 8
-      %__0 = alloca [81 x i8], align 1
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
+      store void (%A*, [81 x i8]*)* bitcast (void (%A*, i8*)* @A__foo to void (%A*, [81 x i8]*)*), void (%A*, [81 x i8]*)** %fooPtr, align [filtered]
+      store void (%A*, [5 x i32]*)* bitcast (void (%A*, i32*)* @A__bar to void (%A*, [5 x i32]*)*), void (%A*, [5 x i32]*)** %barPtr, align [filtered]
+      %__0 = alloca [81 x i8], align [filtered]
       %1 = bitcast [81 x i8]* %__0 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      %2 = load void (%A*, [81 x i8]*)*, void (%A*, [81 x i8]*)** %fooPtr, align 8
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      %2 = load void (%A*, [81 x i8]*)*, void (%A*, [81 x i8]*)** %fooPtr, align [filtered]
       %3 = bitcast [81 x i8]* %__0 to i8*
       call void %2(%A* %instanceA, i8* %3)
-      %load___0 = load [81 x i8], [81 x i8]* %__0, align 1
-      %__1 = alloca [5 x i32], align 4
+      %load___0 = load [81 x i8], [81 x i8]* %__0, align [filtered]
+      %__1 = alloca [5 x i32], align [filtered]
       %4 = bitcast [5 x i32]* %__1 to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %4, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
-      %5 = load void (%A*, [5 x i32]*)*, void (%A*, [5 x i32]*)** %barPtr, align 8
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %4, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
+      %5 = load void (%A*, [5 x i32]*)*, void (%A*, [5 x i32]*)** %barPtr, align [filtered]
       %6 = bitcast [5 x i32]* %__1 to i32*
       call void %5(%A* %instanceA, i32* %6)
-      %load___1 = load [5 x i32], [5 x i32]* %__1, align 4
+      %load___1 = load [5 x i32], [5 x i32]* %__1, align [filtered]
       ret void
     }
 
@@ -285,46 +285,46 @@ fn function_pointer_method_with_all_variable_parameter_types() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define i32 @A__foo(%A* %0, i32 %1, [81 x i8]* %2, i32* %3) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
-      %A.foo = alloca i32, align 4
-      %in = alloca i32, align 4
-      store i32 %1, i32* %in, align 4
-      %out = alloca [81 x i8]*, align 8
-      store [81 x i8]* %2, [81 x i8]** %out, align 8
-      %inout = alloca i32*, align 8
-      store i32* %3, i32** %inout, align 8
-      store i32 0, i32* %A.foo, align 4
-      %A__foo_ret = load i32, i32* %A.foo, align 4
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
+      %A.foo = alloca i32, align [filtered]
+      %in = alloca i32, align [filtered]
+      store i32 %1, i32* %in, align [filtered]
+      %out = alloca [81 x i8]*, align [filtered]
+      store [81 x i8]* %2, [81 x i8]** %out, align [filtered]
+      %inout = alloca i32*, align [filtered]
+      store i32* %3, i32** %inout, align [filtered]
+      store i32 0, i32* %A.foo, align [filtered]
+      %A__foo_ret = load i32, i32* %A.foo, align [filtered]
       ret i32 %A__foo_ret
     }
 
     define void @main() {
     entry:
-      %instanceA = alloca %A, align 8
-      %fooPtr = alloca i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*, align 8
-      %localIn = alloca i32, align 4
-      %localOut = alloca [81 x i8], align 1
-      %localInOut = alloca [5 x i32], align 4
+      %instanceA = alloca %A, align [filtered]
+      %fooPtr = alloca i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*, align [filtered]
+      %localIn = alloca i32, align [filtered]
+      %localOut = alloca [81 x i8], align [filtered]
+      %localInOut = alloca [5 x i32], align [filtered]
       %0 = bitcast %A* %instanceA to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
-      store i32 (%A*, i32, [81 x i8]*, [5 x i32]*)* bitcast (i32 (%A*, i32, [81 x i8]*, i32*)* @A__foo to i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*), i32 (%A*, i32, [81 x i8]*, [5 x i32]*)** %fooPtr, align 8
-      store i32 0, i32* %localIn, align 4
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
+      store i32 (%A*, i32, [81 x i8]*, [5 x i32]*)* bitcast (i32 (%A*, i32, [81 x i8]*, i32*)* @A__foo to i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*), i32 (%A*, i32, [81 x i8]*, [5 x i32]*)** %fooPtr, align [filtered]
+      store i32 0, i32* %localIn, align [filtered]
       %1 = bitcast [81 x i8]* %localOut to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
       %2 = bitcast [5 x i32]* %localInOut to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
-      %3 = load i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*, i32 (%A*, i32, [81 x i8]*, [5 x i32]*)** %fooPtr, align 8
+      call void @llvm.memset.p0i8.i64(i8* align [filtered] %2, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
+      %3 = load i32 (%A*, i32, [81 x i8]*, [5 x i32]*)*, i32 (%A*, i32, [81 x i8]*, [5 x i32]*)** %fooPtr, align [filtered]
       %4 = bitcast [81 x i8]* %localOut to i8*
       %5 = bitcast [5 x i32]* %localInOut to i32*
-      %load_localIn = load i32, i32* %localIn, align 4
+      %load_localIn = load i32, i32* %localIn, align [filtered]
       %fnptr_call = call i32 %3(%A* %instanceA, i32 %load_localIn, i8* %4, i32* %5)
       ret void
     }
@@ -389,8 +389,8 @@ fn function_block_body() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       %local = getelementptr inbounds %A, %A* %0, i32 0, i32 0
       %in = getelementptr inbounds %A, %A* %0, i32 0, i32 1
       %out = getelementptr inbounds %A, %A* %0, i32 0, i32 2
@@ -400,27 +400,27 @@ fn function_block_body() {
 
     define void @main() {
     entry:
-      %instanceA = alloca %A, align 8
-      %bodyPtr = alloca void (%A*)*, align 8
-      %localIn = alloca i16, align 2
-      %localOut = alloca i32, align 4
-      %localInout = alloca i64, align 8
+      %instanceA = alloca %A, align [filtered]
+      %bodyPtr = alloca void (%A*)*, align [filtered]
+      %localIn = alloca i16, align [filtered]
+      %localOut = alloca i32, align [filtered]
+      %localInout = alloca i64, align [filtered]
       %0 = bitcast %A* %instanceA to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
-      store void (%A*)* @A, void (%A*)** %bodyPtr, align 8
-      store i16 0, i16* %localIn, align 2
-      store i32 0, i32* %localOut, align 4
-      store i64 0, i64* %localInout, align 8
-      %1 = load void (%A*)*, void (%A*)** %bodyPtr, align 8
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %0, i8* align [filtered] bitcast (%A* @__A__init to i8*), i64 ptrtoint (%A* getelementptr (%A, %A* null, i32 1) to i64), i1 false)
+      store void (%A*)* @A, void (%A*)** %bodyPtr, align [filtered]
+      store i16 0, i16* %localIn, align [filtered]
+      store i32 0, i32* %localOut, align [filtered]
+      store i64 0, i64* %localInout, align [filtered]
+      %1 = load void (%A*)*, void (%A*)** %bodyPtr, align [filtered]
       %2 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 1
-      %load_localIn = load i16, i16* %localIn, align 2
-      store i16 %load_localIn, i16* %2, align 2
+      %load_localIn = load i16, i16* %localIn, align [filtered]
+      store i16 %load_localIn, i16* %2, align [filtered]
       %3 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 3
-      store i64* %localInout, i64** %3, align 8
+      store i64* %localInout, i64** %3, align [filtered]
       call void %1(%A* %instanceA)
       %4 = getelementptr inbounds %A, %A* %instanceA, i32 0, i32 2
-      %5 = load i32, i32* %4, align 4
-      store i32 %5, i32* %localOut, align 4
+      %5 = load i32, i32* %4, align [filtered]
+      store i32 %5, i32* %localOut, align [filtered]
       ret void
     }
 
@@ -460,16 +460,16 @@ fn regular_pointers_to_function_blocks_are_called_directly() {
 
     define void @A(%A* %0) {
     entry:
-      %this = alloca %A*, align 8
-      store %A* %0, %A** %this, align 8
+      %this = alloca %A*, align [filtered]
+      store %A* %0, %A** %this, align [filtered]
       ret void
     }
 
     define void @main() {
     entry:
-      %fooPtr = alloca %A*, align 8
-      store %A* null, %A** %fooPtr, align 8
-      %deref = load %A*, %A** %fooPtr, align 8
+      %fooPtr = alloca %A*, align [filtered]
+      store %A* null, %A** %fooPtr, align [filtered]
+      %deref = load %A*, %A** %fooPtr, align [filtered]
       call void @A(%A* %deref)
       ret void
     }

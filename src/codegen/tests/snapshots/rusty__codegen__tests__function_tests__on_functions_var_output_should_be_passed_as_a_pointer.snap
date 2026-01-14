@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,13 +9,13 @@ target triple = "[filtered]"
 
 define i32 @bump(i8* %0) {
 entry:
-  %bump = alloca i32, align 4
-  %v = alloca i8*, align 8
-  store i8* %0, i8** %v, align 8
-  store i32 0, i32* %bump, align 4
-  store i32 1, i32* %bump, align 4
-  %deref = load i8*, i8** %v, align 8
-  store i8 2, i8* %deref, align 1
-  %bump_ret = load i32, i32* %bump, align 4
+  %bump = alloca i32, align [filtered]
+  %v = alloca i8*, align [filtered]
+  store i8* %0, i8** %v, align [filtered]
+  store i32 0, i32* %bump, align [filtered]
+  store i32 1, i32* %bump, align [filtered]
+  %deref = load i8*, i8** %v, align [filtered]
+  store i8 2, i8* %deref, align [filtered]
+  %bump_ret = load i32, i32* %bump, align [filtered]
   ret i32 %bump_ret
 }

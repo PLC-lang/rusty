@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -18,8 +17,8 @@ define void @prog(%prog* %0) {
 entry:
   %out1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %out2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-  store i32 1, i32* %out1, align 4
-  store i32 2, i32* %out2, align 4
+  store i32 1, i32* %out1, align [filtered]
+  store i32 2, i32* %out2, align [filtered]
   ret void
 }
 
@@ -27,7 +26,7 @@ define void @main(%main* %0) {
 entry:
   %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   call void @prog(%prog* @prog_instance)
-  %1 = load i32, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 4
-  store i32 %1, i32* %x, align 4
+  %1 = load i32, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align [filtered]
+  store i32 %1, i32* %x, align [filtered]
   ret void
 }

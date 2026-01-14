@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,8 +15,8 @@ target triple = "[filtered]"
 define void @prg(%prg* %0) {
 entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i16 20, i16* @gX, align 2
-  %load_gX = load i16, i16* @gX, align 2
-  store i16 %load_gX, i16* %x, align 2
+  store i16 20, i16* @gX, align [filtered]
+  %load_gX = load i16, i16* @gX, align [filtered]
+  store i16 %load_gX, i16* %x, align [filtered]
   ret void
 }

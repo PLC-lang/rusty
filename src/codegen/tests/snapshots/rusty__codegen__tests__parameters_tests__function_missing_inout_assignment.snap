@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,15 +13,15 @@ target triple = "[filtered]"
 
 define i32 @foo(i32 %0, i32* %1, i32* %2) {
 entry:
-  %foo = alloca i32, align 4
-  %input1 = alloca i32, align 4
-  store i32 %0, i32* %input1, align 4
-  %output1 = alloca i32*, align 8
-  store i32* %1, i32** %output1, align 8
-  %inout1 = alloca i32*, align 8
-  store i32* %2, i32** %inout1, align 8
-  store i32 0, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  %foo = alloca i32, align [filtered]
+  %input1 = alloca i32, align [filtered]
+  store i32 %0, i32* %input1, align [filtered]
+  %output1 = alloca i32*, align [filtered]
+  store i32* %1, i32** %output1, align [filtered]
+  %inout1 = alloca i32*, align [filtered]
+  store i32* %2, i32** %inout1, align [filtered]
+  store i32 0, i32* %foo, align [filtered]
+  %foo_ret = load i32, i32* %foo, align [filtered]
   ret i32 %foo_ret
 }
 
@@ -31,8 +30,8 @@ entry:
   %var1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
   %var2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   %var3 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %load_var1 = load i32, i32* %var1, align 4
-  %1 = alloca i32, align 4
+  %load_var1 = load i32, i32* %var1, align [filtered]
+  %1 = alloca i32, align [filtered]
   %call = call i32 @foo(i32 %load_var1, i32* %var2, i32* %1)
   ret void
 }

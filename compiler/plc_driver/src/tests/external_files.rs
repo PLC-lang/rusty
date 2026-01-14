@@ -9,7 +9,7 @@ fn external_file_function_call() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
         external();
     END_FUNCTION
     ",
@@ -18,7 +18,7 @@ fn external_file_function_call() {
 
     let ext = SourceCode::new(
         "
-    FUNCTION external : INT
+    FUNCTION external : DINT
     END_FUNCTION
     ",
         "external.st",
@@ -34,7 +34,7 @@ fn external_file_global_var() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
         x := 2;
         y := 2;
         external();
@@ -48,7 +48,7 @@ fn external_file_global_var() {
     VAR_GLOBAL
         x : INT;
     END_VAR
-    FUNCTION external : INT
+    FUNCTION external : DINT
     END_FUNCTION
     VAR_GLOBAL
         y : INT;
@@ -67,7 +67,7 @@ fn calling_external_file_function_without_including_file_results_in_error() {
     //Given a program calling a function from an external file
     let prog = SourceCode::new(
         "
-    FUNCTION main : INT
+    FUNCTION main : DINT
         external();
     END_FUNCTION
     ",

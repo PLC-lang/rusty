@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -17,11 +16,11 @@ entry:
   %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
   %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
   %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  store float 1.237500e+01, float* %x, align 4
-  store float 2.500000e-01, float* %y, align 4
-  %load_x = load float, float* %x, align 4
-  %load_y = load float, float* %y, align 4
+  store float 1.237500e+01, float* %x, align [filtered]
+  store float 2.500000e-01, float* %y, align [filtered]
+  %load_x = load float, float* %x, align [filtered]
+  %load_y = load float, float* %y, align [filtered]
   %tmpVar = fadd float %load_x, %load_y
-  store float %tmpVar, float* %z, align 4
+  store float %tmpVar, float* %z, align [filtered]
   ret void
 }

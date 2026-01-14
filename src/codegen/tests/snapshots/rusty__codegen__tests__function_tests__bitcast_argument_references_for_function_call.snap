@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,49 +13,49 @@ target triple = "[filtered]"
 
 define i8 @fn_sint(i8* %0, i8* %1) {
 entry:
-  %fn_sint = alloca i8, align 1
-  %in_ref = alloca i8*, align 8
-  store i8* %0, i8** %in_ref, align 8
-  %in_out = alloca i8*, align 8
-  store i8* %1, i8** %in_out, align 8
-  store i8 0, i8* %fn_sint, align 1
-  %fn_sint_ret = load i8, i8* %fn_sint, align 1
+  %fn_sint = alloca i8, align [filtered]
+  %in_ref = alloca i8*, align [filtered]
+  store i8* %0, i8** %in_ref, align [filtered]
+  %in_out = alloca i8*, align [filtered]
+  store i8* %1, i8** %in_out, align [filtered]
+  store i8 0, i8* %fn_sint, align [filtered]
+  %fn_sint_ret = load i8, i8* %fn_sint, align [filtered]
   ret i8 %fn_sint_ret
 }
 
 define i64 @fn_lint(i64* %0, i64* %1) {
 entry:
-  %fn_lint = alloca i64, align 8
-  %in_ref = alloca i64*, align 8
-  store i64* %0, i64** %in_ref, align 8
-  %in_out = alloca i64*, align 8
-  store i64* %1, i64** %in_out, align 8
-  store i64 0, i64* %fn_lint, align 8
-  %fn_lint_ret = load i64, i64* %fn_lint, align 8
+  %fn_lint = alloca i64, align [filtered]
+  %in_ref = alloca i64*, align [filtered]
+  store i64* %0, i64** %in_ref, align [filtered]
+  %in_out = alloca i64*, align [filtered]
+  store i64* %1, i64** %in_out, align [filtered]
+  store i64 0, i64* %fn_lint, align [filtered]
+  %fn_lint_ret = load i64, i64* %fn_lint, align [filtered]
   ret i64 %fn_lint_ret
 }
 
 define i64 @fn_real(float* %0, float* %1) {
 entry:
-  %fn_real = alloca i64, align 8
-  %in_ref = alloca float*, align 8
-  store float* %0, float** %in_ref, align 8
-  %in_out = alloca float*, align 8
-  store float* %1, float** %in_out, align 8
-  store i64 0, i64* %fn_real, align 8
-  %fn_real_ret = load i64, i64* %fn_real, align 8
+  %fn_real = alloca i64, align [filtered]
+  %in_ref = alloca float*, align [filtered]
+  store float* %0, float** %in_ref, align [filtered]
+  %in_out = alloca float*, align [filtered]
+  store float* %1, float** %in_out, align [filtered]
+  store i64 0, i64* %fn_real, align [filtered]
+  %fn_real_ret = load i64, i64* %fn_real, align [filtered]
   ret i64 %fn_real_ret
 }
 
 define i64 @fn_lreal(double* %0, double* %1) {
 entry:
-  %fn_lreal = alloca i64, align 8
-  %in_ref = alloca double*, align 8
-  store double* %0, double** %in_ref, align 8
-  %in_out = alloca double*, align 8
-  store double* %1, double** %in_out, align 8
-  store i64 0, i64* %fn_lreal, align 8
-  %fn_lreal_ret = load i64, i64* %fn_lreal, align 8
+  %fn_lreal = alloca i64, align [filtered]
+  %in_ref = alloca double*, align [filtered]
+  store double* %0, double** %in_ref, align [filtered]
+  %in_out = alloca double*, align [filtered]
+  store double* %1, double** %in_out, align [filtered]
+  store i64 0, i64* %fn_lreal, align [filtered]
+  %fn_lreal_ret = load i64, i64* %fn_lreal, align [filtered]
   ret i64 %fn_lreal_ret
 }
 

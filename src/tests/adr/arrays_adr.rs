@@ -85,7 +85,7 @@ fn assigning_full_arrays() {
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
       %1 = bitcast [10 x i32]* %a to i8*
       %2 = bitcast [10 x i32]* %b to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint ([10 x i32]* getelementptr ([10 x i32], [10 x i32]* null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align [filtered] %1, i8* align [filtered] %2, i64 ptrtoint ([10 x i32]* getelementptr ([10 x i32], [10 x i32]* null, i32 1) to i64), i1 false)
       ret void
     }
 
@@ -140,8 +140,8 @@ fn accessing_array_elements() {
       %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
       %tmpVar = getelementptr inbounds [10 x i32], [10 x i32]* %a, i32 0, i32 2
       %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
-      %load_tmpVar = load i32, i32* %tmpVar1, align 4
-      store i32 %load_tmpVar, i32* %tmpVar, align 4
+      %load_tmpVar = load i32, i32* %tmpVar1, align [filtered]
+      store i32 %load_tmpVar, i32* %tmpVar, align [filtered]
       ret void
     }
     "#);

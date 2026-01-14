@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -21,9 +20,9 @@ entry:
   %output1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
   %output2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
   %1 = bitcast [81 x i8]* %output1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([7 x i8], [7 x i8]* @utf08_literal_0, i32 0, i32 0), i32 7, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds ([7 x i8], [7 x i8]* @utf08_literal_0, i32 0, i32 0), i32 7, i1 false)
   %2 = bitcast [81 x i16]* %output2 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %2, i8* align 2 bitcast ([8 x i16]* @utf16_literal_0 to i8*), i32 16, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %2, i8* align [filtered] bitcast ([8 x i16]* @utf16_literal_0 to i8*), i32 16, i1 false)
   ret void
 }
 
@@ -33,9 +32,9 @@ entry:
   %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
   call void @prog(%prog* @prog_instance)
   %1 = bitcast [7 x i8]* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), i32 6, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %1, i8* align [filtered] getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), i32 6, i1 false)
   %2 = bitcast [8 x i16]* %y to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %2, i8* align 2 bitcast ([81 x i16]* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1) to i8*), i32 14, i1 false)
+  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align [filtered] %2, i8* align [filtered] bitcast ([81 x i16]* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1) to i8*), i32 14, i1 false)
   ret void
 }
 

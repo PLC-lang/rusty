@@ -24,11 +24,11 @@ fn generate_function_with_online_change() {
 
     define i32 @foo() section "$RUSTY$fn-foo:i32[]" {
     entry:
-      %foo = alloca i32, align 4
-      %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %foo, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      %foo = alloca i32, align [filtered]
+      %x = alloca i32, align [filtered]
+      store i32 0, i32* %x, align [filtered]
+      store i32 0, i32* %foo, align [filtered]
+      %foo_ret = load i32, i32* %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#)
@@ -96,9 +96,9 @@ fn generate_program_and_var_with_online_change() {
     define void @prg(%prg* %0) section "$RUSTY$fn-prg:v[]" {
     entry:
       %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %1 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align 8
-      %load_x = load i32, i32* %x, align 4
-      store i32 %load_x, i32* %1, align 4
+      %1 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align [filtered]
+      %load_x = load i32, i32* %x, align [filtered]
+      store i32 %load_x, i32* %1, align [filtered]
       ret void
     }
     "#)
@@ -131,14 +131,14 @@ fn generate_function_and_var_with_online_change() {
 
     define i32 @foo() section "$RUSTY$fn-foo:i32[]" {
     entry:
-      %foo = alloca i32, align 4
-      %x = alloca i32, align 4
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %foo, align 4
-      %0 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align 8
-      %load_x = load i32, i32* %x, align 4
-      store i32 %load_x, i32* %0, align 4
-      %foo_ret = load i32, i32* %foo, align 4
+      %foo = alloca i32, align [filtered]
+      %x = alloca i32, align [filtered]
+      store i32 0, i32* %x, align [filtered]
+      store i32 0, i32* %foo, align [filtered]
+      %0 = load i32*, i32** getelementptr inbounds (i32*, i32** inttoptr (i64 -2401053092612145152 to i32**), i32 1), align [filtered]
+      %load_x = load i32, i32* %x, align [filtered]
+      store i32 %load_x, i32* %0, align [filtered]
+      %foo_ret = load i32, i32* %foo, align [filtered]
       ret i32 %foo_ret
     }
     "#)
