@@ -176,29 +176,27 @@ jobs:
   coverage:
     name: Run Coverage
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
+      - name: Free up disk space on runner
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Show disk space after cleanup
+        run: df -h
+
       - uses: actions/checkout@v3
 
-      - name: "Optimize Disk Space"
-        uses: "hugoalh/disk-space-optimizer-ghaction@v0.8.0"
+      - name: Run coverage in container
+        uses: docker://ghcr.io/plc-lang/rust-llvm:latest
         with:
-          operate_sudo: "False"
-          general_include: ".+"
-          docker_include: ".+"
-          docker_prune: "True"
-          docker_clean: "True"
-          apt_prune: "True"
-          apt_clean: "True"
-          homebrew_prune: "True"
-          homebrew_clean: "True"
-          npm_prune: "True"
-          npm_clean: "True"
-          os_swap: "True"
-
-      - name: Run Checks
-        run: |
-          ./scripts/build.sh --coverage
+          args: bash -c "df -h && apt-get clean && rm -rf /var/lib/apt/lists/* && ./scripts/build.sh --coverage"
 
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3
