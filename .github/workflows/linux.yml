@@ -180,8 +180,21 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Free disk space
-        run: curl -fsSL https://raw.githubusercontent.com/kou/arrow/173e2fee5f6667b7e23f8bc6094936f6c6003039/ci/scripts/util_free_space.sh | bash
+      - name: "Optimize Disk Space"
+        uses: "hugoalh/disk-space-optimizer-ghaction@v0.8.0"
+        with:
+          operate_sudo: "False"
+          general_include: ".+"
+          docker_include: ".+"
+          docker_prune: "True"
+          docker_clean: "True"
+          apt_prune: "True"
+          apt_clean: "True"
+          homebrew_prune: "True"
+          homebrew_clean: "True"
+          npm_prune: "True"
+          npm_clean: "True"
+          os_swap: "True"
 
       - name: Run Checks
         run: |
