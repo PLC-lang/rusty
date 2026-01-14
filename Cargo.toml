@@ -83,11 +83,7 @@ members = [
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
-# TODO: Version 0.7 and LLVM 21 are incompatible because of https://github.com/TheDan64/inkwell/pull/628.
-# We should however move to 0.8 once released, and remove the git version dependency
-inkwell = { git = "https://github.com/TheDan64/inkwell.git", rev = "7abf48a2cf4fc3e338fbeb1780ac7507cbb13e98", features = [
-    "llvm21-1",
-] }
+inkwell = { version = "0.8", features = ["llvm21-1"] }
 
 insta = { version = "1.31.0", features = ["filters"] }
 encoding_rs = "0.8"

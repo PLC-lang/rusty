@@ -239,12 +239,10 @@ lazy_static! {
                         // generate an llvm select instruction
                         let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
 
-                        if sel.is_pointer_value(){
+                        if sel.is_pointer_value() {
                             // The `select` instruction requires the to be selected values to be of the same
                             // type, hence for the pointee we can choose either one
                             let pointee = {
-                                // TODO: The code above could be simplified by reducing the two ifs into one,
-                                // and also store the type somehwere so we don't need to re-do it for the pointee here
                                 let datatype = generator.annotations.get_type(actual_in0, generator.index).unwrap();
                                 generator.llvm_index.get_associated_type(datatype.get_name()).unwrap()
                             };

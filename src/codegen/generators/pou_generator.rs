@@ -212,7 +212,6 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
                 match param {
                     Some(v) if v.is_in_parameter_by_ref() => {
-                        // TODO: Not sure if this is 100% correct, previously it was `v.is_in_parameter_by_ref() && p.into_pointer_type().get_element_type().is_array_type()` but we don't distinguish between pointer types so just a `ptr` is fine here?
                         let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
                         let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
                         ty.into()

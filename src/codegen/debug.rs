@@ -1060,7 +1060,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             return;
         }
 
-        // Workaround until inkwell 0.8 is released, see https://github.com/TheDan64/inkwell/issues/613
+        // Workaround until inkwell 0.9 is released, see https://github.com/TheDan64/inkwell/issues/613
         fn insert_declare_at_end_raw(
             debug_info: &DebugInfoBuilder,
             storage: PointerValue,
@@ -1084,7 +1084,7 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
         }
 
         // TODO: Replace function call below with `self.debug_info.insert_declare_at_end(value, variable.copied(), None, location, block);`
-        // once inkwell 0.8 is released.
+        // once inkwell 0.9 is released.
         insert_declare_at_end_raw(&self.debug_info, value, variable.copied(), None, location, block);
     }
 

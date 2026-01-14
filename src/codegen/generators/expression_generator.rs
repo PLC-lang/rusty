@@ -246,8 +246,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     ExpressionValue::LValue(value, _) => {
                         let value = self.auto_deref_if_necessary(value, expression)?;
                         let pointee = {
-                            // TODO: I think it should be safe to fetch the pointee this way and return it
-                            // as a result in `ExpressionValue::LValue` but not 100% sure
                             let datatype = self.annotations.get_type(expression, self.index).unwrap();
                             let effective_ty = self.index.find_effective_type(datatype).unwrap_or(datatype);
                             self.llvm_index.get_associated_type(&effective_ty.name).unwrap()
@@ -2762,7 +2760,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )?;
 
                     let pointee = {
-                        // TODO: Not 100% sure if correct; also I feel like `create_llvm_pointer_value_for_reference` should return an ExpressionValue?
                         let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
                         let effective_ty = self.index.find_effective_type(datatype).unwrap_or(datatype);
                         self.llvm_index.get_associated_type(&effective_ty.name).unwrap()
@@ -2841,7 +2838,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     )?;
 
                     let pointee = {
-                        // TODO: Not 100% sure if correct
                         let datatype = self.annotations.get_type(original_expression, self.index).unwrap();
                         self.llvm_index.get_associated_type(&datatype.name).unwrap()
                     };
