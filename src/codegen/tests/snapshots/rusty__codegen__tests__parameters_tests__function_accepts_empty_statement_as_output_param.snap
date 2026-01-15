@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,19 +11,19 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @foo(i32* %0, i32* %1) {
+define void @foo(ptr %0, ptr %1) {
 entry:
-  %out1 = alloca i32*, align 8
-  store i32* %0, i32** %out1, align 8
-  %out2 = alloca i32*, align 8
-  store i32* %1, i32** %out2, align 8
+  %out1 = alloca ptr, align 8
+  store ptr %0, ptr %out1, align 8
+  %out2 = alloca ptr, align 8
+  store ptr %1, ptr %out2, align 8
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %1 = alloca i32, align 4
-  call void @foo(i32* %x, i32* %1)
+  call void @foo(ptr %x, ptr %1)
   ret void
 }

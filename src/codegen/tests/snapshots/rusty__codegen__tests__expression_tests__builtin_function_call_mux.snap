@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,13 +11,13 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %c = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %d = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %e = getelementptr inbounds %main, %main* %0, i32 0, i32 4
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %d = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %e = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 4
   %1 = alloca i32, align 4
   switch i32 3, label %continue_block [
     i32 0, label %2
@@ -28,27 +27,27 @@ entry:
   ]
 
 2:                                                ; preds = %entry
-  %load_b = load i32, i32* %b, align 4
-  store i32 %load_b, i32* %1, align 4
+  %load_b = load i32, ptr %b, align 4
+  store i32 %load_b, ptr %1, align 4
   br label %continue_block
 
 3:                                                ; preds = %entry
-  %load_c = load i32, i32* %c, align 4
-  store i32 %load_c, i32* %1, align 4
+  %load_c = load i32, ptr %c, align 4
+  store i32 %load_c, ptr %1, align 4
   br label %continue_block
 
 4:                                                ; preds = %entry
-  %load_d = load i32, i32* %d, align 4
-  store i32 %load_d, i32* %1, align 4
+  %load_d = load i32, ptr %d, align 4
+  store i32 %load_d, ptr %1, align 4
   br label %continue_block
 
 5:                                                ; preds = %entry
-  %load_e = load i32, i32* %e, align 4
-  store i32 %load_e, i32* %1, align 4
+  %load_e = load i32, ptr %e, align 4
+  store i32 %load_e, ptr %1, align 4
   br label %continue_block
 
 continue_block:                                   ; preds = %entry, %5, %4, %3, %2
-  %6 = load i32, i32* %1, align 4
-  store i32 %6, i32* %a, align 4
+  %6 = load i32, ptr %1, align 4
+  store i32 %6, ptr %a, align 4
   ret void
 }

@@ -27,15 +27,31 @@ jobs:
   test-linux:
     name: Test Linux
     runs-on: ubuntu-latest
-    container: ghcr.io/plc-lang/rust-llvm:latest
     steps:
+      - name: Free up disk space on runner
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: false
+          swap-storage: true
+
+      - name: Show disk space after cleanup
+        run: df -h
+
       - uses: actions/checkout@v3
 
       - name: Cargo test
-        shell: bash
         run: |
-          echo "Build command : ./scripts/build.sh --build --test"
-          ./scripts/build.sh --build --test
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ghcr.io/plc-lang/rust-llvm:latest \
+            -c "df -h && ./scripts/build.sh --build --test"
 
   package-linux:
     name: Package Linux

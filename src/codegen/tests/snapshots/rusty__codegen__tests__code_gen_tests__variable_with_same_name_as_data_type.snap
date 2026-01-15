@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,14 +15,14 @@ define i64 @func() {
 entry:
   %func = alloca i64, align 8
   %TIME = alloca i64, align 8
-  store i64 0, i64* %TIME, align 8
-  store i64 0, i64* %func, align 8
-  %func_ret = load i64, i64* %func, align 8
+  store i64 0, ptr %TIME, align 8
+  store i64 0, ptr %func, align 8
+  %func_ret = load i64, ptr %func, align 8
   ret i64 %func_ret
 }
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %TIME = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %TIME = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

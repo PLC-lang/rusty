@@ -109,10 +109,10 @@ fn initializing_a_struct() {
     @__prg.rect1__init = unnamed_addr constant %Rect { %Point { i16 1, i16 5 }, %Point { i16 10, i16 15 } }
     @__prg.rect2__init = unnamed_addr constant %Rect { %Point { i16 4, i16 6 }, %Point { i16 16, i16 22 } }
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+      %rect1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       ret void
     }
     "#);
@@ -154,20 +154,18 @@ fn assigning_structs() {
     @prg_instance = global %prg zeroinitializer
     @__Point__init = unnamed_addr constant %Point zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %p1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %p2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %1 = bitcast %Point* %p1 to i8*
-      %2 = bitcast %Point* %p2 to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%Point* getelementptr (%Point, %Point* null, i32 1) to i64), i1 false)
+      %p1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %p2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %p1, ptr align 1 %p2, i64 ptrtoint (ptr getelementptr (%Point, ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -214,16 +212,16 @@ fn accessing_struct_members() {
     @__Rect__init = unnamed_addr constant %Rect zeroinitializer
     @__Point__init = unnamed_addr constant %Point zeroinitializer
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %rect1 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %rect2 = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %topLeft = getelementptr inbounds %Rect, %Rect* %rect1, i32 0, i32 0
-      %x = getelementptr inbounds %Point, %Point* %topLeft, i32 0, i32 0
-      %bottomRight = getelementptr inbounds %Rect, %Rect* %rect2, i32 0, i32 1
-      %x1 = getelementptr inbounds %Point, %Point* %bottomRight, i32 0, i32 0
-      %load_x = load i16, i16* %x1, align 2
-      store i16 %load_x, i16* %x, align 2
+      %rect1 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %rect2 = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %topLeft = getelementptr inbounds nuw %Rect, ptr %rect1, i32 0, i32 0
+      %x = getelementptr inbounds nuw %Point, ptr %topLeft, i32 0, i32 0
+      %bottomRight = getelementptr inbounds nuw %Rect, ptr %rect2, i32 0, i32 1
+      %x1 = getelementptr inbounds nuw %Point, ptr %bottomRight, i32 0, i32 0
+      %load_x = load i16, ptr %x1, align 2
+      store i16 %load_x, ptr %x, align 2
       ret void
     }
     "#);

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,15 +11,15 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %tmpVar = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 1
-  store i32 3, i32* %tmpVar, align 4
-  %tmpVar1 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 4
-  %tmpVar2 = getelementptr inbounds [6 x i32], [6 x i32]* %x, i32 0, i32 5
-  %load_tmpVar = load i32, i32* %tmpVar2, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %tmpVar = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 1
+  store i32 3, ptr %tmpVar, align 4
+  %tmpVar1 = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 4
+  %tmpVar2 = getelementptr inbounds [6 x i32], ptr %x, i32 0, i32 5
+  %load_tmpVar = load i32, ptr %tmpVar2, align 4
   %tmpVar3 = add i32 %load_tmpVar, 3
-  store i32 %tmpVar3, i32* %tmpVar1, align 4
+  store i32 %tmpVar3, ptr %tmpVar1, align 4
   ret void
 }

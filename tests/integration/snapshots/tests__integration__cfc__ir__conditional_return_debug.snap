@@ -1,43 +1,37 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
-snapshot_kind: text
 ---
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
 
 define i32 @foo(i32 %0) !dbg !4 {
 entry:
   %foo = alloca i32, align 4
   %val = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %val, metadata !9, metadata !DIExpression()), !dbg !10
-  store i32 %0, i32* %val, align 4
-  call void @llvm.dbg.declare(metadata i32* %foo, metadata !11, metadata !DIExpression()), !dbg !12
-  store i32 0, i32* %foo, align 4
-  %load_val = load i32, i32* %val, align 4, !dbg !13
+    #dbg_declare(ptr %val, !9, !DIExpression(), !10)
+  store i32 %0, ptr %val, align 4
+    #dbg_declare(ptr %foo, !11, !DIExpression(), !12)
+  store i32 0, ptr %foo, align 4
+  %load_val = load i32, ptr %val, align 4, !dbg !13
   %tmpVar = icmp eq i32 %load_val, 5, !dbg !13
   br i1 %tmpVar, label %then_block, label %else_block, !dbg !13
 
 then_block:                                       ; preds = %entry
-  %foo_ret = load i32, i32* %foo, align 4, !dbg !14
+  %foo_ret = load i32, ptr %foo, align 4, !dbg !14
   ret i32 %foo_ret, !dbg !14
 
 else_block:                                       ; preds = %entry
-  store i32 10, i32* %val, align 4, !dbg !15
-  %foo_ret1 = load i32, i32* %foo, align 4, !dbg !16
+  store i32 10, ptr %val, align 4, !dbg !15
+  %foo_ret1 = load i32, ptr %foo, align 4, !dbg !16
   ret i32 %foo_ret1, !dbg !16
 }
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
 define void @__init___plc() {
 entry:
   ret void
 }
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

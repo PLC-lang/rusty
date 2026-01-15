@@ -50,7 +50,8 @@ impl Linker {
                             Box::new(CcLinker::new("clang"))
                         } //only clang from llvm is supported in windows
                         (_, "darwin") => Box::new(CcLinker::new("clang")),
-                        _ => Box::new(LdLinker::new()),
+
+                        _ => Box::new(CcLinker::new("ld.lld")),
                     }
                 }
                 LinkerType::External(linker) => Box::new(CcLinker::new(&linker)),
@@ -159,31 +160,6 @@ impl LinkerInterface for CcLinker {
         } else {
             Err(LinkerError::Link("An error occured during linking".to_string()))
         }
-    }
-}
-
-struct LdLinker {
-    args: Vec<String>,
-}
-
-impl LdLinker {
-    fn new() -> LdLinker {
-        LdLinker { args: Vec::default() }
-    }
-}
-
-impl LinkerInterface for LdLinker {
-    fn add_arg(&mut self, value: String) {
-        self.args.push(value)
-    }
-
-    fn get_build_command(&self) -> Result<String, LinkerError> {
-        Ok(format!("ld.lld {}", self.args.join(" ")))
-    }
-
-    fn finalize(&mut self) -> Result<(), LinkerError> {
-        log::debug!("Linker arguments : {}", self.get_build_command()?);
-        lld_rs::link(lld_rs::LldFlavor::Elf, &self.args).ok().map_err(LinkerError::Link)
     }
 }
 

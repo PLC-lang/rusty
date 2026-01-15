@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,20 +14,19 @@ target triple = "[filtered]"
 @utf08_literal_1 = private unnamed_addr constant [4 x i8] c"abc\00"
 @utf08_literal_2 = private unnamed_addr constant [7 x i8] c"abcdef\00"
 
-declare i32 @foo(i32, i8**)
+declare i32 @foo(i32, ptr)
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %1 = alloca [3 x i8*], align 8
-  %2 = getelementptr inbounds [3 x i8*], [3 x i8*]* %1, i32 0, i32 0
-  store i8* getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0), i8** %2, align 8
-  %3 = getelementptr inbounds [3 x i8*], [3 x i8*]* %1, i32 0, i32 1
-  store i8* getelementptr inbounds ([4 x i8], [4 x i8]* @utf08_literal_1, i32 0, i32 0), i8** %3, align 8
-  %4 = getelementptr inbounds [3 x i8*], [3 x i8*]* %1, i32 0, i32 2
-  store i8* getelementptr inbounds ([7 x i8], [7 x i8]* @utf08_literal_2, i32 0, i32 0), i8** %4, align 8
-  %5 = bitcast [3 x i8*]* %1 to i8**
-  %call = call i32 @foo(i32 3, i8** %5)
-  store i32 %call, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %1 = alloca [3 x ptr], align 8
+  %2 = getelementptr inbounds [3 x ptr], ptr %1, i32 0, i32 0
+  store ptr @utf08_literal_0, ptr %2, align 8
+  %3 = getelementptr inbounds [3 x ptr], ptr %1, i32 0, i32 1
+  store ptr @utf08_literal_1, ptr %3, align 8
+  %4 = getelementptr inbounds [3 x ptr], ptr %1, i32 0, i32 2
+  store ptr @utf08_literal_2, ptr %4, align 8
+  %call = call i32 @foo(i32 3, ptr %1)
+  store i32 %call, ptr %x, align 4
   ret void
 }

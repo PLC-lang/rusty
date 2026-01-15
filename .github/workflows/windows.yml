@@ -13,9 +13,6 @@ jobs:
   build:
     name: Windows Build
     runs-on: windows-2022
-    env:
-      toolchain-version: 1.90.0
-      llvm-version: 14.0.6
     steps:
 
       - uses: actions/checkout@v3
@@ -23,13 +20,17 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: ${{ env.toolchain-version }}
+          toolchain: 1.90.0
 
       - name: Install LLVM
-        uses: ghaith/install-llvm-action@latest
-        with:
-          version: ${{ env.llvm-version }}
-          directory: "./llvm"
+        shell: pwsh
+        run: |
+          $llvmUrl = "https://github.com/PLC-lang/llvm-package-windows/releases/download/v21.1.7/LLVM-21.1.7-win64.7z"
+          $llvmArchive = "LLVM-21.1.7-win64.7z"
+          Invoke-WebRequest -Uri $llvmUrl -OutFile $llvmArchive
+          7z x $llvmArchive -o"./llvm" -y
+          $llvmBin = (Resolve-Path "./llvm/bin").Path
+          echo "$llvmBin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
       - name: Cargo test (Unit)
         run: cargo test --lib -- --nocapture

@@ -433,6 +433,10 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
         self.generate_assignment_statement(llvm_index, &stmt.counter, &stmt.start)?;
         let counter = exp_gen.generate_lvalue(&stmt.counter)?;
+        let counter_pointee = {
+            let datatype = self.annotations.get_type(&stmt.counter, self.index).unwrap();
+            self.llvm_index.get_associated_type(&datatype.name).unwrap()
+        };
 
         // generate loop predicate selector. since `STEP` can be a reference, this needs to be a runtime eval
         // XXX(mhasel): IR could possibly be improved by generating phi instructions.
@@ -457,10 +461,11 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
 
             let end = exp_gen.generate_expression_value(&stmt.end).unwrap();
             let end_value = match end {
-                ExpressionValue::LValue(ptr) => builder.build_load(ptr, "")?,
+                ExpressionValue::LValue(value, pointee) => builder.build_load(pointee, value, "")?,
                 ExpressionValue::RValue(val) => val,
             };
-            let counter_value = builder.build_load(counter, "")?;
+
+            let counter_value = builder.build_load(counter_pointee, counter, "")?;
             let cmp = builder.build_int_compare(
                 predicate,
                 cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -494,7 +499,7 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
         // increment counter
         builder.build_unconditional_branch(increment)?;
         builder.position_at_end(increment);
-        let counter_value = builder.build_load(counter, "")?;
+        let counter_value = builder.build_load(counter_pointee, counter, "")?;
         let inc = inkwell::values::BasicValue::as_basic_value_enum(&builder.build_int_add(
             eval_step()?.into_int_value(),
             cast_if_needed!(exp_gen, cast_target_ty, counter_ty, counter_value, None)?.into_int_value(),
@@ -825,7 +830,9 @@ impl<'a, 'b> StatementCodeGenerator<'a, 'b> {
                             SourceLocation::undefined(),
                         )
                     })?;
-                let loaded_value = self.llvm.load_pointer(&value_ptr, var_name.as_str())?;
+
+                let pointee = self.llvm_index.get_associated_type(ret_v.get_type_name()).unwrap();
+                let loaded_value = self.llvm.load_pointer(pointee, &value_ptr, var_name.as_str())?;
                 self.llvm.builder.build_return(Some(&loaded_value))?;
             }
         } else {
