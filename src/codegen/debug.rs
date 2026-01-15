@@ -323,7 +323,6 @@ impl<'ink> DebugBuilder<'ink> {
             .iter()
             .enumerate()
             .map(|(idx, variant)| {
-                // Access the initial_value field and convert to integer
                 let value = variant
                     .initial_value
                     .as_ref()
@@ -498,7 +497,6 @@ impl<'ink> DebugBuilder<'ink> {
                         DebugEncoding::DW_ATE_unsigned as u32,
                         DIFlagsConstants::PUBLIC,
                     )
-                    // .map_err(|err| Diagnostic::codegen_error(err, SourceLocation::undefined()))?,
                     .map_err(|err| {
                         Diagnostic::codegen_error(format!("{:?}", err), SourceLocation::undefined())
                     })?,
