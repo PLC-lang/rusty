@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"mod":["aggressive_instcombine","coroutines","instcombine","ipo","pass_builder","pass_manager_builder","scalar","util","vectorize"]};
+window.SIDEBAR_ITEMS = {"mod":["pass_builder"]};

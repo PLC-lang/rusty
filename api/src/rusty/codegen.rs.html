@@ -243,7 +243,7 @@
 <a href=#243 id=243 data-nosnippet>243</a>                .try_into()
 <a href=#244 id=244 data-nosnippet>244</a>                .expect(<span class="string">"the computed custom GOT size is too large"</span>);
 <a href=#245 id=245 data-nosnippet>245</a>
-<a href=#246 id=246 data-nosnippet>246</a>            <span class="kw">let </span>ptr_ty = llvm.context.i8_type().ptr_type(AddressSpace::default());
+<a href=#246 id=246 data-nosnippet>246</a>            <span class="kw">let </span>ptr_ty = llvm.context.ptr_type(AddressSpace::default());
 <a href=#247 id=247 data-nosnippet>247</a>            <span class="kw">let </span>empty_got = ptr_ty
 <a href=#248 id=248 data-nosnippet>248</a>                .const_array(<span class="macro">vec!</span>[ptr_ty.const_null(); got_size <span class="kw">as </span>usize].as_slice())
 <a href=#249 id=249 data-nosnippet>249</a>                .as_basic_value_enum();

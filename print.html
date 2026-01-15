@@ -36,7 +36,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-6f28f9a7.js";
+            window.path_to_searchindex_js = "searchindex-8724bdfe.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-90e98495.js"></script>
@@ -238,73 +238,42 @@ We are aiming towards an open-source industry-grade ST compiler supporting at le
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="build--install"><a class="header" href="#build--install">Build &amp; Install</a></h1>
-<p>RuSTys code can be found on <a href="https://github.com/PLC-lang/rusty">GitHub</a>.
-By default a <code>Dockerfile</code> and a <code>devcontainer.json</code> file are provided. If you wish to develop natively
-however, you will need some additional dependencies namely:</p>
-<ul>
-<li><a href="https://www.rust-lang.org/tools/install">Rust</a></li>
-<li>LLVM 14</li>
-<li>LLVM Polly</li>
-<li>Build Tools (e.g. <code>build-essential</code> on Ubuntu)</li>
-<li>zlib</li>
-</ul>
-<p>The next sections cover how to install these dependencies on different platforms, if you already have them
-however, RuSTy can be build using the <code>cargo</code> command. For debug builds this can be accomplished by executing
-<code>cargo build</code> and for release builds (smaller &amp; faster) you would execute <code>cargo build --release</code>. The
-resulting binaries can be found at <code>target/debug/plc</code> and <code>target/release/plc</code> respectively.</p>
-<h2 id="ubuntu-2404"><a class="header" href="#ubuntu-2404">Ubuntu (24.04)</a></h2>
-<p>The specified dependencies can be installed with the following command on Ubuntu:</p>
-<pre><code class="language-bash">sudo apt install                \
-    build-essential             \
-    llvm-14-dev liblld-14-dev   \
-    libz-dev                    \
-    lld                         \
-    libclang-common-14-dev      \
-    libpolly-14-dev
+<p>We provide a <a href="https://containers.dev/"><code>devcontainer.json</code></a> and a <code>Dockerfile</code> for development. For native development, refer to the following sections.</p>
+<h2 id="ubuntu-2404"><a class="header" href="#ubuntu-2404">Ubuntu 24.04</a></h2>
+<pre><code class="language-bash"># Install pre-requisites
+sudo apt install lsb-release wget software-properties-common gnupg build-essential zlib1g-dev libzstd-dev lld clang
+
+# Install Rust, see https://rust-lang.org/tools/install/
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+
+# Install LLVM 21, see https://apt.llvm.org/
+wget https://apt.llvm.org/llvm.sh
+chmod +x llvm.sh
+./llvm.sh 21 &amp;&amp; sudo apt install libpolly-21-dev
+
+# Install uv, see https://docs.astral.sh/uv/getting-started/installation/
+# (Optional, but required for development)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install lit
 </code></pre>
-<p>Additionally you <em>might</em> need <code>libffi7</code>, which can be installed with <code>sudo apt install libffi7</code>.
-<strong>Note</strong>: On other Ubuntu versions, the required packages <em>may</em> differ.</p>
-<h2 id="debian"><a class="header" href="#debian">Debian</a></h2>
-<p>Same as Ubuntu with the exception of adding additional repository sources since Debian 11 only includes LLVM packages up to version 11.
-To do so follow the <a href="https://apt.llvm.org/">official documentation</a>.</p>
-<h2 id="macos"><a class="header" href="#macos">MacOS</a></h2>
-<p>On MacOS you need to install the <a href="https://developer.apple.com/downloads/"><code>Xcode Command Line Tools</code></a> and the LLVM toolchain using <a href="https://brew.sh">Homebrew</a>:</p>
-<pre><code class="language-bash">brew install llvm@14
+<h2 id="debian-trixie"><a class="header" href="#debian-trixie">Debian Trixie</a></h2>
+<p>Follow the Ubuntu 24.04 instructions, but omit <code>software-properties-common</code> which is not available on Debian.</p>
+<h2 id="macos"><a class="header" href="#macos">macOS</a></h2>
+<p>Install the <a href="https://developer.apple.com/downloads/">Xcode Command Line Tools</a> and the LLVM toolchain using <a href="https://brew.sh">Homebrew</a>:</p>
+<pre><code class="language-bash">brew install llvm@21 gnu-getopt lit
 </code></pre>
-<p>While optional, it is strongly recommended to also install <code>gnu-getopt</code> and <code>lit</code> so the helper scripts and integration tests work without extra steps:</p>
-<pre><code class="language-bash">brew install gnu-getopt lit
-</code></pre>
-<p><code>gnu-getopt</code> is required by the build scripts, and <code>lit</code> is needed for running integration tests via <code>./scripts/build.sh --lit</code>.</p>
-<p>After the installation, make sure the Homebrew binaries are discoverable for both LLVM and GNU getopt:</p>
-<pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@14/bin:$PATH"' &gt;&gt; ~/.zshrc
+<p>After installation, ensure the Homebrew binaries are in your PATH:</p>
+<pre><code class="language-bash">echo 'export PATH="/opt/homebrew/opt/llvm@21/bin:$PATH"' &gt;&gt; ~/.zshrc
 echo 'export PATH="/opt/homebrew/opt/gnu-getopt/bin:$PATH"' &gt;&gt; ~/.zshrc
 </code></pre>
-<p>The <code>lit</code> test suite expects <code>FileCheck-14</code> to be available. If <code>FileCheck-14</code> is not already present, create a symlink to the <code>FileCheck</code> binary:</p>
-<pre><code class="language-bash">ln -svf /opt/homebrew/opt/llvm@14/bin/FileCheck /opt/homebrew/opt/llvm@14/bin/FileCheck-14
+<p>The <code>lit</code> test suite expects <code>FileCheck-21</code> to be available. If not present, create a symlink:</p>
+<pre><code class="language-bash">ln -svf /opt/homebrew/opt/llvm@21/bin/FileCheck /opt/homebrew/opt/llvm@21/bin/FileCheck-21
 </code></pre>
 <h2 id="windows"><a class="header" href="#windows">Windows</a></h2>
-<p>Compiling RuSTy on Windows requires three dependencies:</p>
-<ol>
-<li>Windows 10 SDK</li>
-<li>MSVC (at the point of writing this we tested it on v142 - VS 2019 C++ x64/x86 build tools)</li>
-<li><a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6">LLVM 14.0.6</a></li>
-</ol>
-<p>The first two dependencies are typically installed during the Rust installation itself. More specifically during the
-installation you should have been prompted to install them. If not, you’ll be able to install them via Visual Studio at any point.
-The third dependency is based on a custom build which is hosted on <a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6">GitHub</a>.
-Download it, extract it and add the <code>bin/</code> directory to your <a href="https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html">environment variables</a>.
-In theory this should cover everything to be able to compile RuSTy (with some reboots here and there).</p>
-<h2 id="installing"><a class="header" href="#installing">Installing</a></h2>
-<p><em>TODO</em></p>
+<p>Install <a href="https://www.rust-lang.org/tools/install">Rust</a> and download the appropriate LLVM version from https://github.com/PLC-lang/llvm-package-windows/releases/. Extract it and add the <code>bin/</code> directory to your PATH.</p>
 <h2 id="troubleshooting"><a class="header" href="#troubleshooting">Troubleshooting</a></h2>
 <ul>
-<li>Because of weak compatibility guarantees of the LLVM API, the LLVM installation must exactly match the
-major version of the <code>llvm-sys</code> crate.Currently you will need to install LLVM 14 to satisfy this constraint.
-<a href="https://crates.io/crates/llvm-sys">Read more</a></li>
-<li>To avoid installation conflicts on Linux/Ubuntu, make sure you don’t have a default installation available
-(like you get by just installing <code>llvm-dev</code>), which may break things. If you do, make sure you have set
-the appropriate environment variable (<code>LLVM_SYS_140_PREFIX=/usr/lib/llvm-14</code> for LLVM 14), so
-the build of the <code>llvm-sys</code> crate knows what files to grab.</li>
+<li>The LLVM installation must exactly match the major version of the <code>llvm-sys</code> crate due to LLVM’s API compatibility guarantees. Currently LLVM 21 is required. See https://crates.io/crates/llvm-sys</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div>
 <h1 id="using-rusty"><a class="header" href="#using-rusty">Using RuSTy</a></h1>

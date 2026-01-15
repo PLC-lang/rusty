@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.10.1/src/buf/take.rs`."><title>take.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bytes/buf/</div>take.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::Buf;
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bytes-1.11.0/src/buf/take.rs`."><title>take.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="bytes" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">bytes/buf/</div>take.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="kw">use </span><span class="kw">crate</span>::Buf;
 <a href=#2 id=2 data-nosnippet>2</a>
 <a href=#3 id=3 data-nosnippet>3</a><span class="kw">use </span>core::cmp;
 <a href=#4 id=4 data-nosnippet>4</a>
@@ -163,42 +163,25 @@
 <a href=#163 id=163 data-nosnippet>163</a>        }
 <a href=#164 id=164 data-nosnippet>164</a>
 <a href=#165 id=165 data-nosnippet>165</a>        <span class="kw">const </span>LEN: usize = <span class="number">16</span>;
-<a href=#166 id=166 data-nosnippet>166</a>        <span class="kw">let </span><span class="kw-2">mut </span>slices: [IoSlice&lt;<span class="lifetime">'a</span>&gt;; LEN] = [
-<a href=#167 id=167 data-nosnippet>167</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#168 id=168 data-nosnippet>168</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#169 id=169 data-nosnippet>169</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#170 id=170 data-nosnippet>170</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#171 id=171 data-nosnippet>171</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#172 id=172 data-nosnippet>172</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#173 id=173 data-nosnippet>173</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#174 id=174 data-nosnippet>174</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#175 id=175 data-nosnippet>175</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#176 id=176 data-nosnippet>176</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#177 id=177 data-nosnippet>177</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#178 id=178 data-nosnippet>178</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#179 id=179 data-nosnippet>179</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#180 id=180 data-nosnippet>180</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#181 id=181 data-nosnippet>181</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#182 id=182 data-nosnippet>182</a>            IoSlice::new(<span class="kw-2">&amp;</span>[]),
-<a href=#183 id=183 data-nosnippet>183</a>        ];
-<a href=#184 id=184 data-nosnippet>184</a>
-<a href=#185 id=185 data-nosnippet>185</a>        <span class="kw">let </span>cnt = <span class="self">self
-<a href=#186 id=186 data-nosnippet>186</a>            </span>.inner
-<a href=#187 id=187 data-nosnippet>187</a>            .chunks_vectored(<span class="kw-2">&amp;mut </span>slices[..dst.len().min(LEN)]);
-<a href=#188 id=188 data-nosnippet>188</a>        <span class="kw">let </span><span class="kw-2">mut </span>limit = <span class="self">self</span>.limit;
-<a href=#189 id=189 data-nosnippet>189</a>        <span class="kw">for </span>(i, (dst, slice)) <span class="kw">in </span>dst[..cnt].iter_mut().zip(slices.iter()).enumerate() {
-<a href=#190 id=190 data-nosnippet>190</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(buf) = slice.get(..limit) {
-<a href=#191 id=191 data-nosnippet>191</a>                <span class="comment">// SAFETY: We could do this safely with `IoSlice::advance` if we had a larger MSRV.
-<a href=#192 id=192 data-nosnippet>192</a>                </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ std::mem::transmute::&lt;<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;(buf) };
-<a href=#193 id=193 data-nosnippet>193</a>                <span class="kw-2">*</span>dst = IoSlice::new(buf);
-<a href=#194 id=194 data-nosnippet>194</a>                <span class="kw">return </span>i + <span class="number">1</span>;
-<a href=#195 id=195 data-nosnippet>195</a>            } <span class="kw">else </span>{
-<a href=#196 id=196 data-nosnippet>196</a>                <span class="comment">// SAFETY: We could do this safely with `IoSlice::advance` if we had a larger MSRV.
-<a href=#197 id=197 data-nosnippet>197</a>                </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ std::mem::transmute::&lt;<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;(slice) };
-<a href=#198 id=198 data-nosnippet>198</a>                <span class="kw-2">*</span>dst = IoSlice::new(buf);
-<a href=#199 id=199 data-nosnippet>199</a>                limit -= slice.len();
-<a href=#200 id=200 data-nosnippet>200</a>            }
-<a href=#201 id=201 data-nosnippet>201</a>        }
-<a href=#202 id=202 data-nosnippet>202</a>        cnt
-<a href=#203 id=203 data-nosnippet>203</a>    }
-<a href=#204 id=204 data-nosnippet>204</a>}</code></pre></div></section></main></body></html>
+<a href=#166 id=166 data-nosnippet>166</a>        <span class="kw">let </span><span class="kw-2">mut </span>slices: [IoSlice&lt;<span class="lifetime">'a</span>&gt;; LEN] = [IoSlice::new(<span class="kw-2">&amp;</span>[]); LEN];
+<a href=#167 id=167 data-nosnippet>167</a>
+<a href=#168 id=168 data-nosnippet>168</a>        <span class="kw">let </span>cnt = <span class="self">self
+<a href=#169 id=169 data-nosnippet>169</a>            </span>.inner
+<a href=#170 id=170 data-nosnippet>170</a>            .chunks_vectored(<span class="kw-2">&amp;mut </span>slices[..dst.len().min(LEN)]);
+<a href=#171 id=171 data-nosnippet>171</a>        <span class="kw">let </span><span class="kw-2">mut </span>limit = <span class="self">self</span>.limit;
+<a href=#172 id=172 data-nosnippet>172</a>        <span class="kw">for </span>(i, (dst, slice)) <span class="kw">in </span>dst[..cnt].iter_mut().zip(slices.iter()).enumerate() {
+<a href=#173 id=173 data-nosnippet>173</a>            <span class="kw">if let </span><span class="prelude-val">Some</span>(buf) = slice.get(..limit) {
+<a href=#174 id=174 data-nosnippet>174</a>                <span class="comment">// SAFETY: We could do this safely with `IoSlice::advance` if we had a larger MSRV.
+<a href=#175 id=175 data-nosnippet>175</a>                </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ std::mem::transmute::&lt;<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;(buf) };
+<a href=#176 id=176 data-nosnippet>176</a>                <span class="kw-2">*</span>dst = IoSlice::new(buf);
+<a href=#177 id=177 data-nosnippet>177</a>                <span class="kw">return </span>i + <span class="number">1</span>;
+<a href=#178 id=178 data-nosnippet>178</a>            } <span class="kw">else </span>{
+<a href=#179 id=179 data-nosnippet>179</a>                <span class="comment">// SAFETY: We could do this safely with `IoSlice::advance` if we had a larger MSRV.
+<a href=#180 id=180 data-nosnippet>180</a>                </span><span class="kw">let </span>buf = <span class="kw">unsafe </span>{ std::mem::transmute::&lt;<span class="kw-2">&amp;</span>[u8], <span class="kw-2">&amp;</span><span class="lifetime">'a </span>[u8]&gt;(slice) };
+<a href=#181 id=181 data-nosnippet>181</a>                <span class="kw-2">*</span>dst = IoSlice::new(buf);
+<a href=#182 id=182 data-nosnippet>182</a>                limit -= slice.len();
+<a href=#183 id=183 data-nosnippet>183</a>            }
+<a href=#184 id=184 data-nosnippet>184</a>        }
+<a href=#185 id=185 data-nosnippet>185</a>        cnt
+<a href=#186 id=186 data-nosnippet>186</a>    }
+<a href=#187 id=187 data-nosnippet>187</a>}</code></pre></div></section></main></body></html>

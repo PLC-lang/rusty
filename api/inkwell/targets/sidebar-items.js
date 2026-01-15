@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["ByteOrdering","CodeModel","FileType","RelocMode"],"struct":["InitializationConfig","Target","TargetData","TargetMachine","TargetTriple"]};
+window.SIDEBAR_ITEMS = {"enum":["ByteOrdering","CodeModel","FileType","RelocMode"],"struct":["InitializationConfig","Target","TargetData","TargetMachine","TargetMachineOptions","TargetTriple"]};

@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mio-1.0.4/src/sys/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mio/sys/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-2"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Module with system specific types.
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Source of the Rust file `/usr/local/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/mio-1.1.1/src/sys/mod.rs`."><title>mod.rs - source</title><script>if(window.location.protocol!=="file:")document.head.insertAdjacentHTML("beforeend","SourceSerif4-Regular-6b053e98.ttf.woff2,FiraSans-Italic-81dc35de.woff2,FiraSans-Regular-0fe48ade.woff2,FiraSans-MediumItalic-ccf7e434.woff2,FiraSans-Medium-e1aa3f0a.woff2,SourceCodePro-Regular-8badfe75.ttf.woff2,SourceCodePro-Semibold-aa29a496.ttf.woff2".split(",").map(f=>`<link rel="preload" as="font" type="font/woff2" crossorigin href="../../../static.files/${f}">`).join(""))</script><link rel="stylesheet" href="../../../static.files/normalize-9960930a.css"><link rel="stylesheet" href="../../../static.files/rustdoc-aa0817cf.css"><meta name="rustdoc-vars" data-root-path="../../../" data-static-root-path="../../../static.files/" data-current-crate="mio" data-themes="" data-resource-suffix="" data-rustdoc-version="1.90.0 (1159e78c4 2025-09-14)" data-channel="1.90.0" data-search-js="search-fa3e91e5.js" data-settings-js="settings-5514c975.js" ><script src="../../../static.files/storage-68b7e25d.js"></script><script defer src="../../../static.files/src-script-813739b1.js"></script><script defer src="../../../src-files.js"></script><script defer src="../../../static.files/main-eebb9057.js"></script><noscript><link rel="stylesheet" href="../../../static.files/noscript-32bb7600.css"></noscript><link rel="alternate icon" type="image/png" href="../../../static.files/favicon-32x32-6580c154.png"><link rel="icon" type="image/svg+xml" href="../../../static.files/favicon-044be391.svg"></head><body class="rustdoc src"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="sidebar"><div class="src-sidebar-title"><h2>Files</h2></div></nav><div class="sidebar-resizer" title="Drag to resize sidebar"></div><main><rustdoc-search></rustdoc-search><section id="main-content" class="content"><div class="main-heading"><h1><div class="sub-heading">mio/sys/</div>mod.rs</h1><rustdoc-toolbar></rustdoc-toolbar></div><div class="example-wrap digits-3"><pre class="rust"><code><a href=#1 id=1 data-nosnippet>1</a><span class="doccomment">//! Module with system specific types.
 <a href=#2 id=2 data-nosnippet>2</a>//!
 <a href=#3 id=3 data-nosnippet>3</a>//! Required types:
 <a href=#4 id=4 data-nosnippet>4</a>//!
@@ -79,4 +79,69 @@
 <a href=#79 id=79 data-nosnippet>79</a>        <span class="attr">#[cfg(feature = <span class="string">"os-ext"</span>)]
 <a href=#80 id=80 data-nosnippet>80</a>        </span><span class="kw">pub use </span><span class="self">self</span>::unix::SourceFd;
 <a href=#81 id=81 data-nosnippet>81</a>    }
-<a href=#82 id=82 data-nosnippet>82</a>}</code></pre></div></section></main></body></html>
+<a href=#82 id=82 data-nosnippet>82</a>}
+<a href=#83 id=83 data-nosnippet>83</a>
+<a href=#84 id=84 data-nosnippet>84</a><span class="doccomment">/// Define the `listen` backlog parameters as in the standard library. This
+<a href=#85 id=85 data-nosnippet>85</a>/// helps avoid hardcoded unsynchronized values and allows better control of
+<a href=#86 id=86 data-nosnippet>86</a>/// default values depending on the target.
+<a href=#87 id=87 data-nosnippet>87</a>///
+<a href=#88 id=88 data-nosnippet>88</a>/// Selecting a “valid” default value can be tricky due to:
+<a href=#89 id=89 data-nosnippet>89</a>///
+<a href=#90 id=90 data-nosnippet>90</a>/// - It often serves only as a hint and may be rounded, trimmed, or ignored by
+<a href=#91 id=91 data-nosnippet>91</a>///   the OS.
+<a href=#92 id=92 data-nosnippet>92</a>///
+<a href=#93 id=93 data-nosnippet>93</a>/// - It is sometimes provided as a "magic" value, for example, -1. This
+<a href=#94 id=94 data-nosnippet>94</a>///   value is undocumented and not standard, but it is often used to represent
+<a href=#95 id=95 data-nosnippet>95</a>///   the largest possible backlog size. This happens due to signed/unsigned
+<a href=#96 id=96 data-nosnippet>96</a>///   conversion and rounding to the upper bound performed by the OS.
+<a href=#97 id=97 data-nosnippet>97</a>///
+<a href=#98 id=98 data-nosnippet>98</a>/// - Default values vary depending on the OS and its version. Common defaults
+<a href=#99 id=99 data-nosnippet>99</a>///   include: -1, 128, 1024, and 4096.
+<a href=#100 id=100 data-nosnippet>100</a>///
+<a href=#101 id=101 data-nosnippet>101</a></span><span class="comment">// Here is the original code from the standard library
+<a href=#102 id=102 data-nosnippet>102</a>// https://github.com/rust-lang/rust/blob/4f808ba6bf9f1c8dde30d009e73386d984491587/library/std/src/os/unix/net/listener.rs#L72
+<a href=#103 id=103 data-nosnippet>103</a>//
+<a href=#104 id=104 data-nosnippet>104</a></span><span class="attr">#[allow(dead_code)]
+<a href=#105 id=105 data-nosnippet>105</a>#[cfg(any(
+<a href=#106 id=106 data-nosnippet>106</a>    target_os = <span class="string">"windows"</span>,
+<a href=#107 id=107 data-nosnippet>107</a>    target_os = <span class="string">"redox"</span>,
+<a href=#108 id=108 data-nosnippet>108</a>    target_os = <span class="string">"espidf"</span>,
+<a href=#109 id=109 data-nosnippet>109</a>    target_os = <span class="string">"horizon"
+<a href=#110 id=110 data-nosnippet>110</a></span>))]
+<a href=#111 id=111 data-nosnippet>111</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LISTEN_BACKLOG_SIZE: i32 = <span class="number">128</span>;
+<a href=#112 id=112 data-nosnippet>112</a>
+<a href=#113 id=113 data-nosnippet>113</a><span class="doccomment">/// This is a special case for some target(s) supported by `mio`.  This value
+<a href=#114 id=114 data-nosnippet>114</a>/// is needed because `libc::SOMAXCON` (used as a fallback for unknown targets)
+<a href=#115 id=115 data-nosnippet>115</a>/// is not implemented for them. Feel free to update this if the `libc` crate
+<a href=#116 id=116 data-nosnippet>116</a>/// changes.
+<a href=#117 id=117 data-nosnippet>117</a></span><span class="attr">#[allow(dead_code)]
+<a href=#118 id=118 data-nosnippet>118</a>#[cfg(target_os = <span class="string">"hermit"</span>)]
+<a href=#119 id=119 data-nosnippet>119</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LISTEN_BACKLOG_SIZE: i32 = <span class="number">1024</span>;
+<a href=#120 id=120 data-nosnippet>120</a>
+<a href=#121 id=121 data-nosnippet>121</a><span class="attr">#[allow(dead_code)]
+<a href=#122 id=122 data-nosnippet>122</a>#[cfg(any(
+<a href=#123 id=123 data-nosnippet>123</a>    <span class="comment">// Silently capped to `/proc/sys/net/core/somaxconn`.
+<a href=#124 id=124 data-nosnippet>124</a>    </span>target_os = <span class="string">"linux"</span>,
+<a href=#125 id=125 data-nosnippet>125</a>    <span class="comment">// Silently capped to `kern.ipc.soacceptqueue`.
+<a href=#126 id=126 data-nosnippet>126</a>    </span>target_os = <span class="string">"freebsd"</span>,
+<a href=#127 id=127 data-nosnippet>127</a>    <span class="comment">// Silently capped to `kern.somaxconn sysctl`.
+<a href=#128 id=128 data-nosnippet>128</a>    </span>target_os = <span class="string">"openbsd"</span>,
+<a href=#129 id=129 data-nosnippet>129</a>    <span class="comment">// Silently capped to the default 128.
+<a href=#130 id=130 data-nosnippet>130</a>    </span>target_vendor = <span class="string">"apple"</span>,
+<a href=#131 id=131 data-nosnippet>131</a>))]
+<a href=#132 id=132 data-nosnippet>132</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LISTEN_BACKLOG_SIZE: i32 = -<span class="number">1</span>;
+<a href=#133 id=133 data-nosnippet>133</a>
+<a href=#134 id=134 data-nosnippet>134</a><span class="attr">#[allow(dead_code)]
+<a href=#135 id=135 data-nosnippet>135</a>#[cfg(not(any(
+<a href=#136 id=136 data-nosnippet>136</a>    target_os = <span class="string">"windows"</span>,
+<a href=#137 id=137 data-nosnippet>137</a>    target_os = <span class="string">"redox"</span>,
+<a href=#138 id=138 data-nosnippet>138</a>    target_os = <span class="string">"espidf"</span>,
+<a href=#139 id=139 data-nosnippet>139</a>    target_os = <span class="string">"horizon"</span>,
+<a href=#140 id=140 data-nosnippet>140</a>    target_os = <span class="string">"linux"</span>,
+<a href=#141 id=141 data-nosnippet>141</a>    target_os = <span class="string">"freebsd"</span>,
+<a href=#142 id=142 data-nosnippet>142</a>    target_os = <span class="string">"openbsd"</span>,
+<a href=#143 id=143 data-nosnippet>143</a>    target_os = <span class="string">"wasi"</span>,
+<a href=#144 id=144 data-nosnippet>144</a>    target_os = <span class="string">"hermit"</span>,
+<a href=#145 id=145 data-nosnippet>145</a>    target_vendor = <span class="string">"apple"</span>,
+<a href=#146 id=146 data-nosnippet>146</a>)))]
+<a href=#147 id=147 data-nosnippet>147</a></span><span class="kw">pub</span>(<span class="kw">crate</span>) <span class="kw">const </span>LISTEN_BACKLOG_SIZE: i32 = libc::SOMAXCONN;</code></pre></div></section></main></body></html>

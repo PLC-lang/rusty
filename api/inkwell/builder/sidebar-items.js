@@ -1,1 +1,1 @@
-window.SIDEBAR_ITEMS = {"enum":["BuilderError"],"struct":["Builder"]};
+window.SIDEBAR_ITEMS = {"enum":["BuilderError","OrderingError"],"struct":["Builder"]};
