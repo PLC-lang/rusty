@@ -217,7 +217,7 @@ fn link_files_with_same_name() {
     let file2 = get_test_file("linking/folder2/vars.st");
 
     let mut out = env::temp_dir();
-    out.push("consts.o");
+    out.push("same_name_vars.o");
     let out1 = out.into_os_string().into_string().unwrap();
 
     //Compile file1 as shared object with file2 as param
