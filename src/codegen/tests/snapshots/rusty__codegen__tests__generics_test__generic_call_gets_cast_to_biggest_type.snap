@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: codegen(src)
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -11,21 +10,20 @@ target triple = "[filtered]"
 define double @main() {
 entry:
   %main = alloca double, align 8
-  store double 0.000000e+00, double* %main, align 8
+  store double 0.000000e+00, ptr %main, align 8
   %0 = alloca [4 x double], align 8
-  %1 = getelementptr inbounds [4 x double], [4 x double]* %0, i32 0, i32 0
-  store double 5.000000e+00, double* %1, align 8
-  %2 = getelementptr inbounds [4 x double], [4 x double]* %0, i32 0, i32 1
-  store double 1.000000e+00, double* %2, align 8
-  %3 = getelementptr inbounds [4 x double], [4 x double]* %0, i32 0, i32 2
-  store double 1.500000e+00, double* %3, align 8
-  %4 = getelementptr inbounds [4 x double], [4 x double]* %0, i32 0, i32 3
-  store double 1.200000e+00, double* %4, align 8
-  %5 = bitcast [4 x double]* %0 to double*
-  %call = call double @MAX__LREAL(i32 4, double* %5)
-  store double %call, double* %main, align 8
-  %main_ret = load double, double* %main, align 8
+  %1 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 0
+  store double 5.000000e+00, ptr %1, align 8
+  %2 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 1
+  store double 1.000000e+00, ptr %2, align 8
+  %3 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 2
+  store double 1.500000e+00, ptr %3, align 8
+  %4 = getelementptr inbounds [4 x double], ptr %0, i32 0, i32 3
+  store double 1.200000e+00, ptr %4, align 8
+  %call = call double @MAX__LREAL(i32 4, ptr %0)
+  store double %call, ptr %main, align 8
+  %main_ret = load double, ptr %main, align 8
   ret double %main_ret
 }
 
-declare double @MAX__LREAL(i32, double*)
+declare double @MAX__LREAL(i32, ptr)

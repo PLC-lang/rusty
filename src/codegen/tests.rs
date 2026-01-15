@@ -12,7 +12,6 @@ mod function_tests;
 mod generics_test;
 mod initialization_test;
 mod multifile_codegen_tests;
-mod online_change_tests;
 mod oop_tests;
 mod parameters_tests;
 mod polymorphism;

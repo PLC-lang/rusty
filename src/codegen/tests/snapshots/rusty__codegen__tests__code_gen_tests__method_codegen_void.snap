@@ -11,17 +11,17 @@ target triple = "[filtered]"
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass(%MyClass* %0) {
+define void @MyClass(ptr %0) {
 entry:
   ret void
 }
 
-define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
   %myMethodArg = alloca i16, align 2
-  store i16 %1, i16* %myMethodArg, align 2
+  store i16 %1, ptr %myMethodArg, align 2
   %myMethodLocalVar = alloca i16, align 2
-  store i16 0, i16* %myMethodLocalVar, align 2
-  store i16 1, i16* %myMethodLocalVar, align 2
+  store i16 0, ptr %myMethodLocalVar, align 2
+  store i16 1, ptr %myMethodLocalVar, align 2
   ret void
 }

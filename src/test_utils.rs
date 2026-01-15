@@ -213,15 +213,6 @@ pub mod tests {
         codegen_debug_without_unwrap(src, DebugLevel::None)
     }
 
-    pub fn codegen_with_online_change(src: &str) -> String {
-        codegen_debug_without_unwrap_oc(
-            src,
-            DebugLevel::None,
-            OnlineChange::Enabled { file_name: "test".into(), format: crate::ConfigFormat::JSON },
-        )
-        .unwrap()
-    }
-
     pub fn codegen_debug_without_unwrap(src: &str, debug_level: DebugLevel) -> Result<String, String> {
         codegen_debug_without_unwrap_oc(src, debug_level, OnlineChange::Disabled)
     }

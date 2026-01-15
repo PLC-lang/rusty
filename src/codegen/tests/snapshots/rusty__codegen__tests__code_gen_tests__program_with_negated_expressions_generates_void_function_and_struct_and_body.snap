@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,19 +11,19 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_x = load i8, i8* %x, align 1
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %load_x = load i8, ptr %x, align 1
   %1 = icmp ne i8 %load_x, 0
   %tmpVar = xor i1 %1, true
-  %load_x1 = load i8, i8* %x, align 1
+  %load_x1 = load i8, ptr %x, align 1
   %2 = icmp ne i8 %load_x1, 0
   br i1 %2, label %3, label %5
 
 3:                                                ; preds = %entry
-  %load_y = load i8, i8* %y, align 1
+  %load_y = load i8, ptr %y, align 1
   %4 = icmp ne i8 %load_y, 0
   %tmpVar2 = xor i1 %4, true
   br label %5

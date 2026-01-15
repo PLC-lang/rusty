@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,23 +11,18 @@ define i32 @foo() !dbg !4 {
 entry:
   %foo = alloca i32, align 4
   %a = alloca [64 x i32], align 4
-  call void @llvm.dbg.declare(metadata [64 x i32]* %a, metadata !9, metadata !DIExpression()), !dbg !14
-  %0 = bitcast [64 x i32]* %a to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([64 x i32]* getelementptr ([64 x i32], [64 x i32]* null, i32 1) to i64), i1 false)
-  call void @llvm.dbg.declare(metadata i32* %foo, metadata !15, metadata !DIExpression()), !dbg !16
-  store i32 0, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4, !dbg !17
+    #dbg_declare(ptr %a, !9, !DIExpression(), !14)
+  call void @llvm.memset.p0.i64(ptr align 1 %a, i8 0, i64 ptrtoint (ptr getelementptr ([64 x i32], ptr null, i32 1) to i64), i1 false)
+    #dbg_declare(ptr %foo, !15, !DIExpression(), !16)
+  store i32 0, ptr %foo, align 4
+  %foo_ret = load i32, ptr %foo, align 4, !dbg !17
   ret i32 %foo_ret, !dbg !17
 }
 
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,36 +11,36 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %z = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %cube = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %load_x = load i16, i16* %x, align 2
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %z = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %cube = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %load_x = load i16, ptr %x, align 2
   %1 = sub i16 %load_x, -2
   %2 = sext i16 %1 to i32
   %tmpVar = mul i32 25, %2
   %tmpVar1 = add i32 %tmpVar, 0
-  %load_y = load i16, i16* %y, align 2
+  %load_y = load i16, ptr %y, align 2
   %3 = sub i16 %load_y, -2
   %4 = sext i16 %3 to i32
   %tmpVar2 = mul i32 5, %4
   %tmpVar3 = add i32 %tmpVar2, %tmpVar1
-  %load_z = load i16, i16* %z, align 2
+  %load_z = load i16, ptr %z, align 2
   %5 = sub i16 %load_z, -2
   %6 = sext i16 %5 to i32
   %tmpVar4 = mul i32 1, %6
   %tmpVar5 = add i32 %tmpVar4, %tmpVar3
-  %tmpVar6 = getelementptr inbounds [125 x i32], [125 x i32]* %cube, i32 0, i32 %tmpVar5
-  %load_x7 = load i16, i16* %x, align 2
+  %tmpVar6 = getelementptr inbounds [125 x i32], ptr %cube, i32 0, i32 %tmpVar5
+  %load_x7 = load i16, ptr %x, align 2
   %7 = sext i16 %load_x7 to i32
-  %load_y8 = load i16, i16* %y, align 2
+  %load_y8 = load i16, ptr %y, align 2
   %8 = sext i16 %load_y8 to i32
   %tmpVar9 = mul i32 %7, %8
-  %load_z10 = load i16, i16* %z, align 2
+  %load_z10 = load i16, ptr %z, align 2
   %9 = sext i16 %load_z10 to i32
   %tmpVar11 = mul i32 %tmpVar9, %9
-  store i32 %tmpVar11, i32* %tmpVar6, align 4
+  store i32 %tmpVar11, ptr %tmpVar6, align 4
   ret void
 }

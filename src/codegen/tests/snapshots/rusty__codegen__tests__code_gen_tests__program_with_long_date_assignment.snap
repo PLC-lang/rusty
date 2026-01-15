@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,19 +11,19 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %w = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  store i64 100012006003, i64* %w, align 8
-  store i64 100012006003, i64* %w, align 8
-  store i64 465436800000000000, i64* %x, align 8
-  store i64 0, i64* %x, align 8
-  store i64 465509714000000000, i64* %y, align 8
-  store i64 58804123456789, i64* %y, align 8
-  store i64 56190999999999, i64* %z, align 8
-  store i64 56190123456000, i64* %z, align 8
+  %w = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  store i64 100012006003, ptr %w, align 8
+  store i64 100012006003, ptr %w, align 8
+  store i64 465436800000000000, ptr %x, align 8
+  store i64 0, ptr %x, align 8
+  store i64 465509714000000000, ptr %y, align 8
+  store i64 58804123456789, ptr %y, align 8
+  store i64 56190999999999, ptr %z, align 8
+  store i64 56190123456000, ptr %z, align 8
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,17 +14,17 @@ target triple = "[filtered]"
 define float @foo() {
 entry:
   %foo = alloca float, align 4
-  store float 0.000000e+00, float* %foo, align 4
-  store float 1.000000e+00, float* %foo, align 4
-  %foo_ret = load float, float* %foo, align 4
+  store float 0.000000e+00, ptr %foo, align 4
+  store float 1.000000e+00, ptr %foo, align 4
+  %foo_ret = load float, ptr %foo, align 4
   ret float %foo_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %call = call float @foo()
   %1 = fptosi float %call to i32
-  store i32 %1, i32* %x, align 4
+  store i32 %1, ptr %x, align 4
   ret void
 }

@@ -1,37 +1,36 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prg = type { i8, i8*, i8* }
+%prg = type { i8, ptr, ptr }
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %X = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %pX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %rX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  store i8* null, i8** %pX, align 8
-  store i8* null, i8** %rX, align 8
-  store i8* %X, i8** %pX, align 8
-  store i8* %X, i8** %rX, align 8
-  %deref = load i8*, i8** %pX, align 8
-  %load_tmpVar = load i8, i8* %deref, align 1
-  store i8 %load_tmpVar, i8* %X, align 1
-  %deref1 = load i8*, i8** %rX, align 8
-  %load_tmpVar2 = load i8, i8* %deref1, align 1
-  store i8 %load_tmpVar2, i8* %X, align 1
-  %deref3 = load i8*, i8** %pX, align 8
-  %load_X = load i8, i8* %X, align 1
-  store i8 %load_X, i8* %deref3, align 1
-  %deref4 = load i8*, i8** %rX, align 8
-  %load_X5 = load i8, i8* %X, align 1
-  store i8 %load_X5, i8* %deref4, align 1
+  %X = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %pX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %rX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  store ptr null, ptr %pX, align 8
+  store ptr null, ptr %rX, align 8
+  store ptr %X, ptr %pX, align 8
+  store ptr %X, ptr %rX, align 8
+  %deref = load ptr, ptr %pX, align 8
+  %load_tmpVar = load i8, ptr %deref, align 1
+  store i8 %load_tmpVar, ptr %X, align 1
+  %deref1 = load ptr, ptr %rX, align 8
+  %load_tmpVar2 = load i8, ptr %deref1, align 1
+  store i8 %load_tmpVar2, ptr %X, align 1
+  %deref3 = load ptr, ptr %pX, align 8
+  %load_X = load i8, ptr %X, align 1
+  store i8 %load_X, ptr %deref3, align 1
+  %deref4 = load ptr, ptr %rX, align 8
+  %load_X5 = load i8, ptr %X, align 1
+  store i8 %load_X5, ptr %deref4, align 1
   ret void
 }
