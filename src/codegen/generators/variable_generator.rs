@@ -64,9 +64,12 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                         None
                     }
                 }
-                Dependency::Variable(name) => {
-                    self.global_index.find_fully_qualified_variable(name).map(|it| (name.as_str(), it))
-                }
+                Dependency::Variable(name) => self
+                    .global_index
+                    .find_fully_qualified_variable(name)
+                    // we dont want enum variants as global variables
+                    .filter(|var| !self.global_index.is_enum_variant(var.get_qualified_name()))
+                    .map(|it| (name.as_str(), it)),
                 Dependency::Call(_) => None,
             } {
                 globals.push(dep);

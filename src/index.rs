@@ -1627,6 +1627,11 @@ impl Index {
         self.type_index.find_type(name)?.find_member(variant)
     }
 
+    /// Returns true if the enum variant with the given qualified name exists.
+    pub fn is_enum_variant(&self, qualified_name: &str) -> bool {
+        self.find_enum_variant_by_qualified_name(qualified_name).is_some()
+    }
+
     /// Returns the index entry of the enum variant by its qualified name or [`None`] if it does not exist.
     pub fn find_enum_variant_by_qualified_name(&self, qualified_name: &str) -> Option<&VariableIndexEntry> {
         let (name, variant) = qualified_name.split('.').next_tuple()?;
