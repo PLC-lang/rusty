@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,24 +15,20 @@ target triple = "[filtered]"
 @utf16_literal_0 = private unnamed_addr constant [19 x i16] [i16 36, i16 52, i16 51, i16 32, i16 36, i16 39, i16 110, i16 111, i16 32, i16 114, i16 101, i16 112, i16 108, i16 97, i16 99, i16 101, i16 36, i16 39, i16 0]
 @utf16_literal_1 = private unnamed_addr constant [41 x i16] [i16 97, i16 10, i16 10, i16 32, i16 98, i16 10, i16 10, i16 32, i16 99, i16 12, i16 12, i16 32, i16 100, i16 13, i16 13, i16 32, i16 101, i16 9, i16 9, i16 32, i16 36, i16 32, i16 34, i16 100, i16 111, i16 117, i16 98, i16 108, i16 101, i16 34, i16 32, i16 87, i16 -10179, i16 -9066, i16 -10179, i16 -9066, i16 0, i16 0, i16 0, i16 0, i16 0]
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %should_replace_s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %should_not_replace_s = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %should_replace_ws = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %should_not_replace_ws = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %1 = bitcast [81 x i8]* %should_replace_s to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([41 x i8], [41 x i8]* @utf08_literal_1, i32 0, i32 0), i32 41, i1 false)
-  %2 = bitcast [81 x i8]* %should_not_replace_s to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([19 x i8], [19 x i8]* @utf08_literal_0, i32 0, i32 0), i32 19, i1 false)
-  %3 = bitcast [81 x i16]* %should_replace_ws to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %3, i8* align 2 bitcast ([41 x i16]* @utf16_literal_1 to i8*), i32 82, i1 false)
-  %4 = bitcast [81 x i16]* %should_not_replace_ws to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %4, i8* align 2 bitcast ([19 x i16]* @utf16_literal_0 to i8*), i32 38, i1 false)
+  %should_replace_s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %should_not_replace_s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %should_replace_ws = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %should_not_replace_ws = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %should_replace_s, ptr align 1 @utf08_literal_1, i32 41, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %should_not_replace_s, ptr align 1 @utf08_literal_0, i32 19, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %should_replace_ws, ptr align 2 @utf16_literal_1, i32 82, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %should_not_replace_ws, ptr align 2 @utf16_literal_0, i32 38, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

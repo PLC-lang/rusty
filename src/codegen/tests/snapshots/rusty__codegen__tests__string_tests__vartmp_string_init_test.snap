@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,22 +12,20 @@ target triple = "[filtered]"
 @prg_instance = global %prg zeroinitializer
 @__prg.z__init = unnamed_addr constant [31 x i8] c"xyz\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
   %y = alloca [16 x i8], align 1
   %z = alloca [31 x i8], align 1
-  %1 = bitcast [16 x i8]* %y to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([16 x i8]* getelementptr ([16 x i8], [16 x i8]* null, i32 1) to i64), i1 false)
-  %2 = bitcast [31 x i8]* %z to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %2, i8* align 1 getelementptr inbounds ([31 x i8], [31 x i8]* @__prg.z__init, i32 0, i32 0), i64 ptrtoint ([31 x i8]* getelementptr ([31 x i8], [31 x i8]* null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align 1 %y, i8 0, i64 ptrtoint (ptr getelementptr ([16 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %z, ptr align 1 @__prg.z__init, i64 ptrtoint (ptr getelementptr ([31 x i8], ptr null, i32 1) to i64), i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-attributes #1 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

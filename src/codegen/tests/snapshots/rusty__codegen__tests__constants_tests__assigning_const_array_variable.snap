@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/constants_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,15 +12,14 @@ target triple = "[filtered]"
 @const_arr = unnamed_addr constant [4 x i16] [i16 1, i16 2, i16 3, i16 4]
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %1 = bitcast [4 x i16]* %arr to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 bitcast ([4 x i16]* @const_arr to i8*), i64 ptrtoint ([4 x i16]* getelementptr ([4 x i16], [4 x i16]* null, i32 1) to i64), i1 false)
+  %arr = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 @const_arr, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

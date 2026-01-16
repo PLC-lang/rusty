@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,8 +13,8 @@ target triple = "[filtered]"
 @prog_instance = global %prog zeroinitializer
 @____prog_a__init = unnamed_addr constant %__prog_a zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

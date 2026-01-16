@@ -15,25 +15,25 @@ target triple = "[filtered]"
 @__bar__init = unnamed_addr constant %bar zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(ptr %0) {
 entry:
-  %this = alloca %foo*, align 8
-  store %foo* %0, %foo** %this, align 8
-  %bar_inst = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %bar_inst = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   ret void
 }
 
-define void @bar(%bar* %0) {
+define void @bar(ptr %0) {
 entry:
-  %this = alloca %bar*, align 8
-  store %bar* %0, %bar** %this, align 8
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %foo_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %bar_inst = getelementptr inbounds %foo, %foo* %foo_inst, i32 0, i32 0
-  call void @bar(%bar* %bar_inst)
+  %foo_inst = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %bar_inst = getelementptr inbounds nuw %foo, ptr %foo_inst, i32 0, i32 0
+  call void @bar(ptr %bar_inst)
   ret void
 }

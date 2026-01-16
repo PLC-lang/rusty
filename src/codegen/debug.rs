@@ -1119,9 +1119,44 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
             scope,
             None,
         );
+
         let key = VariableKey::new(name, Some(&function_scope.linking_context.get_call_name_for_ir()));
         let variable = self.variables.get(&key);
-        self.debug_info.insert_declare_at_end(value, variable.copied(), None, location, block);
+
+        if variable.is_none() {
+            // LLVM 19+ crashes with a segfault when `LLVMDIBuilderInsertDeclareRecordAtEnd` receives
+            // a null DILocalVariable pointer. Skip inserting the debug declare if the variable
+            // wasn't registered. To test, the unit test`actions_debug` should segfault when not
+            // early-returning here.
+            return;
+        }
+
+        // Workaround until inkwell 0.9 is released, see https://github.com/TheDan64/inkwell/issues/613
+        fn insert_declare_at_end_raw(
+            debug_info: &DebugInfoBuilder,
+            storage: PointerValue,
+            var_info: Option<DILocalVariable>,
+            expr: Option<inkwell::debug_info::DIExpression>,
+            debug_loc: inkwell::debug_info::DILocation,
+            block: BasicBlock,
+        ) {
+            // When expr is None, we create an empty expression (same as inkwell does internally).
+            let expr = expr.unwrap_or_else(|| debug_info.create_expression(vec![]));
+            unsafe {
+                inkwell::llvm_sys::debuginfo::LLVMDIBuilderInsertDeclareRecordAtEnd(
+                    debug_info.as_mut_ptr(),
+                    inkwell::values::AsValueRef::as_value_ref(&storage),
+                    var_info.map(|v| v.as_mut_ptr()).unwrap_or(std::ptr::null_mut()),
+                    expr.as_mut_ptr(),
+                    debug_loc.as_mut_ptr(),
+                    block.as_mut_ptr(),
+                );
+            }
+        }
+
+        // TODO: Replace function call below with `self.debug_info.insert_declare_at_end(value, variable.copied(), None, location, block);`
+        // once inkwell 0.9 is released.
+        insert_declare_at_end_raw(&self.debug_info, value, variable.copied(), None, location, block);
     }
 
     fn finalize(&self) {

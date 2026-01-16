@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/typesystem_test.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,15 +11,15 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %c = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %load_b = load i32, i32* %b, align 4
+  %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %load_b = load i32, ptr %b, align 4
   %1 = sext i32 %load_b to i64
-  %load_c = load i64, i64* %c, align 8
+  %load_c = load i64, ptr %c, align 8
   %tmpVar = add i64 %1, %load_c
-  store i64 %tmpVar, i64* %x, align 8
+  store i64 %tmpVar, ptr %x, align 8
   ret void
 }

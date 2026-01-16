@@ -122,13 +122,14 @@ impl<'a> Llvm<'a> {
     /// - `name` the name of the resulting variable
     pub fn load_array_element(
         &self,
+        pointee: BasicTypeEnum<'a>,
         pointer_to_array_instance: PointerValue<'a>,
         accessor_sequence: &[IntValue<'a>],
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
         unsafe {
             self.builder
-                .build_in_bounds_gep(pointer_to_array_instance, accessor_sequence, name)
+                .build_in_bounds_gep(pointee, pointer_to_array_instance, accessor_sequence, name)
                 .map_err(Into::into)
         }
     }
@@ -141,11 +142,14 @@ impl<'a> Llvm<'a> {
     /// - `offset` the location in case of a Diagnostic
     pub fn get_member_pointer_from_struct(
         &self,
+        pointee: BasicTypeEnum<'a>,
         pointer_to_struct_instance: PointerValue<'a>,
         member_index: u32,
         name: &str,
     ) -> Result<PointerValue<'a>, CodegenError> {
-        self.builder.build_struct_gep(pointer_to_struct_instance, member_index, name).map_err(Into::into)
+        self.builder
+            .build_struct_gep(pointee, pointer_to_struct_instance, member_index, name)
+            .map_err(Into::into)
     }
 
     /// loads the value behind the given pointer
@@ -154,10 +158,11 @@ impl<'a> Llvm<'a> {
     /// - `name` the name of the temporary variable
     pub fn load_pointer(
         &self,
+        pointee_ty: BasicTypeEnum<'a>,
         lvalue: &PointerValue<'a>,
         name: &str,
     ) -> Result<BasicValueEnum<'a>, CodegenError> {
-        self.builder.build_load(lvalue.to_owned(), name).map_err(Into::into)
+        self.builder.build_load(pointee_ty, lvalue.to_owned(), name).map_err(Into::into)
     }
 
     /// creates a placeholder datatype for a struct with the given name
@@ -216,7 +221,7 @@ impl<'a> Llvm<'a> {
 
     /// create a null pointer
     pub fn create_null_ptr(&self) -> Result<BasicValueEnum<'a>, CodegenError> {
-        let itype = self.context.i32_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
+        let itype = self.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
         let value = itype.const_null();
         Ok(value.into())
     }
@@ -400,38 +405,5 @@ impl<'a> Llvm<'a> {
             self.builder.build_store(variable_to_initialize, value)?;
         }
         Ok(())
-    }
-}
-
-/// A trait to get the fundamental element type from nested arrays
-pub(crate) trait FundamentalElementType<'a> {
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a>;
-}
-
-impl<'a> FundamentalElementType<'a> for PointerValue<'a> {
-    /// Gets the fundamental element type from a pointer to nested arrays
-    ///
-    /// For example: `[2 x [81 x i8]]*` -> `i8`, `[3 x i32]*` -> `i32`
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
-        let element_type = self.get_type().get_element_type();
-        if element_type.is_array_type() {
-            element_type.into_array_type().into_fundamental_type()
-        } else {
-            element_type.try_into().expect("Expected basic type")
-        }
-    }
-}
-
-impl<'a> FundamentalElementType<'a> for ArrayType<'a> {
-    /// Recursively gets the fundamental element type from nested arrays
-    ///
-    /// For example: `[2 x [81 x i8]` -> `i8`, `[3 x i32]` -> `i32`
-    fn into_fundamental_type(self) -> BasicTypeEnum<'a> {
-        let element_type = self.get_element_type();
-        if element_type.is_array_type() {
-            element_type.into_array_type().into_fundamental_type()
-        } else {
-            element_type
-        }
     }
 }

@@ -1,56 +1,50 @@
 ---
 source: tests/integration/cfc.rs
 expression: output_file_content_without_headers
-snapshot_kind: text
 ---
 target triple = "[filtered]"
 
 %foo = type { i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
 @foo_instance = global %foo zeroinitializer, !dbg !0
 
-define void @foo(%foo* %0) !dbg !11 {
+define void @foo(ptr %0) !dbg !11 {
 entry:
-  call void @llvm.dbg.declare(metadata %foo* %0, metadata !15, metadata !DIExpression()), !dbg !16
-  %val = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
+    #dbg_declare(ptr %0, !15, !DIExpression(), !16)
+  %val = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
   br label %lbl, !dbg !17
 
 lbl:                                              ; preds = %lbl, %entry
-  %load_val = load i32, i32* %val, align 4, !dbg !16
+  %load_val = load i32, ptr %val, align 4, !dbg !16
   %tmpVar = icmp eq i32 %load_val, 0, !dbg !16
   br i1 %tmpVar, label %lbl, label %else_block, !dbg !18
 
 else_block:                                       ; preds = %lbl
-  store i32 1, i32* %val, align 4, !dbg !19
+  store i32 1, ptr %val, align 4, !dbg !19
   ret void, !dbg !20
 }
 
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-define void @__init_foo(%foo* %0) {
+define void @__init_foo(ptr %0) {
 entry:
-  %self = alloca %foo*, align 8
-  store %foo* %0, %foo** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
-define void @__user_init_foo(%foo* %0) {
+define void @__user_init_foo(ptr %0) {
 entry:
-  %self = alloca %foo*, align 8
-  store %foo* %0, %foo** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
 define void @__init___plc() {
 entry:
-  call void @__init_foo(%foo* @foo_instance)
-  call void @__user_init_foo(%foo* @foo_instance)
+  call void @__init_foo(ptr @foo_instance)
+  call void @__user_init_foo(ptr @foo_instance)
   ret void
 }
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!7, !8}
 !llvm.dbg.cu = !{!9}

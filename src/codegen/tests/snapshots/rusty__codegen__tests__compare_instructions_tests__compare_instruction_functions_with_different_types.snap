@@ -1,128 +1,127 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%main = type { float*, i16, i32, float, double, i8, i16, i32, i64, i8, i16, i32, i64 }
+%main = type { ptr, i16, i32, float, double, i8, i16, i32, i64, i8, i16, i32, i64 }
 
 @main_instance = global %main zeroinitializer
 
 define float @foo() {
 entry:
   %foo = alloca float, align 4
-  store float 0.000000e+00, float* %foo, align 4
-  %foo_ret = load float, float* %foo, align 4
+  store float 0.000000e+00, ptr %foo, align 4
+  %foo_ret = load float, ptr %foo, align 4
   ret float %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %ptr_float = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %var_real = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %var_lreal = getelementptr inbounds %main, %main* %0, i32 0, i32 4
-  %var_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 5
-  %var_int = getelementptr inbounds %main, %main* %0, i32 0, i32 6
-  %var_dint = getelementptr inbounds %main, %main* %0, i32 0, i32 7
-  %var_lint = getelementptr inbounds %main, %main* %0, i32 0, i32 8
-  %var_usint = getelementptr inbounds %main, %main* %0, i32 0, i32 9
-  %var_uint = getelementptr inbounds %main, %main* %0, i32 0, i32 10
-  %var_udint = getelementptr inbounds %main, %main* %0, i32 0, i32 11
-  %var_ulint = getelementptr inbounds %main, %main* %0, i32 0, i32 12
-  store float* %var_real, float** %ptr_float, align 8
-  %load_var_sint = load i8, i8* %var_sint, align 1
+  %ptr_float = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %var_real = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %var_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 4
+  %var_sint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 5
+  %var_int = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 6
+  %var_dint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 7
+  %var_lint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 8
+  %var_usint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 9
+  %var_uint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 10
+  %var_udint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 11
+  %var_ulint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 12
+  store ptr %var_real, ptr %ptr_float, align 8
+  %load_var_sint = load i8, ptr %var_sint, align 1
   %1 = sext i8 %load_var_sint to i32
-  %load_var_dint = load i32, i32* %var_dint, align 4
+  %load_var_dint = load i32, ptr %var_dint, align 4
   %tmpVar = icmp eq i32 %1, %load_var_dint
   %2 = zext i1 %tmpVar to i8
-  %load_var_lreal = load double, double* %var_lreal, align 8
+  %load_var_lreal = load double, ptr %var_lreal, align 8
   %tmpVar1 = fcmp ogt double 1.050000e+01, %load_var_lreal
   %3 = zext i1 %tmpVar1 to i8
-  %load_var_usint = load i8, i8* %var_usint, align 1
+  %load_var_usint = load i8, ptr %var_usint, align 1
   %4 = zext i8 %load_var_usint to i32
-  %load_var_udint = load i32, i32* %var_udint, align 4
+  %load_var_udint = load i32, ptr %var_udint, align 4
   %tmpVar2 = icmp ne i32 %4, %load_var_udint
   %5 = zext i1 %tmpVar2 to i8
-  %load_var_uint = load i16, i16* %var_uint, align 2
+  %load_var_uint = load i16, ptr %var_uint, align 2
   %6 = zext i16 %load_var_uint to i32
   %tmpVar3 = icmp sle i32 %6, 40
   %7 = zext i1 %tmpVar3 to i8
-  %load_var_ulint = load i64, i64* %var_ulint, align 8
+  %load_var_ulint = load i64, ptr %var_ulint, align 8
   %tmpVar4 = icmp sge i64 10, %load_var_ulint
   %8 = zext i1 %tmpVar4 to i8
-  %load_var_sint5 = load i8, i8* %var_sint, align 1
+  %load_var_sint5 = load i8, ptr %var_sint, align 1
   %9 = sext i8 %load_var_sint5 to i32
-  %load_var_usint6 = load i8, i8* %var_usint, align 1
+  %load_var_usint6 = load i8, ptr %var_usint, align 1
   %10 = zext i8 %load_var_usint6 to i32
   %tmpVar7 = icmp eq i32 %9, %10
   %11 = zext i1 %tmpVar7 to i8
-  %load_var_uint8 = load i16, i16* %var_uint, align 2
+  %load_var_uint8 = load i16, ptr %var_uint, align 2
   %12 = zext i16 %load_var_uint8 to i64
-  %load_var_lint = load i64, i64* %var_lint, align 8
+  %load_var_lint = load i64, ptr %var_lint, align 8
   %tmpVar9 = icmp sle i64 %12, %load_var_lint
   %13 = zext i1 %tmpVar9 to i8
-  %load_var_dint10 = load i32, i32* %var_dint, align 4
+  %load_var_dint10 = load i32, ptr %var_dint, align 4
   %14 = sext i32 %load_var_dint10 to i64
-  %load_var_ulint11 = load i64, i64* %var_ulint, align 8
+  %load_var_ulint11 = load i64, ptr %var_ulint, align 8
   %tmpVar12 = icmp sge i64 %14, %load_var_ulint11
   %15 = zext i1 %tmpVar12 to i8
-  %load_var_lint13 = load i64, i64* %var_lint, align 8
-  %load_a = load i16, i16* %a, align 2
+  %load_var_lint13 = load i64, ptr %var_lint, align 8
+  %load_a = load i16, ptr %a, align 2
   %16 = sext i16 %load_a to i64
   %tmpVar14 = icmp slt i64 %load_var_lint13, %16
   %17 = zext i1 %tmpVar14 to i8
-  %load_a15 = load i16, i16* %a, align 2
+  %load_a15 = load i16, ptr %a, align 2
   %18 = sext i16 %load_a15 to i32
-  %load_var_sint16 = load i8, i8* %var_sint, align 1
+  %load_var_sint16 = load i8, ptr %var_sint, align 1
   %19 = sext i8 %load_var_sint16 to i32
   %tmpVar17 = icmp sgt i32 %18, %19
   %20 = zext i1 %tmpVar17 to i8
-  %load_b = load i32, i32* %b, align 4
+  %load_b = load i32, ptr %b, align 4
   %21 = sext i32 %load_b to i64
-  %load_var_lint18 = load i64, i64* %var_lint, align 8
+  %load_var_lint18 = load i64, ptr %var_lint, align 8
   %tmpVar19 = icmp slt i64 %21, %load_var_lint18
   %22 = zext i1 %tmpVar19 to i8
-  %load_b20 = load i32, i32* %b, align 4
+  %load_b20 = load i32, ptr %b, align 4
   %tmpVar21 = icmp ne i32 5, %load_b20
   br i1 %tmpVar21, label %23, label %24
 
 23:                                               ; preds = %entry
-  %load_b22 = load i32, i32* %b, align 4
+  %load_b22 = load i32, ptr %b, align 4
   %tmpVar23 = icmp ne i32 %load_b22, 17
   br label %24
 
 24:                                               ; preds = %23, %entry
   %25 = phi i1 [ %tmpVar21, %entry ], [ %tmpVar23, %23 ]
   %26 = zext i1 %25 to i8
-  %load_ptr_float = load float*, float** %ptr_float, align 8
-  %load_var_usint24 = load i8, i8* %var_usint, align 1
+  %load_ptr_float = load ptr, ptr %ptr_float, align 8
+  %load_var_usint24 = load i8, ptr %var_usint, align 1
   %27 = zext i8 %load_var_usint24 to i64
-  %28 = ptrtoint float* %load_ptr_float to i64
+  %28 = ptrtoint ptr %load_ptr_float to i64
   %tmpVar25 = icmp sle i64 %28, %27
   %29 = zext i1 %tmpVar25 to i8
-  %load_a26 = load i16, i16* %a, align 2
+  %load_a26 = load i16, ptr %a, align 2
   %30 = sext i16 %load_a26 to i64
-  %load_ptr_float27 = load float*, float** %ptr_float, align 8
-  %31 = ptrtoint float* %load_ptr_float27 to i64
+  %load_ptr_float27 = load ptr, ptr %ptr_float, align 8
+  %31 = ptrtoint ptr %load_ptr_float27 to i64
   %tmpVar28 = icmp eq i64 %30, %31
   %32 = zext i1 %tmpVar28 to i8
   %call = call float @foo()
   %tmpVar29 = fcmp one float %call, 4.050000e+01
   %33 = zext i1 %tmpVar29 to i8
-  %load_var_udint30 = load i32, i32* %var_udint, align 4
+  %load_var_udint30 = load i32, ptr %var_udint, align 4
   %34 = uitofp i32 %load_var_udint30 to float
   %call31 = call float @foo()
   %tmpVar32 = fcmp ole float %34, %call31
   %35 = zext i1 %tmpVar32 to i8
   %call33 = call float @foo()
   %36 = fpext float %call33 to double
-  %load_var_lint34 = load i64, i64* %var_lint, align 8
+  %load_var_lint34 = load i64, ptr %var_lint, align 8
   %37 = sitofp i64 %load_var_lint34 to double
   %tmpVar35 = fcmp oeq double %36, %37
   %38 = zext i1 %tmpVar35 to i8

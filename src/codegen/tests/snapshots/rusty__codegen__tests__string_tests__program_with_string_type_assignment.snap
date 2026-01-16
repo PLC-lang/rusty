@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -17,21 +16,18 @@ target triple = "[filtered]"
 @utf08_literal_1 = private unnamed_addr constant [17 x i8] c"im also a genius\00"
 @utf16_literal_0 = private unnamed_addr constant [17 x i16] [i16 105, i16 109, i16 32, i16 97, i16 108, i16 115, i16 111, i16 32, i16 97, i16 32, i16 103, i16 101, i16 110, i16 105, i16 117, i16 115, i16 0]
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %zz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %1 = bitcast [81 x i8]* %y to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([12 x i8], [12 x i8]* @utf08_literal_0, i32 0, i32 0), i32 12, i1 false)
-  %2 = bitcast [100 x i8]* %z to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([17 x i8], [17 x i8]* @utf08_literal_1, i32 0, i32 0), i32 17, i1 false)
-  %3 = bitcast [100 x i16]* %zz to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %3, i8* align 2 bitcast ([17 x i16]* @utf16_literal_0 to i8*), i32 34, i1 false)
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %zz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %y, ptr align 1 @utf08_literal_0, i32 12, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %z, ptr align 1 @utf08_literal_1, i32 17, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %zz, ptr align 2 @utf16_literal_0, i32 34, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

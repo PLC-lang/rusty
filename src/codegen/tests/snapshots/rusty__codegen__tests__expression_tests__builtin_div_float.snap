@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,13 +12,13 @@ entry:
   %main = alloca i32, align 4
   %x1 = alloca float, align 4
   %l1 = alloca double, align 8
-  store float 0.000000e+00, float* %x1, align 4
-  store double 0.000000e+00, double* %l1, align 8
-  store i32 0, i32* %main, align 4
-  %load_x1 = load float, float* %x1, align 4
+  store float 0.000000e+00, ptr %x1, align 4
+  store double 0.000000e+00, ptr %l1, align 8
+  store i32 0, ptr %main, align 4
+  %load_x1 = load float, ptr %x1, align 4
   %0 = fpext float %load_x1 to double
-  %load_l1 = load double, double* %l1, align 8
+  %load_l1 = load double, ptr %l1, align 8
   %tmpVar = fdiv double %0, %load_l1
-  %main_ret = load i32, i32* %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }

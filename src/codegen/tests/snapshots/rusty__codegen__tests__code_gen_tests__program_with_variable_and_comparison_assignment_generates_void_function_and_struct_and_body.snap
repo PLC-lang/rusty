@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,33 +11,33 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_x = load i32, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %load_x = load i32, ptr %x, align 4
   %tmpVar = icmp eq i32 %load_x, 1
   %1 = zext i1 %tmpVar to i8
-  store i8 %1, i8* %y, align 1
-  %load_x1 = load i32, i32* %x, align 4
+  store i8 %1, ptr %y, align 1
+  %load_x1 = load i32, ptr %x, align 4
   %tmpVar2 = icmp sgt i32 %load_x1, 2
   %2 = zext i1 %tmpVar2 to i8
-  store i8 %2, i8* %y, align 1
-  %load_x3 = load i32, i32* %x, align 4
+  store i8 %2, ptr %y, align 1
+  %load_x3 = load i32, ptr %x, align 4
   %tmpVar4 = icmp slt i32 %load_x3, 3
   %3 = zext i1 %tmpVar4 to i8
-  store i8 %3, i8* %y, align 1
-  %load_x5 = load i32, i32* %x, align 4
+  store i8 %3, ptr %y, align 1
+  %load_x5 = load i32, ptr %x, align 4
   %tmpVar6 = icmp ne i32 %load_x5, 4
   %4 = zext i1 %tmpVar6 to i8
-  store i8 %4, i8* %y, align 1
-  %load_x7 = load i32, i32* %x, align 4
+  store i8 %4, ptr %y, align 1
+  %load_x7 = load i32, ptr %x, align 4
   %tmpVar8 = icmp sge i32 %load_x7, 5
   %5 = zext i1 %tmpVar8 to i8
-  store i8 %5, i8* %y, align 1
-  %load_x9 = load i32, i32* %x, align 4
+  store i8 %5, ptr %y, align 1
+  %load_x9 = load i32, ptr %x, align 4
   %tmpVar10 = icmp sle i32 %load_x9, 6
   %6 = zext i1 %tmpVar10 to i8
-  store i8 %6, i8* %y, align 1
+  store i8 %6, ptr %y, align 1
   ret void
 }

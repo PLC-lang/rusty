@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,21 +9,20 @@ target triple = "[filtered]"
 
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"hello\00"
 
-define void @func(i8* %0, [81 x i8]* %1) {
+define void @func(ptr %0, ptr %1) {
 entry:
-  %func = alloca i8*, align 8
-  store i8* %0, i8** %func, align 8
-  %myout = alloca [81 x i8]*, align 8
-  store [81 x i8]* %1, [81 x i8]** %myout, align 8
-  %deref = load i8*, i8** %func, align 8
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %deref, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-  %deref1 = load [81 x i8]*, [81 x i8]** %myout, align 8
-  %2 = bitcast [81 x i8]* %deref1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %2, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+  %func = alloca ptr, align 8
+  store ptr %0, ptr %func, align 8
+  %myout = alloca ptr, align 8
+  store ptr %1, ptr %myout, align 8
+  %deref = load ptr, ptr %func, align 8
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+  %deref1 = load ptr, ptr %myout, align 8
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref1, ptr align 1 @utf08_literal_0, i32 6, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

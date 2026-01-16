@@ -501,7 +501,7 @@ fn switch_case_debug_info() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
@@ -509,14 +509,14 @@ fn switch_case_debug_info() {
       %x1 = alloca i16, align 2
       %x2 = alloca i16, align 2
       %x3 = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata i16* %x1, metadata !8, metadata !DIExpression()), !dbg !10
-      store i16 0, i16* %x1, align 2
-      call void @llvm.dbg.declare(metadata i16* %x2, metadata !11, metadata !DIExpression()), !dbg !12
-      store i16 0, i16* %x2, align 2
-      call void @llvm.dbg.declare(metadata i16* %x3, metadata !13, metadata !DIExpression()), !dbg !14
-      store i16 0, i16* %x3, align 2
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !15, metadata !DIExpression()), !dbg !17
-      store i32 0, i32* %main, align 4
+        #dbg_declare(ptr %x1, !8, !DIExpression(), !10)
+      store i16 0, ptr %x1, align 2
+        #dbg_declare(ptr %x2, !11, !DIExpression(), !12)
+      store i16 0, ptr %x2, align 2
+        #dbg_declare(ptr %x3, !13, !DIExpression(), !14)
+      store i16 0, ptr %x3, align 2
+        #dbg_declare(ptr %main, !15, !DIExpression(), !17)
+      store i32 0, ptr %main, align 4
       br label %condition_check, !dbg !18
 
     condition_check:                                  ; preds = %continue2, %entry
@@ -526,7 +526,7 @@ fn switch_case_debug_info() {
       br i1 false, label %condition_body, label %continue1, !dbg !19
 
     continue:                                         ; preds = %condition_body, %condition_check
-      %main_ret = load i32, i32* %main, align 4, !dbg !20
+      %main_ret = load i32, ptr %main, align 4, !dbg !20
       ret i32 %main_ret, !dbg !20
 
     condition_body:                                   ; preds = %while_body
@@ -536,12 +536,12 @@ fn switch_case_debug_info() {
       br label %continue1, !dbg !21
 
     continue1:                                        ; preds = %buffer_block, %while_body
-      %load_x1 = load i16, i16* %x1, align 2, !dbg !22
+      %load_x1 = load i16, ptr %x1, align 2, !dbg !22
       %0 = sext i16 %load_x1 to i32, !dbg !22
       %tmpVar = add i32 %0, 1, !dbg !22
       %1 = trunc i32 %tmpVar to i16, !dbg !22
-      store i16 %1, i16* %x1, align 2, !dbg !22
-      %load_x13 = load i16, i16* %x1, align 2, !dbg !22
+      store i16 %1, ptr %x1, align 2, !dbg !22
+      %load_x13 = load i16, ptr %x1, align 2, !dbg !22
       switch i16 %load_x13, label %else [
         i16 1, label %case
         i16 2, label %case4
@@ -549,36 +549,31 @@ fn switch_case_debug_info() {
       ], !dbg !23
 
     case:                                             ; preds = %continue1
-      store i16 1, i16* %x2, align 2, !dbg !24
+      store i16 1, ptr %x2, align 2, !dbg !24
       br label %continue2, !dbg !25
 
     case4:                                            ; preds = %continue1
-      store i16 2, i16* %x2, align 2, !dbg !26
+      store i16 2, ptr %x2, align 2, !dbg !26
       br label %continue2, !dbg !25
 
     case5:                                            ; preds = %continue1
-      store i16 3, i16* %x2, align 2, !dbg !27
+      store i16 3, ptr %x2, align 2, !dbg !27
       br label %continue2, !dbg !25
 
     else:                                             ; preds = %continue1
-      store i16 0, i16* %x1, align 2, !dbg !28
-      store i16 1, i16* %x2, align 2, !dbg !29
-      store i16 2, i16* %x3, align 2, !dbg !30
+      store i16 0, ptr %x1, align 2, !dbg !28
+      store i16 1, ptr %x2, align 2, !dbg !29
+      store i16 2, ptr %x3, align 2, !dbg !30
       br label %continue2, !dbg !25
 
     continue2:                                        ; preds = %else, %case5, %case4, %case
       br label %condition_check, !dbg !18
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -634,80 +629,75 @@ fn dbg_declare_has_valid_metadata_references_for_methods() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %__vtable_fb = type { void (%fb*)*, void (%fb*)* }
-    %fb = type { i32* }
+    %__vtable_fb = type { ptr, ptr }
+    %fb = type { ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @____vtable_fb__init = unnamed_addr constant %__vtable_fb zeroinitializer
     @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !0
     @__vtable_fb_instance = global %__vtable_fb zeroinitializer
 
-    define void @fb(%fb* %0) !dbg !14 {
+    define void @fb(ptr %0) !dbg !14 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !18, metadata !DIExpression()), !dbg !19
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !19
     }
 
-    define void @fb__foo(%fb* %0) !dbg !20 {
+    define void @fb__foo(ptr %0) !dbg !20 {
     entry:
-      call void @llvm.dbg.declare(metadata %fb* %0, metadata !21, metadata !DIExpression()), !dbg !22
-      %this = alloca %fb*, align 8
-      store %fb* %0, %fb** %this, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
+      %this = alloca ptr, align 8
+      store ptr %0, ptr %this, align 8
+      %__vtable = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
       ret void, !dbg !22
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init___vtable_fb(%__vtable_fb* %0) {
+    define void @__init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
-      %deref = load %__vtable_fb*, %__vtable_fb** %self, align 8
-      %__body = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref, i32 0, i32 0
-      store void (%fb*)* @fb, void (%fb*)** %__body, align 8
-      %deref1 = load %__vtable_fb*, %__vtable_fb** %self, align 8
-      %foo = getelementptr inbounds %__vtable_fb, %__vtable_fb* %deref1, i32 0, i32 1
-      store void (%fb*)* @fb__foo, void (%fb*)** %foo, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__body = getelementptr inbounds nuw %__vtable_fb, ptr %deref, i32 0, i32 0
+      store ptr @fb, ptr %__body, align 8
+      %deref1 = load ptr, ptr %self, align 8
+      %foo = getelementptr inbounds nuw %__vtable_fb, ptr %deref1, i32 0, i32 1
+      store ptr @fb__foo, ptr %foo, align 8
       ret void
     }
 
-    define void @__init_fb(%fb* %0) {
+    define void @__init_fb(ptr %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
-      %deref = load %fb*, %fb** %self, align 8
-      %__vtable = getelementptr inbounds %fb, %fb* %deref, i32 0, i32 0
-      store i32* bitcast (%__vtable_fb* @__vtable_fb_instance to i32*), i32** %__vtable, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %__vtable = getelementptr inbounds nuw %fb, ptr %deref, i32 0, i32 0
+      store ptr @__vtable_fb_instance, ptr %__vtable, align 8
       ret void
     }
 
-    define void @__user_init_fb(%fb* %0) {
+    define void @__user_init_fb(ptr %0) {
     entry:
-      %self = alloca %fb*, align 8
-      store %fb* %0, %fb** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init___vtable_fb(%__vtable_fb* %0) {
+    define void @__user_init___vtable_fb(ptr %0) {
     entry:
-      %self = alloca %__vtable_fb*, align 8
-      store %__vtable_fb* %0, %__vtable_fb** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init___vtable_fb(%__vtable_fb* @__vtable_fb_instance)
-      call void @__user_init___vtable_fb(%__vtable_fb* @__vtable_fb_instance)
+      call void @__init___vtable_fb(ptr @__vtable_fb_instance)
+      call void @__user_init___vtable_fb(ptr @__vtable_fb_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -771,67 +761,62 @@ fn action_with_var_temp() {
 
     %PLC_PRG = type {}
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
 
     define i32 @main() !dbg !9 {
     entry:
       %main = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !14
-      store i32 0, i32* %main, align 4
-      call void @PLC_PRG(%PLC_PRG* @PLC_PRG_instance), !dbg !15
-      call void @PLC_PRG__act(%PLC_PRG* @PLC_PRG_instance), !dbg !16
-      %main_ret = load i32, i32* %main, align 4, !dbg !17
+        #dbg_declare(ptr %main, !12, !DIExpression(), !14)
+      store i32 0, ptr %main, align 4
+      call void @PLC_PRG(ptr @PLC_PRG_instance), !dbg !15
+      call void @PLC_PRG__act(ptr @PLC_PRG_instance), !dbg !16
+      %main_ret = load i32, ptr %main, align 4, !dbg !17
       ret i32 %main_ret, !dbg !17
     }
 
-    define void @PLC_PRG(%PLC_PRG* %0) !dbg !18 {
+    define void @PLC_PRG(ptr %0) !dbg !18 {
     entry:
-      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !21, metadata !DIExpression()), !dbg !22
+        #dbg_declare(ptr %0, !21, !DIExpression(), !22)
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %x, metadata !23, metadata !DIExpression()), !dbg !24
-      store i32 0, i32* %x, align 4
-      store i32 0, i32* %x, align 4, !dbg !22
+        #dbg_declare(ptr %x, !23, !DIExpression(), !24)
+      store i32 0, ptr %x, align 4
+      store i32 0, ptr %x, align 4, !dbg !22
       ret void, !dbg !25
     }
 
-    define void @PLC_PRG__act(%PLC_PRG* %0) !dbg !26 {
+    define void @PLC_PRG__act(ptr %0) !dbg !26 {
     entry:
-      call void @llvm.dbg.declare(metadata %PLC_PRG* %0, metadata !27, metadata !DIExpression()), !dbg !28
+        #dbg_declare(ptr %0, !27, !DIExpression(), !28)
       %x = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %x, metadata !29, metadata !DIExpression()), !dbg !30
-      store i32 0, i32* %x, align 4
-      %load_x = load i32, i32* %x, align 4, !dbg !28
+        #dbg_declare(ptr %x, !29, !DIExpression(), !30)
+      store i32 0, ptr %x, align 4
+      %load_x = load i32, ptr %x, align 4, !dbg !28
       %tmpVar = add i32 %load_x, 1, !dbg !28
-      store i32 %tmpVar, i32* %x, align 4, !dbg !28
+      store i32 %tmpVar, ptr %x, align 4, !dbg !28
       ret void, !dbg !31
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_plc_prg(%PLC_PRG* %0) {
+    define void @__init_plc_prg(ptr %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_PLC_PRG(%PLC_PRG* %0) {
+    define void @__user_init_PLC_PRG(ptr %0) {
     entry:
-      %self = alloca %PLC_PRG*, align 8
-      store %PLC_PRG* %0, %PLC_PRG** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_plc_prg(%PLC_PRG* @PLC_PRG_instance)
-      call void @__user_init_PLC_PRG(%PLC_PRG* @PLC_PRG_instance)
+      call void @__init_plc_prg(ptr @PLC_PRG_instance)
+      call void @__user_init_PLC_PRG(ptr @PLC_PRG_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -922,7 +907,7 @@ END_FUNCTION
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -934,7 +919,7 @@ END_FUNCTION
     @__struct___init = unnamed_addr constant %struct_ { %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, [3 x %inner] zeroinitializer, [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !0
     @__inner__init = unnamed_addr constant %inner { [81 x i8] c"Hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", i8 1, float 0x400921CAC0000000, [3 x [81 x i8]] [[81 x i8] c"aaaa\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"bbbb\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00", [81 x i8] c"cccc\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"], i16 42 }, !dbg !32
     @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"Hello\00"
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define void @main() !dbg !39 {
     entry:
@@ -943,145 +928,123 @@ END_FUNCTION
       %b = alloca i8, align 1
       %arr = alloca [3 x [81 x i8]], align 1
       %i = alloca i16, align 2
-      call void @llvm.dbg.declare(metadata %struct_* %st, metadata !43, metadata !DIExpression()), !dbg !44
-      %0 = bitcast %struct_* %st to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%struct_, %struct_* @__struct___init, i32 0, i32 0, i32 0, i32 0), i64 ptrtoint (%struct_* getelementptr (%struct_, %struct_* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata [81 x i8]* %s, metadata !45, metadata !DIExpression()), !dbg !46
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %1, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i8* %b, metadata !47, metadata !DIExpression()), !dbg !48
-      store i8 0, i8* %b, align 1
-      call void @llvm.dbg.declare(metadata [3 x [81 x i8]]* %arr, metadata !49, metadata !DIExpression()), !dbg !50
-      %2 = bitcast [3 x [81 x i8]]* %arr to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false)
-      call void @llvm.dbg.declare(metadata i16* %i, metadata !51, metadata !DIExpression()), !dbg !52
-      store i16 0, i16* %i, align 2
-      call void @__init_struct_(%struct_* %st), !dbg !53
-      call void @__user_init_struct_(%struct_* %st), !dbg !53
-      %s1 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 2, !dbg !54
-      %3 = bitcast [81 x i8]* %s to i8*, !dbg !54
-      %4 = bitcast [81 x i8]* %s1 to i8*, !dbg !54
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %3, i8* align 1 %4, i32 80, i1 false), !dbg !54
-      %inner = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !55
-      %s2 = getelementptr inbounds %inner, %inner* %inner, i32 0, i32 0, !dbg !55
-      %5 = bitcast [81 x i8]* %s to i8*, !dbg !55
-      %6 = bitcast [81 x i8]* %s2 to i8*, !dbg !55
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %5, i8* align 1 %6, i32 80, i1 false), !dbg !55
-      %b3 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 3, !dbg !56
-      %load_b = load i8, i8* %b3, align 1, !dbg !56
-      store i8 %load_b, i8* %b, align 1, !dbg !56
-      %inner4 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !57
-      %b5 = getelementptr inbounds %inner, %inner* %inner4, i32 0, i32 1, !dbg !57
-      %load_b6 = load i8, i8* %b5, align 1, !dbg !57
-      store i8 %load_b6, i8* %b, align 1, !dbg !57
-      %arr7 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !58
-      %7 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !58
-      %8 = bitcast [3 x [81 x i8]]* %arr7 to i8*, !dbg !58
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %7, i8* align 1 %8, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !58
-      %inner8 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !59
-      %arr9 = getelementptr inbounds %inner, %inner* %inner8, i32 0, i32 3, !dbg !59
-      %9 = bitcast [3 x [81 x i8]]* %arr to i8*, !dbg !59
-      %10 = bitcast [3 x [81 x i8]]* %arr9 to i8*, !dbg !59
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %9, i8* align 1 %10, i64 ptrtoint ([3 x [81 x i8]]* getelementptr ([3 x [81 x i8]], [3 x [81 x i8]]* null, i32 1) to i64), i1 false), !dbg !59
-      %i10 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 6, !dbg !60
-      %load_i = load i16, i16* %i10, align 2, !dbg !60
-      store i16 %load_i, i16* %i, align 2, !dbg !60
-      %inner11 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !61
-      %i12 = getelementptr inbounds %inner, %inner* %inner11, i32 0, i32 4, !dbg !61
-      %load_i13 = load i16, i16* %i12, align 2, !dbg !61
-      store i16 %load_i13, i16* %i, align 2, !dbg !61
-      %tmpVar = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 0, !dbg !62
-      %arr14 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 5, !dbg !62
-      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr14, i32 0, i32 0, !dbg !62
-      %11 = bitcast [81 x i8]* %tmpVar to i8*, !dbg !62
-      %12 = bitcast [81 x i8]* %tmpVar15 to i8*, !dbg !62
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %11, i8* align 1 %12, i32 80, i1 false), !dbg !62
-      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 1, !dbg !63
-      %inner17 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !63
-      %arr18 = getelementptr inbounds %inner, %inner* %inner17, i32 0, i32 3, !dbg !63
-      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr18, i32 0, i32 1, !dbg !63
-      %13 = bitcast [81 x i8]* %tmpVar16 to i8*, !dbg !63
-      %14 = bitcast [81 x i8]* %tmpVar19 to i8*, !dbg !63
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %13, i8* align 1 %14, i32 80, i1 false), !dbg !63
-      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr, i32 0, i32 2, !dbg !64
-      %inner21 = getelementptr inbounds %struct_, %struct_* %st, i32 0, i32 0, !dbg !64
-      %arr22 = getelementptr inbounds %inner, %inner* %inner21, i32 0, i32 3, !dbg !64
-      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], [3 x [81 x i8]]* %arr22, i32 0, i32 2, !dbg !64
-      %15 = bitcast [81 x i8]* %tmpVar20 to i8*, !dbg !64
-      %16 = bitcast [81 x i8]* %tmpVar23 to i8*, !dbg !64
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %15, i8* align 1 %16, i32 80, i1 false), !dbg !64
+        #dbg_declare(ptr %st, !43, !DIExpression(), !44)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %st, ptr align 1 @__struct___init, i64 ptrtoint (ptr getelementptr (%struct_, ptr null, i32 1) to i64), i1 false)
+        #dbg_declare(ptr %s, !45, !DIExpression(), !46)
+      call void @llvm.memset.p0.i64(ptr align 1 %s, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+        #dbg_declare(ptr %b, !47, !DIExpression(), !48)
+      store i8 0, ptr %b, align 1
+        #dbg_declare(ptr %arr, !49, !DIExpression(), !50)
+      call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false)
+        #dbg_declare(ptr %i, !51, !DIExpression(), !52)
+      store i16 0, ptr %i, align 2
+      call void @__init_struct_(ptr %st), !dbg !53
+      call void @__user_init_struct_(ptr %st), !dbg !53
+      %s1 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 2, !dbg !54
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s1, i32 80, i1 false), !dbg !54
+      %inner = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !55
+      %s2 = getelementptr inbounds nuw %inner, ptr %inner, i32 0, i32 0, !dbg !55
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 %s2, i32 80, i1 false), !dbg !55
+      %b3 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 3, !dbg !56
+      %load_b = load i8, ptr %b3, align 1, !dbg !56
+      store i8 %load_b, ptr %b, align 1, !dbg !56
+      %inner4 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !57
+      %b5 = getelementptr inbounds nuw %inner, ptr %inner4, i32 0, i32 1, !dbg !57
+      %load_b6 = load i8, ptr %b5, align 1, !dbg !57
+      store i8 %load_b6, ptr %b, align 1, !dbg !57
+      %arr7 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !58
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr7, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !58
+      %inner8 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !59
+      %arr9 = getelementptr inbounds nuw %inner, ptr %inner8, i32 0, i32 3, !dbg !59
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arr, ptr align 1 %arr9, i64 ptrtoint (ptr getelementptr ([3 x [81 x i8]], ptr null, i32 1) to i64), i1 false), !dbg !59
+      %i10 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 6, !dbg !60
+      %load_i = load i16, ptr %i10, align 2, !dbg !60
+      store i16 %load_i, ptr %i, align 2, !dbg !60
+      %inner11 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !61
+      %i12 = getelementptr inbounds nuw %inner, ptr %inner11, i32 0, i32 4, !dbg !61
+      %load_i13 = load i16, ptr %i12, align 2, !dbg !61
+      store i16 %load_i13, ptr %i, align 2, !dbg !61
+      %tmpVar = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 0, !dbg !62
+      %arr14 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 5, !dbg !62
+      %tmpVar15 = getelementptr inbounds [3 x [81 x i8]], ptr %arr14, i32 0, i32 0, !dbg !62
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar, ptr align 1 %tmpVar15, i32 80, i1 false), !dbg !62
+      %tmpVar16 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 1, !dbg !63
+      %inner17 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !63
+      %arr18 = getelementptr inbounds nuw %inner, ptr %inner17, i32 0, i32 3, !dbg !63
+      %tmpVar19 = getelementptr inbounds [3 x [81 x i8]], ptr %arr18, i32 0, i32 1, !dbg !63
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar16, ptr align 1 %tmpVar19, i32 80, i1 false), !dbg !63
+      %tmpVar20 = getelementptr inbounds [3 x [81 x i8]], ptr %arr, i32 0, i32 2, !dbg !64
+      %inner21 = getelementptr inbounds nuw %struct_, ptr %st, i32 0, i32 0, !dbg !64
+      %arr22 = getelementptr inbounds nuw %inner, ptr %inner21, i32 0, i32 3, !dbg !64
+      %tmpVar23 = getelementptr inbounds [3 x [81 x i8]], ptr %arr22, i32 0, i32 2, !dbg !64
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %tmpVar20, ptr align 1 %tmpVar23, i32 80, i1 false), !dbg !64
       ret void, !dbg !65
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #2
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #1
-
-    define void @__init_struct_(%struct_* %0) {
+    define void @__init_struct_(ptr %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
-      call void @__init_inner(%inner* %inner)
-      %deref1 = load %struct_*, %struct_** %self, align 8
-      %s = getelementptr inbounds %struct_, %struct_* %deref1, i32 0, i32 2
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref2 = load %struct_*, %struct_** %self, align 8
-      %b = getelementptr inbounds %struct_, %struct_* %deref2, i32 0, i32 3
-      store i8 1, i8* %b, align 1
-      %deref3 = load %struct_*, %struct_** %self, align 8
-      %r = getelementptr inbounds %struct_, %struct_* %deref3, i32 0, i32 4
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref4 = load %struct_*, %struct_** %self, align 8
-      %i = getelementptr inbounds %struct_, %struct_* %deref4, i32 0, i32 6
-      store i16 42, i16* %i, align 2
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
+      call void @__init_inner(ptr %inner)
+      %deref1 = load ptr, ptr %self, align 8
+      %s = getelementptr inbounds nuw %struct_, ptr %deref1, i32 0, i32 2
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref2 = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds nuw %struct_, ptr %deref2, i32 0, i32 3
+      store i8 1, ptr %b, align 1
+      %deref3 = load ptr, ptr %self, align 8
+      %r = getelementptr inbounds nuw %struct_, ptr %deref3, i32 0, i32 4
+      store float 0x400921CAC0000000, ptr %r, align 4
+      %deref4 = load ptr, ptr %self, align 8
+      %i = getelementptr inbounds nuw %struct_, ptr %deref4, i32 0, i32 6
+      store i16 42, ptr %i, align 2
       ret void
     }
 
-    define void @__init_inner(%inner* %0) {
+    define void @__init_inner(ptr %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
-      %deref = load %inner*, %inner** %self, align 8
-      %s = getelementptr inbounds %inner, %inner* %deref, i32 0, i32 0
-      %1 = bitcast [81 x i8]* %s to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
-      %deref1 = load %inner*, %inner** %self, align 8
-      %b = getelementptr inbounds %inner, %inner* %deref1, i32 0, i32 1
-      store i8 1, i8* %b, align 1
-      %deref2 = load %inner*, %inner** %self, align 8
-      %r = getelementptr inbounds %inner, %inner* %deref2, i32 0, i32 2
-      store float 0x400921CAC0000000, float* %r, align 4
-      %deref3 = load %inner*, %inner** %self, align 8
-      %i = getelementptr inbounds %inner, %inner* %deref3, i32 0, i32 4
-      store i16 42, i16* %i, align 2
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %s = getelementptr inbounds nuw %inner, ptr %deref, i32 0, i32 0
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %s, ptr align 1 @utf08_literal_0, i32 6, i1 false)
+      %deref1 = load ptr, ptr %self, align 8
+      %b = getelementptr inbounds nuw %inner, ptr %deref1, i32 0, i32 1
+      store i8 1, ptr %b, align 1
+      %deref2 = load ptr, ptr %self, align 8
+      %r = getelementptr inbounds nuw %inner, ptr %deref2, i32 0, i32 2
+      store float 0x400921CAC0000000, ptr %r, align 4
+      %deref3 = load ptr, ptr %self, align 8
+      %i = getelementptr inbounds nuw %inner, ptr %deref3, i32 0, i32 4
+      store i16 42, ptr %i, align 2
       ret void
     }
 
-    define void @__user_init_inner(%inner* %0) {
+    define void @__user_init_inner(ptr %0) {
     entry:
-      %self = alloca %inner*, align 8
-      store %inner* %0, %inner** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_struct_(%struct_* %0) {
+    define void @__user_init_struct_(ptr %0) {
     entry:
-      %self = alloca %struct_*, align 8
-      store %struct_* %0, %struct_** %self, align 8
-      %deref = load %struct_*, %struct_** %self, align 8
-      %inner = getelementptr inbounds %struct_, %struct_* %deref, i32 0, i32 0
-      call void @__user_init_inner(%inner* %inner)
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
+      %deref = load ptr, ptr %self, align 8
+      %inner = getelementptr inbounds nuw %struct_, ptr %deref, i32 0, i32 0
+      call void @__user_init_inner(ptr %inner)
       ret void
     }
 
@@ -1090,9 +1053,8 @@ END_FUNCTION
       ret void
     }
 
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-    attributes #1 = { argmemonly nofree nounwind willreturn }
-    attributes #2 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }
 
     !llvm.module.flags = !{!35, !36}
     !llvm.dbg.cu = !{!37}
@@ -1163,7 +1125,7 @@ END_FUNCTION
     !63 = !DILocation(line: 42, column: 4, scope: !39)
     !64 = !DILocation(line: 43, column: 4, scope: !39)
     !65 = !DILocation(line: 45, scope: !39)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1195,7 +1157,7 @@ fn constants_are_tagged_as_such() {
     ",
     );
 
-    filtered_assert_snapshot!(result, @r###"
+    filtered_assert_snapshot!(result, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1206,17 +1168,17 @@ fn constants_are_tagged_as_such() {
 
     @x = unnamed_addr constant i32 0, !dbg !0
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog zeroinitializer, !dbg !13
     @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !20
     @f = unnamed_addr constant %foo zeroinitializer, !dbg !26
 
-    define void @prog(%prog* %0) !dbg !32 {
+    define void @prog(ptr %0) !dbg !32 {
     entry:
-      call void @llvm.dbg.declare(metadata %prog* %0, metadata !36, metadata !DIExpression()), !dbg !37
-      %a = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-      %c = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
+        #dbg_declare(ptr %0, !36, !DIExpression(), !37)
+      %a = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+      %c = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
       ret void, !dbg !37
     }
 
@@ -1224,55 +1186,50 @@ fn constants_are_tagged_as_such() {
     entry:
       %bar = alloca i32, align 4
       %d = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %d, metadata !41, metadata !DIExpression()), !dbg !42
-      store i32 42, i32* %d, align 4
-      call void @llvm.dbg.declare(metadata i32* %bar, metadata !43, metadata !DIExpression()), !dbg !44
-      store i32 0, i32* %bar, align 4
-      %bar_ret = load i32, i32* %bar, align 4, !dbg !45
+        #dbg_declare(ptr %d, !41, !DIExpression(), !42)
+      store i32 42, ptr %d, align 4
+        #dbg_declare(ptr %bar, !43, !DIExpression(), !44)
+      store i32 0, ptr %bar, align 4
+      %bar_ret = load i32, ptr %bar, align 4, !dbg !45
       ret i32 %bar_ret, !dbg !45
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_foo(%foo* %0) {
+    define void @__init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_prog(%prog* %0) {
+    define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_foo(%foo* %0) {
+    define void @__user_init_foo(ptr %0) {
     entry:
-      %self = alloca %foo*, align 8
-      store %foo* %0, %foo** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_prog(%prog* %0) {
+    define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_prog(%prog* @prog_instance)
-      call void @__init_foo(%foo* @f)
-      call void @__user_init_prog(%prog* @prog_instance)
-      call void @__user_init_foo(%foo* @f)
+      call void @__init_prog(ptr @prog_instance)
+      call void @__init_foo(ptr @f)
+      call void @__user_init_prog(ptr @prog_instance)
+      call void @__user_init_foo(ptr @f)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!28, !29}
     !llvm.dbg.cu = !{!30}
@@ -1323,7 +1280,7 @@ fn constants_are_tagged_as_such() {
     !43 = !DILocalVariable(name: "bar", scope: !38, file: !2, line: 19, type: !4, align: 32)
     !44 = !DILocation(line: 19, column: 17, scope: !38)
     !45 = !DILocation(line: 23, column: 8, scope: !38)
-    "###);
+    "#);
 }
 
 #[test]
@@ -1351,24 +1308,24 @@ fn test_debug_info_regular_pointer_types() {
 
     %myStruct = type { i32, i8 }
 
-    @basic_ptr = global i32* null, !dbg !0
-    @array_ptr = global [11 x i32]* null, !dbg !6
-    @struct_ptr = global %myStruct* null, !dbg !13
-    @string_ptr = global [81 x i8]* null, !dbg !22
+    @basic_ptr = global ptr null, !dbg !0
+    @array_ptr = global ptr null, !dbg !6
+    @struct_ptr = global ptr null, !dbg !13
+    @string_ptr = global ptr null, !dbg !22
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
@@ -1451,63 +1408,58 @@ fn test_debug_info_auto_deref_parameters() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %test_with_ref_params = type { [81 x i8]*, [6 x i32]*, i32*, %myStruct*, i32* }
+    %test_with_ref_params = type { ptr, ptr, ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !34
 
-    define void @test_with_ref_params(%test_with_ref_params* %0) !dbg !41 {
+    define void @test_with_ref_params(ptr %0) !dbg !41 {
     entry:
-      call void @llvm.dbg.declare(metadata %test_with_ref_params* %0, metadata !45, metadata !DIExpression()), !dbg !46
-      %input_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 0
-      %array_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 1
-      %inout_value = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 2
-      %inout_struct = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 3
-      %local_ref = getelementptr inbounds %test_with_ref_params, %test_with_ref_params* %0, i32 0, i32 4
+        #dbg_declare(ptr %0, !45, !DIExpression(), !46)
+      %input_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 0
+      %array_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 1
+      %inout_value = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 2
+      %inout_struct = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 3
+      %local_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %0, i32 0, i32 4
       ret void, !dbg !46
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_test_with_ref_params(%test_with_ref_params* %0) {
+    define void @__init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_test_with_ref_params(%test_with_ref_params* %0) {
+    define void @__user_init_test_with_ref_params(ptr %0) {
     entry:
-      %self = alloca %test_with_ref_params*, align 8
-      store %test_with_ref_params* %0, %test_with_ref_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_test_with_ref_params(%test_with_ref_params* @test_with_ref_params_instance)
-      call void @__user_init_test_with_ref_params(%test_with_ref_params* @test_with_ref_params_instance)
+      call void @__init_test_with_ref_params(ptr @test_with_ref_params_instance)
+      call void @__user_init_test_with_ref_params(ptr @test_with_ref_params_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!37, !38}
     !llvm.dbg.cu = !{!39}
@@ -1580,7 +1532,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     END_STRUCT END_TYPE
     "#,
     );
-    filtered_assert_snapshot!(codegen, @r###"
+    filtered_assert_snapshot!(codegen, @r#"
     ; ModuleID = '<internal>'
     source_filename = "<internal>"
     target datalayout = "[filtered]"
@@ -1588,33 +1540,33 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
     @global_struct = global %myStruct zeroinitializer, !dbg !10
     @global_var = global i32 42, !dbg !12
-    @alias_int = global i32* null, !dbg !14
-    @alias_struct = global %myStruct* null, !dbg !18
+    @alias_int = global ptr null, !dbg !14
+    @alias_struct = global ptr null, !dbg !18
 
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mystruct(%myStruct* @global_struct)
-      store i32* @global_var, i32** @alias_int, align 8
-      store %myStruct* @global_struct, %myStruct** @alias_struct, align 8
-      call void @__user_init_myStruct(%myStruct* @global_struct)
+      call void @__init_mystruct(ptr @global_struct)
+      store ptr @global_var, ptr @alias_int, align 8
+      store ptr @global_struct, ptr @alias_struct, align 8
+      call void @__user_init_myStruct(ptr @global_struct)
       ret void
     }
 
@@ -1647,7 +1599,7 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
     !25 = !{!12, !14, !10, !0, !18}
-    "###)
+    "#)
 }
 
 #[test]
@@ -1679,49 +1631,44 @@ fn test_debug_info_mixed_pointer_types() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %mixed_ptr = type { [81 x i8]*, i32*, i8*, i8* }
+    %mixed_ptr = type { ptr, ptr, ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !0
-    @regular_ptr = global i32* null, !dbg !24
-    @alias_var = global i32** null, !dbg !28
+    @regular_ptr = global ptr null, !dbg !24
+    @alias_var = global ptr null, !dbg !28
 
-    define void @mixed_ptr(%mixed_ptr* %0) !dbg !38 {
+    define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
-      call void @llvm.dbg.declare(metadata %mixed_ptr* %0, metadata !42, metadata !DIExpression()), !dbg !43
-      %ref_param = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 0
-      %inout_param = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 1
-      %local_ptr = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 2
-      %local_ref = getelementptr inbounds %mixed_ptr, %mixed_ptr* %0, i32 0, i32 3
+        #dbg_declare(ptr %0, !42, !DIExpression(), !43)
+      %ref_param = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 0
+      %inout_param = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 1
+      %local_ptr = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 2
+      %local_ref = getelementptr inbounds nuw %mixed_ptr, ptr %0, i32 0, i32 3
       ret void, !dbg !43
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_mixed_ptr(%mixed_ptr* %0) {
+    define void @__init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_mixed_ptr(%mixed_ptr* %0) {
+    define void @__user_init_mixed_ptr(ptr %0) {
     entry:
-      %self = alloca %mixed_ptr*, align 8
-      store %mixed_ptr* %0, %mixed_ptr** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
-      store i32** @regular_ptr, i32*** @alias_var, align 8
-      call void @__user_init_mixed_ptr(%mixed_ptr* @mixed_ptr_instance)
+      call void @__init_mixed_ptr(ptr @mixed_ptr_instance)
+      store ptr @regular_ptr, ptr @alias_var, align 8
+      call void @__user_init_mixed_ptr(ptr @mixed_ptr_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
@@ -1806,65 +1753,60 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
+    %test_with_reference_params = type { ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
-    %test_with_reference_params = type { i32*, [6 x i8]*, %myStruct* }
 
-    @basic_reference = global i32* null, !dbg !0
-    @array_reference = global [11 x i32]* null, !dbg !6
-    @struct_reference = global %myStruct* null, !dbg !13
-    @string_reference = global [81 x i8]* null, !dbg !22
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @basic_reference = global ptr null, !dbg !0
+    @array_reference = global ptr null, !dbg !6
+    @struct_reference = global ptr null, !dbg !13
+    @string_reference = global ptr null, !dbg !22
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !47
 
-    define void @test_with_reference_params(%test_with_reference_params* %0) !dbg !54 {
+    define void @test_with_reference_params(ptr %0) !dbg !54 {
     entry:
-      call void @llvm.dbg.declare(metadata %test_with_reference_params* %0, metadata !58, metadata !DIExpression()), !dbg !59
-      %ref_param = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 0
-      %array_ref_param = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 1
-      %local_reference = getelementptr inbounds %test_with_reference_params, %test_with_reference_params* %0, i32 0, i32 2
+        #dbg_declare(ptr %0, !58, !DIExpression(), !59)
+      %ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 0
+      %array_ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 1
+      %local_reference = getelementptr inbounds nuw %test_with_reference_params, ptr %0, i32 0, i32 2
       ret void, !dbg !59
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_mystruct(%myStruct* %0) {
+    define void @__init_mystruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__init_test_with_reference_params(%test_with_reference_params* %0) {
+    define void @__init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_myStruct(%myStruct* %0) {
+    define void @__user_init_myStruct(ptr %0) {
     entry:
-      %self = alloca %myStruct*, align 8
-      store %myStruct* %0, %myStruct** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_test_with_reference_params(%test_with_reference_params* %0) {
+    define void @__user_init_test_with_reference_params(ptr %0) {
     entry:
-      %self = alloca %test_with_reference_params*, align 8
-      store %test_with_reference_params* %0, %test_with_reference_params** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_test_with_reference_params(%test_with_reference_params* @test_with_reference_params_instance)
-      call void @__user_init_test_with_reference_params(%test_with_reference_params* @test_with_reference_params_instance)
+      call void @__init_test_with_reference_params(ptr @test_with_reference_params_instance)
+      call void @__user_init_test_with_reference_params(ptr @test_with_reference_params_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!50, !51}
     !llvm.dbg.cu = !{!52}
@@ -1955,32 +1897,27 @@ fn range_datatype_debug() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !4 {
     entry:
       %main = alloca i32, align 4
       %r = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %r, metadata !8, metadata !DIExpression()), !dbg !11
-      store i32 0, i32* %r, align 4
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !12, metadata !DIExpression()), !dbg !13
-      store i32 0, i32* %main, align 4
-      store i32 50, i32* %r, align 4, !dbg !14
-      %load_r = load i32, i32* %r, align 4, !dbg !15
-      store i32 %load_r, i32* %main, align 4, !dbg !15
-      %main_ret = load i32, i32* %main, align 4, !dbg !16
+        #dbg_declare(ptr %r, !8, !DIExpression(), !11)
+      store i32 0, ptr %r, align 4
+        #dbg_declare(ptr %main, !12, !DIExpression(), !13)
+      store i32 0, ptr %main, align 4
+      store i32 50, ptr %r, align 4, !dbg !14
+      %load_r = load i32, ptr %r, align 4, !dbg !15
+      store i32 %load_r, ptr %main, align 4, !dbg !15
+      %main_ret = load i32, ptr %main, align 4, !dbg !16
       ret i32 %main_ret, !dbg !16
     }
-
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
@@ -2033,32 +1970,27 @@ fn range_datatype_reference_expr_bounds_debug() {
     target triple = "[filtered]"
 
     @ZERO = unnamed_addr constant i32 0, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !9 {
     entry:
       %main = alloca i32, align 4
       %r = alloca i32, align 4
-      call void @llvm.dbg.declare(metadata i32* %r, metadata !13, metadata !DIExpression()), !dbg !15
-      store i32 0, i32* %r, align 4
-      call void @llvm.dbg.declare(metadata i32* %main, metadata !16, metadata !DIExpression()), !dbg !17
-      store i32 0, i32* %main, align 4
-      store i32 50, i32* %r, align 4, !dbg !18
-      %load_r = load i32, i32* %r, align 4, !dbg !19
-      store i32 %load_r, i32* %main, align 4, !dbg !19
-      %main_ret = load i32, i32* %main, align 4, !dbg !20
+        #dbg_declare(ptr %r, !13, !DIExpression(), !15)
+      store i32 0, ptr %r, align 4
+        #dbg_declare(ptr %main, !16, !DIExpression(), !17)
+      store i32 0, ptr %main, align 4
+      store i32 50, ptr %r, align 4, !dbg !18
+      %load_r = load i32, ptr %r, align 4, !dbg !19
+      store i32 %load_r, ptr %main, align 4, !dbg !19
+      %main_ret = load i32, ptr %main, align 4, !dbg !20
       ret i32 %main_ret, !dbg !20
     }
-
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
 
     define void @__init___Test() {
     entry:
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!5, !6}
     !llvm.dbg.cu = !{!7}
@@ -2113,42 +2045,37 @@ fn range_datatype_fqn_reference_bounds_debug() {
 
     %prog = type { i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0 }, !dbg !0
 
-    define void @prog(%prog* %0) !dbg !14 {
+    define void @prog(ptr %0) !dbg !14 {
     entry:
-      call void @llvm.dbg.declare(metadata %prog* %0, metadata !18, metadata !DIExpression()), !dbg !19
-      %TEN = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-      %r = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+        #dbg_declare(ptr %0, !18, !DIExpression(), !19)
+      %TEN = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %r = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
       ret void, !dbg !19
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_prog(%prog* %0) {
+    define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_prog(%prog* %0) {
+    define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_prog(%prog* @prog_instance)
-      call void @__user_init_prog(%prog* @prog_instance)
+      call void @__init_prog(ptr @prog_instance)
+      call void @__user_init_prog(ptr @prog_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!10, !11}
     !llvm.dbg.cu = !{!12}
@@ -2204,44 +2131,39 @@ fn range_datatype_debug_alias_reused() {
 
     %prog = type { i32, i32, i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0, i32 0, i32 0 }, !dbg !0
 
-    define void @prog(%prog* %0) !dbg !16 {
+    define void @prog(ptr %0) !dbg !16 {
     entry:
-      call void @llvm.dbg.declare(metadata %prog* %0, metadata !20, metadata !DIExpression()), !dbg !21
-      %ZERO = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-      %u = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-      %v = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
-      %w = getelementptr inbounds %prog, %prog* %0, i32 0, i32 3
+        #dbg_declare(ptr %0, !20, !DIExpression(), !21)
+      %ZERO = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+      %u = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+      %v = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
+      %w = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 3
       ret void, !dbg !21
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    define void @__init_prog(%prog* %0) {
+    define void @__init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
-    define void @__user_init_prog(%prog* %0) {
+    define void @__user_init_prog(ptr %0) {
     entry:
-      %self = alloca %prog*, align 8
-      store %prog* %0, %prog** %self, align 8
+      %self = alloca ptr, align 8
+      store ptr %0, ptr %self, align 8
       ret void
     }
 
     define void @__init___Test() {
     entry:
-      call void @__init_prog(%prog* @prog_instance)
-      call void @__user_init_prog(%prog* @prog_instance)
+      call void @__init_prog(ptr @prog_instance)
+      call void @__user_init_prog(ptr @prog_instance)
       ret void
     }
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
     !llvm.module.flags = !{!12, !13}
     !llvm.dbg.cu = !{!14}

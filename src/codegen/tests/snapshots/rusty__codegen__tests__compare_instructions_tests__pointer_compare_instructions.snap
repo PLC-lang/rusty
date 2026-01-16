@@ -1,65 +1,64 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%main = type { i16, i16, i16*, i8 }
+%main = type { i16, i16, ptr, i8 }
 
-@main_instance = global %main { i16 10, i16 20, i16* null, i8 0 }
+@main_instance = global %main { i16 10, i16 20, ptr null, i8 0 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %comp = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  store i16* %x, i16** %pt, align 8
-  %load_pt = load i16*, i16** %pt, align 8
-  %load_pt1 = load i16*, i16** %pt, align 8
-  %1 = ptrtoint i16* %load_pt to i64
-  %2 = ptrtoint i16* %load_pt1 to i64
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %pt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %comp = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  store ptr %x, ptr %pt, align 8
+  %load_pt = load ptr, ptr %pt, align 8
+  %load_pt1 = load ptr, ptr %pt, align 8
+  %1 = ptrtoint ptr %load_pt to i64
+  %2 = ptrtoint ptr %load_pt1 to i64
   %tmpVar = icmp eq i64 %1, %2
   %3 = zext i1 %tmpVar to i8
-  store i8 %3, i8* %comp, align 1
-  %load_pt2 = load i16*, i16** %pt, align 8
-  %load_y = load i16, i16* %y, align 2
+  store i8 %3, ptr %comp, align 1
+  %load_pt2 = load ptr, ptr %pt, align 8
+  %load_y = load i16, ptr %y, align 2
   %4 = sext i16 %load_y to i64
-  %5 = ptrtoint i16* %load_pt2 to i64
+  %5 = ptrtoint ptr %load_pt2 to i64
   %tmpVar3 = icmp ne i64 %5, %4
   %6 = zext i1 %tmpVar3 to i8
-  store i8 %6, i8* %comp, align 1
-  %load_pt4 = load i16*, i16** %pt, align 8
-  %load_pt5 = load i16*, i16** %pt, align 8
-  %7 = ptrtoint i16* %load_pt4 to i64
-  %8 = ptrtoint i16* %load_pt5 to i64
+  store i8 %6, ptr %comp, align 1
+  %load_pt4 = load ptr, ptr %pt, align 8
+  %load_pt5 = load ptr, ptr %pt, align 8
+  %7 = ptrtoint ptr %load_pt4 to i64
+  %8 = ptrtoint ptr %load_pt5 to i64
   %tmpVar6 = icmp slt i64 %7, %8
   %9 = zext i1 %tmpVar6 to i8
-  store i8 %9, i8* %comp, align 1
-  %load_pt7 = load i16*, i16** %pt, align 8
-  %load_y8 = load i16, i16* %y, align 2
+  store i8 %9, ptr %comp, align 1
+  %load_pt7 = load ptr, ptr %pt, align 8
+  %load_y8 = load i16, ptr %y, align 2
   %10 = sext i16 %load_y8 to i64
-  %11 = ptrtoint i16* %load_pt7 to i64
+  %11 = ptrtoint ptr %load_pt7 to i64
   %tmpVar9 = icmp sgt i64 %11, %10
   %12 = zext i1 %tmpVar9 to i8
-  store i8 %12, i8* %comp, align 1
-  %load_pt10 = load i16*, i16** %pt, align 8
-  %load_pt11 = load i16*, i16** %pt, align 8
-  %13 = ptrtoint i16* %load_pt10 to i64
-  %14 = ptrtoint i16* %load_pt11 to i64
+  store i8 %12, ptr %comp, align 1
+  %load_pt10 = load ptr, ptr %pt, align 8
+  %load_pt11 = load ptr, ptr %pt, align 8
+  %13 = ptrtoint ptr %load_pt10 to i64
+  %14 = ptrtoint ptr %load_pt11 to i64
   %tmpVar12 = icmp sle i64 %13, %14
   %15 = zext i1 %tmpVar12 to i8
-  store i8 %15, i8* %comp, align 1
-  %load_y13 = load i16, i16* %y, align 2
+  store i8 %15, ptr %comp, align 1
+  %load_y13 = load i16, ptr %y, align 2
   %16 = sext i16 %load_y13 to i64
-  %load_pt14 = load i16*, i16** %pt, align 8
-  %17 = ptrtoint i16* %load_pt14 to i64
+  %load_pt14 = load ptr, ptr %pt, align 8
+  %17 = ptrtoint ptr %load_pt14 to i64
   %tmpVar15 = icmp sge i64 %16, %17
   %18 = zext i1 %tmpVar15 to i8
-  store i8 %18, i8* %comp, align 1
+  store i8 %18, ptr %comp, align 1
   ret void
 }

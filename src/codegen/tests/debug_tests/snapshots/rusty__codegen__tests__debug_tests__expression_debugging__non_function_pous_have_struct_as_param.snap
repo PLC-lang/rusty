@@ -13,32 +13,27 @@ target triple = "[filtered]"
 @myProg_instance = global %myProg zeroinitializer, !dbg !0
 @__fb__init = unnamed_addr constant %fb zeroinitializer, !dbg !7
 
-define void @myProg(%myProg* %0) !dbg !18 {
+define void @myProg(ptr %0) !dbg !18 {
 entry:
-  call void @llvm.dbg.declare(metadata %myProg* %0, metadata !22, metadata !DIExpression()), !dbg !23
-  %x = getelementptr inbounds %myProg, %myProg* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4, !dbg !23
+    #dbg_declare(ptr %0, !22, !DIExpression(), !23)
+  %x = getelementptr inbounds nuw %myProg, ptr %0, i32 0, i32 0
+  %load_x = load i32, ptr %x, align 4, !dbg !23
   %tmpVar = add i32 %load_x, 2, !dbg !23
-  store i32 %tmpVar, i32* %x, align 4, !dbg !23
+  store i32 %tmpVar, ptr %x, align 4, !dbg !23
   ret void, !dbg !24
 }
 
-define void @fb(%fb* %0) !dbg !25 {
+define void @fb(ptr %0) !dbg !25 {
 entry:
-  call void @llvm.dbg.declare(metadata %fb* %0, metadata !28, metadata !DIExpression()), !dbg !29
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4, !dbg !29
+    #dbg_declare(ptr %0, !28, !DIExpression(), !29)
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+  %load_x = load i32, ptr %x, align 4, !dbg !29
   %tmpVar = add i32 %load_x, 2, !dbg !29
-  store i32 %tmpVar, i32* %x, align 4, !dbg !29
+  store i32 %tmpVar, ptr %x, align 4, !dbg !29
   ret void, !dbg !30
 }
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!13, !14}
 !llvm.dbg.cu = !{!15}
