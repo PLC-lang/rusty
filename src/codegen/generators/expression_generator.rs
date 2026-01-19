@@ -1170,12 +1170,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
+            // For unsized variadics, we need to follow C ABI rules
+            let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+
             let generated_params = variadic_params
                 .iter()
                 .map(|param_statement| {
                     self.get_type_hint_for(param_statement).map(|it| it.get_name()).and_then(|type_name| {
-                        // if the variadic is defined in a by_ref block, we need to pass the argument as reference
-                        if argument_type.is_by_ref() {
+                        // Check if we need to pass by reference:
+                        // 1. If the variadic is defined in a by_ref block
+                        // 2. For unsized variadics: arrays and strings decay to pointers per C ABI
+                        let type_info = self.index.get_effective_type_or_void_by_name(type_name);
+                        let is_array_or_string = type_info.is_array() || type_info.is_string();
+                        if argument_type.is_by_ref() || (is_unsized && is_array_or_string) {
                             self.generate_argument_by_ref(
                                 param_statement,
                                 type_name,
