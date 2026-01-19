@@ -95,8 +95,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !matches!(linkage, LinkageType::External) {
-                // generate debug info for non-external variables
+            if !matches!(linkage, LinkageType::External)
+                && !self.global_index.is_enum_variant(variable.get_qualified_name())
+            {
+                // generate debug info for non-external, non-enum-variant variables
                 self.debug.create_global_variable(
                     variable.get_qualified_name(),
                     &variable.data_type_name,
