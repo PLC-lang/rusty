@@ -28,10 +28,7 @@ use crate::{
         generics::{generic_name_resolver, no_generic_name_resolver, GenericType},
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
-    typesystem::{
-        self, get_bigger_type, get_builtin_types, get_literal_actual_signed_type_name,
-        DataTypeInformationProvider,
-    },
+    typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
     validation::{
         statement::{validate_type_compatibility, validate_type_compatibility_with_data_types},
         Validator, Validators,
@@ -694,14 +691,8 @@ fn validate_types_are_compatible_with_int(
 ) {
     let Some(params) = parameters else { return };
 
-    let types: Vec<_> =
-        flatten_expression_list(params).into_iter().map(|it| extract_actual_parameter(it).clone()).collect();
-    let types = types.iter().peekable();
-    let builtin_types = get_builtin_types();
-    let builtin_int =
-        builtin_types.iter().find(|builtin_type| builtin_type.get_name() == typesystem::INT_TYPE).unwrap();
-
-    for left in types {
+    let builtin_int = index.get_type(typesystem::INT_TYPE).unwrap();
+    for left in flatten_expression_list(params).iter().map(|it| extract_actual_parameter(it)) {
         let ty_left = annotations.get_type_or_void(left, index);
         validate_type_compatibility_with_data_types(validator, ty_left, builtin_int, &left.location);
     }
