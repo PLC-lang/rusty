@@ -1219,14 +1219,6 @@ impl AstNode {
         matches!(self.stmt, AstStatement::ReferenceExpr(..))
     }
 
-    pub fn is_paren_nested_reference(&self) -> bool {
-        match &self.stmt {
-            AstStatement::ParenExpression(nested) => nested.is_paren_nested_reference(),
-            AstStatement::ReferenceExpr(..) => true,
-            _ => false,
-        }
-    }
-
     pub fn is_member_access(&self) -> bool {
         matches!(
             self.stmt,
