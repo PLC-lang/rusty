@@ -920,7 +920,12 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
 
-                let pointee = self.llvm_index.get_associated_pou_type(declaring_pou).unwrap();
+                let pou_type_name = self
+                    .index
+                    .find_pou(function_name)
+                    .and_then(|pou| pou.get_instance_struct_type_name())
+                    .unwrap_or(function_name);
+                let pointee = self.llvm_index.get_associated_pou_type(pou_type_name).unwrap();
                 let output = self.build_parameter_struct_gep(pointee, context);
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
@@ -1011,7 +1016,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
                 self.generate_stateful_pou_arguments(
-                    &implementation.get_call_name_for_ir(),
+                    implementation.get_type_name(),
                     None,
                     call_ptr,
                     passed_parameters,
@@ -1020,7 +1025,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => {
                 let call_ptr = self.generate_lvalue(operator)?;
                 self.generate_stateful_pou_arguments(
-                    &implementation.get_call_name_for_ir(),
+                    implementation.get_type_name(),
                     None,
                     call_ptr,
                     passed_parameters,
@@ -1404,7 +1409,6 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
         let index = param_context.position;
         let expression = param_context.assignment;
 
@@ -1416,9 +1420,14 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
+            let pou_type_name = self
+                .index
+                .find_pou(param_context.function_name)
+                .and_then(|pou| pou.get_instance_struct_type_name())
+                .unwrap_or(param_context.function_name);
             let pointee = self
                 .llvm_index
-                .get_associated_pou_type(param_context.declaring_pou)
+                .get_associated_pou_type(pou_type_name)
                 .expect("POU type for parameter struct must exist");
             let pointer_to_param = self.build_parameter_struct_gep(pointee, param_context);
 
