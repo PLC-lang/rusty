@@ -194,6 +194,24 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         cast_if_needed!(self, target_type, actual_type, v, self.annotations.get(expression))
     }
 
+    pub fn generate_expression_with_cast_to_type_of_secondary_expression(
+        &self,
+        expression: &AstNode,
+        target_expression: &AstNode,
+    ) -> Result<BasicValueEnum<'ink>, CodegenError> {
+        if let Some(target_type) = self.annotations.get_type_hint(target_expression, self.index) {
+            return cast_if_needed!(
+                self,
+                target_type,
+                self.get_type_hint_for(expression)?,
+                self.generate_expression(expression)?,
+                None
+            );
+        }
+
+        self.generate_expression(expression)
+    }
+
     fn register_debug_location(&self, statement: &AstNode) {
         let function_context =
             self.function_context.expect("Cannot generate debug info without function context");

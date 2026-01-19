@@ -29,7 +29,10 @@ use crate::{
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
-    validation::{statement::validate_type_compatibility, Validator, Validators},
+    validation::{
+        statement::{validate_type_compatibility, validate_type_compatibility_with_data_types},
+        Validator, Validators,
+    },
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -612,6 +615,60 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "SHL",
+            BuiltIn {
+                decl: "
+                FUNCTION SHL<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                    validate_types_are_compatible_with_int(validator, &parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+
+                    let shl = generator.llvm.builder.build_left_shift(left, right, "")?;
+
+                    Ok(ExpressionValue::RValue(shl.as_basic_value_enum()))
+                }
+            },
+        ),
+        (
+            "SHR",
+            BuiltIn {
+                decl: "
+                FUNCTION SHR<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                    validate_types_are_compatible_with_int(validator, &parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+
+                    let shr = generator.llvm.builder.build_right_shift(left, right, left.get_type().is_sized(), "")?;
+
+                    Ok(ExpressionValue::RValue(shr.as_basic_value_enum()))
+                }
+            },
+        ),
     ]);
 }
 
@@ -631,6 +688,21 @@ fn validate_types(
         if let Some(right) = types.peek() {
             validate_type_compatibility(validator, annotations, index, left, right);
         }
+    }
+}
+
+fn validate_types_are_compatible_with_int(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+
+    let builtin_int = index.get_type(typesystem::INT_TYPE).unwrap();
+    for left in flatten_expression_list(params).iter().map(|it| extract_actual_parameter(it)) {
+        let ty_left = annotations.get_type_or_void(left, index);
+        validate_type_compatibility_with_data_types(validator, ty_left, builtin_int, &left.location);
     }
 }
 
