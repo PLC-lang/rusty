@@ -64,12 +64,9 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
                         None
                     }
                 }
-                Dependency::Variable(name) => self
-                    .global_index
-                    .find_fully_qualified_variable(name)
-                    // we dont want enum variants as global variables
-                    .filter(|var| !self.global_index.is_enum_variant(var.get_qualified_name()))
-                    .map(|it| (name.as_str(), it)),
+                Dependency::Variable(name) => {
+                    self.global_index.find_fully_qualified_variable(name).map(|it| (name.as_str(), it))
+                }
                 Dependency::Call(_) => None,
             } {
                 globals.push(dep);
@@ -98,8 +95,10 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !matches!(linkage, LinkageType::External) {
-                // generate debug info for non-external variables
+            if !matches!(linkage, LinkageType::External)
+                && !self.global_index.is_enum_variant(variable.get_qualified_name())
+            {
+                // generate debug info for non-external, non-enum-variant variables
                 self.debug.create_global_variable(
                     variable.get_qualified_name(),
                     &variable.data_type_name,
