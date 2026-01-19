@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/constants_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,15 +12,14 @@ target triple = "[filtered]"
 @const_str = unnamed_addr constant [81 x i8] c"global constant string\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %str = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %1 = bitcast [81 x i8]* %str to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([81 x i8], [81 x i8]* @const_str, i32 0, i32 0), i32 80, i1 false)
+  %str = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %str, ptr align 1 @const_str, i32 80, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

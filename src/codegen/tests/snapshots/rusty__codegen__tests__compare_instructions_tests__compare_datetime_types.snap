@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,20 +11,20 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %var_time = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %var_time_of_day = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %var_date = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %var_date_and_time = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %load_var_time = load i64, i64* %var_time, align 8
-  %load_var_time_of_day = load i64, i64* %var_time_of_day, align 8
+  %var_time = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var_time_of_day = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var_date = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %var_date_and_time = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %load_var_time = load i64, ptr %var_time, align 8
+  %load_var_time_of_day = load i64, ptr %var_time_of_day, align 8
   %tmpVar = icmp sgt i64 %load_var_time, %load_var_time_of_day
   br i1 %tmpVar, label %1, label %2
 
 1:                                                ; preds = %entry
-  %load_var_time_of_day1 = load i64, i64* %var_time_of_day, align 8
-  %load_var_date = load i64, i64* %var_date, align 8
+  %load_var_time_of_day1 = load i64, ptr %var_time_of_day, align 8
+  %load_var_date = load i64, ptr %var_date, align 8
   %tmpVar2 = icmp sgt i64 %load_var_time_of_day1, %load_var_date
   br label %2
 
@@ -34,8 +33,8 @@ entry:
   br i1 %3, label %4, label %5
 
 4:                                                ; preds = %2
-  %load_var_date3 = load i64, i64* %var_date, align 8
-  %load_var_date_and_time = load i64, i64* %var_date_and_time, align 8
+  %load_var_date3 = load i64, ptr %var_date, align 8
+  %load_var_date_and_time = load i64, ptr %var_date_and_time, align 8
   %tmpVar4 = icmp sgt i64 %load_var_date3, %load_var_date_and_time
   br label %5
 

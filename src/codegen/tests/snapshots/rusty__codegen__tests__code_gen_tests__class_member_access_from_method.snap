@@ -11,28 +11,28 @@ target triple = "[filtered]"
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass(%MyClass* %0) {
+define void @MyClass(ptr %0) {
 entry:
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %myMethodArg = alloca i16, align 2
-  store i16 %1, i16* %myMethodArg, align 2
+  store i16 %1, ptr %myMethodArg, align 2
   %myMethodLocalVar = alloca i16, align 2
-  store i16 0, i16* %myMethodLocalVar, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
-  %load_x = load i16, i16* %x, align 2
-  store i16 %load_x, i16* %y, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  store i16 0, ptr %myMethodLocalVar, align 2
+  %load_myMethodArg = load i16, ptr %myMethodArg, align 2
+  store i16 %load_myMethodArg, ptr %x, align 2
+  %load_x = load i16, ptr %x, align 2
+  store i16 %load_x, ptr %y, align 2
+  %load_myMethodLocalVar = load i16, ptr %myMethodLocalVar, align 2
   %2 = sext i16 %load_myMethodLocalVar to i32
-  %load_y = load i16, i16* %y, align 2
+  %load_y = load i16, ptr %y, align 2
   %3 = sext i16 %load_y to i32
   %tmpVar = icmp eq i32 %2, %3
   ret void

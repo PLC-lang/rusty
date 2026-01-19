@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,95 +11,79 @@ target triple = "[filtered]"
 
 @main_instance = global %main { i8 1, i8 1, i16 2, i16 2, i32 3, i32 3, i64 4, i64 4, float 5.000000e+00, float 5.000000e+00, double 6.000000e+00, double 6.000000e+00 }
 
-define i8 @fn_sint(i8* %0, i8* %1) {
+define i8 @fn_sint(ptr %0, ptr %1) {
 entry:
   %fn_sint = alloca i8, align 1
-  %in_ref = alloca i8*, align 8
-  store i8* %0, i8** %in_ref, align 8
-  %in_out = alloca i8*, align 8
-  store i8* %1, i8** %in_out, align 8
-  store i8 0, i8* %fn_sint, align 1
-  %fn_sint_ret = load i8, i8* %fn_sint, align 1
+  %in_ref = alloca ptr, align 8
+  store ptr %0, ptr %in_ref, align 8
+  %in_out = alloca ptr, align 8
+  store ptr %1, ptr %in_out, align 8
+  store i8 0, ptr %fn_sint, align 1
+  %fn_sint_ret = load i8, ptr %fn_sint, align 1
   ret i8 %fn_sint_ret
 }
 
-define i64 @fn_lint(i64* %0, i64* %1) {
+define i64 @fn_lint(ptr %0, ptr %1) {
 entry:
   %fn_lint = alloca i64, align 8
-  %in_ref = alloca i64*, align 8
-  store i64* %0, i64** %in_ref, align 8
-  %in_out = alloca i64*, align 8
-  store i64* %1, i64** %in_out, align 8
-  store i64 0, i64* %fn_lint, align 8
-  %fn_lint_ret = load i64, i64* %fn_lint, align 8
+  %in_ref = alloca ptr, align 8
+  store ptr %0, ptr %in_ref, align 8
+  %in_out = alloca ptr, align 8
+  store ptr %1, ptr %in_out, align 8
+  store i64 0, ptr %fn_lint, align 8
+  %fn_lint_ret = load i64, ptr %fn_lint, align 8
   ret i64 %fn_lint_ret
 }
 
-define i64 @fn_real(float* %0, float* %1) {
+define i64 @fn_real(ptr %0, ptr %1) {
 entry:
   %fn_real = alloca i64, align 8
-  %in_ref = alloca float*, align 8
-  store float* %0, float** %in_ref, align 8
-  %in_out = alloca float*, align 8
-  store float* %1, float** %in_out, align 8
-  store i64 0, i64* %fn_real, align 8
-  %fn_real_ret = load i64, i64* %fn_real, align 8
+  %in_ref = alloca ptr, align 8
+  store ptr %0, ptr %in_ref, align 8
+  %in_out = alloca ptr, align 8
+  store ptr %1, ptr %in_out, align 8
+  store i64 0, ptr %fn_real, align 8
+  %fn_real_ret = load i64, ptr %fn_real, align 8
   ret i64 %fn_real_ret
 }
 
-define i64 @fn_lreal(double* %0, double* %1) {
+define i64 @fn_lreal(ptr %0, ptr %1) {
 entry:
   %fn_lreal = alloca i64, align 8
-  %in_ref = alloca double*, align 8
-  store double* %0, double** %in_ref, align 8
-  %in_out = alloca double*, align 8
-  store double* %1, double** %in_out, align 8
-  store i64 0, i64* %fn_lreal, align 8
-  %fn_lreal_ret = load i64, i64* %fn_lreal, align 8
+  %in_ref = alloca ptr, align 8
+  store ptr %0, ptr %in_ref, align 8
+  %in_out = alloca ptr, align 8
+  store ptr %1, ptr %in_out, align 8
+  store i64 0, ptr %fn_lreal, align 8
+  %fn_lreal_ret = load i64, ptr %fn_lreal, align 8
   ret i64 %fn_lreal_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %var1_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %var2_sint = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %var1_int = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %var2_int = getelementptr inbounds %main, %main* %0, i32 0, i32 3
-  %var1_dint = getelementptr inbounds %main, %main* %0, i32 0, i32 4
-  %var2_dint = getelementptr inbounds %main, %main* %0, i32 0, i32 5
-  %var1_lint = getelementptr inbounds %main, %main* %0, i32 0, i32 6
-  %var2_lint = getelementptr inbounds %main, %main* %0, i32 0, i32 7
-  %var1_real = getelementptr inbounds %main, %main* %0, i32 0, i32 8
-  %var2_real = getelementptr inbounds %main, %main* %0, i32 0, i32 9
-  %var1_lreal = getelementptr inbounds %main, %main* %0, i32 0, i32 10
-  %var2_lreal = getelementptr inbounds %main, %main* %0, i32 0, i32 11
-  %call = call i8 @fn_sint(i8* %var1_sint, i8* %var2_sint)
-  %1 = bitcast i16* %var1_int to i8*
-  %2 = bitcast i16* %var2_int to i8*
-  %call1 = call i8 @fn_sint(i8* %1, i8* %2)
-  %3 = bitcast i32* %var1_dint to i8*
-  %4 = bitcast i32* %var2_dint to i8*
-  %call2 = call i8 @fn_sint(i8* %3, i8* %4)
-  %5 = bitcast i64* %var1_lint to i8*
-  %6 = bitcast i64* %var2_lint to i8*
-  %call3 = call i8 @fn_sint(i8* %5, i8* %6)
-  %7 = bitcast i8* %var1_sint to i64*
-  %8 = bitcast i8* %var2_sint to i64*
-  %call4 = call i64 @fn_lint(i64* %7, i64* %8)
-  %9 = bitcast i16* %var1_int to i64*
-  %10 = bitcast i16* %var2_int to i64*
-  %call5 = call i64 @fn_lint(i64* %9, i64* %10)
-  %11 = bitcast i32* %var1_dint to i64*
-  %12 = bitcast i32* %var2_dint to i64*
-  %call6 = call i64 @fn_lint(i64* %11, i64* %12)
-  %call7 = call i64 @fn_lint(i64* %var1_lint, i64* %var2_lint)
-  %call8 = call i64 @fn_real(float* %var1_real, float* %var2_real)
-  %13 = bitcast double* %var1_lreal to float*
-  %14 = bitcast double* %var2_lreal to float*
-  %call9 = call i64 @fn_real(float* %13, float* %14)
-  %15 = bitcast float* %var1_real to double*
-  %16 = bitcast float* %var2_real to double*
-  %call10 = call i64 @fn_lreal(double* %15, double* %16)
-  %call11 = call i64 @fn_lreal(double* %var1_lreal, double* %var2_lreal)
+  %var1_sint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var2_sint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var1_int = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %var2_int = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 3
+  %var1_dint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 4
+  %var2_dint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 5
+  %var1_lint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 6
+  %var2_lint = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 7
+  %var1_real = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 8
+  %var2_real = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 9
+  %var1_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 10
+  %var2_lreal = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 11
+  %call = call i8 @fn_sint(ptr %var1_sint, ptr %var2_sint)
+  %call1 = call i8 @fn_sint(ptr %var1_int, ptr %var2_int)
+  %call2 = call i8 @fn_sint(ptr %var1_dint, ptr %var2_dint)
+  %call3 = call i8 @fn_sint(ptr %var1_lint, ptr %var2_lint)
+  %call4 = call i64 @fn_lint(ptr %var1_sint, ptr %var2_sint)
+  %call5 = call i64 @fn_lint(ptr %var1_int, ptr %var2_int)
+  %call6 = call i64 @fn_lint(ptr %var1_dint, ptr %var2_dint)
+  %call7 = call i64 @fn_lint(ptr %var1_lint, ptr %var2_lint)
+  %call8 = call i64 @fn_real(ptr %var1_real, ptr %var2_real)
+  %call9 = call i64 @fn_real(ptr %var1_lreal, ptr %var2_lreal)
+  %call10 = call i64 @fn_lreal(ptr %var1_real, ptr %var2_real)
+  %call11 = call i64 @fn_lreal(ptr %var1_lreal, ptr %var2_lreal)
   ret void
 }

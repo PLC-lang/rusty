@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,21 +12,20 @@ target triple = "[filtered]"
 @main_instance = global %main zeroinitializer
 @utf08_literal_0 = private unnamed_addr constant [6 x i8] c"12345\00"
 
-define i32 @func(i8* %0) {
+define i32 @func(ptr %0) {
 entry:
   %func = alloca i32, align 4
-  %x = alloca i8*, align 8
-  store i8* %0, i8** %x, align 8
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  %x = alloca ptr, align 8
+  store ptr %0, ptr %x, align 8
+  store i32 0, ptr %func, align 4
+  %func_ret = load i32, ptr %func, align 4
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %1 = bitcast [6 x i8]* %a to i8*
-  %call = call i32 @func(i8* %1)
-  %call1 = call i32 @func(i8* getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0))
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %call = call i32 @func(ptr %a)
+  %call1 = call i32 @func(ptr @utf08_literal_0)
   ret void
 }

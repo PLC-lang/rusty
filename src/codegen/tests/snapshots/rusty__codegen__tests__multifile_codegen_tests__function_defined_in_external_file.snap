@@ -10,8 +10,8 @@ target triple = "[filtered]"
 define i32 @func() {
 entry:
   %func = alloca i32, align 4
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  store i32 0, ptr %func, align 4
+  %func_ret = load i32, ptr %func, align 4
   ret i32 %func_ret
 }
 
@@ -24,10 +24,10 @@ target triple = "[filtered]"
 
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
-define void @fb(%fb* %0) {
+define void @fb(ptr %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
   ret void
 }
 
@@ -40,9 +40,9 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -55,9 +55,9 @@ target triple = "[filtered]"
 
 @prg2_instance = global %prg2 zeroinitializer
 
-define void @prg2(%prg2* %0) {
+define void @prg2(ptr %0) {
 entry:
-  %b = getelementptr inbounds %prg2, %prg2* %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg2, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -76,20 +76,20 @@ target triple = "[filtered]"
 @prg_instance = external global %prg.5
 @prg2_instance = external global %prg2.6
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %myFb = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %load_a = load i32, i32* getelementptr inbounds (%prg.5, %prg.5* @prg_instance, i32 0, i32 0), align 4
-  call void @prg2(%prg2.6* @prg2_instance)
+  %myFb = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %load_a = load i32, ptr @prg_instance, align 4
+  call void @prg2(ptr @prg2_instance)
   %call = call i32 @func()
-  call void @fb(%fb.4* %myFb)
+  call void @fb(ptr %myFb)
   ret void
 }
 
-declare void @fb(%fb.4*)
+declare void @fb(ptr)
 
-declare void @prg(%prg.5*)
+declare void @prg(ptr)
 
-declare void @prg2(%prg2.6*)
+declare void @prg2(ptr)
 
 declare i32 @func()

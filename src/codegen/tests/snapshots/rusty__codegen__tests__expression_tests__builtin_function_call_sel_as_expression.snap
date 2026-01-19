@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,15 +11,15 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %c = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %load_b = load i32, i32* %b, align 4
-  %load_c = load i32, i32* %c, align 4
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %c = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %load_b = load i32, ptr %b, align 4
+  %load_c = load i32, ptr %c, align 4
   %1 = select i1 true, i32 %load_c, i32 %load_b
   %tmpVar = add i32 %1, 10
-  store i32 %tmpVar, i32* %a, align 4
+  store i32 %tmpVar, ptr %a, align 4
   ret void
 }

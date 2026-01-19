@@ -348,22 +348,22 @@ fn enum_typed_varargs_get_promoted() {
     @MyEnum.b = unnamed_addr constant i16 20
     @utf08_literal_0 = private unnamed_addr constant [16 x i8] c"result : %d %d\0A\00"
 
-    declare i32 @printf(i8*, ...)
+    declare i32 @printf(ptr, ...)
 
     define i32 @main() {
     entry:
       %main = alloca i32, align 4
       %e1 = alloca i16, align 2
       %i1 = alloca i16, align 2
-      store i16 10, i16* %e1, align 2
-      store i16 10, i16* %i1, align 2
-      store i32 0, i32* %main, align 4
-      %load_e1 = load i16, i16* %e1, align 2
+      store i16 10, ptr %e1, align 2
+      store i16 10, ptr %i1, align 2
+      store i32 0, ptr %main, align 4
+      %load_e1 = load i16, ptr %e1, align 2
       %0 = sext i16 %load_e1 to i32
-      %load_i1 = load i16, i16* %i1, align 2
+      %load_i1 = load i16, ptr %i1, align 2
       %1 = sext i16 %load_i1 to i32
-      %call = call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @utf08_literal_0, i32 0, i32 0), i32 %0, i32 %1)
-      %main_ret = load i32, i32* %main, align 4
+      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, i32 %0, i32 %1)
+      %main_ret = load i32, ptr %main, align 4
       ret i32 %main_ret
     }
     "#);
@@ -398,23 +398,23 @@ fn self_referential_struct_via_reference_codegen() {
     target triple = "[filtered]"
 
     %main = type { %Node, %Node }
-    %Node = type { i32, %Node* }
+    %Node = type { i32, ptr }
 
     @main_instance = global %main zeroinitializer
     @__Node__init = unnamed_addr constant %Node zeroinitializer
 
-    define void @main(%main* %0) {
+    define void @main(ptr %0) {
     entry:
-      %node1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-      %node2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-      %data = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 0
-      store i32 42, i32* %data, align 4
-      %data1 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 0
-      store i32 84, i32* %data1, align 4
-      %next = getelementptr inbounds %Node, %Node* %node1, i32 0, i32 1
-      store %Node* %node2, %Node** %next, align 8
-      %next2 = getelementptr inbounds %Node, %Node* %node2, i32 0, i32 1
-      store %Node* %node1, %Node** %next2, align 8
+      %node1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+      %node2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+      %data = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 0
+      store i32 42, ptr %data, align 4
+      %data1 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 0
+      store i32 84, ptr %data1, align 4
+      %next = getelementptr inbounds nuw %Node, ptr %node1, i32 0, i32 1
+      store ptr %node2, ptr %next, align 8
+      %next2 = getelementptr inbounds nuw %Node, ptr %node2, i32 0, i32 1
+      store ptr %node1, ptr %next2, align 8
       ret void
     }
     "#);

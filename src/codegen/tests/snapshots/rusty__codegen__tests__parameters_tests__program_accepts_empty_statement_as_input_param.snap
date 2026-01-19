@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,16 +13,16 @@ target triple = "[filtered]"
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %in1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %in2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+  %in1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %in2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  store i32 1, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 4
-  call void @prog(%prog* @prog_instance)
+  store i32 1, ptr @prog_instance, align 4
+  call void @prog(ptr @prog_instance)
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,20 +15,20 @@ define i32 @foo(i32 %0) {
 entry:
   %foo = alloca i32, align 4
   %in1 = alloca i32, align 4
-  store i32 %0, i32* %in1, align 4
+  store i32 %0, ptr %in1, align 4
   %x = alloca i16, align 2
   %y = alloca i16, align 2
   %z = alloca i16, align 2
-  store i16 7, i16* %x, align 2
-  store i16 0, i16* %y, align 2
-  store i16 9, i16* %z, align 2
-  store i32 0, i32* %foo, align 4
-  store i32 1, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  store i16 7, ptr %x, align 2
+  store i16 0, ptr %y, align 2
+  store i16 9, ptr %z, align 2
+  store i32 0, ptr %foo, align 4
+  store i32 1, ptr %foo, align 4
+  %foo_ret = load i32, ptr %foo, align 4
   ret i32 %foo_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
   %call = call i32 @foo(i32 5)
   ret void

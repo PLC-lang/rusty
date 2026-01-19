@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -13,19 +12,18 @@ entry:
   %func = alloca i16, align 2
   %int_var = alloca i16, align 2
   %arr_var = alloca [3 x i32], align 4
-  %ptr_var = alloca i32*, align 8
+  %ptr_var = alloca ptr, align 8
   %float_var = alloca float, align 4
-  store i16 0, i16* %int_var, align 2
-  %0 = bitcast [3 x i32]* %arr_var to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([3 x i32]* getelementptr ([3 x i32], [3 x i32]* null, i32 1) to i64), i1 false)
-  store i32* null, i32** %ptr_var, align 8
-  store float 0.000000e+00, float* %float_var, align 4
-  store i16 0, i16* %func, align 2
-  %func_ret = load i16, i16* %func, align 2
+  store i16 0, ptr %int_var, align 2
+  call void @llvm.memset.p0.i64(ptr align 1 %arr_var, i8 0, i64 ptrtoint (ptr getelementptr ([3 x i32], ptr null, i32 1) to i64), i1 false)
+  store ptr null, ptr %ptr_var, align 8
+  store float 0.000000e+00, ptr %float_var, align 4
+  store i16 0, ptr %func, align 2
+  %func_ret = load i16, ptr %func, align 2
   ret i16 %func_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }

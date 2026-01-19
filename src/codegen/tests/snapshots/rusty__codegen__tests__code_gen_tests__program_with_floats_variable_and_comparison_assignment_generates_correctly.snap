@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,33 +11,33 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_x = load float, float* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %load_x = load float, ptr %x, align 4
   %tmpVar = fcmp oeq float %load_x, 1.000000e+00
   %1 = zext i1 %tmpVar to i8
-  store i8 %1, i8* %y, align 1
-  %load_x1 = load float, float* %x, align 4
+  store i8 %1, ptr %y, align 1
+  %load_x1 = load float, ptr %x, align 4
   %tmpVar2 = fcmp ogt float %load_x1, 2.000000e+00
   %2 = zext i1 %tmpVar2 to i8
-  store i8 %2, i8* %y, align 1
-  %load_x3 = load float, float* %x, align 4
+  store i8 %2, ptr %y, align 1
+  %load_x3 = load float, ptr %x, align 4
   %tmpVar4 = fcmp olt float %load_x3, 3.000000e+00
   %3 = zext i1 %tmpVar4 to i8
-  store i8 %3, i8* %y, align 1
-  %load_x5 = load float, float* %x, align 4
+  store i8 %3, ptr %y, align 1
+  %load_x5 = load float, ptr %x, align 4
   %tmpVar6 = fcmp one float %load_x5, 4.000000e+00
   %4 = zext i1 %tmpVar6 to i8
-  store i8 %4, i8* %y, align 1
-  %load_x7 = load float, float* %x, align 4
+  store i8 %4, ptr %y, align 1
+  %load_x7 = load float, ptr %x, align 4
   %tmpVar8 = fcmp oge float %load_x7, 5.000000e+00
   %5 = zext i1 %tmpVar8 to i8
-  store i8 %5, i8* %y, align 1
-  %load_x9 = load float, float* %x, align 4
+  store i8 %5, ptr %y, align 1
+  %load_x9 = load float, ptr %x, align 4
   %tmpVar10 = fcmp ole float %load_x9, 6.000000e+00
   %6 = zext i1 %tmpVar10 to i8
-  store i8 %6, i8* %y, align 1
+  store i8 %6, ptr %y, align 1
   ret void
 }

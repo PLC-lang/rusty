@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,7 +11,7 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
   %cmp1 = alloca i8, align 1
   %cmp2 = alloca i8, align 1
@@ -22,21 +21,21 @@ entry:
   %cmp6 = alloca i8, align 1
   %cmp7 = alloca i8, align 1
   %cmp8 = alloca i8, align 1
-  store i8 0, i8* %cmp1, align 1
-  store i8 0, i8* %cmp2, align 1
-  store i8 0, i8* %cmp3, align 1
-  store i8 0, i8* %cmp4, align 1
-  store i8 0, i8* %cmp5, align 1
-  store i8 0, i8* %cmp6, align 1
-  store i8 0, i8* %cmp7, align 1
-  store i8 0, i8* %cmp8, align 1
-  store i8 0, i8* %cmp1, align 1
-  store i8 1, i8* %cmp2, align 1
-  store i8 0, i8* %cmp3, align 1
-  store i8 1, i8* %cmp4, align 1
-  store i8 0, i8* %cmp5, align 1
-  store i8 1, i8* %cmp6, align 1
-  store i8 0, i8* %cmp7, align 1
-  store i8 1, i8* %cmp8, align 1
+  store i8 0, ptr %cmp1, align 1
+  store i8 0, ptr %cmp2, align 1
+  store i8 0, ptr %cmp3, align 1
+  store i8 0, ptr %cmp4, align 1
+  store i8 0, ptr %cmp5, align 1
+  store i8 0, ptr %cmp6, align 1
+  store i8 0, ptr %cmp7, align 1
+  store i8 0, ptr %cmp8, align 1
+  store i8 0, ptr %cmp1, align 1
+  store i8 1, ptr %cmp2, align 1
+  store i8 0, ptr %cmp3, align 1
+  store i8 1, ptr %cmp4, align 1
+  store i8 0, ptr %cmp5, align 1
+  store i8 1, ptr %cmp6, align 1
+  store i8 0, ptr %cmp7, align 1
+  store i8 1, ptr %cmp8, align 1
   ret void
 }

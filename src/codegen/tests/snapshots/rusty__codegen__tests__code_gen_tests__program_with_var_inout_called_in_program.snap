@@ -1,35 +1,34 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%foo = type { i32* }
+%foo = type { ptr }
 %prg = type { i32 }
 
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(ptr %0) {
 entry:
-  %inout = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %deref = load i32*, i32** %inout, align 8
-  %deref1 = load i32*, i32** %inout, align 8
-  %load_inout = load i32, i32* %deref1, align 4
+  %inout = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+  %deref = load ptr, ptr %inout, align 8
+  %deref1 = load ptr, ptr %inout, align 8
+  %load_inout = load i32, ptr %deref1, align 4
   %tmpVar = add i32 %load_inout, 1
-  store i32 %tmpVar, i32* %deref, align 4
+  store i32 %tmpVar, ptr %deref, align 4
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i32 7, i32* %baz, align 4
-  store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 8
-  call void @foo(%foo* @foo_instance)
+  %baz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  store i32 7, ptr %baz, align 4
+  store ptr %baz, ptr @foo_instance, align 8
+  call void @foo(ptr @foo_instance)
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests/expression_debugging.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -11,8 +10,8 @@ target triple = "[filtered]"
 define i32 @myFunc() !dbg !4 {
 entry:
   %myFunc = alloca i32, align 4
-  call void @llvm.dbg.declare(metadata i32* %myFunc, metadata !9, metadata !DIExpression()), !dbg !11
-  store i32 0, i32* %myFunc, align 4
+    #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
+  store i32 0, ptr %myFunc, align 4
   br label %condition_check, !dbg !12
 
 condition_check:                                  ; preds = %entry, %continue1
@@ -22,8 +21,8 @@ while_body:                                       ; preds = %condition_check
   br i1 false, label %condition_body, label %continue1, !dbg !13
 
 continue:                                         ; preds = %condition_body, %condition_check
-  store i32 1, i32* %myFunc, align 4, !dbg !14
-  %myFunc_ret = load i32, i32* %myFunc, align 4, !dbg !15
+  store i32 1, ptr %myFunc, align 4, !dbg !14
+  %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !15
   ret i32 %myFunc_ret, !dbg !15
 
 condition_body:                                   ; preds = %while_body
@@ -35,11 +34,6 @@ buffer_block:                                     ; No predecessors!
 continue1:                                        ; preds = %buffer_block, %while_body
   br label %condition_check, !dbg !12
 }
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}

@@ -13,31 +13,31 @@ target triple = "[filtered]"
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @MyClass(%MyClass* %0) {
+define void @MyClass(ptr %0) {
 entry:
-  %this = alloca %MyClass*, align 8
-  store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @MyClass__testMethod(%MyClass* %0, i16 %1) {
+define void @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %this = alloca %MyClass*, align 8
-  store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %myMethodArg = alloca i16, align 2
-  store i16 %1, i16* %myMethodArg, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
+  store i16 %1, ptr %myMethodArg, align 2
+  %load_myMethodArg = load i16, ptr %myMethodArg, align 2
+  store i16 %load_myMethodArg, ptr %x, align 2
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %cl = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  call void @MyClass__testMethod(%MyClass* %cl, i16 3)
+  %cl = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  call void @MyClass__testMethod(ptr %cl, i16 3)
   ret void
 }
