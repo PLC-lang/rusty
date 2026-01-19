@@ -768,6 +768,20 @@ pub fn validate_type_compatibility(
     let ty_left = annotations.get_type_or_void(left, index);
     let ty_right = annotations.get_type_or_void(right, index);
 
+    validate_type_compatibility_with_data_types(
+        validator,
+        ty_left,
+        ty_right,
+        &left.location.span(&right.location),
+    );
+}
+
+pub fn validate_type_compatibility_with_data_types(
+    validator: &mut Validator,
+    ty_left: &DataType,
+    ty_right: &DataType,
+    location: &SourceLocation,
+) {
     if !(ty_left.is_compatible_with_type(ty_right) && ty_right.is_compatible_with_type(ty_left)) {
         let ty_left_name = validator.get_type_name_or_slice(ty_left);
         let ty_right_name = validator.get_type_name_or_slice(ty_right);
@@ -777,7 +791,7 @@ pub fn validate_type_compatibility(
                 "Invalid expression, types {ty_left_name} and {ty_right_name} are incompatible in the given context"
             ))
             .with_error_code("E031")
-            .with_location(left.location.span(&right.location)),
+            .with_location(location),
         );
     }
 }
@@ -1033,7 +1047,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !(assignment.right.is_reference()
+    if !(assignment.right.get_node_peeled().is_reference()
         || assignment_location.is_builtin_internal()
         || assignment.right.is_zero())
     {
