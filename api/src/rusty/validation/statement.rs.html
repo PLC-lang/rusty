@@ -1047,7 +1047,7 @@
 <a href=#1047 id=1047 data-nosnippet>1047</a>    <span class="kw">let </span>type_rhs = context.annotations.get_type_or_void(<span class="kw-2">&amp;</span>assignment.right, context.index);
 <a href=#1048 id=1048 data-nosnippet>1048</a>
 <a href=#1049 id=1049 data-nosnippet>1049</a>    <span class="comment">// Assert that the right-hand side is a reference
-<a href=#1050 id=1050 data-nosnippet>1050</a>    </span><span class="kw">if </span>!(assignment.right.is_reference()
+<a href=#1050 id=1050 data-nosnippet>1050</a>    </span><span class="kw">if </span>!(assignment.right.get_node_peeled().is_reference()
 <a href=#1051 id=1051 data-nosnippet>1051</a>        || assignment_location.is_builtin_internal()
 <a href=#1052 id=1052 data-nosnippet>1052</a>        || assignment.right.is_zero())
 <a href=#1053 id=1053 data-nosnippet>1053</a>    {
