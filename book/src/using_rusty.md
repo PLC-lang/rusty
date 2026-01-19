@@ -165,7 +165,7 @@ int main() {
 
 ## Native Windows Usage Example
 
-- Ensure [`LLVM 14.0.6`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v14.0.6) is installed and it's `bin` folder is added to your `PATH` environment variable.
+- Ensure [`LLVM 21.1.7`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v21.1.7) is installed and it's `bin` folder is added to your `PATH` environment variable.
 
 - Install `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
 
