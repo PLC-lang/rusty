@@ -859,7 +859,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             function_name,
             position: index,
             depth: _,
-            declaring_pou: arg_pou,
+            declaring_pou,
             parameter_struct,
         } = context;
 
@@ -870,7 +870,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(());
         }
 
-        let parameter = self.index.get_declared_parameter(arg_pou, index).expect("must exist");
+        let parameter = self.index.get_declared_parameter(declaring_pou, index).expect("must exist");
 
         match expr.get_stmt() {
             AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
@@ -920,7 +920,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
 
-                let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
+                let pointee = self.llvm_index.get_associated_pou_type(declaring_pou).unwrap();
                 let output = self.build_parameter_struct_gep(pointee, context);
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
@@ -1418,7 +1418,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
             let pointee = self
                 .llvm_index
-                .get_associated_pou_type(function_name)
+                .get_associated_pou_type(param_context.declaring_pou)
                 .expect("POU type for parameter struct must exist");
             let pointer_to_param = self.build_parameter_struct_gep(pointee, param_context);
 
