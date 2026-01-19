@@ -1,0 +1,9 @@
+---
+source: src/parser/tests/type_parser_tests.rs
+expression: diagnostics
+---
+error[E007]: Unexpected token: expected KeywordParensClose but found '.Fast, Running.Slow'
+  ┌─ <internal>:2:41
+  │
+2 │         TYPE State : (Idle := 0, Running.Fast, Running.Slow);
+  │                                         ^^^^^^^^^^^^^^^^^^^ Unexpected token: expected KeywordParensClose but found '.Fast, Running.Slow'
