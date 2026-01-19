@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_CASE'
   │
 4 │            END_CASE
   │            ^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_CASE'
-
-

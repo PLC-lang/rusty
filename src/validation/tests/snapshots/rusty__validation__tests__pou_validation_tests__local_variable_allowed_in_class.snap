@@ -1,5 +1,5 @@
 ---
 source: src/validation/tests/pou_validation_tests.rs
-expression: res
+expression: "&diagnostics"
 ---
 

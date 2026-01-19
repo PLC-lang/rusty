@@ -180,56 +180,60 @@ fn string_variable_declaration_can_be_parsed() {
            ";
     let (parse_result, ..) = parse(src);
     let x = &parse_result.global_vars[0].variables[0];
-    assert_snapshot!(format!("{x:#?}").as_str(), @r###"
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"
     Variable {
         name: "x",
         data_type: DataTypeReference {
             referenced_type: "STRING",
         },
     }
-    "###);
+    "#);
 
     let x = &parse_result.global_vars[0].variables[1];
-    assert_snapshot!(format!("{x:#?}").as_str(), @r#"Variable {
-    name: "y",
-    data_type: DataTypeDefinition {
-        data_type: StringType {
-            name: None,
-            is_wide: false,
-            size: Some(
-                LiteralInteger {
-                    value: 500,
-                },
-            ),
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"
+    Variable {
+        name: "y",
+        data_type: DataTypeDefinition {
+            data_type: StringType {
+                name: None,
+                is_wide: false,
+                size: Some(
+                    LiteralInteger {
+                        value: 500,
+                    },
+                ),
+            },
         },
-    },
-}"#);
+    }
+    "#);
 
     let x = &parse_result.global_vars[0].variables[2];
-    assert_snapshot!(format!("{x:#?}").as_str(), @r###"
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"
     Variable {
         name: "wx",
         data_type: DataTypeReference {
             referenced_type: "WSTRING",
         },
     }
-    "###);
+    "#);
 
     let x = &parse_result.global_vars[0].variables[3];
-    assert_snapshot!(format!("{x:#?}").as_str(), @r#"Variable {
-    name: "wy",
-    data_type: DataTypeDefinition {
-        data_type: StringType {
-            name: None,
-            is_wide: true,
-            size: Some(
-                LiteralInteger {
-                    value: 500,
-                },
-            ),
+    assert_snapshot!(format!("{x:#?}").as_str(), @r#"
+    Variable {
+        name: "wy",
+        data_type: DataTypeDefinition {
+            data_type: StringType {
+                name: None,
+                is_wide: true,
+                size: Some(
+                    LiteralInteger {
+                        value: 500,
+                    },
+                ),
+            },
         },
-    },
-}"#);
+    }
+    "#);
 }
 
 #[test]
@@ -266,7 +270,7 @@ fn empty_parameter_assignments_in_call_statement() {
 #[test]
 fn ref_assignment() {
     let result = &parse("PROGRAM main x REF= y END_PROGRAM").0.implementations[0];
-    insta::assert_debug_snapshot!(result.statements, @r###"
+    insta::assert_debug_snapshot!(result.statements, @r#"
     [
         ReferenceAssignment {
             left: ReferenceExpr {
@@ -287,7 +291,7 @@ fn ref_assignment() {
             },
         },
     ]
-    "###)
+    "#)
 }
 
 #[test]

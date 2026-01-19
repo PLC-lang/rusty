@@ -13,5 +13,3 @@ error[E053]: Literal 'YZ' out of range (WCHAR)
   │
 8 │             WCHAR#'YZ';
   │             ^^^^^^^^^^ Literal 'YZ' out of range (WCHAR)
-
-

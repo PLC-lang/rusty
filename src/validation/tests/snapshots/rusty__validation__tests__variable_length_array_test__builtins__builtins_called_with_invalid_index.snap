@@ -37,5 +37,3 @@ error[E046]: Index out of bound
    │
 24 │             UPPER_BOUND(vla, 0); // index out of bounds
    │             ^^^^^^^^^^^ Index out of bound
-
-

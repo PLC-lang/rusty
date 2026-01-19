@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_expressions_tests.rs
-expression: annotations.get(operator)
+expression: annotations.get(stmt)
 ---
 Some(
     ReplacementAst {

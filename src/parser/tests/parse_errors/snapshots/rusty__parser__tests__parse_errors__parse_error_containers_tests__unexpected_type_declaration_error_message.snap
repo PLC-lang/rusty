@@ -28,5 +28,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_TYPE'
   │
 4 │             END_TYPE
   │             ^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_TYPE'
-
-

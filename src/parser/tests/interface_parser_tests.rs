@@ -10,7 +10,7 @@ fn empty_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 1,
@@ -28,7 +28,7 @@ fn empty_interface() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn interface_with_single_method() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 2,
@@ -102,7 +102,7 @@ fn interface_with_single_method() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn interface_with_multiple_methods() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces, @r#"
     [
         Interface {
             id: 3,
@@ -227,7 +227,7 @@ fn interface_with_multiple_methods() {
             properties: [],
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -315,7 +315,7 @@ fn interface_deriving_from_other_interface() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[1], @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[1], @r#"
     Interface {
         id: 4,
         ident: Identifier {
@@ -351,7 +351,7 @@ fn interface_deriving_from_other_interface() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -374,7 +374,7 @@ fn interface_deriving_from_multiple_interfaces() {
     let (unit, diagnostics) = parse(source);
 
     assert_eq!(diagnostics.len(), 0, "Expected no diagnostics but got {:#?}", diagnostics);
-    insta::assert_debug_snapshot!(unit.interfaces[2], @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[2], @r#"
     Interface {
         id: 5,
         ident: Identifier {
@@ -403,7 +403,7 @@ fn interface_deriving_from_multiple_interfaces() {
         ],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -424,7 +424,7 @@ fn interface_with_property() {
     assert_eq!(unit.interfaces.len(), 1);
     assert_eq!(unit.interfaces[0].ident.name, "myInterface");
 
-    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r###"
+    insta::assert_debug_snapshot!(unit.interfaces[0].properties, @r#"
     [
         PropertyBlock {
             ident: Identifier {
@@ -462,7 +462,7 @@ fn interface_with_property() {
             ],
         },
     ]
-    "###);
+    "#);
 }
 
 mod error_handling {
@@ -490,7 +490,7 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r###"
+        insta::assert_snapshot!(diagnostics, @r"
         error[E113]: Interfaces can not have a default implementation
           ┌─ <internal>:4:17
           │
@@ -508,7 +508,7 @@ mod error_handling {
            │
         14 │                     1 > 2;
            │                     ^^^^^ Interfaces can not have a default implementation
-        "###);
+        ");
     }
 
     #[test]
@@ -524,14 +524,13 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r###"
+        insta::assert_snapshot!(diagnostics, @r"
         error[E006]: Expected a name for the interface definition but got nothing
           ┌─ <internal>:2:9
           │
         2 │         INTERFACE
           │         ^^^^^^^^^ Expected a name for the interface definition but got nothing
-
-        "###);
+        ");
     }
 
     #[test]
@@ -547,14 +546,13 @@ mod error_handling {
         ";
 
         let diagnostics = parse_and_validate_buffered(source);
-        insta::assert_snapshot!(diagnostics, @r###"
+        insta::assert_snapshot!(diagnostics, @r"
         error[E006]: Expected a comma separated list of identifiers after `IMPLEMENTS` but got nothing
           ┌─ <internal>:2:28
           │
         2 │         FUNCTION_BLOCK foo IMPLEMENTS
           │                            ^^^^^^^^^^ Expected a comma separated list of identifiers after `IMPLEMENTS` but got nothing
-
-        "###);
+        ");
     }
 
     #[test]

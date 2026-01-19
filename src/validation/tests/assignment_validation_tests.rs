@@ -1196,7 +1196,7 @@ fn void_assignment_validation() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E037]: Invalid assignment: cannot assign 'VOID' to 'LINT'
        ┌─ <internal>:13:13
        │
@@ -1214,8 +1214,7 @@ fn void_assignment_validation() {
        │
     14 │             x := foo(foo(x));
        │             ^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'VOID' to 'LINT'
-
-    "###)
+    ")
 }
 
 #[test]
@@ -1338,7 +1337,7 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E099]: REFERENCE TO variables can not reference other variables
        ┌─ <internal>:17:28
        │
@@ -1380,8 +1379,7 @@ fn ref_assignment_with_global_local_variables_and_aliased_types() {
        │
     29 │             referenceToFooFirstOfHisName  REF= stringLocal;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'DINT'
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1401,14 +1399,13 @@ fn ref_assignment_with_reference_to_array_variable() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E037]: Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
        ┌─ <internal>:10:13
        │
     10 │             arrReferenceDINT REF= arrSTRING;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[1..6] OF STRING' to 'REFERENCE TO ARRAY[1..5] OF DINT'
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1430,7 +1427,7 @@ fn ref_assignment_with_reference_to_string_variable() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
        ┌─ <internal>:10:13
        │
@@ -1442,8 +1439,7 @@ fn ref_assignment_with_reference_to_string_variable() {
        │
     12 │             referenceToString REF= localWSTRING;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'STRING'
-
-    "###);
+    ");
 }
 
 // TODO(volsa): Improve the error messages here; these are the default messages returned by the parser
@@ -1528,7 +1524,7 @@ fn alias_variable_type_check() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E037]: Invalid assignment: cannot assign 'SINT' to 'DINT'
        ┌─ <internal>:10:32
        │
@@ -1600,8 +1596,7 @@ fn alias_variable_type_check() {
        │
     26 │                 arrayDintVarRefC AT stringVar      : ARRAY[1..5] OF DINT; // Invalid
        │                                     ^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'ARRAY[1..5] OF DINT'
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1622,14 +1617,13 @@ fn reassignment_of_alias_variables_is_disallowed() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E100]: foo is an immutable alias variable, can not change the address
        ┌─ <internal>:11:13
        │
     11 │             foo REF= bar;       // Invalid, the address of `foo` is being changed
        │             ^^^^^^^^^^^^ foo is an immutable alias variable, can not change the address
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1660,7 +1654,7 @@ fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
+    assert_snapshot!(diagnostic, @r"
     error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF ULINT' to 'ARRAY[0..1] OF LINT'
        ┌─ <internal>:16:17
        │
@@ -1678,5 +1672,5 @@ fn assigning_arrays_with_same_size_and_type_class_but_different_inner_type_is_an
        │
     18 │             foo(var3, var4);
        │                 ^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF LWORD' to 'ARRAY[0..1] OF LINT'
-    "###);
+    ");
 }

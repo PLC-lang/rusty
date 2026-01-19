@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected Identifier but found VAR
   │
 3 │             VAR END_VAR
   │             ^^^ Unexpected token: expected Identifier but found VAR
-
-

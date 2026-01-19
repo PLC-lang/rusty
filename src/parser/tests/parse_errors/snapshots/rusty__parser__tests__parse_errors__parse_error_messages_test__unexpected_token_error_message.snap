@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected KeywordEndVar but found ';'
   │
 2 │                 VAR ;
   │                     ^ Unexpected token: expected KeywordEndVar but found ';'
-
-

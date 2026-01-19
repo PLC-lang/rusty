@@ -544,7 +544,7 @@ fn duplicate_enum_names() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: foo: Ambiguous datatype.
       ┌─ <internal>:3:13
       │
@@ -560,8 +560,7 @@ fn duplicate_enum_names() {
       │             --- see also
     4 │             foo : (c, d);
       │             ^^^ foo: Ambiguous datatype.
-
-    "###);
+    ");
 }
 
 #[test]
@@ -633,7 +632,7 @@ fn enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: x: Duplicate symbol.
       ┌─ <internal>:7:17
       │
@@ -651,8 +650,7 @@ fn enum_variants_are_considered_when_checking_for_duplicate_variable_symbols() {
       ·
     7 │                 x : DINT;
       │                 - see also
-
-    "###);
+    ");
 }
 
 #[test]
@@ -668,7 +666,7 @@ fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symb
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: x: Duplicate symbol.
       ┌─ <internal>:4:17
       │
@@ -684,8 +682,7 @@ fn inline_enum_variants_are_considered_when_checking_for_duplicate_variable_symb
       │                 - see also
     5 │                 position : (x, y);
       │                             ^ x: Duplicate symbol.
-
-    "###);
+    ");
 }
 
 #[test]
@@ -720,7 +717,7 @@ fn duplicate_method_names_should_return_an_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: prg.foo: Ambiguous callable symbol.
       ┌─ <internal>:4:20
       │
@@ -756,8 +753,7 @@ fn duplicate_method_names_should_return_an_error() {
        ·
     24 │             METHOD bar
        │                    ^^^ fb.bar: Ambiguous callable symbol.
-
-    "###);
+    ");
 }
 
 #[test]
@@ -768,7 +764,7 @@ fn duplicate_interfaces() {
     ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E004]: foo: Ambiguous interface
       ┌─ <internal>:2:15
       │
@@ -784,6 +780,5 @@ fn duplicate_interfaces() {
       │               --- see also
     3 │     INTERFACE foo /* ... */ END_INTERFACE
       │               ^^^ foo: Ambiguous interface
-
-    "###);
+    ");
 }

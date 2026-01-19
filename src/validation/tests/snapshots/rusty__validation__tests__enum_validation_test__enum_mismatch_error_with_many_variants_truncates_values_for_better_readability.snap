@@ -1,7 +1,6 @@
 ---
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
-snapshot_kind: text
 ---
 warning[E040]: Non-standard enum value `1000` for `Color`
   ┌─ <internal>:7:24

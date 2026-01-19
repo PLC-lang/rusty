@@ -53,5 +53,3 @@ error[E048]: Could not resolve reference to y
   │
 5 │             y;
   │             ^ Could not resolve reference to y
-
-

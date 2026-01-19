@@ -37,5 +37,3 @@ error[E048]: Could not resolve reference to c
    │
 25 │                 s.fb1(a := s.fb3.a, b := s.fb3.b, c := s.fb3.c);
    │                                                              ^ Could not resolve reference to c
-
-

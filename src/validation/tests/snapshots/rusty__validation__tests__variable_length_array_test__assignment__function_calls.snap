@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF DINT' to 'ARRAY[
    │
 13 │                 vla := a;
    │                 ^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF DINT' to 'ARRAY[*] OF DINT'
-
-

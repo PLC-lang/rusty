@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'WCHAR'
   │
 8 │             y := 'B';
   │             ^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'WCHAR'
-
-

@@ -13,5 +13,3 @@ error[E079]: Case condition used outside of case statement! Did you mean to use 
   │
 7 │             23:
   │             ^^ Case condition used outside of case statement! Did you mean to use ';'?
-
-

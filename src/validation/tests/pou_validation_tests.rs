@@ -302,7 +302,7 @@ fn method_inout_arguments_are_not_optional() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostic, @r###"
+    insta::assert_snapshot!(diagnostic, @r"
     error[E030]: Argument `in1` is missing
        ┌─ <internal>:19:13
        │
@@ -326,8 +326,7 @@ fn method_inout_arguments_are_not_optional() {
        │
     21 │             fbInstance.foo(in2 := localIn2);
        │             ^^^^^^^^^^^^^^ Argument `in1` is missing
-
-    "###);
+    ");
 }
 
 #[test]
@@ -383,13 +382,13 @@ fn only_function_blocks_can_use_extends() {
         ",
     );
     // THEN there should be one diagnostic -> Only function blocks can use EXTENDS
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E110]: Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`
       ┌─ <internal>:5:17
       │
     5 │         PROGRAM prog EXTENDS fb
       │                 ^^^^ Subclassing is only allowed in `CLASS` and `FUNCTION_BLOCK`
-    "###);
+    ");
 }
 
 #[test]
@@ -542,5 +541,5 @@ fn interface_method_declared_in_parent_is_allowed() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r"");
+    assert_snapshot!(diagnostics, @"");
 }
