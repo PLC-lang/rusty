@@ -162,7 +162,7 @@
 <a href=#162 id=162 data-nosnippet>162</a>    <span class="kw">fn </span>mangle_function(<span class="kw-2">&amp;</span><span class="self">self</span>, implementation: <span class="kw-2">&amp;</span>ImplementationIndexEntry) -&gt; <span class="prelude-ty">Result</span>&lt;String, CodegenError&gt; {
 <a href=#163 id=163 data-nosnippet>163</a>        <span class="kw">let </span>ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 <a href=#164 id=164 data-nosnippet>164</a>
-<a href=#165 id=165 data-nosnippet>165</a>        <span class="kw">let </span>params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
+<a href=#165 id=165 data-nosnippet>165</a>        <span class="kw">let </span>params = <span class="self">self</span>.index.get_available_parameters(implementation.get_call_name());
 <a href=#166 id=166 data-nosnippet>166</a>
 <a href=#167 id=167 data-nosnippet>167</a>        <span class="kw">let </span>ctx = params.into_iter().try_fold(ctx, |ctx, param| -&gt; <span class="prelude-ty">Result</span>&lt;SectionMangler, CodegenError&gt; {
 <a href=#168 id=168 data-nosnippet>168</a>            <span class="kw">let </span>ty = section_names::mangle_type(
@@ -200,7 +200,7 @@
 <a href=#200 id=200 data-nosnippet>200</a>        debug: <span class="kw-2">&amp;mut </span>DebugBuilderEnum&lt;<span class="lifetime">'ink</span>&gt;,
 <a href=#201 id=201 data-nosnippet>201</a>        new_llvm_index: <span class="kw-2">&amp;mut </span>LlvmTypedIndex&lt;<span class="lifetime">'ink</span>&gt;,
 <a href=#202 id=202 data-nosnippet>202</a>    ) -&gt; <span class="prelude-ty">Result</span>&lt;FunctionValue&lt;<span class="lifetime">'ink</span>&gt;, CodegenError&gt; {
-<a href=#203 id=203 data-nosnippet>203</a>        <span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
+<a href=#203 id=203 data-nosnippet>203</a>        <span class="kw">let </span>declared_parameters = <span class="self">self</span>.index.get_available_parameters(implementation.get_call_name());
 <a href=#204 id=204 data-nosnippet>204</a>        <span class="kw">let </span><span class="kw-2">mut </span>parameters = <span class="self">self</span>.collect_parameters_for_implementation(implementation)<span class="question-mark">?</span>;
 <a href=#205 id=205 data-nosnippet>205</a>        <span class="comment">// if we are handling a method, take the first parameter as the instance
 <a href=#206 id=206 data-nosnippet>206</a>        </span><span class="kw">let </span>instance = <span class="kw">if </span>implementation.is_method() { <span class="prelude-val">Some</span>(parameters.remove(<span class="number">0</span>)) } <span class="kw">else </span>{ <span class="prelude-val">None </span>};
@@ -364,7 +364,7 @@
 <a href=#364 id=364 data-nosnippet>364</a>            parameters.push(<span class="self">self</span>.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
 <a href=#365 id=365 data-nosnippet>365</a>            <span class="prelude-val">Ok</span>(parameters)
 <a href=#366 id=366 data-nosnippet>366</a>        } <span class="kw">else </span>{
-<a href=#367 id=367 data-nosnippet>367</a>            <span class="kw">let </span>declared_params = <span class="self">self</span>.index.get_declared_parameters(implementation.get_call_name());
+<a href=#367 id=367 data-nosnippet>367</a>            <span class="kw">let </span>declared_params = <span class="self">self</span>.index.get_available_parameters(implementation.get_call_name());
 <a href=#368 id=368 data-nosnippet>368</a>            <span class="comment">//find the function's parameters
 <a href=#369 id=369 data-nosnippet>369</a>            </span><span class="kw">let </span><span class="kw-2">mut </span>parameters = declared_params
 <a href=#370 id=370 data-nosnippet>370</a>                .iter()

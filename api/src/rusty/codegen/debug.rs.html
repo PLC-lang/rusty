@@ -730,7 +730,7 @@
 <a href=#730 id=730 data-nosnippet>730</a>            param_offset += <span class="number">1</span>;
 <a href=#731 id=731 data-nosnippet>731</a>        }
 <a href=#732 id=732 data-nosnippet>732</a>        <span class="kw">if </span>implementation.get_implementation_type().is_function_method_or_init() {
-<a href=#733 id=733 data-nosnippet>733</a>            <span class="kw">let </span>declared_params = index.get_declared_parameters(implementation.get_call_name());
+<a href=#733 id=733 data-nosnippet>733</a>            <span class="kw">let </span>declared_params = index.get_available_parameters(implementation.get_call_name());
 <a href=#734 id=734 data-nosnippet>734</a>            <span class="comment">// Register all parameters for debugging
 <a href=#735 id=735 data-nosnippet>735</a>            </span><span class="kw">for </span>(index, variable) <span class="kw">in </span>declared_params.iter().enumerate() {
 <a href=#736 id=736 data-nosnippet>736</a>                <span class="self">self</span>.register_parameter(variable, index + param_offset, func);

@@ -396,8 +396,8 @@
 <a href=#396 id=396 data-nosnippet>396</a>            <span class="kw">let </span>method_impl = context.method_impl;
 <a href=#397 id=397 data-nosnippet>397</a>            <span class="kw">let </span>method_ref = context.method_ref;
 <a href=#398 id=398 data-nosnippet>398</a>            <span class="kw">let </span>method_name = context.method_ref.get_call_name();
-<a href=#399 id=399 data-nosnippet>399</a>            <span class="kw">let </span>parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
-<a href=#400 id=400 data-nosnippet>400</a>            <span class="kw">let </span>parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
+<a href=#399 id=399 data-nosnippet>399</a>            <span class="kw">let </span>parameters_ref = context.index.get_available_parameters(method_ref.get_name());
+<a href=#400 id=400 data-nosnippet>400</a>            <span class="kw">let </span>parameters_impl = context.index.get_available_parameters(method_impl.get_name());
 <a href=#401 id=401 data-nosnippet>401</a>            <span class="kw">let </span><span class="kw-2">mut </span>diagnostics = <span class="macro">vec!</span>[];
 <a href=#402 id=402 data-nosnippet>402</a>
 <a href=#403 id=403 data-nosnippet>403</a>            <span class="comment">// Conditionally skip the first parameter if the return type is aggregate.

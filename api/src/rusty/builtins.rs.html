@@ -752,7 +752,7 @@
 <a href=#752 id=752 data-nosnippet>752</a>            .has_nature(TypeNature::Elementary, annotator.index)
 <a href=#753 id=753 data-nosnippet>753</a>    }) {
 <a href=#754 id=754 data-nosnippet>754</a>        <span class="comment">// we are trying to call this function with a non-elementary type, so we redirect back to the resolver
-<a href=#755 id=755 data-nosnippet>755</a>        </span>annotator.annotate_call_statement(operator, <span class="prelude-val">Some</span>(parameters), <span class="kw-2">&amp;</span>ctx);
+<a href=#755 id=755 data-nosnippet>755</a>        </span>annotator.annotate_arguments(operator, parameters, <span class="kw-2">&amp;</span>ctx);
 <a href=#756 id=756 data-nosnippet>756</a>        <span class="kw">return</span>;
 <a href=#757 id=757 data-nosnippet>757</a>    }
 <a href=#758 id=758 data-nosnippet>758</a>
@@ -821,7 +821,7 @@
 <a href=#821 id=821 data-nosnippet>821</a>            .has_nature(TypeNature::Num, annotator.index)
 <a href=#822 id=822 data-nosnippet>822</a>    }) {
 <a href=#823 id=823 data-nosnippet>823</a>        <span class="comment">// we are trying to call this function with a non-numerical type, so we redirect back to the resolver
-<a href=#824 id=824 data-nosnippet>824</a>        </span>annotator.annotate_call_statement(operator, <span class="prelude-val">Some</span>(parameters), <span class="kw-2">&amp;</span>ctx);
+<a href=#824 id=824 data-nosnippet>824</a>        </span>annotator.annotate_arguments(operator, parameters, <span class="kw-2">&amp;</span>ctx);
 <a href=#825 id=825 data-nosnippet>825</a>        <span class="kw">return</span>;
 <a href=#826 id=826 data-nosnippet>826</a>    }
 <a href=#827 id=827 data-nosnippet>827</a>
