@@ -1047,7 +1047,7 @@ fn validate_ref_assignment<T: AnnotationMap>(
     let type_rhs = context.annotations.get_type_or_void(&assignment.right, context.index);
 
     // Assert that the right-hand side is a reference
-    if !(assignment.right.is_reference()
+    if !(assignment.right.get_node_peeled().is_reference()
         || assignment_location.is_builtin_internal()
         || assignment.right.is_zero())
     {
@@ -1497,7 +1497,7 @@ fn validate_call<T: AnnotationMap>(
         return;
     };
     let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
-    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let parameters = context.index.get_available_parameters(pou.get_name());
 
     if builtins::get_builtin(pou.get_name()).is_none() {
         validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
@@ -1846,7 +1846,7 @@ fn validate_argument_count<T: AnnotationMap>(
     arguments: &[&AstNode],
     operator_location: &SourceLocation,
 ) {
-    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let parameters = context.index.get_available_parameters(pou.get_name());
     let has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
 
     let argument_count_is_incorrect = match pou {

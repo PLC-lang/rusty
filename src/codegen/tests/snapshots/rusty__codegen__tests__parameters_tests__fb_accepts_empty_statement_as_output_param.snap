@@ -27,7 +27,7 @@ entry:
   %fb = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   call void @fb_t(ptr %fb)
-  %1 = getelementptr inbounds nuw %fb_t, ptr %fb, i32 0, i32 0
+  %1 = getelementptr inbounds %fb_t, ptr %fb, i32 0, i32 0
   %2 = load i32, ptr %1, align 4
   store i32 %2, ptr %x, align 4
   ret void

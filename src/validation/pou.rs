@@ -396,8 +396,8 @@ pub(super) mod signature_validation {
             let method_impl = context.method_impl;
             let method_ref = context.method_ref;
             let method_name = context.method_ref.get_call_name();
-            let parameters_ref = context.index.get_declared_parameters(method_ref.get_name());
-            let parameters_impl = context.index.get_declared_parameters(method_impl.get_name());
+            let parameters_ref = context.index.get_available_parameters(method_ref.get_name());
+            let parameters_impl = context.index.get_available_parameters(method_impl.get_name());
             let mut diagnostics = vec![];
 
             // Conditionally skip the first parameter if the return type is aggregate.

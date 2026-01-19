@@ -263,7 +263,12 @@ fn type_annotations_indicates_necessary_casts() {
     // 3 is a DINT but hinted as an INT because foo expects an INT as first parameter
     assert_eq!(
         annotations.get_hint(parameters[0]).unwrap(),
-        &StatementAnnotation::Argument { resulting_type: "INT".to_string(), position: 0 }
+        &StatementAnnotation::Argument {
+            resulting_type: "INT".to_string(),
+            position: 0,
+            depth: 0,
+            pou: "foo".to_string()
+        }
     );
 }
 
