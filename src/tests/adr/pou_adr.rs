@@ -248,9 +248,9 @@ fn calling_a_program() {
       store i16 0, ptr %y, align 2
       store i16 0, ptr %foo, align 2
       store i16 1, ptr @main_prg_instance, align 2
-      store ptr %y, ptr getelementptr inbounds nuw (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
+      store ptr %y, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 1), align 8
       call void @main_prg(ptr @main_prg_instance)
-      %0 = load i16, ptr getelementptr inbounds nuw (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
+      %0 = load i16, ptr getelementptr inbounds (%main_prg, ptr @main_prg_instance, i32 0, i32 2), align 2
       store i16 %0, ptr %x, align 2
       %foo_ret = load i16, ptr %foo, align 2
       ret i16 %foo_ret
@@ -354,12 +354,12 @@ fn calling_a_function_block() {
       %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
       %y = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
       %fb = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
-      %1 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 0
+      %1 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 0
       store i16 1, ptr %1, align 2
-      %2 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 1
+      %2 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 1
       store ptr %y, ptr %2, align 8
       call void @main_fb(ptr %fb)
-      %3 = getelementptr inbounds nuw %main_fb, ptr %fb, i32 0, i32 2
+      %3 = getelementptr inbounds %main_fb, ptr %fb, i32 0, i32 2
       %4 = load i16, ptr %3, align 2
       store i16 %4, ptr %x, align 2
       ret void

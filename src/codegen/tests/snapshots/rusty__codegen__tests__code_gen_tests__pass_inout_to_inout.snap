@@ -29,7 +29,7 @@ entry:
   store ptr %deref, ptr @foo2_instance, align 8
   %deref1 = load ptr, ptr %inout, align 8
   %load_inout = load i32, ptr %deref1, align 4
-  store i32 %load_inout, ptr getelementptr inbounds nuw (%foo2, ptr @foo2_instance, i32 0, i32 1), align 4
+  store i32 %load_inout, ptr getelementptr inbounds (%foo2, ptr @foo2_instance, i32 0, i32 1), align 4
   call void @foo2(ptr @foo2_instance)
   ret void
 }
