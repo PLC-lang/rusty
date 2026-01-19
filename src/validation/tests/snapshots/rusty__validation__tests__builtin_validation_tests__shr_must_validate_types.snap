@@ -1,0 +1,9 @@
+---
+source: src/validation/tests/builtin_validation_tests.rs
+expression: "&diagnostics"
+---
+error[E031]: Invalid expression, types STRING and INT are incompatible in the given context
+  ┌─ <internal>:5:17
+  │
+5 │             SHR('foo',2);
+  │                 ^^^^^ Invalid expression, types STRING and INT are incompatible in the given context

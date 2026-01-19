@@ -103,3 +103,33 @@ fn comparison_builtins_called_with_invalid_param_count() {
 
     assert_snapshot!(&diagnostics);
 }
+
+#[test]
+fn shl_must_validate_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+        VAR
+        END_VAR
+            SHL('foo',2);
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(&diagnostics);
+}
+
+#[test]
+fn shr_must_validate_types() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION main
+        VAR
+        END_VAR
+            SHR('foo',2);
+        END_FUNCTION
+       ",
+    );
+
+    assert_snapshot!(&diagnostics);
+}
