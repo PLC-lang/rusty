@@ -209,11 +209,11 @@ fn ref_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
+      %a = alloca ptr, align 8
       %b = alloca i32, align 4
-      store i32* null, i32** %a, align 8
-      store i32 0, i32* %b, align 4
-      store i32* %b, i32** %a, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %b, align 4
+      store ptr %b, ptr %a, align 8
       ret void
     }
     "#);
@@ -240,9 +240,9 @@ fn ref_assignment_to_null() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
-      store i32* null, i32** %a, align 8
-      store i32 0, i32** %a, align 4
+      %a = alloca ptr, align 8
+      store ptr null, ptr %a, align 8
+      store i32 0, ptr %a, align 4
       ret void
     }
     "#);
@@ -283,10 +283,10 @@ fn reference_to_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca i32*, align 8
-      store i32* null, i32** %a, align 8
-      %deref = load i32*, i32** %a, align 8
-      store i32 5, i32* %deref, align 4
+      %a = alloca ptr, align 8
+      store ptr null, ptr %a, align 8
+      %deref = load ptr, ptr %a, align 8
+      store i32 5, ptr %deref, align 4
       ret void
     }
     "#);
@@ -330,18 +330,17 @@ fn reference_to_string_assignment() {
 
     define void @main() {
     entry:
-      %a = alloca [81 x i8]*, align 8
-      store [81 x i8]* null, [81 x i8]** %a, align 8
-      %deref = load [81 x i8]*, [81 x i8]** %a, align 8
-      %0 = bitcast [81 x i8]* %deref to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %0, i8* align 1 getelementptr inbounds ([6 x i8], [6 x i8]* @utf08_literal_0, i32 0, i32 0), i32 6, i1 false)
+      %a = alloca ptr, align 8
+      store ptr null, ptr %a, align 8
+      %deref = load ptr, ptr %a, align 8
+      call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 6, i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -366,10 +365,10 @@ fn local_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca i32*, align 8
+      %foo = alloca ptr, align 8
       %bar = alloca i32, align 4
-      store i32* null, i32** %foo, align 8
-      store i32 0, i32* %bar, align 4
+      store ptr null, ptr %foo, align 8
+      store i32 0, ptr %bar, align 4
       ret void
     }
     "#);
@@ -396,18 +395,17 @@ fn local_string_alias() {
 
     define void @main() {
     entry:
-      %foo = alloca [81 x i8]*, align 8
+      %foo = alloca ptr, align 8
       %bar = alloca [81 x i8], align 1
-      store [81 x i8]* null, [81 x i8]** %foo, align 8
-      %0 = bitcast [81 x i8]* %bar to i8*
-      call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
+      store ptr null, ptr %foo, align 8
+      call void @llvm.memset.p0.i64(ptr align 1 %bar, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-    declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+    declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
     "#);
 }
 

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -21,26 +20,21 @@ entry:
   %myArr1 = alloca [4 x i16], align 2
   %cmd2 = alloca %commands, align 8
   %myArr2 = alloca [4 x i16], align 2
-  %0 = bitcast %commands* %cmd1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%commands, %commands* @__commands__init, i32 0, i32 0), i64 ptrtoint (%commands* getelementptr (%commands, %commands* null, i32 1) to i64), i1 false)
-  %1 = bitcast [81 x i8]* %myStr1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds ([81 x i8], [81 x i8]* @__main.myStr1__init, i32 0, i32 0), i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-  %2 = bitcast [4 x i16]* %myArr1 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %2, i8 0, i64 ptrtoint ([4 x i16]* getelementptr ([4 x i16], [4 x i16]* null, i32 1) to i64), i1 false)
-  %3 = bitcast %commands* %cmd2 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 getelementptr inbounds (%commands, %commands* @__commands__init, i32 0, i32 0), i64 ptrtoint (%commands* getelementptr (%commands, %commands* null, i32 1) to i64), i1 false)
-  %4 = bitcast [4 x i16]* %myArr2 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %4, i8 0, i64 ptrtoint ([4 x i16]* getelementptr ([4 x i16], [4 x i16]* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %main, align 4
-  %main_ret = load i32, i32* %main, align 4
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd1, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myStr1, ptr align 1 @__main.myStr1__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align 1 %myArr1, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd2, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  call void @llvm.memset.p0.i64(ptr align 1 %myArr2, i8 0, i64 ptrtoint (ptr getelementptr ([4 x i16], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
-attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }

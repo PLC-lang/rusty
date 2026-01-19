@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,45 +11,40 @@ define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %arr = alloca [5 x i32], align 4
-  %0 = bitcast [5 x i32]* %arr to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %main, align 4
-  %1 = bitcast [5 x i32]* %arr to i32*
-  %call = call i32 @fn_by_ref(i32* %1)
-  %main_ret = load i32, i32* %main, align 4
+  call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([5 x i32], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %main, align 4
+  %call = call i32 @fn_by_ref(ptr %arr)
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }
 
-define i32 @fn_by_ref(i32* %0) {
+define i32 @fn_by_ref(ptr %0) {
 entry:
   %fn_by_ref = alloca i32, align 4
-  %arg_by_ref = alloca i32*, align 8
-  store i32* %0, i32** %arg_by_ref, align 8
-  store i32 0, i32* %fn_by_ref, align 4
-  %deref = load i32*, i32** %arg_by_ref, align 8
-  %call = call i32 @fn_by_val(i32* %deref)
-  %fn_by_ref_ret = load i32, i32* %fn_by_ref, align 4
+  %arg_by_ref = alloca ptr, align 8
+  store ptr %0, ptr %arg_by_ref, align 8
+  store i32 0, ptr %fn_by_ref, align 4
+  %deref = load ptr, ptr %arg_by_ref, align 8
+  %call = call i32 @fn_by_val(ptr %deref)
+  %fn_by_ref_ret = load i32, ptr %fn_by_ref, align 4
   ret i32 %fn_by_ref_ret
 }
 
-define i32 @fn_by_val(i32* %0) {
+define i32 @fn_by_val(ptr %0) {
 entry:
   %fn_by_val = alloca i32, align 4
   %arg_by_val = alloca [5 x i32], align 4
-  %bitcast = bitcast [5 x i32]* %arg_by_val to i32*
-  %1 = bitcast i32* %bitcast to i8*
-  %2 = bitcast i32* %0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint ([5 x i32]* getelementptr ([5 x i32], [5 x i32]* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %fn_by_val, align 4
-  %fn_by_val_ret = load i32, i32* %fn_by_val, align 4
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arg_by_val, ptr align 1 %0, i64 ptrtoint (ptr getelementptr ([5 x i32], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %fn_by_val, align 4
+  %fn_by_val_ret = load i32, ptr %fn_by_val, align 4
   ret i32 %fn_by_val_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-attributes #1 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

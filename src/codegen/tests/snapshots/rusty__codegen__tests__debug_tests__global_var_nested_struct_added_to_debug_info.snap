@@ -10,49 +10,49 @@ target triple = "[filtered]"
 %myStruct = type { i32, %myStruct2 }
 %myStruct2 = type { i32, double }
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___Test, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___Test, ptr null }]
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
 @__myStruct2__init = unnamed_addr constant %myStruct2 zeroinitializer, !dbg !14
 @gStruct = global %myStruct zeroinitializer, !dbg !17
 
-define void @__init_mystruct(%myStruct* %0) {
+define void @__init_mystruct(ptr %0) {
 entry:
-  %self = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %self, align 8
-  %deref = load %myStruct*, %myStruct** %self, align 8
-  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
-  call void @__init_mystruct2(%myStruct2* %b)
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %deref = load ptr, ptr %self, align 8
+  %b = getelementptr inbounds nuw %myStruct, ptr %deref, i32 0, i32 1
+  call void @__init_mystruct2(ptr %b)
   ret void
 }
 
-define void @__init_mystruct2(%myStruct2* %0) {
+define void @__init_mystruct2(ptr %0) {
 entry:
-  %self = alloca %myStruct2*, align 8
-  store %myStruct2* %0, %myStruct2** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
-define void @__user_init_myStruct(%myStruct* %0) {
+define void @__user_init_myStruct(ptr %0) {
 entry:
-  %self = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %self, align 8
-  %deref = load %myStruct*, %myStruct** %self, align 8
-  %b = getelementptr inbounds %myStruct, %myStruct* %deref, i32 0, i32 1
-  call void @__user_init_myStruct2(%myStruct2* %b)
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %deref = load ptr, ptr %self, align 8
+  %b = getelementptr inbounds nuw %myStruct, ptr %deref, i32 0, i32 1
+  call void @__user_init_myStruct2(ptr %b)
   ret void
 }
 
-define void @__user_init_myStruct2(%myStruct2* %0) {
+define void @__user_init_myStruct2(ptr %0) {
 entry:
-  %self = alloca %myStruct2*, align 8
-  store %myStruct2* %0, %myStruct2** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
 define void @__init___Test() {
 entry:
-  call void @__init_mystruct(%myStruct* @gStruct)
-  call void @__user_init_myStruct(%myStruct* @gStruct)
+  call void @__init_mystruct(ptr @gStruct)
+  call void @__user_init_myStruct(ptr @gStruct)
   ret void
 }
 

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,19 +11,19 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %c = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %d = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %load_a = load i64, i64* %a, align 8
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %d = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  %load_a = load i64, ptr %a, align 8
   %tmpVar = icmp sgt i64 %load_a, 1619827200000000000
-  %load_b = load i64, i64* %b, align 8
+  %load_b = load i64, ptr %b, align 8
   %tmpVar1 = icmp sgt i64 %load_b, 1619897357000000000
-  %load_c = load i64, i64* %c, align 8
+  %load_c = load i64, ptr %c, align 8
   %tmpVar2 = icmp sgt i64 %load_c, 156557000000000
-  %load_d = load i64, i64* %d, align 8
+  %load_d = load i64, ptr %d, align 8
   %tmpVar3 = icmp sgt i64 %load_d, 70157000000000
   ret void
 }

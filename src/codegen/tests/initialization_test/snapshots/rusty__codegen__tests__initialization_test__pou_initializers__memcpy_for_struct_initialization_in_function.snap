@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,14 +15,13 @@ define i16 @func() {
 entry:
   %func = alloca i16, align 2
   %a = alloca %__func_a, align 8
-  %0 = bitcast %__func_a* %a to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 bitcast (%__func_a* @____func_a__init to i8*), i64 ptrtoint (%__func_a* getelementptr (%__func_a, %__func_a* null, i32 1) to i64), i1 false)
-  store i16 0, i16* %func, align 2
-  %func_ret = load i16, i16* %func, align 2
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %a, ptr align 1 @____func_a__init, i64 ptrtoint (ptr getelementptr (%__func_a, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %func, align 2
+  %func_ret = load i16, ptr %func, align 2
   ret i16 %func_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

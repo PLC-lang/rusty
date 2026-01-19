@@ -30,7 +30,6 @@ generational-arena = "0.2.8"
 regex = "1"
 shell-words = "1.1.0"
 plc_derive = { path = "./compiler/plc_derive" }
-lld_rs = { git = "https://github.com/mun-lang/lld-rs", rev = "3798ace" }
 which = "4.2.5"
 log.workspace = true
 inkwell.workspace = true
@@ -84,8 +83,9 @@ members = [
 default-members = [".", "compiler/plc_driver", "compiler/plc_xml"]
 
 [workspace.dependencies]
+inkwell = { version = "0.8", features = ["llvm21-1"] }
+
 insta = { version = "1.31.0", features = ["filters"] }
-inkwell = { version = "0.6", features = ["llvm14-0"] }
 encoding_rs = "0.8"
 encoding_rs_io = "0.1"
 log = "0.4"

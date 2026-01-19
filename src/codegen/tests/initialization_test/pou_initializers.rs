@@ -433,10 +433,10 @@ fn unary_plus_in_initializer() {
     @g1 = unnamed_addr constant i16 5
     @exp_instance = global %exp { i16 5, float 0x40091EB860000000 }
 
-    define void @exp(%exp* %0) {
+    define void @exp(ptr %0) {
     entry:
-      %x = getelementptr inbounds %exp, %exp* %0, i32 0, i32 0
-      %y = getelementptr inbounds %exp, %exp* %0, i32 0, i32 1
+      %x = getelementptr inbounds nuw %exp, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %exp, ptr %0, i32 0, i32 1
       ret void
     }
     "#);

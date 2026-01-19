@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'MyInt.st'
 source_filename = "MyInt.st"
@@ -17,8 +16,8 @@ target triple = "[filtered]"
 
 @prog_instance = global %prog { i16 5 }
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

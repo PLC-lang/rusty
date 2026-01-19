@@ -13,35 +13,32 @@ target triple = "[filtered]"
 @__fb__init = unnamed_addr constant %fb { i16 9 }
 @main_instance = global %main { %fb { i16 9 } }
 
-define void @fb(%fb* %0) {
+define void @fb(ptr %0) {
 entry:
-  %a = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
-define i32 @func(%fb* %0) {
+define i32 @func(ptr %0) {
 entry:
   %func = alloca i32, align 4
   %in = alloca %fb, align 8
-  %1 = bitcast %fb* %in to i8*
-  %2 = bitcast %fb* %0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %in, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
   %x = alloca %fb, align 8
-  %3 = bitcast %fb* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %3, i8* align 1 bitcast (%fb* @__fb__init to i8*), i64 ptrtoint (%fb* getelementptr (%fb, %fb* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %func, align 4
-  %func_ret = load i32, i32* %func, align 4
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %x, ptr align 1 @__fb__init, i64 ptrtoint (ptr getelementptr (%fb, ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %func, align 4
+  %func_ret = load i32, ptr %func, align 4
   ret i32 %func_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %fb0 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %call = call i32 @func(%fb* %fb0)
+  %fb0 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %call = call i32 @func(ptr %fb0)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

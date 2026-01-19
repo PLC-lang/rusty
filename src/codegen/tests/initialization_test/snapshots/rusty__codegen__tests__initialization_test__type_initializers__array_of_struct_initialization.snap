@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/type_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -19,9 +18,9 @@ target triple = "[filtered]"
 @__main.arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 @__main.alias_arr__init = unnamed_addr constant [2 x %myStruct] [%myStruct { i32 10, i32 20, [2 x i32] [i32 30, i32 40] }, %myStruct { i32 50, i32 60, [2 x i32] [i32 70, i32 80] }]
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %arr = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %alias_arr = getelementptr inbounds %main, %main* %0, i32 0, i32 1
+  %arr = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %alias_arr = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   ret void
 }

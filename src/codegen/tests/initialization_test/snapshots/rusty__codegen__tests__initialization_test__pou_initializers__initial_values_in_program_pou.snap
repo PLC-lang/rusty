@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,13 +11,13 @@ target triple = "[filtered]"
 
 @Main_instance = global %Main { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 
-define void @Main(%Main* %0) {
+define void @Main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
-  %xx = getelementptr inbounds %Main, %Main* %0, i32 0, i32 1
-  %y = getelementptr inbounds %Main, %Main* %0, i32 0, i32 2
-  %yy = getelementptr inbounds %Main, %Main* %0, i32 0, i32 3
-  %z = getelementptr inbounds %Main, %Main* %0, i32 0, i32 4
-  %zz = getelementptr inbounds %Main, %Main* %0, i32 0, i32 5
+  %x = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
+  %xx = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 2
+  %yy = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 3
+  %z = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 4
+  %zz = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 5
   ret void
 }

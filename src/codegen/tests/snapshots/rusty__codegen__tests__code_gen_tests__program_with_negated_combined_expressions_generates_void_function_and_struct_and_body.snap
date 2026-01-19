@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,28 +11,28 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %load_y = load i8, i8* %y, align 1
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %load_y = load i8, ptr %y, align 1
   %1 = icmp ne i8 %load_y, 0
   br i1 %1, label %2, label %3
 
 2:                                                ; preds = %entry
-  %load_z = load i32, i32* %z, align 4
+  %load_z = load i32, ptr %z, align 4
   %tmpVar = icmp sge i32 %load_z, 5
   br label %3
 
 3:                                                ; preds = %2, %entry
   %4 = phi i1 [ %1, %entry ], [ %tmpVar, %2 ]
-  %load_z1 = load i32, i32* %z, align 4
+  %load_z1 = load i32, ptr %z, align 4
   %tmpVar2 = icmp sle i32 %load_z1, 6
   %tmpVar3 = xor i1 %tmpVar2, true
   br i1 %tmpVar3, label %7, label %5
 
 5:                                                ; preds = %3
-  %load_y4 = load i8, i8* %y, align 1
+  %load_y4 = load i8, ptr %y, align 1
   %6 = icmp ne i8 %load_y4, 0
   br label %7
 

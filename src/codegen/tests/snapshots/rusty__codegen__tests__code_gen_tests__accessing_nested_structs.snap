@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,14 +15,14 @@ target triple = "[filtered]"
 @__OuterStruct__init = unnamed_addr constant %OuterStruct zeroinitializer
 @__InnerStruct__init = unnamed_addr constant %InnerStruct zeroinitializer
 
-define void @Main(%Main* %0) {
+define void @Main(ptr %0) {
 entry:
-  %m = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
-  %out1 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 0
-  %inner1 = getelementptr inbounds %InnerStruct, %InnerStruct* %out1, i32 0, i32 0
-  store i16 3, i16* %inner1, align 2
-  %out2 = getelementptr inbounds %OuterStruct, %OuterStruct* %m, i32 0, i32 1
-  %inner2 = getelementptr inbounds %InnerStruct, %InnerStruct* %out2, i32 0, i32 1
-  store i16 7, i16* %inner2, align 2
+  %m = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
+  %out1 = getelementptr inbounds nuw %OuterStruct, ptr %m, i32 0, i32 0
+  %inner1 = getelementptr inbounds nuw %InnerStruct, ptr %out1, i32 0, i32 0
+  store i16 3, ptr %inner1, align 2
+  %out2 = getelementptr inbounds nuw %OuterStruct, ptr %m, i32 0, i32 1
+  %inner2 = getelementptr inbounds nuw %InnerStruct, ptr %out2, i32 0, i32 1
+  store i16 7, ptr %inner2, align 2
   ret void
 }

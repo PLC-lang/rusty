@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,44 +11,44 @@ target triple = "[filtered]"
 
 @main_instance = global %main { i32 0, i32 60 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %DAYS_IN_MONTH = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %SIXTY = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_DAYS_IN_MONTH = load i32, i32* %DAYS_IN_MONTH, align 4
+  %DAYS_IN_MONTH = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %SIXTY = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %load_DAYS_IN_MONTH = load i32, ptr %DAYS_IN_MONTH, align 4
   switch i32 %load_DAYS_IN_MONTH, label %else [
   ]
 
 case:                                             ; preds = %range_then
-  store i32 29, i32* %DAYS_IN_MONTH, align 4
+  store i32 29, ptr %DAYS_IN_MONTH, align 4
   br label %continue
 
 case4:                                            ; preds = %range_then5
-  store i32 30, i32* %DAYS_IN_MONTH, align 4
+  store i32 30, ptr %DAYS_IN_MONTH, align 4
   br label %continue
 
 else:                                             ; preds = %entry
-  %load_DAYS_IN_MONTH1 = load i32, i32* %DAYS_IN_MONTH, align 4
+  %load_DAYS_IN_MONTH1 = load i32, ptr %DAYS_IN_MONTH, align 4
   %tmpVar = icmp sge i32 %load_DAYS_IN_MONTH1, 32
   br i1 %tmpVar, label %range_then, label %range_else
 
 range_then:                                       ; preds = %else
-  %load_DAYS_IN_MONTH2 = load i32, i32* %DAYS_IN_MONTH, align 4
+  %load_DAYS_IN_MONTH2 = load i32, ptr %DAYS_IN_MONTH, align 4
   %tmpVar3 = icmp sle i32 %load_DAYS_IN_MONTH2, 60
   br i1 %tmpVar3, label %case, label %range_else
 
 range_else:                                       ; preds = %range_then, %else
-  %load_DAYS_IN_MONTH7 = load i32, i32* %DAYS_IN_MONTH, align 4
+  %load_DAYS_IN_MONTH7 = load i32, ptr %DAYS_IN_MONTH, align 4
   %tmpVar8 = icmp sge i32 %load_DAYS_IN_MONTH7, 62
   br i1 %tmpVar8, label %range_then5, label %range_else6
 
 range_then5:                                      ; preds = %range_else
-  %load_DAYS_IN_MONTH9 = load i32, i32* %DAYS_IN_MONTH, align 4
+  %load_DAYS_IN_MONTH9 = load i32, ptr %DAYS_IN_MONTH, align 4
   %tmpVar10 = icmp sle i32 %load_DAYS_IN_MONTH9, 70
   br i1 %tmpVar10, label %case4, label %range_else6
 
 range_else6:                                      ; preds = %range_then5, %range_else
-  store i32 31, i32* %DAYS_IN_MONTH, align 4
+  store i32 31, ptr %DAYS_IN_MONTH, align 4
   br label %continue
 
 continue:                                         ; preds = %range_else6, %case4, %case

@@ -14,16 +14,16 @@ target triple = "[filtered]"
 @__MyFB__init = unnamed_addr constant %MyFB { i16 77 }
 @prg_instance = global %prg { %MyFB { i16 77 } }
 
-define void @MyFB(%MyFB* %0) {
+define void @MyFB(ptr %0) {
 entry:
-  %this = alloca %MyFB*, align 8
-  store %MyFB* %0, %MyFB** %this, align 8
-  %x = getelementptr inbounds %MyFB, %MyFB* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %MyFB, ptr %0, i32 0, i32 0
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   ret void
 }

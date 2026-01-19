@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/compare_instructions_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -10,19 +9,17 @@ target triple = "[filtered]"
 
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"b\00"
 
-define i8 @STRING_LESS(i8* %0, i8* %1) {
+define i8 @STRING_LESS(ptr %0, ptr %1) {
 entry:
   %STRING_LESS = alloca i8, align 1
   %op1 = alloca [1025 x i8], align 1
-  %bitcast = bitcast [1025 x i8]* %op1 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast, i8 0, i64 1025, i1 false)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast, i8* align 1 %0, i64 1024, i1 false)
+  call void @llvm.memset.p0.i64(ptr align 1 %op1, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %op1, ptr align 1 %0, i64 1024, i1 false)
   %op2 = alloca [1025 x i8], align 1
-  %bitcast1 = bitcast [1025 x i8]* %op2 to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %bitcast1, i8 0, i64 1025, i1 false)
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %bitcast1, i8* align 1 %1, i64 1024, i1 false)
-  store i8 0, i8* %STRING_LESS, align 1
-  %STRING_LESS_ret = load i8, i8* %STRING_LESS, align 1
+  call void @llvm.memset.p0.i64(ptr align 1 %op2, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %op2, ptr align 1 %1, i64 1024, i1 false)
+  store i8 0, ptr %STRING_LESS, align 1
+  %STRING_LESS_ret = load i8, ptr %STRING_LESS, align 1
   ret i8 %STRING_LESS_ret
 }
 
@@ -31,22 +28,20 @@ entry:
   %baz = alloca i16, align 2
   %a = alloca [81 x i8], align 1
   %result = alloca i8, align 1
-  %0 = bitcast [81 x i8]* %a to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([81 x i8]* getelementptr ([81 x i8], [81 x i8]* null, i32 1) to i64), i1 false)
-  store i8 0, i8* %result, align 1
-  store i16 0, i16* %baz, align 2
-  %1 = bitcast [81 x i8]* %a to i8*
-  %call = call i8 @STRING_LESS(i8* %1, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @utf08_literal_0, i32 0, i32 0))
-  store i8 %call, i8* %result, align 1
-  %baz_ret = load i16, i16* %baz, align 2
+  call void @llvm.memset.p0.i64(ptr align 1 %a, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  store i8 0, ptr %result, align 1
+  store i16 0, ptr %baz, align 2
+  %call = call i8 @STRING_LESS(ptr %a, ptr @utf08_literal_0)
+  store i8 %call, ptr %result, align 1
+  %baz_ret = load i16, ptr %baz, align 2
   ret i16 %baz_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #1
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn writeonly }
-attributes #1 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: write) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }

@@ -11,46 +11,46 @@ target triple = "[filtered]"
 
 @__MyClass__init = unnamed_addr constant %MyClass zeroinitializer
 
-define void @MyClass(%MyClass* %0) {
+define void @MyClass(ptr %0) {
 entry:
-  %this = alloca %MyClass*, align 8
-  store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
-  %call = call i16 @MyClass__testMethod(%MyClass* %0, i16 1)
-  %call1 = call i16 @MyClass__testMethod(%MyClass* %0, i16 3)
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
+  %call = call i16 @MyClass__testMethod(ptr %0, i16 1)
+  %call1 = call i16 @MyClass__testMethod(ptr %0, i16 3)
   ret void
 }
 
-define i16 @MyClass__testMethod(%MyClass* %0, i16 %1) {
+define i16 @MyClass__testMethod(ptr %0, i16 %1) {
 entry:
-  %this = alloca %MyClass*, align 8
-  store %MyClass* %0, %MyClass** %this, align 8
-  %x = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 0
-  %y = getelementptr inbounds %MyClass, %MyClass* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %MyClass, ptr %0, i32 0, i32 1
   %MyClass.testMethod = alloca i16, align 2
   %myMethodArg = alloca i16, align 2
-  store i16 %1, i16* %myMethodArg, align 2
+  store i16 %1, ptr %myMethodArg, align 2
   %myMethodLocalVar = alloca i16, align 2
-  store i16 0, i16* %myMethodLocalVar, align 2
-  store i16 0, i16* %MyClass.testMethod, align 2
-  %load_myMethodArg = load i16, i16* %myMethodArg, align 2
-  store i16 %load_myMethodArg, i16* %x, align 2
-  %load_x = load i16, i16* %x, align 2
+  store i16 0, ptr %myMethodLocalVar, align 2
+  store i16 0, ptr %MyClass.testMethod, align 2
+  %load_myMethodArg = load i16, ptr %myMethodArg, align 2
+  store i16 %load_myMethodArg, ptr %x, align 2
+  %load_x = load i16, ptr %x, align 2
   %2 = sext i16 %load_x to i32
   %tmpVar = add i32 %2, 1
   %3 = trunc i32 %tmpVar to i16
-  store i16 %3, i16* %y, align 2
-  %load_y = load i16, i16* %y, align 2
+  store i16 %3, ptr %y, align 2
+  %load_y = load i16, ptr %y, align 2
   %4 = sext i16 %load_y to i32
   %tmpVar1 = add i32 %4, 1
   %5 = trunc i32 %tmpVar1 to i16
-  store i16 %5, i16* %myMethodLocalVar, align 2
-  %load_myMethodLocalVar = load i16, i16* %myMethodLocalVar, align 2
+  store i16 %5, ptr %myMethodLocalVar, align 2
+  %load_myMethodLocalVar = load i16, ptr %myMethodLocalVar, align 2
   %6 = sext i16 %load_myMethodLocalVar to i32
   %tmpVar2 = add i32 %6, 1
   %7 = trunc i32 %tmpVar2 to i16
-  store i16 %7, i16* %MyClass.testMethod, align 2
-  %MyClass__testMethod_ret = load i16, i16* %MyClass.testMethod, align 2
+  store i16 %7, ptr %MyClass.testMethod, align 2
+  %MyClass__testMethod_ret = load i16, ptr %MyClass.testMethod, align 2
   ret i16 %MyClass__testMethod_ret
 }

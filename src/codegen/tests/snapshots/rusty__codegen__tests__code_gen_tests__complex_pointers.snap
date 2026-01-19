@@ -1,47 +1,46 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prg = type { i16, [10 x i16], [10 x i16*], [10 x i16]* }
+%prg = type { i16, [10 x i16], [10 x ptr], ptr }
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %X = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %arrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %arrrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %rarrX = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %tmpVar = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 0
-  %load_X = load i16, i16* %X, align 2
-  store i16 %load_X, i16* %tmpVar, align 2
-  %tmpVar1 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 1
-  %tmpVar2 = getelementptr inbounds [10 x i16], [10 x i16]* %arrX, i32 0, i32 2
-  store i16* %tmpVar2, i16** %tmpVar1, align 8
-  store [10 x i16]* %arrX, [10 x i16]** %rarrX, align 8
-  %tmpVar3 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 3
-  %deref = load i16*, i16** %tmpVar3, align 8
-  %load_tmpVar = load i16, i16* %deref, align 2
-  store i16 %load_tmpVar, i16* %X, align 2
-  %deref4 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
-  %tmpVar5 = getelementptr inbounds [10 x i16], [10 x i16]* %deref4, i32 0, i32 4
-  %load_tmpVar6 = load i16, i16* %tmpVar5, align 2
-  store i16 %load_tmpVar6, i16* %X, align 2
-  %tmpVar7 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 5
-  %deref8 = load i16*, i16** %tmpVar7, align 8
-  %load_X9 = load i16, i16* %X, align 2
-  store i16 %load_X9, i16* %deref8, align 2
-  %deref10 = load [10 x i16]*, [10 x i16]** %rarrX, align 8
-  %tmpVar11 = getelementptr inbounds [10 x i16], [10 x i16]* %deref10, i32 0, i32 6
-  %tmpVar12 = getelementptr inbounds [10 x i16*], [10 x i16*]* %arrrX, i32 0, i32 7
-  %deref13 = load i16*, i16** %tmpVar12, align 8
-  %load_tmpVar14 = load i16, i16* %deref13, align 2
-  store i16 %load_tmpVar14, i16* %tmpVar11, align 2
+  %X = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %arrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %arrrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %rarrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  %tmpVar = getelementptr inbounds [10 x i16], ptr %arrX, i32 0, i32 0
+  %load_X = load i16, ptr %X, align 2
+  store i16 %load_X, ptr %tmpVar, align 2
+  %tmpVar1 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 1
+  %tmpVar2 = getelementptr inbounds [10 x i16], ptr %arrX, i32 0, i32 2
+  store ptr %tmpVar2, ptr %tmpVar1, align 8
+  store ptr %arrX, ptr %rarrX, align 8
+  %tmpVar3 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 3
+  %deref = load ptr, ptr %tmpVar3, align 8
+  %load_tmpVar = load i16, ptr %deref, align 2
+  store i16 %load_tmpVar, ptr %X, align 2
+  %deref4 = load ptr, ptr %rarrX, align 8
+  %tmpVar5 = getelementptr inbounds [10 x i16], ptr %deref4, i32 0, i32 4
+  %load_tmpVar6 = load i16, ptr %tmpVar5, align 2
+  store i16 %load_tmpVar6, ptr %X, align 2
+  %tmpVar7 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 5
+  %deref8 = load ptr, ptr %tmpVar7, align 8
+  %load_X9 = load i16, ptr %X, align 2
+  store i16 %load_X9, ptr %deref8, align 2
+  %deref10 = load ptr, ptr %rarrX, align 8
+  %tmpVar11 = getelementptr inbounds [10 x i16], ptr %deref10, i32 0, i32 6
+  %tmpVar12 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 7
+  %deref13 = load ptr, ptr %tmpVar12, align 8
+  %load_tmpVar14 = load i16, ptr %deref13, align 2
+  store i16 %load_tmpVar14, ptr %tmpVar11, align 2
   ret void
 }
