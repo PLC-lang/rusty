@@ -137,14 +137,14 @@ fn using_enums() {
     @Door.open = unnamed_addr constant i32 8
     @Door.closed = unnamed_addr constant i32 16
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-      store i32 5, i32* %x, align 4
-      store i32 4, i32* %y, align 4
-      store i32 16, i32* %z, align 4
+      %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+      store i32 5, ptr %x, align 4
+      store i32 4, ptr %y, align 4
+      store i32 16, ptr %z, align 4
       ret void
     }
     "#);

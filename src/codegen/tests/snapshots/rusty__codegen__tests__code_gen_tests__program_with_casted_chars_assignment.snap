@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,11 +13,11 @@ target triple = "[filtered]"
 @utf08_literal_0 = private unnamed_addr constant [2 x i8] c"B\00"
 @utf16_literal_0 = private unnamed_addr constant [2 x i16] [i16 65, i16 0]
 
-define void @mainPROG(%mainPROG* %0) {
+define void @mainPROG(ptr %0) {
 entry:
-  %x = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 0
-  %y = getelementptr inbounds %mainPROG, %mainPROG* %0, i32 0, i32 1
-  store i8 65, i8* %x, align 1
-  store i16 66, i16* %y, align 2
+  %x = getelementptr inbounds nuw %mainPROG, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %mainPROG, ptr %0, i32 0, i32 1
+  store i8 65, ptr %x, align 1
+  store i16 66, ptr %y, align 2
   ret void
 }

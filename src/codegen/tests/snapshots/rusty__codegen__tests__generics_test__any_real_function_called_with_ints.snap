@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: codegen(src)
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,46 +15,46 @@ define float @foo__REAL(float %0) {
 entry:
   %foo__REAL = alloca float, align 4
   %in1 = alloca float, align 4
-  store float %0, float* %in1, align 4
-  store float 0.000000e+00, float* %foo__REAL, align 4
-  %foo__REAL_ret = load float, float* %foo__REAL, align 4
+  store float %0, ptr %in1, align 4
+  store float 0.000000e+00, ptr %foo__REAL, align 4
+  %foo__REAL_ret = load float, ptr %foo__REAL, align 4
   ret float %foo__REAL_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %res_sint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %res_int = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %res_dint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %res_lint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %res_usint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 4
-  %res_uint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 5
-  %res_udint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 6
-  %res_ulint = getelementptr inbounds %prg, %prg* %0, i32 0, i32 7
+  %res_sint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %res_int = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %res_dint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %res_lint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  %res_usint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 4
+  %res_uint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 5
+  %res_udint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 6
+  %res_ulint = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 7
   %v_dint = alloca i32, align 4
   %v_udint = alloca i32, align 4
-  store i32 1, i32* %v_dint, align 4
-  store i32 1, i32* %v_udint, align 4
+  store i32 1, ptr %v_dint, align 4
+  store i32 1, ptr %v_udint, align 4
   %call = call float @foo__REAL(float 1.000000e+00)
-  store float %call, float* %res_sint, align 4
+  store float %call, ptr %res_sint, align 4
   %call1 = call float @foo__REAL(float 1.000000e+00)
-  store float %call1, float* %res_int, align 4
-  %load_v_dint = load i32, i32* %v_dint, align 4
+  store float %call1, ptr %res_int, align 4
+  %load_v_dint = load i32, ptr %v_dint, align 4
   %1 = sitofp i32 %load_v_dint to float
   %call2 = call float @foo__REAL(float %1)
-  store float %call2, float* %res_dint, align 4
+  store float %call2, ptr %res_dint, align 4
   %call3 = call double @foo__LREAL(double 1.000000e+00)
-  store double %call3, double* %res_lint, align 8
+  store double %call3, ptr %res_lint, align 8
   %call4 = call float @foo__REAL(float 1.000000e+00)
-  store float %call4, float* %res_usint, align 4
+  store float %call4, ptr %res_usint, align 4
   %call5 = call float @foo__REAL(float 1.000000e+00)
-  store float %call5, float* %res_uint, align 4
-  %load_v_udint = load i32, i32* %v_udint, align 4
+  store float %call5, ptr %res_uint, align 4
+  %load_v_udint = load i32, ptr %v_udint, align 4
   %2 = sitofp i32 %load_v_udint to float
   %call6 = call float @foo__REAL(float %2)
-  store float %call6, float* %res_udint, align 4
+  store float %call6, ptr %res_udint, align 4
   %call7 = call double @foo__LREAL(double 1.000000e+00)
-  store double %call7, double* %res_ulint, align 8
+  store double %call7, ptr %res_ulint, align 8
   ret void
 }
 

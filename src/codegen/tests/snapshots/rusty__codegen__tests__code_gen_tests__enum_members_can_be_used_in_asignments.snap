@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,11 +14,11 @@ target triple = "[filtered]"
 @MyEnum.yellow = unnamed_addr constant i32 1
 @MyEnum.green = unnamed_addr constant i32 2
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %color = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  store i32 0, i32* %color, align 4
-  store i32 1, i32* %color, align 4
-  store i32 2, i32* %color, align 4
+  %color = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  store i32 0, ptr %color, align 4
+  store i32 1, ptr %color, align 4
+  store i32 2, ptr %color, align 4
   ret void
 }

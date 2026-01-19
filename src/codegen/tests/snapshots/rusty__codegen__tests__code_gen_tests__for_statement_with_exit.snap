@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,38 +11,38 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i32 3, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  store i32 3, ptr %x, align 4
   br i1 true, label %predicate_sle, label %predicate_sge
 
 predicate_sle:                                    ; preds = %increment, %entry
-  %1 = load i32, i32* %x, align 4
+  %1 = load i32, ptr %x, align 4
   %condition = icmp sle i32 %1, 10
   br i1 %condition, label %loop, label %continue
 
 predicate_sge:                                    ; preds = %increment, %entry
-  %2 = load i32, i32* %x, align 4
+  %2 = load i32, ptr %x, align 4
   %condition1 = icmp sge i32 %2, 10
   br i1 %condition1, label %loop, label %continue
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
-  %load_x = load i32, i32* %x, align 4
+  %load_x = load i32, ptr %x, align 4
   %tmpVar = add i32 %load_x, 2
-  store i32 %tmpVar, i32* %x, align 4
+  store i32 %tmpVar, ptr %x, align 4
   br label %continue
 
 buffer_block:                                     ; No predecessors!
-  %load_x2 = load i32, i32* %x, align 4
+  %load_x2 = load i32, ptr %x, align 4
   %tmpVar3 = add i32 %load_x2, 5
-  store i32 %tmpVar3, i32* %x, align 4
+  store i32 %tmpVar3, ptr %x, align 4
   br label %increment
 
 increment:                                        ; preds = %buffer_block
-  %3 = load i32, i32* %x, align 4
+  %3 = load i32, ptr %x, align 4
   %next = add i32 7, %3
-  store i32 %next, i32* %x, align 4
+  store i32 %next, ptr %x, align 4
   br i1 true, label %predicate_sle, label %predicate_sge
 
 continue:                                         ; preds = %loop, %predicate_sge, %predicate_sle

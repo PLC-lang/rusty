@@ -1,37 +1,34 @@
 ---
 source: src/codegen/tests/vla_tests.rs
 expression: res
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%__foo_vla = type { i16*, [2 x i32] }
+%__foo_vla = type { ptr, [2 x i32] }
 
 @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
-define i16 @foo(%__foo_vla* %0) {
+define i16 @foo(ptr %0) {
 entry:
   %foo = alloca i16, align 2
   %vla = alloca %__foo_vla, align 8
-  %1 = bitcast %__foo_vla* %vla to i8*
-  %2 = bitcast %__foo_vla* %0 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint (%__foo_vla* getelementptr (%__foo_vla, %__foo_vla* null, i32 1) to i64), i1 false)
-  store i16 0, i16* %foo, align 2
-  %vla_arr_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla, i32 0, i32 0
-  %vla_arr_ptr = load i16*, i16** %vla_arr_gep, align 8
-  %dim_arr = getelementptr inbounds %__foo_vla, %__foo_vla* %vla, i32 0, i32 1
-  %start_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 0
-  %end_idx_ptr0 = getelementptr inbounds [2 x i32], [2 x i32]* %dim_arr, i32 0, i32 1
-  %start_idx_value0 = load i32, i32* %start_idx_ptr0, align 4
-  %end_idx_value0 = load i32, i32* %end_idx_ptr0, align 4
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %vla, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %foo, align 2
+  %vla_arr_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 0
+  %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align 8
+  %dim_arr = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 1
+  %start_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 0
+  %end_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 1
+  %start_idx_value0 = load i32, ptr %start_idx_ptr0, align 4
+  %end_idx_value0 = load i32, ptr %end_idx_ptr0, align 4
   %tmpVar = sub i32 0, %start_idx_value0
-  %arr_val = getelementptr inbounds i16, i16* %vla_arr_ptr, i32 %tmpVar
-  %load_tmpVar = load i16, i16* %arr_val, align 2
-  store i16 %load_tmpVar, i16* %foo, align 2
-  %foo_ret = load i16, i16* %foo, align 2
+  %arr_val = getelementptr inbounds i16, ptr %vla_arr_ptr, i32 %tmpVar
+  %load_tmpVar = load i16, ptr %arr_val, align 2
+  store i16 %load_tmpVar, ptr %foo, align 2
+  %foo_ret = load i16, ptr %foo, align 2
   ret i16 %foo_ret
 }
 
@@ -39,29 +36,28 @@ define i32 @main() {
 entry:
   %main = alloca i32, align 4
   %arr = alloca [2 x i16], align 2
-  %0 = bitcast [2 x i16]* %arr to i8*
-  call void @llvm.memset.p0i8.i64(i8* align 1 %0, i8 0, i64 ptrtoint ([2 x i16]* getelementptr ([2 x i16], [2 x i16]* null, i32 1) to i64), i1 false)
-  store i32 0, i32* %main, align 4
-  %auto_deref = load [2 x i16], [2 x i16]* %arr, align 2
-  %outer_arr_gep = getelementptr inbounds [2 x i16], [2 x i16]* %arr, i32 0, i32 0
+  call void @llvm.memset.p0.i64(ptr align 1 %arr, i8 0, i64 ptrtoint (ptr getelementptr ([2 x i16], ptr null, i32 1) to i64), i1 false)
+  store i32 0, ptr %main, align 4
+  %auto_deref = load [2 x i16], ptr %arr, align 2
+  %outer_arr_gep = getelementptr inbounds [2 x i16], ptr %arr, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
-  %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
-  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-  store [2 x i32] [i32 0, i32 1], [2 x i32]* %vla_dimensions_gep, align 4
-  store i16* %outer_arr_gep, i16** %vla_array_gep, align 8
-  %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
+  %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
+  store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
+  store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
+  %0 = load %__foo_vla, ptr %vla_struct, align 8
   %vla_struct_ptr = alloca %__foo_vla, align 8
-  store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
-  %call = call i16 @foo(%__foo_vla* %vla_struct_ptr)
-  %main_ret = load i32, i32* %main, align 4
+  store %__foo_vla %0, ptr %vla_struct_ptr, align 8
+  %call = call i16 @foo(ptr %vla_struct_ptr)
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-; Function Attrs: argmemonly nofree nounwind willreturn writeonly
-declare void @llvm.memset.p0i8.i64(i8* nocapture writeonly, i8, i64, i1 immarg) #1
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: write)
+declare void @llvm.memset.p0.i64(ptr writeonly captures(none), i8, i64, i1 immarg) #1
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
-attributes #1 = { argmemonly nofree nounwind willreturn writeonly }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: write) }

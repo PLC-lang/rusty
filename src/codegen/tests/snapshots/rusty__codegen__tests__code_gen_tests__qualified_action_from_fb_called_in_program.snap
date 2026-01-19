@@ -13,26 +13,26 @@ target triple = "[filtered]"
 @bar_instance = global %bar zeroinitializer
 @__fb__init = unnamed_addr constant %fb zeroinitializer
 
-define void @bar(%bar* %0) {
+define void @bar(ptr %0) {
 entry:
-  %fb_inst = getelementptr inbounds %bar, %bar* %0, i32 0, i32 0
-  call void @fb__foo(%fb* %fb_inst)
+  %fb_inst = getelementptr inbounds nuw %bar, ptr %0, i32 0, i32 0
+  call void @fb__foo(ptr %fb_inst)
   ret void
 }
 
-define void @fb(%fb* %0) {
+define void @fb(ptr %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
-define void @fb__foo(%fb* %0) {
+define void @fb__foo(ptr %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
-  store i32 2, i32* %x, align 4
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
+  store i32 2, ptr %x, align 4
   ret void
 }

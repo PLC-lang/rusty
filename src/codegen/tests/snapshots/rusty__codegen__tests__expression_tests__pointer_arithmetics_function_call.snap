@@ -1,33 +1,32 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%main = type { i16*, i16 }
+%main = type { ptr, i16 }
 
 @main_instance = global %main zeroinitializer
 
 define i64 @foo() {
 entry:
   %foo = alloca i64, align 8
-  store i64 0, i64* %foo, align 8
-  %foo_ret = load i64, i64* %foo, align 8
+  store i64 0, ptr %foo, align 8
+  %foo_ret = load i64, ptr %foo, align 8
   ret i64 %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %pt = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  store i16* %x, i16** %pt, align 8
-  %load_pt = load i16*, i16** %pt, align 8
+  %pt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  store ptr %x, ptr %pt, align 8
+  %load_pt = load ptr, ptr %pt, align 8
   %call = call i64 @foo()
-  %access___main_pt = getelementptr inbounds i16, i16* %load_pt, i64 %call
-  store i16* %access___main_pt, i16** %pt, align 8
+  %access___main_pt = getelementptr inbounds i16, ptr %load_pt, i64 %call
+  store ptr %access___main_pt, ptr %pt, align 8
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,30 +11,30 @@ target triple = "[filtered]"
 
 @main_instance = global %main zeroinitializer
 
-define i32 @foo(i32 %0, i32* %1, i32* %2) {
+define i32 @foo(i32 %0, ptr %1, ptr %2) {
 entry:
   %foo = alloca i32, align 4
   %input1 = alloca i32, align 4
-  store i32 %0, i32* %input1, align 4
-  %output1 = alloca i32*, align 8
-  store i32* %1, i32** %output1, align 8
-  %inout1 = alloca i32*, align 8
-  store i32* %2, i32** %inout1, align 8
-  store i32 0, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  store i32 %0, ptr %input1, align 4
+  %output1 = alloca ptr, align 8
+  store ptr %1, ptr %output1, align 8
+  %inout1 = alloca ptr, align 8
+  store ptr %2, ptr %inout1, align 8
+  store i32 0, ptr %foo, align 4
+  %foo_ret = load i32, ptr %foo, align 4
   ret i32 %foo_ret
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %var1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %var3 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %load_var1 = load i32, i32* %var1, align 4
-  %call = call i32 @foo(i32 %load_var1, i32* %var2, i32* %var3)
-  %load_var11 = load i32, i32* %var1, align 4
-  %call2 = call i32 @foo(i32 %load_var11, i32* %var2, i32* %var3)
-  %load_var13 = load i32, i32* %var1, align 4
-  %call4 = call i32 @foo(i32 %load_var13, i32* %var2, i32* %var3)
+  %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %load_var1 = load i32, ptr %var1, align 4
+  %call = call i32 @foo(i32 %load_var1, ptr %var2, ptr %var3)
+  %load_var11 = load i32, ptr %var1, align 4
+  %call2 = call i32 @foo(i32 %load_var11, ptr %var2, ptr %var3)
+  %load_var13 = load i32, ptr %var1, align 4
+  %call4 = call i32 @foo(i32 %load_var13, ptr %var2, ptr %var3)
   ret void
 }

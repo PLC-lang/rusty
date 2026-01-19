@@ -15,19 +15,19 @@ target triple = "[filtered]"
 @__main.struct1__init = unnamed_addr constant %TON { i16 10, i16 17 }
 @__main.struct2__init = unnamed_addr constant %TON { i16 17, i16 10 }
 
-define void @TON(%TON* %0) {
+define void @TON(ptr %0) {
 entry:
-  %this = alloca %TON*, align 8
-  store %TON* %0, %TON** %this, align 8
-  %a = getelementptr inbounds %TON, %TON* %0, i32 0, i32 0
-  %b = getelementptr inbounds %TON, %TON* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %a = getelementptr inbounds nuw %TON, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %TON, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %TEN = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %struct1 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %struct2 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
+  %TEN = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %struct1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %struct2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
   ret void
 }

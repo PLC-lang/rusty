@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,20 +13,20 @@ target triple = "[filtered]"
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %out1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %out2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-  store i32 1, i32* %out1, align 4
-  store i32 2, i32* %out2, align 4
+  %out1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %out2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+  store i32 1, ptr %out1, align 4
+  store i32 2, ptr %out2, align 4
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  call void @prog(%prog* @prog_instance)
-  %1 = load i32, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 4
-  store i32 %1, i32* %x, align 4
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  call void @prog(ptr @prog_instance)
+  %1 = load i32, ptr @prog_instance, align 4
+  store i32 %1, ptr %x, align 4
   ret void
 }

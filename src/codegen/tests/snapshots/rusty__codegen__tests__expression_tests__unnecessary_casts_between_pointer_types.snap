@@ -1,25 +1,24 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%baz = type { i8*, i8, i8, i8 }
+%baz = type { ptr, i8, i8, i8 }
 
 @baz_instance = global %baz zeroinitializer
 
-define void @baz(%baz* %0) {
+define void @baz(ptr %0) {
 entry:
-  %ptr = getelementptr inbounds %baz, %baz* %0, i32 0, i32 0
-  %b = getelementptr inbounds %baz, %baz* %0, i32 0, i32 1
-  %si = getelementptr inbounds %baz, %baz* %0, i32 0, i32 2
-  %mb = getelementptr inbounds %baz, %baz* %0, i32 0, i32 3
-  store i8* %b, i8** %ptr, align 8
-  store i8* %si, i8** %ptr, align 8
-  store i8* %mb, i8** %ptr, align 8
+  %ptr = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 1
+  %si = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 2
+  %mb = getelementptr inbounds nuw %baz, ptr %0, i32 0, i32 3
+  store ptr %b, ptr %ptr, align 8
+  store ptr %si, ptr %ptr, align 8
+  store ptr %mb, ptr %ptr, align 8
   ret void
 }

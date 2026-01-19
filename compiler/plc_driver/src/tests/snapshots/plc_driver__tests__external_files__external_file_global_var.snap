@@ -1,7 +1,6 @@
 ---
-source: compiler/plc_driver/./src/tests/external_files.rs
+source: compiler/plc_driver/src/tests/external_files.rs
 expression: "results.join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'main.st'
 source_filename = "main.st"
@@ -14,11 +13,11 @@ target triple = "[filtered]"
 define i16 @main() {
 entry:
   %main = alloca i16, align 2
-  store i16 0, i16* %main, align 2
-  store i16 2, i16* @x, align 2
-  store i16 2, i16* @y, align 2
+  store i16 0, ptr %main, align 2
+  store i16 2, ptr @x, align 2
+  store i16 2, ptr @y, align 2
   %call = call i16 @external()
-  %main_ret = load i16, i16* %main, align 2
+  %main_ret = load i16, ptr %main, align 2
   ret i16 %main_ret
 }
 
@@ -39,7 +38,7 @@ source_filename = "__init___TestProject"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___TestProject, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
 
 define void @__init___TestProject() {
 entry:

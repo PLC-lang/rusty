@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,10 +13,10 @@ target triple = "[filtered]"
 @MainProg_instance = global %MainProg zeroinitializer
 @__MyStruct__init = unnamed_addr constant %MyStruct zeroinitializer
 
-define void @MainProg(%MainProg* %0) {
+define void @MainProg(ptr %0) {
 entry:
-  %Cord = getelementptr inbounds %MainProg, %MainProg* %0, i32 0, i32 0
-  %a = getelementptr inbounds %MyStruct, %MyStruct* %Cord, i32 0, i32 0
-  store i32 0, i32* %a, align 4
+  %Cord = getelementptr inbounds nuw %MainProg, ptr %0, i32 0, i32 0
+  %a = getelementptr inbounds nuw %MyStruct, ptr %Cord, i32 0, i32 0
+  store i32 0, ptr %a, align 4
   ret void
 }

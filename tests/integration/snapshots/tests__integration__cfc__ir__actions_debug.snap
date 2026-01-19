@@ -6,67 +6,60 @@ target triple = "[filtered]"
 
 %main = type { i32, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
 @main_instance = global %main zeroinitializer, !dbg !0
 
-define void @main(%main* %0) !dbg !12 {
+define void @main(ptr %0) !dbg !12 {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !16, metadata !DIExpression()), !dbg !17
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  store i32 0, i32* %a, align 4, !dbg !18
-  call void @main__newAction(%main* %0), !dbg !17
-  call void @main__newAction2(%main* %0), !dbg !19
+    #dbg_declare(ptr %0, !16, !DIExpression(), !17)
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  store i32 0, ptr %a, align 4, !dbg !18
+  call void @main__newAction(ptr %0), !dbg !17
+  call void @main__newAction2(ptr %0), !dbg !19
   ret void, !dbg !20
 }
 
-define void @main__newAction(%main* %0) {
+define void @main__newAction(ptr %0) {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_a = load i32, i32* %a, align 4, !dbg !21
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %load_a = load i32, ptr %a, align 4, !dbg !21
   %tmpVar = add i32 %load_a, 1, !dbg !21
-  store i32 %tmpVar, i32* %a, align 4, !dbg !21
+  store i32 %tmpVar, ptr %a, align 4, !dbg !21
   ret void, !dbg !22
 }
 
-define void @main__newAction2(%main* %0) {
+define void @main__newAction2(ptr %0) {
 entry:
-  call void @llvm.dbg.declare(metadata %main* %0, metadata !15, metadata !DIExpression()), !dbg !21
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %load_b = load i32, i32* %b, align 4, !dbg !23
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %load_b = load i32, ptr %b, align 4, !dbg !23
   %tmpVar = add i32 %load_b, 2, !dbg !23
-  store i32 %tmpVar, i32* %b, align 4, !dbg !23
+  store i32 %tmpVar, ptr %b, align 4, !dbg !23
   ret void, !dbg !22
 }
 
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-define void @__init_main(%main* %0) {
+define void @__init_main(ptr %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
-define void @__user_init_main(%main* %0) {
+define void @__user_init_main(ptr %0) {
 entry:
-  %self = alloca %main*, align 8
-  store %main* %0, %main** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
 define void @__init___plc() {
 entry:
-  call void @__init_main(%main* @main_instance)
-  call void @__user_init_main(%main* @main_instance)
+  call void @__init_main(ptr @main_instance)
+  call void @__user_init_main(ptr @main_instance)
   ret void
 }
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!8, !9}
 !llvm.dbg.cu = !{!10}
