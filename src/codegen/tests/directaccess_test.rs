@@ -168,7 +168,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       store i8 0, ptr %error_bits, align 1
       call void @llvm.memcpy.p0.p0.i64(ptr align 1 %f, ptr align 1 @__FOO__init, i64 ptrtoint (ptr getelementptr (%FOO, ptr null, i32 1) to i64), i1 false)
       store i32 0, ptr %main, align 4
-      %0 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
+      %0 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
       %load_error_bits = load i8, ptr %error_bits, align 1
       %shift = lshr i8 %load_error_bits, 0
       %1 = and i8 %shift, 1
@@ -181,7 +181,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %value = shl i8 %4, 0
       %or = or i8 %erase, %value
       store i8 %or, ptr %error_bits, align 1
-      %5 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
+      %5 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
       %load_error_bits1 = load i8, ptr %error_bits, align 1
       %shift2 = lshr i8 %load_error_bits1, 0
       %6 = and i8 %shift2, 1
@@ -194,7 +194,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %value4 = shl i8 %9, 0
       %or5 = or i8 %erase3, %value4
       store i8 %or5, ptr %error_bits, align 1
-      %10 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
+      %10 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
       %load_error_bits6 = load i8, ptr %error_bits, align 1
       %shift7 = lshr i8 %load_error_bits6, 0
       %11 = and i8 %shift7, 1
@@ -207,7 +207,7 @@ fn direct_acess_in_output_assignment_implicit_explicit_and_mixed() {
       %value9 = shl i8 %14, 0
       %or10 = or i8 %erase8, %value9
       store i8 %or10, ptr %error_bits, align 1
-      %15 = getelementptr inbounds nuw %FOO, ptr %f, i32 0, i32 0
+      %15 = getelementptr inbounds %FOO, ptr %f, i32 0, i32 0
       %load_error_bits11 = load i8, ptr %error_bits, align 1
       %shift12 = lshr i8 %load_error_bits11, 0
       %16 = and i8 %shift12, 1

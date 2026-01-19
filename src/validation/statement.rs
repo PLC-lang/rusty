@@ -1497,7 +1497,7 @@ fn validate_call<T: AnnotationMap>(
         return;
     };
     let arguments = fn_args.map(flatten_expression_list).unwrap_or_default();
-    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let parameters = context.index.get_available_parameters(pou.get_name());
 
     if builtins::get_builtin(pou.get_name()).is_none() {
         validate_argument_count(context, validator, pou, &arguments, &fn_ident.location);
@@ -1846,7 +1846,7 @@ fn validate_argument_count<T: AnnotationMap>(
     arguments: &[&AstNode],
     operator_location: &SourceLocation,
 ) {
-    let parameters = context.index.get_declared_parameters(pou.get_name());
+    let parameters = context.index.get_available_parameters(pou.get_name());
     let has_variadic_parameter = context.index.has_variadic_parameter(pou.get_name());
 
     let argument_count_is_incorrect = match pou {
