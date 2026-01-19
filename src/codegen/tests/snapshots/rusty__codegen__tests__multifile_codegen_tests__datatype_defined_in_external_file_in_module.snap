@@ -7,7 +7,7 @@ source_filename = "myStruct.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i32, i16* }
+%myStruct = type { i32, ptr }
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
@@ -17,13 +17,13 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 %prog = type { %myStruct.1 }
-%myStruct.1 = type { i32, i16* }
+%myStruct.1 = type { i32, ptr }
 
 @prog_instance = global %prog zeroinitializer
 @__myStruct__init = external unnamed_addr constant %myStruct.1
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

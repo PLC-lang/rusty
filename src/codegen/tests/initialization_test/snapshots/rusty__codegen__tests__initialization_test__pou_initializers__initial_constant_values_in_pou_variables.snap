@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,9 +14,9 @@ target triple = "[filtered]"
 @LEN = unnamed_addr constant i16 20
 @prg_instance = global %prg { i16 24, i16 89 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %my_len = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %my_size = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %my_len = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %my_size = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   ret void
 }

@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,21 +15,21 @@ define i16 @Check_XX_RangeSigned(i16 %0, i16 %1, i16 %2) {
 entry:
   %Check_XX_RangeSigned = alloca i16, align 2
   %value = alloca i16, align 2
-  store i16 %0, i16* %value, align 2
+  store i16 %0, ptr %value, align 2
   %lower = alloca i16, align 2
-  store i16 %1, i16* %lower, align 2
+  store i16 %1, ptr %lower, align 2
   %upper = alloca i16, align 2
-  store i16 %2, i16* %upper, align 2
-  store i16 0, i16* %Check_XX_RangeSigned, align 2
-  %load_value = load i16, i16* %value, align 2
-  store i16 %load_value, i16* %Check_XX_RangeSigned, align 2
-  %Check_XX_RangeSigned_ret = load i16, i16* %Check_XX_RangeSigned, align 2
+  store i16 %2, ptr %upper, align 2
+  store i16 0, ptr %Check_XX_RangeSigned, align 2
+  %load_value = load i16, ptr %value, align 2
+  store i16 %load_value, ptr %Check_XX_RangeSigned, align 2
+  %Check_XX_RangeSigned_ret = load i16, ptr %Check_XX_RangeSigned, align 2
   ret i16 %Check_XX_RangeSigned_ret
 }
 
-define void @Main(%Main* %0) {
+define void @Main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %Main, %Main* %0, i32 0, i32 0
-  store i16 7, i16* %x, align 2
+  %x = getelementptr inbounds nuw %Main, ptr %0, i32 0, i32 0
+  store i16 7, ptr %x, align 2
   ret void
 }

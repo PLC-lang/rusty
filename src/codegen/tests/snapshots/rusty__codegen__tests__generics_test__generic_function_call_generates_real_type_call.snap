@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,21 +15,21 @@ define i32 @MAX__DINT(i32 %0, i32 %1) {
 entry:
   %MAX__DINT = alloca i32, align 4
   %in1 = alloca i32, align 4
-  store i32 %0, i32* %in1, align 4
+  store i32 %0, ptr %in1, align 4
   %in2 = alloca i32, align 4
-  store i32 %1, i32* %in2, align 4
-  store i32 0, i32* %MAX__DINT, align 4
-  %MAX__DINT_ret = load i32, i32* %MAX__DINT, align 4
+  store i32 %1, ptr %in2, align 4
+  store i32 0, ptr %MAX__DINT, align 4
+  %MAX__DINT_ret = load i32, ptr %MAX__DINT, align 4
   ret i32 %MAX__DINT_ret
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %call = call i32 @MAX__DINT(i32 1, i32 2)
-  %load_a = load i16, i16* %a, align 2
-  %load_b = load i16, i16* %b, align 2
+  %load_a = load i16, ptr %a, align 2
+  %load_b = load i16, ptr %b, align 2
   %call1 = call i16 @MAX__INT(i16 %load_a, i16 %load_b)
   ret void
 }

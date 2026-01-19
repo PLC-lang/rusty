@@ -8,47 +8,47 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 %main = type { [16 x i32], i32 }
-%__foo_vla = type { i32*, [2 x i32] }
+%__foo_vla = type { ptr, [2 x i32] }
 
 @MY_CONST = unnamed_addr constant i32 10
 @main_instance = global %main zeroinitializer
 @____foo_vla__init = unnamed_addr constant %__foo_vla zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %a = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %b = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %auto_deref = load [16 x i32], [16 x i32]* %a, align 4
-  %outer_arr_gep = getelementptr inbounds [16 x i32], [16 x i32]* %a, i32 0, i32 0
+  %a = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %b = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %auto_deref = load [16 x i32], ptr %a, align 4
+  %outer_arr_gep = getelementptr inbounds [16 x i32], ptr %a, i32 0, i32 0
   %vla_struct = alloca %__foo_vla, align 8
-  %vla_array_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 0
-  %vla_dimensions_gep = getelementptr inbounds %__foo_vla, %__foo_vla* %vla_struct, i32 0, i32 1
-  store [8 x i32] [i32 0, i32 1, i32 1, i32 2, i32 2, i32 3, i32 3, i32 4], [2 x i32]* %vla_dimensions_gep, align 4
-  store i32* %outer_arr_gep, i32** %vla_array_gep, align 8
-  %1 = load %__foo_vla, %__foo_vla* %vla_struct, align 8
+  %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
+  %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
+  store [8 x i32] [i32 0, i32 1, i32 1, i32 2, i32 2, i32 3, i32 3, i32 4], ptr %vla_dimensions_gep, align 4
+  store ptr %outer_arr_gep, ptr %vla_array_gep, align 8
+  %1 = load %__foo_vla, ptr %vla_struct, align 8
   %vla_struct_ptr = alloca %__foo_vla, align 8
-  store %__foo_vla %1, %__foo_vla* %vla_struct_ptr, align 8
-  %call = call i32 @foo(%__foo_vla* %vla_struct_ptr)
-  store i32 %call, i32* %b, align 4
+  store %__foo_vla %1, ptr %vla_struct_ptr, align 8
+  %call = call i32 @foo(ptr %vla_struct_ptr)
+  store i32 %call, ptr %b, align 4
   ret void
 }
 
-define i32 @foo(%__foo_vla* %0) {
+define i32 @foo(ptr %0) {
 entry:
   %foo = alloca i32, align 4
-  %vla = alloca %__foo_vla*, align 8
-  store %__foo_vla* %0, %__foo_vla** %vla, align 8
-  store i32 0, i32* %foo, align 4
-  %deref = load %__foo_vla*, %__foo_vla** %vla, align 8
-  %dim = getelementptr inbounds %__foo_vla, %__foo_vla* %deref, i32 0, i32 1
-  %1 = getelementptr inbounds [2 x i32], [2 x i32]* %dim, i32 0, i32 7
-  %2 = load i32, i32* %1, align 4
-  store i32 %2, i32* %foo, align 4
-  %deref1 = load %__foo_vla*, %__foo_vla** %vla, align 8
-  %dim2 = getelementptr inbounds %__foo_vla, %__foo_vla* %deref1, i32 0, i32 1
-  %3 = getelementptr inbounds [2 x i32], [2 x i32]* %dim2, i32 0, i32 7
-  %4 = load i32, i32* %3, align 4
-  store i32 %4, i32* %foo, align 4
-  %foo_ret = load i32, i32* %foo, align 4
+  %vla = alloca ptr, align 8
+  store ptr %0, ptr %vla, align 8
+  store i32 0, ptr %foo, align 4
+  %deref = load ptr, ptr %vla, align 8
+  %dim = getelementptr inbounds nuw %__foo_vla, ptr %deref, i32 0, i32 1
+  %1 = getelementptr inbounds [2 x i32], ptr %dim, i32 0, i32 7
+  %2 = load i32, ptr %1, align 4
+  store i32 %2, ptr %foo, align 4
+  %deref1 = load ptr, ptr %vla, align 8
+  %dim2 = getelementptr inbounds nuw %__foo_vla, ptr %deref1, i32 0, i32 1
+  %3 = getelementptr inbounds [2 x i32], ptr %dim2, i32 0, i32 7
+  %4 = load i32, ptr %3, align 4
+  store i32 %4, ptr %foo, align 4
+  %foo_ret = load i32, ptr %foo, align 4
   ret i32 %foo_ret
 }

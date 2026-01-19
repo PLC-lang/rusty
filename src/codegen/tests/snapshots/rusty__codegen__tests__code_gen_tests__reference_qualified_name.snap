@@ -15,30 +15,30 @@ target triple = "[filtered]"
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @fb(%fb* %0) {
+define void @fb(ptr %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
-define void @foo(%foo* %0) {
+define void @foo(ptr %0) {
 entry:
-  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
-  %baz = getelementptr inbounds %foo, %foo* %0, i32 0, i32 2
+  %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
+  %baz = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 2
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %load_x = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 4
-  store i32 %load_x, i32* %x, align 4
-  %load_y = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 1), align 4
-  store i32 %load_y, i32* %x, align 4
-  %load_x1 = load i32, i32* getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 2, i32 0), align 4
-  store i32 %load_x1, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %load_x = load i32, ptr @foo_instance, align 4
+  store i32 %load_x, ptr %x, align 4
+  %load_y = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 1), align 4
+  store i32 %load_y, ptr %x, align 4
+  %load_x1 = load i32, ptr getelementptr inbounds nuw (%foo, ptr @foo_instance, i32 0, i32 2), align 4
+  store i32 %load_x1, ptr %x, align 4
   ret void
 }

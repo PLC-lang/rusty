@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/pou_initializers.rs
 expression: function
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -15,28 +14,28 @@ target triple = "[filtered]"
 define i16 @foo_int() {
 entry:
   %foo_int = alloca i16, align 2
-  store i16 0, i16* %foo_int, align 2
-  %foo_int_ret = load i16, i16* %foo_int, align 2
+  store i16 0, ptr %foo_int, align 2
+  %foo_int_ret = load i16, ptr %foo_int, align 2
   ret i16 %foo_int_ret
 }
 
-define void @foo_str(i8* %0) {
+define void @foo_str(ptr %0) {
 entry:
-  %foo_str = alloca i8*, align 8
-  store i8* %0, i8** %foo_str, align 8
+  %foo_str = alloca ptr, align 8
+  store ptr %0, ptr %foo_str, align 8
   ret void
 }
 
-define void @foo_arr(float* %0) {
+define void @foo_arr(ptr %0) {
 entry:
-  %foo_arr = alloca float*, align 8
-  store float* %0, float** %foo_arr, align 8
+  %foo_arr = alloca ptr, align 8
+  store ptr %0, ptr %foo_arr, align 8
   ret void
 }
 
-define void @foo_strct(%MyStrct* %0) {
+define void @foo_strct(ptr %0) {
 entry:
-  %foo_strct = alloca %MyStrct*, align 8
-  store %MyStrct* %0, %MyStrct** %foo_strct, align 8
+  %foo_strct = alloca ptr, align 8
+  store ptr %0, ptr %foo_strct, align 8
   ret void
 }

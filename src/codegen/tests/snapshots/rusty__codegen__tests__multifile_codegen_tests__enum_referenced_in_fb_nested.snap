@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'myEnum.st'
 source_filename = "myEnum.st"
@@ -21,11 +20,11 @@ target triple = "[filtered]"
 
 @__fb__init = unnamed_addr constant %fb { i32 1 }
 
-define void @fb(%fb* %0) {
+define void @fb(ptr %0) {
 entry:
-  %this = alloca %fb*, align 8
-  store %fb* %0, %fb** %this, align 8
-  %x = getelementptr inbounds %fb, %fb* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb, ptr %0, i32 0, i32 0
   ret void
 }
 
@@ -40,7 +39,7 @@ target triple = "[filtered]"
 @__myStruct__init = unnamed_addr constant %myStruct { %fb.2 { i32 1 } }
 @__fb__init = external unnamed_addr constant %fb.2
 
-declare void @fb(%fb.2*)
+declare void @fb(ptr)
 
 ; ModuleID = 'fb2.st'
 source_filename = "fb2.st"
@@ -55,15 +54,15 @@ target triple = "[filtered]"
 @__myStruct__init = external unnamed_addr constant %myStruct.4
 @__fb__init = external unnamed_addr constant %fb.5
 
-define void @fb2(%fb2* %0) {
+define void @fb2(ptr %0) {
 entry:
-  %this = alloca %fb2*, align 8
-  store %fb2* %0, %fb2** %this, align 8
-  %x = getelementptr inbounds %fb2, %fb2* %0, i32 0, i32 0
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %fb2, ptr %0, i32 0, i32 0
   ret void
 }
 
-declare void @fb(%fb.5*)
+declare void @fb(ptr)
 
 ; ModuleID = 'fb3.st'
 source_filename = "fb3.st"
@@ -74,9 +73,9 @@ target triple = "[filtered]"
 
 @__fb3__init = unnamed_addr constant %fb3 zeroinitializer
 
-define void @fb3(%fb3* %0) {
+define void @fb3(ptr %0) {
 entry:
-  %this = alloca %fb3*, align 8
-  store %fb3* %0, %fb3** %this, align 8
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
   ret void
 }

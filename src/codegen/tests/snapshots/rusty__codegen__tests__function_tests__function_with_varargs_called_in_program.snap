@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -14,12 +13,12 @@ target triple = "[filtered]"
 
 declare i32 @foo(...)
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %load_x = load i32, ptr %x, align 4
   %tmpVar = add i32 %load_x, 1
   %call = call i32 (...) @foo(i1 false, i32 3, i32 %tmpVar)
-  store i32 %call, i32* %x, align 4
+  store i32 %call, ptr %x, align 4
   ret void
 }

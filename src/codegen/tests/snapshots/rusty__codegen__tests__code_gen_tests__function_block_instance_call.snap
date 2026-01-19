@@ -13,18 +13,18 @@ target triple = "[filtered]"
 @__foo__init = unnamed_addr constant %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo(%foo* %0) {
+define void @foo(ptr %0) {
 entry:
-  %this = alloca %foo*, align 8
-  store %foo* %0, %foo** %this, align 8
-  %x = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %y = getelementptr inbounds %foo, %foo* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %fb_inst = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  call void @foo(%foo* %fb_inst)
+  %fb_inst = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  call void @foo(ptr %fb_inst)
   ret void
 }

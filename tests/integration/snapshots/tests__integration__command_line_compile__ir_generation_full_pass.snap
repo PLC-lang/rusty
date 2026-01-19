@@ -1,6 +1,5 @@
 ---
 source: tests/integration/command_line_compile.rs
 expression: content
-snapshot_kind: text
 ---
-target datalayout = "[filtered]"@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___command_line_st, i8* null }]define void @__init___command_line_st() {entry:  ret void}define i32 @myFunc(i32 %0, i32 %1, i32 %2) {entry:  %myFunc = alloca i32, align 4  %a = alloca i32, align 4  store i32 %0, i32* %a, align 4  %b = alloca i32, align 4  store i32 %1, i32* %b, align 4  %c = alloca i32, align 4  store i32 %2, i32* %c, align 4  store i32 0, i32* %myFunc, align 4  %myFunc_ret = load i32, i32* %myFunc, align 4  ret i32 %myFunc_ret}
+target datalayout = "[filtered]"@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___command_line_st, ptr null }]define void @__init___command_line_st() {entry:  ret void}define i32 @myFunc(i32 %0, i32 %1, i32 %2) {entry:  %myFunc = alloca i32, align 4  %a = alloca i32, align 4  store i32 %0, ptr %a, align 4  %b = alloca i32, align 4  store i32 %1, ptr %b, align 4  %c = alloca i32, align 4  store i32 %2, ptr %c, align 4  store i32 0, ptr %myFunc, align 4  %myFunc_ret = load i32, ptr %myFunc, align 4  ret i32 %myFunc_ret}

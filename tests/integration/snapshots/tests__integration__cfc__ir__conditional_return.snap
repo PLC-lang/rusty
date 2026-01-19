@@ -4,21 +4,21 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-%__vtable_conditional_return = type { void (%conditional_return*)* }
-%conditional_return = type { i32*, i32 }
+%__vtable_conditional_return = type { ptr }
+%conditional_return = type { ptr, i32 }
 
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___plc, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___plc, ptr null }]
 @____vtable_conditional_return__init = unnamed_addr constant %__vtable_conditional_return zeroinitializer
 @__conditional_return__init = unnamed_addr constant %conditional_return zeroinitializer
 @__vtable_conditional_return_instance = global %__vtable_conditional_return zeroinitializer
 
-define void @conditional_return(%conditional_return* %0) {
+define void @conditional_return(ptr %0) {
 entry:
-  %this = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %this, align 8
-  %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 0
-  %val = getelementptr inbounds %conditional_return, %conditional_return* %0, i32 0, i32 1
-  %load_val = load i32, i32* %val, align 4
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %__vtable = getelementptr inbounds nuw %conditional_return, ptr %0, i32 0, i32 0
+  %val = getelementptr inbounds nuw %conditional_return, ptr %0, i32 0, i32 1
+  %load_val = load i32, ptr %val, align 4
   %tmpVar = icmp eq i32 %load_val, 5
   br i1 %tmpVar, label %then_block, label %else_block
 
@@ -26,47 +26,47 @@ then_block:                                       ; preds = %entry
   ret void
 
 else_block:                                       ; preds = %entry
-  store i32 10, i32* %val, align 4
+  store i32 10, ptr %val, align 4
   ret void
 }
 
-define void @__init___vtable_conditional_return(%__vtable_conditional_return* %0) {
+define void @__init___vtable_conditional_return(ptr %0) {
 entry:
-  %self = alloca %__vtable_conditional_return*, align 8
-  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align 8
-  %deref = load %__vtable_conditional_return*, %__vtable_conditional_return** %self, align 8
-  %__body = getelementptr inbounds %__vtable_conditional_return, %__vtable_conditional_return* %deref, i32 0, i32 0
-  store void (%conditional_return*)* @conditional_return, void (%conditional_return*)** %__body, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %deref = load ptr, ptr %self, align 8
+  %__body = getelementptr inbounds nuw %__vtable_conditional_return, ptr %deref, i32 0, i32 0
+  store ptr @conditional_return, ptr %__body, align 8
   ret void
 }
 
-define void @__init_conditional_return(%conditional_return* %0) {
+define void @__init_conditional_return(ptr %0) {
 entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
-  %deref = load %conditional_return*, %conditional_return** %self, align 8
-  %__vtable = getelementptr inbounds %conditional_return, %conditional_return* %deref, i32 0, i32 0
-  store i32* bitcast (%__vtable_conditional_return* @__vtable_conditional_return_instance to i32*), i32** %__vtable, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
+  %deref = load ptr, ptr %self, align 8
+  %__vtable = getelementptr inbounds nuw %conditional_return, ptr %deref, i32 0, i32 0
+  store ptr @__vtable_conditional_return_instance, ptr %__vtable, align 8
   ret void
 }
 
-define void @__user_init___vtable_conditional_return(%__vtable_conditional_return* %0) {
+define void @__user_init___vtable_conditional_return(ptr %0) {
 entry:
-  %self = alloca %__vtable_conditional_return*, align 8
-  store %__vtable_conditional_return* %0, %__vtable_conditional_return** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
-define void @__user_init_conditional_return(%conditional_return* %0) {
+define void @__user_init_conditional_return(ptr %0) {
 entry:
-  %self = alloca %conditional_return*, align 8
-  store %conditional_return* %0, %conditional_return** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
 define void @__init___plc() {
 entry:
-  call void @__init___vtable_conditional_return(%__vtable_conditional_return* @__vtable_conditional_return_instance)
-  call void @__user_init___vtable_conditional_return(%__vtable_conditional_return* @__vtable_conditional_return_instance)
+  call void @__init___vtable_conditional_return(ptr @__vtable_conditional_return_instance)
+  call void @__user_init___vtable_conditional_return(ptr @__vtable_conditional_return_instance)
   ret void
 }

@@ -13,21 +13,21 @@ target triple = "[filtered]"
 @__FB__init = unnamed_addr constant %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 }
 @main_instance = global %main { %FB { i16 7, i16 0, i8 1, i8 0, float 0x400921CAC0000000, float 0.000000e+00 } }
 
-define void @FB(%FB* %0) {
+define void @FB(ptr %0) {
 entry:
-  %this = alloca %FB*, align 8
-  store %FB* %0, %FB** %this, align 8
-  %x = getelementptr inbounds %FB, %FB* %0, i32 0, i32 0
-  %xx = getelementptr inbounds %FB, %FB* %0, i32 0, i32 1
-  %y = getelementptr inbounds %FB, %FB* %0, i32 0, i32 2
-  %yy = getelementptr inbounds %FB, %FB* %0, i32 0, i32 3
-  %z = getelementptr inbounds %FB, %FB* %0, i32 0, i32 4
-  %zz = getelementptr inbounds %FB, %FB* %0, i32 0, i32 5
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %x = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 0
+  %xx = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 2
+  %yy = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 3
+  %z = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 4
+  %zz = getelementptr inbounds nuw %FB, ptr %0, i32 0, i32 5
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %fb = getelementptr inbounds %main, %main* %0, i32 0, i32 0
+  %fb = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   ret void
 }

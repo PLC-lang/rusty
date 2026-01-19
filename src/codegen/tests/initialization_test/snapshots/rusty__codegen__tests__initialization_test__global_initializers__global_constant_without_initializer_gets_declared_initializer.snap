@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -19,18 +18,16 @@ entry:
   %var1 = alloca i16, align 2
   %cmd2 = alloca %commands, align 8
   %var2 = alloca i16, align 2
-  %0 = bitcast %commands* %cmd1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %0, i8* align 1 getelementptr inbounds (%commands, %commands* @__commands__init, i32 0, i32 0), i64 ptrtoint (%commands* getelementptr (%commands, %commands* null, i32 1) to i64), i1 false)
-  store i16 0, i16* %var1, align 2
-  %1 = bitcast %commands* %cmd2 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 getelementptr inbounds (%commands, %commands* @__commands__init, i32 0, i32 0), i64 ptrtoint (%commands* getelementptr (%commands, %commands* null, i32 1) to i64), i1 false)
-  store i16 0, i16* %var2, align 2
-  store i32 0, i32* %main, align 4
-  %main_ret = load i32, i32* %main, align 4
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd1, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %var1, align 2
+  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd2, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %var2, align 2
+  store i32 0, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align 4
   ret i32 %main_ret
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
