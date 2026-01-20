@@ -304,7 +304,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "orange"
                                   },
-                                  "id": 112,
+                                  "id": 118,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -330,7 +330,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 113,
+                          "id": 119,
                           "location": {
                             "span": {
                               "Range": {
@@ -382,7 +382,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 114,
+                    "id": 120,
                     "location": {
                       "span": {
                         "Range": {
@@ -415,7 +415,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "yellow"
                                   },
-                                  "id": 115,
+                                  "id": 121,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -441,7 +441,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 116,
+                          "id": 122,
                           "location": {
                             "span": {
                               "Range": {
@@ -493,7 +493,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 117,
+                    "id": 123,
                     "location": {
                       "span": {
                         "Range": {
@@ -526,7 +526,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "purple"
                                   },
-                                  "id": 118,
+                                  "id": 124,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -552,7 +552,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 119,
+                          "id": 125,
                           "location": {
                             "span": {
                               "Range": {
@@ -604,7 +604,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 120,
+                    "id": 126,
                     "location": {
                       "span": {
                         "Range": {
@@ -628,7 +628,7 @@ expression: json
                   }
                 ]
               },
-              "id": 121,
+              "id": 127,
               "location": {
                 "span": {
                   "Range": {
@@ -700,7 +700,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 100,
+        "id": 106,
         "name": "__init_prog",
         "kind": "Init",
         "variable_blocks": [
@@ -816,7 +816,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 99,
+        "id": 105,
         "name": "__user_init_prog",
         "kind": "Init",
         "variable_blocks": [
@@ -1003,7 +1003,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 101,
+        "id": 107,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],
@@ -1047,7 +1047,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init_prog"
                           },
-                          "id": 102,
+                          "id": 108,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1060,7 +1060,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 103,
+                  "id": 109,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1077,7 +1077,7 @@ expression: json
                           "stmt": {
                             "Identifier": "prog"
                           },
-                          "id": 104,
+                          "id": 110,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1090,7 +1090,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 105,
+                  "id": 111,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1101,7 +1101,7 @@ expression: json
                 }
               }
             },
-            "id": 106,
+            "id": 112,
             "location": {
               "span": "None",
               "file": {
@@ -1121,7 +1121,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init_prog"
                           },
-                          "id": 107,
+                          "id": 113,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1134,7 +1134,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 108,
+                  "id": 114,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1151,7 +1151,7 @@ expression: json
                           "stmt": {
                             "Identifier": "prog"
                           },
-                          "id": 109,
+                          "id": 115,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1164,7 +1164,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 110,
+                  "id": 116,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1175,7 +1175,7 @@ expression: json
                 }
               }
             },
-            "id": 111,
+            "id": 117,
             "location": {
               "span": "None",
               "file": {

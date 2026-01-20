@@ -2185,7 +2185,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "orange"
                                   },
-                                  "id": 122,
+                                  "id": 128,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2211,7 +2211,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 123,
+                          "id": 129,
                           "location": {
                             "span": {
                               "Range": {
@@ -2263,7 +2263,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 124,
+                    "id": 130,
                     "location": {
                       "span": {
                         "Range": {
@@ -2296,7 +2296,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "yellow"
                                   },
-                                  "id": 125,
+                                  "id": 131,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2322,7 +2322,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 126,
+                          "id": 132,
                           "location": {
                             "span": {
                               "Range": {
@@ -2374,7 +2374,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 127,
+                    "id": 133,
                     "location": {
                       "span": {
                         "Range": {
@@ -2407,7 +2407,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "purple"
                                   },
-                                  "id": 128,
+                                  "id": 134,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -2433,7 +2433,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 129,
+                          "id": 135,
                           "location": {
                             "span": {
                               "Range": {
@@ -2485,7 +2485,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 130,
+                    "id": 136,
                     "location": {
                       "span": {
                         "Range": {
@@ -2509,7 +2509,7 @@ expression: json
                   }
                 ]
               },
-              "id": 131,
+              "id": 137,
               "location": {
                 "span": {
                   "Range": {
@@ -3908,7 +3908,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 119,
+        "id": 125,
         "name": "__init_structwithprimitivetypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4024,7 +4024,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 120,
+        "id": 126,
         "name": "__init_structwithcomplextypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4140,7 +4140,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 117,
+        "id": 123,
         "name": "__user_init_StructWithPrimitiveTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4204,7 +4204,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 118,
+        "id": 124,
         "name": "__user_init_StructWithComplexTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -4486,7 +4486,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 121,
+        "id": 127,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

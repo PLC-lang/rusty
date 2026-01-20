@@ -953,7 +953,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 58,
+        "id": 64,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

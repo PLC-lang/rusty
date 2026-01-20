@@ -783,7 +783,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 76,
+        "id": 82,
         "name": "__init___vtable_fbthathassimpletypes",
         "kind": "Init",
         "variable_blocks": [
@@ -847,7 +847,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 87,
+        "id": 93,
         "name": "__init_fbthathassimpletypes",
         "kind": "Init",
         "variable_blocks": [
@@ -963,7 +963,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 69,
+        "id": 75,
         "name": "__user_init___vtable_fbThatHasSimpleTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -1027,7 +1027,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 70,
+        "id": 76,
         "name": "__user_init_fbThatHasSimpleTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -1109,7 +1109,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__body"
                           },
-                          "id": 77,
+                          "id": 83,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1127,7 +1127,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 79,
+                                "id": 85,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1140,7 +1140,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 80,
+                        "id": 86,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1151,7 +1151,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 78,
+                  "id": 84,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1170,36 +1170,6 @@ expression: json
                               "Member": {
                                 "stmt": {
                                   "Identifier": "ADR"
-                                },
-                                "id": 21,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 22,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "parameters": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "fbThatHasSimpleTypes"
                                 },
                                 "id": 23,
                                 "location": {
@@ -1222,10 +1192,40 @@ expression: json
                           }
                         },
                         "metadata": null
+                      },
+                      "parameters": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "fbThatHasSimpleTypes"
+                                },
+                                "id": 25,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 26,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
                       }
                     }
                   },
-                  "id": 25,
+                  "id": 27,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1236,7 +1236,7 @@ expression: json
                 }
               }
             },
-            "id": 81,
+            "id": 87,
             "location": {
               "span": "None",
               "file": {
@@ -1256,7 +1256,7 @@ expression: json
                           "stmt": {
                             "Identifier": "FB_INIT"
                           },
-                          "id": 82,
+                          "id": 88,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1274,7 +1274,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 84,
+                                "id": 90,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1287,7 +1287,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 85,
+                        "id": 91,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1298,7 +1298,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 83,
+                  "id": 89,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1318,7 +1318,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 26,
+                                "id": 28,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1331,7 +1331,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 27,
+                        "id": 29,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1348,7 +1348,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "FB_INIT"
                                 },
-                                "id": 28,
+                                "id": 30,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1366,7 +1366,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "fbThatHasSimpleTypes"
                                       },
-                                      "id": 29,
+                                      "id": 31,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -1379,7 +1379,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 30,
+                              "id": 32,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -1390,7 +1390,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 31,
+                        "id": 33,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1401,7 +1401,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 32,
+                  "id": 34,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1412,7 +1412,7 @@ expression: json
                 }
               }
             },
-            "id": 86,
+            "id": 92,
             "location": {
               "span": "None",
               "file": {
@@ -1461,7 +1461,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable"
                           },
-                          "id": 88,
+                          "id": 94,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1479,7 +1479,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 89,
+                                "id": 95,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1492,7 +1492,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 90,
+                        "id": 96,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1503,7 +1503,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 91,
+                  "id": 97,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1523,7 +1523,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 92,
+                                "id": 98,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1536,7 +1536,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 93,
+                        "id": 99,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1553,7 +1553,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__vtable_fbThatHasSimpleTypes_instance"
                                 },
-                                "id": 94,
+                                "id": 100,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1566,7 +1566,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 95,
+                        "id": 101,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1577,7 +1577,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 96,
+                  "id": 102,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1588,7 +1588,7 @@ expression: json
                 }
               }
             },
-            "id": 97,
+            "id": 103,
             "location": {
               "span": "None",
               "file": {
@@ -1704,7 +1704,7 @@ expression: json
                           "stmt": {
                             "Identifier": "fb_init"
                           },
-                          "id": 73,
+                          "id": 79,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1722,7 +1722,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 71,
+                                "id": 77,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -1735,7 +1735,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 72,
+                        "id": 78,
                         "location": {
                           "span": "None",
                           "file": {
@@ -1746,7 +1746,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 74,
+                  "id": 80,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1758,7 +1758,7 @@ expression: json
                 "parameters": null
               }
             },
-            "id": 75,
+            "id": 81,
             "location": {
               "span": "None",
               "file": {
@@ -1817,7 +1817,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 98,
+        "id": 104,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],
@@ -1861,7 +1861,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init___vtable_fbthathassimpletypes"
                           },
-                          "id": 99,
+                          "id": 105,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1874,7 +1874,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 100,
+                  "id": 106,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1891,7 +1891,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbThatHasSimpleTypes_instance"
                           },
-                          "id": 101,
+                          "id": 107,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1904,7 +1904,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 102,
+                  "id": 108,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1915,7 +1915,7 @@ expression: json
                 }
               }
             },
-            "id": 103,
+            "id": 109,
             "location": {
               "span": "None",
               "file": {
@@ -1935,7 +1935,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init___vtable_fbThatHasSimpleTypes"
                           },
-                          "id": 104,
+                          "id": 110,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1948,7 +1948,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 105,
+                  "id": 111,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1965,7 +1965,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbThatHasSimpleTypes_instance"
                           },
-                          "id": 106,
+                          "id": 112,
                           "location": {
                             "span": "None",
                             "file": {
@@ -1978,7 +1978,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 107,
+                  "id": 113,
                   "location": {
                     "span": "None",
                     "file": {
@@ -1989,7 +1989,7 @@ expression: json
                 }
               }
             },
-            "id": 108,
+            "id": 114,
             "location": {
               "span": "None",
               "file": {

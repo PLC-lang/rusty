@@ -1512,7 +1512,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 108,
+        "id": 114,
         "name": "__init___vtable_fbgreatgrandparent",
         "kind": "Init",
         "variable_blocks": [
@@ -1576,7 +1576,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 114,
+        "id": 120,
         "name": "__init___vtable_fbgrandparent",
         "kind": "Init",
         "variable_blocks": [
@@ -1640,7 +1640,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 120,
+        "id": 126,
         "name": "__init___vtable_fbparent",
         "kind": "Init",
         "variable_blocks": [
@@ -1704,7 +1704,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 126,
+        "id": 132,
         "name": "__init___vtable_fbchild",
         "kind": "Init",
         "variable_blocks": [
@@ -1768,7 +1768,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 132,
+        "id": 138,
         "name": "__init_fbparent",
         "kind": "Init",
         "variable_blocks": [
@@ -1884,7 +1884,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 150,
+        "id": 156,
         "name": "__init_fbgreatgrandparent",
         "kind": "Init",
         "variable_blocks": [
@@ -2000,7 +2000,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 161,
+        "id": 167,
         "name": "__init_fbgrandparent",
         "kind": "Init",
         "variable_blocks": [
@@ -2116,7 +2116,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 179,
+        "id": 185,
         "name": "__init_fbchild",
         "kind": "Init",
         "variable_blocks": [
@@ -2232,7 +2232,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 79,
+        "id": 85,
         "name": "__user_init_fbParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2296,7 +2296,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 87,
+        "id": 93,
         "name": "__user_init_fbGreatGrandParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2360,7 +2360,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 88,
+        "id": 94,
         "name": "__user_init_fbGrandParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2424,7 +2424,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 96,
+        "id": 102,
         "name": "__user_init___vtable_fbParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2488,7 +2488,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 97,
+        "id": 103,
         "name": "__user_init_fbChild",
         "kind": "Init",
         "variable_blocks": [
@@ -2552,7 +2552,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 105,
+        "id": 111,
         "name": "__user_init___vtable_fbChild",
         "kind": "Init",
         "variable_blocks": [
@@ -2616,7 +2616,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 106,
+        "id": 112,
         "name": "__user_init___vtable_fbGrandParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2680,7 +2680,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 107,
+        "id": 113,
         "name": "__user_init___vtable_fbGreatGrandParent",
         "kind": "Init",
         "variable_blocks": [
@@ -2762,182 +2762,6 @@ expression: json
                           "stmt": {
                             "Identifier": "__body"
                           },
-                          "id": 109,
-                          "location": {
-                            "span": "None",
-                            "file": {
-                              "Internal": "<internal>"
-                            }
-                          },
-                          "metadata": null
-                        }
-                      },
-                      "base": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "self"
-                                },
-                                "id": 111,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 112,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      }
-                    }
-                  },
-                  "id": 110,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
-                },
-                "right": {
-                  "stmt": {
-                    "CallStatement": {
-                      "operator": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "ADR"
-                                },
-                                "id": 23,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 24,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      },
-                      "parameters": {
-                        "stmt": {
-                          "ReferenceExpr": {
-                            "access": {
-                              "Member": {
-                                "stmt": {
-                                  "Identifier": "fbGreatGrandParent"
-                                },
-                                "id": 25,
-                                "location": {
-                                  "span": "None",
-                                  "file": {
-                                    "Internal": "<internal>"
-                                  }
-                                },
-                                "metadata": null
-                              }
-                            },
-                            "base": null
-                          }
-                        },
-                        "id": 26,
-                        "location": {
-                          "span": "None",
-                          "file": {
-                            "Internal": "<internal>"
-                          }
-                        },
-                        "metadata": null
-                      }
-                    }
-                  },
-                  "id": 27,
-                  "location": {
-                    "span": "None",
-                    "file": {
-                      "Internal": "<internal>"
-                    }
-                  },
-                  "metadata": null
-                }
-              }
-            },
-            "id": 113,
-            "location": {
-              "span": "None",
-              "file": {
-                "Internal": "<internal>"
-              }
-            },
-            "metadata": null
-          }
-        ],
-        "location": {
-          "span": "None",
-          "file": {
-            "Internal": "function_blocks_with_inheritance.pli"
-          }
-        },
-        "name_location": {
-          "span": "None",
-          "file": {
-            "Internal": "function_blocks_with_inheritance.pli"
-          }
-        },
-        "end_location": {
-          "span": "None",
-          "file": {
-            "Internal": "function_blocks_with_inheritance.pli"
-          }
-        },
-        "overriding": false,
-        "generic": false,
-        "access": null
-      },
-      {
-        "name": "__init___vtable_fbgrandparent",
-        "type_name": "__init___vtable_fbgrandparent",
-        "linkage": "Internal",
-        "pou_type": "Init",
-        "statements": [
-          {
-            "stmt": {
-              "Assignment": {
-                "left": {
-                  "stmt": {
-                    "ReferenceExpr": {
-                      "access": {
-                        "Member": {
-                          "stmt": {
-                            "Identifier": "__body"
-                          },
                           "id": 115,
                           "location": {
                             "span": "None",
@@ -3000,7 +2824,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 28,
+                                "id": 25,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3013,7 +2837,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 29,
+                        "id": 26,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3028,9 +2852,9 @@ expression: json
                             "access": {
                               "Member": {
                                 "stmt": {
-                                  "Identifier": "fbGrandParent"
+                                  "Identifier": "fbGreatGrandParent"
                                 },
-                                "id": 30,
+                                "id": 27,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3043,7 +2867,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 31,
+                        "id": 28,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3054,7 +2878,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 32,
+                  "id": 29,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3098,8 +2922,8 @@ expression: json
         "access": null
       },
       {
-        "name": "__init___vtable_fbparent",
-        "type_name": "__init___vtable_fbparent",
+        "name": "__init___vtable_fbgrandparent",
+        "type_name": "__init___vtable_fbgrandparent",
         "linkage": "Internal",
         "pou_type": "Init",
         "statements": [
@@ -3176,7 +3000,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 33,
+                                "id": 30,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3189,7 +3013,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 34,
+                        "id": 31,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3204,9 +3028,9 @@ expression: json
                             "access": {
                               "Member": {
                                 "stmt": {
-                                  "Identifier": "fbParent"
+                                  "Identifier": "fbGrandParent"
                                 },
-                                "id": 35,
+                                "id": 32,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3219,7 +3043,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 36,
+                        "id": 33,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3230,7 +3054,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 37,
+                  "id": 34,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3274,8 +3098,8 @@ expression: json
         "access": null
       },
       {
-        "name": "__init___vtable_fbchild",
-        "type_name": "__init___vtable_fbchild",
+        "name": "__init___vtable_fbparent",
+        "type_name": "__init___vtable_fbparent",
         "linkage": "Internal",
         "pou_type": "Init",
         "statements": [
@@ -3352,7 +3176,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 38,
+                                "id": 35,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3365,7 +3189,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 39,
+                        "id": 36,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3380,7 +3204,153 @@ expression: json
                             "access": {
                               "Member": {
                                 "stmt": {
-                                  "Identifier": "fbChild"
+                                  "Identifier": "fbParent"
+                                },
+                                "id": 37,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 38,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 39,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                }
+              }
+            },
+            "id": 131,
+            "location": {
+              "span": "None",
+              "file": {
+                "Internal": "<internal>"
+              }
+            },
+            "metadata": null
+          }
+        ],
+        "location": {
+          "span": "None",
+          "file": {
+            "Internal": "function_blocks_with_inheritance.pli"
+          }
+        },
+        "name_location": {
+          "span": "None",
+          "file": {
+            "Internal": "function_blocks_with_inheritance.pli"
+          }
+        },
+        "end_location": {
+          "span": "None",
+          "file": {
+            "Internal": "function_blocks_with_inheritance.pli"
+          }
+        },
+        "overriding": false,
+        "generic": false,
+        "access": null
+      },
+      {
+        "name": "__init___vtable_fbchild",
+        "type_name": "__init___vtable_fbchild",
+        "linkage": "Internal",
+        "pou_type": "Init",
+        "statements": [
+          {
+            "stmt": {
+              "Assignment": {
+                "left": {
+                  "stmt": {
+                    "ReferenceExpr": {
+                      "access": {
+                        "Member": {
+                          "stmt": {
+                            "Identifier": "__body"
+                          },
+                          "id": 133,
+                          "location": {
+                            "span": "None",
+                            "file": {
+                              "Internal": "<internal>"
+                            }
+                          },
+                          "metadata": null
+                        }
+                      },
+                      "base": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "self"
+                                },
+                                "id": 135,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 136,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
+                      }
+                    }
+                  },
+                  "id": 134,
+                  "location": {
+                    "span": "None",
+                    "file": {
+                      "Internal": "<internal>"
+                    }
+                  },
+                  "metadata": null
+                },
+                "right": {
+                  "stmt": {
+                    "CallStatement": {
+                      "operator": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "ADR"
                                 },
                                 "id": 40,
                                 "location": {
@@ -3403,10 +3373,40 @@ expression: json
                           }
                         },
                         "metadata": null
+                      },
+                      "parameters": {
+                        "stmt": {
+                          "ReferenceExpr": {
+                            "access": {
+                              "Member": {
+                                "stmt": {
+                                  "Identifier": "fbChild"
+                                },
+                                "id": 42,
+                                "location": {
+                                  "span": "None",
+                                  "file": {
+                                    "Internal": "<internal>"
+                                  }
+                                },
+                                "metadata": null
+                              }
+                            },
+                            "base": null
+                          }
+                        },
+                        "id": 43,
+                        "location": {
+                          "span": "None",
+                          "file": {
+                            "Internal": "<internal>"
+                          }
+                        },
+                        "metadata": null
                       }
                     }
                   },
-                  "id": 42,
+                  "id": 44,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3417,7 +3417,7 @@ expression: json
                 }
               }
             },
-            "id": 131,
+            "id": 137,
             "location": {
               "span": "None",
               "file": {
@@ -3466,7 +3466,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init_fbgrandparent"
                           },
-                          "id": 143,
+                          "id": 149,
                           "location": {
                             "span": "None",
                             "file": {
@@ -3479,7 +3479,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 144,
+                  "id": 150,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3496,7 +3496,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbGrandParent"
                           },
-                          "id": 147,
+                          "id": 153,
                           "location": {
                             "span": "None",
                             "file": {
@@ -3514,7 +3514,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 145,
+                                "id": 151,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3527,7 +3527,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 146,
+                        "id": 152,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3538,7 +3538,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 148,
+                  "id": 154,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3549,7 +3549,7 @@ expression: json
                 }
               }
             },
-            "id": 149,
+            "id": 155,
             "location": {
               "span": {
                 "Range": {
@@ -3582,7 +3582,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable"
                           },
-                          "id": 133,
+                          "id": 139,
                           "location": {
                             "span": "None",
                             "file": {
@@ -3600,7 +3600,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__fbGreatGrandParent"
                                 },
-                                "id": 262,
+                                "id": 270,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3618,7 +3618,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "__fbGrandParent"
                                       },
-                                      "id": 260,
+                                      "id": 268,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -3636,7 +3636,7 @@ expression: json
                                             "stmt": {
                                               "Identifier": "self"
                                             },
-                                            "id": 134,
+                                            "id": 140,
                                             "location": {
                                               "span": "None",
                                               "file": {
@@ -3649,7 +3649,7 @@ expression: json
                                         "base": null
                                       }
                                     },
-                                    "id": 135,
+                                    "id": 141,
                                     "location": {
                                       "span": "None",
                                       "file": {
@@ -3660,7 +3660,7 @@ expression: json
                                   }
                                 }
                               },
-                              "id": 261,
+                              "id": 269,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -3671,7 +3671,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 263,
+                        "id": 271,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3682,7 +3682,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 136,
+                  "id": 142,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3702,7 +3702,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 137,
+                                "id": 143,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3715,7 +3715,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 138,
+                        "id": 144,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3732,7 +3732,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__vtable_fbParent_instance"
                                 },
-                                "id": 139,
+                                "id": 145,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3745,7 +3745,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 140,
+                        "id": 146,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3756,7 +3756,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 141,
+                  "id": 147,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3767,7 +3767,7 @@ expression: json
                 }
               }
             },
-            "id": 142,
+            "id": 148,
             "location": {
               "span": "None",
               "file": {
@@ -3855,7 +3855,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable"
                           },
-                          "id": 151,
+                          "id": 157,
                           "location": {
                             "span": "None",
                             "file": {
@@ -3873,7 +3873,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 152,
+                                "id": 158,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3886,7 +3886,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 153,
+                        "id": 159,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3897,7 +3897,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 154,
+                  "id": 160,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3917,7 +3917,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 155,
+                                "id": 161,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3930,7 +3930,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 156,
+                        "id": 162,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3947,7 +3947,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__vtable_fbGreatGrandParent_instance"
                                 },
-                                "id": 157,
+                                "id": 163,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -3960,7 +3960,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 158,
+                        "id": 164,
                         "location": {
                           "span": "None",
                           "file": {
@@ -3971,7 +3971,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 159,
+                  "id": 165,
                   "location": {
                     "span": "None",
                     "file": {
@@ -3982,7 +3982,7 @@ expression: json
                 }
               }
             },
-            "id": 160,
+            "id": 166,
             "location": {
               "span": "None",
               "file": {
@@ -4070,7 +4070,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init_fbgreatgrandparent"
                           },
-                          "id": 172,
+                          "id": 178,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4083,7 +4083,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 173,
+                  "id": 179,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4100,7 +4100,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbGreatGrandParent"
                           },
-                          "id": 176,
+                          "id": 182,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4118,7 +4118,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 174,
+                                "id": 180,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4131,7 +4131,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 175,
+                        "id": 181,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4142,7 +4142,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 177,
+                  "id": 183,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4153,7 +4153,7 @@ expression: json
                 }
               }
             },
-            "id": 178,
+            "id": 184,
             "location": {
               "span": {
                 "Range": {
@@ -4186,7 +4186,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable"
                           },
-                          "id": 162,
+                          "id": 168,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4204,7 +4204,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__fbGreatGrandParent"
                                 },
-                                "id": 264,
+                                "id": 272,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4222,7 +4222,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "self"
                                       },
-                                      "id": 163,
+                                      "id": 169,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -4235,7 +4235,7 @@ expression: json
                                   "base": null
                                 }
                               },
-                              "id": 164,
+                              "id": 170,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -4246,7 +4246,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 265,
+                        "id": 273,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4257,7 +4257,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 165,
+                  "id": 171,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4277,7 +4277,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 166,
+                                "id": 172,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4290,7 +4290,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 167,
+                        "id": 173,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4307,7 +4307,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__vtable_fbGrandParent_instance"
                                 },
-                                "id": 168,
+                                "id": 174,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4320,7 +4320,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 169,
+                        "id": 175,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4331,7 +4331,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 170,
+                  "id": 176,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4342,7 +4342,7 @@ expression: json
                 }
               }
             },
-            "id": 171,
+            "id": 177,
             "location": {
               "span": "None",
               "file": {
@@ -4430,7 +4430,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init_fbparent"
                           },
-                          "id": 190,
+                          "id": 196,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4443,7 +4443,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 191,
+                  "id": 197,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4460,7 +4460,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbParent"
                           },
-                          "id": 194,
+                          "id": 200,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4478,7 +4478,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 192,
+                                "id": 198,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4491,7 +4491,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 193,
+                        "id": 199,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4502,7 +4502,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 195,
+                  "id": 201,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4513,7 +4513,7 @@ expression: json
                 }
               }
             },
-            "id": 196,
+            "id": 202,
             "location": {
               "span": {
                 "Range": {
@@ -4546,7 +4546,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable"
                           },
-                          "id": 180,
+                          "id": 186,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4564,7 +4564,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__fbGreatGrandParent"
                                 },
-                                "id": 270,
+                                "id": 278,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4582,7 +4582,7 @@ expression: json
                                       "stmt": {
                                         "Identifier": "__fbGrandParent"
                                       },
-                                      "id": 268,
+                                      "id": 276,
                                       "location": {
                                         "span": "None",
                                         "file": {
@@ -4600,7 +4600,7 @@ expression: json
                                             "stmt": {
                                               "Identifier": "__fbParent"
                                             },
-                                            "id": 266,
+                                            "id": 274,
                                             "location": {
                                               "span": "None",
                                               "file": {
@@ -4618,7 +4618,7 @@ expression: json
                                                   "stmt": {
                                                     "Identifier": "self"
                                                   },
-                                                  "id": 181,
+                                                  "id": 187,
                                                   "location": {
                                                     "span": "None",
                                                     "file": {
@@ -4631,7 +4631,7 @@ expression: json
                                               "base": null
                                             }
                                           },
-                                          "id": 182,
+                                          "id": 188,
                                           "location": {
                                             "span": "None",
                                             "file": {
@@ -4642,7 +4642,7 @@ expression: json
                                         }
                                       }
                                     },
-                                    "id": 267,
+                                    "id": 275,
                                     "location": {
                                       "span": "None",
                                       "file": {
@@ -4653,7 +4653,7 @@ expression: json
                                   }
                                 }
                               },
-                              "id": 269,
+                              "id": 277,
                               "location": {
                                 "span": "None",
                                 "file": {
@@ -4664,7 +4664,7 @@ expression: json
                             }
                           }
                         },
-                        "id": 271,
+                        "id": 279,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4675,7 +4675,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 183,
+                  "id": 189,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4695,7 +4695,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "ADR"
                                 },
-                                "id": 184,
+                                "id": 190,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4708,7 +4708,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 185,
+                        "id": 191,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4725,7 +4725,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "__vtable_fbChild_instance"
                                 },
-                                "id": 186,
+                                "id": 192,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4738,7 +4738,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 187,
+                        "id": 193,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4749,7 +4749,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 188,
+                  "id": 194,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4760,7 +4760,7 @@ expression: json
                 }
               }
             },
-            "id": 189,
+            "id": 195,
             "location": {
               "span": "None",
               "file": {
@@ -4848,7 +4848,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init_fbGrandParent"
                           },
-                          "id": 80,
+                          "id": 86,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4861,7 +4861,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 81,
+                  "id": 87,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4878,7 +4878,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbGrandParent"
                           },
-                          "id": 84,
+                          "id": 90,
                           "location": {
                             "span": "None",
                             "file": {
@@ -4896,7 +4896,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 82,
+                                "id": 88,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -4909,7 +4909,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 83,
+                        "id": 89,
                         "location": {
                           "span": "None",
                           "file": {
@@ -4920,7 +4920,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 85,
+                  "id": 91,
                   "location": {
                     "span": "None",
                     "file": {
@@ -4931,7 +4931,7 @@ expression: json
                 }
               }
             },
-            "id": 86,
+            "id": 92,
             "location": {
               "span": "None",
               "file": {
@@ -5008,7 +5008,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init_fbGreatGrandParent"
                           },
-                          "id": 89,
+                          "id": 95,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5021,7 +5021,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 90,
+                  "id": 96,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5038,7 +5038,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbGreatGrandParent"
                           },
-                          "id": 93,
+                          "id": 99,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5056,7 +5056,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 91,
+                                "id": 97,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -5069,7 +5069,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 92,
+                        "id": 98,
                         "location": {
                           "span": "None",
                           "file": {
@@ -5080,7 +5080,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 94,
+                  "id": 100,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5091,7 +5091,7 @@ expression: json
                 }
               }
             },
-            "id": 95,
+            "id": 101,
             "location": {
               "span": "None",
               "file": {
@@ -5168,7 +5168,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init_fbParent"
                           },
-                          "id": 98,
+                          "id": 104,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5181,7 +5181,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 99,
+                  "id": 105,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5198,7 +5198,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__fbParent"
                           },
-                          "id": 102,
+                          "id": 108,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5216,7 +5216,7 @@ expression: json
                                 "stmt": {
                                   "Identifier": "self"
                                 },
-                                "id": 100,
+                                "id": 106,
                                 "location": {
                                   "span": "None",
                                   "file": {
@@ -5229,7 +5229,7 @@ expression: json
                             "base": null
                           }
                         },
-                        "id": 101,
+                        "id": 107,
                         "location": {
                           "span": "None",
                           "file": {
@@ -5240,7 +5240,7 @@ expression: json
                       }
                     }
                   },
-                  "id": 103,
+                  "id": 109,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5251,7 +5251,7 @@ expression: json
                 }
               }
             },
-            "id": 104,
+            "id": 110,
             "location": {
               "span": "None",
               "file": {
@@ -5394,7 +5394,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 197,
+        "id": 203,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],
@@ -5438,7 +5438,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init___vtable_fbgreatgrandparent"
                           },
-                          "id": 198,
+                          "id": 204,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5451,7 +5451,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 199,
+                  "id": 205,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5468,7 +5468,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbGreatGrandParent_instance"
                           },
-                          "id": 200,
+                          "id": 206,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5481,7 +5481,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 201,
+                  "id": 207,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5492,7 +5492,7 @@ expression: json
                 }
               }
             },
-            "id": 202,
+            "id": 208,
             "location": {
               "span": "None",
               "file": {
@@ -5512,7 +5512,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init___vtable_fbgrandparent"
                           },
-                          "id": 203,
+                          "id": 209,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5525,7 +5525,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 204,
+                  "id": 210,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5542,7 +5542,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbGrandParent_instance"
                           },
-                          "id": 205,
+                          "id": 211,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5555,7 +5555,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 206,
+                  "id": 212,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5566,7 +5566,7 @@ expression: json
                 }
               }
             },
-            "id": 207,
+            "id": 213,
             "location": {
               "span": "None",
               "file": {
@@ -5586,7 +5586,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init___vtable_fbparent"
                           },
-                          "id": 208,
+                          "id": 214,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5599,7 +5599,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 209,
+                  "id": 215,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5616,7 +5616,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbParent_instance"
                           },
-                          "id": 210,
+                          "id": 216,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5629,7 +5629,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 211,
+                  "id": 217,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5640,7 +5640,7 @@ expression: json
                 }
               }
             },
-            "id": 212,
+            "id": 218,
             "location": {
               "span": "None",
               "file": {
@@ -5660,7 +5660,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__init___vtable_fbchild"
                           },
-                          "id": 213,
+                          "id": 219,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5673,7 +5673,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 214,
+                  "id": 220,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5690,7 +5690,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbChild_instance"
                           },
-                          "id": 215,
+                          "id": 221,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5703,7 +5703,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 216,
+                  "id": 222,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5714,7 +5714,7 @@ expression: json
                 }
               }
             },
-            "id": 217,
+            "id": 223,
             "location": {
               "span": "None",
               "file": {
@@ -5734,7 +5734,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init___vtable_fbGreatGrandParent"
                           },
-                          "id": 218,
+                          "id": 224,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5747,7 +5747,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 219,
+                  "id": 225,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5764,7 +5764,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbGreatGrandParent_instance"
                           },
-                          "id": 220,
+                          "id": 226,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5777,7 +5777,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 221,
+                  "id": 227,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5788,7 +5788,7 @@ expression: json
                 }
               }
             },
-            "id": 222,
+            "id": 228,
             "location": {
               "span": "None",
               "file": {
@@ -5808,7 +5808,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init___vtable_fbGrandParent"
                           },
-                          "id": 223,
+                          "id": 229,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5821,7 +5821,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 224,
+                  "id": 230,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5838,7 +5838,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbGrandParent_instance"
                           },
-                          "id": 225,
+                          "id": 231,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5851,7 +5851,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 226,
+                  "id": 232,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5862,7 +5862,7 @@ expression: json
                 }
               }
             },
-            "id": 227,
+            "id": 233,
             "location": {
               "span": "None",
               "file": {
@@ -5882,7 +5882,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init___vtable_fbParent"
                           },
-                          "id": 228,
+                          "id": 234,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5895,7 +5895,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 229,
+                  "id": 235,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5912,7 +5912,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbParent_instance"
                           },
-                          "id": 230,
+                          "id": 236,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5925,7 +5925,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 231,
+                  "id": 237,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5936,7 +5936,7 @@ expression: json
                 }
               }
             },
-            "id": 232,
+            "id": 238,
             "location": {
               "span": "None",
               "file": {
@@ -5956,7 +5956,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__user_init___vtable_fbChild"
                           },
-                          "id": 233,
+                          "id": 239,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5969,7 +5969,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 234,
+                  "id": 240,
                   "location": {
                     "span": "None",
                     "file": {
@@ -5986,7 +5986,7 @@ expression: json
                           "stmt": {
                             "Identifier": "__vtable_fbChild_instance"
                           },
-                          "id": 235,
+                          "id": 241,
                           "location": {
                             "span": "None",
                             "file": {
@@ -5999,7 +5999,7 @@ expression: json
                       "base": null
                     }
                   },
-                  "id": 236,
+                  "id": 242,
                   "location": {
                     "span": "None",
                     "file": {
@@ -6010,7 +6010,7 @@ expression: json
                 }
               }
             },
-            "id": 237,
+            "id": 243,
             "location": {
               "span": "None",
               "file": {

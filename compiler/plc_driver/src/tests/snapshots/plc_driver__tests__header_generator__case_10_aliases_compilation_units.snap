@@ -665,7 +665,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 60,
+        "id": 66,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

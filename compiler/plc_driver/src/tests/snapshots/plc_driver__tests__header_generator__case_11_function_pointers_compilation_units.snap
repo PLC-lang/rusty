@@ -2631,7 +2631,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 70,
+        "id": 76,
         "name": "__init_structwithprimitivetypes",
         "kind": "Init",
         "variable_blocks": [
@@ -2747,7 +2747,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 71,
+        "id": 77,
         "name": "__init_structwithcomplextypes",
         "kind": "Init",
         "variable_blocks": [
@@ -2863,7 +2863,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 68,
+        "id": 74,
         "name": "__user_init_StructWithPrimitiveTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -2927,7 +2927,7 @@ expression: json
         "properties": []
       },
       {
-        "id": 69,
+        "id": 75,
         "name": "__user_init_StructWithComplexTypes",
         "kind": "Init",
         "variable_blocks": [
@@ -3209,7 +3209,7 @@ expression: json
     "var_config": [],
     "pous": [
       {
-        "id": 72,
+        "id": 78,
         "name": "__init___TestProject",
         "kind": "ProjectInit",
         "variable_blocks": [],

@@ -58,7 +58,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "red"
                                   },
-                                  "id": 148,
+                                  "id": 154,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -84,7 +84,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 149,
+                          "id": 155,
                           "location": {
                             "span": {
                               "Range": {
@@ -136,7 +136,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 150,
+                    "id": 156,
                     "location": {
                       "span": {
                         "Range": {
@@ -169,7 +169,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "green"
                                   },
-                                  "id": 151,
+                                  "id": 157,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -195,7 +195,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 152,
+                          "id": 158,
                           "location": {
                             "span": {
                               "Range": {
@@ -386,7 +386,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 153,
+                    "id": 159,
                     "location": {
                       "span": {
                         "Range": {
@@ -419,7 +419,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "blue"
                                   },
-                                  "id": 154,
+                                  "id": 160,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -445,7 +445,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 155,
+                          "id": 161,
                           "location": {
                             "span": {
                               "Range": {
@@ -636,7 +636,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 156,
+                    "id": 162,
                     "location": {
                       "span": {
                         "Range": {
@@ -660,7 +660,7 @@ expression: json
                   }
                 ]
               },
-              "id": 157,
+              "id": 163,
               "location": {
                 "span": {
                   "Range": {
@@ -726,7 +726,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "orange"
                                   },
-                                  "id": 158,
+                                  "id": 164,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -752,7 +752,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 159,
+                          "id": 165,
                           "location": {
                             "span": {
                               "Range": {
@@ -804,7 +804,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 160,
+                    "id": 166,
                     "location": {
                       "span": {
                         "Range": {
@@ -837,7 +837,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "yellow"
                                   },
-                                  "id": 161,
+                                  "id": 167,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -863,7 +863,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 162,
+                          "id": 168,
                           "location": {
                             "span": {
                               "Range": {
@@ -915,7 +915,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 163,
+                    "id": 169,
                     "location": {
                       "span": {
                         "Range": {
@@ -948,7 +948,7 @@ expression: json
                                   "stmt": {
                                     "Identifier": "purple"
                                   },
-                                  "id": 164,
+                                  "id": 170,
                                   "location": {
                                     "span": {
                                       "Range": {
@@ -974,7 +974,7 @@ expression: json
                               "base": null
                             }
                           },
-                          "id": 165,
+                          "id": 171,
                           "location": {
                             "span": {
                               "Range": {
@@ -1026,7 +1026,7 @@ expression: json
                         }
                       }
                     },
-                    "id": 166,
+                    "id": 172,
                     "location": {
                       "span": {
                         "Range": {
@@ -1050,7 +1050,7 @@ expression: json
                   }
                 ]
               },
-              "id": 167,
+              "id": 173,
               "location": {
                 "span": {
                   "Range": {

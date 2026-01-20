@@ -61,7 +61,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "orange"
                                         },
-                                        "id": 75,
+                                        "id": 79,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -87,7 +87,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 76,
+                                "id": 80,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -139,7 +139,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 77,
+                          "id": 81,
                           "location": {
                             "span": {
                               "Range": {
@@ -172,7 +172,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "yellow"
                                         },
-                                        "id": 78,
+                                        "id": 82,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -198,7 +198,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 79,
+                                "id": 83,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -250,7 +250,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 80,
+                          "id": 84,
                           "location": {
                             "span": {
                               "Range": {
@@ -283,7 +283,7 @@ expression: json
                                         "stmt": {
                                           "Identifier": "purple"
                                         },
-                                        "id": 81,
+                                        "id": 85,
                                         "location": {
                                           "span": {
                                             "Range": {
@@ -309,7 +309,7 @@ expression: json
                                     "base": null
                                   }
                                 },
-                                "id": 82,
+                                "id": 86,
                                 "location": {
                                   "span": {
                                     "Range": {
@@ -361,7 +361,7 @@ expression: json
                               }
                             }
                           },
-                          "id": 83,
+                          "id": 87,
                           "location": {
                             "span": {
                               "Range": {
@@ -385,7 +385,7 @@ expression: json
                         }
                       ]
                     },
-                    "id": 84,
+                    "id": 88,
                     "location": {
                       "span": {
                         "Range": {
@@ -1760,6 +1760,76 @@ expression: json
               }
             }
           ],
+          "shl": [
+            {
+              "Function": {
+                "name": "SHL",
+                "return_type": "__SHL__T",
+                "generics": [
+                  {
+                    "name": "T",
+                    "nature": "Any"
+                  }
+                ],
+                "linkage": "BuiltIn",
+                "is_variadic": false,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 53,
+                        "column": 25,
+                        "offset": 1705
+                      },
+                      "end": {
+                        "line": 53,
+                        "column": 28,
+                        "offset": 1708
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
+          "shr": [
+            {
+              "Function": {
+                "name": "SHR",
+                "return_type": "__SHR__T",
+                "generics": [
+                  {
+                    "name": "T",
+                    "nature": "Any"
+                  }
+                ],
+                "linkage": "BuiltIn",
+                "is_variadic": false,
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 60,
+                        "column": 25,
+                        "offset": 1898
+                      },
+                      "end": {
+                        "line": 60,
+                        "column": 28,
+                        "offset": 1901
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                },
+                "is_generated": false,
+                "is_const": false
+              }
+            }
+          ],
           "mul": [
             {
               "Function": {
@@ -1777,14 +1847,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 52,
-                        "column": 26,
-                        "offset": 1688
+                        "line": 66,
+                        "column": 22,
+                        "offset": 2074
                       },
                       "end": {
-                        "line": 52,
-                        "column": 29,
-                        "offset": 1691
+                        "line": 66,
+                        "column": 25,
+                        "offset": 2077
                       }
                     }
                   },
@@ -1812,14 +1882,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 57,
+                        "line": 71,
                         "column": 26,
-                        "offset": 1853
+                        "offset": 2239
                       },
                       "end": {
-                        "line": 57,
+                        "line": 71,
                         "column": 29,
-                        "offset": 1856
+                        "offset": 2242
                       }
                     }
                   },
@@ -1851,14 +1921,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 63,
+                        "line": 77,
                         "column": 26,
-                        "offset": 2045
+                        "offset": 2431
                       },
                       "end": {
-                        "line": 63,
+                        "line": 77,
                         "column": 37,
-                        "offset": 2056
+                        "offset": 2442
                       }
                     }
                   },
@@ -1886,14 +1956,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 70,
+                        "line": 84,
                         "column": 38,
-                        "offset": 2287
+                        "offset": 2673
                       },
                       "end": {
-                        "line": 70,
+                        "line": 84,
                         "column": 40,
-                        "offset": 2289
+                        "offset": 2675
                       }
                     }
                   },
@@ -1921,14 +1991,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 75,
+                        "line": 89,
                         "column": 26,
-                        "offset": 2460
+                        "offset": 2846
                       },
                       "end": {
-                        "line": 75,
+                        "line": 89,
                         "column": 28,
-                        "offset": 2462
+                        "offset": 2848
                       }
                     }
                   },
@@ -1956,14 +2026,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 80,
+                        "line": 94,
                         "column": 26,
-                        "offset": 2633
+                        "offset": 3019
                       },
                       "end": {
-                        "line": 80,
+                        "line": 94,
                         "column": 29,
-                        "offset": 2636
+                        "offset": 3022
                       }
                     }
                   },
@@ -1991,14 +2061,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 87,
+                        "line": 101,
                         "column": 26,
-                        "offset": 2844
+                        "offset": 3230
                       },
                       "end": {
-                        "line": 87,
+                        "line": 101,
                         "column": 28,
-                        "offset": 2846
+                        "offset": 3232
                       }
                     }
                   },
@@ -2026,14 +2096,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 92,
+                        "line": 106,
                         "column": 26,
-                        "offset": 3017
+                        "offset": 3403
                       },
                       "end": {
-                        "line": 92,
+                        "line": 106,
                         "column": 32,
-                        "offset": 3023
+                        "offset": 3409
                       }
                     }
                   },
@@ -2065,14 +2135,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 96,
+                        "line": 110,
                         "column": 38,
-                        "offset": 3156
+                        "offset": 3542
                       },
                       "end": {
-                        "line": 96,
+                        "line": 110,
                         "column": 41,
-                        "offset": 3159
+                        "offset": 3545
                       }
                     }
                   },
@@ -2308,6 +2378,54 @@ expression: json
             "file": "Undefined"
           }
         },
+        "shl": {
+          "call_name": "SHL",
+          "type_name": "SHL",
+          "associated_class": null,
+          "implementation_type": "Function",
+          "generic": true,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 58,
+                  "column": 16,
+                  "offset": 1846
+                },
+                "end": {
+                  "line": 57,
+                  "column": 23,
+                  "offset": 1829
+                }
+              }
+            },
+            "file": "Undefined"
+          }
+        },
+        "shr": {
+          "call_name": "SHR",
+          "type_name": "SHR",
+          "associated_class": null,
+          "implementation_type": "Function",
+          "generic": true,
+          "location": {
+            "span": {
+              "Range": {
+                "start": {
+                  "line": 65,
+                  "column": 16,
+                  "offset": 2039
+                },
+                "end": {
+                  "line": 64,
+                  "column": 23,
+                  "offset": 2022
+                }
+              }
+            },
+            "file": "Undefined"
+          }
+        },
         "mul": {
           "call_name": "MUL",
           "type_name": "MUL",
@@ -2318,14 +2436,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 56,
+                  "line": 70,
                   "column": 16,
-                  "offset": 1814
+                  "offset": 2200
                 },
                 "end": {
-                  "line": 55,
+                  "line": 69,
                   "column": 23,
-                  "offset": 1797
+                  "offset": 2183
                 }
               }
             },
@@ -2342,14 +2460,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 62,
+                  "line": 76,
                   "column": 16,
-                  "offset": 2006
+                  "offset": 2392
                 },
                 "end": {
-                  "line": 61,
+                  "line": 75,
                   "column": 23,
-                  "offset": 1989
+                  "offset": 2375
                 }
               }
             },
@@ -2366,14 +2484,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 70,
+                  "line": 84,
                   "column": 16,
-                  "offset": 2265
+                  "offset": 2651
                 },
                 "end": {
-                  "line": 69,
+                  "line": 83,
                   "column": 23,
-                  "offset": 2248
+                  "offset": 2634
                 }
               }
             },
@@ -2390,14 +2508,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 74,
+                  "line": 88,
                   "column": 16,
-                  "offset": 2421
+                  "offset": 2807
                 },
                 "end": {
-                  "line": 73,
+                  "line": 87,
                   "column": 23,
-                  "offset": 2404
+                  "offset": 2790
                 }
               }
             },
@@ -2414,14 +2532,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 79,
+                  "line": 93,
                   "column": 16,
-                  "offset": 2594
+                  "offset": 2980
                 },
                 "end": {
-                  "line": 78,
+                  "line": 92,
                   "column": 23,
-                  "offset": 2577
+                  "offset": 2963
                 }
               }
             },
@@ -2438,14 +2556,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 86,
+                  "line": 100,
                   "column": 16,
-                  "offset": 2805
+                  "offset": 3191
                 },
                 "end": {
-                  "line": 85,
+                  "line": 99,
                   "column": 23,
-                  "offset": 2788
+                  "offset": 3174
                 }
               }
             },
@@ -2462,14 +2580,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 91,
+                  "line": 105,
                   "column": 16,
-                  "offset": 2978
+                  "offset": 3364
                 },
                 "end": {
-                  "line": 90,
+                  "line": 104,
                   "column": 23,
-                  "offset": 2961
+                  "offset": 3347
                 }
               }
             },
@@ -2486,14 +2604,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 96,
+                  "line": 110,
                   "column": 16,
-                  "offset": 3134
+                  "offset": 3520
                 },
                 "end": {
-                  "line": 95,
+                  "line": 109,
                   "column": 23,
-                  "offset": 3117
+                  "offset": 3503
                 }
               }
             },
@@ -2510,14 +2628,14 @@ expression: json
             "span": {
               "Range": {
                 "start": {
-                  "line": 101,
+                  "line": 115,
                   "column": 16,
-                  "offset": 3309
+                  "offset": 3695
                 },
                 "end": {
-                  "line": 100,
+                  "line": 114,
                   "column": 23,
-                  "offset": 3292
+                  "offset": 3678
                 }
               }
             },
@@ -4338,6 +4456,68 @@ expression: json
                 }
               }
             ],
+            "__shl__t": [
+              {
+                "name": "__SHL__T",
+                "initial_value": null,
+                "information": {
+                  "Generic": {
+                    "name": "__SHL__T",
+                    "generic_symbol": "T",
+                    "nature": "Any"
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 53,
+                        "column": 16,
+                        "offset": 1696
+                      },
+                      "end": {
+                        "line": 58,
+                        "column": 28,
+                        "offset": 1858
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                }
+              }
+            ],
+            "__shr__t": [
+              {
+                "name": "__SHR__T",
+                "initial_value": null,
+                "information": {
+                  "Generic": {
+                    "name": "__SHR__T",
+                    "generic_symbol": "T",
+                    "nature": "Any"
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 60,
+                        "column": 16,
+                        "offset": 1889
+                      },
+                      "end": {
+                        "line": 65,
+                        "column": 28,
+                        "offset": 2051
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                }
+              }
+            ],
             "__mul__t": [
               {
                 "name": "__MUL__T",
@@ -4354,14 +4534,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 52,
-                        "column": 17,
-                        "offset": 1679
+                        "line": 66,
+                        "column": 13,
+                        "offset": 2065
                       },
                       "end": {
-                        "line": 56,
+                        "line": 70,
                         "column": 28,
-                        "offset": 1826
+                        "offset": 2212
                       }
                     }
                   },
@@ -4385,14 +4565,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 57,
+                        "line": 71,
                         "column": 17,
-                        "offset": 1844
+                        "offset": 2230
                       },
                       "end": {
-                        "line": 62,
+                        "line": 76,
                         "column": 28,
-                        "offset": 2018
+                        "offset": 2404
                       }
                     }
                   },
@@ -4416,14 +4596,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 63,
+                        "line": 77,
                         "column": 17,
-                        "offset": 2036
+                        "offset": 2422
                       },
                       "end": {
-                        "line": 70,
+                        "line": 84,
                         "column": 28,
-                        "offset": 2277
+                        "offset": 2663
                       }
                     }
                   },
@@ -4447,14 +4627,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 63,
+                        "line": 77,
                         "column": 17,
-                        "offset": 2036
+                        "offset": 2422
                       },
                       "end": {
-                        "line": 70,
+                        "line": 84,
                         "column": 28,
-                        "offset": 2277
+                        "offset": 2663
                       }
                     }
                   },
@@ -4478,14 +4658,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 70,
+                        "line": 84,
                         "column": 29,
-                        "offset": 2278
+                        "offset": 2664
                       },
                       "end": {
-                        "line": 74,
+                        "line": 88,
                         "column": 28,
-                        "offset": 2433
+                        "offset": 2819
                       }
                     }
                   },
@@ -4509,14 +4689,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 75,
+                        "line": 89,
                         "column": 17,
-                        "offset": 2451
+                        "offset": 2837
                       },
                       "end": {
-                        "line": 79,
+                        "line": 93,
                         "column": 28,
-                        "offset": 2606
+                        "offset": 2992
                       }
                     }
                   },
@@ -4540,14 +4720,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 80,
+                        "line": 94,
                         "column": 17,
-                        "offset": 2624
+                        "offset": 3010
                       },
                       "end": {
-                        "line": 86,
+                        "line": 100,
                         "column": 28,
-                        "offset": 2817
+                        "offset": 3203
                       }
                     }
                   },
@@ -4571,14 +4751,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 87,
+                        "line": 101,
                         "column": 17,
-                        "offset": 2835
+                        "offset": 3221
                       },
                       "end": {
-                        "line": 91,
+                        "line": 105,
                         "column": 28,
-                        "offset": 2990
+                        "offset": 3376
                       }
                     }
                   },
@@ -4602,14 +4782,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 92,
+                        "line": 106,
                         "column": 17,
-                        "offset": 3008
+                        "offset": 3394
                       },
                       "end": {
-                        "line": 96,
+                        "line": 110,
                         "column": 28,
-                        "offset": 3146
+                        "offset": 3532
                       }
                     }
                   },
@@ -4633,14 +4813,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 96,
+                        "line": 110,
                         "column": 29,
-                        "offset": 3147
+                        "offset": 3533
                       },
                       "end": {
-                        "line": 101,
+                        "line": 115,
                         "column": 28,
-                        "offset": 3321
+                        "offset": 3707
                       }
                     }
                   },
@@ -4664,14 +4844,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 96,
+                        "line": 110,
                         "column": 29,
-                        "offset": 3147
+                        "offset": 3533
                       },
                       "end": {
-                        "line": 101,
+                        "line": 115,
                         "column": 28,
-                        "offset": 3321
+                        "offset": 3707
                       }
                     }
                   },
@@ -5711,6 +5891,266 @@ expression: json
                 }
               }
             ],
+            "shl": [
+              {
+                "name": "SHL",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "SHL",
+                    "members": [
+                      {
+                        "name": "IN",
+                        "qualified_name": "SHL.IN",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__SHL__T",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 55,
+                                "column": 20,
+                                "offset": 1767
+                              },
+                              "end": {
+                                "line": 55,
+                                "column": 22,
+                                "offset": 1769
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "n",
+                        "qualified_name": "SHL.n",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "UDINT",
+                        "location_in_parent": 1,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 56,
+                                "column": 20,
+                                "offset": 1795
+                              },
+                              "end": {
+                                "line": 56,
+                                "column": 21,
+                                "offset": 1796
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "SHL",
+                        "qualified_name": "SHL.SHL",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Return"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__SHL__T",
+                        "location_in_parent": 2,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 53,
+                                "column": 25,
+                                "offset": 1705
+                              },
+                              "end": {
+                                "line": 53,
+                                "column": 28,
+                                "offset": 1708
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Function"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 53,
+                        "column": 25,
+                        "offset": 1705
+                      },
+                      "end": {
+                        "line": 53,
+                        "column": 28,
+                        "offset": 1708
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                }
+              }
+            ],
+            "shr": [
+              {
+                "name": "SHR",
+                "initial_value": null,
+                "information": {
+                  "Struct": {
+                    "name": "SHR",
+                    "members": [
+                      {
+                        "name": "IN",
+                        "qualified_name": "SHR.IN",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__SHR__T",
+                        "location_in_parent": 0,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 62,
+                                "column": 20,
+                                "offset": 1960
+                              },
+                              "end": {
+                                "line": 62,
+                                "column": 22,
+                                "offset": 1962
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "n",
+                        "qualified_name": "SHR.n",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Input"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "UDINT",
+                        "location_in_parent": 1,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 63,
+                                "column": 20,
+                                "offset": 1988
+                              },
+                              "end": {
+                                "line": 63,
+                                "column": 21,
+                                "offset": 1989
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      },
+                      {
+                        "name": "SHR",
+                        "qualified_name": "SHR.SHR",
+                        "initial_value": null,
+                        "argument_type": {
+                          "ByVal": "Return"
+                        },
+                        "is_constant": false,
+                        "is_var_external": false,
+                        "data_type_name": "__SHR__T",
+                        "location_in_parent": 2,
+                        "linkage": "Internal",
+                        "binding": null,
+                        "source_location": {
+                          "span": {
+                            "Range": {
+                              "start": {
+                                "line": 60,
+                                "column": 25,
+                                "offset": 1898
+                              },
+                              "end": {
+                                "line": 60,
+                                "column": 28,
+                                "offset": 1901
+                              }
+                            }
+                          },
+                          "file": "Undefined"
+                        },
+                        "varargs": null
+                      }
+                    ],
+                    "source": {
+                      "Pou": "Function"
+                    }
+                  }
+                },
+                "nature": "Any",
+                "location": {
+                  "span": {
+                    "Range": {
+                      "start": {
+                        "line": 60,
+                        "column": 25,
+                        "offset": 1898
+                      },
+                      "end": {
+                        "line": 60,
+                        "column": 28,
+                        "offset": 1901
+                      }
+                    }
+                  },
+                  "file": "Undefined"
+                }
+              }
+            ],
             "mul": [
               {
                 "name": "MUL",
@@ -5736,14 +6176,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 54,
+                                "line": 68,
                                 "column": 20,
-                                "offset": 1754
+                                "offset": 2140
                               },
                               "end": {
-                                "line": 54,
+                                "line": 68,
                                 "column": 24,
-                                "offset": 1758
+                                "offset": 2144
                               }
                             }
                           },
@@ -5770,14 +6210,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 52,
-                                "column": 26,
-                                "offset": 1688
+                                "line": 66,
+                                "column": 22,
+                                "offset": 2074
                               },
                               "end": {
-                                "line": 52,
-                                "column": 29,
-                                "offset": 1691
+                                "line": 66,
+                                "column": 25,
+                                "offset": 2077
                               }
                             }
                           },
@@ -5796,14 +6236,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 52,
-                        "column": 26,
-                        "offset": 1688
+                        "line": 66,
+                        "column": 22,
+                        "offset": 2074
                       },
                       "end": {
-                        "line": 52,
-                        "column": 29,
-                        "offset": 1691
+                        "line": 66,
+                        "column": 25,
+                        "offset": 2077
                       }
                     }
                   },
@@ -5836,14 +6276,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 59,
+                                "line": 73,
                                 "column": 20,
-                                "offset": 1915
+                                "offset": 2301
                               },
                               "end": {
-                                "line": 59,
+                                "line": 73,
                                 "column": 21,
-                                "offset": 1916
+                                "offset": 2302
                               }
                             }
                           },
@@ -5868,14 +6308,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 60,
+                                "line": 74,
                                 "column": 20,
-                                "offset": 1945
+                                "offset": 2331
                               },
                               "end": {
-                                "line": 60,
+                                "line": 74,
                                 "column": 24,
-                                "offset": 1949
+                                "offset": 2335
                               }
                             }
                           },
@@ -5902,14 +6342,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 57,
+                                "line": 71,
                                 "column": 26,
-                                "offset": 1853
+                                "offset": 2239
                               },
                               "end": {
-                                "line": 57,
+                                "line": 71,
                                 "column": 29,
-                                "offset": 1856
+                                "offset": 2242
                               }
                             }
                           },
@@ -5928,14 +6368,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 57,
+                        "line": 71,
                         "column": 26,
-                        "offset": 1853
+                        "offset": 2239
                       },
                       "end": {
-                        "line": 57,
+                        "line": 71,
                         "column": 29,
-                        "offset": 1856
+                        "offset": 2242
                       }
                     }
                   },
@@ -5968,14 +6408,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 65,
+                                "line": 79,
                                 "column": 20,
-                                "offset": 2137
+                                "offset": 2523
                               },
                               "end": {
-                                "line": 65,
+                                "line": 79,
                                 "column": 23,
-                                "offset": 2140
+                                "offset": 2526
                               }
                             }
                           },
@@ -6000,14 +6440,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 68,
+                                "line": 82,
                                 "column": 20,
-                                "offset": 2216
+                                "offset": 2602
                               },
                               "end": {
-                                "line": 68,
+                                "line": 82,
                                 "column": 23,
-                                "offset": 2219
+                                "offset": 2605
                               }
                             }
                           },
@@ -6032,14 +6472,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 63,
+                                "line": 77,
                                 "column": 26,
-                                "offset": 2045
+                                "offset": 2431
                               },
                               "end": {
-                                "line": 63,
+                                "line": 77,
                                 "column": 37,
-                                "offset": 2056
+                                "offset": 2442
                               }
                             }
                           },
@@ -6058,14 +6498,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 63,
+                        "line": 77,
                         "column": 26,
-                        "offset": 2045
+                        "offset": 2431
                       },
                       "end": {
-                        "line": 63,
+                        "line": 77,
                         "column": 37,
-                        "offset": 2056
+                        "offset": 2442
                       }
                     }
                   },
@@ -6098,14 +6538,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 72,
+                                "line": 86,
                                 "column": 20,
-                                "offset": 2362
+                                "offset": 2748
                               },
                               "end": {
-                                "line": 72,
+                                "line": 86,
                                 "column": 22,
-                                "offset": 2364
+                                "offset": 2750
                               }
                             }
                           },
@@ -6132,14 +6572,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 70,
+                                "line": 84,
                                 "column": 38,
-                                "offset": 2287
+                                "offset": 2673
                               },
                               "end": {
-                                "line": 70,
+                                "line": 84,
                                 "column": 40,
-                                "offset": 2289
+                                "offset": 2675
                               }
                             }
                           },
@@ -6158,14 +6598,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 70,
+                        "line": 84,
                         "column": 38,
-                        "offset": 2287
+                        "offset": 2673
                       },
                       "end": {
-                        "line": 70,
+                        "line": 84,
                         "column": 40,
-                        "offset": 2289
+                        "offset": 2675
                       }
                     }
                   },
@@ -6198,14 +6638,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 77,
+                                "line": 91,
                                 "column": 20,
-                                "offset": 2535
+                                "offset": 2921
                               },
                               "end": {
-                                "line": 77,
+                                "line": 91,
                                 "column": 22,
-                                "offset": 2537
+                                "offset": 2923
                               }
                             }
                           },
@@ -6232,14 +6672,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 75,
+                                "line": 89,
                                 "column": 26,
-                                "offset": 2460
+                                "offset": 2846
                               },
                               "end": {
-                                "line": 75,
+                                "line": 89,
                                 "column": 28,
-                                "offset": 2462
+                                "offset": 2848
                               }
                             }
                           },
@@ -6258,14 +6698,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 75,
+                        "line": 89,
                         "column": 26,
-                        "offset": 2460
+                        "offset": 2846
                       },
                       "end": {
-                        "line": 75,
+                        "line": 89,
                         "column": 28,
-                        "offset": 2462
+                        "offset": 2848
                       }
                     }
                   },
@@ -6298,14 +6738,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 82,
+                                "line": 96,
                                 "column": 20,
-                                "offset": 2695
+                                "offset": 3081
                               },
                               "end": {
-                                "line": 82,
+                                "line": 96,
                                 "column": 21,
-                                "offset": 2696
+                                "offset": 3082
                               }
                             }
                           },
@@ -6330,14 +6770,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 83,
+                                "line": 97,
                                 "column": 20,
-                                "offset": 2727
+                                "offset": 3113
                               },
                               "end": {
-                                "line": 83,
+                                "line": 97,
                                 "column": 23,
-                                "offset": 2730
+                                "offset": 3116
                               }
                             }
                           },
@@ -6362,14 +6802,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 84,
+                                "line": 98,
                                 "column": 20,
-                                "offset": 2756
+                                "offset": 3142
                               },
                               "end": {
-                                "line": 84,
+                                "line": 98,
                                 "column": 23,
-                                "offset": 2759
+                                "offset": 3145
                               }
                             }
                           },
@@ -6394,14 +6834,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 80,
+                                "line": 94,
                                 "column": 26,
-                                "offset": 2633
+                                "offset": 3019
                               },
                               "end": {
-                                "line": 80,
+                                "line": 94,
                                 "column": 29,
-                                "offset": 2636
+                                "offset": 3022
                               }
                             }
                           },
@@ -6420,14 +6860,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 80,
+                        "line": 94,
                         "column": 26,
-                        "offset": 2633
+                        "offset": 3019
                       },
                       "end": {
-                        "line": 80,
+                        "line": 94,
                         "column": 29,
-                        "offset": 2636
+                        "offset": 3022
                       }
                     }
                   },
@@ -6460,14 +6900,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 89,
+                                "line": 103,
                                 "column": 20,
-                                "offset": 2919
+                                "offset": 3305
                               },
                               "end": {
-                                "line": 89,
+                                "line": 103,
                                 "column": 22,
-                                "offset": 2921
+                                "offset": 3307
                               }
                             }
                           },
@@ -6494,14 +6934,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 87,
+                                "line": 101,
                                 "column": 26,
-                                "offset": 2844
+                                "offset": 3230
                               },
                               "end": {
-                                "line": 87,
+                                "line": 101,
                                 "column": 28,
-                                "offset": 2846
+                                "offset": 3232
                               }
                             }
                           },
@@ -6520,14 +6960,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 87,
+                        "line": 101,
                         "column": 26,
-                        "offset": 2844
+                        "offset": 3230
                       },
                       "end": {
-                        "line": 87,
+                        "line": 101,
                         "column": 28,
-                        "offset": 2846
+                        "offset": 3232
                       }
                     }
                   },
@@ -6560,14 +7000,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 94,
+                                "line": 108,
                                 "column": 20,
-                                "offset": 3086
+                                "offset": 3472
                               },
                               "end": {
-                                "line": 94,
+                                "line": 108,
                                 "column": 22,
-                                "offset": 3088
+                                "offset": 3474
                               }
                             }
                           },
@@ -6592,14 +7032,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 92,
+                                "line": 106,
                                 "column": 26,
-                                "offset": 3017
+                                "offset": 3403
                               },
                               "end": {
-                                "line": 92,
+                                "line": 106,
                                 "column": 32,
-                                "offset": 3023
+                                "offset": 3409
                               }
                             }
                           },
@@ -6618,14 +7058,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 92,
+                        "line": 106,
                         "column": 26,
-                        "offset": 3017
+                        "offset": 3403
                       },
                       "end": {
-                        "line": 92,
+                        "line": 106,
                         "column": 32,
-                        "offset": 3023
+                        "offset": 3409
                       }
                     }
                   },
@@ -6658,14 +7098,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 98,
+                                "line": 112,
                                 "column": 20,
-                                "offset": 3229
+                                "offset": 3615
                               },
                               "end": {
-                                "line": 98,
+                                "line": 112,
                                 "column": 23,
-                                "offset": 3232
+                                "offset": 3618
                               }
                             }
                           },
@@ -6690,14 +7130,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 99,
+                                "line": 113,
                                 "column": 20,
-                                "offset": 3259
+                                "offset": 3645
                               },
                               "end": {
-                                "line": 99,
+                                "line": 113,
                                 "column": 23,
-                                "offset": 3262
+                                "offset": 3648
                               }
                             }
                           },
@@ -6722,14 +7162,14 @@ expression: json
                           "span": {
                             "Range": {
                               "start": {
-                                "line": 96,
+                                "line": 110,
                                 "column": 38,
-                                "offset": 3156
+                                "offset": 3542
                               },
                               "end": {
-                                "line": 96,
+                                "line": 110,
                                 "column": 41,
-                                "offset": 3159
+                                "offset": 3545
                               }
                             }
                           },
@@ -6748,14 +7188,14 @@ expression: json
                   "span": {
                     "Range": {
                       "start": {
-                        "line": 96,
+                        "line": 110,
                         "column": 38,
-                        "offset": 3156
+                        "offset": 3542
                       },
                       "end": {
-                        "line": 96,
+                        "line": 110,
                         "column": 41,
-                        "offset": 3159
+                        "offset": 3545
                       }
                     }
                   },
@@ -6991,7 +7431,7 @@ expression: json
       }
     },
     "provider": {
-      "current_id": 103
+      "current_id": 109
     },
     "error_fmt": "Rich"
   }
