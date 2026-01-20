@@ -6042,6 +6042,8 @@ fn implicit_output_assignment_arguments_are_annotated() {
     Argument {
         resulting_type: "DINT",
         position: 1,
+        depth: 0,
+        pou: "fb",
     }
     "#);
 
@@ -6049,6 +6051,8 @@ fn implicit_output_assignment_arguments_are_annotated() {
     Argument {
         resulting_type: "BOOL",
         position: 2,
+        depth: 0,
+        pou: "fb",
     }
     "#);
 }
@@ -6108,6 +6112,8 @@ fn explicit_output_assignment_arguments_are_annotated() {
         Argument {
             resulting_type: "DINT",
             position: 1,
+            depth: 0,
+            pou: "QUUX",
         },
     )
     "#);
@@ -6117,6 +6123,8 @@ fn explicit_output_assignment_arguments_are_annotated() {
         Argument {
             resulting_type: "BOOL",
             position: 3,
+            depth: 0,
+            pou: "QUUX",
         },
     )
     "#);
@@ -6174,23 +6182,27 @@ fn program_call_declared_as_variable_is_annotated() {
     )
     "###);
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r#"
     Some(
         Argument {
             resulting_type: "DINT",
             position: 1,
+            depth: 0,
+            pou: "ridiculous_chaining",
         },
     )
-    "###);
+    "#);
 
-    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r###"
+    insta::assert_debug_snapshot!(annotations.get_hint(&expressions[1]), @r#"
     Some(
         Argument {
             resulting_type: "DINT",
             position: 2,
+            depth: 0,
+            pou: "ridiculous_chaining",
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -6472,4 +6484,259 @@ fn this_in_conditionals() {
     };
     assert_eq!(resulting_type, "FB_Test.__THIS");
     assert!(index.find_type("fb_test.__THIS").is_some());
+}
+
+#[test]
+fn named_arguments_are_annotated_with_location_and_depth() {
+    let id_provider = IdProvider::default();
+    let (unit, mut index) = index_with_ids(
+        "
+        FUNCTION_BLOCK FbA
+            VAR
+                fillerA: DINT;
+            END_VAR
+
+            VAR_INPUT
+                inA: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outA: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutA: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+            VAR_INPUT
+                inB: DINT;
+            END_VAR
+
+            VAR
+                fillerB: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outB: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutB: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbC EXTENDS FbB
+            VAR_INPUT
+                inC: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outC: DINT;
+            END_VAR
+
+            VAR
+                fillerC: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutC: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbD EXTENDS FbC
+            VAR_INPUT
+                inD: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outD: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutD: DINT;
+            END_VAR
+
+            VAR
+                fillerD: DINT;
+            END_VAR
+        END_FUNCTION_BLOCK
+
+        FUNCTION main
+            VAR
+                instanceD: FbD;
+                localOutVar: DINT;
+                localInOutVar: DINT;
+            END_VAR
+
+            instanceD(
+                inA := 1,
+                outA => localOutVar,
+                inoutA := localInOutVar,
+                inB := 2,
+                outB => localOutVar,
+                inoutB := localInOutVar,
+                inC := 3,
+                outC => localOutVar,
+                inoutC := localInOutVar,
+                inD := 4,
+                outD => localOutVar,
+                inoutD := localInOutVar,
+            );
+        END_FUNCTION
+        ",
+        id_provider.clone(),
+    );
+
+    let annotations = annotate_with_ids(&unit, &mut index, id_provider);
+    let main = &unit.implementations.iter().find(|imp| imp.name == "main").unwrap();
+
+    // instanceD(inA := 1, outA => localOutVar, ..., outD => localOutVar, inoutD := localInOutVar);
+    //           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    let AstStatement::CallStatement(CallStatement { parameters, .. }) = main.statements[0].get_stmt() else {
+        unreachable!()
+    };
+
+    let AstStatement::ExpressionList(args) = &parameters.as_ref().unwrap().as_ref().stmt else {
+        unreachable!()
+    };
+
+    let tuple = args.iter().map(|arg| (arg.as_string(), annotations.get_hint(arg))).collect::<Vec<_>>();
+    insta::assert_debug_snapshot!(tuple, @r#"
+    [
+        (
+            "inA := 1",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 1,
+                    depth: 3,
+                    pou: "FbA",
+                },
+            ),
+        ),
+        (
+            "outA => localOutVar",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 2,
+                    depth: 3,
+                    pou: "FbA",
+                },
+            ),
+        ),
+        (
+            "inoutA := localInOutVar",
+            Some(
+                Argument {
+                    resulting_type: "__auto_pointer_to_DINT",
+                    position: 3,
+                    depth: 3,
+                    pou: "FbA",
+                },
+            ),
+        ),
+        (
+            "inB := 2",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 0,
+                    depth: 2,
+                    pou: "FbB",
+                },
+            ),
+        ),
+        (
+            "outB => localOutVar",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 2,
+                    depth: 2,
+                    pou: "FbB",
+                },
+            ),
+        ),
+        (
+            "inoutB := localInOutVar",
+            Some(
+                Argument {
+                    resulting_type: "__auto_pointer_to_DINT",
+                    position: 3,
+                    depth: 2,
+                    pou: "FbB",
+                },
+            ),
+        ),
+        (
+            "inC := 3",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 0,
+                    depth: 1,
+                    pou: "FbC",
+                },
+            ),
+        ),
+        (
+            "outC => localOutVar",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 1,
+                    depth: 1,
+                    pou: "FbC",
+                },
+            ),
+        ),
+        (
+            "inoutC := localInOutVar",
+            Some(
+                Argument {
+                    resulting_type: "__auto_pointer_to_DINT",
+                    position: 3,
+                    depth: 1,
+                    pou: "FbC",
+                },
+            ),
+        ),
+        (
+            "inD := 4",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 0,
+                    depth: 0,
+                    pou: "FbD",
+                },
+            ),
+        ),
+        (
+            "outD => localOutVar",
+            Some(
+                Argument {
+                    resulting_type: "DINT",
+                    position: 1,
+                    depth: 0,
+                    pou: "FbD",
+                },
+            ),
+        ),
+        (
+            "inoutD := localInOutVar",
+            Some(
+                Argument {
+                    resulting_type: "__auto_pointer_to_DINT",
+                    position: 2,
+                    depth: 0,
+                    pou: "FbD",
+                },
+            ),
+        ),
+    ]
+    "#);
 }
