@@ -1126,14 +1126,15 @@ fn validate_assignment<T: AnnotationMap>(
                     );
             }
 
-            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output)) || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
+            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
+                || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
                 && variable_is_not_in_parent_pou_or_container(context, qualified_name, location)
                 && !context.is_call()
             {
                 validator.push_diagnostic(
                     Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
                         .with_error_code("E037")
-                        .with_location(location)
+                        .with_location(location),
                 );
             }
         }
@@ -1206,7 +1207,7 @@ fn validate_assignment<T: AnnotationMap>(
 
 fn variable_is_not_in_parent_pou_or_container<T: AnnotationMap>(
     context: &ValidationContext<T>,
-    qualified_name : &str,
+    qualified_name: &str,
     location: &SourceLocation,
 ) -> bool {
     context
