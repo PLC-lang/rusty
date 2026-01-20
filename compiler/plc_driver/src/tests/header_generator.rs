@@ -66,8 +66,7 @@ fn case_1_global_primitives_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -120,8 +119,7 @@ fn case_2_global_complex_types_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -173,8 +171,7 @@ fn case_3_enum_types_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -239,8 +236,7 @@ fn case_4_structs_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -305,8 +301,7 @@ fn case_5_functions_with_primitive_types_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -425,8 +420,7 @@ fn case_6_functions_with_complex_types_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -480,8 +474,7 @@ fn case_7_function_blocks_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -544,8 +537,7 @@ fn case_8_function_blocks_with_inheritance_generated_header_file_template_data()
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -598,8 +590,7 @@ fn case_9_programs_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -658,8 +649,7 @@ fn case_10_aliases_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -752,8 +742,7 @@ fn case_11_function_pointers_generated_header_file_template_data() {
         file_name: generated_headers[0].get_file_name().to_string(),
     };
 
-    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data)
-        .expect("Failed to serialize item!"));
+    assert_snapshot!(serde_json::to_string_pretty(&prepared_header_data).expect("Failed to serialize item!"));
 }
 
 #[test]
@@ -780,8 +769,9 @@ fn case_11_function_pointers_generated_header_file() {
 /// Will load the snapshot that was generated during the run of the `fn case_1_global_primitives_annotated_content()` test.
 /// At present these tests are located in the [plc_driver](file:/workspaces/rusty/compiler/plc_driver/src/tests/header_generator.rs).
 fn get_all_generated_header_contents(test_name: &str) -> Box<dyn GeneratedHeader> {
-    let prepared_header_data = serde_json::from_str::<PreparedHeaderData>(extract_string_item_from_snapshot(test_name))
-        .expect("Failed to deserialize snapshot content into TemplateData!");
+    let prepared_header_data =
+        serde_json::from_str::<PreparedHeaderData>(extract_string_item_from_snapshot(test_name))
+            .expect("Failed to deserialize snapshot content into TemplateData!");
 
     let mut generated_header =
         get_empty_generated_header_from_options(&get_default_generated_header_options());
