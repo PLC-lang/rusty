@@ -27,6 +27,9 @@ pub trait FileHelper {
     /// Sets the file path that the header file should be written to
     fn set_path(&mut self, path: &str);
 
+    // Returns the file name for the header file
+    fn get_file_name(&self) -> &str;
+
     /// Sets the file name for the header file
     fn set_file_name(&mut self, file_name: &str);
 

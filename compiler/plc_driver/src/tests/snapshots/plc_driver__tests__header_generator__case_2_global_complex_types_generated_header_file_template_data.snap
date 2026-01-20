@@ -1,0 +1,65 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": []
+    },
+    "global_variables": [
+      {
+        "data_type": "char",
+        "name": "gVarString",
+        "variable_type": {
+          "Array": 255
+        }
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarWString",
+        "variable_type": {
+          "Array": 6000
+        }
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarIntArray",
+        "variable_type": {
+          "Array": 12
+        }
+      },
+      {
+        "data_type": "int16_t*",
+        "name": "gVarRefToInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int16_t*",
+        "name": "gVarPointerToInt",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t*",
+        "name": "gVarRefToDate",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "time_t*",
+        "name": "gVarPointerToDate",
+        "variable_type": "Default"
+      },
+      {
+        "data_type": "int16_t",
+        "name": "gVarIntWithRange",
+        "variable_type": "Default"
+      }
+    ],
+    "functions": []
+  },
+  "directory": "",
+  "path": "global_complex_types.h",
+  "file_name": "GLOBAL_COMPLEX_TYPES"
+}

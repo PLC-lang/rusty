@@ -25,6 +25,10 @@ impl FileHelper for GeneratedHeaderForC {
         self.file_information.path = format!("{path}.h");
     }
 
+    fn get_file_name(&self) -> &str {
+        &self.file_information.name
+    }
+
     fn set_file_name(&mut self, file_name: &str) {
         self.file_information.name = format_file_name(file_name);
     }

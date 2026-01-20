@@ -1,0 +1,67 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed to serialize item!\")"
+---
+{
+  "template_data": {
+    "user_defined_types": {
+      "aliases": [],
+      "structs": [],
+      "enums": [
+        {
+          "name": "SimpleEnumType",
+          "variables": [
+            {
+              "data_type": "",
+              "name": "red",
+              "variable_type": {
+                "Declaration": "0"
+              }
+            },
+            {
+              "data_type": "",
+              "name": "green",
+              "variable_type": "Default"
+            },
+            {
+              "data_type": "",
+              "name": "blue",
+              "variable_type": "Default"
+            }
+          ]
+        },
+        {
+          "name": "ComplexEnumType",
+          "variables": [
+            {
+              "data_type": "",
+              "name": "orange",
+              "variable_type": {
+                "Declaration": "10"
+              }
+            },
+            {
+              "data_type": "",
+              "name": "yellow",
+              "variable_type": {
+                "Declaration": "20"
+              }
+            },
+            {
+              "data_type": "",
+              "name": "purple",
+              "variable_type": {
+                "Declaration": "30"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "global_variables": [],
+    "functions": []
+  },
+  "directory": "",
+  "path": "enum_types.h",
+  "file_name": "ENUM_TYPES"
+}

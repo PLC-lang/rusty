@@ -3,9 +3,6 @@ use std::path::PathBuf;
 
 pub mod header_generator;
 
-#[cfg(test)]
-mod tests;
-
 #[derive(PartialEq, Eq, Debug, Clone, Copy, ArgEnum, Default)]
 pub enum GenerateLanguage {
     #[default]

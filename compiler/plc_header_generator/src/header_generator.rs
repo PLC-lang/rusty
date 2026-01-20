@@ -23,7 +23,7 @@ use crate::{
 pub mod file_helper;
 mod header_generator_c;
 mod symbol_helper;
-mod template_helper;
+pub mod template_helper;
 mod type_helper;
 
 /// A combined trait containing all of the necessary implementations for generating a header
@@ -67,13 +67,28 @@ pub fn get_generated_header(
     generate_header_options: &GenerateHeaderOptions,
     compilation_unit: &CompilationUnit,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
-    let mut generated_header: Box<dyn GeneratedHeader> = match generate_header_options.language {
-        GenerateLanguage::C => {
-            let generated_header = GeneratedHeaderForC::new();
-            Box::new(generated_header)
-        }
-        language => panic!("This language '{:?}' is not yet implemented!", language),
-    };
+    // Prepare the template data
+    let mut generated_header =
+        prepare_template_data_for_header_generation(generate_header_options, compilation_unit)?;
+
+    // Generate the headers
+    generated_header.generate_headers()?;
+
+    Ok(generated_header)
+}
+
+/// Prepares the header data for generation given the options for generation and a compilation unit.
+///
+/// ---
+///
+/// Should the process fail to determine an output directory and path for the header file
+/// a none-generated header will be returned, this is a valid outcome as some compilation units
+/// are not related to a file.
+pub fn prepare_template_data_for_header_generation(
+    generate_header_options: &GenerateHeaderOptions,
+    compilation_unit: &CompilationUnit,
+) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
+    let mut generated_header = get_empty_generated_header_from_options(generate_header_options);
 
     // Determine file and directory
     // If the directories could not be configured with an acceptable outcome, then we exit without performing generation for this compilation unit
@@ -84,9 +99,6 @@ pub fn get_generated_header(
     // Prepare the template data
     generated_header.prepare_template_data(compilation_unit);
 
-    // Generate the headers
-    generated_header.generate_headers()?;
-
     Ok(generated_header)
 }
 
@@ -96,13 +108,7 @@ pub fn combine_generated_headers(
     generated_headers: Vec<Box<dyn GeneratedHeader>>,
     output_file: String,
 ) -> Result<Box<dyn GeneratedHeader>, Diagnostic> {
-    let mut generated_header: Box<dyn GeneratedHeader> = match generate_header_options.language {
-        GenerateLanguage::C => {
-            let generated_header = GeneratedHeaderForC::new();
-            Box::new(generated_header)
-        }
-        language => panic!("This language '{:?}' is not yet implemented!", language),
-    };
+    let mut generated_header = get_empty_generated_header_from_options(generate_header_options);
 
     // We assume the first generated header in the list's location is the location we would like to place the header
     let some_generated_header = generated_headers.iter().find(|p| !p.is_empty());
@@ -142,6 +148,21 @@ pub fn combine_generated_headers(
     generated_header.generate_headers()?;
 
     Ok(generated_header)
+}
+
+/// Generates an appropriate header for the given header options
+pub fn get_empty_generated_header_from_options(
+    generate_header_options: &GenerateHeaderOptions,
+) -> Box<dyn GeneratedHeader> {
+    let generated_header: Box<dyn GeneratedHeader> = match generate_header_options.language {
+        GenerateLanguage::C => {
+            let generated_header = GeneratedHeaderForC::new();
+            Box::new(generated_header)
+        }
+        language => panic!("This language '{:?}' is not yet implemented!", language),
+    };
+
+    generated_header
 }
 
 /// A wrapper for a type name with extended information
