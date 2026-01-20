@@ -617,17 +617,7 @@ fn validate_reference<T: AnnotationMap>(
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
             if argument_type.is_private()
-                && context
-                    .qualifier
-                    .and_then(|qualifier| context.index.find_pou(qualifier))
-                    .map(|pou| (pou.get_name(), pou.get_container()))
-                    .is_some_and(|(pou, container)| {
-                        !(qualified_name.starts_with(pou)
-                                || qualified_name.starts_with(container)
-                                || context.index.is_init_function(pou)
-                                //Hack: Avoid internal check here because of the super call
-                                || location.is_internal())
-                    })
+                && variable_is_not_in_parent_pou_or_container(context, qualified_name, location)
             {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
@@ -1135,6 +1125,17 @@ fn validate_assignment<T: AnnotationMap>(
                     .with_location(location)
                     );
             }
+
+            if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output)) || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
+                && variable_is_not_in_parent_pou_or_container(context, qualified_name, location)
+                && !context.is_call()
+            {
+                validator.push_diagnostic(
+                    Diagnostic::new("VAR_OUTPUT variables cannot be assigned outside of their scope.")
+                        .with_error_code("E037")
+                        .with_location(location)
+                );
+            }
         }
 
         // ...or if whatever we got is not assignable, output an error
@@ -1201,6 +1202,24 @@ fn validate_assignment<T: AnnotationMap>(
             validate_assignment_type_sizes(validator, left_type, right, context)
         }
     }
+}
+
+fn variable_is_not_in_parent_pou_or_container<T: AnnotationMap>(
+    context: &ValidationContext<T>,
+    qualified_name : &str,
+    location: &SourceLocation,
+) -> bool {
+    context
+        .qualifier
+        .and_then(|qualifier| context.index.find_pou(qualifier))
+        .map(|pou| (pou.get_name(), pou.get_container()))
+        .is_some_and(|(pou, container)| {
+            !(qualified_name.starts_with(pou)
+                    || qualified_name.starts_with(container)
+                    || context.index.is_init_function(pou)
+                    //Hack: Avoid internal check here because of the super call
+                    || location.is_internal())
+        })
 }
 
 /// Returns true if an assignment statement exists such that a return value is assigned to a void

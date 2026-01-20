@@ -668,7 +668,7 @@ fn only_constant_builtins_are_allowed_in_initializer() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r"
+    assert_snapshot!(diagnostics, @"
     error[E105]: Pragma {constant} is not allowed in POU declarations
       ┌─ <internal>:7:9
       │  
@@ -1306,4 +1306,34 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
     6 │                 s3 : REFERENCE TO DINT REF= t1; // error
       │                                             ^^ Cannot assign address of temporary variable to a member-variable
     "###)
+}
+
+#[test]
+fn output_variables_must_not_be_assignable_outside_of_their_scope() {
+    let diagnostics = parse_and_validate_buffered(
+        "
+        FUNCTION_BLOCK function_block_0
+        VAR_INPUT
+        END_VAR
+
+        VAR_OUTPUT
+            out1 : BOOL;
+        END_VAR
+
+        VAR
+        END_VAR
+        ;
+        END_FUNCTION_BLOCK
+
+        PROGRAM mainProg
+        VAR
+            fb : function_block_0;
+        END_VAR
+            fb.out1 := 1;
+            fb();
+        END_PROGRAM
+       ",
+    );
+
+    assert_snapshot!(&diagnostics);
 }
