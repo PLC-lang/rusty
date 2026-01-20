@@ -1,16 +1,15 @@
 ---
 source: src/codegen/tests/multifile_codegen_tests.rs
 expression: "codegen_multi(units, crate::DebugLevel::None).join(\"\\n\")"
-snapshot_kind: text
 ---
 ; ModuleID = 'myStruct.st'
 source_filename = "myStruct.st"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%myStruct = type { i32, i16* }
+%myStruct = type { i32, ptr }
 
-@__myStruct__init = unnamed_addr constant %myStruct { i32 20, i16* null }
+@__myStruct__init = unnamed_addr constant %myStruct { i32 20, ptr null }
 
 ; ModuleID = 'prog.st'
 source_filename = "prog.st"
@@ -21,8 +20,8 @@ target triple = "[filtered]"
 
 @prog_instance = global %prog zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
   ret void
 }

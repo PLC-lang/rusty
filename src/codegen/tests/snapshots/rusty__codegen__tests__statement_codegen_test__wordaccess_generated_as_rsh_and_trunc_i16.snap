@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/statement_codegen_test.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,22 +11,22 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %load_x = load i32, i32* %x, align 4
+  %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %load_x = load i32, ptr %x, align 4
   %shift = lshr i32 %load_x, 0
   %1 = trunc i32 %shift to i16
-  store i16 %1, i16* %a, align 2
-  %load_x1 = load i32, i32* %x, align 4
+  store i16 %1, ptr %a, align 2
+  %load_x1 = load i32, ptr %x, align 4
   %shift2 = lshr i32 %load_x1, 16
   %2 = trunc i32 %shift2 to i16
-  store i16 %2, i16* %a, align 2
-  %load_y = load i32, i32* %y, align 4
+  store i16 %2, ptr %a, align 2
+  %load_y = load i32, ptr %y, align 4
   %shift3 = ashr i32 %load_y, 16
   %3 = trunc i32 %shift3 to i16
-  store i16 %3, i16* %a, align 2
+  store i16 %3, ptr %a, align 2
   ret void
 }

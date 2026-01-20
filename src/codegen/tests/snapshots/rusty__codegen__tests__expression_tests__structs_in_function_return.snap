@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/expression_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,11 +11,11 @@ target triple = "[filtered]"
 
 @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer
 
-define void @func(%myStruct* %0, %myStruct* %1) {
+define void @func(ptr %0, ptr %1) {
 entry:
-  %func = alloca %myStruct*, align 8
-  store %myStruct* %0, %myStruct** %func, align 8
-  %xxx = alloca %myStruct*, align 8
-  store %myStruct* %1, %myStruct** %xxx, align 8
+  %func = alloca ptr, align 8
+  store ptr %0, ptr %func, align 8
+  %xxx = alloca ptr, align 8
+  store ptr %1, ptr %xxx, align 8
   ret void
 }

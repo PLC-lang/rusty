@@ -79,20 +79,18 @@ fn assigning_full_arrays() {
     @prg_instance = global %prg { [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9], [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9] }
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %1 = bitcast [10 x i32]* %a to i8*
-      %2 = bitcast [10 x i32]* %b to i8*
-      call void @llvm.memcpy.p0i8.p0i8.i64(i8* align 1 %1, i8* align 1 %2, i64 ptrtoint ([10 x i32]* getelementptr ([10 x i32], [10 x i32]* null, i32 1) to i64), i1 false)
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %a, ptr align 1 %b, i64 ptrtoint (ptr getelementptr ([10 x i32], ptr null, i32 1) to i64), i1 false)
       ret void
     }
 
-    ; Function Attrs: argmemonly nofree nounwind willreturn
-    declare void @llvm.memcpy.p0i8.p0i8.i64(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i64, i1 immarg) #0
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
 
-    attributes #0 = { argmemonly nofree nounwind willreturn }
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
 
@@ -134,14 +132,14 @@ fn accessing_array_elements() {
     @__Data__init = unnamed_addr constant [10 x i32] [i32 0, i32 1, i32 2, i32 3, i32 4, i32 5, i32 6, i32 7, i32 8, i32 9]
     @__prg.b__init = unnamed_addr constant [3 x i32] [i32 3, i32 4, i32 5]
 
-    define void @prg(%prg* %0) {
+    define void @prg(ptr %0) {
     entry:
-      %a = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-      %b = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-      %tmpVar = getelementptr inbounds [10 x i32], [10 x i32]* %a, i32 0, i32 2
-      %tmpVar1 = getelementptr inbounds [3 x i32], [3 x i32]* %b, i32 0, i32 1
-      %load_tmpVar = load i32, i32* %tmpVar1, align 4
-      store i32 %load_tmpVar, i32* %tmpVar, align 4
+      %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+      %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+      %tmpVar = getelementptr inbounds [10 x i32], ptr %a, i32 0, i32 2
+      %tmpVar1 = getelementptr inbounds [3 x i32], ptr %b, i32 0, i32 1
+      %load_tmpVar = load i32, ptr %tmpVar1, align 4
+      store i32 %load_tmpVar, ptr %tmpVar, align 4
       ret void
     }
     "#);

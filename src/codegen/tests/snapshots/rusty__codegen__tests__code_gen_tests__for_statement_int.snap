@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,34 +11,34 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i16 3, i16* %x, align 2
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  store i16 3, ptr %x, align 2
   br i1 true, label %predicate_sle, label %predicate_sge
 
 predicate_sle:                                    ; preds = %increment, %entry
-  %1 = load i16, i16* %x, align 2
+  %1 = load i16, ptr %x, align 2
   %2 = sext i16 %1 to i32
   %condition = icmp sle i32 %2, 10
   br i1 %condition, label %loop, label %continue
 
 predicate_sge:                                    ; preds = %increment, %entry
-  %3 = load i16, i16* %x, align 2
+  %3 = load i16, ptr %x, align 2
   %4 = sext i16 %3 to i32
   %condition1 = icmp sge i32 %4, 10
   br i1 %condition1, label %loop, label %continue
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
-  %load_x = load i16, i16* %x, align 2
+  %load_x = load i16, ptr %x, align 2
   br label %increment
 
 increment:                                        ; preds = %loop
-  %5 = load i16, i16* %x, align 2
+  %5 = load i16, ptr %x, align 2
   %6 = sext i16 %5 to i32
   %next = add i32 1, %6
   %7 = trunc i32 %next to i16
-  store i16 %7, i16* %x, align 2
+  store i16 %7, ptr %x, align 2
   br i1 true, label %predicate_sle, label %predicate_sge
 
 continue:                                         ; preds = %predicate_sge, %predicate_sle

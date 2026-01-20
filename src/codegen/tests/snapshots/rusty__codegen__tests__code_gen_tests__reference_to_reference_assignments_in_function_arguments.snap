@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -9,7 +8,7 @@ target datalayout = "[filtered]"
 target triple = "[filtered]"
 
 %STRUCT_params = type { i8, i8, i8 }
-%prog = type { %STRUCT_params*, %STRUCT_params* }
+%prog = type { ptr, ptr }
 %main = type {}
 
 @global1 = global %STRUCT_params zeroinitializer
@@ -22,20 +21,20 @@ target triple = "[filtered]"
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %input2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
+  %input1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %input2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  store %STRUCT_params* @global1, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
-  store %STRUCT_params* @global2, %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
-  call void @prog(%prog* @prog_instance)
-  store %STRUCT_params* bitcast (i32* @global4 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 8
-  store %STRUCT_params* bitcast ([81 x i8]* @global5 to %STRUCT_params*), %STRUCT_params** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 8
-  call void @prog(%prog* @prog_instance)
+  store ptr @global1, ptr @prog_instance, align 8
+  store ptr @global2, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  call void @prog(ptr @prog_instance)
+  store ptr @global4, ptr @prog_instance, align 8
+  store ptr @global5, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 8
+  call void @prog(ptr @prog_instance)
   ret void
 }

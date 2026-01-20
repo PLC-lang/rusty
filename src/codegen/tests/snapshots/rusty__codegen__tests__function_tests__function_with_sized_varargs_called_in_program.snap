@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/function_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,22 +11,21 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-declare i32 @foo(i32, i32*)
+declare i32 @foo(i32, ptr)
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %load_x = load i32, i32* %x, align 4
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %load_x = load i32, ptr %x, align 4
   %tmpVar = add i32 %load_x, 1
   %1 = alloca [3 x i32], align 4
-  %2 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 0
-  store i32 0, i32* %2, align 4
-  %3 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 1
-  store i32 3, i32* %3, align 4
-  %4 = getelementptr inbounds [3 x i32], [3 x i32]* %1, i32 0, i32 2
-  store i32 %tmpVar, i32* %4, align 4
-  %5 = bitcast [3 x i32]* %1 to i32*
-  %call = call i32 @foo(i32 3, i32* %5)
-  store i32 %call, i32* %x, align 4
+  %2 = getelementptr inbounds [3 x i32], ptr %1, i32 0, i32 0
+  store i32 0, ptr %2, align 4
+  %3 = getelementptr inbounds [3 x i32], ptr %1, i32 0, i32 1
+  store i32 3, ptr %3, align 4
+  %4 = getelementptr inbounds [3 x i32], ptr %1, i32 0, i32 2
+  store i32 %tmpVar, ptr %4, align 4
+  %call = call i32 @foo(i32 3, ptr %1)
+  store i32 %call, ptr %x, align 4
   ret void
 }

@@ -14,19 +14,14 @@ target triple = "[filtered]"
 define i16 @main() !dbg !4 {
 entry:
   %main = alloca i16, align 2
-  call void @llvm.dbg.declare(metadata i16* %main, metadata !9, metadata !DIExpression()), !dbg !11
-  store i16 0, i16* %main, align 2
-  call void @mainProg(%mainProg* @mainProg_instance), !dbg !12
-  %main_ret = load i16, i16* %main, align 2, !dbg !13
+    #dbg_declare(ptr %main, !9, !DIExpression(), !11)
+  store i16 0, ptr %main, align 2
+  call void @mainProg(ptr @mainProg_instance), !dbg !12
+  %main_ret = load i16, ptr %main, align 2, !dbg !13
   ret i16 %main_ret, !dbg !13
 }
 
-declare !dbg !14 void @mainProg(%mainProg*)
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
+declare !dbg !14 void @mainProg(ptr)
 
 !llvm.module.flags = !{!0, !1}
 !llvm.dbg.cu = !{!2}
@@ -60,16 +55,11 @@ target triple = "[filtered]"
 
 @mainProg_instance = global %mainProg zeroinitializer, !dbg !0
 
-define void @mainProg(%mainProg* %0) !dbg !10 {
+define void @mainProg(ptr %0) !dbg !10 {
 entry:
-  call void @llvm.dbg.declare(metadata %mainProg* %0, metadata !13, metadata !DIExpression()), !dbg !14
+    #dbg_declare(ptr %0, !13, !DIExpression(), !14)
   ret void, !dbg !14
 }
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 
 !llvm.module.flags = !{!5, !6}
 !llvm.dbg.cu = !{!7}
@@ -99,19 +89,19 @@ target triple = "[filtered]"
 
 @mainProg_instance = external global %mainProg
 
-define void @__init_mainprog(%mainProg* %0) {
+define void @__init_mainprog(ptr %0) {
 entry:
-  %self = alloca %mainProg*, align 8
-  store %mainProg* %0, %mainProg** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
-declare void @mainProg(%mainProg*)
+declare void @mainProg(ptr)
 
-define void @__user_init_mainProg(%mainProg* %0) {
+define void @__user_init_mainProg(ptr %0) {
 entry:
-  %self = alloca %mainProg*, align 8
-  store %mainProg* %0, %mainProg** %self, align 8
+  %self = alloca ptr, align 8
+  store ptr %0, ptr %self, align 8
   ret void
 }
 
@@ -123,17 +113,17 @@ target triple = "[filtered]"
 %mainProg = type {}
 
 @mainProg_instance = external global %mainProg
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 0, void ()* @__init___TestProject, i8* null }]
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 0, ptr @__init___TestProject, ptr null }]
 
 define void @__init___TestProject() {
 entry:
-  call void @__init_mainprog(%mainProg* @mainProg_instance)
-  call void @__user_init_mainProg(%mainProg* @mainProg_instance)
+  call void @__init_mainprog(ptr @mainProg_instance)
+  call void @__user_init_mainProg(ptr @mainProg_instance)
   ret void
 }
 
-declare void @__init_mainprog(%mainProg*)
+declare void @__init_mainprog(ptr)
 
-declare void @mainProg(%mainProg*)
+declare void @mainProg(ptr)
 
-declare void @__user_init_mainProg(%mainProg*)
+declare void @__user_init_mainProg(ptr)

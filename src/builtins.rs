@@ -29,7 +29,10 @@ use crate::{
         AnnotationMap, StatementAnnotation, TypeAnnotator, VisitorContext,
     },
     typesystem::{self, get_bigger_type, get_literal_actual_signed_type_name, DataTypeInformationProvider},
-    validation::{statement::validate_type_compatibility, Validator, Validators},
+    validation::{
+        statement::{validate_type_compatibility, validate_type_compatibility_with_data_types},
+        Validator, Validators,
+    },
 };
 
 // Defines a set of functions that are always included in a compiled application
@@ -194,7 +197,8 @@ lazy_static! {
                         builder.position_at_end(insert_block);
                         builder.build_switch(k.into_int_value(), continue_block, &cases)?;
                         builder.position_at_end(continue_block);
-                        Ok(ExpressionValue::LValue(result_var))
+                        let pointee = result_type;
+                        Ok(ExpressionValue::LValue(result_var, pointee))
                     } else {
                         Err(Diagnostic::codegen_error("Invalid signature for MUX", location).into())
                     }
@@ -238,8 +242,15 @@ lazy_static! {
                         // generate an llvm select instruction
                         let sel = generator.llvm.builder.build_select(cond, in1, in0, "")?;
 
-                        if sel.is_pointer_value(){
-                            Ok(ExpressionValue::LValue(sel.into_pointer_value()))
+                        if sel.is_pointer_value() {
+                            // The `select` instruction requires the to be selected values to be of the same
+                            // type, hence for the pointee we can choose either one
+                            let pointee = {
+                                let datatype = generator.annotations.get_type(actual_in0, generator.index).unwrap();
+                                generator.llvm_index.get_associated_type(datatype.get_name()).unwrap()
+                            };
+
+                            Ok(ExpressionValue::LValue(sel.into_pointer_value(), pointee))
                         } else {
                             Ok(ExpressionValue::RValue(sel))
                         }
@@ -604,6 +615,60 @@ lazy_static! {
                 }
             }
         ),
+        (
+            "SHL",
+            BuiltIn {
+                decl: "
+                FUNCTION SHL<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                    validate_types_are_compatible_with_int(validator, &parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+
+                    let shl = generator.llvm.builder.build_left_shift(left, right, "")?;
+
+                    Ok(ExpressionValue::RValue(shl.as_basic_value_enum()))
+                }
+            },
+        ),
+        (
+            "SHR",
+            BuiltIn {
+                decl: "
+                FUNCTION SHR<T: ANY> : T
+                VAR_INPUT
+                    IN : T;
+                    n : UDINT;
+                END_VAR
+                END_FUNCTION
+            ",
+                annotation: None,
+                validation: Some(|validator, operator, parameters, annotations, index| {
+                    validate_argument_count(validator, operator, &parameters, 2);
+                    validate_types_are_compatible_with_int(validator, &parameters, annotations, index);
+                }),
+                generic_name_resolver: no_generic_name_resolver,
+                code: |generator, params, _| {
+                    let left = generator.generate_expression(params[0])?.into_int_value();
+                    let right = generator.generate_expression_with_cast_to_type_of_secondary_expression(params[1], params[0])?.into_int_value();
+
+                    let shr = generator.llvm.builder.build_right_shift(left, right, left.get_type().is_sized(), "")?;
+
+                    Ok(ExpressionValue::RValue(shr.as_basic_value_enum()))
+                }
+            },
+        ),
     ]);
 }
 
@@ -623,6 +688,21 @@ fn validate_types(
         if let Some(right) = types.peek() {
             validate_type_compatibility(validator, annotations, index, left, right);
         }
+    }
+}
+
+fn validate_types_are_compatible_with_int(
+    validator: &mut Validator,
+    parameters: &Option<&AstNode>,
+    annotations: &dyn AnnotationMap,
+    index: &Index,
+) {
+    let Some(params) = parameters else { return };
+
+    let builtin_int = index.get_type(typesystem::INT_TYPE).unwrap();
+    for left in flatten_expression_list(params).iter().map(|it| extract_actual_parameter(it)) {
+        let ty_left = annotations.get_type_or_void(left, index);
+        validate_type_compatibility_with_data_types(validator, ty_left, builtin_int, &left.location);
     }
 }
 
@@ -672,7 +752,7 @@ fn annotate_comparison_function(
             .has_nature(TypeNature::Elementary, annotator.index)
     }) {
         // we are trying to call this function with a non-elementary type, so we redirect back to the resolver
-        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
 
@@ -741,7 +821,7 @@ fn annotate_arithmetic_function(
             .has_nature(TypeNature::Num, annotator.index)
     }) {
         // we are trying to call this function with a non-numerical type, so we redirect back to the resolver
-        annotator.annotate_call_statement(operator, Some(parameters), &ctx);
+        annotator.annotate_arguments(operator, parameters, &ctx);
         return;
     }
 
@@ -922,8 +1002,9 @@ fn generate_variable_length_array_bound_function<'ink>(
             ));
         };
 
+        let pointee = generator.llvm_index.get_associated_type(data_type_information.get_name())?;
         let vla = generator.generate_lvalue(actual_vla).unwrap();
-        let dim = builder.build_struct_gep(vla, 1, "dim").unwrap();
+        let dim = builder.build_struct_gep(pointee, vla, 1, "dim").unwrap();
 
         let accessor = match actual_dim.get_stmt() {
             // e.g. LOWER_BOUND(arr, 1)
@@ -965,9 +1046,11 @@ fn generate_variable_length_array_bound_function<'ink>(
                 }
             }
         };
-        let gep_bound =
-            unsafe { llvm.builder.build_in_bounds_gep(dim, &[llvm.i32_type().const_zero(), accessor], "") }?;
-        let bound = llvm.builder.build_load(gep_bound, "")?;
+        let pointee = pointee.into_struct_type().get_field_type_at_index(1).unwrap();
+        let gep_bound = unsafe {
+            llvm.builder.build_in_bounds_gep(pointee, dim, &[llvm.i32_type().const_zero(), accessor], "")
+        }?;
+        let bound = llvm.builder.build_load(llvm.i32_type(), gep_bound, "")?;
 
         Ok(ExpressionValue::RValue(bound))
     } else {

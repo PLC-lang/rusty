@@ -1502,6 +1502,16 @@ impl AstNode {
     pub fn is_real(&self) -> bool {
         matches!(self.stmt, AstStatement::Literal(AstLiteral::Real(_), ..))
     }
+
+    /// Returns the identifier of the left-hand side if this is an assignment statement
+    pub fn get_assignment_identifier(&self) -> Option<&str> {
+        match &self.stmt {
+            AstStatement::Assignment(Assignment { left, .. })
+            | AstStatement::OutputAssignment(Assignment { left, .. })
+            | AstStatement::RefAssignment(Assignment { left, .. }) => left.get_flat_reference_name(),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]

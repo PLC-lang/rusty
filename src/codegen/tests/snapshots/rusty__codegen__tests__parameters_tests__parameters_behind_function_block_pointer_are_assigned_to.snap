@@ -7,29 +7,29 @@ source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%main = type { %file_t, %file_t* }
+%main = type { %file_t, ptr }
 %file_t = type { i8, i8 }
 
 @main_instance = global %main zeroinitializer
 @__file_t__init = unnamed_addr constant %file_t zeroinitializer
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %file = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %FileOpen = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  store %file_t* %file, %file_t** %FileOpen, align 8
-  %deref = load %file_t*, %file_t** %FileOpen, align 8
-  %1 = getelementptr inbounds %file_t, %file_t* %deref, i32 0, i32 1
-  store i8 1, i8* %1, align 1
-  call void @file_t(%file_t* %deref)
+  %file = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %FileOpen = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  store ptr %file, ptr %FileOpen, align 8
+  %deref = load ptr, ptr %FileOpen, align 8
+  %1 = getelementptr inbounds %file_t, ptr %deref, i32 0, i32 1
+  store i8 1, ptr %1, align 1
+  call void @file_t(ptr %deref)
   ret void
 }
 
-define void @file_t(%file_t* %0) {
+define void @file_t(ptr %0) {
 entry:
-  %this = alloca %file_t*, align 8
-  store %file_t* %0, %file_t** %this, align 8
-  %var1 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %file_t, %file_t* %0, i32 0, i32 1
+  %this = alloca ptr, align 8
+  store ptr %0, ptr %this, align 8
+  %var1 = getelementptr inbounds nuw %file_t, ptr %0, i32 0, i32 0
+  %var2 = getelementptr inbounds nuw %file_t, ptr %0, i32 0, i32 1
   ret void
 }

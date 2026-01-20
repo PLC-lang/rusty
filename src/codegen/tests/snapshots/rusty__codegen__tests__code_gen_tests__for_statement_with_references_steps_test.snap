@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -12,39 +11,39 @@ target triple = "[filtered]"
 
 @prg_instance = global %prg zeroinitializer
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %step = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  %x = getelementptr inbounds %prg, %prg* %0, i32 0, i32 1
-  %y = getelementptr inbounds %prg, %prg* %0, i32 0, i32 2
-  %z = getelementptr inbounds %prg, %prg* %0, i32 0, i32 3
-  %load_y = load i32, i32* %y, align 4
-  store i32 %load_y, i32* %x, align 4
-  %load_step = load i32, i32* %step, align 4
+  %step = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
+  %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
+  %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
+  %load_y = load i32, ptr %y, align 4
+  store i32 %load_y, ptr %x, align 4
+  %load_step = load i32, ptr %step, align 4
   %is_incrementing = icmp sgt i32 %load_step, 0
   br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
 predicate_sle:                                    ; preds = %increment, %entry
-  %1 = load i32, i32* %z, align 4
-  %2 = load i32, i32* %x, align 4
+  %1 = load i32, ptr %z, align 4
+  %2 = load i32, ptr %x, align 4
   %condition = icmp sle i32 %2, %1
   br i1 %condition, label %loop, label %continue
 
 predicate_sge:                                    ; preds = %increment, %entry
-  %3 = load i32, i32* %z, align 4
-  %4 = load i32, i32* %x, align 4
+  %3 = load i32, ptr %z, align 4
+  %4 = load i32, ptr %x, align 4
   %condition1 = icmp sge i32 %4, %3
   br i1 %condition1, label %loop, label %continue
 
 loop:                                             ; preds = %predicate_sge, %predicate_sle
-  %load_x = load i32, i32* %x, align 4
+  %load_x = load i32, ptr %x, align 4
   br label %increment
 
 increment:                                        ; preds = %loop
-  %5 = load i32, i32* %x, align 4
-  %load_step2 = load i32, i32* %step, align 4
+  %5 = load i32, ptr %x, align 4
+  %load_step2 = load i32, ptr %step, align 4
   %next = add i32 %load_step2, %5
-  store i32 %next, i32* %x, align 4
+  store i32 %next, ptr %x, align 4
   br i1 %is_incrementing, label %predicate_sle, label %predicate_sge
 
 continue:                                         ; preds = %predicate_sge, %predicate_sle

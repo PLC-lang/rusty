@@ -1,38 +1,37 @@
 ---
 source: src/codegen/tests/parameters_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%prog = type { i32, i32, i32* }
+%prog = type { i32, i32, ptr }
 %main = type { i32, i32, i32 }
 
 @prog_instance = global %prog zeroinitializer
 @main_instance = global %main zeroinitializer
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %input1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %output1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-  %inout1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 2
+  %input1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %output1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+  %inout1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 2
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %var1 = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %var2 = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  %var3 = getelementptr inbounds %main, %main* %0, i32 0, i32 2
-  %load_var1 = load i32, i32* %var1, align 4
-  store i32 %load_var1, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0), align 4
+  %var1 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %var2 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  %var3 = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 2
+  %load_var1 = load i32, ptr %var1, align 4
+  store i32 %load_var1, ptr @prog_instance, align 4
   %empty_varinout = alloca i32, align 4
-  store i32* %empty_varinout, i32** getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 2), align 8
-  call void @prog(%prog* @prog_instance)
-  %1 = load i32, i32* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1), align 4
-  store i32 %1, i32* %var2, align 4
+  store ptr %empty_varinout, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 2), align 8
+  call void @prog(ptr @prog_instance)
+  %1 = load i32, ptr getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), align 4
+  store i32 %1, ptr %var2, align 4
   ret void
 }

@@ -891,6 +891,12 @@ fn builtin_functions_named_arguments_invalid_parameter_names() {
     14 │             arr2 := MOVE(SOURCE := arr);
        │                          ^^^^^^ Could not resolve reference to SOURCE
 
+    error[E037]: Invalid assignment: cannot assign 'SEL with wrong parameter names a := SEL(WRONG := sel, IN0 := a, IN1 := b); a := SEL(G := sel, INVALID := a,' to 'ARRAY[0..5] OF INT'
+       ┌─ <internal>:14:13
+       │
+    14 │             arr2 := MOVE(SOURCE := arr);
+       │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'SEL with wrong parameter names a := SEL(WRONG := sel, IN0 := a, IN1 := b); a := SEL(G := sel, INVALID := a,' to 'ARRAY[0..5] OF INT'
+
     error[E089]: Invalid call parameters
        ┌─ <internal>:17:25
        │

@@ -436,7 +436,7 @@ fn var_output_assignment() {
                 var1 : DINT;
                 var2 : DINT;
             END_VAR
-            foo(7, 8, output1 => var1, output2 => var2);
+            foo(input1 := 7, input2 := 8, output1 => var1, output2 => var2);
         END_PROGRAM
     "#;
 

@@ -1,44 +1,43 @@
 ---
 source: src/codegen/tests/code_gen_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
 target datalayout = "[filtered]"
 target triple = "[filtered]"
 
-%foo2 = type { i32*, i32 }
-%foo = type { i32* }
+%foo2 = type { ptr, i32 }
+%foo = type { ptr }
 %prg = type { i32 }
 
 @foo2_instance = global %foo2 zeroinitializer
 @foo_instance = global %foo zeroinitializer
 @prg_instance = global %prg zeroinitializer
 
-define void @foo2(%foo2* %0) {
+define void @foo2(ptr %0) {
 entry:
-  %inout = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 0
-  %in = getelementptr inbounds %foo2, %foo2* %0, i32 0, i32 1
+  %inout = getelementptr inbounds nuw %foo2, ptr %0, i32 0, i32 0
+  %in = getelementptr inbounds nuw %foo2, ptr %0, i32 0, i32 1
   ret void
 }
 
-define void @foo(%foo* %0) {
+define void @foo(ptr %0) {
 entry:
-  %inout = getelementptr inbounds %foo, %foo* %0, i32 0, i32 0
-  %deref = load i32*, i32** %inout, align 8
-  store i32* %deref, i32** getelementptr inbounds (%foo2, %foo2* @foo2_instance, i32 0, i32 0), align 8
-  %deref1 = load i32*, i32** %inout, align 8
-  %load_inout = load i32, i32* %deref1, align 4
-  store i32 %load_inout, i32* getelementptr inbounds (%foo2, %foo2* @foo2_instance, i32 0, i32 1), align 4
-  call void @foo2(%foo2* @foo2_instance)
+  %inout = getelementptr inbounds nuw %foo, ptr %0, i32 0, i32 0
+  %deref = load ptr, ptr %inout, align 8
+  store ptr %deref, ptr @foo2_instance, align 8
+  %deref1 = load ptr, ptr %inout, align 8
+  %load_inout = load i32, ptr %deref1, align 4
+  store i32 %load_inout, ptr getelementptr inbounds (%foo2, ptr @foo2_instance, i32 0, i32 1), align 4
+  call void @foo2(ptr @foo2_instance)
   ret void
 }
 
-define void @prg(%prg* %0) {
+define void @prg(ptr %0) {
 entry:
-  %baz = getelementptr inbounds %prg, %prg* %0, i32 0, i32 0
-  store i32* %baz, i32** getelementptr inbounds (%foo, %foo* @foo_instance, i32 0, i32 0), align 8
-  call void @foo(%foo* @foo_instance)
+  %baz = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
+  store ptr %baz, ptr @foo_instance, align 8
+  call void @foo(ptr @foo_instance)
   ret void
 }

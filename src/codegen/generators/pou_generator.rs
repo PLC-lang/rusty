@@ -10,7 +10,6 @@ use super::{
 use crate::{
     codegen::{
         debug::{Debug, DebugBuilderEnum},
-        generators::llvm::FundamentalElementType,
         llvm_index::LlvmTypedIndex,
         CodegenError,
     },
@@ -32,14 +31,11 @@ use index::VariableType;
 
 use inkwell::{
     module::{Linkage, Module},
-    types::{BasicMetadataTypeEnum, BasicTypeEnum, FunctionType},
+    types::{BasicMetadataTypeEnum, BasicType, BasicTypeEnum, FunctionType},
     values::{BasicValue, BasicValueEnum, FunctionValue},
     AddressSpace,
 };
-use inkwell::{
-    types::{BasicType, StructType},
-    values::PointerValue,
-};
+use inkwell::{types::StructType, values::PointerValue};
 use plc_ast::ast::{AstNode, Implementation, PouType};
 use plc_diagnostics::diagnostics::{Diagnostic, INTERNAL_LLVM_ERROR};
 use plc_source::source_location::SourceLocation;
@@ -166,7 +162,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, CodegenError> {
         let ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 
-        let params = self.index.get_declared_parameters(implementation.get_call_name());
+        let params = self.index.get_available_parameters(implementation.get_call_name());
 
         let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, CodegenError> {
             let ty = section_names::mangle_type(
@@ -204,7 +200,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &mut DebugBuilderEnum<'ink>,
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
-        let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
+        let declared_parameters = self.index.get_available_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
         // if we are handling a method, take the first parameter as the instance
         let instance = if implementation.is_method() { Some(parameters.remove(0)) } else { None };
@@ -215,24 +211,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let param = declared_parameters.get(i);
                 let dti = param.map(|it| self.index.get_type_information_or_void(it.get_type_name()));
                 match param {
-                    Some(v)
-                        if v.is_in_parameter_by_ref() &&
-                        // parameters by ref will always be a pointer
-                        p.into_pointer_type().get_element_type().is_array_type() =>
-                    {
-                        // for by-ref array types we will generate a pointer to the fundamental element type
-                        // not a pointer to array
-                        let fundamental_element_type = p
-                            .into_pointer_type()
-                            .get_element_type()
-                            .into_array_type()
-                            .into_fundamental_type();
-
-                        let ty = fundamental_element_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
-
-                        // set the new type for further codegen
+                    Some(v) if v.is_in_parameter_by_ref() => {
+                        let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
                         let _ = new_llvm_index.associate_type(v.get_type_name(), ty.into());
-
                         ty.into()
                     }
                     _ => {
@@ -243,15 +224,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                             // for aggregate function parameters we will generate a pointer instead of the value type.
                             // it will then later be memcopied into a locally allocated variable
                             match it {
-                                DataTypeInformation::Struct { .. } => p
-                                    .into_struct_type()
+                                DataTypeInformation::Struct { .. } => self
+                                    .llvm
+                                    .context
                                     .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                     .into(),
                                 DataTypeInformation::Array { .. } | DataTypeInformation::String { .. } => {
-                                    // For arrays, get the fundamental element type
-                                    let fundamental_element_type =
-                                        p.into_array_type().into_fundamental_type();
-                                    fundamental_element_type
+                                    self.llvm
+                                        .context
                                         .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
                                         .into()
                                 }
@@ -345,7 +325,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 // Function pointer
                 curr_f.as_global_value().as_basic_value_enum().get_type(),
                 //Data
-                self.llvm.context.i8_type().ptr_type(AddressSpace::default()).as_basic_type_enum(),
+                self.llvm.context.ptr_type(AddressSpace::default()).as_basic_type_enum(),
             ],
             false,
         );
@@ -354,7 +334,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         let str_value = ctor_str.const_named_struct(&[
             self.llvm.context.i32_type().const_zero().as_basic_value_enum(),
             curr_f.as_global_value().as_basic_value_enum(),
-            self.llvm.context.i8_type().ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
+            self.llvm.context.ptr_type(AddressSpace::default()).const_zero().as_basic_value_enum(),
         ]);
         //Create an array with the global constructor as an entry
         let arr = ctor_str.const_array(&[str_value]);
@@ -377,14 +357,14 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     ) -> Result<Vec<BasicMetadataTypeEnum<'ink>>, CodegenError> {
         if !implementation.implementation_type.is_function_method_or_init() {
             let mut parameters = vec![];
-            let instance_struct_type: StructType = self
+            let _instance_struct_type: StructType = self
                 .llvm_index
                 .get_associated_pou_type(implementation.get_type_name())
                 .map(|it| it.into_struct_type())?;
-            parameters.push(instance_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
+            parameters.push(self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             Ok(parameters)
         } else {
-            let declared_params = self.index.get_declared_parameters(implementation.get_call_name());
+            let declared_params = self.index.get_available_parameters(implementation.get_call_name());
             //find the function's parameters
             let mut parameters = declared_params
                 .iter()
@@ -394,12 +374,10 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             if implementation.get_implementation_type() == &ImplementationType::Method {
                 let class_name =
                     implementation.get_associated_class_name().expect("Method needs to have a class-name");
-                let instance_members_struct_type: StructType =
+                let _instance_members_struct_type: StructType =
                     self.llvm_index.get_associated_type(class_name).map(|it| it.into_struct_type())?;
-                parameters.insert(
-                    0,
-                    instance_members_struct_type.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into(),
-                );
+                parameters
+                    .insert(0, self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             }
 
             Ok(parameters)
@@ -619,13 +597,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     && type_info.is_aggregate()
                 {
                     // a by-value aggregate type => we need to memcpy the data into the local variable
-                    let ty = if ty.is_array_type() {
-                        ty.into_array_type()
-                            .get_element_type()
-                            .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                    } else {
-                        ty.into_struct_type().ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                    };
+                    let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC));
                     let bitcast = self.llvm.builder.build_bit_cast(ptr, ty, "bitcast")?.into_pointer_value();
                     let (size, alignment) = if let DataTypeInformation::String { size, encoding } = type_info
                     {
@@ -728,10 +700,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                 let temp_type = index.get_associated_type(m.get_type_name())?;
                 (parameter_name, self.llvm.create_local_variable(parameter_name, &temp_type)?)
             } else {
+                let pointee = self.llvm_index.get_associated_pou_type(type_name).unwrap();
                 let ptr = self
                     .llvm
                     .builder
-                    .build_struct_gep(param_pointer, var_count as u32, parameter_name)
+                    .build_struct_gep(pointee, param_pointer, var_count as u32, parameter_name)
                     .expect(INTERNAL_LLVM_ERROR);
 
                 var_count += 1;
@@ -788,10 +761,9 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
                     .is_some_and(|it| it.is_reference_to() || it.is_alias())
                 {
                     // aliases and reference to variables have special handling for initialization. initialize with a nullpointer
-                    self.llvm.builder.build_store(
-                        left,
-                        left.get_type().get_element_type().into_pointer_type().const_null(),
-                    )?;
+                    let pointee =
+                        self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).const_null();
+                    self.llvm.builder.build_store(left, pointee)?;
                     continue;
                 };
                 let right_stmt =
@@ -838,28 +810,17 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             //Create a size parameter of type i32 (DINT)
             let size = self.llvm_index.find_associated_type(DINT_TYPE).map(Into::into)?;
 
-            let ty = self
-                .llvm_index
-                .find_associated_type(type_name)
-                .map(|it| {
-                    if it.is_array_type() && var.get_declaration_type().is_by_ref() {
-                        // the declaration for array types passed by ref are generatad as pointer to element type
-                        // we need to match the declaration
-                        it.into_array_type().get_element_type()
-                    } else {
-                        it
-                    }
-                })
-                .map(|it| {
-                    if var.get_declaration_type().is_by_ref() {
-                        // variadic by ref will result in a double pointer
-                        it.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).as_basic_type_enum()
-                    } else {
-                        it
-                    }
-                })?
-                .ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC))
-                .into();
+            let _ = self.llvm_index.find_associated_type(type_name).map(|it| {
+                if it.is_array_type() && var.get_declaration_type().is_by_ref() {
+                    // the declaration for array types passed by ref are generatad as pointer to element type
+                    // we need to match the declaration
+                    it.into_array_type().get_element_type()
+                } else {
+                    it
+                }
+            })?;
+
+            let ty = self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into();
 
             Some([size, ty])
         } else {

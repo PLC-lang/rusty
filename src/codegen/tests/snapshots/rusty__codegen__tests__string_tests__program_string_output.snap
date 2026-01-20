@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/string_tests.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"
@@ -16,30 +15,26 @@ target triple = "[filtered]"
 @utf08_literal_0 = private unnamed_addr constant [7 x i8] c"string\00"
 @utf16_literal_0 = private unnamed_addr constant [8 x i16] [i16 119, i16 115, i16 116, i16 114, i16 105, i16 110, i16 103, i16 0]
 
-define void @prog(%prog* %0) {
+define void @prog(ptr %0) {
 entry:
-  %output1 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 0
-  %output2 = getelementptr inbounds %prog, %prog* %0, i32 0, i32 1
-  %1 = bitcast [81 x i8]* %output1 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds ([7 x i8], [7 x i8]* @utf08_literal_0, i32 0, i32 0), i32 7, i1 false)
-  %2 = bitcast [81 x i16]* %output2 to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %2, i8* align 2 bitcast ([8 x i16]* @utf16_literal_0 to i8*), i32 16, i1 false)
+  %output1 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 0
+  %output2 = getelementptr inbounds nuw %prog, ptr %0, i32 0, i32 1
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %output1, ptr align 1 @utf08_literal_0, i32 7, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %output2, ptr align 2 @utf16_literal_0, i32 16, i1 false)
   ret void
 }
 
-define void @main(%main* %0) {
+define void @main(ptr %0) {
 entry:
-  %x = getelementptr inbounds %main, %main* %0, i32 0, i32 0
-  %y = getelementptr inbounds %main, %main* %0, i32 0, i32 1
-  call void @prog(%prog* @prog_instance)
-  %1 = bitcast [7 x i8]* %x to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 1 %1, i8* align 1 getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 0, i32 0), i32 6, i1 false)
-  %2 = bitcast [8 x i16]* %y to i8*
-  call void @llvm.memcpy.p0i8.p0i8.i32(i8* align 2 %2, i8* align 2 bitcast ([81 x i16]* getelementptr inbounds (%prog, %prog* @prog_instance, i32 0, i32 1) to i8*), i32 14, i1 false)
+  %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
+  %y = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
+  call void @prog(ptr @prog_instance)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %x, ptr align 1 @prog_instance, i32 6, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %y, ptr align 2 getelementptr inbounds (%prog, ptr @prog_instance, i32 0, i32 1), i32 14, i1 false)
   ret void
 }
 
-; Function Attrs: argmemonly nofree nounwind willreturn
-declare void @llvm.memcpy.p0i8.p0i8.i32(i8* noalias nocapture writeonly, i8* noalias nocapture readonly, i32, i1 immarg) #0
+; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+declare void @llvm.memcpy.p0.p0.i32(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i32, i1 immarg) #0
 
-attributes #0 = { argmemonly nofree nounwind willreturn }
+attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
