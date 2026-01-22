@@ -312,78 +312,70 @@ impl<'ink> DebugBuilder<'ink> {
             return Ok(());
         }
 
-        // Create each type
-        let index_types = members
-            .iter()
-            .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
-            .map(|it| (it.get_name(), it.get_type_name(), &it.source_location, it.is_constant()))
-            .map(|(name, type_name, location, is_constant)| {
-                index.get_type(type_name.as_ref()).map(|dt| (name, dt, location, is_constant))
-            })
-            .collect::<Result<Vec<_>, Diagnostic>>()?;
-
-        let struct_type = types_index.get_associated_type(name).map(|ty| match ty {
+        let struct_type = match types_index.get_associated_type(name)? {
             BasicTypeEnum::StructType(value) => value,
             _ => self.context.opaque_struct_type(name),
-        })?;
+        };
+
+        // Can't compute offsets for opaque structs - register as forward declaration
+        if struct_type.is_opaque() {
+            self.register_concrete_type(name, self.create_forward_declaration(name));
+            return Ok(());
+        }
 
         let file = location
             .get_file_name()
             .map(|it| self.get_or_create_debug_file(it))
             .unwrap_or_else(|| self.compile_unit.get_file());
 
-        let mut types = vec![];
-
         let super_ty_name = index.find_pou(name).and_then(|it| it.get_super_class());
-        for (element_index, (member_name, dt, location, is_constant)) in index_types.iter().enumerate() {
-            let di_type = self.get_or_create_debug_type(dt, index, types_index)?;
-            let di_type = self.apply_const_type_if_needed(di_type.into(), *is_constant);
 
-            // Get the size and alignment from LLVM
-            let llvm_type = types_index.find_associated_type(dt.get_name());
-            let align_bits =
-                llvm_type.map(|ty| self.target_data.get_preferred_alignment(&ty) * 8).unwrap_or(0);
-            let size_bits = llvm_type.map(|ty| self.target_data.get_bit_size(&ty)).unwrap_or(0);
+        // Collect member debug info
+        let member_types: Vec<_> = members
+            .iter()
+            .filter(|it| !(it.is_temp() || it.is_variadic() || it.is_var_external()))
+            .enumerate()
+            .filter_map(|(element_index, member)| {
+                let dt = index.get_type(member.get_type_name().as_ref()).ok()?;
+                let di_type = self.get_or_create_debug_type(dt, index, types_index).ok()?;
+                let di_type = self.apply_const_type_if_needed(di_type.into(), member.is_constant());
 
-            // Get LLVM's calculated offset
-            if struct_type.is_opaque() {
-                dbg!(&struct_type);
-                continue;
-            }
+                let llvm_type = types_index.find_associated_type(dt.get_name());
+                let align_bits =
+                    llvm_type.map(|ty| self.target_data.get_preferred_alignment(&ty) * 8).unwrap_or(0);
+                let size_bits = llvm_type.map(|ty| self.target_data.get_bit_size(&ty)).unwrap_or(0);
+                let offset_bits = self
+                    .target_data
+                    .offset_of_element(&struct_type, element_index as u32)
+                    .map(|offset| offset * 8)
+                    .unwrap_or(0);
 
-            let offset_bits = self
-                .target_data
-                .offset_of_element(&struct_type, element_index as u32)
-                .map(|offset| offset * 8)
-                .unwrap_or(0);
+                let member_name = super_ty_name
+                    .filter(|sname| member.get_name() == format!("__{sname}"))
+                    .map_or(member.get_name(), |_| "SUPER");
 
-            let member_name = super_ty_name
-                .filter(|name| member_name == &format!("__{name}"))
-                .map_or(*member_name, |_| "SUPER");
+                Some(
+                    self.debug_info
+                        .create_member_type(
+                            file.as_debug_info_scope(),
+                            member_name,
+                            file,
+                            member.source_location.get_line_plus_one() as u32,
+                            size_bits,
+                            align_bits,
+                            offset_bits,
+                            DIFlags::PUBLIC,
+                            di_type,
+                        )
+                        .as_type(),
+                )
+            })
+            .collect();
 
-            // Create the member type with LLVM's calculated offset
-            types.push(
-                self.debug_info
-                    .create_member_type(
-                        file.as_debug_info_scope(),
-                        member_name,
-                        file,
-                        location.get_line_plus_one() as u32,
-                        size_bits,
-                        align_bits,
-                        offset_bits,
-                        DIFlags::PUBLIC,
-                        di_type,
-                    )
-                    .as_type(),
-            );
-        }
-
-        // Use LLVM's calculation for the struct size
         let llvm_size = self.target_data.get_bit_size(&struct_type);
         let struct_align_bits = self.target_data.get_preferred_alignment(&struct_type) * 8;
 
-        let struct_type = self.debug_info.create_struct_type(
+        let debug_struct = self.debug_info.create_struct_type(
             file.as_debug_info_scope(),
             name,
             file,
@@ -392,13 +384,13 @@ impl<'ink> DebugBuilder<'ink> {
             struct_align_bits,
             DIFlags::PUBLIC,
             None,
-            types.as_slice(),
+            member_types.as_slice(),
             0,
             None,
             name,
         );
 
-        self.register_concrete_type(name, DebugType::Struct(struct_type));
+        self.register_concrete_type(name, DebugType::Struct(debug_struct));
         Ok(())
     }
 
