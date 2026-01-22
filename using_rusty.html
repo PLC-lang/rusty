@@ -35,7 +35,7 @@
             const path_to_root = "";
             const default_light_theme = "light";
             const default_dark_theme = "navy";
-            window.path_to_searchindex_js = "searchindex-8724bdfe.js";
+            window.path_to_searchindex_js = "searchindex-88936025.js";
         </script>
         <!-- Start loading toc.js asap -->
         <script src="toc-90e98495.js"></script>
@@ -299,6 +299,54 @@ If you’re using the executable without a runtime, you <strong>must</strong> en
     return 0;
 }
 </code></pre>
+<h2 id="native-windows-usage-example"><a class="header" href="#native-windows-usage-example">Native Windows Usage Example</a></h2>
+<ul>
+<li>
+<p>Ensure <a href="https://github.com/PLC-lang/llvm-package-windows/releases/tag/v21.1.7"><code>LLVM 21.1.7</code></a> is installed and it’s <code>bin</code> folder is added to your <code>PATH</code> environment variable.</p>
+</li>
+<li>
+<p>Install <code>plc.zip</code> from the <a href="https://github.com/PLC-lang/rusty/actions/workflows/windows.yml">Windows Build Pipeline</a>.</p>
+<ul>
+<li>Add it’s location to the PATH environment variable. An AppData location is recommended.</li>
+</ul>
+</li>
+<li>
+<p>Install <code>stdlib.lib</code> from the same pipeline into the same folder.</p>
+</li>
+<li>
+<p>Install the <code>Windows SDK</code> and <code>MSVC</code>. You can use the Visual Studio Installer to do this or install them as standalone packages.</p>
+</li>
+<li>
+<p>Create a <code>LIB</code> environment variable containing paths to <code>iec61131std.lib</code>, <code>ws2_32.lib</code>, <code>ntdll.lib</code>, <code>userenv.lib</code>, <code>libcmt.lib</code>, <code>oldnames.lib</code> and <code>libucrt.lib</code>.</p>
+<ul>
+<li>Your environment variable should look something like this:</li>
+</ul>
+<pre><code>C:/Users/&lt;USERNAME HERE&gt;/AppData/Local/rustycompiler;
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;
+C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\ucrt\x64;
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64;
+</code></pre>
+</li>
+<li>
+<p>Restart your terminals to refresh the environment.</p>
+</li>
+<li>
+<p>Create an <code>exports.def</code> file in preparation <code>clang</code> usage.</p>
+</li>
+</ul>
+<pre><code>EXPORTS
+    main
+
+</code></pre>
+<p>This example allows linking with Rusty’s Standard Library.</p>
+<ul>
+<li>
+<p>Proceed with compilation:</p>
+<pre><code>plc ./examples/hello_world.st -c -l iec61131std -l ws2_32 -l ntdll -l userenv -o ./hello_world.o
+clang ./hello_world.o --shared -l iec61131std -l ws2_32 -l ntdll -l userenv -fuse-ld=lld-link "-Wl,/DEF:exports.def" -o ./hello_world.dll
+</code></pre>
+</li>
+</ul>
 
                     </main>
 
