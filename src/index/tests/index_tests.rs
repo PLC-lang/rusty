@@ -2541,3 +2541,67 @@ fn enum_ensure_a_combination_of_variables_can_be_assigned_in_function() {
     assert!(index.find_local_member("fn", "blue").is_some());
     assert_eq!(index.find_local_member("fn", "blue").unwrap().data_type_name, "EnumType");
 }
+
+#[test]
+fn declared_parameters() {
+    let (_, index) = index(
+        r#"
+        FUNCTION_BLOCK FbA
+            VAR
+                localA: DINT;
+            END_VAR
+
+            VAR_INPUT
+                inA: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outA: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutA: DINT;
+            END_VAR
+
+            METHOD methA
+            END_METHOD
+        END_FUNCTION_BLOCK
+
+        FUNCTION_BLOCK FbB EXTENDS FbA
+            VAR
+                localB: DINT;
+            END_VAR
+
+            VAR_INPUT
+                inB: DINT;
+            END_VAR
+
+            VAR_OUTPUT
+                outB: DINT;
+            END_VAR
+
+            VAR_IN_OUT
+                inoutB: DINT;
+            END_VAR
+
+            METHOD methB
+                VAR_INPUT
+                    inB_meth: DINT;
+                END_VAR
+            END_METHOD
+        END_FUNCTION_BLOCK
+    "#,
+    );
+
+    let members = index.get_available_parameters("FbA").iter().map(|var| &var.name).collect::<Vec<_>>();
+    assert_eq!(members, vec!["inA", "outA", "inoutA"]);
+
+    let members = index.get_available_parameters("FbB").iter().map(|var| &var.name).collect::<Vec<_>>();
+    assert_eq!(members, vec!["inA", "outA", "inoutA", "inB", "outB", "inoutB",]);
+
+    let members = index.get_available_parameters("methA").iter().map(|var| &var.name).collect::<Vec<_>>();
+    assert!(members.is_empty());
+
+    let members = index.get_available_parameters("FbB.methB").iter().map(|var| &var.name).collect::<Vec<_>>();
+    assert_eq!(members, vec!["inB_meth"]);
+}

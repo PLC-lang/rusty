@@ -419,3 +419,62 @@ fn self_referential_struct_via_reference_codegen() {
     }
     "#);
 }
+
+#[test]
+fn arrays_and_strings_passed_as_pointers_in_unsized_variadics() {
+    // Test that arrays and strings are passed as pointers to unsized variadic functions
+    // following C ABI conventions (array/string decay to pointers)
+    let src = r#"
+    {external}
+    FUNCTION printf : DINT
+    VAR_INPUT
+        format: STRING;
+        args: ...;
+    END_VAR
+    END_FUNCTION
+
+    PROGRAM main
+    VAR_TEMP
+        myString: STRING := 'hello';
+        myArray: ARRAY[0..2] OF INT := [1, 2, 3];
+    END_VAR
+        // Both STRING and ARRAY should be passed as pointers (i8*)
+        printf('String: %s', myString);
+        printf('Array: %p', myArray);
+    END_PROGRAM
+    "#;
+
+    let result = codegen(src);
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    %main = type {}
+
+    @main_instance = global %main zeroinitializer
+    @__main.myString__init = unnamed_addr constant [81 x i8] c"hello\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00\00"
+    @__main.myArray__init = unnamed_addr constant [3 x i16] [i16 1, i16 2, i16 3]
+    @utf08_literal_0 = private unnamed_addr constant [10 x i8] c"Array: %p\00"
+    @utf08_literal_1 = private unnamed_addr constant [11 x i8] c"String: %s\00"
+
+    declare i32 @printf(ptr, ...)
+
+    define void @main(ptr %0) {
+    entry:
+      %myString = alloca [81 x i8], align 1
+      %myArray = alloca [3 x i16], align 2
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myString, ptr align 1 @__main.myString__init, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %myArray, ptr align 1 @__main.myArray__init, i64 ptrtoint (ptr getelementptr ([3 x i16], ptr null, i32 1) to i64), i1 false)
+      %call = call i32 (ptr, ...) @printf(ptr @utf08_literal_1, ptr %myString)
+      %call1 = call i32 (ptr, ...) @printf(ptr @utf08_literal_0, ptr %myArray)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}

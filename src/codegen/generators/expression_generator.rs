@@ -66,13 +66,28 @@ pub struct ExpressionCodeGenerator<'a, 'b> {
 /// context information to generate a parameter
 #[derive(Debug)]
 struct CallParameterAssignment<'a, 'b> {
-    /// the assignmentstatement in the call-argument list (a:=3)
+    /// The named argument node of the function call (e.g. `foo(in := 3)`)
     assignment: &'b AstNode,
-    /// the name of the function we're calling
+
+    /// The name of the POU being called
     function_name: &'b str,
-    /// the position of the argument in the POU's argument's list
-    index: u32,
-    /// a pointer to the struct instance that carries the call's arguments
+
+    /// The position of the parameter in the POUs variable declaration list.
+    ///
+    /// See also [`StatementAnnotation::Argument::position`].
+    position: u32,
+
+    /// The depth between where the parameter is declared versus where it is being called from.
+    ///
+    /// See also [`StatementAnnotation::Argument::depth`].
+    depth: u32,
+
+    /// The name of the POU where the parameter is declared
+    ///
+    /// See also [`StatementAnnotation::Argument::pou`].
+    declaring_pou: &'b str,
+
+    /// The pointer to the struct instance that carries the call's arguments
     parameter_struct: PointerValue<'a>,
 }
 
@@ -602,7 +617,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 ImplementationType::Method => self.generate_function_arguments(
                     self.index.find_pou(qualified_pou_name).unwrap(),
                     &arguments,
-                    self.index.get_declared_parameters(qualified_pou_name),
+                    self.index.get_available_parameters(qualified_pou_name),
                 )?,
 
                 // Function Block body calls have a slightly different calling convention compared to regular
@@ -668,21 +683,25 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         function_name: &str,
         parameters: Vec<&AstNode>,
     ) -> Result<(), CodegenError> {
-        let pou_info = self.index.get_declared_parameters(function_name);
+        let pou_info = self.index.get_available_parameters(function_name);
         let implicit = arguments_are_implicit(&parameters);
 
         for (index, assignment_statement) in parameters.into_iter().enumerate() {
             let is_output = pou_info.get(index).is_some_and(|param| param.get_variable_type().is_output());
 
             if assignment_statement.is_output_assignment() || (implicit && is_output) {
+                let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
+                    self.annotations.get_hint(assignment_statement)
+                else {
+                    unreachable!("must have an annotation")
+                };
+
                 self.assign_output_value(&CallParameterAssignment {
                     assignment: assignment_statement,
                     function_name,
-                    index: self
-                        .annotations
-                        .get_hint(assignment_statement)
-                        .and_then(StatementAnnotation::get_location_in_parent)
-                        .expect("arguments must have a type hint"),
+                    position: *position as u32,
+                    depth: *depth as u32,
+                    declaring_pou: pou,
                     parameter_struct,
                 })?
             }
@@ -693,11 +712,9 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn assign_output_value(&self, param_context: &CallParameterAssignment) -> Result<(), CodegenError> {
         match &param_context.assignment.stmt {
-            AstStatement::OutputAssignment(assignment) => self.generate_explicit_output_assignment(
-                param_context.parameter_struct,
-                param_context.function_name,
-                assignment,
-            ),
+            AstStatement::OutputAssignment(assignment) => {
+                self.generate_explicit_output_assignment(param_context, assignment)
+            }
 
             _ => self.generate_output_assignment(param_context),
         }
@@ -815,8 +832,37 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         Ok(())
     }
 
+    fn build_parameter_struct_gep(
+        &self,
+        pointee: BasicTypeEnum<'ink>,
+        context: &CallParameterAssignment<'ink, 'b>,
+    ) -> PointerValue<'ink> {
+        // Assuming we have an inheritance hierarchy of `A <- B <- C` and a call `objC(inA := 1, ...)`
+        // then in order to access `inA` in `C` we have to generate some IR of form `objC.__B.__A.inA`.
+        // Because the parent structs are always the first member of these function blocks / classes, we
+        // can simply generate a GEP with indices `0` and repeat that `depth` times followed by the
+        // actual position of the parameter. So `objC.__B.__A.inA` becomes `GEP objC, 0, 0, 0, <inA pos>`
+        let mut gep_index = vec![0; (context.depth + 1) as usize];
+        gep_index.push(context.position as u64);
+
+        let i32_type = self.llvm.context.i32_type();
+        let gep_index = gep_index.into_iter().map(|idx| i32_type.const_int(idx, false)).collect::<Vec<_>>();
+
+        unsafe {
+            self.llvm.builder.build_in_bounds_gep(pointee, context.parameter_struct, &gep_index, "").unwrap()
+        }
+    }
+
     fn generate_output_assignment(&self, context: &CallParameterAssignment) -> Result<(), CodegenError> {
-        let &CallParameterAssignment { assignment: expr, function_name, index, parameter_struct } = context;
+        let &CallParameterAssignment {
+            assignment: expr,
+            function_name,
+            position: index,
+            depth: _,
+            declaring_pou,
+            parameter_struct,
+        } = context;
+
         let builder = &self.llvm.builder;
 
         // We don't want to generate any code if the right side of an assignment is empty, e.g. `foo(out =>)`
@@ -824,7 +870,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             return Ok(());
         }
 
-        let parameter = self.index.get_declared_parameter(function_name, index).expect("must exist");
+        let parameter = self.index.get_declared_parameter(declaring_pou, index).expect("must exist");
 
         match expr.get_stmt() {
             AstStatement::ReferenceExpr(_) if expr.has_direct_access() => {
@@ -874,14 +920,13 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 let assigned_output_type =
                     self.annotations.get_type_or_void(expr, self.index).get_type_information();
 
-                let pointee = self.llvm_index.get_associated_pou_type(function_name).unwrap();
-                let output =
-                    builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
-                        Diagnostic::codegen_error(
-                            format!("Cannot build generate parameter: {parameter:#?}"),
-                            &parameter.source_location,
-                        )
-                    })?;
+                let pou_type_name = self
+                    .index
+                    .find_pou(function_name)
+                    .and_then(|pou| pou.get_instance_struct_type_name())
+                    .unwrap_or(function_name);
+                let pointee = self.llvm_index.get_associated_pou_type(pou_type_name).unwrap();
+                let output = self.build_parameter_struct_gep(pointee, context);
 
                 let output_value_type = self.index.get_type_information_or_void(parameter.get_type_name());
 
@@ -907,24 +952,21 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
 
     fn generate_explicit_output_assignment(
         &self,
-        parameter_struct: PointerValue<'ink>,
-        function_name: &str,
+        param_context: &CallParameterAssignment,
         assignment: &Assignment,
     ) -> Result<(), CodegenError> {
+        let parameter_struct = param_context.parameter_struct;
+        let function_name = param_context.function_name;
         let Assignment { left, right } = assignment;
 
-        if let Some(StatementAnnotation::Variable { qualified_name, .. }) = self.annotations.get(left) {
-            let parameter = self
-                .index
-                .find_fully_qualified_variable(qualified_name)
-                .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left.as_ref()))?;
-            let index = parameter.get_location_in_parent();
-
+        if let Some(StatementAnnotation::Variable { .. }) = self.annotations.get(left) {
             self.generate_output_assignment(&CallParameterAssignment {
                 assignment: right,
                 function_name,
-                index,
+                position: param_context.position,
+                depth: param_context.depth,
                 parameter_struct,
+                declaring_pou: param_context.declaring_pou,
             })?
         };
 
@@ -945,7 +987,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         match pou {
             PouIndexEntry::Function { .. } => {
                 // we're calling a function
-                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                let declared_parameters = self.index.get_available_parameters(implementation.get_type_name());
                 self.generate_function_arguments(pou, passed_parameters, declared_parameters)
             }
             PouIndexEntry::Method { .. } => {
@@ -957,7 +999,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                         .map(|class_ptr| class_ptr.into_pointer_value())
                         .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))
                 })?;
-                let declared_parameters = self.index.get_declared_parameters(implementation.get_type_name());
+                let declared_parameters = self.index.get_available_parameters(implementation.get_type_name());
                 let mut parameters =
                     self.generate_function_arguments(pou, passed_parameters, declared_parameters)?;
                 parameters.insert(0, class_ptr.into());
@@ -974,7 +1016,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                     .ok_or_else(|| Diagnostic::cannot_generate_call_statement(operator))?;
 
                 self.generate_stateful_pou_arguments(
-                    &implementation.get_call_name_for_ir(),
+                    implementation.get_type_name(),
                     None,
                     call_ptr,
                     passed_parameters,
@@ -983,7 +1025,7 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             _ => {
                 let call_ptr = self.generate_lvalue(operator)?;
                 self.generate_stateful_pou_arguments(
-                    &implementation.get_call_name_for_ir(),
+                    implementation.get_type_name(),
                     None,
                     call_ptr,
                     passed_parameters,
@@ -1170,12 +1212,19 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             .get_variadic_member(pou.get_name())
             .and_then(|it| it.get_varargs().zip(Some(it.get_declaration_type())))
         {
+            // For unsized variadics, we need to follow C ABI rules
+            let is_unsized = matches!(var_args, VarArgs::Unsized(_));
+
             let generated_params = variadic_params
                 .iter()
                 .map(|param_statement| {
                     self.get_type_hint_for(param_statement).map(|it| it.get_name()).and_then(|type_name| {
-                        // if the variadic is defined in a by_ref block, we need to pass the argument as reference
-                        if argument_type.is_by_ref() {
+                        // Check if we need to pass by reference:
+                        // 1. If the variadic is defined in a by_ref block
+                        // 2. For unsized variadics: arrays and strings decay to pointers per C ABI
+                        let type_info = self.index.get_effective_type_or_void_by_name(type_name);
+                        let is_array_or_string = type_info.is_array() || type_info.is_string();
+                        if argument_type.is_by_ref() || (is_unsized && is_array_or_string) {
                             self.generate_argument_by_ref(
                                 param_statement,
                                 type_name,
@@ -1257,14 +1306,18 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
             })
             .unwrap_or_else(|| vec![parameter_struct.as_basic_value_enum().into()]);
         for argument in arguments.iter() {
+            let Some(StatementAnnotation::Argument { position, depth, pou, .. }) =
+                self.annotations.get_hint(argument)
+            else {
+                panic!()
+            };
+
             let parameter = self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                 assignment: argument,
                 function_name: pou_name,
-                index: self
-                    .annotations
-                    .get_hint(argument)
-                    .and_then(StatementAnnotation::get_location_in_parent)
-                    .expect("arguments must have a type hint"),
+                position: *position as u32,
+                depth: *depth as u32,
+                declaring_pou: pou,
                 parameter_struct,
             })?;
             if let Some(parameter) = parameter {
@@ -1356,11 +1409,10 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
         param_context: &CallParameterAssignment,
     ) -> Result<Option<BasicValueEnum<'ink>>, CodegenError> {
         let builder = &self.llvm.builder;
-        let function_name = param_context.function_name;
-        let index = param_context.index;
-        let parameter_struct = param_context.parameter_struct;
+        let index = param_context.position;
         let expression = param_context.assignment;
-        if let Some(parameter) = self.index.get_declared_parameter(function_name, index) {
+
+        if let Some(parameter) = self.index.get_declared_parameter(param_context.declaring_pou, index) {
             // this happens before the pou call
             // before the call statement we may only consider inputs and inouts
             // after the call we need to copy the output values to the correct assigned variables
@@ -1368,21 +1420,20 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 return Ok(None);
             }
 
+            let pou_type_name = self
+                .index
+                .find_pou(param_context.function_name)
+                .and_then(|pou| pou.get_instance_struct_type_name())
+                .unwrap_or(param_context.function_name);
             let pointee = self
                 .llvm_index
-                .get_associated_pou_type(function_name)
+                .get_associated_pou_type(pou_type_name)
                 .expect("POU type for parameter struct must exist");
-            let pointer_to_param =
-                builder.build_struct_gep(pointee, parameter_struct, index, "").map_err(|_| {
-                    Diagnostic::codegen_error(
-                        format!("Cannot build generate parameter: {expression:#?}"),
-                        expression,
-                    )
-                })?;
+            let pointer_to_param = self.build_parameter_struct_gep(pointee, param_context);
 
             let parameter = self
                 .index
-                .find_parameter(function_name, index)
+                .find_parameter(param_context.declaring_pou, index)
                 .and_then(|var| self.index.find_effective_type_by_name(var.get_type_name()))
                 .map(|var| var.get_type_information())
                 .unwrap_or_else(|| self.index.get_void_type().get_type_information());
@@ -1427,21 +1478,23 @@ impl<'ink, 'b> ExpressionCodeGenerator<'ink, 'b> {
                 .index
                 .find_fully_qualified_variable(qualified_name)
                 .ok_or_else(|| Diagnostic::unresolved_reference(qualified_name, left))?;
-            let index = parameter.get_location_in_parent();
 
             // don't generate param assignments for empty statements, with the exception
             // of VAR_IN_OUT params - they need an address to point to
             let is_auto_deref = self
                 .index
                 .find_effective_type_by_name(parameter.get_type_name())
-                .map(|var| var.get_type_information())
-                .unwrap_or(self.index.get_void_type().get_type_information())
+                .map(DataType::get_type_information)
+                .unwrap_or_else(|| self.index.get_void_type().get_type_information())
                 .is_auto_deref();
+
             if !right.is_empty_statement() || is_auto_deref {
                 self.generate_call_struct_argument_assignment(&CallParameterAssignment {
                     assignment: right,
                     function_name,
-                    index,
+                    position: param_context.position,
+                    depth: param_context.depth,
+                    declaring_pou: param_context.declaring_pou,
                     parameter_struct,
                 })?;
             };

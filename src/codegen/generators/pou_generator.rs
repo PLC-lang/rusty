@@ -162,7 +162,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
     fn mangle_function(&self, implementation: &ImplementationIndexEntry) -> Result<String, CodegenError> {
         let ctx = SectionMangler::function(implementation.get_call_name_for_ir().to_lowercase());
 
-        let params = self.index.get_declared_parameters(implementation.get_call_name());
+        let params = self.index.get_available_parameters(implementation.get_call_name());
 
         let ctx = params.into_iter().try_fold(ctx, |ctx, param| -> Result<SectionMangler, CodegenError> {
             let ty = section_names::mangle_type(
@@ -200,7 +200,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         debug: &mut DebugBuilderEnum<'ink>,
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
-        let declared_parameters = self.index.get_declared_parameters(implementation.get_call_name());
+        let declared_parameters = self.index.get_available_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
         // if we are handling a method, take the first parameter as the instance
         let instance = if implementation.is_method() { Some(parameters.remove(0)) } else { None };
@@ -364,7 +364,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
             parameters.push(self.llvm.context.ptr_type(AddressSpace::from(ADDRESS_SPACE_GENERIC)).into());
             Ok(parameters)
         } else {
-            let declared_params = self.index.get_declared_parameters(implementation.get_call_name());
+            let declared_params = self.index.get_available_parameters(implementation.get_call_name());
             //find the function's parameters
             let mut parameters = declared_params
                 .iter()
