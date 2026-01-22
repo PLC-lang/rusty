@@ -207,6 +207,11 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         new_llvm_index: &mut LlvmTypedIndex<'ink>,
         file_name: &str,
     ) -> Result<FunctionValue<'ink>, CodegenError> {
+        log::trace!(
+            "generating implementation stub for {} in {file_name}. Implementation Type : {:?}",
+            implementation.get_call_name(),
+            implementation.implementation_type
+        );
         let declared_parameters = self.index.get_available_parameters(implementation.get_call_name());
         let mut parameters = self.collect_parameters_for_implementation(implementation)?;
         // if we are handling a method, take the first parameter as the instance
@@ -327,6 +332,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         curr_f: FunctionValue<'ink>,
     ) -> Result<(), CodegenError> {
         //Create a constructor struct
+        log::trace!("Adding global constructor for module {}", module.get_name().to_string_lossy());
         let ctor_str = self.llvm.context.struct_type(
             &[
                 //Priority
@@ -354,6 +360,7 @@ impl<'ink, 'cg> PouGenerator<'ink, 'cg> {
         //Create the global constructors variable or fetch it and append to it if already
         //availabe
         let global_ctors = module.get_global("llvm.global_ctors").unwrap_or_else(|| {
+            log::trace!("Adding a global constructor to module {}", module.get_name().to_string_lossy());
             module.add_global(arr.get_type().as_basic_type_enum(), None, "llvm.global_ctors")
         });
 

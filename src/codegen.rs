@@ -674,8 +674,6 @@ impl CodegenError {
         T: Into<String>,
         U: Into<SourceLocation>,
     {
-        let bt = backtrace::Backtrace::capture();
-        eprintln!("{bt}");
         let msg = msg.into();
         log::debug!("Codegen Error(new): {msg}");
         CodegenError::GenericError(msg, location.into())
@@ -712,7 +710,6 @@ impl Display for CodegenError {
 
 impl From<CodegenError> for Diagnostic {
     fn from(err: CodegenError) -> Self {
-        panic!("{err:?}");
         if let CodegenError::DiagnosticError(diagnostic) = err {
             return diagnostic;
         }

@@ -160,43 +160,18 @@ pub fn create_assignment(
 
 pub fn create_call_statement(
     operator: &str,
-    member_id: &str,
-    base_id: Option<&str>,
+    member: &str,
+    base: Option<&str>,
     mut id_provider: IdProvider,
     location: &SourceLocation,
 ) -> AstNode {
     let op = create_member_reference(operator, id_provider.clone(), None);
     let param = create_member_reference(
-        member_id,
+        member,
         id_provider.clone(),
-        base_id.map(|it| create_member_reference(it, id_provider.clone(), None)),
+        base.map(|it| create_member_reference(it, id_provider.clone(), None)),
     );
     AstFactory::create_call_statement(op, Some(param), id_provider.next_id(), location.clone())
-}
-
-pub fn new_global_constructor(
-    base_name: &str,
-    statements: Vec<AstNode>,
-    mut id_provider: IdProvider,
-) -> (Pou, Implementation) {
-    let ctor_name = format!("__{base_name}_ctor");
-    // Create a VAR_IN_OUT block with self as parameter
-    let pou = new_pou(
-        &ctor_name,
-        id_provider.next_id(),
-        vec![],
-        PouType::ProjectInit,
-        LinkageType::Internal,
-        &SourceLocation::internal(),
-    );
-    let implementation = new_implementation(
-        &ctor_name,
-        statements,
-        PouType::ProjectInit,
-        LinkageType::Internal,
-        SourceLocation::internal(),
-    );
-    (pou, implementation)
 }
 
 pub fn new_constructor(
@@ -235,13 +210,13 @@ pub fn new_unit_constructor(
         id_provider.next_id(),
         vec![],
         PouType::ProjectInit,
-        LinkageType::External,
+        LinkageType::Internal,
         &SourceLocation::internal(),
     );
     let implementation = new_implementation(
         &ctor_name,
         statements,
-        PouType::Init,
+        PouType::ProjectInit,
         LinkageType::Internal,
         SourceLocation::internal(),
     );

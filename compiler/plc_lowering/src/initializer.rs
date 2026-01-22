@@ -20,7 +20,7 @@
 //! - Built-in types and variables are not re-initialized in the global
 //!   constructor.
 
-use std::{any::Any, rc::Rc};
+use std::rc::Rc;
 
 use plc::{
     index::{FxIndexMap, Index},
@@ -114,16 +114,15 @@ impl AstVisitor for Initializer {
         };
         // If the POU is a function block or a class, add an assignment to the vtable
         if pou.is_function_block() || pou.is_class() {
-            let vtable_assignment = create_assignment(
-                "self.__vtable",
+            let rhs = create_call_statement(
+                "ADR",
+                &format!("__vtable_{}_instance", pou.name),
                 None,
-                &create_member_reference(
-                    &format!("ADR(__vtable_{}_instance)", pou.name),
-                    self.id_provider.clone(),
-                    None,
-                ),
                 self.id_provider.clone(),
+                &SourceLocation::internal(),
             );
+            let vtable_assignment =
+                create_assignment("__vtable", Some("self"), &rhs, self.id_provider.clone());
             self.add_to_current_constructor(vec![vtable_assignment]);
         }
         pou.walk(self);
@@ -158,29 +157,21 @@ impl AstVisitor for Initializer {
         };
         if let Some(initializer) = &variable.initializer {
             let mut stmts = vec![];
+            let base = Self::get_base_ident(&variable_block_type, is_stateful);
             // Create a call to the type constructor
             if let Some(constructor) = variable
                 .data_type_declaration
                 .get_referenced_type()
-                .and_then(|it| self.get_constructor_call(it, variable.get_name()))
+                .and_then(|it| self.get_constructor_call(it, base, variable.get_name()))
             {
                 stmts.push(constructor);
             }
+            let assignment =
+                create_assignment(variable.get_name(), base, initializer, self.id_provider.clone());
+            stmts.push(assignment);
             if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
-                // Create an assignment "<variable.name> := <initializer>"
-                let assignment =
-                    create_assignment(variable.get_name(), None, initializer, self.id_provider.clone());
-                stmts.push(assignment);
                 self.add_to_current_stack_constructor(stmts);
             } else {
-                // Create an assignment "self.<variable.name> := <initializer>"
-                let assignment = create_assignment(
-                    variable.get_name(),
-                    if variable_block_type.is_global() { None } else { Some("self") },
-                    initializer,
-                    self.id_provider.clone(),
-                );
-                stmts.push(assignment);
                 self.add_to_current_constructor(stmts);
             }
         }
@@ -343,12 +334,12 @@ impl Initializer {
         }
     }
 
-    fn get_constructor_call(&self, type_name: &str, var_name: &str) -> Option<AstNode> {
+    fn get_constructor_call(&self, type_name: &str, base: Option<&str>, var_name: &str) -> Option<AstNode> {
         if self.constructors.contains_key(type_name) {
             let call = create_call_statement(
-                &format!("__{}_ctor", type_name),
+                &format!("{}_ctor", type_name),
                 var_name,
-                None,
+                base,
                 self.id_provider.clone(),
                 &SourceLocation::internal(),
             );
@@ -380,6 +371,17 @@ impl Initializer {
             }
         }
         None
+    }
+
+    fn get_base_ident(variable_block_type: &VariableBlockType, is_stateful: bool) -> Option<&str> {
+        if variable_block_type.is_temp()
+            || (variable_block_type.is_local() && !is_stateful)
+            || variable_block_type.is_global()
+        {
+            None
+        } else {
+            Some("self")
+        }
     }
 }
 

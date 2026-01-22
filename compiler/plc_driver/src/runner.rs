@@ -48,8 +48,6 @@ pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> Ge
     let project = pipeline.parse().unwrap();
     let project = pipeline.index(project).unwrap();
     let project = pipeline.annotate(project).unwrap();
-    dbg!(&project.units[0].get_unit().pous);
-    dbg!(&project.units[0].get_unit().implementations);
 
     let compile_options = CompileOptions {
         optimization: plc::OptimizationLevel::None,

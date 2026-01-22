@@ -277,7 +277,8 @@ impl Diagnostic {
     where
         T: Into<SourceLocation>,
     {
-        panic!("Unresolved reference to {}", reference);
+        let bt = backtrace::Backtrace::capture();
+        println!("{bt}");
         Diagnostic::new(format!("Could not resolve reference to {reference:}"))
             .with_error_code("E048")
             .with_location(location)
@@ -305,7 +306,8 @@ impl Diagnostic {
 
     pub fn cannot_generate_call_statement(operator: &AstNode) -> Diagnostic {
         //TODO: We could probably get a better slice here
-        panic!("Cannot generate call statement for {:?}", operator);
+        let bt = backtrace::Backtrace::capture();
+        println!("{bt}");
         Diagnostic::codegen_error(format!("cannot generate call statement for {:?}", operator), operator)
     }
 
