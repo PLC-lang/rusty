@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
 use plc_ast::ast::{
-    self, ArgumentProperty, CompilationUnit, Identifier, Implementation, LinkageType, Pou, PouType, UserTypeDeclaration, VariableBlock, VariableBlockType
+    self, ArgumentProperty, CompilationUnit, Identifier, Implementation, LinkageType, Pou, PouType,
+    UserTypeDeclaration, VariableBlock, VariableBlockType,
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
@@ -199,14 +200,11 @@ impl GeneratedHeaderForC {
 
             match &implementation.pou_type {
                 PouType::Action => {
-                    if let Some(function) = self.get_action(
-                        implementation,
-                        builtin_types,
-                    ) {
+                    if let Some(function) = self.get_action(implementation, builtin_types) {
                         self.template_data.functions.push(function);
                     }
                 }
-                _ => continue
+                _ => continue,
             }
         }
     }
