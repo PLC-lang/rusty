@@ -786,7 +786,10 @@ impl<'ink> Debug<'ink> for DebugBuilder<'ink> {
     ) {
         let (index, types_index) = indices;
         let pou = index.find_pou(func.linking_context.get_call_name()).expect("POU is available");
-        if matches!(pou.get_linkage(), LinkageType::External) || pou.get_location().is_internal() {
+        if matches!(pou.get_linkage(), LinkageType::External)
+            || pou.get_location().is_internal()
+            || func.linking_context.is_init()
+        {
             log::debug!(
                 "Skipping pou {}, linkage: {:?}, location: {:?}",
                 pou.get_name(),

@@ -44,7 +44,7 @@ use inkwell::{
     targets::{CodeModel, FileType, InitializationConfig, RelocMode},
     types::BasicTypeEnum,
 };
-use plc_ast::ast::{CompilationUnit, LinkageType};
+use plc_ast::ast::{CompilationUnit, LinkageType, PouType};
 use plc_diagnostics::diagnostics::Diagnostic;
 use plc_llvm::TargetMachineExt;
 use plc_source::source_location::{FileMarker, SourceLocation};
@@ -341,7 +341,13 @@ impl<'ink> CodeGen<'ink> {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
                 if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
-                    pou_generator.generate_implementation(implementation, &self.debug)?;
+                    let noop_debug = DebugBuilderEnum::None;
+                    let debug = if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
+                        &noop_debug
+                    } else {
+                        &self.debug
+                    };
+                    pou_generator.generate_implementation(implementation, debug)?;
                 }
             }
         }
