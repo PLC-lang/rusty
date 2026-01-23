@@ -19,5 +19,3 @@ error[E055]: Bit-Wise access requires a Numerical type larger than 1 bits
    │
 13 │             valid.1.2; (*Invalid*)
    │                     ^ Bit-Wise access requires a Numerical type larger than 1 bits
-
-

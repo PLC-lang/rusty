@@ -290,7 +290,7 @@ fn all_available_methods_of_interface_are_annotated() {
     let (annotations, _, units) = annotate_and_lower_with_ids(unit, index, id_provider);
 
     let intf = &units.0.interfaces.last().unwrap();
-    assert_debug_snapshot!(annotations.get_with_id(intf.id), @r###"
+    assert_debug_snapshot!(annotations.get_with_id(intf.id), @r#"
     Some(
         MethodDeclarations {
             declarations: {
@@ -332,7 +332,7 @@ fn all_available_methods_of_interface_are_annotated() {
             },
         },
     )
-    "###);
+    "#);
 }
 
 #[test]

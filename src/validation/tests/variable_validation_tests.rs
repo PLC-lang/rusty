@@ -434,14 +434,13 @@ fn invalid_initial_constant_values_in_pou_variables() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E033]: Unresolved constant `my_len` variable: `LEN` is no const reference
        ┌─ <internal>:10:28
        │
     10 │             my_len: INT := LEN + 4;  //cannot be evaluated at compile time!
        │                            ^^^^^^^ Unresolved constant `my_len` variable: `LEN` is no const reference
-
-    "###);
+    ");
 }
 
 #[test]
@@ -482,7 +481,7 @@ fn var_conf_template_variable_does_not_exist() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E107]: Template-variable must have a configuration
       ┌─ <internal>:4:17
       │
@@ -494,8 +493,7 @@ fn var_conf_template_variable_does_not_exist() {
        │
     15 │             main.foo.qux AT %IX1.0 : BOOL;
        │             ^^^^^^^^^^^^ Template variable `qux` does not exist
-
-    "###);
+    ");
 }
 
 #[test]
@@ -520,7 +518,7 @@ fn var_conf_config_and_template_variable_types_differ() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E001]: Config and Template variable types differ (BOOL and : DINT)
        ┌─ <internal>:15:13
        │
@@ -529,8 +527,7 @@ fn var_conf_config_and_template_variable_types_differ() {
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Config and Template variable types differ (BOOL and : DINT)
-
-    "###);
+    ");
 }
 
 #[test]
@@ -555,14 +552,13 @@ fn var_conf_config_variable_has_incomplete_address() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E104]: Variables defined in a VAR_CONFIG block must have a complete address
        ┌─ <internal>:15:26
        │
     15 │             main.foo.bar AT %I* : BOOL;
        │                          ^^^^^^ Variables defined in a VAR_CONFIG block must have a complete address
-
-    "###);
+    ");
 }
 
 #[test]
@@ -587,7 +583,7 @@ fn var_conf_template_address_has_complete_address() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E103]: The configured variable is not a template, overriding non-template hardware addresses is not allowed
        ┌─ <internal>:15:13
        │
@@ -596,8 +592,7 @@ fn var_conf_template_address_has_complete_address() {
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
        │             ^^^^^^^^^^^^ The configured variable is not a template, overriding non-template hardware addresses is not allowed
-
-    "###);
+    ");
 }
 
 #[test]
@@ -622,7 +617,7 @@ fn var_conf_template_variable_is_no_template() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E102]: `foo` is missing a hardware binding
        ┌─ <internal>:4:17
        │
@@ -631,8 +626,7 @@ fn var_conf_template_variable_is_no_template() {
        ·
     15 │             main.foo.bar AT %IX1.0 : BOOL;
        │             ----------------------------- see also
-
-    "###);
+    ");
 }
 
 #[test]
@@ -708,14 +702,13 @@ fn unresolved_references_to_const_builtins_in_initializer_are_reported() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E048]: Could not resolve reference to gb
       ┌─ <internal>:4:42
       │
     4 │                 bar : REF_TO BOOL := REF(gb); // unresolved reference to gb
       │                                          ^^ Could not resolve reference to gb
-
-    "###);
+    ");
 }
 
 #[test]
@@ -728,14 +721,13 @@ fn unknown_types_are_reported() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E052]: Unknown type: undefined
       ┌─ <internal>:3:16
       │
     3 │             a: undefined;
       │                ^^^^^^^^^ Unknown type: undefined
-
-    "###);
+    ");
 }
 
 #[test]
@@ -763,14 +755,13 @@ fn aliasing_to_undeclared_type_is_an_error() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E052]: Unknown type: myDeclaredType
       ┌─ <internal>:4:16
       │
     4 │             a: myDeclaredType;
       │                ^^^^^^^^^^^^^^ Unknown type: myDeclaredType
-
-    "###);
+    ");
 }
 
 #[test]
@@ -788,7 +779,7 @@ fn trying_to_initialize_a_pointer_of_unknown_type_is_reported() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E052]: Unknown type: undefined
       ┌─ <internal>:7:26
       │
@@ -800,8 +791,7 @@ fn trying_to_initialize_a_pointer_of_unknown_type_is_reported() {
       │
     3 │             a: undefined;
       │                ^^^^^^^^^ Unknown type: undefined
-
-    "###);
+    ");
 }
 
 #[test]
@@ -819,14 +809,13 @@ fn trying_to_initialize_a_pointer_with_builtin_ref_with_type_mismatch_leads_to_e
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E037]: Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
       ┌─ <internal>:7:36
       │
     7 │             bar : REF_TO STRING := REF(a);
       │                                    ^^^^^^ Invalid assignment: cannot assign 'DINT' to 'REF_TO STRING := REF(a)'
-
-    "###);
+    ");
 }
 
 #[test]
@@ -852,14 +841,13 @@ fn unconfigured_template_variables_are_validated() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E107]: Template-variable must have a configuration
       ┌─ <internal>:5:17
       │
     5 │                 qux AT %I* : BOOL;
       │                 ^^^ Template-variable must have a configuration
-
-    "###);
+    ");
 }
 
 #[test]
@@ -886,7 +874,7 @@ fn variable_configured_multiple_times() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E108]: Template variable configured multiple times
        ┌─ <internal>:15:13
        │
@@ -896,8 +884,7 @@ fn variable_configured_multiple_times() {
        │             ------------ see also
     17 │             main.foo.bar AT %IX1.2 : BOOL;
        │             ------------ see also
-
-    "###);
+    ");
 }
 
 #[test]
@@ -953,14 +940,13 @@ fn missing_array_elements_are_reported() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
       │                 ^^^ One or more template-elements in array have not been configured
-
-    "###);
+    ");
 }
 
 #[test]
@@ -986,14 +972,13 @@ fn missing_configurations_in_arrays_with_multiple_dimensions_are_validated() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E107]: One or more template-elements in array have not been configured
       ┌─ <internal>:4:17
       │
     4 │                 bar AT %I* : BOOL;
       │                 ^^^ One or more template-elements in array have not been configured
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1023,7 +1008,7 @@ fn arrays_with_const_expr_access_cause_errors() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:19:22
        │
@@ -1035,8 +1020,7 @@ fn arrays_with_const_expr_access_cause_errors() {
       │
     8 │                 bar AT %I* : BOOL;
       │                 ^^^ One or more template-elements in array have not been configured
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1068,7 +1052,7 @@ fn multi_dim_arrays_with_const_expr_access_cause_errors() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:19:22
        │
@@ -1092,8 +1076,7 @@ fn multi_dim_arrays_with_const_expr_access_cause_errors() {
       │
     8 │                 bar AT %I* : BOOL;
       │                 ^^^ One or more template-elements in array have not been configured
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1119,7 +1102,7 @@ fn array_access_with_non_integer_literal_causes_error() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E001]: VAR_CONFIG array access must be a literal integer
        ┌─ <internal>:15:22
        │
@@ -1137,8 +1120,7 @@ fn array_access_with_non_integer_literal_causes_error() {
       │
     4 │                 bar AT %I* : BOOL;
       │                 ^^^ One or more template-elements in array have not been configured
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1156,14 +1138,13 @@ fn use_of_var_external_block_gives_a_warning() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E106]: VAR_EXTERNAL blocks have no effect
       ┌─ <internal>:6:13
       │
     6 │             VAR_EXTERNAL
       │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1181,14 +1162,13 @@ fn unresolved_var_external_reference_does_not_lead_to_errors() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E106]: VAR_EXTERNAL blocks have no effect
       ┌─ <internal>:6:13
       │
     6 │             VAR_EXTERNAL
       │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1206,14 +1186,13 @@ fn var_external_with_initializer_does_not_err() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E106]: VAR_EXTERNAL blocks have no effect
       ┌─ <internal>:6:13
       │
     6 │             VAR_EXTERNAL
       │             ^^^^^^^^^^^^ VAR_EXTERNAL blocks have no effect
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1230,7 +1209,7 @@ fn using_var_external_variable_without_matching_global_will_not_resolve() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E106]: VAR_EXTERNAL blocks have no effect
       ┌─ <internal>:3:13
       │
@@ -1242,8 +1221,7 @@ fn using_var_external_variable_without_matching_global_will_not_resolve() {
       │
     7 │             b := FALSE;
       │             ^ Could not resolve reference to b
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1287,7 +1265,7 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
         "#,
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E109]: Cannot assign address of temporary variable to a member-variable
       ┌─ <internal>:4:40
       │
@@ -1305,5 +1283,5 @@ fn assigning_a_temp_reference_to_stateful_var_is_error() {
       │
     6 │                 s3 : REFERENCE TO DINT REF= t1; // error
       │                                             ^^ Cannot assign address of temporary variable to a member-variable
-    "###)
+    ")
 }

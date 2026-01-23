@@ -25,5 +25,3 @@ error[E078]: Duplicate condition value: 4. Occurred more than once!
    │
 22 │                 2+2:
    │                 ^^^ Duplicate condition value: 4. Occurred more than once!
-
-

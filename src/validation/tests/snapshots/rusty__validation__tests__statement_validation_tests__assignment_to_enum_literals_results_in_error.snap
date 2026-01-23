@@ -19,5 +19,3 @@ error[E036]: Cannot assign to CONSTANT 'Color.red'
    │
 15 │             red := green;
    │             ^^^ Cannot assign to CONSTANT 'Color.red'
-
-

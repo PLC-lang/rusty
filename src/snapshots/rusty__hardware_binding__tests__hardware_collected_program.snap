@@ -1,8 +1,6 @@
 ---
 source: src/hardware_binding.rs
-assertion_line: 247
 expression: config
-
 ---
 [
     HardwareBinding {

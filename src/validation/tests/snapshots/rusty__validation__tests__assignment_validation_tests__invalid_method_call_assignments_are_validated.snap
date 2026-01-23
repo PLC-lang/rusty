@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STR
    │
 22 │             cl.foo(arr, arr); // invalid
    │                         ^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF WSTRING' to 'STRING'
-
-

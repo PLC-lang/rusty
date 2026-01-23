@@ -3926,7 +3926,7 @@ fn hardware_access_types_annotated() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[0]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BYTE",
             qualified_name: "__PI_1_1",
@@ -3936,14 +3936,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "INT",
             qualified_name: "__PI_1_2",
@@ -3953,14 +3953,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "__M_1_3",
@@ -3970,14 +3970,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[3]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__G_1_4",
@@ -3987,14 +3987,14 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[4]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "LINT",
             qualified_name: "__PI_2_1",
@@ -4004,7 +4004,7 @@ fn hardware_access_types_annotated() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
@@ -5585,7 +5585,7 @@ fn hardware_address_in_body_resolves_to_global_var() {
 
     let stmt = &unit.implementations[0].statements[0].get_stmt();
     if let AstStatement::Assignment(Assignment { left, .. }) = stmt {
-        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__PI_1_2_3",
@@ -5595,13 +5595,13 @@ fn hardware_address_in_body_resolves_to_global_var() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Should be an assignment")
     }
     let stmt = &unit.implementations[0].statements[1].get_stmt();
     if let AstStatement::Assignment(Assignment { right, .. }) = stmt {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "BOOL",
             qualified_name: "__PI_1_2_3",
@@ -5611,7 +5611,7 @@ fn hardware_address_in_body_resolves_to_global_var() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Should be an assignment")
     }
@@ -5650,7 +5650,7 @@ fn internal_var_config_global_resolves() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { left, .. }), .. } =
         &unit.implementations[2].statements[0]
     {
-        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(left).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "__PI_1_2_1",
@@ -5660,7 +5660,7 @@ fn internal_var_config_global_resolves() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be assignment")
     }
@@ -5700,7 +5700,7 @@ fn reference_to_alloca_resolved() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[1]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.foo",
@@ -5710,7 +5710,7 @@ fn reference_to_alloca_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5792,7 +5792,7 @@ fn reference_to_alloca_nested_resolved() {
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } =
         &unit.implementations[0].statements[2]
     {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.foo",
@@ -5802,7 +5802,7 @@ fn reference_to_alloca_nested_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5816,7 +5816,7 @@ fn reference_to_alloca_nested_resolved() {
     };
 
     if let AstNode { stmt: AstStatement::Assignment(Assignment { right, .. }), .. } = &blocks[0].body[1] {
-        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(right).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.baz",
@@ -5826,7 +5826,7 @@ fn reference_to_alloca_nested_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Must be an assignment");
     }
@@ -5856,7 +5856,7 @@ fn reference_inside_array_access_index_is_resolved() {
         ..
     } = stmt
     {
-        insta::assert_debug_snapshot!(annotations.get(idx).unwrap(), @r###"
+        insta::assert_debug_snapshot!(annotations.get(idx).unwrap(), @r#"
         Variable {
             resulting_type: "DINT",
             qualified_name: "main.idx",
@@ -5866,7 +5866,7 @@ fn reference_inside_array_access_index_is_resolved() {
             ),
             auto_deref: None,
         }
-        "###);
+        "#);
     } else {
         unreachable!("Expected a reference expression")
     }
@@ -6168,7 +6168,7 @@ fn program_call_declared_as_variable_is_annotated() {
         unreachable!()
     };
 
-    insta::assert_debug_snapshot!(annotations.get(operator), @r###"
+    insta::assert_debug_snapshot!(annotations.get(operator), @r#"
     Some(
         Variable {
             resulting_type: "ridiculous_chaining",
@@ -6180,7 +6180,7 @@ fn program_call_declared_as_variable_is_annotated() {
             auto_deref: None,
         },
     )
-    "###);
+    "#);
 
     insta::assert_debug_snapshot!(annotations.get_hint(&expressions[0]), @r#"
     Some(

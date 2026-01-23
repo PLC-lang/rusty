@@ -19,5 +19,3 @@ error[E004]: prg: Ambiguous global variable.
   ·
 8 │             PROGRAM prg
   │                     ^^^ prg: Ambiguous global variable.
-
-

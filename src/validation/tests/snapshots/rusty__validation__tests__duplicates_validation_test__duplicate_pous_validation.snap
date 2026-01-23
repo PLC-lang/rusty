@@ -55,5 +55,3 @@ error[E004]: foo: Duplicate symbol.
 5 │ 
 6 │         FUNCTION_BLOCK  foo  END_FUNCTION_BLOCK
   │                         ^^^ foo: Duplicate symbol.
-
-

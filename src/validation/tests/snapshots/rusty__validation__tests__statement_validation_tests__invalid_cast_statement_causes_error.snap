@@ -7,5 +7,3 @@ error[E048]: Could not resolve reference to var1
   │
 7 │                 i := INT#s.var1; // illegal, var1 cannot be found in INT
   │                            ^^^^ Could not resolve reference to var1
-
-

@@ -7,5 +7,3 @@ error[E061]: Cannot cast into [x], only elementary types are allowed
   │
 2 │             INT#[x];
   │             ^^^^^^^ Cannot cast into [x], only elementary types are allowed
-
-

@@ -25,5 +25,3 @@ error[E050]: Expression is not assignable
    │
 14 │             func(1 := 1);
    │                  ^^^^^^ Expression is not assignable
-
-

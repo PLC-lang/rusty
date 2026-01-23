@@ -19,5 +19,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found '%f6'
   │
 3 │     b.%f6;   // f is no valid direct access modifier
   │       ^^^ Unexpected token: expected KeywordSemicolon but found '%f6'
-
-

@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected KeywordEndProgram but found ''
   │
 5 │     
   │     ^ Unexpected token: expected KeywordEndProgram but found ''
-
-

@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/model/variables.rs
-expression: "BlockVariable::visit(&mut reader)"
+expression: variables
 ---
 Ok(
     [
