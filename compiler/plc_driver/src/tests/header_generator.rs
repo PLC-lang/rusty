@@ -149,6 +149,13 @@ fn get_source_code_for_case_3_enum_types() -> SourceCode {
             purple := 30
         );
     END_TYPE
+
+    TYPE CodesysStyleEnumType : (
+            Crimson := 100,
+            Emerald := 200,
+            Topaz := 300
+        ) INT := Emerald;
+    END_TYPE
     ",
         "enum_types.pli",
     )
@@ -397,6 +404,12 @@ fn get_source_code_for_case_6_functions_with_complex_types() -> SourceCode {
         varVariadicStruct: {sized} StructWithPrimitiveTypes...;
     END_VAR
     END_FUNCTION
+
+    FUNCTION fnThatHasVariableLengthArrayInput
+    VAR_INPUT
+        varVariableLengthArray: ARRAY [*] OF INT;
+    END_VAR
+    END_FUNCTION
     ",
         "functions_with_complex_types.pli",
     )
@@ -451,6 +464,10 @@ fn get_source_code_for_case_7_function_blocks() -> SourceCode {
         METHOD FB_INIT
         END_METHOD
     END_FUNCTION_BLOCK
+
+    ACTIONS fbThatHasSimpleTypes
+        ACTION fbThatHasSimpleTypes_Action END_ACTION
+    END_ACTIONS
     ",
         "function_blocks.pli",
     )
@@ -766,7 +783,7 @@ fn case_11_function_pointers_generated_header_file() {
 /// ```rust
 ///     let generated_headers = get_generated_header_contents("case_1_global_primitives_generated_header_file_template_data");
 /// ```
-/// Will load the snapshot that was generated during the run of the `fn case_1_global_primitives_annotated_content()` test.
+/// Will load the snapshot that was generated during the run of the `fn case_1_global_primitives_generated_header_file_template_data()` test.
 /// At present these tests are located in the [plc_driver](file:/workspaces/rusty/compiler/plc_driver/src/tests/header_generator.rs).
 fn get_all_generated_header_contents(test_name: &str) -> Box<dyn GeneratedHeader> {
     let prepared_header_data =

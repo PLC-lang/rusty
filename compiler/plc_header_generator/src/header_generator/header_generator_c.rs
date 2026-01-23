@@ -2,8 +2,7 @@ use std::collections::HashMap;
 
 use plc::typesystem::{get_builtin_types, DataType, LWORD_TYPE};
 use plc_ast::ast::{
-    self, ArgumentProperty, CompilationUnit, Identifier, LinkageType, Pou, PouType, UserTypeDeclaration,
-    VariableBlock, VariableBlockType,
+    self, ArgumentProperty, CompilationUnit, Identifier, Implementation, LinkageType, Pou, PouType, UserTypeDeclaration, VariableBlock, VariableBlockType
 };
 use plc_diagnostics::diagnostics::Diagnostic;
 use tera::{from_value, to_value, Context, Tera};
@@ -192,6 +191,24 @@ impl GeneratedHeaderForC {
                 _ => continue,
             }
         }
+
+        for implementation in &compilation_unit.implementations {
+            if implementation.linkage == LinkageType::External {
+                continue;
+            }
+
+            match &implementation.pou_type {
+                PouType::Action => {
+                    if let Some(function) = self.get_action(
+                        implementation,
+                        builtin_types,
+                    ) {
+                        self.template_data.functions.push(function);
+                    }
+                }
+                _ => continue
+            }
+        }
     }
 
     /// Get the function definition given a pou
@@ -226,6 +243,41 @@ impl GeneratedHeaderForC {
                 Some(Function {
                     name: sanitize_method_name(&pou.name),
                     return_type: type_info.get_type_name(),
+                    parameters,
+                })
+            }
+            _ => None,
+        }
+    }
+
+    /// Get the action definition given an implementation
+    fn get_action(
+        &mut self,
+        implementation: &Implementation,
+        builtin_types: &[DataType],
+    ) -> Option<Function> {
+        match implementation.pou_type {
+            PouType::Action => {
+                // Get void type
+                let void_type = self.get_type_name_for_type(
+                    &ExtendedTypeName { type_name: String::new(), is_variadic: false },
+                    builtin_types,
+                );
+
+                let function_name = implementation.type_name.to_string();
+                let data_type = format!("{function_name}{TYPE_APPEND}");
+
+                // Push the parameters for the function
+                let mut parameters: Vec<Variable> = Vec::new();
+                parameters.push(Variable {
+                    data_type: format!("{data_type}{}", self.get_reference_symbol()),
+                    name: String::from("self"),
+                    variable_type: VariableType::Default,
+                });
+
+                Some(Function {
+                    name: sanitize_method_name(&implementation.name),
+                    return_type: void_type.get_type_name(),
                     parameters,
                 })
             }

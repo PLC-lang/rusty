@@ -55,6 +55,32 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
               }
             }
           ]
+        },
+        {
+          "name": "CodesysStyleEnumType",
+          "variables": [
+            {
+              "data_type": "",
+              "name": "Crimson",
+              "variable_type": {
+                "Declaration": "100"
+              }
+            },
+            {
+              "data_type": "",
+              "name": "Emerald",
+              "variable_type": {
+                "Declaration": "200"
+              }
+            },
+            {
+              "data_type": "",
+              "name": "Topaz",
+              "variable_type": {
+                "Declaration": "300"
+              }
+            }
+          ]
         }
       ]
     },

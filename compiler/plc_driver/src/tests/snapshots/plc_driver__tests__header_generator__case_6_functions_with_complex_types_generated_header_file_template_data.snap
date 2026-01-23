@@ -245,6 +245,19 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "variable_type": "Variadic"
           }
         ]
+      },
+      {
+        "return_type": "void",
+        "name": "fnThatHasVariableLengthArrayInput",
+        "parameters": [
+          {
+            "data_type": "int16_t",
+            "name": "varVariableLengthArray",
+            "variable_type": {
+              "Array": 0
+            }
+          }
+        ]
       }
     ]
   },

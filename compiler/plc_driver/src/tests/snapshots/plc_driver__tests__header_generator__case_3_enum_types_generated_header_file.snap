@@ -1,6 +1,6 @@
 ---
-source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].get_contents()"
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -30,6 +30,12 @@ typedef enum eComplexEnumType {
     yellow = 20,
     purple = 30
 } ComplexEnumType;
+
+typedef enum eCodesysStyleEnumType {
+    Crimson = 100,
+    Emerald = 200,
+    Topaz = 300
+} CodesysStyleEnumType;
 
 #ifdef __cplusplus
 }

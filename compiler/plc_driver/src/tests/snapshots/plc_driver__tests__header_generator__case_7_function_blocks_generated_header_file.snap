@@ -1,6 +1,6 @@
 ---
-source: compiler/plc_header_generator/src/tests/header_generator.rs
-expression: "&generated_headers[0].get_contents()"
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
 ---
 // ---------------------------------------------------- //
 // This file is auto-generated                          //
@@ -31,6 +31,8 @@ void __fbThatHasSimpleTypes__init(fbThatHasSimpleTypes_type* self);
 void fbThatHasSimpleTypes(fbThatHasSimpleTypes_type* self);
 
 void fbThatHasSimpleTypes__FB_INIT(fbThatHasSimpleTypes_type* self);
+
+void fbThatHasSimpleTypes__fbThatHasSimpleTypes_Action(fbThatHasSimpleTypes_type* self);
 
 #ifdef __cplusplus
 }

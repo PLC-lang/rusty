@@ -69,6 +69,17 @@ expression: "serde_json::to_string_pretty(&prepared_header_data).expect(\"Failed
             "variable_type": "Default"
           }
         ]
+      },
+      {
+        "return_type": "void",
+        "name": "fbThatHasSimpleTypes__fbThatHasSimpleTypes_Action",
+        "parameters": [
+          {
+            "data_type": "fbThatHasSimpleTypes_type*",
+            "name": "self",
+            "variable_type": "Default"
+          }
+        ]
       }
     ]
   },
