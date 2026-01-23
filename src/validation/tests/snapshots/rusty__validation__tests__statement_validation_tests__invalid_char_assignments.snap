@@ -73,5 +73,3 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'STRING'
    │
 26 │             s := c; // invalid
    │             ^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'STRING'
-
-

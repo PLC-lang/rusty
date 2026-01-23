@@ -835,7 +835,7 @@ fn enum_with_no_elements_produces_syntax_error() {
         "#,
     );
     assert!(!diagnostics.is_empty());
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E007]: Unexpected token: expected Literal but found )
       ┌─ <internal>:2:32
       │
@@ -847,7 +847,7 @@ fn enum_with_no_elements_produces_syntax_error() {
       │
     6 │         
       │         ^ Unexpected token: expected KeywordEndType but found ''
-    "###);
+    ");
     // User type should still be created despite the error (error recovery)
     assert_debug_snapshot!(result.user_types[0], @r#"
     UserTypeDeclaration {

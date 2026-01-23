@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/generics_test.rs
 expression: prg
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"

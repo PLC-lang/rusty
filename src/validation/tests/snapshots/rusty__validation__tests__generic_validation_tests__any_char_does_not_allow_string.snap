@@ -25,5 +25,3 @@ error[E062]: Invalid type nature for generic argument. WSTRING is no ANY_CHAR
   │
 4 │         FUNCTION func2  : INT VAR x : WSTRING; END_VAR test(x); END_FUNCTION
   │                                                             ^ Invalid type nature for generic argument. WSTRING is no ANY_CHAR
-
-

@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
    │
 17 │             func(x, x);                                    // Invalid because we pass a whole array
    │                     ^ Invalid assignment: cannot assign 'ARRAY[0..1] OF INT' to 'INT'
-
-

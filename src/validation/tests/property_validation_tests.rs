@@ -399,7 +399,7 @@ fn overriding_property_in_function_block_with_same_datatype_is_ok() {
     );
 
     // Essentially we're overriding the property in the child, which is OK because properties are methods
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -462,7 +462,7 @@ fn extending_property_in_function_block_by_accessor_with_same_datatype_is_ok() {
     ";
 
     // Essentially we're extending fb2 by a `__set_prop` method which isn't defined in the parent
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"");
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @"");
 }
 
 #[test]
@@ -481,7 +481,7 @@ fn extending_property_in_function_block_by_accessor_with_different_datatype_is_n
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r###"
+    insta::assert_snapshot!(test_utils::parse_and_validate_buffered(source), @r"
     error[E112]: Overridden property `prop` has different signatures in POU `fb2` and `fb1`
       ┌─ <internal>:9:18
       │
@@ -490,7 +490,7 @@ fn extending_property_in_function_block_by_accessor_with_different_datatype_is_n
       ·
     9 │         PROPERTY prop : INT
       │                  ^^^^ Overridden property `prop` has different signatures in POU `fb2` and `fb1`
-    "###);
+    ");
 }
 
 #[test]
@@ -513,7 +513,7 @@ fn overriding_property_in_interface_with_same_datatype_is_ok() {
     );
 
     // Essentially we're overriding the property in the child, which is OK because properties are methods
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -743,7 +743,7 @@ fn undefined_references_inheritance() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E048]: Could not resolve reference to myProp
       ┌─ <internal>:8:13
       │
@@ -755,7 +755,7 @@ fn undefined_references_inheritance() {
        │
     26 │             parent_fb.myProp := 5;                  // Error, the `parent` FB does not define a SET
        │                       ^^^^^^ Could not resolve reference to myProp
-    "###);
+    ");
 }
 
 #[test]
@@ -782,7 +782,7 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Overridden property `myProp` has different signatures in POU `fbD` and `fbA`
        ┌─ <internal>:15:22
        │
@@ -791,5 +791,5 @@ fn conflicting_signatures_in_head_and_tail_inheritance_chain() {
        ·
     15 │             PROPERTY myProp : STRING // Conflicting signature with A, where myProp has a `DINT` datatype
        │                      ^^^^^^ Overridden property `myProp` has different signatures in POU `fbD` and `fbA`
-    "###);
+    ");
 }

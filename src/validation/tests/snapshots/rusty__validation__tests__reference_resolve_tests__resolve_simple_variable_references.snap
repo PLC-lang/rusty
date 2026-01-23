@@ -13,5 +13,3 @@ error[E048]: Could not resolve reference to gb
    │
 12 │                 gb;
    │                 ^^ Could not resolve reference to gb
-
-

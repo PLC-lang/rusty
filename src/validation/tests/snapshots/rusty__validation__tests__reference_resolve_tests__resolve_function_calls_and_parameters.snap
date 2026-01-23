@@ -31,5 +31,3 @@ error[E048]: Could not resolve reference to y
   │
 8 │                 foo(y := a);
   │                     ^ Could not resolve reference to y
-
-

@@ -1716,7 +1716,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
     );
 
     // Although foo has no initial value in its declaration, we inject one in the pre-processor
-    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("foo").unwrap(), @r#"
     VariableIndexEntry {
         name: "foo",
         qualified_name: "foo",
@@ -1772,7 +1772,7 @@ fn aliased_hardware_access_variable_has_implicit_initial_value_declaration() {
         },
         varargs: None,
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -1788,7 +1788,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r#"
     VariableIndexEntry {
         name: "__PI_1_2_3_4",
         qualified_name: "__PI_1_2_3_4",
@@ -1810,7 +1810,7 @@ fn aliased_hardware_access_variable_creates_global_var_for_address() {
         },
         varargs: None,
     }
-    "###);
+    "#);
 
     assert_debug_snapshot!(index.find_type("__global_foo"), @r#"
     Some(
@@ -1855,7 +1855,7 @@ fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
     let foo_init_id = foo.initial_value.unwrap();
 
     // ...the injected initial value is simply the internally created global mangled variabled
-    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r###"
+    assert_debug_snapshot!(index.get_const_expressions().get_constant_statement(&foo_init_id), @r#"
     Some(
         ReferenceExpr {
             kind: Member(
@@ -1866,7 +1866,7 @@ fn aliased_hardware_access_variable_is_initialized_with_the_address_as_ref() {
             base: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -1922,7 +1922,7 @@ fn address_used_in_2_aliases_only_created_once() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -1946,7 +1946,7 @@ fn address_used_in_2_aliases_only_created_once() {
             varargs: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -1965,7 +1965,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -1989,8 +1989,8 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             varargs: None,
         },
     )
-    "###);
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_5"), @r###"
+    "#);
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_5"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_5",
@@ -2014,7 +2014,7 @@ fn aliased_variable_with_in_or_out_directions_create_the_same_variable() {
             varargs: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -2031,7 +2031,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
         ",
     );
 
-    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r###"
+    assert_debug_snapshot!(index.get_globals().get("__pi_1_2_3_4"), @r#"
     Some(
         VariableIndexEntry {
             name: "__PI_1_2_3_4",
@@ -2055,7 +2055,7 @@ fn if_two_aliased_var_of_different_types_use_the_same_address_the_first_wins() {
             varargs: None,
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -2070,7 +2070,7 @@ fn var_config_hardware_address_creates_global_variable() {
         ",
     );
 
-    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r###"
+    assert_debug_snapshot!(index.find_global_variable("__PI_1_2_3_4").unwrap(), @r#"
     VariableIndexEntry {
         name: "__PI_1_2_3_4",
         qualified_name: "__PI_1_2_3_4",
@@ -2092,7 +2092,7 @@ fn var_config_hardware_address_creates_global_variable() {
         },
         varargs: None,
     }
-    "###);
+    "#);
 }
 
 #[test]
