@@ -1345,7 +1345,7 @@ fn output_variables_must_not_be_assignable_outside_of_their_scope() {
 }
 
 #[test]
-fn output_variables_must_be_assignable_within_the_scope_of_inheritence() {
+fn output_variables_must_be_assignable_within_the_scope_of_inheritance() {
     let diagnostics = parse_and_validate_buffered(
         "
         FUNCTION_BLOCK function_block_0
