@@ -13,5 +13,3 @@ error[E054]: Literal "3.14" is not compatible to LREAL
    │
 15 │             LREAL#"3.14";
    │             ^^^^^^^^^^^^ Literal "3.14" is not compatible to LREAL
-
-

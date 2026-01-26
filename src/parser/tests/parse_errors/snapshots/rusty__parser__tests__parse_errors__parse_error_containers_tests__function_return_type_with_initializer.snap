@@ -7,5 +7,3 @@ warning[E016]: Return types cannot have a default value, the value will be ignor
   │
 2 │             FUNCTION foo : INT := 3
   │                                   ^ Return types cannot have a default value, the value will be ignored
-
-

@@ -13,5 +13,3 @@ error[E053]: Literal 1048575 out of range (WORD)
   │
 4 │             y : UINT := WORD#16#fffff;  // Not OK, should have been `ffff` not `ffff_f_`
   │                         ^^^^^^^^^^^^^ Literal 1048575 out of range (WORD)
-
-

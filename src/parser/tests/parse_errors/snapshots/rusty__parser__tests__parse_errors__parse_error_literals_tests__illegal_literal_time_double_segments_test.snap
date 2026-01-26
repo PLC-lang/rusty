@@ -7,5 +7,3 @@ error[E010]: Invalid TIME Literal: segments must be unique
   │
 3 │             T#1d4d2h3m;
   │             ^^^^^^^^^^ Invalid TIME Literal: segments must be unique
-
-

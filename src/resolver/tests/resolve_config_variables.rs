@@ -28,7 +28,7 @@ fn var_config_references_get_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let reference = &unit.var_config[0].reference;
 
-    assert_debug_snapshot!(annotations.get(reference), @r###"
+    assert_debug_snapshot!(annotations.get(reference), @r#"
     Some(
         Variable {
             resulting_type: "BOOL",
@@ -44,7 +44,7 @@ fn var_config_references_get_annotated() {
             ),
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn var_config_with_multiple_qualifiers_gets_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let reference = &unit.var_config[0].reference;
 
-    assert_debug_snapshot!(annotations.get(reference), @r###"
+    assert_debug_snapshot!(annotations.get(reference), @r#"
     Some(
         Variable {
             resulting_type: "BOOL",
@@ -92,7 +92,7 @@ fn var_config_with_multiple_qualifiers_gets_annotated() {
             ),
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -124,7 +124,7 @@ fn var_config_array_access_gets_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let reference = &unit.var_config[0].reference;
 
-    assert_debug_snapshot!(annotations.get(reference), @r###"
+    assert_debug_snapshot!(annotations.get(reference), @r#"
     Some(
         Variable {
             resulting_type: "BOOL",
@@ -140,7 +140,7 @@ fn var_config_array_access_gets_annotated() {
             ),
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -177,7 +177,7 @@ fn var_config_array_access_with_const_expr_gets_annotated() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let reference = &unit.var_config[0].reference;
 
-    assert_debug_snapshot!(annotations.get(reference), @r###"
+    assert_debug_snapshot!(annotations.get(reference), @r#"
     Some(
         Variable {
             resulting_type: "LWORD",
@@ -193,7 +193,7 @@ fn var_config_array_access_with_const_expr_gets_annotated() {
             ),
         },
     )
-    "###);
+    "#);
 }
 
 #[test]
@@ -213,7 +213,7 @@ fn var_config_flat_global_reference_is_resolved() {
     let (annotations, ..) = TypeAnnotator::visit_unit(&index, &unit, id_provider);
     let reference = &unit.var_config[0].reference;
 
-    assert_debug_snapshot!(annotations.get(reference), @r###"
+    assert_debug_snapshot!(annotations.get(reference), @r#"
     Some(
         Variable {
             resulting_type: "BOOL",
@@ -229,5 +229,5 @@ fn var_config_flat_global_reference_is_resolved() {
             ),
         },
     )
-    "###);
+    "#);
 }

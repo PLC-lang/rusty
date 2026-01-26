@@ -1814,7 +1814,7 @@ fn for_loop_conditions_are_numerical() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
@@ -1826,8 +1826,7 @@ fn for_loop_conditions_are_numerical() {
       │
     9 │         FOR i := 100000 TO x BY y DO
       │                            ^ Expected an integer value, got `BOOL`
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1848,7 +1847,7 @@ fn for_loop_conditions_are_real_and_trigger_error() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E094]: Expected an integer value, got `STRING`
       ┌─ <internal>:9:13
       │
@@ -1872,8 +1871,7 @@ fn for_loop_conditions_are_real_and_trigger_error() {
       │
     9 │         FOR i := 10.0 TO x BY y DO
       │                               ^ Expected an integer value, got `REAL`
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1902,7 +1900,7 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
+    assert_snapshot!(diagnostic, @r"
     warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
       ┌─ <internal>:9:21
       │
@@ -1914,8 +1912,7 @@ fn if_statement_triggers_error_if_condition_is_not_boolean() {
        │
     10 │             ELSIF   z THEN // Returns an error, because we're dealing with neither integers nor booleans
        │                     ^ Expected a boolean, got `STRING`
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1943,7 +1940,7 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
         ",
     );
 
-    assert_snapshot!(diagnostic, @r###"
+    assert_snapshot!(diagnostic, @r"
     warning[E096]: Expected a boolean, got `DINT`, consider adding an `=` or `<>` operator for better clarity
       ┌─ <internal>:9:19
       │
@@ -1955,8 +1952,7 @@ fn while_loop_triggers_error_if_condition_is_not_boolean() {
        │
     10 │             WHILE z DO END_WHILE // Returns an error, because we're dealing with neither integers nor booleans
        │                   ^ Expected a boolean, got `STRING`
-
-    "###);
+    ");
 }
 
 #[test]
@@ -1981,7 +1977,7 @@ fn action_calls_without_parentheses() {
     );
 
     // we expect a validation error for each "call"-statement
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
       ┌─ <internal>:3:13
       │
@@ -1993,8 +1989,7 @@ fn action_calls_without_parentheses() {
       │
     4 │             BAR;
       │             ^^^ A reference to fb1.BAR exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.BAR()`
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2050,7 +2045,7 @@ fn action_assignment_attempt_does_not_report_missing_parentheses() {
     );
 
     // we expect no missing parentheses diagnostic
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E095]: A reference to fb1.FOO exists, but it is an ACTION. If you meant to call it, add `()` to the statement: `fb1.FOO()`
       ┌─ <internal>:7:28
       │
@@ -2062,8 +2057,7 @@ fn action_assignment_attempt_does_not_report_missing_parentheses() {
       │
     7 │             address := fb1.FOO;
       │             ^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'FOO' to 'LWORD'
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2107,7 +2101,7 @@ fn incorrect_argument_count_stateless_pous() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E032]: this POU takes 1 argument but 0 arguments were supplied
       ┌─ <internal>:3:13
       │
@@ -2137,8 +2131,7 @@ fn incorrect_argument_count_stateless_pous() {
       │
     7 │             fn_with_two_parameters(1, 2, 3);
       │                                       ^ Expected a reference for parameter out_two because their type is Output
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2260,7 +2253,7 @@ fn incorrect_argument_count_stateful_pous() {
     ";
 
     let diagnostics = parse_and_validate_buffered(&source.replace("<REPLACE_ME>", "FUNCTION_BLOCK"));
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E032]: this POU takes 1 argument but 2 arguments were supplied
       ┌─ <internal>:9:13
       │
@@ -2278,11 +2271,10 @@ fn incorrect_argument_count_stateful_pous() {
        │
     12 │             two_instance(1, 2, 3);
        │                             ^ Expected a reference for parameter out_two because their type is Output
-
-    "###);
+    ");
 
     let diagnostics = parse_and_validate_buffered(&source.replace("<REPLACE_ME>", "PROGRAM"));
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E032]: this POU takes 1 argument but 2 arguments were supplied
       ┌─ <internal>:9:13
       │
@@ -2300,8 +2292,7 @@ fn incorrect_argument_count_stateful_pous() {
        │
     12 │             two_instance(1, 2, 3);
        │                             ^ Expected a reference for parameter out_two because their type is Output
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2327,7 +2318,7 @@ fn binary_expressions_with_incompatible_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:15:13
        │
@@ -2339,8 +2330,7 @@ fn binary_expressions_with_incompatible_types() {
        │
     16 │             var_string + var_array_tod;
        │             ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid expression, types STRING and ARRAY[1..5] OF TOD are incompatible in the given context
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2365,7 +2355,7 @@ fn builtin_math_functions_with_incompatible_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E031]: Invalid expression, types INT and STRING are incompatible in the given context
        ┌─ <internal>:12:17
        │
@@ -2425,8 +2415,7 @@ fn builtin_math_functions_with_incompatible_types() {
        │
     15 │             DIV(var_int, var_string);
        │                 ^^^^^^^^^^^^^^^^^^^ Invalid expression, types INT and STRING are incompatible in the given context
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2442,7 +2431,7 @@ fn builtin_math_functions_with_incompatible_literal_types() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E031]: Invalid expression, types DINT and STRING are incompatible in the given context
       ┌─ <internal>:3:17
       │
@@ -2466,8 +2455,7 @@ fn builtin_math_functions_with_incompatible_literal_types() {
       │
     6 │             DIV(1, 'string');
       │                 ^^^^^^^^^^^ Invalid expression, types DINT and STRING are incompatible in the given context
-
-    "###);
+    ");
 }
 
 #[test]
@@ -2490,13 +2478,13 @@ fn validate_property_call_with_braces() {
         ",
     );
 
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E007]: Properties cannot be called like functions. Remove `()`
        ┌─ <internal>:13:13
        │
     13 │             fb_instance.foo();
        │             ^^^^^^^^^^^^^^^ Properties cannot be called like functions. Remove `()`
-    "###);
+    ");
 }
 
 #[test]
@@ -2516,13 +2504,13 @@ fn unresolved_reference_in_array_access() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E048]: Could not resolve reference to bar
        ┌─ <internal>:10:17
        │
     10 │             foo[bar];
        │                 ^^^ Could not resolve reference to bar
-    "###);
+    ");
 }
 
 #[test]
@@ -2547,7 +2535,7 @@ fn unresolved_qualified_reference_in_array_access() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     warning[E049]: Illegal access to private member fb.val
        ┌─ <internal>:13:20
        │
@@ -2559,5 +2547,5 @@ fn unresolved_qualified_reference_in_array_access() {
        │
     15 │             foo[fb.bar];
        │                    ^^^ Could not resolve reference to bar
-    "###);
+    ");
 }

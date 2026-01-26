@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected KeywordEndIf but found 'END_PROGRAM'
   │
 7 │         END_PROGRAM
   │         ^^^^^^^^^^^ Unexpected token: expected KeywordEndIf but found 'END_PROGRAM'
-
-

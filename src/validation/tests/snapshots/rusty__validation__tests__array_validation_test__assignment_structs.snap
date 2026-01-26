@@ -37,5 +37,3 @@ error[E043]: Array assignments must be surrounded with `[]`
    │
 19 │                 foo_invalid_1   : FOO := (idx := 0, arr := ((arr := (1, 2, 3, 4, 5)), (arr := (1, 2, 3, 4, 5))));
    │                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
-
-

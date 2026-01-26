@@ -13,5 +13,3 @@ error[E043]: Array `arr_incorrect_size` has a size of 2, but 4 elements were pro
    │
 16 │             arr_incorrect_size  := foo(); // We want a invalid size array error here
    │                                    ^^^^^^ Array `arr_incorrect_size` has a size of 2, but 4 elements were provided
-
-

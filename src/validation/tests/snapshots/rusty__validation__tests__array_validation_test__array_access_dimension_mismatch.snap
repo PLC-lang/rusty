@@ -25,5 +25,3 @@ error[E045]: Expected array access with 1 dimensions, found 3
    │
 16 │             vla[0, 1, 2] := 1;
    │                 ^^^^^^^ Expected array access with 1 dimensions, found 3
-
-

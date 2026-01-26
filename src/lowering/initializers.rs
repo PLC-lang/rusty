@@ -990,7 +990,7 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
         [
             CallStatement {
                 operator: ReferenceExpr {
@@ -1072,7 +1072,7 @@ mod tests {
                 ),
             },
         ]
-        "###);
+        "#);
     }
 
     #[test]
@@ -1100,7 +1100,7 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
         [
             CallStatement {
                 operator: ReferenceExpr {
@@ -1244,7 +1244,7 @@ mod tests {
                 ),
             },
         ]
-        "###);
+        "#);
     }
 
     #[test]
@@ -1279,7 +1279,7 @@ mod tests {
 
         let units = parse_and_validate_buffered_ast(src);
         assert_eq!(units[2].implementations[0].name, "__init___TestProject");
-        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r###"
+        insta::assert_debug_snapshot!(units[2].implementations[0].statements, @r#"
         [
             CallStatement {
                 operator: ReferenceExpr {
@@ -1472,7 +1472,7 @@ mod tests {
                 ),
             },
         ]
-        "###);
+        "#);
     }
 
     #[test]

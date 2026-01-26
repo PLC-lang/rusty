@@ -1,6 +1,6 @@
 ---
 source: src/resolver/tests/resolve_generic_calls.rs
-expression: annotations.get(operator)
+expression: annotations.get(statement)
 ---
 Some(
     ReplacementAst {

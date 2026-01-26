@@ -32,14 +32,14 @@ fn function_block_init_fn_created() {
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.pous[1].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[1].variable_blocks[0].variables[0], @r#"
     Variable {
         name: "self",
         data_type: DataTypeReference {
             referenced_type: "foo",
         },
     }
-    "###);
+    "#);
 
     let statements = &implementation.statements;
     assert_eq!(statements.len(), 2);
@@ -165,14 +165,14 @@ fn program_init_fn_created() {
     assert_eq!(implementation.pou_type, PouType::Init);
 
     // we expect this function to have a single parameter "self", being an instance of the initialized POU
-    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r###"
+    assert_debug_snapshot!(init_foo.pous[0].variable_blocks[0].variables[0], @r#"
     Variable {
         name: "self",
         data_type: DataTypeReference {
             referenced_type: "foo",
         },
     }
-    "###);
+    "#);
 
     // this init-function is expected to have a single assignment statement in its function body
     let statements = &implementation.statements;
@@ -394,7 +394,7 @@ fn init_wrapper_function_created() {
 
     // since `foo` has a member-instance of `bar`, we expect its initializer to call/propagate to `__init_bar` with its local member
     let init_foo = &units[1].implementations[2];
-    assert_debug_snapshot!(init_foo.statements[0], @r###"
+    assert_debug_snapshot!(init_foo.statements[0], @r#"
     CallStatement {
         operator: ReferenceExpr {
             kind: Member(
@@ -424,5 +424,5 @@ fn init_wrapper_function_created() {
             },
         ),
     }
-    "###);
+    "#);
 }

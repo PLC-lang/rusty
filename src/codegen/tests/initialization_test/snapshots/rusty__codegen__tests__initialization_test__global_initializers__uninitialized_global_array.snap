@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/initialization_test/global_initializers.rs
 expression: result
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"

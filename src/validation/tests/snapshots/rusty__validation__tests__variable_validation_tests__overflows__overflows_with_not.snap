@@ -7,5 +7,3 @@ warning[E039]: This will overflow for type UINT
   │
 4 │             y : UINT := NOT -1234;  // Not OK (because of -1234)
   │                         ^^^^^^^^^ This will overflow for type UINT
-
-

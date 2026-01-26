@@ -1,6 +1,6 @@
 ---
 source: src/lowering/calls.rs
-expression: "units[0].0.global_vars"
+expression: units.0.global_vars
 ---
 [
     VariableBlock {
