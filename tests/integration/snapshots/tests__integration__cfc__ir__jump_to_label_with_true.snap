@@ -4,82 +4,30 @@ expression: output_file_content_without_headers
 ---
 target triple = "[filtered]"
 
-<<<<<<< HEAD
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
-
-||||||| parent of 55abdf8152 (wip, fixing tests, getting things running)
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___plc, i8* null }]
-
-=======
->>>>>>> 55abdf8152 (wip, fixing tests, getting things running)
 define i32 @main() {
 entry:
-<<<<<<< HEAD
-  %main = alloca i32, align 4
-  %x = alloca i8, align 1
-  %a = alloca i32, align 4
-  store i8 0, ptr %x, align 1
-  store i32 0, ptr %a, align 4
-  store i32 0, ptr %main, align 4
-  store i8 1, ptr %x, align 1
-  %load_x = load i8, ptr %x, align 1
-||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
-  %main = alloca i32, align 4
-  %x = alloca i8, align 1
-  %a = alloca i32, align 4
-  store i8 0, i8* %x, align 1
-  store i32 0, i32* %a, align 4
-  store i32 0, i32* %main, align 4
-  store i8 1, i8* %x, align 1
-  %load_x = load i8, i8* %x, align 1
-=======
   %main = alloca i32, align [filtered]
   %x = alloca i8, align [filtered]
   %a = alloca i32, align [filtered]
-  store i8 0, i8* %x, align [filtered]
-  store i32 0, i32* %a, align [filtered]
-  store i32 0, i32* %main, align [filtered]
-  store i8 0, i8* %x, align [filtered]
-  store i32 0, i32* %a, align [filtered]
-  store i8 1, i8* %x, align [filtered]
-  %load_x = load i8, i8* %x, align [filtered]
->>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  store i8 0, ptr %x, align [filtered]
+  store i32 0, ptr %a, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  store i8 0, ptr %x, align [filtered]
+  store i32 0, ptr %a, align [filtered]
+  store i8 1, ptr %x, align [filtered]
+  %load_x = load i8, ptr %x, align [filtered]
   br i8 %load_x, label %lbl, label %else_block
 
 else_block:                                       ; preds = %entry
-<<<<<<< HEAD
-  store i32 2, ptr %a, align 4
-||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
-  store i32 2, i32* %a, align 4
-=======
-  store i32 2, i32* %a, align [filtered]
->>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  store i32 2, ptr %a, align [filtered]
   br label %lbl
 
 lbl:                                              ; preds = %else_block, %entry
-<<<<<<< HEAD
-  %load_a = load i32, ptr %a, align 4
-||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
-  %load_a = load i32, i32* %a, align 4
-=======
-  %load_a = load i32, i32* %a, align [filtered]
->>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  %load_a = load i32, ptr %a, align [filtered]
   %tmpVar = add i32 %load_a, 3
-<<<<<<< HEAD
-  store i32 %tmpVar, ptr %a, align 4
-  %load_a1 = load i32, ptr %a, align 4
-  store i32 %load_a1, ptr %main, align 4
-  %main_ret = load i32, ptr %main, align 4
-||||||| parent of b0f8937f8d (filter out alignments so we are compatible with aarch64)
-  store i32 %tmpVar, i32* %a, align 4
-  %load_a1 = load i32, i32* %a, align 4
-  store i32 %load_a1, i32* %main, align 4
-  %main_ret = load i32, i32* %main, align 4
-=======
-  store i32 %tmpVar, i32* %a, align [filtered]
-  %load_a1 = load i32, i32* %a, align [filtered]
-  store i32 %load_a1, i32* %main, align [filtered]
-  %main_ret = load i32, i32* %main, align [filtered]
->>>>>>> b0f8937f8d (filter out alignments so we are compatible with aarch64)
+  store i32 %tmpVar, ptr %a, align [filtered]
+  %load_a1 = load i32, ptr %a, align [filtered]
+  store i32 %load_a1, ptr %main, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }

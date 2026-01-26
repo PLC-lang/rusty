@@ -836,13 +836,33 @@ mod units_tests {
 
         let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
         let unit = &project.units[0].get_unit().implementations[3];
-        assert_debug_snapshot!(unit, @r###"
+        assert_debug_snapshot!(unit, @r#"
         Implementation {
             name: "main",
             type_name: "main",
             linkage: Internal,
             pou_type: Function,
             statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__main_arr_ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "arr",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Member(
@@ -1102,7 +1122,7 @@ mod units_tests {
             generic: false,
             access: None,
         }
-        "###)
+        "#)
     }
 
     #[test]
@@ -1330,6 +1350,26 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "child_ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "fb",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
                 Assignment {
                     left: ReferenceExpr {
                         kind: Deref,
@@ -1804,6 +1844,46 @@ mod units_tests {
             linkage: Internal,
             pou_type: Function,
             statements: [
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo_ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+                CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "foo2_ctor",
+                            },
+                        ),
+                        base: None,
+                    },
+                    parameters: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "foo2_inst",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
                 CallStatement {
                     operator: ReferenceExpr {
                         kind: Member(

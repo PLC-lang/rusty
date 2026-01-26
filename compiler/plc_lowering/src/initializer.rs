@@ -112,6 +112,7 @@ impl AstVisitor for Initializer {
                 return;
             }
         };
+        pou.walk(self);
         // If the POU is a function block or a class, add an assignment to the vtable
         if pou.is_function_block() || pou.is_class() {
             let rhs = create_call_statement(
@@ -125,12 +126,21 @@ impl AstVisitor for Initializer {
                 create_assignment("__vtable", Some("self"), &rhs, self.id_provider.clone());
             self.add_to_current_constructor(vec![vtable_assignment]);
         }
-        pou.walk(self);
         // call the user defined constructor here
         if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(&pou.name, "self") {
             self.add_to_current_constructor(vec![user_defined_ctor_call]);
         }
         // If a program, add a constructor call to the global variables
+        if pou.is_program() {
+            let call = create_call_statement(
+                &format!("{}_ctor", pou.name),
+                pou.get_return_name(),
+                None,
+                self.id_provider.clone(),
+                &SourceLocation::internal(),
+            );
+            self.global_constructor.push(call);
+        }
         self.context.exit_pou();
     }
 
@@ -155,25 +165,25 @@ impl AstVisitor for Initializer {
         } else {
             true
         };
+        let mut stmts = vec![];
+        let base = Self::get_base_ident(&variable_block_type, is_stateful);
+        if let Some(constructor) = variable
+            .data_type_declaration
+            .get_referenced_type()
+            .and_then(|it| self.get_constructor_call(it, base, variable.get_name()))
+        {
+            stmts.push(constructor);
+        }
         if let Some(initializer) = &variable.initializer {
-            let mut stmts = vec![];
-            let base = Self::get_base_ident(&variable_block_type, is_stateful);
             // Create a call to the type constructor
-            if let Some(constructor) = variable
-                .data_type_declaration
-                .get_referenced_type()
-                .and_then(|it| self.get_constructor_call(it, base, variable.get_name()))
-            {
-                stmts.push(constructor);
-            }
             let assignment =
                 create_assignment(variable.get_name(), base, initializer, self.id_provider.clone());
             stmts.push(assignment);
-            if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
-                self.add_to_current_stack_constructor(stmts);
-            } else {
-                self.add_to_current_constructor(stmts);
-            }
+        }
+        if variable_block_type.is_temp() || (variable_block_type.is_local() && !is_stateful) {
+            self.add_to_current_stack_constructor(stmts);
+        } else {
+            self.add_to_current_constructor(stmts);
         }
     }
 
@@ -198,11 +208,6 @@ impl AstVisitor for Initializer {
         };
         self.visit_data_type(&user_type.data_type);
         let mut stmts = vec![];
-        // TODO: call the user defined constructor here, don't know yet how we find it
-        // if let Some(user_defined_ctor_call) = self.get_user_defined_constructor_call(name, "self") {
-        //     stmts.push(user_defined_ctor_call);
-        // }
-
         // Explicitly add the initializer call here
         if let Some(initializer) = &user_type.initializer {
             let assignment = create_assignment("self", None, initializer, self.id_provider.clone());
@@ -354,7 +359,7 @@ impl Initializer {
         if let Some(index) = self.index.as_ref() {
             // Search for the user defined constructor for the given struct
             if let Some(user_defined_ctor_name) = self.user_defined_constructors.get(type_name) {
-                if let Some(pou) = index.find_method(type_name, user_defined_ctor_name) {
+                if let Some(_pou) = index.find_method(type_name, user_defined_ctor_name) {
                     let op = create_member_reference(
                         &format!("{var_name}.{user_defined_ctor_name}"),
                         self.id_provider.clone(),
@@ -686,7 +691,10 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for global constructor
         // Expecting a call to MyStruct_ctor(&gStructVar);
-        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"gVar1 := 10");
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
+        gVar1 := 10
+        MyStruct_ctor(gStructVar)
+        ");
     }
 
     #[test]
@@ -708,7 +716,10 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for function constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
-        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"");
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyFunction").unwrap()), @"
+        intern:
+        MyStruct_ctor(localStruct)
+        ");
     }
 
     #[test]
@@ -733,9 +744,15 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for program constructor on the stack
         // Expecting a call to MyStruct_ctor(&localStruct);
-        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyProgram").unwrap()), @"");
+        insta::assert_snapshot!(print_body_to_string(initializer.stack_constructor.get("MyProgram").unwrap()), @"
+        intern:
+        MyStruct_ctor(tempStruct)
+        ");
         // Check for program constructor
-        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProgram").unwrap()), @"");
+        insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyProgram").unwrap()), @"
+        intern:
+        MyStruct_ctor(self.localStruct)
+        ");
     }
 
     #[test]
@@ -750,7 +767,7 @@ mod tests {
         let initializer = parse_and_init(src);
         // Check for program constructor
         // Expecting a call to MyProgram_ctor(&progStruct);
-        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"MyProgram_ctor(MyProgram)");
     }
 
     #[test]
@@ -777,7 +794,10 @@ mod tests {
         // Check for internal var assignment in global constructor
         // Expecting a call to MyExtStruct_ctor(&internalVar);
         // No call to MyExtStruct_ctor(&extVar);
-        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @r#""#);
+        insta::assert_snapshot!(print_to_string(&initializer.global_constructor), @"
+        MyExtStruct_ctor(internalVar)
+        MyExtStruct_ctor(extVar)
+        ");
         // Check that no constructor is generated for MyExtStruct
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyExtStruct").unwrap()), @r"
         extern:
@@ -803,6 +823,7 @@ mod tests {
         // Expecting a call to MyFB.FB_INIT(&self);
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @"
         intern:
+        __MyFB___vtable_ctor(self.__vtable)
         self.__vtable := ADR(__vtable_MyFB_instance)
         self.FB_INIT()
         ");
@@ -837,14 +858,15 @@ mod tests {
         // Check that there's a constructor function for MyBaseFB
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyBaseFB").unwrap()), @"
         intern:
-        self.__vtable := ADR(__vtable_MyBaseFB_instance)
+        __MyBaseFB___vtable_ctor(self.__vtable)
         self.baseVar := 5
+        self.__vtable := ADR(__vtable_MyBaseFB_instance)
         ");
         // Check that the constructor for MyFB calls the base FB constructor
         insta::assert_snapshot!(print_body_to_string(initializer.constructors.get("MyFB").unwrap()), @"
         intern:
-        self.__vtable := ADR(__vtable_MyFB_instance)
         self.fbVar := 10
+        self.__vtable := ADR(__vtable_MyFB_instance)
         self.FB_INIT()
         ");
         // Check that there's a constructor function for the vtables

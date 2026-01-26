@@ -316,6 +316,10 @@ impl Pou {
     pub fn is_class(&self) -> bool {
         matches!(self.kind, PouType::Class)
     }
+
+    pub fn is_program(&self) -> bool {
+        matches!(self.kind, PouType::Program)
+    }
 }
 
 #[derive(Debug, PartialEq)]

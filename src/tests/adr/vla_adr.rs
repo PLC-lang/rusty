@@ -116,7 +116,7 @@ fn representation() {
 
     // ...an array of type DINT with its dimensions unknown at compile time
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__arr_vla_1_dint",
         initial_value: None,
@@ -134,12 +134,13 @@ fn representation() {
         location: SourceLocation {
             span: None,
         },
+        linkage: BuiltIn,
     }
-    "###);
+    "#);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__bounds___arr_vla_1_dint",
         initial_value: None,
@@ -170,8 +171,9 @@ fn representation() {
                 "<internal>",
             ),
         },
+        linkage: Internal,
     }
-    "###);
+    "#);
 }
 
 /// Because VLAs are internally handled as structs, they'll naturally also translate into LLVM structs.

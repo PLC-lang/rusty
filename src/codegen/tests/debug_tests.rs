@@ -291,11 +291,6 @@ fn switch_case_debug_info() {
       br label %condition_check, !dbg !18
     }
 
-    ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-    declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-    attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-
     !llvm.module.flags = !{!0, !1}
     !llvm.dbg.cu = !{!2}
 
@@ -482,8 +477,8 @@ fn action_with_var_temp() {
 
     %PLC_PRG = type {}
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @PLC_PRG_instance = global %PLC_PRG zeroinitializer, !dbg !0
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define i32 @main() !dbg !9 {
     entry:
@@ -506,37 +501,29 @@ fn action_with_var_temp() {
       ret void, !dbg !25
     }
 
-    define void @PLC_PRG__act(ptr %0) !dbg !26 {
+    define void @PLC_PRG_ctor(ptr %0) {
     entry:
-        #dbg_declare(ptr %0, !27, !DIExpression(), !28)
+      %self = alloca ptr, align [filtered], !dbg !26
+      store ptr %0, ptr %self, align [filtered], !dbg !26
+      ret void, !dbg !26
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @PLC_PRG_ctor(ptr @PLC_PRG_instance), !dbg !26
+      ret void, !dbg !26
+    }
+
+    define void @PLC_PRG__act(ptr %0) !dbg !27 {
+    entry:
+        #dbg_declare(ptr %0, !28, !DIExpression(), !29)
       %x = alloca i32, align [filtered]
-        #dbg_declare(ptr %x, !29, !DIExpression(), !30)
+        #dbg_declare(ptr %x, !30, !DIExpression(), !31)
       store i32 0, ptr %x, align [filtered]
-      %load_x = load i32, ptr %x, align [filtered], !dbg !28
-      %tmpVar = add i32 %load_x, 1, !dbg !28
-      store i32 %tmpVar, ptr %x, align [filtered], !dbg !28
-      ret void, !dbg !31
-    }
-
-    define void @__init_plc_prg(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_PLC_PRG(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__init___Test() {
-    entry:
-      call void @__init_plc_prg(ptr @PLC_PRG_instance)
-      call void @__user_init_PLC_PRG(ptr @PLC_PRG_instance)
-      ret void
+      %load_x = load i32, ptr %x, align [filtered], !dbg !29
+      %tmpVar = add i32 %load_x, 1, !dbg !29
+      store i32 %tmpVar, ptr %x, align [filtered], !dbg !29
+      ret void, !dbg !26
     }
 
     !llvm.module.flags = !{!5, !6}
@@ -568,12 +555,12 @@ fn action_with_var_temp() {
     !23 = !DILocalVariable(name: "x", scope: !18, file: !2, line: 9, type: !13, align [filtered])
     !24 = !DILocation(line: 9, column: 12, scope: !18)
     !25 = !DILocation(line: 13, column: 8, scope: !18)
-    !26 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
-    !27 = !DILocalVariable(name: "PLC_PRG", scope: !26, file: !2, line: 17, type: !3)
-    !28 = !DILocation(line: 17, column: 16, scope: !26)
-    !29 = !DILocalVariable(name: "x", scope: !26, file: !2, line: 9, type: !13, align [filtered])
-    !30 = !DILocation(line: 9, column: 12, scope: !26)
-    !31 = !DILocation(line: 18, column: 12, scope: !26)
+    !26 = !DILocation(line: 18, column: 12, scope: !27)
+    !27 = distinct !DISubprogram(name: "PLC_PRG.act", linkageName: "PLC_PRG.act", scope: !2, file: !2, line: 16, type: !19, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !4)
+    !28 = !DILocalVariable(name: "PLC_PRG", scope: !27, file: !2, line: 17, type: !3)
+    !29 = !DILocation(line: 17, column: 16, scope: !27)
+    !30 = !DILocalVariable(name: "x", scope: !27, file: !2, line: 9, type: !13, align [filtered])
+    !31 = !DILocation(line: 9, column: 12, scope: !27)
     "#);
 }
 
@@ -884,15 +871,15 @@ fn constants_are_tagged_as_such() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %prog = type { i32, i32, i32 }
     %foo = type { i32 }
+    %prog = type { i32, i32, i32 }
 
     @x = unnamed_addr constant i32 0, !dbg !0
     @s = unnamed_addr constant [81 x i8] zeroinitializer, !dbg !5
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @prog_instance = global %prog zeroinitializer, !dbg !13
-    @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !20
-    @f = unnamed_addr constant %foo zeroinitializer, !dbg !26
+    @f = unnamed_addr constant %foo zeroinitializer, !dbg !13
+    @__foo__init = unnamed_addr constant %foo zeroinitializer, !dbg !19
+    @prog_instance = global %prog zeroinitializer, !dbg !21
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !32 {
     entry:
@@ -915,41 +902,24 @@ fn constants_are_tagged_as_such() {
       ret i32 %bar_ret, !dbg !45
     }
 
-    define void @__init_foo(ptr %0) {
+    define void @foo_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !45
+      store ptr %0, ptr %self, align [filtered], !dbg !45
+      ret void, !dbg !45
     }
 
-    define void @__init_prog(ptr %0) {
+    define void @prog_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !45
+      store ptr %0, ptr %self, align [filtered], !dbg !45
+      ret void, !dbg !45
     }
 
-    define void @__user_init_foo(ptr %0) {
+    define void @____internal___ctor() {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__user_init_prog(ptr %0) {
-    entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
-    }
-
-    define void @__init___Test() {
-    entry:
-      call void @__init_prog(ptr @prog_instance)
-      call void @__init_foo(ptr @f)
-      call void @__user_init_prog(ptr @prog_instance)
-      call void @__user_init_foo(ptr @f)
-      ret void
+      call void @prog_ctor(ptr @prog_instance), !dbg !45
+      ret void, !dbg !45
     }
 
     !llvm.module.flags = !{!28, !29}
@@ -969,29 +939,29 @@ fn constants_are_tagged_as_such() {
     !11 = !{!12}
     !12 = !DISubrange(count: 81, lowerBound: 0)
     !13 = !DIGlobalVariableExpression(var: !14, expr: !DIExpression())
-    !14 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 8, type: !15, isLocal: false, isDefinition: true)
-    !15 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 8, size: 96, align [filtered], flags: DIFlagPublic, elements: !16, identifier: "prog")
-    !16 = !{!17, !18, !19}
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], flags: DIFlagPublic)
-    !18 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
-    !19 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
-    !20 = !DIGlobalVariableExpression(var: !21, expr: !DIExpression())
-    !21 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 14, type: !22, isLocal: false, isDefinition: true)
-    !22 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !23)
-    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 14, size: 32, align [filtered], flags: DIFlagPublic, elements: !24, identifier: "foo")
-    !24 = !{!25}
-    !25 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 15, baseType: !4, size: 32, align [filtered], flags: DIFlagPublic)
-    !26 = !DIGlobalVariableExpression(var: !27, expr: !DIExpression())
-    !27 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !2, line: 5, type: !22, isLocal: false, isDefinition: true)
+    !14 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !2, line: 5, type: !15, isLocal: false, isDefinition: true)
+    !15 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !16)
+    !16 = !DICompositeType(tag: DW_TAG_structure_type, name: "foo", scope: !2, file: !2, line: 14, size: 32, align [filtered], flags: DIFlagPublic, elements: !17, identifier: "foo")
+    !17 = !{!18}
+    !18 = !DIDerivedType(tag: DW_TAG_member, name: "z", scope: !2, file: !2, line: 15, baseType: !4, size: 32, align [filtered], flags: DIFlagPublic)
+    !19 = !DIGlobalVariableExpression(var: !20, expr: !DIExpression())
+    !20 = distinct !DIGlobalVariable(name: "__foo__init", scope: !2, file: !2, line: 14, type: !15, isLocal: false, isDefinition: true)
+    !21 = !DIGlobalVariableExpression(var: !22, expr: !DIExpression())
+    !22 = distinct !DIGlobalVariable(name: "prog", scope: !2, file: !2, line: 8, type: !23, isLocal: false, isDefinition: true)
+    !23 = !DICompositeType(tag: DW_TAG_structure_type, name: "prog", scope: !2, file: !2, line: 8, size: 96, align [filtered], flags: DIFlagPublic, elements: !24, identifier: "prog")
+    !24 = !{!25, !26, !27}
+    !25 = !DIDerivedType(tag: DW_TAG_member, name: "a", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], flags: DIFlagPublic)
+    !26 = !DIDerivedType(tag: DW_TAG_member, name: "b", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 32, flags: DIFlagPublic)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "c", scope: !2, file: !2, line: 10, baseType: !3, size: 32, align [filtered], offset: 64, flags: DIFlagPublic)
     !28 = !{i32 2, !"Dwarf Version", i32 5}
     !29 = !{i32 2, !"Debug Info Version", i32 3}
     !30 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !31, splitDebugInlining: false)
-    !31 = !{!0, !5, !26, !20, !13}
+    !31 = !{!0, !5, !13, !19, !21}
     !32 = distinct !DISubprogram(name: "prog", linkageName: "prog", scope: !2, file: !2, line: 8, type: !33, scopeLine: 12, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
     !33 = !DISubroutineType(flags: DIFlagPublic, types: !34)
-    !34 = !{null, !15}
+    !34 = !{null, !23}
     !35 = !{}
-    !36 = !DILocalVariable(name: "prog", scope: !32, file: !2, line: 12, type: !15)
+    !36 = !DILocalVariable(name: "prog", scope: !32, file: !2, line: 12, type: !23)
     !37 = !DILocation(line: 12, column: 8, scope: !32)
     !38 = distinct !DISubprogram(name: "bar", linkageName: "bar", scope: !2, file: !2, line: 19, type: !39, scopeLine: 23, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !30, retainedNodes: !35)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
@@ -1032,26 +1002,58 @@ fn test_debug_info_regular_pointer_types() {
     @basic_ptr = global ptr null, !dbg !0
     @array_ptr = global ptr null, !dbg !6
     @struct_ptr = global ptr null, !dbg !13
-    @string_ptr = global ptr null, !dbg !22
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !31
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !22
+    @string_ptr = global ptr null, !dbg !25
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
-    define void @__init_mystruct(ptr %0) {
+    define void @myStruct_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_myStruct(ptr %0) {
+    define void @__global_basic_ptr_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @__global_array_ptr__ctor(ptr %0) {
     entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_array_ptr_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_struct_ptr_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @__global_string_ptr_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @__global_basic_ptr_ctor(ptr @basic_ptr)
+      call void @__global_array_ptr_ctor(ptr @array_ptr)
+      call void @__global_struct_ptr_ctor(ptr @struct_ptr)
+      call void @__global_string_ptr_ctor(ptr @string_ptr)
       ret void
     }
 
@@ -1081,21 +1083,21 @@ fn test_debug_info_regular_pointer_types() {
     !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 11, baseType: !21, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !21 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
     !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
-    !23 = distinct !DIGlobalVariable(name: "string_ptr", scope: !2, file: !2, line: 6, type: !24, isLocal: false, isDefinition: true)
-    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_string_ptr", scope: !2, file: !2, baseType: !25, align [filtered])
-    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_ptr", baseType: !26, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align [filtered])
-    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align [filtered], elements: !29)
-    !28 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-    !29 = !{!30}
-    !30 = !DISubrange(count: 81, lowerBound: 0)
-    !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
-    !32 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 9, type: !33, isLocal: false, isDefinition: true)
-    !33 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
+    !23 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 9, type: !24, isLocal: false, isDefinition: true)
+    !24 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
+    !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
+    !26 = distinct !DIGlobalVariable(name: "string_ptr", scope: !2, file: !2, line: 6, type: !27, isLocal: false, isDefinition: true)
+    !27 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____global_string_ptr", scope: !2, file: !2, baseType: !28, align [filtered])
+    !28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_ptr", baseType: !29, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !29 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !30, align [filtered])
+    !30 = !DICompositeType(tag: DW_TAG_array_type, baseType: !31, size: 648, align [filtered], elements: !32)
+    !31 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !32 = !{!33}
+    !33 = !DISubrange(count: 81, lowerBound: 0)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
-    !37 = !{!0, !6, !13, !31, !22}
+    !37 = !{!0, !6, !13, !22, !25}
     "#)
 }
 
@@ -1132,9 +1134,9 @@ fn test_debug_info_auto_deref_parameters() {
     %test_with_ref_params = type { ptr, ptr, ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @test_with_ref_params_instance = global %test_with_ref_params zeroinitializer, !dbg !0
     @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !34
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @test_with_ref_params(ptr %0) !dbg !41 {
     entry:
@@ -1147,39 +1149,49 @@ fn test_debug_info_auto_deref_parameters() {
       ret void, !dbg !46
     }
 
-    define void @__init_mystruct(ptr %0) {
+    define void @myStruct_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !46
+      store ptr %0, ptr %self, align [filtered], !dbg !46
+      ret void, !dbg !46
     }
 
-    define void @__init_test_with_ref_params(ptr %0) {
+    define void @__test_with_ref_params_array_ref_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !46
+      store ptr %0, ptr %self, align [filtered], !dbg !46
+      ret void, !dbg !46
     }
 
-    define void @__user_init_test_with_ref_params(ptr %0) {
+    define void @__test_with_ref_params_local_ref_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !46
+      store ptr %0, ptr %self, align [filtered], !dbg !46
+      ret void, !dbg !46
     }
 
-    define void @__user_init_myStruct(ptr %0) {
+    define void @test_with_ref_params_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !46
+      store ptr %0, ptr %self, align [filtered], !dbg !46
+      %deref = load ptr, ptr %self, align [filtered], !dbg !46
+      %array_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %deref, i32 0, i32 1, !dbg !46
+      %deref1 = load ptr, ptr %array_ref, align [filtered], !dbg !46
+      call void @__test_with_ref_params_array_ref_ctor(ptr %deref1), !dbg !46
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !46
+      %inout_struct = getelementptr inbounds nuw %test_with_ref_params, ptr %deref2, i32 0, i32 3, !dbg !46
+      %deref3 = load ptr, ptr %inout_struct, align [filtered], !dbg !46
+      call void @myStruct_ctor(ptr %deref3), !dbg !46
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !46
+      %local_ref = getelementptr inbounds nuw %test_with_ref_params, ptr %deref4, i32 0, i32 4, !dbg !46
+      call void @__test_with_ref_params_local_ref_ctor(ptr %local_ref), !dbg !46
+      ret void, !dbg !46
     }
 
-    define void @__init___Test() {
+    define void @____internal___ctor() {
     entry:
-      call void @__init_test_with_ref_params(ptr @test_with_ref_params_instance)
-      call void @__user_init_test_with_ref_params(ptr @test_with_ref_params_instance)
-      ret void
+      call void @test_with_ref_params_ctor(ptr @test_with_ref_params_instance), !dbg !46
+      ret void, !dbg !46
     }
 
     !llvm.module.flags = !{!37, !38}
@@ -1261,33 +1273,44 @@ fn test_debug_info_auto_deref_alias_pointers() {
 
     %myStruct = type { i32, i8 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !0
-    @global_struct = global %myStruct zeroinitializer, !dbg !10
-    @global_var = global i32 42, !dbg !12
-    @alias_int = global ptr null, !dbg !14
+    @global_var = global i32 42, !dbg !0
+    @alias_int = global ptr null, !dbg !4
+    @global_struct = global %myStruct zeroinitializer, !dbg !8
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !15
     @alias_struct = global ptr null, !dbg !18
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
-    define void @__init_mystruct(ptr %0) {
+    define void @myStruct_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__user_init_myStruct(ptr %0) {
+    define void @__global_alias_int_ctor(ptr %0) {
     entry:
       %self = alloca ptr, align [filtered]
       store ptr %0, ptr %self, align [filtered]
       ret void
     }
 
-    define void @__init___Test() {
+    define void @__global_alias_struct_ctor(ptr %0) {
     entry:
-      call void @__init_mystruct(ptr @global_struct)
+      %self = alloca ptr, align [filtered]
+      store ptr %0, ptr %self, align [filtered]
+      ret void
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      store i32 42, ptr @global_var, align [filtered]
+      %deref = load ptr, ptr @alias_int, align [filtered]
+      call void @__global_alias_int_ctor(ptr %deref)
       store ptr @global_var, ptr @alias_int, align [filtered]
+      call void @myStruct_ctor(ptr @global_struct)
+      %deref1 = load ptr, ptr @alias_struct, align [filtered]
+      call void @__global_alias_struct_ctor(ptr %deref1)
       store ptr @global_struct, ptr @alias_struct, align [filtered]
-      call void @__user_init_myStruct(ptr @global_struct)
       ret void
     }
 
@@ -1295,31 +1318,31 @@ fn test_debug_info_auto_deref_alias_pointers() {
     !llvm.dbg.cu = !{!24}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 10, type: !3, isLocal: false, isDefinition: true)
+    !1 = distinct !DIGlobalVariable(name: "global_var", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !4)
-    !4 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 10, size: 64, align [filtered], flags: DIFlagPublic, elements: !5, identifier: "myStruct")
-    !5 = !{!6, !8}
-    !6 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !7, size: 32, align [filtered], flags: DIFlagPublic)
-    !7 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !8 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 12, baseType: !9, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
-    !9 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !10 = !DIGlobalVariableExpression(var: !11, expr: !DIExpression())
-    !11 = distinct !DIGlobalVariable(name: "global_struct", scope: !2, file: !2, line: 6, type: !4, isLocal: false, isDefinition: true)
-    !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
-    !13 = distinct !DIGlobalVariable(name: "global_var", scope: !2, file: !2, line: 3, type: !7, isLocal: false, isDefinition: true)
-    !14 = !DIGlobalVariableExpression(var: !15, expr: !DIExpression())
-    !15 = distinct !DIGlobalVariable(name: "alias_int", scope: !2, file: !2, line: 4, type: !16, isLocal: false, isDefinition: true)
-    !16 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_int", scope: !2, file: !2, baseType: !17, align [filtered])
-    !17 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_int", baseType: !7, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !3 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !4 = !DIGlobalVariableExpression(var: !5, expr: !DIExpression())
+    !5 = distinct !DIGlobalVariable(name: "alias_int", scope: !2, file: !2, line: 4, type: !6, isLocal: false, isDefinition: true)
+    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_int", scope: !2, file: !2, baseType: !7, align [filtered])
+    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_int", baseType: !3, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !8 = !DIGlobalVariableExpression(var: !9, expr: !DIExpression())
+    !9 = distinct !DIGlobalVariable(name: "global_struct", scope: !2, file: !2, line: 6, type: !10, isLocal: false, isDefinition: true)
+    !10 = !DICompositeType(tag: DW_TAG_structure_type, name: "myStruct", scope: !2, file: !2, line: 10, size: 64, align [filtered], flags: DIFlagPublic, elements: !11, identifier: "myStruct")
+    !11 = !{!12, !13}
+    !12 = !DIDerivedType(tag: DW_TAG_member, name: "x", scope: !2, file: !2, line: 11, baseType: !3, size: 32, align [filtered], flags: DIFlagPublic)
+    !13 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 12, baseType: !14, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
+    !14 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
+    !15 = !DIGlobalVariableExpression(var: !16, expr: !DIExpression())
+    !16 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 10, type: !17, isLocal: false, isDefinition: true)
+    !17 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !10)
     !18 = !DIGlobalVariableExpression(var: !19, expr: !DIExpression())
     !19 = distinct !DIGlobalVariable(name: "alias_struct", scope: !2, file: !2, line: 7, type: !20, isLocal: false, isDefinition: true)
     !20 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_struct", scope: !2, file: !2, baseType: !21, align [filtered])
-    !21 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_struct", baseType: !4, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !21 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_struct", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
     !22 = !{i32 2, !"Dwarf Version", i32 5}
     !23 = !{i32 2, !"Debug Info Version", i32 3}
     !24 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !25, splitDebugInlining: false)
-    !25 = !{!12, !14, !10, !0, !18}
+    !25 = !{!0, !4, !8, !15, !18}
     "#)
 }
 
@@ -1354,10 +1377,10 @@ fn test_debug_info_mixed_pointer_types() {
 
     %mixed_ptr = type { ptr, ptr, ptr, ptr }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !0
-    @regular_ptr = global ptr null, !dbg !24
-    @alias_var = global ptr null, !dbg !28
+    @regular_ptr = global ptr null, !dbg !0
+    @alias_var = global ptr null, !dbg !6
+    @mixed_ptr_instance = global %mixed_ptr zeroinitializer, !dbg !12
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @mixed_ptr(ptr %0) !dbg !38 {
     entry:
@@ -1369,74 +1392,110 @@ fn test_debug_info_mixed_pointer_types() {
       ret void, !dbg !43
     }
 
-    define void @__init_mixed_ptr(ptr %0) {
+    define void @__mixed_ptr_local_ptr_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
     }
 
-    define void @__user_init_mixed_ptr(ptr %0) {
+    define void @__mixed_ptr_local_ref_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
     }
 
-    define void @__init___Test() {
+    define void @__global_regular_ptr_ctor(ptr %0) {
     entry:
-      call void @__init_mixed_ptr(ptr @mixed_ptr_instance)
-      store ptr @regular_ptr, ptr @alias_var, align [filtered]
-      call void @__user_init_mixed_ptr(ptr @mixed_ptr_instance)
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
+    }
+
+    define void @__global_alias_var__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
+    }
+
+    define void @__global_alias_var_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      ret void, !dbg !43
+    }
+
+    define void @mixed_ptr_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !43
+      store ptr %0, ptr %self, align [filtered], !dbg !43
+      %deref = load ptr, ptr %self, align [filtered], !dbg !43
+      %local_ptr = getelementptr inbounds nuw %mixed_ptr, ptr %deref, i32 0, i32 2, !dbg !43
+      call void @__mixed_ptr_local_ptr_ctor(ptr %local_ptr), !dbg !43
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !43
+      %local_ref = getelementptr inbounds nuw %mixed_ptr, ptr %deref1, i32 0, i32 3, !dbg !43
+      call void @__mixed_ptr_local_ref_ctor(ptr %local_ref), !dbg !43
+      ret void, !dbg !43
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @__global_regular_ptr_ctor(ptr @regular_ptr), !dbg !43
+      %deref = load ptr, ptr @alias_var, align [filtered], !dbg !43
+      call void @__global_alias_var_ctor(ptr %deref), !dbg !43
+      store ptr @regular_ptr, ptr @alias_var, align [filtered], !dbg !43
+      call void @mixed_ptr_ctor(ptr @mixed_ptr_instance), !dbg !43
+      ret void, !dbg !43
     }
 
     !llvm.module.flags = !{!34, !35}
     !llvm.dbg.cu = !{!36}
 
     !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
-    !1 = distinct !DIGlobalVariable(name: "mixed_ptr", scope: !2, file: !2, line: 7, type: !3, isLocal: false, isDefinition: true)
+    !1 = distinct !DIGlobalVariable(name: "regular_ptr", scope: !2, file: !2, line: 3, type: !3, isLocal: false, isDefinition: true)
     !2 = !DIFile(filename: "<internal>", directory: "")
-    !3 = !DICompositeType(tag: DW_TAG_structure_type, name: "mixed_ptr", scope: !2, file: !2, line: 7, size: 256, align [filtered], flags: DIFlagPublic, elements: !4, identifier: "mixed_ptr")
-    !4 = !{!5, !13, !17, !21}
-    !5 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 9, baseType: !6, size: 64, align [filtered], flags: DIFlagPublic)
-    !6 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !7, align [filtered])
-    !7 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !8, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !9, align [filtered])
-    !9 = !DICompositeType(tag: DW_TAG_array_type, baseType: !10, size: 648, align [filtered], elements: !11)
-    !10 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-    !11 = !{!12}
-    !12 = !DISubrange(count: 81, lowerBound: 0)
-    !13 = !DIDerivedType(tag: DW_TAG_member, name: "inout_param", scope: !2, file: !2, line: 12, baseType: !14, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
-    !14 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !15, align [filtered])
-    !15 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !16 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
-    !17 = !DIDerivedType(tag: DW_TAG_member, name: "local_ptr", scope: !2, file: !2, line: 15, baseType: !18, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
-    !18 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____mixed_ptr_local_ptr", scope: !2, file: !2, baseType: !19, align [filtered])
-    !19 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ptr", baseType: !20, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !20 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
-    !21 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 16, baseType: !22, size: 64, align [filtered], offset: 192, flags: DIFlagPublic)
-    !22 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____mixed_ptr_local_ref", scope: !2, file: !2, baseType: !23, align [filtered])
-    !23 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ref", baseType: !20, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !24 = !DIGlobalVariableExpression(var: !25, expr: !DIExpression())
-    !25 = distinct !DIGlobalVariable(name: "regular_ptr", scope: !2, file: !2, line: 3, type: !26, isLocal: false, isDefinition: true)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_regular_ptr", scope: !2, file: !2, baseType: !27, align [filtered])
-    !27 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_regular_ptr", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !28 = !DIGlobalVariableExpression(var: !29, expr: !DIExpression())
-    !29 = distinct !DIGlobalVariable(name: "alias_var", scope: !2, file: !2, line: 4, type: !30, isLocal: false, isDefinition: true)
-    !30 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_var", scope: !2, file: !2, baseType: !31, align [filtered])
-    !31 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var", baseType: !32, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_alias_var_", scope: !2, file: !2, baseType: !33, align [filtered])
-    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var_", baseType: !16, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !3 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_regular_ptr", scope: !2, file: !2, baseType: !4, align [filtered])
+    !4 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_regular_ptr", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !5 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
+    !6 = !DIGlobalVariableExpression(var: !7, expr: !DIExpression())
+    !7 = distinct !DIGlobalVariable(name: "alias_var", scope: !2, file: !2, line: 4, type: !8, isLocal: false, isDefinition: true)
+    !8 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____global_alias_var", scope: !2, file: !2, baseType: !9, align [filtered])
+    !9 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var", baseType: !10, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !10 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____global_alias_var_", scope: !2, file: !2, baseType: !11, align [filtered])
+    !11 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_alias_var_", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !12 = !DIGlobalVariableExpression(var: !13, expr: !DIExpression())
+    !13 = distinct !DIGlobalVariable(name: "mixed_ptr", scope: !2, file: !2, line: 7, type: !14, isLocal: false, isDefinition: true)
+    !14 = !DICompositeType(tag: DW_TAG_structure_type, name: "mixed_ptr", scope: !2, file: !2, line: 7, size: 256, align [filtered], flags: DIFlagPublic, elements: !15, identifier: "mixed_ptr")
+    !15 = !{!16, !24, !27, !31}
+    !16 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 9, baseType: !17, size: 64, align [filtered], flags: DIFlagPublic)
+    !17 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_STRING", scope: !2, file: !2, baseType: !18, align [filtered])
+    !18 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_STRING", baseType: !19, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !19 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !20, align [filtered])
+    !20 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 648, align [filtered], elements: !22)
+    !21 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !22 = !{!23}
+    !23 = !DISubrange(count: 81, lowerBound: 0)
+    !24 = !DIDerivedType(tag: DW_TAG_member, name: "inout_param", scope: !2, file: !2, line: 12, baseType: !25, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !25 = !DIDerivedType(tag: DW_TAG_typedef, name: "__AUTO_DEREF____auto_pointer_to_DINT", scope: !2, file: !2, baseType: !26, align [filtered])
+    !26 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__auto_pointer_to_DINT", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !27 = !DIDerivedType(tag: DW_TAG_member, name: "local_ptr", scope: !2, file: !2, line: 15, baseType: !28, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
+    !28 = !DIDerivedType(tag: DW_TAG_typedef, name: "__POINTER_TO____mixed_ptr_local_ptr", scope: !2, file: !2, baseType: !29, align [filtered])
+    !29 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ptr", baseType: !30, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !30 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
+    !31 = !DIDerivedType(tag: DW_TAG_member, name: "local_ref", scope: !2, file: !2, line: 16, baseType: !32, size: 64, align [filtered], offset: 192, flags: DIFlagPublic)
+    !32 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REF_TO____mixed_ptr_local_ref", scope: !2, file: !2, baseType: !33, align [filtered])
+    !33 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__mixed_ptr_local_ref", baseType: !30, size: 64, align [filtered], dwarfAddressSpace: 1)
     !34 = !{i32 2, !"Dwarf Version", i32 5}
     !35 = !{i32 2, !"Debug Info Version", i32 3}
     !36 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !37, splitDebugInlining: false)
-    !37 = !{!24, !28, !0}
+    !37 = !{!0, !6, !12}
     !38 = distinct !DISubprogram(name: "mixed_ptr", linkageName: "mixed_ptr", scope: !2, file: !2, line: 7, type: !39, scopeLine: 18, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !36, retainedNodes: !41)
     !39 = !DISubroutineType(flags: DIFlagPublic, types: !40)
-    !40 = !{null, !3, !6, !14}
+    !40 = !{null, !14, !17, !25}
     !41 = !{}
-    !42 = !DILocalVariable(name: "mixed_ptr", scope: !38, file: !2, line: 18, type: !3)
+    !42 = !DILocalVariable(name: "mixed_ptr", scope: !38, file: !2, line: 18, type: !14)
     !43 = !DILocation(line: 18, column: 4, scope: !38)
     "#)
 }
@@ -1474,16 +1533,16 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    %test_with_reference_params = type { ptr, ptr, ptr }
     %myStruct = type { i32, i8 }
+    %test_with_reference_params = type { ptr, ptr, ptr }
 
     @basic_reference = global ptr null, !dbg !0
     @array_reference = global ptr null, !dbg !6
     @struct_reference = global ptr null, !dbg !13
-    @string_reference = global ptr null, !dbg !22
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-    @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !31
-    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !47
+    @__myStruct__init = unnamed_addr constant %myStruct zeroinitializer, !dbg !22
+    @string_reference = global ptr null, !dbg !25
+    @test_with_reference_params_instance = global %test_with_reference_params zeroinitializer, !dbg !34
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @test_with_reference_params(ptr %0) !dbg !54 {
     entry:
@@ -1494,39 +1553,107 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
       ret void, !dbg !59
     }
 
-    define void @__init_mystruct(ptr %0) {
+    define void @myStruct_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
     }
 
-    define void @__init_test_with_reference_params(ptr %0) {
+    define void @__test_with_reference_params_ref_param_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
     }
 
-    define void @__user_init_myStruct(ptr %0) {
+    define void @__test_with_reference_params_array_ref_param__ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
     }
 
-    define void @__user_init_test_with_reference_params(ptr %0) {
+    define void @__test_with_reference_params_array_ref_param_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
     }
 
-    define void @__init___Test() {
+    define void @__test_with_reference_params_local_reference_ctor(ptr %0) {
     entry:
-      call void @__init_test_with_reference_params(ptr @test_with_reference_params_instance)
-      call void @__user_init_test_with_reference_params(ptr @test_with_reference_params_instance)
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @__global_basic_reference_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @__global_array_reference__ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @__global_array_reference_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @__global_struct_reference_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @__global_string_reference_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @test_with_reference_params_ctor(ptr %0) {
+    entry:
+      %self = alloca ptr, align [filtered], !dbg !59
+      store ptr %0, ptr %self, align [filtered], !dbg !59
+      %deref = load ptr, ptr %self, align [filtered], !dbg !59
+      %ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %deref, i32 0, i32 0, !dbg !59
+      %deref1 = load ptr, ptr %ref_param, align [filtered], !dbg !59
+      call void @__test_with_reference_params_ref_param_ctor(ptr %deref1), !dbg !59
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !59
+      %array_ref_param = getelementptr inbounds nuw %test_with_reference_params, ptr %deref2, i32 0, i32 1, !dbg !59
+      %deref3 = load ptr, ptr %array_ref_param, align [filtered], !dbg !59
+      call void @__test_with_reference_params_array_ref_param_ctor(ptr %deref3), !dbg !59
+      %deref4 = load ptr, ptr %self, align [filtered], !dbg !59
+      %local_reference = getelementptr inbounds nuw %test_with_reference_params, ptr %deref4, i32 0, i32 2, !dbg !59
+      %deref5 = load ptr, ptr %local_reference, align [filtered], !dbg !59
+      call void @__test_with_reference_params_local_reference_ctor(ptr %deref5), !dbg !59
+      ret void, !dbg !59
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      %deref = load ptr, ptr @basic_reference, align [filtered], !dbg !59
+      call void @__global_basic_reference_ctor(ptr %deref), !dbg !59
+      %deref1 = load ptr, ptr @array_reference, align [filtered], !dbg !59
+      call void @__global_array_reference_ctor(ptr %deref1), !dbg !59
+      %deref2 = load ptr, ptr @struct_reference, align [filtered], !dbg !59
+      call void @__global_struct_reference_ctor(ptr %deref2), !dbg !59
+      %deref3 = load ptr, ptr @string_reference, align [filtered], !dbg !59
+      call void @__global_string_reference_ctor(ptr %deref3), !dbg !59
+      call void @test_with_reference_params_ctor(ptr @test_with_reference_params_instance), !dbg !59
+      ret void, !dbg !59
     }
 
     !llvm.module.flags = !{!50, !51}
@@ -1555,42 +1682,42 @@ fn test_debug_info_auto_deref_reference_to_pointers() {
     !20 = !DIDerivedType(tag: DW_TAG_member, name: "y", scope: !2, file: !2, line: 21, baseType: !21, size: 8, align [filtered], offset: 32, flags: DIFlagPublic)
     !21 = !DIBasicType(name: "BOOL", size: 8, encoding: DW_ATE_boolean, flags: DIFlagPublic)
     !22 = !DIGlobalVariableExpression(var: !23, expr: !DIExpression())
-    !23 = distinct !DIGlobalVariable(name: "string_reference", scope: !2, file: !2, line: 6, type: !24, isLocal: false, isDefinition: true)
-    !24 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_string_reference", scope: !2, file: !2, baseType: !25, align [filtered])
-    !25 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_reference", baseType: !26, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !26 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !27, align [filtered])
-    !27 = !DICompositeType(tag: DW_TAG_array_type, baseType: !28, size: 648, align [filtered], elements: !29)
-    !28 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
-    !29 = !{!30}
-    !30 = !DISubrange(count: 81, lowerBound: 0)
-    !31 = !DIGlobalVariableExpression(var: !32, expr: !DIExpression())
-    !32 = distinct !DIGlobalVariable(name: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !33, isLocal: false, isDefinition: true)
-    !33 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_reference_params", scope: !2, file: !2, line: 9, size: 192, align [filtered], flags: DIFlagPublic, elements: !34, identifier: "test_with_reference_params")
-    !34 = !{!35, !38, !44}
-    !35 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 11, baseType: !36, size: 64, align [filtered], flags: DIFlagPublic)
-    !36 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_ref_param", scope: !2, file: !2, baseType: !37, align [filtered])
-    !37 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_ref_param", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !38 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref_param", scope: !2, file: !2, line: 12, baseType: !39, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
-    !39 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_array_ref_param", scope: !2, file: !2, baseType: !40, align [filtered])
-    !40 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_array_ref_param", baseType: !41, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !41 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 48, align [filtered], elements: !42)
-    !42 = !{!43}
-    !43 = !DISubrange(count: 6, lowerBound: 0)
-    !44 = !DIDerivedType(tag: DW_TAG_member, name: "local_reference", scope: !2, file: !2, line: 15, baseType: !45, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
-    !45 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_local_reference", scope: !2, file: !2, baseType: !46, align [filtered])
-    !46 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_local_reference", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
-    !47 = !DIGlobalVariableExpression(var: !48, expr: !DIExpression())
-    !48 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 19, type: !49, isLocal: false, isDefinition: true)
-    !49 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
+    !23 = distinct !DIGlobalVariable(name: "__myStruct__init", scope: !2, file: !2, line: 19, type: !24, isLocal: false, isDefinition: true)
+    !24 = !DIDerivedType(tag: DW_TAG_const_type, baseType: !17)
+    !25 = !DIGlobalVariableExpression(var: !26, expr: !DIExpression())
+    !26 = distinct !DIGlobalVariable(name: "string_reference", scope: !2, file: !2, line: 6, type: !27, isLocal: false, isDefinition: true)
+    !27 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____global_string_reference", scope: !2, file: !2, baseType: !28, align [filtered])
+    !28 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__global_string_reference", baseType: !29, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !29 = !DIDerivedType(tag: DW_TAG_typedef, name: "__STRING__81", scope: !2, file: !2, baseType: !30, align [filtered])
+    !30 = !DICompositeType(tag: DW_TAG_array_type, baseType: !31, size: 648, align [filtered], elements: !32)
+    !31 = !DIBasicType(name: "CHAR", size: 8, encoding: DW_ATE_UTF, flags: DIFlagPublic)
+    !32 = !{!33}
+    !33 = !DISubrange(count: 81, lowerBound: 0)
+    !34 = !DIGlobalVariableExpression(var: !35, expr: !DIExpression())
+    !35 = distinct !DIGlobalVariable(name: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !36, isLocal: false, isDefinition: true)
+    !36 = !DICompositeType(tag: DW_TAG_structure_type, name: "test_with_reference_params", scope: !2, file: !2, line: 9, size: 192, align [filtered], flags: DIFlagPublic, elements: !37, identifier: "test_with_reference_params")
+    !37 = !{!38, !41, !47}
+    !38 = !DIDerivedType(tag: DW_TAG_member, name: "ref_param", scope: !2, file: !2, line: 11, baseType: !39, size: 64, align [filtered], flags: DIFlagPublic)
+    !39 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_ref_param", scope: !2, file: !2, baseType: !40, align [filtered])
+    !40 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_ref_param", baseType: !5, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !41 = !DIDerivedType(tag: DW_TAG_member, name: "array_ref_param", scope: !2, file: !2, line: 12, baseType: !42, size: 64, align [filtered], offset: 64, flags: DIFlagPublic)
+    !42 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_array_ref_param", scope: !2, file: !2, baseType: !43, align [filtered])
+    !43 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_array_ref_param", baseType: !44, size: 64, align [filtered], dwarfAddressSpace: 1)
+    !44 = !DICompositeType(tag: DW_TAG_array_type, baseType: !21, size: 48, align [filtered], elements: !45)
+    !45 = !{!46}
+    !46 = !DISubrange(count: 6, lowerBound: 0)
+    !47 = !DIDerivedType(tag: DW_TAG_member, name: "local_reference", scope: !2, file: !2, line: 15, baseType: !48, size: 64, align [filtered], offset: 128, flags: DIFlagPublic)
+    !48 = !DIDerivedType(tag: DW_TAG_typedef, name: "__REFERENCE_TO____test_with_reference_params_local_reference", scope: !2, file: !2, baseType: !49, align [filtered])
+    !49 = !DIDerivedType(tag: DW_TAG_pointer_type, name: "__test_with_reference_params_local_reference", baseType: !17, size: 64, align [filtered], dwarfAddressSpace: 1)
     !50 = !{i32 2, !"Dwarf Version", i32 5}
     !51 = !{i32 2, !"Debug Info Version", i32 3}
     !52 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !53, splitDebugInlining: false)
-    !53 = !{!0, !6, !13, !47, !22, !31}
+    !53 = !{!0, !6, !13, !22, !25, !34}
     !54 = distinct !DISubprogram(name: "test_with_reference_params", linkageName: "test_with_reference_params", scope: !2, file: !2, line: 9, type: !55, scopeLine: 17, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !52, retainedNodes: !57)
     !55 = !DISubroutineType(flags: DIFlagPublic, types: !56)
-    !56 = !{null, !33, !36, !39}
+    !56 = !{null, !36, !39, !42}
     !57 = !{}
-    !58 = !DILocalVariable(name: "test_with_reference_params", scope: !54, file: !2, line: 17, type: !33)
+    !58 = !DILocalVariable(name: "test_with_reference_params", scope: !54, file: !2, line: 17, type: !36)
     !59 = !DILocation(line: 17, column: 4, scope: !54)
     "#)
 }
@@ -1618,8 +1745,6 @@ fn range_datatype_debug() {
     target datalayout = "[filtered]"
     target triple = "[filtered]"
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
-
     define i32 @main() !dbg !4 {
     entry:
       %main = alloca i32, align [filtered]
@@ -1628,16 +1753,21 @@ fn range_datatype_debug() {
       store i32 0, ptr %r, align [filtered]
         #dbg_declare(ptr %main, !12, !DIExpression(), !13)
       store i32 0, ptr %main, align [filtered]
-      store i32 50, ptr %r, align [filtered], !dbg !14
-      %load_r = load i32, ptr %r, align [filtered], !dbg !15
-      store i32 %load_r, ptr %main, align [filtered], !dbg !15
-      %main_ret = load i32, ptr %main, align [filtered], !dbg !16
-      ret i32 %main_ret, !dbg !16
+      call void @RangeType_ctor(ptr %r), !dbg !14
+      store i32 50, ptr %r, align [filtered], !dbg !15
+      %load_r = load i32, ptr %r, align [filtered], !dbg !16
+      store i32 %load_r, ptr %main, align [filtered], !dbg !16
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !17
+      ret i32 %main_ret, !dbg !17
     }
 
-    define void @__init___Test() {
+    define void @RangeType_ctor(ptr %0) {
     entry:
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !17
+      store ptr %0, ptr %self, align [filtered], !dbg !17
+      %deref = load ptr, ptr %self, align [filtered], !dbg !17
+      store i32 0, ptr %deref, align [filtered], !dbg !17
+      ret void, !dbg !17
     }
 
     !llvm.module.flags = !{!0, !1}
@@ -1647,7 +1777,7 @@ fn range_datatype_debug() {
     !1 = !{i32 2, !"Debug Info Version", i32 3}
     !2 = distinct !DICompileUnit(language: DW_LANG_C, file: !3, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false)
     !3 = !DIFile(filename: "<internal>", directory: "")
-    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 10, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
+    !4 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !3, file: !3, line: 6, type: !5, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !7)
     !5 = !DISubroutineType(flags: DIFlagPublic, types: !6)
     !6 = !{null}
     !7 = !{}
@@ -1657,9 +1787,10 @@ fn range_datatype_debug() {
     !11 = !DILocation(line: 8, column: 12, scope: !4)
     !12 = !DILocalVariable(name: "main", scope: !4, file: !3, line: 6, type: !10, align [filtered])
     !13 = !DILocation(line: 6, column: 17, scope: !4)
-    !14 = !DILocation(line: 10, column: 12, scope: !4)
-    !15 = !DILocation(line: 11, column: 12, scope: !4)
-    !16 = !DILocation(line: 12, column: 8, scope: !4)
+    !14 = !DILocation(line: 0, scope: !4)
+    !15 = !DILocation(line: 10, column: 12, scope: !4)
+    !16 = !DILocation(line: 11, column: 12, scope: !4)
+    !17 = !DILocation(line: 12, column: 8, scope: !4)
     "#)
 }
 
@@ -1691,7 +1822,6 @@ fn range_datatype_reference_expr_bounds_debug() {
     target triple = "[filtered]"
 
     @ZERO = unnamed_addr constant i32 0, !dbg !0
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
 
     define i32 @main() !dbg !9 {
     entry:
@@ -1701,16 +1831,21 @@ fn range_datatype_reference_expr_bounds_debug() {
       store i32 0, ptr %r, align [filtered]
         #dbg_declare(ptr %main, !16, !DIExpression(), !17)
       store i32 0, ptr %main, align [filtered]
-      store i32 50, ptr %r, align [filtered], !dbg !18
-      %load_r = load i32, ptr %r, align [filtered], !dbg !19
-      store i32 %load_r, ptr %main, align [filtered], !dbg !19
-      %main_ret = load i32, ptr %main, align [filtered], !dbg !20
-      ret i32 %main_ret, !dbg !20
+      call void @RangeType_ctor(ptr %r), !dbg !18
+      store i32 50, ptr %r, align [filtered], !dbg !19
+      %load_r = load i32, ptr %r, align [filtered], !dbg !20
+      store i32 %load_r, ptr %main, align [filtered], !dbg !20
+      %main_ret = load i32, ptr %main, align [filtered], !dbg !21
+      ret i32 %main_ret, !dbg !21
     }
 
-    define void @__init___Test() {
+    define void @RangeType_ctor(ptr %0) {
     entry:
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !21
+      store ptr %0, ptr %self, align [filtered], !dbg !21
+      %deref = load ptr, ptr %self, align [filtered], !dbg !21
+      store i32 0, ptr %deref, align [filtered], !dbg !21
+      ret void, !dbg !21
     }
 
     !llvm.module.flags = !{!5, !6}
@@ -1725,7 +1860,7 @@ fn range_datatype_reference_expr_bounds_debug() {
     !6 = !{i32 2, !"Debug Info Version", i32 3}
     !7 = distinct !DICompileUnit(language: DW_LANG_C, file: !2, producer: "RuSTy Structured text Compiler", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !8, splitDebugInlining: false)
     !8 = !{!0}
-    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 14, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
+    !9 = distinct !DISubprogram(name: "main", linkageName: "main", scope: !2, file: !2, line: 10, type: !10, scopeLine: 1, flags: DIFlagPublic, spFlags: DISPFlagDefinition, unit: !7, retainedNodes: !12)
     !10 = !DISubroutineType(flags: DIFlagPublic, types: !11)
     !11 = !{null}
     !12 = !{}
@@ -1734,9 +1869,10 @@ fn range_datatype_reference_expr_bounds_debug() {
     !15 = !DILocation(line: 12, column: 12, scope: !9)
     !16 = !DILocalVariable(name: "main", scope: !9, file: !2, line: 10, type: !4, align [filtered])
     !17 = !DILocation(line: 10, column: 17, scope: !9)
-    !18 = !DILocation(line: 14, column: 12, scope: !9)
-    !19 = !DILocation(line: 15, column: 12, scope: !9)
-    !20 = !DILocation(line: 16, column: 8, scope: !9)
+    !18 = !DILocation(line: 0, scope: !9)
+    !19 = !DILocation(line: 14, column: 12, scope: !9)
+    !20 = !DILocation(line: 15, column: 12, scope: !9)
+    !21 = !DILocation(line: 16, column: 8, scope: !9)
     "#);
 }
 
@@ -1766,8 +1902,8 @@ fn range_datatype_fqn_reference_bounds_debug() {
 
     %prog = type { i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0 }, !dbg !0
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !14 {
     entry:
@@ -1777,25 +1913,29 @@ fn range_datatype_fqn_reference_bounds_debug() {
       ret void, !dbg !19
     }
 
-    define void @__init_prog(ptr %0) {
+    define void @RangeType_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !19
+      store ptr %0, ptr %self, align [filtered], !dbg !19
+      %deref = load ptr, ptr %self, align [filtered], !dbg !19
+      store i32 0, ptr %deref, align [filtered], !dbg !19
+      ret void, !dbg !19
     }
 
-    define void @__user_init_prog(ptr %0) {
+    define void @prog_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !19
+      store ptr %0, ptr %self, align [filtered], !dbg !19
+      %deref = load ptr, ptr %self, align [filtered], !dbg !19
+      %r = getelementptr inbounds nuw %prog, ptr %deref, i32 0, i32 1, !dbg !19
+      call void @RangeType_ctor(ptr %r), !dbg !19
+      ret void, !dbg !19
     }
 
-    define void @__init___Test() {
+    define void @____internal___ctor() {
     entry:
-      call void @__init_prog(ptr @prog_instance)
-      call void @__user_init_prog(ptr @prog_instance)
-      ret void
+      call void @prog_ctor(ptr @prog_instance), !dbg !19
+      ret void, !dbg !19
     }
 
     !llvm.module.flags = !{!10, !11}
@@ -1852,8 +1992,8 @@ fn range_datatype_debug_alias_reused() {
 
     %prog = type { i32, i32, i32, i32 }
 
-    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___Test, ptr null }]
     @prog_instance = global %prog { i32 10, i32 0, i32 0, i32 0 }, !dbg !0
+    @llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___ctor, ptr null }]
 
     define void @prog(ptr %0) !dbg !16 {
     entry:
@@ -1865,25 +2005,42 @@ fn range_datatype_debug_alias_reused() {
       ret void, !dbg !21
     }
 
-    define void @__init_prog(ptr %0) {
+    define void @RangeType_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !21
+      store ptr %0, ptr %self, align [filtered], !dbg !21
+      %deref = load ptr, ptr %self, align [filtered], !dbg !21
+      store i32 0, ptr %deref, align [filtered], !dbg !21
+      ret void, !dbg !21
     }
 
-    define void @__user_init_prog(ptr %0) {
+    define void @__prog_w_ctor(ptr %0) {
     entry:
-      %self = alloca ptr, align [filtered]
-      store ptr %0, ptr %self, align [filtered]
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !21
+      store ptr %0, ptr %self, align [filtered], !dbg !21
+      ret void, !dbg !21
     }
 
-    define void @__init___Test() {
+    define void @prog_ctor(ptr %0) {
     entry:
-      call void @__init_prog(ptr @prog_instance)
-      call void @__user_init_prog(ptr @prog_instance)
-      ret void
+      %self = alloca ptr, align [filtered], !dbg !21
+      store ptr %0, ptr %self, align [filtered], !dbg !21
+      %deref = load ptr, ptr %self, align [filtered], !dbg !21
+      %u = getelementptr inbounds nuw %prog, ptr %deref, i32 0, i32 1, !dbg !21
+      call void @RangeType_ctor(ptr %u), !dbg !21
+      %deref1 = load ptr, ptr %self, align [filtered], !dbg !21
+      %v = getelementptr inbounds nuw %prog, ptr %deref1, i32 0, i32 2, !dbg !21
+      call void @RangeType_ctor(ptr %v), !dbg !21
+      %deref2 = load ptr, ptr %self, align [filtered], !dbg !21
+      %w = getelementptr inbounds nuw %prog, ptr %deref2, i32 0, i32 3, !dbg !21
+      call void @__prog_w_ctor(ptr %w), !dbg !21
+      ret void, !dbg !21
+    }
+
+    define void @____internal___ctor() {
+    entry:
+      call void @prog_ctor(ptr @prog_instance), !dbg !21
+      ret void, !dbg !21
     }
 
     !llvm.module.flags = !{!12, !13}

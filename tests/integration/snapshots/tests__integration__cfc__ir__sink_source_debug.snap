@@ -6,13 +6,8 @@ target triple = "[filtered]"
 
 %main = type { i32 }
 
-<<<<<<< HEAD
-@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @__init___plc, ptr null }]
-||||||| parent of ba4d93ad92 (make the code compile)
-@llvm.global_ctors = appending global [1 x { i32, void ()*, i8* }] [{ i32, void ()*, i8* } { i32 65535, void ()* @__init___plc, i8* null }]
-=======
->>>>>>> ba4d93ad92 (make the code compile)
 @main_instance = global %main zeroinitializer, !dbg !0
+@llvm.global_ctors = appending global [1 x { i32, ptr, ptr }] [{ i32, ptr, ptr } { i32 65535, ptr @____internal___cfc_ctor, ptr null }]
 
 define void @main(ptr %0) !dbg !11 {
 entry:
@@ -22,68 +17,18 @@ entry:
   ret void, !dbg !18
 }
 
-<<<<<<< HEAD
-define void @__init_main(ptr %0) {
+define void @main_ctor(ptr %0) {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
+  %self = alloca ptr, align [filtered], !dbg !18
+  store ptr %0, ptr %self, align [filtered], !dbg !18
+  ret void, !dbg !18
 }
 
-define void @__user_init_main(ptr %0) {
+define void @____internal___cfc_ctor() {
 entry:
-  %self = alloca ptr, align [filtered]
-  store ptr %0, ptr %self, align [filtered]
-  ret void
+  call void @main_ctor(ptr @main_instance), !dbg !18
+  ret void, !dbg !18
 }
-
-define void @__init___plc() {
-entry:
-  call void @__init_main(ptr @main_instance)
-  call void @__user_init_main(ptr @main_instance)
-  ret void
-}
-||||||| parent of ba4d93ad92 (make the code compile)
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-define void @__init_main(%main* %0) {
-entry:
-  %self = alloca %main*, align [filtered]
-  store %main* %0, %main** %self, align [filtered]
-  ret void
-}
-
-define void @__user_init_main(%main* %0) {
-entry:
-  %self = alloca %main*, align [filtered]
-  store %main* %0, %main** %self, align [filtered]
-  ret void
-}
-
-define void @__init___plc() {
-entry:
-  call void @__init_main(%main* @main_instance)
-  call void @__user_init_main(%main* @main_instance)
-  ret void
-}
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
-
-=======
-define void @__main_ctor(%main* %0) {
-entry:
-  %self = alloca %main*, align [filtered]
-  call void @llvm.dbg.declare(metadata %main** %self, metadata !14, metadata !DIExpression()), !dbg !19
-  store %main* %0, %main** %self, align [filtered]
-  ret void, !dbg !21
-}
-
-; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
-declare void @llvm.dbg.declare(metadata, metadata, metadata) #0
-
-attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
->>>>>>> ba4d93ad92 (make the code compile)
 
 !llvm.module.flags = !{!7, !8}
 !llvm.dbg.cu = !{!9}
@@ -107,6 +52,3 @@ attributes #0 = { nofree nosync nounwind readnone speculatable willreturn }
 !16 = !DILocation(line: 1, scope: !11)
 !17 = !DILocation(line: 4, scope: !11)
 !18 = !DILocation(line: 0, scope: !11)
-!19 = !DILocation(line: 1, scope: !20)
-!20 = !DIFile(filename: "<internal>", directory: "")
-!21 = !DILocation(line: 0, scope: !20)
