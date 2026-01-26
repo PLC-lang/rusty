@@ -1,9 +1,0 @@
----
-source: src/validation/tests/variable_validation_tests.rs
-expression: "&diagnostics"
----
-error[E037]: VAR_OUTPUT variables cannot be assigned outside of their scope.
-   ┌─ <internal>:19:13
-   │
-19 │             fb.out1 := 1;
-   │             ^^^^^^^^^^^^ VAR_OUTPUT variables cannot be assigned outside of their scope.

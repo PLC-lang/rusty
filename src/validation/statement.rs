@@ -617,7 +617,17 @@ fn validate_reference<T: AnnotationMap>(
             // check if we're accessing a private variable AND the variable's qualifier is not the
             // POU we're accessing it from.
             if argument_type.is_private()
-                && variable_is_not_in_parent_pou_or_container(context, qualified_name, location)
+                && context
+                    .qualifier
+                    .and_then(|qualifier| context.index.find_pou(qualifier))
+                    .map(|pou| (pou.get_name(), pou.get_container()))
+                    .is_some_and(|(pou, container)| {
+                        !(qualified_name.starts_with(pou)
+                    || qualified_name.starts_with(container)
+                    || context.index.is_init_function(pou)
+                    //Hack: Avoid internal check here because of the super call
+                    || location.is_internal())
+                    })
             {
                 validator.push_diagnostic(
                     Diagnostic::new(format!("Illegal access to private member {qualified_name}"))
@@ -1128,7 +1138,12 @@ fn validate_assignment<T: AnnotationMap>(
 
             if (matches!(argument_type, ArgumentType::ByRef(VariableType::Output))
                 || matches!(argument_type, ArgumentType::ByVal(VariableType::Output)))
-                && variable_is_not_in_parent_pou_or_container(context, qualified_name, location)
+                && !variable_is_in_inherited_or_self_scope(
+                    context.qualifier.and_then(|qualifier| context.index.find_pou(qualifier)),
+                    context,
+                    qualified_name,
+                    location,
+                )
                 && !context.is_call()
             {
                 validator.push_diagnostic(
@@ -1205,22 +1220,89 @@ fn validate_assignment<T: AnnotationMap>(
     }
 }
 
-fn variable_is_not_in_parent_pou_or_container<T: AnnotationMap>(
+fn variable_is_in_inherited_or_self_scope<T: AnnotationMap>(
+    option_pou: Option<&PouIndexEntry>,
     context: &ValidationContext<T>,
     qualified_name: &str,
     location: &SourceLocation,
 ) -> bool {
-    context
-        .qualifier
-        .and_then(|qualifier| context.index.find_pou(qualifier))
-        .map(|pou| (pou.get_name(), pou.get_container()))
-        .is_some_and(|(pou, container)| {
-            !(qualified_name.starts_with(pou)
-                    || qualified_name.starts_with(container)
-                    || context.index.is_init_function(pou)
-                    //Hack: Avoid internal check here because of the super call
-                    || location.is_internal())
-        })
+    if let Some(pou) = option_pou {
+        let mut found = false;
+
+        if let Some(super_class) = pou.get_super_class() {
+            if let Some(super_pou) = context.index.find_pou(super_class) {
+                found = variable_is_in_pou_or_container(
+                    super_pou.get_name(),
+                    super_pou.get_container(),
+                    context,
+                    qualified_name,
+                    location,
+                );
+
+                if !found {
+                    found = variable_is_in_inherited_or_self_scope(
+                        Some(super_pou),
+                        context,
+                        qualified_name,
+                        location,
+                    );
+                }
+            }
+        }
+
+        if found {
+            return true;
+        }
+
+        if let Some(parent) = pou.get_parent_pou_name() {
+            if let Some(parent_pou) = context.index.find_pou(parent) {
+                found = variable_is_in_pou_or_container(
+                    parent_pou.get_name(),
+                    parent_pou.get_container(),
+                    context,
+                    qualified_name,
+                    location,
+                );
+
+                if !found {
+                    found = variable_is_in_inherited_or_self_scope(
+                        Some(parent_pou),
+                        context,
+                        qualified_name,
+                        location,
+                    );
+                }
+            }
+        }
+
+        if found {
+            return true;
+        }
+
+        return variable_is_in_pou_or_container(
+            pou.get_name(),
+            pou.get_container(),
+            context,
+            qualified_name,
+            location,
+        );
+    }
+
+    true
+}
+
+fn variable_is_in_pou_or_container<T: AnnotationMap>(
+    pou: &str,
+    container: &str,
+    context: &ValidationContext<T>,
+    qualified_name: &str,
+    location: &SourceLocation,
+) -> bool {
+    qualified_name.starts_with(pou)
+        || qualified_name.starts_with(container)
+        || context.index.is_init_function(pou)
+        //Hack: Avoid internal check here because of the super call
+        || location.is_internal()
 }
 
 /// Returns true if an assignment statement exists such that a return value is assigned to a void
