@@ -1878,3 +1878,66 @@ fn function_with_array_of_array_return() {
     attributes #1 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
     "#);
 }
+
+#[test]
+fn function_output_parameter_assignment_order() {
+    let result = codegen(
+        "
+        FUNCTION TWO_OUTPUT_FUNCTION
+            VAR_OUTPUT
+                out1 : DINT;
+                out2 : DINT;
+            END_VAR
+            out1 := 1;
+            out2 := 2;
+        END_FUNCTION
+
+        FUNCTION main
+        VAR
+            dIntVar : DINT;
+            arrVar : ARRAY[0..3] OF DINT := [0,0,0];
+        END_VAR
+
+            TWO_OUTPUT_FUNCTION(out2=>dintVar, out1=>dintVar); // dintVar= 2(RuSTy), 1(CODESYS)
+
+        END_FUNCTION
+    ",
+    );
+
+    filtered_assert_snapshot!(result, @r#"
+    ; ModuleID = '<internal>'
+    source_filename = "<internal>"
+    target datalayout = "[filtered]"
+    target triple = "[filtered]"
+
+    @__main.arrVar__init = unnamed_addr constant [4 x i32] zeroinitializer
+
+    define void @TWO_OUTPUT_FUNCTION(ptr %0, ptr %1) {
+    entry:
+      %out1 = alloca ptr, align 8
+      store ptr %0, ptr %out1, align 8
+      %out2 = alloca ptr, align 8
+      store ptr %1, ptr %out2, align 8
+      %deref = load ptr, ptr %out1, align 8
+      store i32 1, ptr %deref, align 4
+      %deref1 = load ptr, ptr %out2, align 8
+      store i32 2, ptr %deref1, align 4
+      ret void
+    }
+
+    define void @main() {
+    entry:
+      %dIntVar = alloca i32, align 4
+      %arrVar = alloca [4 x i32], align 4
+      store i32 0, ptr %dIntVar, align 4
+      call void @llvm.memcpy.p0.p0.i64(ptr align 1 %arrVar, ptr align 1 @__main.arrVar__init, i64 ptrtoint (ptr getelementptr ([4 x i32], ptr null, i32 1) to i64), i1 false)
+      call void @TWO_OUTPUT_FUNCTION(ptr %dIntVar, ptr %dIntVar)
+      ret void
+    }
+
+    ; Function Attrs: nocallback nofree nounwind willreturn memory(argmem: readwrite)
+    declare void @llvm.memcpy.p0.p0.i64(ptr noalias writeonly captures(none), ptr noalias readonly captures(none), i64, i1 immarg) #0
+
+    attributes #0 = { nocallback nofree nounwind willreturn memory(argmem: readwrite) }
+    "#);
+}
