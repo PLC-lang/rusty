@@ -105,7 +105,7 @@
 <a href=#105 id=105 data-nosnippet>105</a>        <span class="kw">let </span>referenced_type = referenced_type.get_name().expect(<span class="string">"named datatype"</span>).to_string();
 <a href=#106 id=106 data-nosnippet>106</a>        <span class="kw">let </span>struct_name = name.to_owned();
 <a href=#107 id=107 data-nosnippet>107</a>
-<a href=#108 id=108 data-nosnippet>108</a>        <span class="kw">let </span>dummy_array_name = <span class="macro">format!</span>(<span class="string">"__arr_vla_{ndims}_{referenced_type}"</span>).to_lowercase();
+<a href=#108 id=108 data-nosnippet>108</a>        <span class="kw">let </span>dummy_array_name = <span class="macro">format!</span>(<span class="string">"{struct_name}_vla_{ndims}_{referenced_type}"</span>).to_lowercase();
 <a href=#109 id=109 data-nosnippet>109</a>        <span class="kw">let </span>member_array_name = <span class="macro">format!</span>(<span class="string">"__ptr_to_{dummy_array_name}"</span>);
 <a href=#110 id=110 data-nosnippet>110</a>        <span class="kw">let </span>member_dimensions_name = <span class="macro">format!</span>(<span class="string">"__bounds_{dummy_array_name}"</span>);
 <a href=#111 id=111 data-nosnippet>111</a>
