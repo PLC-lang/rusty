@@ -465,6 +465,11 @@ pub enum DataTypeInformation {
         generic_symbol: String,
         nature: TypeNature,
     },
+    // TODO: In the future, this may be extended to `Interface { name: TypeId, members: Vec<VariableIndexEntry> }`
+    // to store method signatures and property declarations directly.
+    Interface {
+        name: TypeId,
+    },
     Void,
 }
 
@@ -479,7 +484,8 @@ impl DataTypeInformation {
             | DataTypeInformation::SubRange { name, .. }
             | DataTypeInformation::Alias { name, .. }
             | DataTypeInformation::Enum { name, .. }
-            | DataTypeInformation::Generic { name, .. } => name,
+            | DataTypeInformation::Generic { name, .. }
+            | DataTypeInformation::Interface { name, .. } => name,
             DataTypeInformation::String { encoding: StringEncoding::Utf8, .. } => "STRING",
             DataTypeInformation::String { encoding: StringEncoding::Utf16, .. } => "WSTRING",
             DataTypeInformation::Void => "VOID",
@@ -734,7 +740,9 @@ impl DataTypeInformation {
                 .find_effective_type_info(referenced_type)
                 .map(|it| it.get_size(index))
                 .unwrap_or_else(|| Ok(Bytes::from_bits(DINT_SIZE))),
-            DataTypeInformation::Generic { .. } | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
+            DataTypeInformation::Generic { .. }
+            | DataTypeInformation::Interface { .. }
+            | DataTypeInformation::Void => Ok(Bytes::from_bits(0)),
         };
         seen.remove(self.get_name());
         res

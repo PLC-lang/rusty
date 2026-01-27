@@ -280,6 +280,9 @@ impl<'ink> DataTypeGenerator<'ink, '_> {
             DataTypeInformation::Generic { .. } => {
                 unreachable!("Generic types should not be generated")
             }
+            DataTypeInformation::Interface { .. } => {
+                unreachable!("Interface types should not be generated")
+            }
         }
     }
 
