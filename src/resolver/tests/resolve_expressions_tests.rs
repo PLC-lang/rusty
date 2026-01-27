@@ -4399,7 +4399,13 @@ fn array_passed_to_function_with_vla_param_is_annotated_correctly() {
         ..
     }) = stmt.get_stmt()
     {
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_1_int")
+        );
     } else {
         unreachable!()
     }
@@ -4582,7 +4588,7 @@ fn vla_struct_reference_is_annotated_as_array() {
     assert_eq!(
         type_hint.clone().information,
         DataTypeInformation::Array {
-            name: "__arr_vla_1_int".to_string(),
+            name: "__foo_arr_vla_1_int".to_string(),
             inner_type_name: "INT".to_string(),
             dimensions: vec![Dimension {
                 start_offset: TypeSize::Undetermined,
@@ -4621,7 +4627,7 @@ fn vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, base.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(&annotations, &index, base.as_ref(), "__foo_arr", Some("__foo_arr_vla_1_int"));
     } else {
         panic!("expected an array access, got none")
     }
@@ -4662,7 +4668,7 @@ fn vla_write_access_is_annotated_correctly() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4708,7 +4714,7 @@ fn writing_value_read_from_vla_to_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr1",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr1_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4729,7 +4735,7 @@ fn writing_value_read_from_vla_to_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr2",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr2_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4780,7 +4786,7 @@ fn address_of_works_on_vla() {
                 &index,
                 reference.as_ref(),
                 "__foo_arr",
-                Some("__arr_vla_1_int")
+                Some("__foo_arr_vla_1_int")
             );
         } else {
             panic!("expected an array access, got none")
@@ -4821,7 +4827,13 @@ fn by_ref_vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_1_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_1_int")
+        );
     } else {
         panic!("expected an array access, got none")
     }
@@ -4843,7 +4855,7 @@ fn by_ref_vla_access_is_annotated_correctly() {
             &index,
             reference.as_ref(),
             "__foo_arr2",
-            Some("__arr_vla_1_int")
+            Some("__foo_arr2_vla_1_int")
         );
     } else {
         panic!("expected an array access, got none")
@@ -4949,7 +4961,13 @@ fn multi_dimensional_vla_access_is_annotated_correctly() {
         assert_type_and_hint!(&annotations, &index, stmt, "INT", None);
 
         // reference is annotated with type and hint
-        assert_type_and_hint!(&annotations, &index, reference.as_ref(), "__foo_arr", Some("__arr_vla_2_int"));
+        assert_type_and_hint!(
+            &annotations,
+            &index,
+            reference.as_ref(),
+            "__foo_arr",
+            Some("__foo_arr_vla_2_int")
+        );
     } else {
         panic!("expected an array access, got none")
     }
