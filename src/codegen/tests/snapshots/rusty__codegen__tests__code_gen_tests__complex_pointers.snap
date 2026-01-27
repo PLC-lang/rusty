@@ -18,29 +18,29 @@ entry:
   %arrrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %rarrX = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
   %tmpVar = getelementptr inbounds [10 x i16], ptr %arrX, i32 0, i32 0
-  %load_X = load i16, ptr %X, align 2
-  store i16 %load_X, ptr %tmpVar, align 2
+  %load_X = load i16, ptr %X, align [filtered]
+  store i16 %load_X, ptr %tmpVar, align [filtered]
   %tmpVar1 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 1
   %tmpVar2 = getelementptr inbounds [10 x i16], ptr %arrX, i32 0, i32 2
-  store ptr %tmpVar2, ptr %tmpVar1, align 8
-  store ptr %arrX, ptr %rarrX, align 8
+  store ptr %tmpVar2, ptr %tmpVar1, align [filtered]
+  store ptr %arrX, ptr %rarrX, align [filtered]
   %tmpVar3 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 3
-  %deref = load ptr, ptr %tmpVar3, align 8
-  %load_tmpVar = load i16, ptr %deref, align 2
-  store i16 %load_tmpVar, ptr %X, align 2
-  %deref4 = load ptr, ptr %rarrX, align 8
+  %deref = load ptr, ptr %tmpVar3, align [filtered]
+  %load_tmpVar = load i16, ptr %deref, align [filtered]
+  store i16 %load_tmpVar, ptr %X, align [filtered]
+  %deref4 = load ptr, ptr %rarrX, align [filtered]
   %tmpVar5 = getelementptr inbounds [10 x i16], ptr %deref4, i32 0, i32 4
-  %load_tmpVar6 = load i16, ptr %tmpVar5, align 2
-  store i16 %load_tmpVar6, ptr %X, align 2
+  %load_tmpVar6 = load i16, ptr %tmpVar5, align [filtered]
+  store i16 %load_tmpVar6, ptr %X, align [filtered]
   %tmpVar7 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 5
-  %deref8 = load ptr, ptr %tmpVar7, align 8
-  %load_X9 = load i16, ptr %X, align 2
-  store i16 %load_X9, ptr %deref8, align 2
-  %deref10 = load ptr, ptr %rarrX, align 8
+  %deref8 = load ptr, ptr %tmpVar7, align [filtered]
+  %load_X9 = load i16, ptr %X, align [filtered]
+  store i16 %load_X9, ptr %deref8, align [filtered]
+  %deref10 = load ptr, ptr %rarrX, align [filtered]
   %tmpVar11 = getelementptr inbounds [10 x i16], ptr %deref10, i32 0, i32 6
   %tmpVar12 = getelementptr inbounds [10 x ptr], ptr %arrrX, i32 0, i32 7
-  %deref13 = load ptr, ptr %tmpVar12, align 8
-  %load_tmpVar14 = load i16, ptr %deref13, align 2
-  store i16 %load_tmpVar14, ptr %tmpVar11, align 2
+  %deref13 = load ptr, ptr %tmpVar12, align [filtered]
+  %load_tmpVar14 = load i16, ptr %deref13, align [filtered]
+  store i16 %load_tmpVar14, ptr %tmpVar11, align [filtered]
   ret void
 }

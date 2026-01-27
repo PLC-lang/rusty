@@ -13,39 +13,39 @@ target triple = "[filtered]"
 
 define i32 @func(ptr %0, ptr %1, ptr %2, ptr %3, ptr %4, ptr %5) {
 entry:
-  %func = alloca i32, align 4
-  %byInt1 = alloca ptr, align 8
-  store ptr %0, ptr %byInt1, align 8
-  %byInt2 = alloca ptr, align 8
-  store ptr %1, ptr %byInt2, align 8
-  %byInt3 = alloca ptr, align 8
-  store ptr %2, ptr %byInt3, align 8
-  %byInt4 = alloca ptr, align 8
-  store ptr %3, ptr %byInt4, align 8
-  %byReal1 = alloca ptr, align 8
-  store ptr %4, ptr %byReal1, align 8
-  %byReal2 = alloca ptr, align 8
-  store ptr %5, ptr %byReal2, align 8
-  store i32 0, ptr %func, align 4
-  store i32 1, ptr %func, align 4
-  %func_ret = load i32, ptr %func, align 4
+  %func = alloca i32, align [filtered]
+  %byInt1 = alloca ptr, align [filtered]
+  store ptr %0, ptr %byInt1, align [filtered]
+  %byInt2 = alloca ptr, align [filtered]
+  store ptr %1, ptr %byInt2, align [filtered]
+  %byInt3 = alloca ptr, align [filtered]
+  store ptr %2, ptr %byInt3, align [filtered]
+  %byInt4 = alloca ptr, align [filtered]
+  store ptr %3, ptr %byInt4, align [filtered]
+  %byReal1 = alloca ptr, align [filtered]
+  store ptr %4, ptr %byReal1, align [filtered]
+  %byReal2 = alloca ptr, align [filtered]
+  store ptr %5, ptr %byReal2, align [filtered]
+  store i32 0, ptr %func, align [filtered]
+  store i32 1, ptr %func, align [filtered]
+  %func_ret = load i32, ptr %func, align [filtered]
   ret i32 %func_ret
 }
 
 define void @main(ptr %0) {
 entry:
-  %1 = alloca i8, align 1
-  store i8 1, ptr %1, align 1
-  %2 = alloca i16, align 2
-  store i16 2, ptr %2, align 2
-  %3 = alloca i32, align 4
-  store i32 3, ptr %3, align 4
-  %4 = alloca i64, align 8
-  store i64 4, ptr %4, align 8
-  %5 = alloca float, align 4
-  store float 5.000000e+00, ptr %5, align 4
-  %6 = alloca double, align 8
-  store double 6.000000e+00, ptr %6, align 8
+  %1 = alloca i8, align [filtered]
+  store i8 1, ptr %1, align [filtered]
+  %2 = alloca i16, align [filtered]
+  store i16 2, ptr %2, align [filtered]
+  %3 = alloca i32, align [filtered]
+  store i32 3, ptr %3, align [filtered]
+  %4 = alloca i64, align [filtered]
+  store i64 4, ptr %4, align [filtered]
+  %5 = alloca float, align [filtered]
+  store float 5.000000e+00, ptr %5, align [filtered]
+  %6 = alloca double, align [filtered]
+  store double 6.000000e+00, ptr %6, align [filtered]
   %call = call i32 @func(ptr %1, ptr %2, ptr %3, ptr %4, ptr %5, ptr %6)
   ret void
 }

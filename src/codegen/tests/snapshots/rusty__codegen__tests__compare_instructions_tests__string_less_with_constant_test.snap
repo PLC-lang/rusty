@@ -11,29 +11,29 @@ target triple = "[filtered]"
 
 define i8 @STRING_LESS(ptr %0, ptr %1) {
 entry:
-  %STRING_LESS = alloca i8, align 1
-  %op1 = alloca [1025 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %op1, i8 0, i64 1025, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %op1, ptr align 1 %0, i64 1024, i1 false)
-  %op2 = alloca [1025 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %op2, i8 0, i64 1025, i1 false)
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %op2, ptr align 1 %1, i64 1024, i1 false)
-  store i8 0, ptr %STRING_LESS, align 1
-  %STRING_LESS_ret = load i8, ptr %STRING_LESS, align 1
+  %STRING_LESS = alloca i8, align [filtered]
+  %op1 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %op1, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %op1, ptr align [filtered] %0, i64 1024, i1 false)
+  %op2 = alloca [1025 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %op2, i8 0, i64 1025, i1 false)
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %op2, ptr align [filtered] %1, i64 1024, i1 false)
+  store i8 0, ptr %STRING_LESS, align [filtered]
+  %STRING_LESS_ret = load i8, ptr %STRING_LESS, align [filtered]
   ret i8 %STRING_LESS_ret
 }
 
 define i16 @baz() {
 entry:
-  %baz = alloca i16, align 2
-  %a = alloca [81 x i8], align 1
-  %result = alloca i8, align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %a, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
-  store i8 0, ptr %result, align 1
-  store i16 0, ptr %baz, align 2
+  %baz = alloca i16, align [filtered]
+  %a = alloca [81 x i8], align [filtered]
+  %result = alloca i8, align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %a, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  store i8 0, ptr %result, align [filtered]
+  store i16 0, ptr %baz, align [filtered]
   %call = call i8 @STRING_LESS(ptr %a, ptr @utf08_literal_0)
-  store i8 %call, ptr %result, align 1
-  %baz_ret = load i16, ptr %baz, align 2
+  store i8 %call, ptr %result, align [filtered]
+  %baz_ret = load i16, ptr %baz, align [filtered]
   ret i16 %baz_ret
 }
 

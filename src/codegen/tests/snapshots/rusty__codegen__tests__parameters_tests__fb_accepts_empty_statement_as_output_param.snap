@@ -15,8 +15,8 @@ target triple = "[filtered]"
 
 define void @fb_t(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %out1 = getelementptr inbounds nuw %fb_t, ptr %0, i32 0, i32 0
   %out2 = getelementptr inbounds nuw %fb_t, ptr %0, i32 0, i32 1
   ret void
@@ -28,7 +28,7 @@ entry:
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
   call void @fb_t(ptr %fb)
   %1 = getelementptr inbounds %fb_t, ptr %fb, i32 0, i32 0
-  %2 = load i32, ptr %1, align 4
-  store i32 %2, ptr %x, align 4
+  %2 = load i32, ptr %1, align [filtered]
+  store i32 %2, ptr %x, align [filtered]
   ret void
 }

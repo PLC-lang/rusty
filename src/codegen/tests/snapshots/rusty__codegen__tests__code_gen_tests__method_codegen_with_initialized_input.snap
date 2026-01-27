@@ -13,8 +13,8 @@ target triple = "[filtered]"
 
 define void @fb(ptr %0) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
   %call = call i32 @fb__meth(ptr %0, i32 5)
   %call1 = call i32 @fb__meth(ptr %0, i32 4)
   ret void
@@ -22,20 +22,20 @@ entry:
 
 define i32 @fb__meth(ptr %0, i32 %1) {
 entry:
-  %this = alloca ptr, align 8
-  store ptr %0, ptr %this, align 8
-  %fb.meth = alloca i32, align 4
-  %a = alloca i32, align 4
-  store i32 %1, ptr %a, align 4
-  store i32 0, ptr %fb.meth, align 4
-  %fb__meth_ret = load i32, ptr %fb.meth, align 4
+  %this = alloca ptr, align [filtered]
+  store ptr %0, ptr %this, align [filtered]
+  %fb.meth = alloca i32, align [filtered]
+  %a = alloca i32, align [filtered]
+  store i32 %1, ptr %a, align [filtered]
+  store i32 0, ptr %fb.meth, align [filtered]
+  %fb__meth_ret = load i32, ptr %fb.meth, align [filtered]
   ret i32 %fb__meth_ret
 }
 
 define i32 @foo() {
 entry:
-  %foo = alloca i32, align 4
-  store i32 0, ptr %foo, align 4
-  %foo_ret = load i32, ptr %foo, align 4
+  %foo = alloca i32, align [filtered]
+  store i32 0, ptr %foo, align [filtered]
+  %foo_ret = load i32, ptr %foo, align [filtered]
   ret i32 %foo_ret
 }

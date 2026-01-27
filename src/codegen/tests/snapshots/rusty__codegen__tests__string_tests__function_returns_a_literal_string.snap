@@ -14,20 +14,20 @@ target triple = "[filtered]"
 
 define void @ret(ptr %0) {
 entry:
-  %ret = alloca ptr, align 8
-  store ptr %0, ptr %ret, align 8
-  %deref = load ptr, ptr %ret, align 8
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %deref, ptr align 1 @utf08_literal_0, i32 4, i1 false)
+  %ret = alloca ptr, align [filtered]
+  store ptr %0, ptr %ret, align [filtered]
+  %deref = load ptr, ptr %ret, align [filtered]
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %deref, ptr align [filtered] @utf08_literal_0, i32 4, i1 false)
   ret void
 }
 
 define void @main(ptr %0) {
 entry:
   %str = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
-  %__ret0 = alloca [81 x i8], align 1
-  call void @llvm.memset.p0.i64(ptr align 1 %__ret0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
+  %__ret0 = alloca [81 x i8], align [filtered]
+  call void @llvm.memset.p0.i64(ptr align [filtered] %__ret0, i8 0, i64 ptrtoint (ptr getelementptr ([81 x i8], ptr null, i32 1) to i64), i1 false)
   call void @ret(ptr %__ret0)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %str, ptr align 1 %__ret0, i32 80, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %str, ptr align [filtered] %__ret0, i32 80, i1 false)
   ret void
 }
 

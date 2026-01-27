@@ -16,10 +16,10 @@ entry:
   %a = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
   %b = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %c = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-  %load_b = load i16, ptr %b, align 2
+  %load_b = load i16, ptr %b, align [filtered]
   %1 = sitofp i16 %load_b to float
-  %load_a = load float, ptr %a, align 4
+  %load_a = load float, ptr %a, align [filtered]
   %tmpVar = fadd float %1, %load_a
-  store float %tmpVar, ptr %c, align 4
+  store float %tmpVar, ptr %c, align [filtered]
   ret void
 }

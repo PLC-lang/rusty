@@ -17,6 +17,6 @@ define void @MainProg(ptr %0) {
 entry:
   %Cord = getelementptr inbounds nuw %MainProg, ptr %0, i32 0, i32 0
   %a = getelementptr inbounds nuw %MyStruct, ptr %Cord, i32 0, i32 0
-  store i32 0, ptr %a, align 4
+  store i32 0, ptr %a, align [filtered]
   ret void
 }

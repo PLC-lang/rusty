@@ -13,17 +13,17 @@ target triple = "[filtered]"
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  %cmd1 = alloca %commands, align 8
-  %var1 = alloca i16, align 2
-  %cmd2 = alloca %commands, align 8
-  %var2 = alloca i16, align 2
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd1, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
-  store i16 0, ptr %var1, align 2
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %cmd2, ptr align 1 @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
-  store i16 0, ptr %var2, align 2
-  store i32 0, ptr %main, align 4
-  %main_ret = load i32, ptr %main, align 4
+  %main = alloca i32, align [filtered]
+  %cmd1 = alloca %commands, align [filtered]
+  %var1 = alloca i16, align [filtered]
+  %cmd2 = alloca %commands, align [filtered]
+  %var2 = alloca i16, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd1, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %var1, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %cmd2, ptr align [filtered] @__commands__init, i64 ptrtoint (ptr getelementptr (%commands, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %var2, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
 

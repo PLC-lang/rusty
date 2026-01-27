@@ -13,9 +13,9 @@ target triple = "[filtered]"
 
 define i64 @foo() {
 entry:
-  %foo = alloca i64, align 8
-  store i64 0, ptr %foo, align 8
-  %foo_ret = load i64, ptr %foo, align 8
+  %foo = alloca i64, align [filtered]
+  store i64 0, ptr %foo, align [filtered]
+  %foo_ret = load i64, ptr %foo, align [filtered]
   ret i64 %foo_ret
 }
 
@@ -23,10 +23,10 @@ define void @main(ptr %0) {
 entry:
   %pt = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 0
   %x = getelementptr inbounds nuw %main, ptr %0, i32 0, i32 1
-  store ptr %x, ptr %pt, align 8
-  %load_pt = load ptr, ptr %pt, align 8
+  store ptr %x, ptr %pt, align [filtered]
+  %load_pt = load ptr, ptr %pt, align [filtered]
   %call = call i64 @foo()
   %access___main_pt = getelementptr inbounds i16, ptr %load_pt, i64 %call
-  store ptr %access___main_pt, ptr %pt, align 8
+  store ptr %access___main_pt, ptr %pt, align [filtered]
   ret void
 }

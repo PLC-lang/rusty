@@ -142,9 +142,9 @@ fn using_enums() {
       %x = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 0
       %y = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
       %z = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
-      store i32 5, ptr %x, align 4
-      store i32 4, ptr %y, align 4
-      store i32 16, ptr %z, align 4
+      store i32 5, ptr %x, align [filtered]
+      store i32 4, ptr %y, align [filtered]
+      store i32 16, ptr %z, align [filtered]
       ret void
     }
     "#);

@@ -21,10 +21,10 @@ entry:
   %should_not_replace_s = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 1
   %should_replace_ws = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 2
   %should_not_replace_ws = getelementptr inbounds nuw %prg, ptr %0, i32 0, i32 3
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %should_replace_s, ptr align 1 @utf08_literal_1, i32 41, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 1 %should_not_replace_s, ptr align 1 @utf08_literal_0, i32 19, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %should_replace_ws, ptr align 2 @utf16_literal_1, i32 82, i1 false)
-  call void @llvm.memcpy.p0.p0.i32(ptr align 2 %should_not_replace_ws, ptr align 2 @utf16_literal_0, i32 38, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %should_replace_s, ptr align [filtered] @utf08_literal_1, i32 41, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %should_not_replace_s, ptr align [filtered] @utf08_literal_0, i32 19, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %should_replace_ws, ptr align [filtered] @utf16_literal_1, i32 82, i1 false)
+  call void @llvm.memcpy.p0.p0.i32(ptr align [filtered] %should_not_replace_ws, ptr align [filtered] @utf16_literal_0, i32 38, i1 false)
   ret void
 }
 

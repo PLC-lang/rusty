@@ -20,7 +20,7 @@ condition_check:                                  ; preds = %entry, %continue5
   br i1 true, label %while_body, label %continue
 
 while_body:                                       ; preds = %condition_check
-  %load_x = load i32, ptr %x, align 4
+  %load_x = load i32, ptr %x, align [filtered]
   %tmpVar = icmp slt i32 %load_x, 20
   %1 = zext i1 %tmpVar to i8
   %2 = icmp ne i8 %1, 0
@@ -37,10 +37,10 @@ buffer_block:                                     ; No predecessors!
   br label %continue1
 
 continue1:                                        ; preds = %buffer_block, %while_body
-  %load_x3 = load i32, ptr %x, align 4
+  %load_x3 = load i32, ptr %x, align [filtered]
   %tmpVar4 = add i32 %load_x3, 1
-  store i32 %tmpVar4, ptr %x, align 4
-  %load_x6 = load i32, ptr %x, align 4
+  store i32 %tmpVar4, ptr %x, align [filtered]
+  %load_x6 = load i32, ptr %x, align [filtered]
   %tmpVar7 = icmp sge i32 %load_x6, 10
   %3 = zext i1 %tmpVar7 to i8
   %4 = icmp ne i8 %3, 0

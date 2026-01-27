@@ -14,39 +14,39 @@ target triple = "[filtered]"
 
 define i16 @foo(ptr %0) {
 entry:
-  %foo = alloca i16, align 2
-  %vla = alloca %__foo_vla, align 8
-  call void @llvm.memcpy.p0.p0.i64(ptr align 1 %vla, ptr align 1 %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
-  store i16 0, ptr %foo, align 2
+  %foo = alloca i16, align [filtered]
+  %vla = alloca %__foo_vla, align [filtered]
+  call void @llvm.memcpy.p0.p0.i64(ptr align [filtered] %vla, ptr align [filtered] %0, i64 ptrtoint (ptr getelementptr (%__foo_vla, ptr null, i32 1) to i64), i1 false)
+  store i16 0, ptr %foo, align [filtered]
   %vla_arr_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 0
-  %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align 8
+  %vla_arr_ptr = load ptr, ptr %vla_arr_gep, align [filtered]
   %dim_arr = getelementptr inbounds nuw %__foo_vla, ptr %vla, i32 0, i32 1
   %start_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 0
   %end_idx_ptr0 = getelementptr inbounds [2 x i32], ptr %dim_arr, i32 0, i32 1
-  %start_idx_value0 = load i32, ptr %start_idx_ptr0, align 4
-  %end_idx_value0 = load i32, ptr %end_idx_ptr0, align 4
+  %start_idx_value0 = load i32, ptr %start_idx_ptr0, align [filtered]
+  %end_idx_value0 = load i32, ptr %end_idx_ptr0, align [filtered]
   %tmpVar = sub i32 0, %start_idx_value0
   %arr_val = getelementptr inbounds i16, ptr %vla_arr_ptr, i32 %tmpVar
-  store i16 10, ptr %arr_val, align 2
-  %foo_ret = load i16, ptr %foo, align 2
+  store i16 10, ptr %arr_val, align [filtered]
+  %foo_ret = load i16, ptr %foo, align [filtered]
   ret i16 %foo_ret
 }
 
 define i32 @main() {
 entry:
-  %main = alloca i32, align 4
-  store i32 0, ptr %main, align 4
-  %auto_deref = load [2 x i16], ptr @arr, align 2
-  %vla_struct = alloca %__foo_vla, align 8
+  %main = alloca i32, align [filtered]
+  store i32 0, ptr %main, align [filtered]
+  %auto_deref = load [2 x i16], ptr @arr, align [filtered]
+  %vla_struct = alloca %__foo_vla, align [filtered]
   %vla_array_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 0
   %vla_dimensions_gep = getelementptr inbounds nuw %__foo_vla, ptr %vla_struct, i32 0, i32 1
-  store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align 4
-  store ptr @arr, ptr %vla_array_gep, align 8
-  %0 = load %__foo_vla, ptr %vla_struct, align 8
-  %vla_struct_ptr = alloca %__foo_vla, align 8
-  store %__foo_vla %0, ptr %vla_struct_ptr, align 8
+  store [2 x i32] [i32 0, i32 1], ptr %vla_dimensions_gep, align [filtered]
+  store ptr @arr, ptr %vla_array_gep, align [filtered]
+  %0 = load %__foo_vla, ptr %vla_struct, align [filtered]
+  %vla_struct_ptr = alloca %__foo_vla, align [filtered]
+  store %__foo_vla %0, ptr %vla_struct_ptr, align [filtered]
   %call = call i16 @foo(ptr %vla_struct_ptr)
-  %main_ret = load i32, ptr %main, align 4
+  %main_ret = load i32, ptr %main, align [filtered]
   ret i32 %main_ret
 }
 

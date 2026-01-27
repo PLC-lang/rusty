@@ -9,14 +9,14 @@ target triple = "[filtered]"
 
 define i32 @myFunc() !dbg !4 {
 entry:
-  %myFunc = alloca i32, align 4
+  %myFunc = alloca i32, align [filtered]
     #dbg_declare(ptr %myFunc, !9, !DIExpression(), !11)
-  store i32 0, ptr %myFunc, align 4
-  %myFunc_ret = load i32, ptr %myFunc, align 4, !dbg !12
+  store i32 0, ptr %myFunc, align [filtered]
+  %myFunc_ret = load i32, ptr %myFunc, align [filtered], !dbg !12
   ret i32 %myFunc_ret, !dbg !12
 
 buffer_block:                                     ; No predecessors!
-  %myFunc_ret1 = load i32, ptr %myFunc, align 4, !dbg !13
+  %myFunc_ret1 = load i32, ptr %myFunc, align [filtered], !dbg !13
   ret i32 %myFunc_ret1, !dbg !13
 }
 
@@ -32,7 +32,7 @@ buffer_block:                                     ; No predecessors!
 !6 = !DISubroutineType(flags: DIFlagPublic, types: !7)
 !7 = !{null}
 !8 = !{}
-!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align: 32)
+!9 = !DILocalVariable(name: "myFunc", scope: !4, file: !5, line: 2, type: !10, align [filtered])
 !10 = !DIBasicType(name: "DINT", size: 32, encoding: DW_ATE_signed, flags: DIFlagPublic)
 !11 = !DILocation(line: 2, column: 17, scope: !4)
 !12 = !DILocation(line: 3, column: 12, scope: !4)
