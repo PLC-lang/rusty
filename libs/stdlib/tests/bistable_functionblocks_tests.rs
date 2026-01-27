@@ -1,4 +1,4 @@
-use common::compile_with_native;
+use common::compile_and_load;
 use iec61131std::bistable_functionblocks::SetResetParams;
 
 // Import common functionality into the integration tests
@@ -6,6 +6,8 @@ mod common;
 
 use common::add_std;
 use plc::codegen::CodegenContext;
+
+use crate::common::get_includes;
 
 #[repr(C)]
 #[derive(Default, Debug)]
@@ -48,9 +50,10 @@ fn sr() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "bistable_functionblocks.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["bistable_functionblocks.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = MainType { ..MainType::default() };
     module.run::<_, ()>("main", &mut main_inst);
     assert!(main_inst.t_t_f);
@@ -90,9 +93,10 @@ fn rs() {
         END_PROGRAM
     "#;
 
-    let source = add_std!(prog, "bistable_functionblocks.st");
+    let source = vec![prog.into()];
+    let includes = get_includes(&["bistable_functionblocks.st"]);
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source, includes);
     let mut main_inst = MainType { ..MainType::default() };
     module.run::<_, ()>("main", &mut main_inst);
     assert!(!main_inst.t_t_f);

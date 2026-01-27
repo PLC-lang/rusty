@@ -28,8 +28,17 @@ impl Default for MainType {
 /// An implementation is also provided for `Vec<SourceContainer>`
 ///
 pub fn compile<T: Compilable>(codegen_context: &CodegenContext, source: T) -> GeneratedModule<'_> {
+    compile_with_includes(codegen_context, source.containers(), vec![])
+}
+
+pub fn compile_with_includes<T: Compilable>(
+    codegen_context: &CodegenContext,
+    source: T,
+    includes: T,
+) -> GeneratedModule<'_> {
     let source = source.containers();
-    let project = Project::new("TestProject".to_string()).with_sources(source);
+    let includes = includes.containers();
+    let project = Project::new("TestProject".to_string()).with_sources(source).with_source_includes(includes);
     let context = GlobalContext::new().with_source(project.get_sources(), None).unwrap();
     let diagnostician = Diagnostician::null_diagnostician();
     let mut pipeline = BuildPipeline {

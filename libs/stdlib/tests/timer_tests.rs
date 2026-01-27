@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use common::compile_with_native;
+use common::compile_and_load;
 use iec61131std::timers::TimerParams;
 
 // Import common functionality into the integration tests
@@ -71,7 +71,7 @@ fn tp_true_for_time() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
     module.run::<_, ()>("main", &mut main_inst);
@@ -119,7 +119,7 @@ fn tp_does_not_retrigger_on_consecutive_input() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
 
     let mut main_inst = MainType { value: true, ..MainType::default() };
     //On first call, out is true, et is 0
@@ -161,7 +161,7 @@ fn tp_not_interrupted_by_signal_change() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
 
     //On first call with true, out is true, et is 0
@@ -205,7 +205,7 @@ fn ton_returns_true_after_time_preset() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -257,7 +257,7 @@ fn ton_q_defaults_to_false() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -282,7 +282,7 @@ fn ton_counts_elapsed_time_while_waiting() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true, counter starts at 0
     module.run::<_, ()>("main", &mut main_inst);
@@ -320,7 +320,7 @@ fn ton_waits_again_after_turining_off() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);
@@ -376,7 +376,7 @@ fn toff_starts_timer_after_input_is_off() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     module.run::<_, ()>("main", &mut main_inst);
@@ -413,7 +413,7 @@ fn toff_runs_for_preset_time() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> true
     module.run::<_, ()>("main", &mut main_inst);
@@ -458,7 +458,7 @@ fn toff_keeps_returning_true_if_input_returns_to_true() {
 
     let source = add_std!(prog, "timers.st");
     let context = CodegenContext::create();
-    let module = compile_with_native(&context, source);
+    let module = compile_and_load(&context, source);
     let mut main_inst = MainType { value: true, ..MainType::default() };
     // Value true First call -> false
     module.run::<_, ()>("main", &mut main_inst);

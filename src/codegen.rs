@@ -585,47 +585,21 @@ impl<'ink> GeneratedModule<'ink> {
     ///
     pub fn run<T, U>(&self, name: &str, params: &mut T) -> U {
         let engine = self.get_execution_engine();
-
-        // Call the ctors after mapping is done
-        self.run_ctors();
-
         unsafe {
             let main: JitFunction<MainFunction<T, U>> = engine.get_function(name).unwrap();
-            let main_t_ptr = &mut *params as *mut _;
-            main.call(main_t_ptr)
+            main.call(&mut *params as *mut _)
         }
     }
+
     ///
     /// Runs the function given by `name` inside the compiled module.
     /// Returns the value returned by calling the function
     ///
     pub fn run_no_param<U>(&self, name: &str) -> U {
         let engine = self.get_execution_engine();
-        // Call the ctors after mapping is done
-        self.run_ctors();
         unsafe {
             let main: JitFunction<MainEmptyFunction<U>> = engine.get_function(name).unwrap();
             main.call()
-        }
-    }
-
-    fn run_ctors(&self) {
-        let engine = self.get_execution_engine();
-
-        let mut func = self.module.get_first_function();
-        while let Some(f) = func {
-            let name = f.get_name().to_str().unwrap_or("");
-
-            // Match: __unit_*_ctor pattern
-            if name.starts_with("__unit_") && name.ends_with("_ctor") {
-                unsafe {
-                    if let Ok(ctor) = engine.get_function::<unsafe extern "C" fn()>(name) {
-                        ctor.call();
-                    }
-                }
-            }
-
-            func = f.get_next_function();
         }
     }
 
