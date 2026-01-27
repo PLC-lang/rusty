@@ -13,5 +13,3 @@ error[E029]: Recursive data structure `A -> B -> A` has infinite size
   ·
 9 │             FUNCTION_BLOCK B
   │                            - see also
-
-

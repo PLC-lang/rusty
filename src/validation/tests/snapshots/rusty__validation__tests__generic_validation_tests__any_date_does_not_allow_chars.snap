@@ -25,5 +25,3 @@ error[E062]: Invalid type nature for generic argument. WCHAR is no ANY_DATE
   │
 4 │         FUNCTION func2  : INT VAR x : WCHAR; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. WCHAR is no ANY_DATE
-
-

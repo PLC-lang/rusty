@@ -90,7 +90,7 @@ fn function_block_calls_are_annotated_correctly() {
     let unit = &annotated_project.units[0].get_unit();
 
     let call_annotation = annotations.get(&unit.implementations[0].statements[0]).unwrap().clone();
-    assert_debug_snapshot!(call_annotation, @r###"
+    assert_debug_snapshot!(call_annotation, @r#"
     Variable {
         resulting_type: "myFb",
         qualified_name: "main.fb0",
@@ -100,5 +100,5 @@ fn function_block_calls_are_annotated_correctly() {
         ),
         auto_deref: None,
     }
-    "###);
+    "#);
 }

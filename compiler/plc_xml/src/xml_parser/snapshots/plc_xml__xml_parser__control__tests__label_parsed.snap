@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/control.rs
-expression: "Control::visit(reader).unwrap()"
+expression: "Control::visit(&mut reader, tag).unwrap()"
 ---
 Control {
     kind: Label,

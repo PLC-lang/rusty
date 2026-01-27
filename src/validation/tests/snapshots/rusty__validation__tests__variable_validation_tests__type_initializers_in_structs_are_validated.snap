@@ -13,5 +13,3 @@ error[E043]: Array assignments must be surrounded with `[]`
   │
 8 │             invalid_array_assignment : ARRAY[0..1] OF INT := 0;
   │                                                              ^ Array assignments must be surrounded with `[]`
-
-

@@ -19,5 +19,3 @@ error[E055]: Word-Wise access requires a Numerical type larger than 16 bits
    │
 12 │             invalid3.%W1;
    │                      ^^^ Word-Wise access requires a Numerical type larger than 16 bits
-
-

@@ -7,5 +7,3 @@ error[E071]: struct literal must consist of explicit assignments in the form of 
   │
 9 │                 x : Point := (x := 1, 2);
   │                                       ^ struct literal must consist of explicit assignments in the form of member := value
-
-

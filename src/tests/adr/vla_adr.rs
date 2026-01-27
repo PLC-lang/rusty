@@ -28,7 +28,7 @@ fn representation() {
     // The probably most interesting entry here is the `source` field, indicating that the given struct is a
     // VLA with one dimension of type DINT.
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__foo_arr").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__foo_arr",
         initial_value: None,
@@ -87,7 +87,7 @@ fn representation() {
             ),
         },
     }
-    "###);
+    "#);
 
     // Pointer to `__arr_vla_1_dint`, which translates to...
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__ptr_to___arr_vla_1_dint").unwrap(),
@@ -114,7 +114,7 @@ fn representation() {
 
     // ...an array of type DINT with its dimensions unknown at compile time
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__arr_vla_1_dint").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__arr_vla_1_dint",
         initial_value: None,
@@ -133,11 +133,11 @@ fn representation() {
             span: None,
         },
     }
-    "###);
+    "#);
 
     // Finally the dimensions array, which is being populated at runtime; see [`pass`]
     insta::assert_debug_snapshot!(index.find_effective_type_by_name("__bounds___arr_vla_1_dint").unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__bounds___arr_vla_1_dint",
         initial_value: None,
@@ -169,7 +169,7 @@ fn representation() {
             ),
         },
     }
-    "###);
+    "#);
 }
 
 /// Because VLAs are internally handled as structs, they'll naturally also translate into LLVM structs.
@@ -215,7 +215,7 @@ fn pass() {
 
     // `local` is defined as an array of type DINT...
     insta::assert_debug_snapshot!(annotations.get_type(local[0], &index).unwrap(),
-    @r###"
+    @r#"
     DataType {
         name: "__main_local",
         initial_value: None,
@@ -247,13 +247,13 @@ fn pass() {
             ),
         },
     }
-    "###);
+    "#);
 
     // ...but their type-hint indicates it should be VLA / fat-pointer struct. Such type-mismatches (for VLAs)
     // result in wrapping arrays into structs.
     let hint = annotations.get_type_hint(local[0], &index).unwrap();
     insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information),
-    @r###"
+    @r#"
     Struct {
         name: "__foo_arr",
         members: [
@@ -301,7 +301,7 @@ fn pass() {
             },
         ),
     }
-    "###);
+    "#);
 
     // Finally here's the codegen for populating the struct, where we
     // 1. Stack-allocate a struct

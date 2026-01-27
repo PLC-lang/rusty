@@ -11,13 +11,13 @@ fn empty_interface() {
 
     let (_, index) = index(source);
 
-    insta::assert_debug_snapshot!(index.find_interface("myInterface").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_interface("myInterface").unwrap(), @r#"
     InterfaceIndexEntry {
         name: "myInterface",
         methods: [],
         extensions: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -35,7 +35,7 @@ fn interface_with_single_method() {
 
     let (_, index) = index(source);
 
-    insta::assert_debug_snapshot!(index.find_interface("myInterface").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_interface("myInterface").unwrap(), @r#"
     InterfaceIndexEntry {
         name: "myInterface",
         methods: [
@@ -43,9 +43,9 @@ fn interface_with_single_method() {
         ],
         extensions: [],
     }
-    "###);
+    "#);
 
-    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r###"
+    insta::assert_debug_snapshot!(index.find_pou("myInterface.foo").unwrap(), @r#"
     Method {
         name: "myInterface.foo",
         parent_name: "myInterface",
@@ -61,9 +61,9 @@ fn interface_with_single_method() {
             ),
         },
     }
-    "###);
+    "#);
 
-    insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r###"
+    insta::assert_debug_snapshot!(index.get_pou_members("myInterface.foo"), @r#"
     [
         VariableIndexEntry {
             name: "a",
@@ -129,7 +129,7 @@ fn interface_with_single_method() {
             varargs: None,
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -158,7 +158,7 @@ fn get_interface_methods() {
     let (_, index) = index(source);
     let entry = index.find_interface("myInterface").unwrap();
 
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
     [
         Method {
             name: "myInterface.foo",
@@ -206,7 +206,7 @@ fn get_interface_methods() {
             },
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -231,7 +231,7 @@ fn extended_interfaces() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -243,10 +243,10 @@ fn extended_interfaces() {
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -267,7 +267,7 @@ fn extended_interfaces() {
             },
         ),
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -294,7 +294,7 @@ fn nested_extended_interfaces() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -306,10 +306,10 @@ fn nested_extended_interfaces() {
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -331,10 +331,10 @@ fn nested_extended_interfaces() {
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("qux").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -356,7 +356,7 @@ fn nested_extended_interfaces() {
             },
         ),
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -371,7 +371,7 @@ fn deriving_from_undeclared_interface() {
 
     let (_, index) = index(source);
     let entry = index.find_interface("foo").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Err(
             Identifier {
@@ -385,10 +385,10 @@ fn deriving_from_undeclared_interface() {
             },
         ),
     ]
-    "###);
+    "#);
 
     let entry = index.find_interface("baz").unwrap();
-    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_derived_interfaces(&index), @r#"
     [
         Ok(
             InterfaceIndexEntry {
@@ -419,7 +419,7 @@ fn deriving_from_undeclared_interface() {
             },
         ),
     ]
-    "###);
+    "#);
 }
 
 #[test]
@@ -439,7 +439,7 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
     let (_, index) = index(source);
 
     let entry = index.find_interface("bar").unwrap();
-    insta::assert_debug_snapshot!(entry.get_methods(&index), @r###"
+    insta::assert_debug_snapshot!(entry.get_methods(&index), @r#"
     [
         Method {
             name: "bar.foo",
@@ -472,7 +472,7 @@ fn recursive_interfaces_do_not_overflow_the_stack_when_getting_all_methods() {
             },
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]

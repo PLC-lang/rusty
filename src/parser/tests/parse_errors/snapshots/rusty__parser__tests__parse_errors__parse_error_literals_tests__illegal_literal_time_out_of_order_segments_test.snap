@@ -7,5 +7,3 @@ error[E010]: Invalid TIME Literal: segments out of order, use d-h-m-s-ms
   │
 3 │             T#1s2h3d;
   │             ^^^^^^^^ Invalid TIME Literal: segments out of order, use d-h-m-s-ms
-
-

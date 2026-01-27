@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: "parse(content::RETURN_TO_CONNECTION).0.implementations[0].statements"
+expression: "parse(&content.serialize()).0.implementations[0].statements"
 ---
 [
     ReturnStatement {

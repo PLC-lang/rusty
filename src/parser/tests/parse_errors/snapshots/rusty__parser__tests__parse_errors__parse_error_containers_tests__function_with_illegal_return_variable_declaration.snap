@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected Datatype but found VAR
   │
 3 │             VAR END_VAR
   │             ^^^ Unexpected token: expected Datatype but found VAR
-
-

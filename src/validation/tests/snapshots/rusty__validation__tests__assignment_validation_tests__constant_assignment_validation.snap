@@ -7,5 +7,3 @@ error[E036]: Cannot assign to CONSTANT 'v_global'
   │
 8 │     v_global := TRUE; // INVALID
   │     ^^^^^^^^ Cannot assign to CONSTANT 'v_global'
-
-

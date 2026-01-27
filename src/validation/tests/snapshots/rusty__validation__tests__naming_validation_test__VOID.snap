@@ -1,5 +1,5 @@
 ---
 source: src/validation/tests/naming_validation_test.rs
-expression: res
+expression: "& result"
 ---
 

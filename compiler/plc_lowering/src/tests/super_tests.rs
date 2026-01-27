@@ -21,53 +21,53 @@ fn super_qualified_reference_resolves_to_same_parent_var() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[1].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 3,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__foo",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 3,
-                },
+            right: LiteralInteger {
+                value: 3,
             },
-        ]
-        "#);
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__foo",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: LiteralInteger {
+                value: 3,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -85,29 +85,29 @@ fn super_without_deref_lowered_to_ref_call_to_parent_instance() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[1].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            CallStatement {
-                operator: ReferenceExpr {
+    [
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "REF",
+                    },
+                ),
+                base: None,
+            },
+            parameters: Some(
+                ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "REF",
+                            name: "__foo",
                         },
                     ),
                     base: None,
                 },
-                parameters: Some(
-                    ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "__foo",
-                            },
-                        ),
-                        base: None,
-                    },
-                ),
-            },
-        ]
-        "#);
+            ),
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -204,40 +204,40 @@ fn access_grandparent_through_super() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[2].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__grandparent",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 200,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__grandparent",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-        ]
-        "#);
+            right: LiteralInteger {
+                value: 200,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -334,29 +334,29 @@ fn super_keyword_in_method_call() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[2].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "base_method",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                parameters: None,
+    [
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "base_method",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-        ]
-        "#);
+            parameters: None,
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -382,59 +382,59 @@ fn chained_super_keywords() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[2].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Super(derefed),
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "y",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Super(derefed),
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Super(derefed),
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-        ]
-        "#);
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Super(derefed),
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -466,135 +466,135 @@ fn super_in_array_access_edge_cases() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[1].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Index(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "idx",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "arr",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 100,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Index(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "idx",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "arr",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Index(
-                        ReferenceExpr {
-                            kind: Index(
-                                LiteralInteger {
-                                    value: 0,
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "arr",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "arr",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 200,
-                },
+            right: LiteralInteger {
+                value: 100,
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Index(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "idx",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "arr",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 300,
-                },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Index(
+                    ReferenceExpr {
+                        kind: Index(
+                            LiteralInteger {
+                                value: 0,
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "arr",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "arr",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-        ]
-        "#);
+            right: LiteralInteger {
+                value: 200,
+            },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Index(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "idx",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "arr",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: LiteralInteger {
+                value: 300,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -628,121 +628,18 @@ fn super_in_complex_expressions() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[1].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "z",
-                        },
-                    ),
-                    base: None,
-                },
-                right: BinaryExpression {
-                    operator: Plus,
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "x",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__parent",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "z",
                     },
-                    right: BinaryExpression {
-                        operator: Multiplication,
-                        left: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "y",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                        right: LiteralInteger {
-                            value: 2,
-                        },
-                    },
-                },
+                ),
+                base: None,
             },
-            IfStatement {
-                blocks: [
-                    ConditionalBlock {
-                        condition: BinaryExpression {
-                            operator: Greater,
-                            left: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "x",
-                                    },
-                                ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                            right: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "y",
-                                    },
-                                ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                        },
-                        body: [
-                            Assignment {
-                                left: ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "z",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                                right: LiteralInteger {
-                                    value: 100,
-                                },
-                            },
-                        ],
-                    },
-                ],
-                else_block: [],
-            },
-            EmptyStatement,
-            Assignment {
+            right: BinaryExpression {
+                operator: Plus,
                 left: ReferenceExpr {
                     kind: Member(
                         Identifier {
@@ -761,16 +658,8 @@ fn super_in_complex_expressions() {
                     ),
                 },
                 right: BinaryExpression {
-                    operator: Minus,
+                    operator: Multiplication,
                     left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "z",
-                            },
-                        ),
-                        base: None,
-                    },
-                    right: ReferenceExpr {
                         kind: Member(
                             Identifier {
                                 name: "y",
@@ -787,10 +676,121 @@ fn super_in_complex_expressions() {
                             },
                         ),
                     },
+                    right: LiteralInteger {
+                        value: 2,
+                    },
                 },
             },
-        ]
-        "#);
+        },
+        IfStatement {
+            blocks: [
+                ConditionalBlock {
+                    condition: BinaryExpression {
+                        operator: Greater,
+                        left: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "x",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                        right: ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "y",
+                                },
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    },
+                    body: [
+                        Assignment {
+                            left: ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "z",
+                                    },
+                                ),
+                                base: None,
+                            },
+                            right: LiteralInteger {
+                                value: 100,
+                            },
+                        },
+                    ],
+                },
+            ],
+            else_block: [],
+        },
+        EmptyStatement,
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+            right: BinaryExpression {
+                operator: Minus,
+                left: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "z",
+                        },
+                    ),
+                    base: None,
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "y",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -816,77 +816,77 @@ fn super_with_mixed_deref_patterns() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[1].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "x",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 100,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Deref,
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "x",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "y",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
+            right: LiteralInteger {
+                value: 100,
             },
-        ]
-        "#);
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Deref,
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -991,62 +991,62 @@ fn super_in_complex_expressions_with_method_calls() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[4].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "test",
-                        },
-                    ),
-                    base: None,
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "test",
+                    },
+                ),
+                base: None,
+            },
+            right: BinaryExpression {
+                operator: Plus,
+                left: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "get_x",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                    parameters: None,
                 },
-                right: BinaryExpression {
-                    operator: Plus,
-                    left: CallStatement {
-                        operator: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "get_x",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                        parameters: None,
+                right: CallStatement {
+                    operator: ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "get_y",
+                            },
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "__parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
                     },
-                    right: CallStatement {
-                        operator: ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "get_y",
-                                },
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "__parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                        parameters: None,
-                    },
+                    parameters: None,
                 },
             },
-        ]
-        "#);
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1131,76 +1131,76 @@ fn super_with_multiple_overridden_methods_in_hierarchy() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[5].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "test",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "test",
+                            name: "process",
                         },
                     ),
-                    base: None,
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
                 },
-                right: CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "process",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__parent",
-                                    },
-                                ),
-                                base: None,
-                            },
-                        ),
-                    },
-                    parameters: None,
-                },
+                parameters: None,
             },
-            Assignment {
-                left: ReferenceExpr {
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "test",
+                    },
+                ),
+                base: None,
+            },
+            right: CallStatement {
+                operator: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "test",
+                            name: "process",
                         },
                     ),
-                    base: None,
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Super(derefed),
+                            ),
+                            base: Some(
+                                ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            ),
+                        },
+                    ),
                 },
-                right: CallStatement {
-                    operator: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "process",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Member(
-                                    Super(derefed),
-                                ),
-                                base: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
-                        ),
-                    },
-                    parameters: None,
-                },
+                parameters: None,
             },
-        ]
-        "#);
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1231,42 +1231,42 @@ fn super_in_constructor() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let statements = &project.units[0].get_unit().implementations[2].statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "init",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                parameters: None,
+    [
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "init",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "y",
-                        },
-                    ),
-                    base: None,
-                },
-                right: LiteralInteger {
-                    value: 200,
-                },
+            parameters: None,
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "y",
+                    },
+                ),
+                base: None,
             },
-        ]
-        "#);
+            right: LiteralInteger {
+                value: 200,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1288,32 +1288,32 @@ fn super_in_initializer() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let initializer = &project.units[0].get_unit().pous[1].variable_blocks[1].variables[0].initializer;
     assert_debug_snapshot!(initializer, @r#"
-        Some(
-            BinaryExpression {
-                operator: Plus,
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 5,
-                },
+    Some(
+        BinaryExpression {
+            operator: Plus,
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-        )
-        "#);
+            right: LiteralInteger {
+                value: 5,
+            },
+        },
+    )
+    "#);
 }
 
 #[test]
@@ -1337,32 +1337,32 @@ fn super_in_method_initializer() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let initializer = &project.units[0].get_unit().pous[2].variable_blocks[0].variables[0].initializer;
     assert_debug_snapshot!(initializer, @r#"
-        Some(
-            BinaryExpression {
-                operator: Plus,
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 5,
-                },
+    Some(
+        BinaryExpression {
+            operator: Plus,
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-        )
-        "#);
+            right: LiteralInteger {
+                value: 5,
+            },
+        },
+    )
+    "#);
 }
 
 #[test]
@@ -1387,29 +1387,29 @@ fn super_method_called_in_initializer() {
     let (_, project) = parse_and_annotate("test", vec![src]).unwrap();
     let initializer = &project.units[0].get_unit().pous[2].variable_blocks[1].variables[0].initializer;
     assert_debug_snapshot!(initializer, @r#"
-        Some(
-            CallStatement {
-                operator: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "init",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "__parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                parameters: None,
+    Some(
+        CallStatement {
+            operator: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "init",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "__parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-        )
-        "#);
+            parameters: None,
+        },
+    )
+    "#);
 }
 
 #[test]
@@ -1436,38 +1436,38 @@ fn super_ref_in_reference_access() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Super,
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "p",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 40,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Super,
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "p",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
             },
-        ]
-        "#);
+            right: LiteralInteger {
+                value: 40,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1499,89 +1499,89 @@ fn super_in_paren_expressions() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Deref,
-                            base: Some(
-                                ParenExpression {
-                                    expression: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Deref,
+                        base: Some(
+                            ParenExpression {
+                                expression: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
                                 },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 20,
-                },
-            },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        ParenExpression {
-                            expression: ReferenceExpr {
-                                kind: Member(
-                                    Identifier {
-                                        name: "__parent",
-                                    },
-                                ),
-                                base: None,
                             },
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 30,
-                },
+                        ),
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
+            right: LiteralInteger {
+                value: 20,
+            },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Deref,
+                base: Some(
+                    ParenExpression {
+                        expression: ReferenceExpr {
                             kind: Member(
-                                Super,
-                            ),
-                            base: Some(
-                                ParenExpression {
-                                    expression: ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
+                                Identifier {
+                                    name: "__parent",
                                 },
                             ),
+                            base: None,
                         },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 40,
-                },
+                    },
+                ),
             },
-        ]
-        "#);
+            right: LiteralInteger {
+                value: 30,
+            },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Super,
+                        ),
+                        base: Some(
+                            ParenExpression {
+                                expression: ReferenceExpr {
+                                    kind: Member(
+                                        Identifier {
+                                            name: "__parent",
+                                        },
+                                    ),
+                                    base: None,
+                                },
+                            },
+                        ),
+                    },
+                ),
+            },
+            right: LiteralInteger {
+                value: 40,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1609,112 +1609,112 @@ fn valid_super_deref_in_paren_expression_edge_case() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "z",
+                    },
+                ),
+                base: None,
+            },
+            right: BinaryExpression {
+                operator: Plus,
                 left: ReferenceExpr {
                     kind: Member(
                         Identifier {
-                            name: "z",
+                            name: "x",
                         },
                     ),
-                    base: None,
-                },
-                right: BinaryExpression {
-                    operator: Plus,
-                    left: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "x",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
-                                kind: Deref,
-                                base: Some(
-                                    ParenExpression {
-                                        expression: CallStatement {
-                                            operator: ReferenceExpr {
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Deref,
+                            base: Some(
+                                ParenExpression {
+                                    expression: CallStatement {
+                                        operator: ReferenceExpr {
+                                            kind: Member(
+                                                Identifier {
+                                                    name: "REF",
+                                                },
+                                            ),
+                                            base: None,
+                                        },
+                                        parameters: Some(
+                                            ReferenceExpr {
                                                 kind: Member(
                                                     Identifier {
-                                                        name: "REF",
+                                                        name: "__parent",
                                                     },
                                                 ),
                                                 base: None,
                                             },
-                                            parameters: Some(
-                                                ReferenceExpr {
-                                                    kind: Member(
-                                                        Identifier {
-                                                            name: "__parent",
-                                                        },
-                                                    ),
-                                                    base: None,
-                                                },
-                                            ),
-                                        },
+                                        ),
                                     },
-                                ),
-                            },
-                        ),
+                                },
+                            ),
+                        },
+                    ),
+                },
+                right: ReferenceExpr {
+                    kind: Member(
+                        Identifier {
+                            name: "y",
+                        },
+                    ),
+                    base: Some(
+                        ReferenceExpr {
+                            kind: Member(
+                                Identifier {
+                                    name: "__parent",
+                                },
+                            ),
+                            base: None,
+                        },
+                    ),
+                },
+            },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "local",
                     },
-                    right: ReferenceExpr {
-                        kind: Member(
-                            Identifier {
-                                name: "y",
-                            },
-                        ),
-                        base: Some(
-                            ReferenceExpr {
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Deref,
+                base: Some(
+                    ParenExpression {
+                        expression: CallStatement {
+                            operator: ReferenceExpr {
                                 kind: Member(
                                     Identifier {
-                                        name: "__parent",
+                                        name: "REF",
                                     },
                                 ),
                                 base: None,
                             },
-                        ),
-                    },
-                },
-            },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "local",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Deref,
-                    base: Some(
-                        ParenExpression {
-                            expression: CallStatement {
-                                operator: ReferenceExpr {
+                            parameters: Some(
+                                ReferenceExpr {
                                     kind: Member(
                                         Identifier {
-                                            name: "REF",
+                                            name: "__parent",
                                         },
                                     ),
                                     base: None,
                                 },
-                                parameters: Some(
-                                    ReferenceExpr {
-                                        kind: Member(
-                                            Identifier {
-                                                name: "__parent",
-                                            },
-                                        ),
-                                        base: None,
-                                    },
-                                ),
-                            },
+                            ),
                         },
-                    ),
-                },
+                    },
+                ),
             },
-        ]
-        "#);
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1740,58 +1740,58 @@ fn pointer_arithmetic_with_super() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "a",
+                    },
+                ),
+                base: None,
+            },
+            right: BinaryExpression {
+                operator: Plus,
                 left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "a",
-                        },
-                    ),
-                    base: None,
-                },
-                right: BinaryExpression {
-                    operator: Plus,
-                    left: ReferenceExpr {
-                        kind: Deref,
-                        base: Some(
-                            ParenExpression {
-                                expression: BinaryExpression {
-                                    operator: Plus,
-                                    left: CallStatement {
-                                        operator: ReferenceExpr {
+                    kind: Deref,
+                    base: Some(
+                        ParenExpression {
+                            expression: BinaryExpression {
+                                operator: Plus,
+                                left: CallStatement {
+                                    operator: ReferenceExpr {
+                                        kind: Member(
+                                            Identifier {
+                                                name: "REF",
+                                            },
+                                        ),
+                                        base: None,
+                                    },
+                                    parameters: Some(
+                                        ReferenceExpr {
                                             kind: Member(
                                                 Identifier {
-                                                    name: "REF",
+                                                    name: "__parent",
                                                 },
                                             ),
                                             base: None,
                                         },
-                                        parameters: Some(
-                                            ReferenceExpr {
-                                                kind: Member(
-                                                    Identifier {
-                                                        name: "__parent",
-                                                    },
-                                                ),
-                                                base: None,
-                                            },
-                                        ),
-                                    },
-                                    right: LiteralInteger {
-                                        value: 1,
-                                    },
+                                    ),
+                                },
+                                right: LiteralInteger {
+                                    value: 1,
                                 },
                             },
-                        ),
-                    },
-                    right: LiteralInteger {
-                        value: 5,
-                    },
+                        },
+                    ),
+                },
+                right: LiteralInteger {
+                    value: 5,
                 },
             },
-        ]
-        "#);
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1820,58 +1820,58 @@ fn global_accessor() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Global(
-                                Super(derefed),
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 0,
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Global(
+                            Super(derefed),
+                        ),
+                        base: None,
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Super(derefed),
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Global(
-                                        Identifier {
-                                            name: "p",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
-                right: LiteralInteger {
-                    value: 0,
-                },
+            right: LiteralInteger {
+                value: 0,
             },
-        ]
-        "#);
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Super(derefed),
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Global(
+                                    Identifier {
+                                        name: "p",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+            right: LiteralInteger {
+                value: 0,
+            },
+        },
+    ]
+    "#);
 }
 
 #[test]
@@ -1899,125 +1899,125 @@ fn cast_statement() {
     let implementation = &project.units[0].get_unit().implementations[1];
     let statements = &implementation.statements;
     assert_debug_snapshot!(statements, @r#"
-        [
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "p",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Cast(
-                        Super(derefed),
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
+    [
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "p",
+                    },
+                ),
+                base: None,
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "p",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Cast(
-                        Super,
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Member(
-                                Identifier {
-                                    name: "parent",
-                                },
-                            ),
-                            base: None,
-                        },
-                    ),
-                },
+            right: ReferenceExpr {
+                kind: Cast(
+                    Super(derefed),
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "p",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Cast(
-                                Super(derefed),
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "p",
+                    },
+                ),
+                base: None,
             },
-            Assignment {
-                left: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "p",
-                        },
-                    ),
-                    base: None,
-                },
-                right: ReferenceExpr {
-                    kind: Member(
-                        Identifier {
-                            name: "x",
-                        },
-                    ),
-                    base: Some(
-                        ReferenceExpr {
-                            kind: Cast(
-                                Super,
-                            ),
-                            base: Some(
-                                ReferenceExpr {
-                                    kind: Member(
-                                        Identifier {
-                                            name: "parent",
-                                        },
-                                    ),
-                                    base: None,
-                                },
-                            ),
-                        },
-                    ),
-                },
+            right: ReferenceExpr {
+                kind: Cast(
+                    Super,
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Member(
+                            Identifier {
+                                name: "parent",
+                            },
+                        ),
+                        base: None,
+                    },
+                ),
             },
-        ]
-        "#);
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "p",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Cast(
+                            Super(derefed),
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        },
+        Assignment {
+            left: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "p",
+                    },
+                ),
+                base: None,
+            },
+            right: ReferenceExpr {
+                kind: Member(
+                    Identifier {
+                        name: "x",
+                    },
+                ),
+                base: Some(
+                    ReferenceExpr {
+                        kind: Cast(
+                            Super,
+                        ),
+                        base: Some(
+                            ReferenceExpr {
+                                kind: Member(
+                                    Identifier {
+                                        name: "parent",
+                                    },
+                                ),
+                                base: None,
+                            },
+                        ),
+                    },
+                ),
+            },
+        },
+    ]
+    "#);
 }

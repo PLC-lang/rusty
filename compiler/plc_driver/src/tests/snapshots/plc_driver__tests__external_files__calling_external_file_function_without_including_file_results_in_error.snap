@@ -1,5 +1,5 @@
 ---
-source: compiler/plc_driver/./src/tests/external_files.rs
+source: compiler/plc_driver/src/tests/external_files.rs
 expression: msg.to_string()
 ---
-cannot generate call statement for ReferenceExpr { kind: Member(Identifier { name: "external" }), base: None } at: external_file.st:2:8:{2:8-2:16}: 
+cannot generate call statement for ReferenceExpr { kind: Member(Identifier { name: "external" }), base: None } at: external_file.st:2:8:{2:8-2:16}:

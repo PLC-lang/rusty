@@ -7,5 +7,3 @@ error[E064]: Could not resolve generic type T with ANY_STRING
   │
 3 │         FUNCTION func  : INT  test(); END_FUNCTION
   │                               ^^^^^^^ Could not resolve generic type T with ANY_STRING
-
-
