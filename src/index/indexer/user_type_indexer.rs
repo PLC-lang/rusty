@@ -105,7 +105,7 @@ impl UserTypeIndexer<'_, '_> {
         let referenced_type = referenced_type.get_name().expect("named datatype").to_string();
         let struct_name = name.to_owned();
 
-        let dummy_array_name = format!("__arr_vla_{ndims}_{referenced_type}").to_lowercase();
+        let dummy_array_name = format!("{struct_name}_vla_{ndims}_{referenced_type}").to_lowercase();
         let member_array_name = format!("__ptr_to_{dummy_array_name}");
         let member_dimensions_name = format!("__bounds_{dummy_array_name}");
 
