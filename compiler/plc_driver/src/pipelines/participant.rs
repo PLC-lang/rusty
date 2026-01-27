@@ -216,11 +216,12 @@ impl<T: SourceContainer + Send> PipelineParticipant for CodegenParticipant<T> {
 pub struct InitParticipant {
     symbol_name: &'static str,
     id_provider: IdProvider,
+    generate_externals: bool,
 }
 
 impl InitParticipant {
-    pub fn new(symbol_name: &'static str, id_provider: IdProvider) -> Self {
-        Self { symbol_name, id_provider }
+    pub fn new(symbol_name: &'static str, id_provider: IdProvider, generate_externals: bool) -> Self {
+        Self { symbol_name, id_provider, generate_externals }
     }
 }
 
@@ -248,7 +249,7 @@ impl PipelineParticipantMut for InitParticipant {
         let mut resulting_units = vec![];
         let index = Rc::new(index);
         for unit in units {
-            let initializer = Initializer::new(self.id_provider.clone());
+            let initializer = Initializer::new(self.id_provider.clone(), self.generate_externals);
             let unit = initializer.apply_initialization(unit, index.clone());
             resulting_units.push(unit);
         }

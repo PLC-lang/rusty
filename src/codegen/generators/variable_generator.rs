@@ -95,7 +95,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !matches!(linkage, LinkageType::External) {
+            if !linkage.is_external_or_included() {
                 // generate debug info for non-external variables
                 self.debug.create_global_variable(
                     variable.get_qualified_name(),
@@ -130,7 +130,7 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
         };
 
         let mut global_ir_variable = self.llvm.create_global_variable(self.module, name, variable_type);
-        if linkage == LinkageType::External {
+        if linkage.is_external_or_included() {
             global_ir_variable = global_ir_variable.make_external();
         } else {
             let initial_value = if global_variable

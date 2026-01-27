@@ -98,7 +98,7 @@ impl VirtualTableGenerator {
                 let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
-                if pou.linkage == LinkageType::External {
+                if pou.linkage.is_external_or_included() {
                     external_instances.push(instance);
                 } else {
                     internal_instances.push(instance);

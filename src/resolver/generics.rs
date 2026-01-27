@@ -144,7 +144,7 @@ impl TypeAnnotator<'_> {
                 new_name,
                 return_type_name,
                 &[],
-                LinkageType::External, //it has to be external, we should have already found this in the global index if it was internal
+                LinkageType::Include, //it has to be external, we should have already found this in the global index if it was internal
                 generic_function.is_variadic(),
                 generic_function.get_location().clone(),
                 generic_function.is_constant(),

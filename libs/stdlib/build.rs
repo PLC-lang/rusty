@@ -8,6 +8,7 @@ fn main() {
         "plc".to_owned(),
         "iec61131-st/*.st".to_owned(),
         "-c".to_owned(),
+        "--generate-external-constructors".to_owned(),
         "-o".to_owned(),
         format!("{out_dir}/st.o"),
     ];

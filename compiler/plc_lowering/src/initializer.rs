@@ -55,7 +55,10 @@ pub struct Initializer {
     stack_constructor: FxIndexMap<String, Body>,
     /// Global constructor statements
     global_constructor: Vec<AstNode>,
+    /// Current context during AST traversal
     context: Context,
+    /// Flag to mark external functions for generation
+    generate_externals: bool,
 }
 
 #[derive(Default, Debug)]
@@ -101,7 +104,13 @@ impl AstVisitor for Initializer {
                 }
                 self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
             }
-            plc_ast::ast::LinkageType::External => {
+            plc_ast::ast::LinkageType::External if self.generate_externals => {
+                if pou.is_stateful() {
+                    self.constructors.insert(pou.name.clone(), Body::Internal(vec![]));
+                }
+                self.stack_constructor.insert(pou.name.clone(), Body::Internal(vec![]));
+            }
+            plc_ast::ast::LinkageType::External | LinkageType::Include => {
                 if pou.is_stateful() {
                     self.constructors.insert(pou.name.clone(), Body::External(vec![]));
                 }
@@ -198,7 +207,11 @@ impl AstVisitor for Initializer {
             plc_ast::ast::LinkageType::Internal => {
                 self.constructors.insert(name.to_string(), Body::Internal(vec![]));
             }
-            plc_ast::ast::LinkageType::External => {
+            //Todo: if the user requests constructor generators, treat this as internal
+            plc_ast::ast::LinkageType::External if self.generate_externals => {
+                self.constructors.insert(name.to_string(), Body::Internal(vec![]));
+            }
+            plc_ast::ast::LinkageType::External | plc_ast::ast::LinkageType::Include => {
                 self.constructors.insert(name.to_string(), Body::External(vec![]));
             }
             plc_ast::ast::LinkageType::BuiltIn => {
@@ -239,7 +252,7 @@ impl AstVisitor for Initializer {
 }
 
 impl Initializer {
-    pub fn new(id_provider: IdProvider) -> Initializer {
+    pub fn new(id_provider: IdProvider, generate_externals: bool) -> Initializer {
         Initializer {
             id_provider,
             index: None,
@@ -248,6 +261,7 @@ impl Initializer {
             stack_constructor: Default::default(),
             global_constructor: Default::default(),
             context: Default::default(),
+            generate_externals,
         }
     }
 
@@ -435,6 +449,10 @@ mod tests {
     }
 
     fn parse_and_init(src: &str) -> Initializer {
+        parse_and_init_internal(src, false)
+    }
+
+    fn parse_and_init_internal(src: &str, generate_externals: bool) -> Initializer {
         let src: SourceCode = src.into();
         let diagnostician = Diagnostician::buffered();
         let mut pipeline = BuildPipeline::from_sources("test.st", vec![(src)], diagnostician).unwrap();
@@ -443,7 +461,7 @@ mod tests {
         ))]);
         let AnnotatedProject { units, index, .. } = pipeline.parse_and_annotate().unwrap();
         // Visit the AST with the Initializer
-        let mut initializer = super::Initializer::new(pipeline.context.provider());
+        let mut initializer = super::Initializer::new(pipeline.context.provider(), generate_externals);
         initializer.index = Some(Rc::new(index));
         for unit in units {
             initializer.visit_compilation_unit(unit.get_unit());

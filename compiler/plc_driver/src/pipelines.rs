@@ -123,6 +123,11 @@ impl TryFrom<CompileParameters> for BuildPipeline<PathBuf> {
                     .as_slice(),
                 None,
             )?;
+        let context = if compile_parameters.generate_external_constructors {
+            context.generate_external_constructors()
+        } else {
+            context
+        };
 
         let linker = compile_parameters.linker.as_deref().into();
         Ok(BuildPipeline {
@@ -257,7 +262,11 @@ impl<T: SourceContainer> BuildPipeline<T> {
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),
             Box::new(InheritanceLowerer::new(self.context.provider())),
-            Box::new(InitParticipant::new(self.project.get_init_symbol_name(), self.context.provider())),
+            Box::new(InitParticipant::new(
+                self.project.get_init_symbol_name(),
+                self.context.provider(),
+                self.context.should_generate_external_constructors(),
+            )),
         ]
     }
     /// Register all default participants (excluding codegen/linking)
@@ -508,7 +517,7 @@ impl ParsedProject {
             .iter()
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(includes);
@@ -520,7 +529,7 @@ impl ParsedProject {
             .flat_map(LibraryInformation::get_includes)
             .map(|it| {
                 let source = ctxt.get(it.get_location_str()).expect("All sources should've been read");
-                parse_file(source, LinkageType::External, ctxt.provider(), diagnostician)
+                parse_file(source, LinkageType::Include, ctxt.provider(), diagnostician)
             })
             .collect::<Vec<_>>();
         units.extend(lib_includes);

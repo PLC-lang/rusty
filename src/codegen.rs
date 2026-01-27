@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Ghaith Hachem and Mathias Rieder
 use std::{
-    backtrace,
     cell::RefCell,
     collections::HashMap,
     fmt::Display,
@@ -340,7 +339,7 @@ impl<'ink> CodeGen<'ink> {
         for implementation in &unit.implementations {
             //Don't generate external or generic functions
             if let Some(entry) = global_index.find_pou(implementation.name.as_str()) {
-                if !entry.is_generic() && entry.get_linkage() != &LinkageType::External {
+                if !entry.is_generic() && entry.get_linkage().is_external_or_included() {
                     let noop_debug = DebugBuilderEnum::None;
                     let debug = if matches!(implementation.pou_type, PouType::Init | PouType::ProjectInit) {
                         &noop_debug

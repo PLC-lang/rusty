@@ -301,12 +301,8 @@ impl Pou {
         matches!(self.kind, PouType::Program | PouType::FunctionBlock | PouType::Action | PouType::Class)
     }
 
-    pub fn is_external(&self) -> bool {
-        matches!(self.linkage, LinkageType::External)
-    }
-
     pub fn is_built_in(&self) -> bool {
-        matches!(self.linkage, LinkageType::BuiltIn)
+        self.linkage.is_built_in()
     }
 
     pub fn is_function_block(&self) -> bool {
@@ -344,12 +340,24 @@ pub enum LinkageType {
     Internal,
     /// The element is declared externally and being used by the project
     External,
+    /// This indicates an element has been included as part of the library.
+    /// This is equivalant to external in almost all cases. The only difference is when code is
+    /// in constructor functions where an external function can get a constructor, while an
+    /// included function will not. See compile flat ´generate-external-constructors´
+    Include,
     /// This indicates an element that should not have any declarations within the compiled project
     /// For example a built in function is implied to exist but not declared
     BuiltIn,
-    // TODO: A private linkage indicates an internal element that should not be visible externally
-    // This is for example a static constructor that should not leak outside its module
-    // Private,
+}
+
+impl LinkageType {
+    pub fn is_external_or_included(&self) -> bool {
+        matches!(self, LinkageType::External | LinkageType::Include)
+    }
+
+    pub fn is_built_in(&self) -> bool {
+        matches!(self, LinkageType::BuiltIn)
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
