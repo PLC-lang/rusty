@@ -19,5 +19,3 @@ error[E007]: Unexpected token: expected KeywordEndRepeat but found 'END_PROGRAM'
   │
 8 │            END_PROGRAM
   │            ^^^^^^^^^^^ Unexpected token: expected KeywordEndRepeat but found 'END_PROGRAM'
-
-

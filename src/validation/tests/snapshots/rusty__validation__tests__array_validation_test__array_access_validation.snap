@@ -49,5 +49,3 @@ error[E059]: Invalid type INT for array access. Only variables of Array types ar
    │
 36 │             int_ref[1]; // not an array
    │                     ^ Invalid type INT for array access. Only variables of Array types are allowed
-
-

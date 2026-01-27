@@ -19,5 +19,3 @@ error[E055]: DWord-Wise access requires a Numerical type larger than 32 bits
    │
 12 │             invalid3.%D1;
    │                      ^^^ DWord-Wise access requires a Numerical type larger than 32 bits
-
-

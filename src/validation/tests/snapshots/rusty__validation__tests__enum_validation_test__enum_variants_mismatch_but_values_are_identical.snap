@@ -37,5 +37,3 @@ note[E092]: Replace `2` with `blue`
    ·
 14 │             color := 2;         // warning
    │                      ^ Replace `2` with `blue`
-
-

@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected Identifier but found END_CLASS
   │
 1 │ CLASS END_CLASS
   │       ^^^^^^^^^ Unexpected token: expected Identifier but found END_CLASS
-
-

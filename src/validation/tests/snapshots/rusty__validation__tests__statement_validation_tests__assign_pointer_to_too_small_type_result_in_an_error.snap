@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
   │
 9 │             address := ptr;         //should throw error as address is too small to store full pointer
   │             ^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'REF_TO INT' to 'DWORD'
-
-

@@ -107,7 +107,7 @@ fn test_incomplete_var_config_block() {
 
     ";
     let diagnostics = parse_and_validate_buffered(src);
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E006]: Missing expected Token AT
       ┌─ <internal>:4:26
       │
@@ -170,6 +170,5 @@ fn test_incomplete_var_config_block() {
       │
     7 │                 instance4.bar AT %IX3.1 : BOOL;
       │                 ^^^^^^^^^^^^^ Template variable `bar` does not exist
-
-    "###);
+    ");
 }

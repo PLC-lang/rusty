@@ -1,8 +1,6 @@
 ---
 source: src/hardware_binding.rs
-assertion_line: 309
 expression: res
-
 ---
 {
   "HardwareConfiguration": [

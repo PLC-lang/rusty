@@ -7,5 +7,3 @@ error[E057]: DWord-Wise access for type LWORD must be in range 0..1
   │
 6 │                 d.%D2;
   │                   ^^^ DWord-Wise access for type LWORD must be in range 0..1
-
-

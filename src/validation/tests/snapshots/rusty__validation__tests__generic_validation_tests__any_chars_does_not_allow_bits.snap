@@ -61,5 +61,3 @@ error[E062]: Invalid type nature for generic argument. LWORD is no ANY_CHARS
   │
 7 │         FUNCTION func5  : INT VAR x : LWORD; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. LWORD is no ANY_CHARS
-
-

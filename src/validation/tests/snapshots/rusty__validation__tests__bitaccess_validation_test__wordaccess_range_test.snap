@@ -13,5 +13,3 @@ error[E057]: Word-Wise access for type LWORD must be in range 0..3
   │
 7 │                 d.%W4;
   │                   ^^^ Word-Wise access for type LWORD must be in range 0..3
-
-

@@ -25,5 +25,3 @@ error[E062]: Invalid type nature for generic argument. ULINT is no ANY_SIGNED
   │
 6 │         FUNCTION func4  : INT VAR x : ULINT; END_VAR test(x); END_FUNCTION
   │                                                           ^ Invalid type nature for generic argument. ULINT is no ANY_SIGNED
-
-

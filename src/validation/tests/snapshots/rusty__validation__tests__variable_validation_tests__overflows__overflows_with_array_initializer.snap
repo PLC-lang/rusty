@@ -7,5 +7,3 @@ warning[E039]: This will overflow for type UINT
   │
 3 │             arr : ARRAY[0..5] OF UINT := [0, -1, -2, -3, -4, -5];
   │                                              ^^ This will overflow for type UINT
-
-

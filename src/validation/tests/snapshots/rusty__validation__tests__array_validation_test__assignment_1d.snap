@@ -79,5 +79,3 @@ error[E043]: Array assignments must be surrounded with `[]`
    │
 16 │             arr := (1, 2, 3, 4, 5];
    │                     ^^^^^^^^^^^^^ Array assignments must be surrounded with `[]`
-
-

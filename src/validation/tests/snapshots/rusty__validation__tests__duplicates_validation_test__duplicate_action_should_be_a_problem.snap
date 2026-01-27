@@ -19,5 +19,3 @@ error[E004]: prg.foo: Ambiguous callable symbol.
    ·
 17 │             ACTION foo
    │                    ^^^ prg.foo: Ambiguous callable symbol.
-
-

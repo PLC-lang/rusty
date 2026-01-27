@@ -73,5 +73,3 @@ error[E054]: Literal DATE is not compatible to INT
    │
 16 │             INT#DATE#1996-05-06;
    │             ^^^^^^^^^^^^^^^^^^^ Literal DATE is not compatible to INT
-
-

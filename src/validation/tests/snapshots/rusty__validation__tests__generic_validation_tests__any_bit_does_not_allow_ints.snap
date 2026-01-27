@@ -49,5 +49,3 @@ error[E062]: Invalid type nature for generic argument. LINT is no ANY_BIT
    │
 12 │         FUNCTION func8  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
    │                                                          ^ Invalid type nature for generic argument. LINT is no ANY_BIT
-
-

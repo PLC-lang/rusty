@@ -19,5 +19,3 @@ error[E029]: Recursive data structure `A -> B -> A` has infinite size
   ·
 7 │             TYPE B : STRUCT
   │                  - see also
-
-

@@ -25,5 +25,3 @@ error[E037]: Invalid assignment: cannot assign 'WSTRING' to 'ARRAY[0..10] OF WST
    │
 31 │             fb.foo(auto := arr, in1 := arr, in2 := arr, out => wstr); // invalid
    │                                                         ^^^^^^^^^^^ Invalid assignment: cannot assign 'WSTRING' to 'ARRAY[0..10] OF WSTRING'
-
-

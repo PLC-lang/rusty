@@ -19,5 +19,3 @@ error[E055]: Byte-Wise access requires a Numerical type larger than 8 bits
    │
 12 │             invalid3.%B1;
    │                      ^^^ Byte-Wise access requires a Numerical type larger than 8 bits
-
-

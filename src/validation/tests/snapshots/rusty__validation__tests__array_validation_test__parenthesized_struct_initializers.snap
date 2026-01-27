@@ -55,5 +55,3 @@ error[E043]: Struct initializers within arrays have to be wrapped by `()`
    │
 13 │                 foo_invalid_d : ARRAY[1..2] OF foo := [idx := 0];
    │                                                       ^^^^^^^^^^ Struct initializers within arrays have to be wrapped by `()`
-
-

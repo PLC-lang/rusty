@@ -56,19 +56,21 @@ fn simple_program_with_var_input_can_be_parsed() {
     let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    insta::assert_snapshot!(ast_string, @r#"VariableBlock {
-    variables: [
-        Variable {
-            name: "x",
-            data_type: DataTypeReference {
-                referenced_type: "INT",
+    insta::assert_snapshot!(ast_string, @r#"
+    VariableBlock {
+        variables: [
+            Variable {
+                name: "x",
+                data_type: DataTypeReference {
+                    referenced_type: "INT",
+                },
             },
-        },
-    ],
-    variable_block_type: Input(
-        ByVal,
-    ),
-}"#);
+        ],
+        variable_block_type: Input(
+            ByVal,
+        ),
+    }
+    "#);
 }
 
 #[test]

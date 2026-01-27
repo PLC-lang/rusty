@@ -37,5 +37,3 @@ error[E054]: Literal 1.0 is not compatible to WSTRING
    │
 14 │             WSTRING#1.0;
    │             ^^^^^^^^^^^ Literal 1.0 is not compatible to WSTRING
-
-

@@ -49,5 +49,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRA
    │
 16 │             UPPER_BOUND('i am a string', 1);
    │                         ^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'VARIABLE LENGTH ARRAY'
-
-

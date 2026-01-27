@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found '__000'
   │
 1 │ PROGRAM exp 43__000; END_PROGRAM
   │               ^^^^^ Unexpected token: expected KeywordSemicolon but found '__000'
-
-

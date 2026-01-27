@@ -37,5 +37,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_METHOD'
   │
 1 │ CLASS TestClass METHOD foo : ABSTRACT END_METHOD END_CLASS
   │                                       ^^^^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_METHOD'
-
-

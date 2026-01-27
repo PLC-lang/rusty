@@ -151,5 +151,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'CHAR'
    │
 58 │     v_char := v_arr_string_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'CHAR'
-
-

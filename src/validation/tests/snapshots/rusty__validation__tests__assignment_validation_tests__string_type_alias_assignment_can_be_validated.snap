@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'INT' to 'MY_OTHER_STR'
    │
 12 │             my_other_str := i;
    │             ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'MY_OTHER_STR'
-
-

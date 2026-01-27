@@ -49,5 +49,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DI
    │
 40 │             func(arr_dint_2d);
    │                  ^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..1] OF ARRAY[0..1] OF DINT' to 'ARRAY[0..1] OF DINT'
-
-

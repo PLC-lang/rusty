@@ -25,5 +25,3 @@ error[E080]: `x` is no const reference. Non constant variables are not supported
    │
 22 │                 CONST+x: // x is no constant => error
    │                 ^^^^^^^ `x` is no const reference. Non constant variables are not supported in case conditions
-
-

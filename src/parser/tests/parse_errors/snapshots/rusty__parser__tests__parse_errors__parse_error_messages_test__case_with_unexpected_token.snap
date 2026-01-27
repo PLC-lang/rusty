@@ -55,5 +55,3 @@ error[E048]: Could not resolve reference to x
   │
 4 │         1: x;
   │            ^ Could not resolve reference to x
-
-

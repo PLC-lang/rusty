@@ -258,7 +258,7 @@ fn pass() {
     // result in wrapping arrays into structs.
     let hint = annotations.get_type_hint(local[0], &index).unwrap();
     insta::assert_debug_snapshot!(index.find_elementary_pointer_type(&hint.information),
-    @r###"
+    @r#"
     Struct {
         name: "__foo_arr",
         members: [
@@ -306,7 +306,7 @@ fn pass() {
             },
         ),
     }
-    "###);
+    "#);
 
     // Finally here's the codegen for populating the struct, where we
     // 1. Stack-allocate a struct

@@ -1,7 +1,6 @@
 ---
 source: src/resolver/tests/const_resolver_tests.rs
 expression: ir
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"

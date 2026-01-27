@@ -7,5 +7,3 @@ warning[E042]: VAR_INPUT {ref} variables are mutable and changes to them will al
    │
 17 │                 b := 1.0;   // This should trigger an improvment suggestion, because we are assigning a value
    │                 ^^^^^^^^ VAR_INPUT {ref} variables are mutable and changes to them will also affect the referenced variable. For increased clarity use VAR_IN_OUT instead.
-
-

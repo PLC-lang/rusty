@@ -1,7 +1,6 @@
 ---
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
-snapshot_kind: text
 ---
 warning[E040]: Non-standard enum value `99` for `State`
   ┌─ <internal>:9:44

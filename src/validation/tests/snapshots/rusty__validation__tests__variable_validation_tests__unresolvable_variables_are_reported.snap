@@ -19,5 +19,3 @@ error[E033]: Unresolved constant `cai` variable
    │
 21 │                 cai : INT := a;  //unresolvable
    │                              ^ Unresolved constant `cai` variable
-
-

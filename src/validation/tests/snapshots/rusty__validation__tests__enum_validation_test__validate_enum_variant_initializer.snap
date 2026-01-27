@@ -1,7 +1,6 @@
 ---
 source: src/validation/tests/enum_validation_test.rs
 expression: diagnostics
-snapshot_kind: text
 ---
 warning[E040]: Non-standard enum value `red` for `(metallic := 1, matte := 2, neon := 3) := red`
   ┌─ <internal>:7:63

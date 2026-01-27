@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'CHAR' to 'DATE'
    │
 15 │         func(var_real, var_unsigned, var_signed, var_time, var_byte, var_str, var_char, var_date);
    │                                                                               ^^^^^^^^ Invalid assignment: cannot assign 'CHAR' to 'DATE'
-
-

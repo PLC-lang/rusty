@@ -19,5 +19,3 @@ error[E009]: Mismatched types of parentheses around string size expression
   │
 4 │             TYPE MyString3 : STRING(255]; END_TYPE
   │                                     ^^^^ Mismatched types of parentheses around string size expression
-
-

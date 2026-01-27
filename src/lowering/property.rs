@@ -425,7 +425,7 @@ mod tests {
             ";
 
             let (unit, _) = lower_properties_to_pous(source);
-            insta::assert_debug_snapshot!(unit.pous[1], @r###"
+            insta::assert_debug_snapshot!(unit.pous[1], @r#"
             POU {
                 name: "fb.__get_foo",
                 variable_blocks: [
@@ -459,7 +459,7 @@ mod tests {
                 interfaces: [],
                 properties: [],
             }
-            "###);
+            "#);
 
             let return_statement = &unit.implementations[1].statements[0];
             insta::assert_debug_snapshot!(return_statement, @r#"
@@ -496,7 +496,7 @@ mod tests {
             ";
 
             let (unit, _) = lower_properties_to_pous(source);
-            insta::assert_debug_snapshot!(unit.pous[1], @r###"
+            insta::assert_debug_snapshot!(unit.pous[1], @r#"
             POU {
                 name: "fb.__set_foo",
                 variable_blocks: [
@@ -528,7 +528,7 @@ mod tests {
                 interfaces: [],
                 properties: [],
             }
-            "###);
+            "#);
         }
 
         #[test]
@@ -584,7 +584,7 @@ mod tests {
 
             let unit = lower(source);
             assert_eq!(unit.pous[1].name, "fb.__get_foo");
-            insta::assert_debug_snapshot!(unit.pous[1].variable_blocks, @r###"
+            insta::assert_debug_snapshot!(unit.pous[1].variable_blocks, @r#"
             [
                 VariableBlock {
                     variables: [
@@ -621,10 +621,10 @@ mod tests {
                     variable_block_type: Local,
                 },
             ]
-            "###);
+            "#);
 
             assert_eq!(unit.pous[2].name, "fb.__set_foo");
-            insta::assert_debug_snapshot!(unit.pous[2].variable_blocks, @r###"
+            insta::assert_debug_snapshot!(unit.pous[2].variable_blocks, @r#"
             [
                 VariableBlock {
                     variables: [
@@ -663,7 +663,7 @@ mod tests {
                     ),
                 },
             ]
-            "###);
+            "#);
         }
 
         #[test]
@@ -725,7 +725,7 @@ mod tests {
             ";
 
             let unit = super::lower(source);
-            insta::assert_debug_snapshot!(unit.implementations[0].statements, @r###"
+            insta::assert_debug_snapshot!(unit.implementations[0].statements, @r#"
             [
                 CallStatement {
                     operator: ReferenceExpr {
@@ -751,7 +751,7 @@ mod tests {
                     ),
                 },
             ]
-            "###);
+            "#);
         }
 
         #[test]
@@ -772,7 +772,7 @@ mod tests {
 
             // ...but at the same time lower them into methods hosted by the interface
             assert_eq!(unit.interfaces[0].methods.len(), 2);
-            insta::assert_debug_snapshot!(unit.interfaces[0].methods, @r###"
+            insta::assert_debug_snapshot!(unit.interfaces[0].methods, @r#"
             [
                 POU {
                     name: "foo.__get_bar",
@@ -839,7 +839,7 @@ mod tests {
                     properties: [],
                 },
             ]
-            "###);
+            "#);
         }
     }
 
@@ -1191,7 +1191,7 @@ mod tests {
             let (unit, _) = super::lower_properties_to_pous(source);
 
             let get = &unit.implementations[1];
-            insta::assert_debug_snapshot!(get.statements[0..2], @r###"
+            insta::assert_debug_snapshot!(get.statements[0..2], @r#"
             [
                 ReferenceExpr {
                     kind: Member(
@@ -1215,10 +1215,10 @@ mod tests {
                     },
                 },
             ]
-            "###);
+            "#);
 
             let set = &unit.implementations[2];
-            insta::assert_debug_snapshot!(set.statements, @r###"
+            insta::assert_debug_snapshot!(set.statements, @r#"
             [
                 ReferenceExpr {
                     kind: Member(
@@ -1242,7 +1242,7 @@ mod tests {
                     },
                 },
             ]
-            "###);
+            "#);
         }
 
         #[test]

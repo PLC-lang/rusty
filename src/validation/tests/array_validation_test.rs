@@ -362,7 +362,7 @@ fn validate_ranges() {
         ",
     );
 
-    assert_snapshot!(diagnostics, @r###"
+    assert_snapshot!(diagnostics, @r"
     error[E097]: Invalid range `1..-5`, did you mean `-5..1`?
       ┌─ <internal>:4:17
       │
@@ -392,6 +392,5 @@ fn validate_ranges() {
       │
     7 │                 arr_D : ARRAY[1..5, 1..-5] OF DINT;
       │                 ^^^^^ Invalid range `1..-5`, did you mean `-5..1`?
-
-    "###);
+    ");
 }

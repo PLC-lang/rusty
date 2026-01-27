@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'END_FOR'
   │
 4 │             END_FOR
   │             ^^^^^^^ Unexpected token: expected KeywordSemicolon but found 'END_FOR'
-
-

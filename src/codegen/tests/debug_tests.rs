@@ -158,6 +158,25 @@ fn test_global_var_nested_struct_added_to_debug_info() {
 }
 
 #[test]
+fn test_self_referential_struct_debug_info() {
+    // This test verifies that self-referential types (structs containing pointers to themselves)
+    // don't cause infinite recursion / stack overflow when generating debug info.
+    // If this test completes without stack overflow, it passes.
+    let _ = codegen(
+        r#"
+    TYPE Node : STRUCT
+        data : DINT;
+        next : REF_TO Node;
+    END_STRUCT END_TYPE
+
+    VAR_GLOBAL
+        node : Node;
+    END_VAR
+    "#,
+    );
+}
+
+#[test]
 fn test_global_alias_type() {
     let codegen = codegen(
         r#"

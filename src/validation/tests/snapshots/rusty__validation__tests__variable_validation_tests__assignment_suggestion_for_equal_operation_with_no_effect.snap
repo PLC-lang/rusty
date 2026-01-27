@@ -37,5 +37,3 @@ warning[E023]: This equal statement has no effect, did you mean `value := 1`?
    │
 29 │             WHILE TRUE DO value = 1; END_WHILE
    │                           ^^^^^^^^^ This equal statement has no effect, did you mean `value := 1`?
-
-

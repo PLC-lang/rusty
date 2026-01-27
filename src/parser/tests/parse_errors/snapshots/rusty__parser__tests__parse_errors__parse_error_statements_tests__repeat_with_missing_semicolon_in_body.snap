@@ -13,5 +13,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'UNTIL'
   │
 4 │             UNTIL x = y END_REPEAT
   │             ^^^^^ Unexpected token: expected KeywordSemicolon but found 'UNTIL'
-
-

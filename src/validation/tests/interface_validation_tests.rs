@@ -8,7 +8,7 @@ fn pou_implementing_non_existing_interfaces() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E048]: Interface `delulu` does not exist
       ┌─ <internal>:2:39
       │
@@ -26,7 +26,7 @@ fn pou_implementing_non_existing_interfaces() {
       │
     3 │         FUNCTION_BLOCK bar IMPLEMENTS delulu, delululu /* ... */ END_FUNCTION_BLOCK
       │                                               ^^^^^^^^ Interface `delululu` does not exist
-    "###);
+    ");
 }
 
 #[test]
@@ -37,7 +37,7 @@ fn pou_implementing_same_interface_multiple_times() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -56,7 +56,7 @@ fn not_supported_pou_type_implements_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E110]: Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
        ┌─ <internal>:10:36
        │
@@ -68,7 +68,7 @@ fn not_supported_pou_type_implements_interface() {
        │
     11 │         FUNCTION    qux IMPLEMENTS interfaceA, interfaceB /* ... */ END_FUNCTION
        │                                    ^^^^^^^^^^^^^^^^^^^^^^ Interfaces can only be implemented by `CLASS` or `FUNCTION_BLOCK`
-    "###);
+    ");
 }
 
 #[test]
@@ -115,7 +115,7 @@ fn pou_does_not_implement_interface_methods() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
       ┌─ <internal>:6:24
       │
@@ -124,7 +124,7 @@ fn pou_does_not_implement_interface_methods() {
       ·
     6 │         FUNCTION_BLOCK fb IMPLEMENTS interfaceA
       │                        ^^ Method `methodA` defined in interface `interfaceA` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -618,7 +618,7 @@ fn interface_with_aggregate_return_type_string() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -703,7 +703,7 @@ fn interface_with_aggregate_return_type_array() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -964,7 +964,7 @@ fn interface_with_aggregate_return_type_struct() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -990,7 +990,7 @@ fn interface_with_aliased_aggregate_return_type_struct() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1270,7 +1270,7 @@ fn pointer_return() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1321,7 +1321,7 @@ fn pointer_to_pointer_return() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1417,7 +1417,7 @@ fn pointer_fields() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1617,7 +1617,7 @@ fn subranges() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r"");
+    insta::assert_snapshot!(diagnostics, @"");
 }
 
 #[test]
@@ -1780,7 +1780,7 @@ fn pou_missing_methods_of_extended_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Method `bar` defined in interface `foo` is missing in POU `fb`
        ┌─ <internal>:12:24
        │
@@ -1798,7 +1798,7 @@ fn pou_missing_methods_of_extended_interface() {
        ·
     12 │         FUNCTION_BLOCK fb IMPLEMENTS baz
        │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -1824,7 +1824,7 @@ fn pou_missing_methods_of_nested_extended_interface() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Method `corge` defined in interface `quux` is missing in POU `fb`
        ┌─ <internal>:17:24
        │
@@ -1851,7 +1851,7 @@ fn pou_missing_methods_of_nested_extended_interface() {
        ·
     17 │         FUNCTION_BLOCK fb IMPLEMENTS quux
        │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -1895,7 +1895,7 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
         ";
 
     let diagnostics = parse_and_validate_buffered(source);
-    insta::assert_snapshot!(diagnostics, @r###"
+    insta::assert_snapshot!(diagnostics, @r"
     error[E112]: Method `fred` defined in interface `quxar` is missing in POU `fb`
        ┌─ <internal>:35:24
        │
@@ -1958,7 +1958,7 @@ fn pou_missing_methods_of_multiple_nested_interfaces() {
        ·
     35 │         FUNCTION_BLOCK fb IMPLEMENTS quxar
        │                        ^^ Method `qux` defined in interface `baz` is missing in POU `fb`
-    "###);
+    ");
 }
 #[test]
 fn pou_implementing_methods_of_multiple_nested_interfaces_does_not_err() {
@@ -2214,7 +2214,7 @@ fn property_not_implemented() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (GET) defined in interface `intf` is missing in POU `fb`
       ┌─ <internal>:9:20
       │
@@ -2232,7 +2232,7 @@ fn property_not_implemented() {
       ·
     9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -2252,7 +2252,7 @@ fn property_partially_implemented() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
       ┌─ <internal>:9:20
       │
@@ -2261,7 +2261,7 @@ fn property_partially_implemented() {
       ·
     9 │     FUNCTION_BLOCK fb IMPLEMENTS intf
       │                    ^^ Property `prop` (SET) defined in interface `intf` is missing in POU `fb`
-    "###);
+    ");
 }
 
 #[test]
@@ -2331,7 +2331,7 @@ fn interface_with_property_set_extending_other_interface_with_property_get() {
     END_FUNCTION_BLOCK
     ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"");
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @"");
 }
 
 #[test]
@@ -2365,7 +2365,7 @@ fn missing_property_accessor_implementation() {
     END_FUNCTION_BLOCK
   ";
 
-    insta::assert_snapshot!(parse_and_validate_buffered(source), @r###"
+    insta::assert_snapshot!(parse_and_validate_buffered(source), @r"
     error[E112]: Property `prop` (SET) defined in interface `intfB` is missing in POU `fb1`
        ┌─ <internal>:17:20
        │
@@ -2383,5 +2383,5 @@ fn missing_property_accessor_implementation() {
        ·
     23 │     FUNCTION_BLOCK fb2 IMPLEMENTS intfA, intfB
        │                    ^^^ Property `prop` (GET) defined in interface `intfA` is missing in POU `fb2`
-    "###);
+    ");
 }

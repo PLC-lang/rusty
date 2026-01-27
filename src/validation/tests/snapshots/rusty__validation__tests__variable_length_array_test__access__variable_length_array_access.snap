@@ -13,5 +13,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..5, 5..10] OF DINT' to '
    │
 18 │                 fn(local_b); // This call should fail, because we expect a 1D array
    │                    ^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..5, 5..10] OF DINT' to 'ARRAY[*] OF DINT'
-
-

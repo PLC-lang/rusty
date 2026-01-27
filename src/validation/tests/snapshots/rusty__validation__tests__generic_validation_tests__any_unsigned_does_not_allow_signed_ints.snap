@@ -25,5 +25,3 @@ error[E062]: Invalid type nature for generic argument. LINT is no ANY_UNSIGNED
   │
 6 │         FUNCTION func4  : INT VAR x : LINT; END_VAR test(x); END_FUNCTION
   │                                                          ^ Invalid type nature for generic argument. LINT is no ANY_UNSIGNED
-
-

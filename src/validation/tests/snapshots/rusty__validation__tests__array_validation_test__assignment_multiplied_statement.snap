@@ -61,5 +61,3 @@ error[E043]: Array `arr_3d_nested` has a size of 8, but 9 elements were provided
    │
 25 │             arr_3d_nested := [9(0)];
    │                              ^^^^^^ Array `arr_3d_nested` has a size of 8, but 9 elements were provided
-
-

@@ -19,5 +19,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found ')'
   │
 3 │                     buz(a,b; c);
   │                               ^ Unexpected token: expected KeywordSemicolon but found ')'
-
-

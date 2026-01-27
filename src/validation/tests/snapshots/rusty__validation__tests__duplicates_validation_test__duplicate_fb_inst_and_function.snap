@@ -19,5 +19,3 @@ error[E004]: foo: Ambiguous callable symbol.
    ·
 10 │             FUNCTION foo: INT
    │                      ^^^ foo: Ambiguous callable symbol.
-
-

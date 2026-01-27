@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected KeywordSemicolon but found 'foo()'
   │
 4 │                     foo();
   │                     ^^^^^ Unexpected token: expected KeywordSemicolon but found 'foo()'
-
-

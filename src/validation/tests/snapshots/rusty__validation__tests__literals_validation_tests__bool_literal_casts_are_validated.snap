@@ -19,5 +19,3 @@ error[E054]: Literal 'abc' is not compatible to BOOL
   │
 9 │             BOOL#'abc';
   │             ^^^^^^^^^^ Literal 'abc' is not compatible to BOOL
-
-

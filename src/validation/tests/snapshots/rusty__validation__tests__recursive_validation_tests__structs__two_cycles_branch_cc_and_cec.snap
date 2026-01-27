@@ -19,5 +19,3 @@ error[E029]: Recursive data structure `C -> E -> C` has infinite size
    ·
 15 │             TYPE E : STRUCT
    │                  - see also
-
-

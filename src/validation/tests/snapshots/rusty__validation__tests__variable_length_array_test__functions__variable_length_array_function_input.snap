@@ -7,5 +7,3 @@ warning[E047]: Variable Length Arrays are always by-ref, even when declared in a
   │
 4 │             arr : ARRAY[*] OF DINT;
   │             ^^^ Variable Length Arrays are always by-ref, even when declared in a by-value block
-
-

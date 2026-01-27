@@ -4,4 +4,3 @@ expression: diag.to_string()
 ---
 plc.json could not be validated due to the following errors:
 files[] has less than 1 item
-

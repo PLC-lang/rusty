@@ -49,5 +49,3 @@ error[E031]: Expected a reference for parameter byRefOutput because their type i
    │
 29 │             func(x, x, 3);
    │                        ^ Expected a reference for parameter byRefOutput because their type is Output
-
-

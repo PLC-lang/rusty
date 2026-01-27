@@ -1,7 +1,6 @@
 ---
 source: src/codegen/tests/debug_tests.rs
 expression: codegen
-snapshot_kind: text
 ---
 ; ModuleID = '<internal>'
 source_filename = "<internal>"

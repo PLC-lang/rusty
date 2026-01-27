@@ -7,5 +7,3 @@ error[E044]: VLAs can not be defined as global variables
   │
 3 │             vla : ARRAY[*, *] OF DINT;
   │             ^^^ VLAs can not be defined as global variables
-
-

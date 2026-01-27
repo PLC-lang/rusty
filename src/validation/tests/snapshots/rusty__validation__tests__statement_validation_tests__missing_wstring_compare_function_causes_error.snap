@@ -49,5 +49,3 @@ error[E073]: Missing compare function 'FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a
   │
 8 │             "a" >= "b"; // missing compare function :-(
   │             ^^^^^^^^^^ Missing compare function 'FUNCTION WSTRING_EQUAL : BOOL VAR_INPUT a,b : WSTRING; END_VAR ...'.
-
-

@@ -7,5 +7,3 @@ error[E033]: Unresolved constant `c` variable: `a` is no const reference
   │
 5 │             c : INT := a + b; // Will overflow
   │                        ^^^^^ Unresolved constant `c` variable: `a` is no const reference
-
-

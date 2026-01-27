@@ -1,7 +1,6 @@
 ---
 source: src/validation/tests/duplicates_validation_test.rs
 expression: "&diagnostics"
-snapshot_kind: text
 ---
 error[E004]: b: Duplicate symbol.
   ┌─ <internal>:5:13

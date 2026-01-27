@@ -31,5 +31,3 @@ error[E031]: Expected a reference for parameter byRefOutput because their type i
    │
 27 │             func(byValInput := 1, byRefInOut := x, byRefOutput => 3);
    │                                                                   ^ Expected a reference for parameter byRefOutput because their type is Output
-
-

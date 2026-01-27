@@ -13,5 +13,3 @@ error[E036]: Cannot assign to CONSTANT 'ci'
    │
 22 │             ci  := 4;
    │             ^^ Cannot assign to CONSTANT 'ci'
-
-

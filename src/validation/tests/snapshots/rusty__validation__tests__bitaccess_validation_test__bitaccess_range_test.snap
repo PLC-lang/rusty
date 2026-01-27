@@ -25,5 +25,3 @@ error[E057]: Bit-Wise access for type LWORD must be in range 0..63
   │
 9 │                 d.64;
   │                   ^^ Bit-Wise access for type LWORD must be in range 0..63
-
-

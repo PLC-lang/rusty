@@ -1,7 +1,6 @@
 ---
 source: src/parser/tests/expressions_parser_tests.rs
-expression: "parse_result.implementations[0].statements"
-snapshot_kind: text
+expression: "result.implementations[0].statements"
 ---
 [
     ReferenceExpr {

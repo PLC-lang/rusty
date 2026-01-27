@@ -13,5 +13,3 @@ error[E056]: Invalid type REAL for direct variable access. Only variables of Int
   │
 8 │                 c.%Xf;
   │                   ^^^ Invalid type REAL for direct variable access. Only variables of Integer types are allowed
-
-

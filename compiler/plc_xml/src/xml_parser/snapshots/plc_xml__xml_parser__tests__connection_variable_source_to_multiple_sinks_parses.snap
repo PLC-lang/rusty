@@ -1,6 +1,6 @@
 ---
 source: compiler/plc_xml/src/xml_parser/tests.rs
-expression: "parse(content::VAR_SOURCE_TO_MULTI_SINK).0.implementations[0].statements"
+expression: "parse(&content).0.implementations[0].statements"
 ---
 [
     Assignment {

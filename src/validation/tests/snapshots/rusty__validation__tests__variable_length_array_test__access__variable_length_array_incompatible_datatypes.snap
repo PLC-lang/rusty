@@ -19,5 +19,3 @@ error[E037]: Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRA
    │
 17 │                 fn(local_string);
    │                    ^^^^^^^^^^^^ Invalid assignment: cannot assign 'ARRAY[0..10] OF STRING' to 'ARRAY[*] OF DINT'
-
-

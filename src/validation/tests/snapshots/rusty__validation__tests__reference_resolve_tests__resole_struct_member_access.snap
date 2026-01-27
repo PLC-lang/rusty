@@ -37,5 +37,3 @@ error[E048]: Could not resolve reference to subfield30
    │
 40 │                 s.sub.subfield30;
    │                       ^^^^^^^^^^ Could not resolve reference to subfield30
-
-

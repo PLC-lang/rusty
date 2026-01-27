@@ -9,5 +9,3 @@ warning[E039]: This will overflow for type INT
   │ ╭────────────────────────^
 4 │ │             b : INT := 16384; // OK
   │ ╰────────────────────────────^ This will overflow for type INT
-
-

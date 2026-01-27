@@ -34,7 +34,7 @@ fn a_function_with_varargs_can_be_parsed() {
     let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    insta::assert_snapshot!(ast_string,  @r###"
+    insta::assert_snapshot!(ast_string,  @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -57,7 +57,7 @@ fn a_function_with_varargs_can_be_parsed() {
             ByVal,
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -68,7 +68,7 @@ fn a_function_with_typed_varargs_can_be_parsed() {
     let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    insta::assert_snapshot!(ast_string,@r###"
+    insta::assert_snapshot!(ast_string,@r#"
     VariableBlock {
         variables: [
             Variable {
@@ -95,7 +95,7 @@ fn a_function_with_typed_varargs_can_be_parsed() {
             ByVal,
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -106,7 +106,7 @@ fn a_function_with_sized_varargs_can_be_parsed() {
     let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    insta::assert_snapshot!(ast_string,  @r###"
+    insta::assert_snapshot!(ast_string,  @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -129,7 +129,7 @@ fn a_function_with_sized_varargs_can_be_parsed() {
             ByVal,
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -140,7 +140,7 @@ fn a_function_with_sized_typed_varargs_can_be_parsed() {
     let prg = &result.pous[0];
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    insta::assert_snapshot!(ast_string,@r###"
+    insta::assert_snapshot!(ast_string,@r#"
     VariableBlock {
         variables: [
             Variable {
@@ -167,7 +167,7 @@ fn a_function_with_sized_typed_varargs_can_be_parsed() {
             ByVal,
         ),
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -183,7 +183,7 @@ fn varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.pous[0], @r###"
+    assert_debug_snapshot!(parse_result.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [
@@ -226,7 +226,7 @@ fn varargs_parameters_can_be_parsed() {
         interfaces: [],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 #[test]
@@ -242,7 +242,7 @@ fn sized_varargs_parameters_can_be_parsed() {
     let (parse_result, diagnostics) = parse(src);
 
     assert_eq!(format!("{diagnostics:#?}"), format!("{:#?}", Vec::<Diagnostic>::new()).as_str());
-    assert_debug_snapshot!(parse_result.pous[0], @r###"
+    assert_debug_snapshot!(parse_result.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [
@@ -285,7 +285,7 @@ fn sized_varargs_parameters_can_be_parsed() {
         interfaces: [],
         properties: [],
     }
-    "###);
+    "#);
 }
 
 // Tests for function return types
@@ -478,7 +478,7 @@ fn var_input_by_ref_parsed() {
     let variable_block = &prg.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
 
-    insta::assert_snapshot!(ast_string, @r###"
+    insta::assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -492,7 +492,7 @@ fn var_input_by_ref_parsed() {
             ByRef,
         ),
     }
-    "###)
+    "#)
 }
 
 #[test]

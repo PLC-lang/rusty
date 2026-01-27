@@ -773,7 +773,7 @@ mod inheritance {
             ",
         );
 
-        assert_snapshot!(diagnostics, @r###"
+        assert_snapshot!(diagnostics, @r"
         error[E029]: Recursive data structure `X -> bar -> foo -> X` has infinite size
            ┌─ <internal>:11:18
            │
@@ -788,7 +788,7 @@ mod inheritance {
            │                  │
            │                  Recursive data structure `X -> bar -> foo -> X` has infinite size
            │                  see also
-        "###);
+        ");
     }
 
     #[test]

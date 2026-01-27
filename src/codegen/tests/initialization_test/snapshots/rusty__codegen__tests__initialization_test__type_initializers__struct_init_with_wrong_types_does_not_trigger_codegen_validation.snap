@@ -19,5 +19,3 @@ error[E041]: Cannot generate literal initializer for 'MyStruct.a': Value cannot 
    │              -------- see also
 10 │           a: DINT := 'hello';
    │                      ^^^^^^^ Cannot generate literal initializer for 'MyStruct.a': Value cannot be derived
-
-

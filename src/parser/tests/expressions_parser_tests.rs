@@ -1224,7 +1224,7 @@ fn string_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    assert_snapshot!(ast_string, @r###"
+    assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -1236,7 +1236,7 @@ fn string_can_be_parsed() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 
     let statements = &prg.statements;
     assert_debug_snapshot!(statements);
@@ -1251,7 +1251,7 @@ fn wide_string_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    assert_snapshot!(ast_string, @r###"
+    assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -1263,7 +1263,7 @@ fn wide_string_can_be_parsed() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 
     let statements = &prg.statements;
     assert_debug_snapshot!(statements);
@@ -1280,7 +1280,7 @@ fn arrays_can_be_parsed() {
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
 
-    assert_snapshot!(ast_string, @r###"
+    assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -1306,7 +1306,7 @@ fn arrays_can_be_parsed() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 
     let statements = &prg.statements;
     assert_debug_snapshot!(statements);
@@ -1321,7 +1321,7 @@ fn nested_arrays_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    assert_snapshot!(ast_string, @r###"
+    assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -1361,7 +1361,7 @@ fn nested_arrays_can_be_parsed() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 
     let statements = &prg.statements;
     assert_debug_snapshot!(statements);
@@ -1376,7 +1376,7 @@ fn multidim_arrays_can_be_parsed() {
     let prg = &result.implementations[0];
     let variable_block = &unit.variable_blocks[0];
     let ast_string = format!("{variable_block:#?}");
-    assert_snapshot!(ast_string, @r###"
+    assert_snapshot!(ast_string, @r#"
     VariableBlock {
         variables: [
             Variable {
@@ -1414,7 +1414,7 @@ fn multidim_arrays_can_be_parsed() {
         ],
         variable_block_type: Local,
     }
-    "###);
+    "#);
 
     let statements = &prg.statements;
     assert_debug_snapshot!(statements);
@@ -1571,7 +1571,7 @@ fn sized_string_as_function_return() {
     END_FUNCTION
     ",
     );
-    assert_debug_snapshot!(ast.pous[0], @r###"
+    assert_debug_snapshot!(ast.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -1592,7 +1592,7 @@ fn sized_string_as_function_return() {
         interfaces: [],
         properties: [],
     }
-    "###);
+    "#);
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -1605,7 +1605,7 @@ fn array_type_as_function_return() {
     ",
     );
 
-    assert_debug_snapshot!(ast.pous[0], @r###"
+    assert_debug_snapshot!(ast.pous[0], @r#"
     POU {
         name: "foo",
         variable_blocks: [],
@@ -1632,7 +1632,7 @@ fn array_type_as_function_return() {
         interfaces: [],
         properties: [],
     }
-    "###);
+    "#);
     assert_eq!(diagnostics.is_empty(), true);
 }
 
@@ -1795,7 +1795,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
         ";
 
     let parse_result = parse(src).0;
-    assert_debug_snapshot!(parse_result.implementations[0].statements, @r###"
+    assert_debug_snapshot!(parse_result.implementations[0].statements, @r#"
     [
         ReferenceExpr {
             kind: Member(
@@ -1883,7 +1883,7 @@ fn super_keyword_can_be_parsed_in_expressions() {
             },
         },
     ]
-    "###);
+    "#);
 }
 
 #[test]

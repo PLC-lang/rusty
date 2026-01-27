@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected KeywordEndVar but found 'VAR b : INT;'
   │
 4 │                     VAR b : INT; END_VAR
   │                     ^^^^^^^^^^^^ Unexpected token: expected KeywordEndVar but found 'VAR b : INT;'
-
-

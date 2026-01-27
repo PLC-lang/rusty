@@ -7,5 +7,3 @@ error[E007]: Unexpected token: expected Literal but found ;
   │
 3 │             T#;
   │               ^ Unexpected token: expected Literal but found ;
-
-

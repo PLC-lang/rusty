@@ -19,5 +19,3 @@ error[E004]: a: Ambiguous global variable.
   ·
 9 │             a: BOOL;
   │             ^ a: Ambiguous global variable.
-
-

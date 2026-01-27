@@ -37,5 +37,3 @@ error[E007]: Unexpected token: expected DataTypeDefinition but found KeywordSemi
   │
 7 │                 f , INT : ;
   │                           ^ Unexpected token: expected DataTypeDefinition but found KeywordSemicolon
-
-

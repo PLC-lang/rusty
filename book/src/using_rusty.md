@@ -162,3 +162,45 @@ int main() {
     return 0;
 }
 ```
+
+## Native Windows Usage Example
+
+- Ensure [`LLVM 21.1.7`](https://github.com/PLC-lang/llvm-package-windows/releases/tag/v21.1.7) is installed and it's `bin` folder is added to your `PATH` environment variable.
+
+- Install `plc.zip` from the [Windows Build Pipeline](https://github.com/PLC-lang/rusty/actions/workflows/windows.yml).
+
+    - Add it's location to the PATH environment variable. An AppData location is recommended.
+
+- Install `stdlib.lib` from the same pipeline into the same folder.
+
+- Install the `Windows SDK` and `MSVC`. You can use the Visual Studio Installer to do this or install them as standalone packages. 
+
+- Create a `LIB` environment variable containing paths to `iec61131std.lib`, `ws2_32.lib`, `ntdll.lib`, `userenv.lib`, `libcmt.lib`, `oldnames.lib` and `libucrt.lib`.
+
+    - Your environment variable should look something like this:
+
+    ```
+    C:/Users/<USERNAME HERE>/AppData/Local/rustycompiler;
+    C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\um\x64;
+    C:\Program Files (x86)\Windows Kits\10\Lib\10.0.26100.0\ucrt\x64;
+    C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.43.34808\lib\x64;
+    ```
+
+- Restart your terminals to refresh the environment.
+
+- Create an `exports.def` file in preparation `clang` usage.
+
+```
+EXPORTS
+    main
+
+```
+
+This example allows linking with Rusty's Standard Library.
+    
+- Proceed with compilation:
+    
+    ```
+    plc ./examples/hello_world.st -c -l iec61131std -l ws2_32 -l ntdll -l userenv -o ./hello_world.o
+    clang ./hello_world.o --shared -l iec61131std -l ws2_32 -l ntdll -l userenv -fuse-ld=lld-link "-Wl,/DEF:exports.def" -o ./hello_world.dll
+    ```

@@ -1,6 +1,6 @@
 ---
 source: src/parser/tests/variable_parser_tests.rs
-expression: "format!(\"{:#?}\", vars)"
+expression: "format!(\"{vars:#?}\")"
 ---
 VariableBlock {
     variables: [

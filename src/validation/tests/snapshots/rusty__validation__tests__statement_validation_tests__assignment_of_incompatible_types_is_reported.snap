@@ -25,5 +25,3 @@ error[E037]: Invalid assignment: cannot assign 'STRING' to 'ARRAY[0..3] OF LWORD
    │
 11 │         array_ := string_;          // invalid
    │         ^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'STRING' to 'ARRAY[0..3] OF LWORD'
-
-

@@ -34,7 +34,7 @@ fn representation_of_a_flat_reference() {
 
     let statement = &unit.implementations[0].statements[0];
     // Note that `point` is a Member-AST strcture where base=None
-    insta::assert_debug_snapshot!(statement, @r###"
+    insta::assert_debug_snapshot!(statement, @r#"
     ReferenceExpr {
         kind: Member(
             Identifier {
@@ -43,7 +43,7 @@ fn representation_of_a_flat_reference() {
         ),
         base: None,
     }
-    "###);
+    "#);
 }
 
 /// A qualified reference makes use of the recursive characteristics of
@@ -67,7 +67,7 @@ fn representation_of_a_qualified_reference() {
     // Note that the expression is a recursive datastructure.
     // it is stored backwards! (x -> position -> obj). This representation
     // helps during type-resolving, validation and code-generation
-    insta::assert_debug_snapshot!(statement, @r###"
+    insta::assert_debug_snapshot!(statement, @r#"
     ReferenceExpr {
         kind: Member(
             Identifier {
@@ -94,7 +94,7 @@ fn representation_of_a_qualified_reference() {
             },
         ),
     }
-    "###);
+    "#);
 }
 
 /// Accessing an element of an array simply stores the index-statement within the
@@ -112,7 +112,7 @@ fn representation_of_an_array_expression_reference() {
 
     let statement = &unit.implementations[0].statements[0];
     // Note that the root of this expression is an Index-Access with a base-expression (again reversed order)
-    insta::assert_debug_snapshot!(statement, @r###"
+    insta::assert_debug_snapshot!(statement, @r#"
     ReferenceExpr {
         kind: Index(
             LiteralInteger {
@@ -139,7 +139,7 @@ fn representation_of_an_array_expression_reference() {
             },
         ),
     }
-    "###);
+    "#);
 }
 
 /// Deref expressions are stateless ReferenceAccess-Variants. They simply indicate
@@ -157,7 +157,7 @@ fn representation_of_a_pointer_expression_reference() {
     );
 
     let deref = &unit.implementations[0].statements[0];
-    insta::assert_debug_snapshot!(deref, @r###"
+    insta::assert_debug_snapshot!(deref, @r#"
     ReferenceExpr {
         kind: Deref,
         base: Some(
@@ -180,7 +180,7 @@ fn representation_of_a_pointer_expression_reference() {
             },
         ),
     }
-    "###);
+    "#);
 }
 
 /// A cast statement is also represented as a ReferenceExpression
@@ -199,7 +199,7 @@ fn representation_of_an_cast_expression_reference() {
     );
 
     let address_of = &unit.implementations[0].statements[0];
-    insta::assert_debug_snapshot!(address_of, @r###"
+    insta::assert_debug_snapshot!(address_of, @r#"
     ReferenceExpr {
         kind: Cast(
             LiteralInteger {
@@ -217,10 +217,10 @@ fn representation_of_an_cast_expression_reference() {
             },
         ),
     }
-    "###);
+    "#);
 
     let deref = &unit.implementations[0].statements[1];
-    insta::assert_debug_snapshot!(deref, @r###"
+    insta::assert_debug_snapshot!(deref, @r#"
     ReferenceExpr {
         kind: Cast(
             Identifier {
@@ -238,5 +238,5 @@ fn representation_of_an_cast_expression_reference() {
             },
         ),
     }
-    "###);
+    "#);
 }

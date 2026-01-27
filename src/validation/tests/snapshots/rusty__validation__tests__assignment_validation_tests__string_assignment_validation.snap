@@ -115,5 +115,3 @@ error[E037]: Invalid assignment: cannot assign 'INT' to 'STRING'
    │
 53 │     v_string := v_arr_int_3[0]; // INVALID
    │     ^^^^^^^^^^^^^^^^^^^^^^^^^^ Invalid assignment: cannot assign 'INT' to 'STRING'
-
-
