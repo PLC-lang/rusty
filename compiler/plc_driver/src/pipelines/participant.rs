@@ -320,7 +320,7 @@ impl PipelineParticipantMut for VirtualTableGenerator {
     fn post_index(&mut self, indexed_project: IndexedProject) -> IndexedProject {
         let IndexedProject { mut project, index, .. } = indexed_project;
 
-        let mut gen = VirtualTableGenerator::new(self.ids.clone());
+        let mut gen = VirtualTableGenerator::new(self.ids.clone(), self.generate_external_constructors);
         gen.generate(&index, &mut project.units);
 
         project.index(self.ids.clone())

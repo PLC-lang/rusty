@@ -37,11 +37,4 @@ fn main() {
     println!("cargo:rustc-link-search=native={out_dir}");
     println!("cargo:rerun-if-changed=iec61131-st/");
     println!("cargo:rustc-link-lib=static:+whole-archive=st"); //create a whole archive without throwing away any object files (https://github.com/rust-lang/rust/pull/105601).
-
-    //We can link against the st lib generated, but this will only be reflected in static libs.
-    // The shared lib still has to be generated later.
-    // There is a planned feature in rust to allow whole-archive linking, but i could not get it to
-    // work (should look something like this : `println!("cargo:rustc-flags=-l static:+whole-archive=st");`)
-    // The following clang command is equivalent:  clang -o libiec.so --shared -Wl,--whole-archive -lst -L. -Wl,--no-whole-archive  iec.o
-    // https://stackoverflow.com/questions/55886779/how-to-link-a-c-library-without-calling-one-of-its-functions
 }

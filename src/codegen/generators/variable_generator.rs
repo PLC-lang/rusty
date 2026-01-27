@@ -95,15 +95,17 @@ impl<'ctx, 'b> VariableGenerator<'ctx, 'b> {
             })?;
             index.associate_global(name, global_variable)?;
 
-            if !linkage.is_external_or_included() {
-                // generate debug info for non-external variables
-                self.debug.create_global_variable(
-                    variable.get_qualified_name(),
-                    &variable.data_type_name,
-                    global_variable,
-                    &variable.source_location,
-                );
-            }
+            // FIXME: We need debug info for external variables, but they were causing some segfault we
+            // need to investigate later.
+            // if !linkage.is_external_or_included() {
+            // generate debug info for non-external variables
+            self.debug.create_global_variable(
+                variable.get_qualified_name(),
+                &variable.data_type_name,
+                global_variable,
+                &variable.source_location,
+            );
+            // }
         }
 
         Ok(index)

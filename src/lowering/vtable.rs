@@ -79,11 +79,12 @@ use crate::{index::Index, typesystem::VOID_INTERNAL_NAME};
 
 pub struct VirtualTableGenerator {
     pub ids: IdProvider,
+    pub generate_external_constructors: bool,
 }
 
 impl VirtualTableGenerator {
-    pub fn new(ids: IdProvider) -> VirtualTableGenerator {
-        VirtualTableGenerator { ids }
+    pub fn new(ids: IdProvider, generate_external_constructors: bool) -> VirtualTableGenerator {
+        VirtualTableGenerator { ids, generate_external_constructors }
     }
 
     pub fn generate(&mut self, index: &Index, units: &mut Vec<CompilationUnit>) {
@@ -98,10 +99,11 @@ impl VirtualTableGenerator {
                 let instance = self.generate_vtable_instance(pou, &definition);
 
                 definitions.push(definition);
-                if pou.linkage.is_external_or_included() {
-                    external_instances.push(instance);
-                } else {
-                    internal_instances.push(instance);
+                //When generating vtable instances, if we are generatig external constructors treat the vtable as internal
+                match pou.linkage {
+                    LinkageType::External if self.generate_external_constructors => internal_instances.push(instance),
+                    LinkageType::External | LinkageType::Include => external_instances.push(instance),
+                    _ => internal_instances.push(instance),
                 }
             }
 
@@ -336,7 +338,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids,false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].pous.iter().find(|pou| pou.name == "FbA").unwrap();
@@ -433,7 +435,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids,false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
@@ -522,7 +524,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids,false);
         generator.generate(&index, &mut units);
 
         let fb_a = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbA");
@@ -711,7 +713,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids,false);
         generator.generate(&index, &mut units);
 
         let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
@@ -900,7 +902,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids,false);
         generator.generate(&index, &mut units);
 
         let fb_b = units[0].user_types.iter().find(|ut| ut.data_type.get_name().unwrap() == "__vtable_FbB");
@@ -1179,7 +1181,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         insta::assert_debug_snapshot!(units[0].global_vars, @r#"
@@ -1296,7 +1298,7 @@ mod tests {
         );
 
         let mut units = vec![unit];
-        let mut generator = VirtualTableGenerator::new(ids);
+        let mut generator = VirtualTableGenerator::new(ids, false);
         generator.generate(&index, &mut units);
 
         let mut types = Vec::new();

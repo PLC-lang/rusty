@@ -257,7 +257,7 @@ impl<T: SourceContainer> BuildPipeline<T> {
         use participant::InitParticipant;
 
         vec![
-            Box::new(VirtualTableGenerator::new(self.context.provider())),
+            Box::new(VirtualTableGenerator::new(self.context.provider(), self.context.should_generate_external_constructors())),
             Box::new(PolymorphicCallLowerer::new(self.context.provider())),
             Box::new(PropertyLowerer::new(self.context.provider())),
             Box::new(AggregateTypeLowerer::new(self.context.provider())),

@@ -354,6 +354,10 @@ impl LinkageType {
     pub fn is_external_or_included(&self) -> bool {
         matches!(self, LinkageType::External | LinkageType::Include)
     }
+    
+    pub fn is_external(&self) -> bool {
+        matches!(self, LinkageType::External)
+    }
 
     pub fn is_built_in(&self) -> bool {
         matches!(self, LinkageType::BuiltIn)

@@ -458,6 +458,7 @@ mod tests {
         let mut pipeline = BuildPipeline::from_sources("test.st", vec![(src)], diagnostician).unwrap();
         pipeline.register_mut_participants(vec![Box::new(VirtualTableGenerator::new(
             pipeline.context.provider(),
+            generate_externals,
         ))]);
         let AnnotatedProject { units, index, .. } = pipeline.parse_and_annotate().unwrap();
         // Visit the AST with the Initializer

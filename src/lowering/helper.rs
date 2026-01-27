@@ -204,7 +204,7 @@ pub fn new_unit_constructor(
     statements: Vec<AstNode>,
     mut id_provider: IdProvider,
 ) -> (Pou, Implementation) {
-    let ctor_name = format!("__{unit_name}_ctor");
+    let ctor_name = format!("__unit_{unit_name}_ctor");
     let pou = new_pou(
         &ctor_name,
         id_provider.next_id(),
