@@ -1,0 +1,254 @@
+(*****************************************************************************
+ * Copyright (c) 2025 Bachmann
+ ****************************************************************************)
+(**
+ * @defgroup time-interface
+ * @brief Time and date interface functions.
+ *
+ * @{
+*)
+(**
+ * @brief Get current monotonic time in nanoseconds.
+ *
+ * Returns a monotonically increasing time value in nanoseconds,
+ * not affected by system time changes.
+ *
+ * @return Monotonic time in nanoseconds.
+ *)
+FUNCTION TIME_GetMonotonic : ULINT
+END_FUNCTION
+(**
+ * @brief Get current monotonic time in milliseconds.
+ *
+ * @return Monotonic time in milliseconds.
+ *)
+FUNCTION TIME_GetMonotonicMillis : ULINT
+END_FUNCTION
+(**
+ * @brief Get current monotonic time in seconds.
+ *
+ * @return Monotonic time in seconds.
+ *)
+FUNCTION TIME_GetMonotonicSeconds : ULINT
+END_FUNCTION
+(**
+ * @brief Get current realtime in nanoseconds.
+ *
+ * Returns the system wall-clock time in nanoseconds since
+ * 1970-01-01T00:00:00Z (Unix epoch).
+ *
+ * @return Realtime in nanoseconds since Unix epoch.
+ *)
+FUNCTION TIME_GetRealtime : ULINT
+END_FUNCTION
+(**
+ * @brief Get current realtime in milliseconds.
+ *
+ * @return Realtime in milliseconds since Unix epoch.
+ *)
+FUNCTION TIME_GetRealtimeMillis : ULINT
+END_FUNCTION
+(**
+ * @brief Get current realtime in seconds.
+ *
+ * @return Realtime in seconds since Unix epoch.
+ *)
+FUNCTION TIME_GetRealtimeSeconds : ULINT
+END_FUNCTION
+(**
+ * @brief Get the current time of a specific clock.
+ *
+ * Reads the current value of the selected clock.
+ *
+ * @param[in]  ClockId Clock identifier (TIME_CLOCK_REALTIME or TIME_CLOCK_MONOTONIC).
+ * @param[out] Time    Returned time value.
+ * @return Error code.
+ *)
+FUNCTION TIME_ClockGetTime : ErrorCode
+VAR_INPUT
+    ClockId : TIME_CLOCKID;
+END_VAR
+VAR_OUTPUT
+    Time : TIME_TIMESPEC;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Set the current time of a specific clock.
+ *
+ * Sets the time of the selected clock.
+ * For TIME_CLOCK_REALTIME this changes the system wall-clock time
+ * and requires appropriate system privileges.
+ *
+ * @param[in] ClockId Clock identifier.
+ * @param[in] Time    New time value to apply.
+ * @return Error code.
+ *)
+FUNCTION TIME_ClockSetTime : ErrorCode
+VAR_INPUT
+    ClockId : TIME_CLOCKID;
+    Time    : TIME_TIMESPEC;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Get the effective timezone name.
+ *
+ * Returns the currently active timezone identifier for this process.
+ * If a timezone was set using TIME_SetTimezone, that value is returned.
+ * Otherwise, the system's configured timezone is returned if available,
+ * or "UTC" as fallback.
+ *
+ * @param[out] Error Error code.
+ * @return Timezone name as STRING.
+ *)
+FUNCTION TIME_GetTimezone : STRING[255]
+VAR_OUTPUT
+    Error : ErrorCode;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Set the timezone for this process.
+ *
+ * Changes the active timezone used for all local time conversions
+ * in this process.
+ *
+ * @param[in] Timezone Timezone identifier (e.g. "UTC", "Europe/Vienna").
+ * @return Error code.
+ *)
+FUNCTION TIME_SetTimezone : ErrorCode
+VAR_INPUT
+    Timezone : STRING[255];
+END_VAR
+END_FUNCTION
+(**
+ * @brief Get the current timezone offset.
+ *
+ * Returns the offset in seconds east of UTC that applies at the
+ * current realtime, based on the active timezone.
+ *
+ * @return Offset in seconds east of UTC.
+ *)
+FUNCTION TIME_GetTimezoneOffset : DINT
+END_FUNCTION
+(**
+ * @brief Convert a timestamp to a broken-down system time structure.
+ *
+ * Interprets @p timestamp_sec as seconds since the Unix epoch. The resulting
+ * @p SysTimeDate contains:
+ * - UTC date/time fields
+ * - Gmtoff = 0
+ * - Zone = "UTC"
+ *
+ * @param[in]  Timestamp    Seconds since the Unix epoch.
+ * @param[out] SysTimeDate  Resulting broken-down system time structure.
+ * @return Error code.
+ *)
+FUNCTION TIME_TimestampToSysTimeDate : ErrorCode
+VAR_INPUT
+    Timestamp : ULINT;
+END_VAR
+VAR_OUTPUT
+    SysTimeDate : TIME_SYSTIMEDATE;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Convert a timestamp to a broken-down system time structure.
+ *
+ * Interprets @p timestamp_sec as seconds since the Unix epoch and converts
+ * it to local time using the current process timezone. The resulting
+ * @p SysTimeDate contains:
+ * - local date/time fields
+ * - Gmtoff set to the effective offset in seconds east of UTC
+ * - Zone set to the local timezone/abbreviation
+ *
+ * @param[in]  Timestamp    Seconds since the Unix epoch.
+ * @param[out] SysTimeDate  Resulting broken-down local system time structure.
+ * @return Error code.
+ *)
+FUNCTION TIME_TimestampToLocalSysTimeDate : ErrorCode
+VAR_INPUT
+    Timestamp : ULINT;
+END_VAR
+VAR_OUTPUT
+    SysTimeDate : TIME_SYSTIMEDATE;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Convert a broken-down system time structure to a timestamp.
+ *
+ * Interprets the fields in @p SysTimeDate depending on the specified offset
+ * in @p Gmtoff.
+ *
+ * @param[in]  SysTimeDate  Broken-down system time structure.
+ * @param[out] Timestamp    Resulting timestamp in seconds since the Unix epoch.
+ * @return Error code.
+ *)
+FUNCTION TIME_SysTimeDateToTimestamp : ErrorCode
+VAR_INPUT
+    SysTimeDate : TIME_SYSTIMEDATE;
+END_VAR
+VAR_OUTPUT
+    Timestamp : ULINT;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Format a broken-down system time structure as text.
+ *
+ * Formats SysTimeDate using a strftime-compatible Format string.
+ *
+ * - If SysTimeDate.Gmtoff is valid, it is used for %z.
+ * - If SysTimeDate.Tzone is non-empty, it is used for %Z.
+ *
+ * @param[in]  SysTimeDate Broken-down system time structure.
+ * @param[in]  Format      Strftime-compatible format string.
+ * @param[out] Str         Resulting formatted time text.
+ * @return Error code.
+ *)
+FUNCTION TIME_FormatString : ErrorCode
+VAR_INPUT
+    SysTimeDate : TIME_SYSTIMEDATE;
+    Format      : STRING[80];
+END_VAR
+VAR_OUTPUT
+    Str : STRING[255];
+END_VAR
+END_FUNCTION
+(**
+ * @brief Parse a date/time string into a broken-down system time structure.
+ *
+ * Parses @p Str according to the strptime-compatible format @p Format and fills
+ * the @p SysTimeDate with the resulting broken-down time fields.
+ *
+ * - If Format contains %z, SysTimeDate.Gmtoff is set from the parsed offset.
+ * - If Format contains %Z, SysTimeDate.Tzone is set from the parsed name.
+ *
+ * @param[in]  Format      Format string.
+ * @param[in]  Str         Input text to parse.
+ * @param[out] SysTimeDate Resulting broken-down system time structure.
+ * @return Error code.
+ *)
+FUNCTION TIME_ParseString : ErrorCode
+VAR_INPUT
+    Format      : STRING[80];
+    Str         : STRING[255];
+END_VAR
+VAR_OUTPUT
+    SysTimeDate : TIME_SYSTIMEDATE;
+END_VAR
+END_FUNCTION
+(**
+ * @brief Check if the system clock is synchronized.
+ *
+ * Indicates whether the system clock is currently considered synchronized
+ * by a time source (e.g. NTP).
+ *
+ * @param[out] InSync TRUE if synchronized, FALSE otherwise.
+ * @return Error code.
+ *)
+FUNCTION TIME_IsClockSynchronized : ErrorCode
+VAR_OUTPUT
+    InSync : BOOL;
+END_VAR
+END_FUNCTION
+(**
+ * @}
+*)

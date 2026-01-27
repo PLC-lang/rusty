@@ -1,0 +1,64 @@
+---
+source: compiler/plc_driver/src/tests/header_generator.rs
+expression: "&generated_header.get_contents()"
+---
+// ---------------------------------------------------- //
+// This file is auto-generated                          //
+// Manual changes made to this file will be overwritten //
+// ---------------------------------------------------- //
+
+#ifndef FUNCTIONS_WITH_COMPLEX_TYPES
+#define FUNCTIONS_WITH_COMPLEX_TYPES
+
+#include <stdint.h>
+#include <math.h>
+#include <stdbool.h>
+#include <dependencies.plc.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+typedef enum eComplexEnumType {
+    orange = 10,
+    yellow = 20,
+    purple = 30
+} ComplexEnumType;
+
+typedef struct {
+    uint8_t Field1;
+    int16_t Field2;
+    int32_t Field3;
+} StructWithPrimitiveTypes;
+
+typedef struct {
+    uint8_t byteField;
+    int16_t intField;
+    int32_t dIntField;
+    char stringField[255];
+    int16_t wStringField[6000];
+    ComplexEnumType complexEnumTypeField;
+    int16_t intArrayField[10];
+} StructWithComplexTypes;
+
+void fnThatUsesStructWithPrimitiveTypes(StructWithPrimitiveTypes* fnThatUsesStructWithPrimitiveTypes, StructWithPrimitiveTypes* varStruct);
+
+void fnThatUsesStructWithComplexTypes(StructWithComplexTypes* fnThatUsesStructWithComplexTypes, StructWithComplexTypes* varStruct, ComplexEnumType varEnum, char* varString, int16_t* varIntArray);
+
+void fnThatUsesPrimitiveTypesAndReferences(int16_t varInt, int16_t* varRefToInt, int16_t* varPointerToInt, time_t* varRefToDate, time_t* varPointerToDate);
+
+void fnThatHasIntWithRange(int16_t varIntWithRange);
+
+void fnThatHasVariadicIntInput(int16_t varIntInput, ...);
+
+void fnThatHasVariadicStringInput(int16_t varIntInput, ...);
+
+void fnThatHasVariadicComplexTypeInput(int16_t varIntInput, ...);
+
+void fnThatHasVariableLengthArrayInput(int16_t* varVariableLengthArray);
+
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
+
+#endif /* !FUNCTIONS_WITH_COMPLEX_TYPES */

@@ -53,6 +53,7 @@ mod integration {
     mod cfc;
     mod command_line_compile;
     mod external_files;
+    mod header_generator_tests;
     mod linking;
     mod multi_files;
 }
@@ -89,6 +90,18 @@ fn get_test_file(name: &str) -> String {
     assert!(data_path.exists());
 
     data_path.display().to_string()
+}
+
+/// Gets the integration data folder for tests
+fn get_test_directory() -> PathBuf {
+    let mut data_path = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    data_path.push("tests");
+    data_path.push("integration");
+    data_path.push("data");
+
+    assert!(data_path.exists());
+
+    data_path
 }
 
 /// # Safety

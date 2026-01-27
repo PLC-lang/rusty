@@ -13,6 +13,7 @@ use plc_ast::{
 };
 use plc_source::source_location::SourceLocation;
 use rustc_hash::FxHashSet;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     datalayout::{Bytes, MemoryLocation},
@@ -96,7 +97,8 @@ pub const __VLA_TYPE: &str = "__VLA";
 #[cfg(test)]
 mod tests;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct DataType {
     pub name: String,
     /// the initial value defined on the TYPE-declaration
@@ -296,7 +298,7 @@ impl DataType {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum VarArgs {
     Sized(Option<String>),
     Unsized(Option<String>),
@@ -316,7 +318,7 @@ impl VarArgs {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StringEncoding {
     Utf8,
     Utf16,
@@ -332,7 +334,7 @@ impl StringEncoding {
 }
 
 /// Enum for ranges and aggregate type sizes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TypeSize {
     LiteralInteger(i64),
     ConstExpression(ConstId),
@@ -387,7 +389,7 @@ impl TypeSize {
 }
 
 /// indicates where this Struct origins from.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum StructSource {
     OriginalDeclaration,
     Pou(PouType),
@@ -403,7 +405,7 @@ impl StructSource {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum InternalType {
     VariableLengthArray { inner_type_name: String, ndims: usize },
     __VLA, // used for error-reporting only
@@ -411,7 +413,8 @@ pub enum InternalType {
 
 type TypeId = String;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataTypeInformation {
     Struct {
         name: TypeId,
@@ -847,7 +850,7 @@ impl DataTypeInformation {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Dimension {
     pub start_offset: TypeSize,
     pub end_offset: TypeSize,

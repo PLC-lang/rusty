@@ -23,13 +23,14 @@ use plc_source::source_location::*;
 
 pub type AstId = usize;
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct GenericBinding {
     pub name: String,
     pub nature: TypeNature,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Pou {
     pub id: AstId,
     pub name: String,
@@ -53,7 +54,8 @@ pub struct Pou {
     pub properties: Vec<PropertyBlock>,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Interface {
     pub id: AstId,
     pub ident: Identifier,
@@ -63,14 +65,16 @@ pub struct Interface {
     pub properties: Vec<PropertyBlock>,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Identifier {
     pub name: String,
     pub location: SourceLocation,
 }
 
 /// The property container as a whole, which contains [`PropertyImplementation`]s
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct PropertyBlock {
     pub ident: Identifier,
     pub datatype: DataTypeDeclaration,
@@ -87,7 +91,8 @@ impl Hash for PropertyBlock {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct PropertyImplementation {
     pub kind: PropertyKind,
     pub location: SourceLocation,
@@ -96,7 +101,7 @@ pub struct PropertyImplementation {
     pub end_location: SourceLocation,
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PropertyKind {
     Get,
     Set,
@@ -111,7 +116,7 @@ impl std::fmt::Display for PropertyKind {
     }
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PolymorphismMode {
     None,
     Abstract,
@@ -138,7 +143,7 @@ pub enum DirectAccessType {
     Template,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Hash, Serialize, Deserialize)]
 pub enum TypeNature {
     Any,
     Derived,
@@ -298,7 +303,8 @@ impl Pou {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Implementation {
     pub name: String,
     pub type_name: String,
@@ -313,14 +319,14 @@ pub struct Implementation {
     pub access: Option<AccessModifier>,
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum LinkageType {
     Internal,
     External,
     BuiltIn,
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Copy)]
+#[derive(Debug, PartialEq, Eq, Clone, Copy, Serialize, Deserialize)]
 pub enum AccessModifier {
     Private,
     Public,
@@ -328,7 +334,7 @@ pub enum AccessModifier {
     Internal,
 }
 
-#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Copy, Clone, Hash, Serialize, Deserialize)]
 pub enum DeclarationKind {
     Abstract,
     Concrete,
@@ -344,7 +350,7 @@ impl DeclarationKind {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone, Hash)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
 pub enum PouType {
     Program,
     Function,
@@ -406,7 +412,8 @@ impl PouType {
     }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ConfigVariable {
     pub reference: AstNode,
     pub data_type: DataTypeDeclaration,
@@ -425,7 +432,8 @@ impl ConfigVariable {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct CompilationUnit {
     pub global_vars: Vec<VariableBlock>,
     pub var_config: Vec<ConfigVariable>,
@@ -470,7 +478,7 @@ impl CompilationUnit {
     }
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum VariableBlockType {
     Local,
     Temp,
@@ -495,13 +503,14 @@ impl Display for VariableBlockType {
     }
 }
 
-#[derive(Debug, Copy, PartialEq, Eq, Clone)]
+#[derive(Debug, Copy, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum ArgumentProperty {
     ByVal,
     ByRef,
 }
 
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct VariableBlock {
     pub access: AccessModifier,
     pub constant: bool,
@@ -551,7 +560,8 @@ impl Debug for VariableBlock {
     }
 }
 
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Variable {
     pub name: String,
     pub data_type_declaration: DataTypeDeclaration,
@@ -594,7 +604,8 @@ impl Variable {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataTypeDeclaration {
     Reference { referenced_type: String, location: SourceLocation },
     Definition { data_type: Box<DataType>, location: SourceLocation, scope: Option<String> },
@@ -672,13 +683,15 @@ impl DataTypeDeclaration {
     }
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct UserTypeDeclaration {
     pub data_type: DataType,
     pub initializer: Option<AstNode>,
     pub location: SourceLocation,
     /// stores the original scope for compiler-generated types
     pub scope: Option<String>,
+    pub linkage: LinkageType,
 }
 
 impl Debug for UserTypeDeclaration {
@@ -691,7 +704,8 @@ impl Debug for UserTypeDeclaration {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum DataType {
     StructType {
         name: Option<String>, //maybe None for inline structs
@@ -742,7 +756,7 @@ pub enum DataType {
     },
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum AutoDerefType {
     /// A plain pointer variable with the auto-deref trait, e.g. VAR_IN_OUT or VAR_INPUT{ref} variables
     Default,
@@ -820,7 +834,8 @@ fn replace_reference(
     Some(*old_data_type)
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub enum ReferenceAccess {
     /// `.foo`
     Global(Box<AstNode>),
@@ -844,7 +859,8 @@ pub enum ReferenceAccess {
 // XXX: this should probably be an enum or dyn trait at some point, but for now we only have a singular use-case (preserving lowered AST for validation)
 // Another use-case might be markers to exclude internals from validation - this currently happens based on `SourceLocation` with `FileMarker`s,
 // this might be a better alternative
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct MetaData(Box<AstNode>);
 
 impl From<AstNode> for MetaData {
@@ -867,7 +883,8 @@ impl MetaData {
     }
 }
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct AstNode {
     pub stmt: AstStatement,
     pub id: AstId,
@@ -881,7 +898,8 @@ impl Default for AstNode {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, TryInto)]
+#[derive(Debug, Clone, PartialEq, TryInto, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 #[try_into(ref, ref_mut, owned)]
 pub enum AstStatement {
     EmptyStatement(EmptyStatement),
@@ -1496,7 +1514,7 @@ impl AstNode {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Operator {
     Plus,
     Minus,
@@ -2056,10 +2074,10 @@ impl AstFactory {
         AstFactory::create_binary_expression(value, Operator::Plus, one, id)
     }
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct EmptyStatement {}
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DefaultValue {}
 
 #[derive(Debug, Clone, PartialEq)]
@@ -2068,63 +2086,73 @@ pub struct CastStatement {
     pub type_name: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct MultipliedStatement {
     pub multiplier: u32,
     pub element: Box<AstNode>,
 }
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct ReferenceExpr {
     pub access: ReferenceAccess,
     pub base: Option<Box<AstNode>>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct DirectAccess {
     pub access: DirectAccessType,
     pub index: Box<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct HardwareAccess {
     pub direction: HardwareAccessType,
     pub access: DirectAccessType,
     pub address: Vec<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct BinaryExpression {
     pub operator: Operator,
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct UnaryExpression {
     pub operator: Operator,
     pub value: Box<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct RangeStatement {
     pub start: Box<AstNode>,
     pub end: Box<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct Assignment {
     pub left: Box<AstNode>,
     pub right: Box<AstNode>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct CallStatement {
     pub operator: Box<AstNode>,
     pub parameters: Option<Box<AstNode>>,
 }
 
 /// Represents a conditional jump from current location to a specified label
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(bound(deserialize = "'de: 'static"))]
 pub struct JumpStatement {
     /// The condition based on which the current statement will perform a jump
     pub condition: Box<AstNode>,
@@ -2133,12 +2161,12 @@ pub struct JumpStatement {
 }
 
 /// Represents a location in code that could be jumbed to
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LabelStatement {
     pub name: String,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Allocation {
     pub name: String,
     pub reference_type: String,

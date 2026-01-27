@@ -1,0 +1,5 @@
+RUN: %COMPILE %S/message_printer_prog.st && %RUN | %CHECK %s
+CHECK: One ring to rule them all,
+CHECK: one ring to find them.
+CHECK: One ring to bring them all,
+CHECK: and in the darkness bind them.

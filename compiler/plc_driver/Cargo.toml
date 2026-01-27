@@ -15,6 +15,7 @@ cfc = { path = "../plc_xml/", package = "plc_xml" }
 plc_diagnostics = { path = "../plc_diagnostics/" }
 plc_index = { path = "../plc_index" }
 plc_lowering = { path = "../plc_lowering" }
+plc_header_generator = { path = "../plc_header_generator" }
 
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
